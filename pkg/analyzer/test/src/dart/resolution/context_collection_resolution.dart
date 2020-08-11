@@ -31,6 +31,7 @@ import 'resolution.dart';
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
   final bool implicitCasts;
+  final bool implicitDynamic;
   final List<String> lints;
   final bool strictInference;
   final bool strictRawTypes;
@@ -38,6 +39,7 @@ class AnalysisOptionsFileConfig {
   AnalysisOptionsFileConfig({
     this.experiments,
     this.implicitCasts,
+    this.implicitDynamic,
     this.lints,
     this.strictInference,
     this.strictRawTypes,
@@ -47,9 +49,10 @@ class AnalysisOptionsFileConfig {
     var buffer = StringBuffer();
 
     if (experiments != null ||
+        implicitCasts != null ||
+        implicitDynamic != null ||
         strictRawTypes != null ||
-        strictInference != null ||
-        implicitCasts != null) {
+        strictInference != null) {
       buffer.writeln('analyzer:');
 
       if (experiments != null) {
@@ -67,9 +70,14 @@ class AnalysisOptionsFileConfig {
         buffer.writeln('    strict-inference: $strictInference');
       }
 
-      if (implicitCasts != null) {
+      if (implicitCasts != null || implicitDynamic != null) {
         buffer.writeln('  strong-mode:');
-        buffer.writeln('    implicit-casts: $implicitCasts');
+        if (implicitCasts != null) {
+          buffer.writeln('    implicit-casts: $implicitCasts');
+        }
+        if (implicitDynamic != null) {
+          buffer.writeln('    implicit-dynamic: $implicitDynamic');
+        }
       }
     }
 

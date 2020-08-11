@@ -7,11 +7,12 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../utils.dart';
-import 'strong_test_helper.dart';
+import '../../dart/resolution/context_collection_resolution.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,61 +21,60 @@ void main() {
 }
 
 @reflectiveTest
-class InferredTypeTest extends AbstractStrongTest {
-  /// Add the file, process it (resolve, validate, etc) and return the resolved
-  /// unit element.
-  Future<CompilationUnitElement> checkFileElement(String content) async {
-    CompilationUnit unit = await checkFile(content);
-    return unit.declaredElement;
+class InferredTypeTest extends PubPackageResolutionTest {
+  CompilationUnit get _resultUnit => result.unit;
+
+  CompilationUnitElement get _resultUnitElement {
+    return result.unit.declaredElement;
   }
 
   test_asyncClosureReturnType_flatten() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 import 'dart:async';
 Future<int> futureInt = null;
 var f = () => futureInt;
 var g = () async => futureInt;
 ''');
-    var futureInt = mainUnit.topLevelVariables[0];
+    var futureInt = _resultUnitElement.topLevelVariables[0];
     expect(futureInt.name, 'futureInt');
     _assertTypeStr(futureInt.type, 'Future<int>');
-    var f = mainUnit.topLevelVariables[1];
+    var f = _resultUnitElement.topLevelVariables[1];
     expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
-    var g = mainUnit.topLevelVariables[2];
+    var g = _resultUnitElement.topLevelVariables[2];
     expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_future() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 var f = () async => 0;
 ''');
-    var f = mainUnit.topLevelVariables[0];
+    var f = _resultUnitElement.topLevelVariables[0];
     expect(f.name, 'f');
     _assertTypeStr(f.type, 'Future<int> Function()');
   }
 
   test_asyncClosureReturnType_futureOr() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 import 'dart:async';
 FutureOr<int> futureOrInt = null;
 var f = () => futureOrInt;
 var g = () async => futureOrInt;
 ''');
-    var futureOrInt = mainUnit.topLevelVariables[0];
+    var futureOrInt = _resultUnitElement.topLevelVariables[0];
     expect(futureOrInt.name, 'futureOrInt');
     _assertTypeStr(futureOrInt.type, 'FutureOr<int>');
-    var f = mainUnit.topLevelVariables[1];
+    var f = _resultUnitElement.topLevelVariables[1];
     expect(f.name, 'f');
     _assertTypeStr(f.type, 'FutureOr<int> Function()');
-    var g = mainUnit.topLevelVariables[2];
+    var g = _resultUnitElement.topLevelVariables[2];
     expect(g.name, 'g');
     _assertTypeStr(g.type, 'Future<int> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreFutures() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 import 'dart:math' show Random;
 main() {
@@ -88,13 +88,17 @@ main() {
   Future<num> g = f();
   Future<int> h = f();
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 239, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 262, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_allReturnsAreValues() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 import 'dart:math' show Random;
 main() {
@@ -108,13 +112,17 @@ main() {
   Future<num> g = f();
   Future<int> h = f();
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 190, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 213, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_async_mixOfValuesAndFutures() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 import 'dart:math' show Random;
 main() {
@@ -128,13 +136,17 @@ main() {
   Future<num> g = f();
   Future<int> h = f();
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 213, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Future<num> Function()');
   }
 
   test_blockBodiedLambdas_asyncStar() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() {
   var f = () async* {
@@ -145,44 +157,54 @@ main() {
   Stream<num> g = f();
   Stream<int> h = f();
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 120, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 143, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Stream<num> Function()');
   }
 
   test_blockBodiedLambdas_basic() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 test1() {
   List<int> o;
   var y = o.map((x) { return x + 1; });
   Iterable<int> z = y;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
+    ]);
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 main() {
   String f() => null;
   var g = f;
-  g = () { return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/1; };
+  g = () { return 1; };
 }
-''');
-    var g = findLocalVariable(unit, 'g');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 62, 1),
+    ]);
+
+    var g = findLocalVariable(_resultUnit, 'g');
     _assertTypeStr(g.type, 'String Function()');
   }
 
   test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference_topLevel() async {
-    var unit = await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 String f() => null;
 var g = f;
 ''');
-    var g = unit.topLevelVariables[0];
+    var g = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(g.type, 'String Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_async() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() async {
   var f = () async { return null; };
@@ -190,13 +212,18 @@ main() async {
   Future<String> z = f();
   String s = await f();
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 108, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 126, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Future<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_asyncStar() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() async {
   var f = () async* { yield null; };
@@ -204,13 +231,18 @@ main() async {
   Stream<String> z = f();
   String s = await f().first;
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 108, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 126, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Stream<Null> Function()');
   }
 
   test_blockBodiedLambdas_inferBottom_sync() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 var h = null;
 void foo(int g(Object _)) {}
 
@@ -218,32 +250,40 @@ main() {
   var f = (Object x) { return null; };
   String y = f(42);
 
-  f = (x) => /*error:INVALID_CAST_LITERAL*/'hello';
+  f = (x) => 'hello';
 
   foo((x) { return null; });
   foo((x) { throw "not implemented"; });
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 101, 1),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 7),
+    ]);
 
-    var f = findLocalVariable(unit, 'f');
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Null Function(Object)');
   }
 
   test_blockBodiedLambdas_inferBottom_syncStar() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 main() {
   var f = () sync* { yield null; };
   Iterable y = f();
   Iterable<String> z = f();
   String s = f().first;
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Iterable<Null> Function()');
   }
 
   test_blockBodiedLambdas_LUB() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' show Random;
 test2() {
   List<num> o;
@@ -257,36 +297,45 @@ test2() {
   Iterable<num> w = y;
   Iterable<int> z = y;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 210, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 233, 1),
+    ]);
   }
 
   test_blockBodiedLambdas_nestedLambdas() async {
     // Original feature request: https://github.com/dart-lang/sdk/issues/25487
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 main() {
   var f = () {
     return (int x) { return 2.0 * x; };
   };
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'double Function(int) Function()');
   }
 
   test_blockBodiedLambdas_noReturn() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 test1() {
   List<int> o;
   var y = o.map((x) { });
   Iterable<int> z = y;
 }
-''');
-    var y = findLocalVariable(unit, 'y');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+    ]);
+
+    var y = findLocalVariable(_resultUnit, 'y');
     _assertTypeStr(y.type, 'Iterable<Null>');
   }
 
   test_blockBodiedLambdas_syncStar() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 main() {
   var f = () sync* {
     yield 1;
@@ -295,8 +344,12 @@ main() {
   Iterable<num> g = f();
   Iterable<int> h = f();
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Iterable<num> Function()');
   }
 
@@ -304,10 +357,10 @@ main() {
     // When a type is inferred from the expression `null`, the inferred type is
     // `dynamic`, but the inferred type of the initializer is `bottom`.
     // TODO(paulberry): Is this intentional/desirable?
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 var v = null;
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'dynamic');
     _assertTypeStr(v.initializer.type, 'Null Function()');
   }
@@ -315,21 +368,25 @@ var v = null;
   test_bottom_inClosure() async {
     // When a closure's return type is inferred from the expression `null`, the
     // inferred type is `dynamic`.
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 var v = () => null;
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'Null Function()');
     _assertTypeStr(v.initializer.type, 'Null Function() Function()');
   }
 
   test_circularReference_viaClosures() async {
-    var mainUnit = await checkFileElement('''
-var x = () => /*error:TOP_LEVEL_CYCLE*/y;
-var y = () => /*error:TOP_LEVEL_CYCLE*/x;
-''');
-    var x = mainUnit.topLevelVariables[0];
-    var y = mainUnit.topLevelVariables[1];
+    await assertErrorsInCode('''
+var x = () => y;
+var y = () => x;
+''', [
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 14, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 31, 1),
+    ]);
+
+    var x = _resultUnitElement.topLevelVariables[0];
+    var y = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     expect(y.name, 'y');
     _assertTypeStr(x.type, 'dynamic');
@@ -337,12 +394,16 @@ var y = () => /*error:TOP_LEVEL_CYCLE*/x;
   }
 
   test_circularReference_viaClosures_initializerTypes() async {
-    var mainUnit = await checkFileElement('''
-var x = () => /*error:TOP_LEVEL_CYCLE*/y;
-var y = () => /*error:TOP_LEVEL_CYCLE*/x;
-''');
-    var x = mainUnit.topLevelVariables[0];
-    var y = mainUnit.topLevelVariables[1];
+    await assertErrorsInCode('''
+var x = () => y;
+var y = () => x;
+''', [
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 14, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 31, 1),
+    ]);
+
+    var x = _resultUnitElement.topLevelVariables[0];
+    var y = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     expect(y.name, 'y');
     _assertTypeStr(x.initializer.returnType, 'dynamic Function()');
@@ -350,7 +411,7 @@ var y = () => /*error:TOP_LEVEL_CYCLE*/x;
   }
 
   test_conflictsCanHappen2() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class I1 {
   int x;
 }
@@ -376,25 +437,30 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
+  get a => null;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 1),
+    ]);
   }
 
   test_constructors_downwardsWithConstraint() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26431
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {}
 class Foo<T extends A> {}
 void main() {
   Foo<B> foo = new Foo();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
+    ]);
   }
 
   test_constructors_inferFromArguments() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   T t;
   C(this.t);
@@ -413,17 +479,25 @@ main() {
 
   // Don't infer from explicit dynamic.
   var c_dynamic = new C<dynamic>(42);
-  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+  x.t = 'hello';
 }
-''');
-    _assertTypeStr(findLocalVariable(unit, 'x').type, 'C<int>');
-    _assertTypeStr(findLocalVariable(unit, 'c_int').type, 'C<int>');
-    _assertTypeStr(findLocalVariable(unit, 'c_num').type, 'C<num>');
-    _assertTypeStr(findLocalVariable(unit, 'c_dynamic').type, 'C<dynamic>');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 194, 5),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 223, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 9),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 7),
+    ]);
+
+    _assertTypeStr(findLocalVariable(_resultUnit, 'x').type, 'C<int>');
+    _assertTypeStr(findLocalVariable(_resultUnit, 'c_int').type, 'C<int>');
+    _assertTypeStr(findLocalVariable(_resultUnit, 'c_num').type, 'C<num>');
+    _assertTypeStr(
+        findLocalVariable(_resultUnit, 'c_dynamic').type, 'C<dynamic>');
   }
 
   test_constructors_inferFromArguments_const() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   final T t;
   const C(this.t);
@@ -432,14 +506,17 @@ class C<T> {
 main() {
   var x = const C(42);
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 63, 1),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_constWithUpperBound() async {
     // Regression for https://github.com/dart-lang/sdk/issues/26993
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class C<T extends num> {
   final T x;
   const C(this.x);
@@ -452,11 +529,14 @@ void f() {
   C<int> c2 = c;
   const D<int> d = const D();
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 143, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 166, 1),
+    ]);
   }
 
   test_constructors_inferFromArguments_downwardsFromConstructor() {
-    return checkFileElement(r'''
+    return assertErrorsInCode(r'''
 class C<T> { C(List<T> list); }
 
 main() {
@@ -467,11 +547,15 @@ main() {
   // This one however works.
   var b = new C<Object>([123]);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 151, 1),
+    ]);
   }
 
   test_constructors_inferFromArguments_factory() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   T t;
 
@@ -487,15 +571,18 @@ class C<T> {
 
 main() {
   var x = new C(42);
-  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+  x.t = 'hello';
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 149, 7),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_factory_callsConstructor() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A<T> {
   A<T> f = new A();
   A();
@@ -506,7 +593,7 @@ class A<T> {
   }
 
   test_constructors_inferFromArguments_named() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   T t;
   C.named(List<T> t);
@@ -515,15 +602,18 @@ class C<T> {
 
 main() {
   var x = new C.named(<int>[]);
-  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+  x.t = 'hello';
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 95, 7),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_namedFactory() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   T t;
   C();
@@ -538,15 +628,18 @@ class C<T> {
 
 main() {
   var x = new C.named(42);
-  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+  x.t = 'hello';
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 156, 7),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_redirecting() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   T t;
   C(this.t);
@@ -556,15 +649,18 @@ class C<T> {
 
 main() {
   var x = new C.named(<int>[42]);
-  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+  x.t = 'hello';
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 123, 7),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_inferFromArguments_redirectingFactory() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 abstract class C<T> {
   T get t;
   void set t(T t);
@@ -579,16 +675,19 @@ class CImpl<T> implements C<T> {
 
 main() {
   var x = new C(42);
-  x.t = /*error:INVALID_ASSIGNMENT*/'hello';
+  x.t = 'hello';
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 183, 7),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'C<int>');
   }
 
   test_constructors_reverseTypeParameters() async {
     // Regression for https://github.com/dart-lang/sdk/issues/26990
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 class Pair<T, U> {
   T t;
   U u;
@@ -599,35 +698,43 @@ class Pair<T, U> {
   }
 
   test_constructors_tooManyPositionalArguments() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 class A<T> {}
 main() {
-  var a = new A/*error:EXTRA_POSITIONAL_ARGUMENTS*/(42);
+  var a = new A(42);
 }
-''');
-    var a = findLocalVariable(unit, 'a');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 4),
+    ]);
+
+    var a = findLocalVariable(_resultUnit, 'a');
     _assertTypeStr(a.type, 'A<dynamic>');
   }
 
   test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   final int x = 2;
 }
 
 class B implements A {
-  dynamic get /*error:INVALID_OVERRIDE*/x => 3;
+  dynamic get x => 3;
 }
 
 foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 69, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
+    ]);
   }
 
   test_dontInferFieldTypeWhenInitializerIsNull() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 var x = null;
 var y = 3;
 class A {
@@ -640,36 +747,44 @@ class A {
 
 test() {
   x = "hi";
-  y = /*error:INVALID_ASSIGNMENT*/"hi";
+  y = "hi";
   A.x = "hi";
-  A.y = /*error:INVALID_ASSIGNMENT*/"hi";
+  A.y = "hi";
   new A().x2 = "hi";
-  new A().y2 = /*error:INVALID_ASSIGNMENT*/"hi";
+  new A().y2 = "hi";
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 140, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 168, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 210, 4),
+    ]);
   }
 
   test_dontInferTypeOnDynamic() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 test() {
   dynamic x = 3;
   x = "hi";
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+    ]);
   }
 
   test_dontInferTypeWhenInitializerIsNull() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 test() {
   var x = null;
   x = "hi";
   x = 3;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
   }
 
   test_downwardInference_miscellaneous() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 typedef T Function2<S, T>(S x);
 class A<T> {
   Function2<T, T> x;
@@ -687,11 +802,13 @@ void main() {
     A<int> a = new A(f);
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 266, 1),
+    ]);
   }
 
   test_downwardsInference_insideTopLevel() async {
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 class A {
   B<int> b;
 }
@@ -709,7 +826,7 @@ var t3 = [
   }
 
   test_downwardsInferenceAnnotations() async {
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 class Foo {
   const Foo(List<String> l);
   const Foo.named(List<String> l);
@@ -722,29 +839,34 @@ class Baz {}
   }
 
   test_downwardsInferenceAssignmentStatements() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 void main() {
   List<int> l;
-  l = [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
+  l = ["hello"];
   l = (l = [1]);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 36, 7),
+    ]);
   }
 
   test_downwardsInferenceAsyncAwait() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 import 'dart:async';
 Future test() async {
   dynamic d;
   List<int> l0 = await [d];
-  List<int> l1 = await new Future.value(
-      [d]);
+  List<int> l1 = await new Future.value([d]);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 2),
+    ]);
   }
 
   test_downwardsInferenceForEach() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 import 'dart:async';
 
 abstract class MyStream<T> extends Stream<T> {
@@ -755,11 +877,14 @@ Future main() async {
   for(int x in [1, 2, 3]) {}
   await for(int x in new MyStream()) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 137, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 172, 1),
+    ]);
   }
 
   test_downwardsInferenceInitializingFormalDefaultFormal() async {
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 typedef T Function2<S, T>([S x]);
 class Foo {
   List<int> x;
@@ -773,7 +898,7 @@ Function2<List<int>, String> g = ([llll = const [1]]) => "hello";
   }
 
   test_downwardsInferenceOnConstructorArguments_inferDownwards() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class F0 {
   F0(List<int> a) {}
 }
@@ -792,37 +917,45 @@ class F4 {
 void main() {
   new F0([]);
   new F0([3]);
-  new F0([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  new F0([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello",
-                                      3]);
+  new F0(["hello"]);
+  new F0(["hello", 3]);
 
   new F1(a: []);
   new F1(a: [3]);
-  new F1(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  new F1(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  new F1(a: ["hello"]);
+  new F1(a: ["hello", 3]);
 
   new F2([]);
   new F2([3]);
-  new F2([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  new F2([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  new F2(["hello"]);
+  new F2(["hello", 3]);
 
   new F3([]);
   new F3([[3]]);
-  new F3([[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]]);
-  new F3([[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"],
-                   [3]]);
+  new F3([["hello"]]);
+  new F3([["hello"], [3]]);
 
   new F4(a: []);
   new F4(a: [[3]]);
-  new F4(a: [[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]]);
-  new F4(a: [[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"],
-                      [3]]);
+  new F4(a: [["hello"]]);
+  new F4(a: [["hello"], [3]]);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 259, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 280, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 343, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 367, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 421, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 499, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 522, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 591, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 617, 7),
+    ]);
   }
 
   test_downwardsInferenceOnFunctionArguments_inferDownwards() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 void f0(List<int> a) {}
 void f1({List<int> a}) {}
 void f2(Iterable<int> a) {}
@@ -831,71 +964,114 @@ void f4({Iterable<Iterable<int>> a}) {}
 void main() {
   f0([]);
   f0([3]);
-  f0([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  f0([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  f0(["hello"]);
+  f0(["hello", 3]);
 
   f1(a: []);
   f1(a: [3]);
-  f1(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  f1(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  f1(a: ["hello"]);
+  f1(a: ["hello", 3]);
 
   f2([]);
   f2([3]);
-  f2([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  f2([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  f2(["hello"]);
+  f2(["hello", 3]);
 
   f3([]);
   f3([[3]]);
-  f3([[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]]);
-  f3([[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"], [3]]);
+  f3([["hello"]]);
+  f3([["hello"], [3]]);
 
   f4(a: []);
   f4(a: [[3]]);
-  f4(a: [[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]]);
-  f4(a: [[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"], [3]]);
+  f4(a: [["hello"]]);
+  f4(a: [["hello"], [3]]);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 197, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 214, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 265, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 285, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 327, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 344, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 389, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 408, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 465, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 487, 7),
+    ]);
   }
 
   test_downwardsInferenceOnFunctionExpressions() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 typedef T Function2<S, T>(S x);
 
 void main () {
   {
     Function2<int, String> l0 = (int x) => null;
     Function2<int, String> l1 = (int x) => "hello";
-    Function2<int, String> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => "hello";
-    Function2<int, String> l3 = (int x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
-    Function2<int, String> l4 = (int x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
+    Function2<int, String> l2 = (String x) => "hello";
+    Function2<int, String> l3 = (int x) => 3;
+    Function2<int, String> l4 = (int x) {return 3;};
   }
   {
     Function2<int, String> l0 = (x) => null;
     Function2<int, String> l1 = (x) => "hello";
-    Function2<int, String> l2 = (x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
-    Function2<int, String> l3 = (x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
-    Function2<int, String> l4 = (x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;};
+    Function2<int, String> l2 = (x) => 3;
+    Function2<int, String> l3 = (x) {return 3;};
+    Function2<int, String> l4 = (x) {return x;};
   }
   {
     Function2<int, List<String>> l0 = (int x) => null;
     Function2<int, List<String>> l1 = (int x) => ["hello"];
-    Function2<int, List<String>> l2 = /*error:INVALID_ASSIGNMENT*/(String x) => ["hello"];
-    Function2<int, List<String>> l3 = (int x) => [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
-    Function2<int, List<String>> l4 = (int x) {return [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
+    Function2<int, List<String>> l2 = (String x) => ["hello"];
+    Function2<int, List<String>> l3 = (int x) => [3];
+    Function2<int, List<String>> l4 = (int x) {return [3];};
   }
   {
     Function2<int, int> l0 = (x) => x;
     Function2<int, int> l1 = (x) => x+1;
-    Function2<int, String> l2 = (x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
-    Function2<int, String> l3 = (x) => x./*error:UNDEFINED_METHOD*/substring(3);
+    Function2<int, String> l2 = (x) => x;
+    Function2<int, String> l3 = (x) => x.substring(3);
     Function2<String, String> l4 = (x) => x.substring(3);
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 79, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 128, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 180, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 185, 21),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 235, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 251, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 281, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 302, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 342, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 387, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 435, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 447, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 477, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 494, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 526, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 543, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 589, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 644, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 704, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 23),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 767, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 784, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 821, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 843, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 881, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 920, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 964, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 976, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1006, 2),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 1020, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1064, 2),
+    ]);
   }
 
   test_downwardsInferenceOnFunctionOfTUsingTheT() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 void main () {
   {
     T f<T>(T x) => null;
@@ -913,11 +1089,18 @@ void main () {
     Iterable<num> v = v2<num>(42);
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 179, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 253, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 288, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 318, 1),
+    ]);
   }
 
   test_downwardsInferenceOnGenericConstructorArguments_emptyList() async {
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 class F3<T> {
   F3(Iterable<Iterable<T>> a) {}
 }
@@ -932,7 +1115,7 @@ void main() {
   }
 
   test_downwardsInferenceOnGenericConstructorArguments_inferDownwards() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class F0<T> {
   F0(List<T> a) {}
 }
@@ -954,79 +1137,87 @@ class F5<T> {
 void main() {
   new F0<int>([]);
   new F0<int>([3]);
-  new F0<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  new F0<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello",
-                                      3]);
+  new F0<int>(["hello"]);
+  new F0<int>(["hello", 3]);
 
   new F1<int>(a: []);
   new F1<int>(a: [3]);
-  new F1<int>(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  new F1<int>(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  new F1<int>(a: ["hello"]);
+  new F1<int>(a: ["hello", 3]);
 
   new F2<int>([]);
   new F2<int>([3]);
-  new F2<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]);
-  new F2<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3]);
+  new F2<int>(["hello"]);
+  new F2<int>(["hello", 3]);
 
   new F3<int>([]);
   new F3<int>([[3]]);
-  new F3<int>([[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]]);
-  new F3<int>([[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"],
-                   [3]]);
+  new F3<int>([["hello"]]);
+  new F3<int>([["hello"], [3]]);
 
   new F4<int>(a: []);
   new F4<int>(a: [[3]]);
-  new F4<int>(a: [[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"]]);
-  new F4<int>(a: [[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"],
-                      [3]]);
+  new F4<int>(a: [["hello"]]);
+  new F4<int>(a: [["hello"], [3]]);
 
   new F3([]);
   var f31 = new F3([[3]]);
   var f32 = new F3([["hello"]]);
-  var f33 = new F3([["hello"],
-                                        [3]]);
+  var f33 = new F3([["hello"], [3]]);
 
   new F4(a: []);
   new F4(a: [[3]]);
   new F4(a: [["hello"]]);
-  new F4(a: [["hello"],
-                                           [3]]);
+  new F4(a: [["hello"], [3]]);
   
-  new F5([[
-                                           [3]]]);
+  new F5([[[3]]]);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 338, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 364, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 471, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 540, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 566, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 638, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 666, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 750, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 781, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 819, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 846, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 879, 3),
+    ]);
   }
 
   test_downwardsInferenceOnGenericFunctionExpressions() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 void main () {
   {
     String f<S>(int x) => null;
     var v = f;
     v = <T>(int x) => null;
     v = <T>(int x) => "hello";
-    v = /*error:INVALID_ASSIGNMENT*/<T>(String x) => "hello";
-    v = <T>(int x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
-    v = <T>(int x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
+    v = <T>(String x) => "hello";
+    v = <T>(int x) => 3;
+    v = <T>(int x) {return 3;};
   }
   {
     String f<S>(int x) => null;
     var v = f;
     v = <T>(x) => null;
     v = <T>(x) => "hello";
-    v = <T>(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;
-    v = <T>(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/3;};
-    v = <T>(x) {return /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;};
+    v = <T>(x) => 3;
+    v = <T>(x) {return 3;};
+    v = <T>(x) {return x;};
   }
   {
     List<String> f<S>(int x) => null;
     var v = f;
     v = <T>(int x) => null;
     v = <T>(int x) => ["hello"];
-    v = /*error:INVALID_ASSIGNMENT*/<T>(String x) => ["hello"];
-    v = <T>(int x) => [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];
-    v = <T>(int x) {return [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3];};
+    v = <T>(String x) => ["hello"];
+    v = <T>(int x) => [3];
+    v = <T>(int x) {return [3];};
   }
   {
     int int2int<S>(int x) => null;
@@ -1036,17 +1227,35 @@ void main () {
     x = <T>(x) => x;
     x = <T>(x) => x+1;
     var y = int2String;
-    y = <T>(x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/x;
-    y = <T>(x) => x./*error:UNDEFINED_METHOD*/substring(3);
+    y = <T>(x) => x;
+    y = <T>(x) => x.substring(3);
     var z = string2String;
     z = <T>(x) => x.substring(3);
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 133, 24),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 181, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 211, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 264, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 340, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 366, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 394, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 453, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 529, 26),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 580, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 612, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 757, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 822, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 856, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 879, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 901, 1),
+    ]);
   }
 
   test_downwardsInferenceOnInstanceCreations_inferDownwards() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A<S, T> {
   S x;
   T y;
@@ -1084,60 +1293,48 @@ void main() {
     A<int, String> a1 = new A.named(3, "hello");
     A<int, String> a2 = new A<int, String>(3, "hello");
     A<int, String> a3 = new A<int, String>.named(3, "hello");
-    A<int, String> a4 = /*error:INVALID_CAST_NEW_EXPR*/new A<int, dynamic>(3, "hello");
-    A<int, String> a5 = /*error:INVALID_CAST_NEW_EXPR*/new A<dynamic, dynamic>.named(3, "hello");
+    A<int, String> a4 = new A<int, dynamic>(3, "hello");
+    A<int, String> a5 = new A<dynamic, dynamic>.named(3, "hello");
   }
   {
-    A<int, String> a0 = new A(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello",
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
-    A<int, String> a1 = new A.named(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello",
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
+    A<int, String> a0 = new A("hello", 3);
+    A<int, String> a1 = new A.named("hello", 3);
   }
   {
     A<int, String> a0 = new B("hello", 3);
     A<int, String> a1 = new B.named("hello", 3);
     A<int, String> a2 = new B<String, int>("hello", 3);
     A<int, String> a3 = new B<String, int>.named("hello", 3);
-    A<int, String> a4 = /*error:INVALID_ASSIGNMENT*/new B<String, dynamic>("hello", 3);
-    A<int, String> a5 = /*error:INVALID_ASSIGNMENT*/new B<dynamic, dynamic>.named("hello", 3);
+    A<int, String> a4 = new B<String, dynamic>("hello", 3);
+    A<int, String> a5 = new B<dynamic, dynamic>.named("hello", 3);
   }
   {
-    A<int, String> a0 = new B(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3,
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
-    A<int, String> a1 = new B.named(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3,
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
+    A<int, String> a0 = new B(3, "hello");
+    A<int, String> a1 = new B.named(3, "hello");
   }
   {
     A<int, int> a0 = new C(3);
     A<int, int> a1 = new C.named(3);
     A<int, int> a2 = new C<int>(3);
     A<int, int> a3 = new C<int>.named(3);
-    A<int, int> a4 = /*error:INVALID_ASSIGNMENT*/new C<dynamic>(3);
-    A<int, int> a5 = /*error:INVALID_ASSIGNMENT*/new C<dynamic>.named(3);
+    A<int, int> a4 = new C<dynamic>(3);
+    A<int, int> a5 = new C<dynamic>.named(3);
   }
   {
-    A<int, int> a0 = new C(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
-    A<int, int> a1 = new C.named(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
+    A<int, int> a0 = new C("hello");
+    A<int, int> a1 = new C.named("hello");
   }
   {
     A<int, String> a0 = new D("hello");
     A<int, String> a1 = new D.named("hello");
     A<int, String> a2 = new D<int, String>("hello");
     A<int, String> a3 = new D<String, String>.named("hello");
-    A<int, String> a4 = /*error:INVALID_ASSIGNMENT*/new D<num, dynamic>("hello");
-    A<int, String> a5 = /*error:INVALID_ASSIGNMENT*/new D<dynamic, dynamic>.named("hello");
+    A<int, String> a4 = new D<num, dynamic>("hello");
+    A<int, String> a5 = new D<dynamic, dynamic>.named("hello");
   }
   {
-    A<int, String> a0 = new D(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
-    A<int, String> a1 = new D.named(
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
+    A<int, String> a0 = new D(3);
+    A<int, String> a1 = new D.named(3);
   }
   {
     A<C<int>, String> a0 = new E("hello");
@@ -1147,31 +1344,94 @@ void main() {
         a: [3],
         b: ["hello"]);
     A<int, String> a1 = new F(3, "hello",
-        a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"],
-        b: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/3]);
+        a: ["hello"],
+        b: [3]);
     A<int, String> a2 = new F.named(3, "hello", 3, "hello");
     A<int, String> a3 = new F.named(3, "hello");
-    A<int, String> a4 = new F.named(3, "hello",
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello", /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
-    A<int, String> a5 = new F.named(3, "hello",
-        /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hello");
+    A<int, String> a4 = new F.named(3, "hello", "hello", 3);
+    A<int, String> a5 = new F.named(3, "hello", "hello");
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 612, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 655, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 704, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 760, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 822, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, 827, 31),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 879, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, 884, 41),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 954, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 965, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 974, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 997, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1014, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1023, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1054, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1097, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1146, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1202, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1264, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1269, 34),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1324, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1329, 41),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1399, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1410, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1413, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1442, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1459, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1462, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1496, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1527, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1564, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1600, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1642, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1647, 17),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1682, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1687, 23),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1736, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1747, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1773, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1790, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1827, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1867, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1913, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1966, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2028, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2033, 28),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2082, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2087, 38),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2154, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2165, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2188, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2205, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2239, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2325, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2406, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2441, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2463, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2487, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2548, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2597, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2626, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2635, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2658, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2687, 7),
+    ]);
   }
 
   test_downwardsInferenceOnListLiterals_inferDownwards() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 void foo([List<String> list1 = const [],
-          List<String> list2 = const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]]) {
+          List<String> list2 = const [42]]) {
 }
 
 void main() {
   {
     List<int> l0 = [];
     List<int> l1 = [3];
-    List<int> l2 = [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    List<int> l3 = [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    List<int> l2 = ["hello"];
+    List<int> l3 = ["hello", 3];
   }
   {
     List<dynamic> l0 = [];
@@ -1180,29 +1440,63 @@ void main() {
     List<dynamic> l3 = ["hello", 3];
   }
   {
-    List<int> l0 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[];
-    List<int> l1 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[3];
-    List<int> l2 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    List<int> l3 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    List<int> l0 = <num>[];
+    List<int> l1 = <num>[3];
+    List<int> l2 = <num>["hello"];
+    List<int> l3 = <num>["hello", 3];
   }
   {
     Iterable<int> i0 = [];
     Iterable<int> i1 = [3];
-    Iterable<int> i2 = [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    Iterable<int> i3 = [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    Iterable<int> i2 = ["hello"];
+    Iterable<int> i3 = ["hello", 3];
   }
   {
     const List<int> c0 = const [];
     const List<int> c1 = const [3];
-    const List<int> c2 = const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    const List<int> c3 = const [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    const List<int> c2 = const ["hello"];
+    const List<int> c3 = const ["hello", 3];
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 79, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 145, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 169, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 175, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 199, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 205, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 244, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 299, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 333, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 374, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 379, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 402, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 407, 8),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 431, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 436, 14),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 442, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 466, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 471, 17),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 477, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 516, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 543, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 571, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 577, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 605, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 611, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 652, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 687, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 723, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 735, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 777, 7),
+    ]);
   }
 
   test_downwardsInferenceOnListLiterals_inferIfValueTypesMatchContext() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class DartType {}
 typedef void Asserter<T>(T type);
 typedef Asserter<T> AsserterBuilder<S, T>(S arg);
@@ -1261,12 +1555,11 @@ main() {
   }
 
   test_downwardsInferenceOnMapLiterals() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 void foo([Map<int, String> m1 = const {1: "hello"},
     Map<int, String> m2 = const {
       // One error is from type checking and the other is from const evaluation.
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          "world"
+      "hello": "world"
     }]) {
 }
 void main() {
@@ -1274,15 +1567,14 @@ void main() {
     Map<int, String> l0 = {};
     Map<int, String> l1 = {3: "hello"};
     Map<int, String> l2 = {
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello": "hello"
+      "hello": "hello"
     };
     Map<int, String> l3 = {
-      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      3: 3
     };
     Map<int, String> l4 = {
       3: "hello",
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      "hello": 3
     };
   }
   {
@@ -1296,75 +1588,116 @@ void main() {
     Map<dynamic, String> l0 = {};
     Map<dynamic, String> l1 = {3: "hello"};
     Map<dynamic, String> l2 = {"hello": "hello"};
-    Map<dynamic, String> l3 = {
-      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
-    };
+    Map<dynamic, String> l3 = {3: 3};
     Map<dynamic, String> l4 = {
       3: "hello",
-      "hello": /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      "hello": 3
     };
   }
   {
     Map<int, dynamic> l0 = {};
     Map<int, dynamic> l1 = {3: "hello"};
     Map<int, dynamic> l2 = {
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello": "hello"
+      "hello": "hello"
     };
     Map<int, dynamic> l3 = {3: 3};
     Map<int, dynamic> l4 = {
       3:"hello",
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello": 3
+      "hello": 3
     };
   }
   {
-    Map<int, String> l0 = /*error:INVALID_CAST_LITERAL_MAP*/<num, dynamic>{};
-    Map<int, String> l1 = /*error:INVALID_CAST_LITERAL_MAP*/<num, dynamic>{3: "hello"};
-    Map<int, String> l3 = /*error:INVALID_CAST_LITERAL_MAP*/<num, dynamic>{3: 3};
+    Map<int, String> l0 = <num, dynamic>{};
+    Map<int, String> l1 = <num, dynamic>{3: "hello"};
+    Map<int, String> l3 = <num, dynamic>{3: 3};
   }
   {
     const Map<int, String> l0 = const {};
     const Map<int, String> l1 = const {3: "hello"};
     const Map<int, String> l2 = const {
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          "hello"
+      "hello": "hello"
     };
     const Map<int, String> l3 = const {
-      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      3: 3
     };
     const Map<int, String> l4 = const {
       3:"hello",
-      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/"hello":
-          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/3
+      "hello": 3
     };
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 173, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 241, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 324, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 369, 2),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 385, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 415, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 446, 7),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 455, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 498, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 533, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 578, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 629, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 668, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 731, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 765, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 809, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 859, 2),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 868, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 897, 2),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 937, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 976, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1007, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1048, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1061, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1107, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1142, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1172, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1219, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 1224, 16),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1263, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 1268, 26),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1317, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 1322, 20),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1379, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1421, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1473, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1492, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1543, 2),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1565, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1601, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 1637, 7),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 1646, 1),
+    ]);
   }
 
   test_fieldRefersToStaticGetter() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   final x = _x;
   static int get _x => null;
 }
 ''');
-    var x = mainUnit.types[0].fields[0];
+    var x = _resultUnitElement.types[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
   test_fieldRefersToTopLevelGetter() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   final x = y;
 }
 int get y => null;
 ''');
-    var x = mainUnit.types[0].fields[0];
+    var x = _resultUnitElement.types[0].fields[0];
     _assertTypeStr(x.type, 'int');
   }
 
   test_futureOr_subtyping() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 void add(int x) {}
 add2(int y) {}
@@ -1373,7 +1706,10 @@ main() {
   var a = f.then(add);
   var b = f.then(add2);
 }
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+    ]);
   }
 
   test_futureThen() async {
@@ -1402,17 +1738,17 @@ void main() {
 }
 ''';
 
-    await checkFileElement(
+    await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(
+    await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
+    await _assertNoErrors(
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    await checkFileElement(build(
+    await _assertNoErrors(build(
         declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    await checkFileElement(
+    await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
+    await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "Future"));
   }
 
@@ -1438,23 +1774,34 @@ void main() {
       (x) {return x ? 2 : new $upwards<int>.value(3);});
 }
 ''';
-    await checkFileElement(
+    await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(
+    disposeAnalysisContextCollection();
+
+    await _assertNoErrors(
         build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
+    disposeAnalysisContextCollection();
+
+    await _assertNoErrors(
         build(declared: "MyFuture", downwards: "MyFuture", upwards: "Future"));
-    await checkFileElement(build(
+    disposeAnalysisContextCollection();
+
+    await _assertNoErrors(build(
         declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    await checkFileElement(
+    disposeAnalysisContextCollection();
+
+    await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(
+    disposeAnalysisContextCollection();
+
+    await _assertNoErrors(
         build(declared: "Future", downwards: "Future", upwards: "Future"));
+    disposeAnalysisContextCollection();
   }
 
   test_futureThen_downwardsMethodTarget() async {
     // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() {
   Future<int> f;
@@ -1463,24 +1810,30 @@ main() {
       .whenComplete(() {});
   b = f.then((x) => []);
 }
-  ''');
+  ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+    ]);
   }
 
   test_futureThen_explicitFuture() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import "dart:async";
 m1() {
   Future<int> f;
-  var x = f.then<Future<List<int>>>(
-                                    (x) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/[]);
-  Future<List<int>> y = /*error:INVALID_ASSIGNMENT*/x;
+  var x = f.then<Future<List<int>>>((x) => []);
+  Future<List<int>> y = x;
 }
 m2() {
   Future<int> f;
   var x = f.then<List<int>>((x) => []);
   Future<List<int>> y = x;
 }
-  ''');
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 88, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 113, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 117, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 206, 1),
+    ]);
   }
 
   test_futureThen_upwards() async {
@@ -1496,26 +1849,53 @@ class MyFuture<T> implements Future<T> {
 
 void main() {
   var f = foo().then((_) => 2.3);
-  $downwards<int> f2 = /*error:INVALID_ASSIGNMENT*/f;
+  $downwards<int> f2 = f;
 
   // The unnecessary cast is to illustrate that we inferred <double> for
   // the generic type args, even though we had a return type context.
-  $downwards<num> f3 = /*info:UNNECESSARY_CAST*/foo().then(
+  $downwards<num> f3 = foo().then(
       (_) => 2.3) as $upwards<double>;
 }
 $declared foo() => new $declared<int>.value(1);
     ''';
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "Future"));
-    await checkFileElement(build(
-        declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "Future"));
+
+    await assertErrorsInCode(
+      build(declared: "MyFuture", downwards: "Future", upwards: "Future"),
+      [
+        error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
+        error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
+        error(HintCode.UNNECESSARY_CAST, 480, 47),
+      ],
+    );
+    disposeAnalysisContextCollection();
+
+    await assertErrorsInCode(
+      build(declared: "MyFuture", downwards: "MyFuture", upwards: "MyFuture"),
+      [
+        error(HintCode.UNUSED_LOCAL_VARIABLE, 311, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 316, 1),
+        error(HintCode.UNUSED_LOCAL_VARIABLE, 479, 2),
+        error(HintCode.UNNECESSARY_CAST, 484, 49),
+      ],
+    );
+    disposeAnalysisContextCollection();
+
+    await assertErrorsInCode(
+      build(declared: "Future", downwards: "Future", upwards: "Future"),
+      [
+        error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
+        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 1),
+        error(HintCode.UNUSED_LOCAL_VARIABLE, 475, 2),
+        error(HintCode.UNNECESSARY_CAST, 480, 47),
+      ],
+    );
+    disposeAnalysisContextCollection();
   }
 
   test_futureThen_upwardsFromBlock() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27113.
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 main() {
   Future<int> base;
@@ -1524,7 +1904,9 @@ main() {
   Future<bool> b = f;
   b = g;
 }
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 146, 1),
+    ]);
   }
 
   test_futureUnion_asyncConditional() async {
@@ -1551,9 +1933,16 @@ $downwards<int> g3(bool x) async {
   return y;
 }
     ''';
-    await checkFileElement(
-        build(downwards: "Future", upwards: "Future", expectedInfo: ''));
-    await checkFileElement(build(downwards: "Future", upwards: "MyFuture"));
+
+    await assertNoErrorsInCode(
+      build(downwards: "Future", upwards: "Future", expectedInfo: ''),
+    );
+    disposeAnalysisContextCollection();
+
+    await assertNoErrorsInCode(
+      build(downwards: "Future", upwards: "MyFuture"),
+    );
+    disposeAnalysisContextCollection();
   }
 
   test_futureUnion_downwards() async {
@@ -1585,20 +1974,51 @@ $downwards<List<int>> g3() async {
 ''';
     }
 
-    await checkFileElement(build(
+    await assertErrorsInCode(
+      build(
         declared: "MyFuture",
         downwards: "Future",
         upwards: "Future",
-        expectedError: '/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'));
-    await checkFileElement(
-        build(declared: "MyFuture", downwards: "Future", upwards: "MyFuture"));
-    await checkFileElement(build(
+        expectedError: '',
+      ),
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 338, 4),
+      ],
+    );
+    disposeAnalysisContextCollection();
+
+    await assertErrorsInCode(
+      build(
+        declared: "MyFuture",
+        downwards: "Future",
+        upwards: "MyFuture",
+      ),
+      [],
+    );
+    disposeAnalysisContextCollection();
+
+    await assertErrorsInCode(
+      build(
         declared: "Future",
         downwards: "Future",
         upwards: "Future",
-        expectedError: '/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'));
-    await checkFileElement(
-        build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
+        expectedError: '',
+      ),
+      [
+        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 336, 4),
+      ],
+    );
+    disposeAnalysisContextCollection();
+
+    await assertErrorsInCode(
+      build(
+        declared: "Future",
+        downwards: "Future",
+        upwards: "MyFuture",
+      ),
+      [],
+    );
+    disposeAnalysisContextCollection();
   }
 
   test_futureUnion_downwardsGenericMethodWithFutureReturn() async {
@@ -1606,7 +2026,7 @@ $downwards<List<int>> g3() async {
     //
     // We need to take a future union into account for both directions of
     // generic method inference.
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 
 foo() async {
@@ -1616,12 +2036,14 @@ foo() async {
 }
 
 class A {}
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 6),
+    ]);
   }
 
   test_futureUnion_downwardsGenericMethodWithGenericReturn() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27284
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 
 T id<T>(T x) => x;
@@ -1630,12 +2052,14 @@ main() async {
   Future<String> f;
   String s = await id(f);
 }
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+    ]);
   }
 
   test_futureUnion_upwardsGenericMethods() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27151
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 
 main() async {
@@ -1651,11 +2075,13 @@ main() async {
 class A {}
 class B extends A {}
 class C extends A {}
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 4),
+    ]);
   }
 
   test_genericFunctions_returnTypedef() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 typedef void ToValue<T>(T value);
 
 main() {
@@ -1665,21 +2091,26 @@ main() {
   ToValue<int> takesInt = x;
   takesInt = y;
 }
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 130, 8),
+    ]);
   }
 
   test_genericMethods_basicDownwardInference() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 T f<S, T>(S s) => null;
 main() {
   String x = f(42);
   String y = (f)(42);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
   }
 
   test_genericMethods_dartMathMinMax() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 import 'dart:math';
 
 void printInt(int x) => print(x);
@@ -1699,51 +2130,60 @@ main() {
   printInt(myMax(1, 2) as int);
 
   // An int context means doubles are rejected
-  printInt(max(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0));
-  printInt(min(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0));
+  printInt(max(1, 2.0));
+  printInt(min(1, 2.0));
   // A double context means ints are accepted as doubles
   printDouble(max(1, 2.0));
   printDouble(min(1, 2.0));
 
   // Types other than int and double are not accepted.
-  printInt(
-      min(
-          /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"hi",
-          /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/"there"));
+  printInt(min("hi", "there"));
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 467, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 492, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 683, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 689, 7),
+    ]);
   }
 
   test_genericMethods_doNotInferInvalidOverrideOfGenericMethod() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class C {
 T m<T>(T x) => x;
 }
 class D extends C {
-/*error:INVALID_OVERRIDE*/m(x) => x;
+m(x) => x;
 }
 main() {
-  int y = new D().m/*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/<int>(42);
+  int y = new D().m<int>(42);
   print(y);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 91, 5),
+    ]);
   }
 
   test_genericMethods_downwardsInferenceAffectsArguments() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 T f<T>(List<T> s) => null;
 main() {
   String x = f(['hi']);
-  String y = f([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/42]);
+  String y = f([42]);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 76, 2),
+    ]);
   }
 
   test_genericMethods_downwardsInferenceFold() async {
     // Regression from https://github.com/dart-lang/sdk/issues/25491
     // The first example works now, but the latter requires a full solution to
     // https://github.com/dart-lang/sdk/issues/25490
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 void main() {
   List<int> o;
   int y = o.fold(0, (x, y) => x + y);
@@ -1756,38 +2196,48 @@ void functionExpressionInvocation() {
   var z = (o.fold)(0, (x, y) => x + y);
   y = z;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 175, 1),
+    ]);
   }
 
   test_genericMethods_handleOverrideOfNonGenericWithGeneric() async {
     // Regression test for crash when adding genericity
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class C {
   m(x) => x;
   dynamic g(int x) => x;
 }
 class D extends C {
-  T /*error:INVALID_OVERRIDE*/m<T>(T x) => x;
-  T /*error:INVALID_OVERRIDE*/g<T>(T x) => x;
+  T m<T>(T x) => x;
+  T g<T>(T x) => x;
 }
 main() {
-  int y = (/*info:UNNECESSARY_CAST*/new D() as C).m(42);
+  int y = (new D() as C).m(42);
   print(y);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 94, 1),
+      error(HintCode.UNNECESSARY_CAST, 132, 12),
+    ]);
   }
 
   test_genericMethods_inferenceError() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 main() {
   List<String> y;
-  Iterable<String> x = y.map((String z) => /*error:RETURN_OF_INVALID_TYPE_FROM_CLOSURE*/1.0);
+  Iterable<String> x = y.map((String z) => 1.0);
 }
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 70, 3),
+    ]);
   }
 
   test_genericMethods_inferGenericFunctionParameterType() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C<T> extends D<T> {
   f<U>(x) { return null; }
 }
@@ -1796,12 +2246,12 @@ class D<T> {
 }
 typedef void F<V>(V v);
 ''');
-    var f = mainUnit.getType('C').methods[0];
+    var f = _resultUnitElement.getType('C').methods[0];
     _assertTypeStr(f.type, 'void Function(U) Function<U>(U)');
   }
 
   test_genericMethods_inferGenericFunctionParameterType2() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C<T> extends D<T> {
   f<U>(g) => null;
 }
@@ -1810,12 +2260,12 @@ abstract class D<T> {
 }
 typedef List<V> G<V>();
 ''');
-    var f = mainUnit.getType('C').methods[0];
+    var f = _resultUnitElement.getType('C').methods[0];
     _assertTypeStr(f.type, 'void Function<U>(List<U> Function())');
   }
 
   test_genericMethods_inferGenericFunctionReturnType() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C<T> extends D<T> {
   f<U>(x) { return null; }
 }
@@ -1824,13 +2274,13 @@ class D<T> {
 }
 typedef V F<V>();
 ''');
-    var f = mainUnit.getType('C').methods[0];
+    var f = _resultUnitElement.getType('C').methods[0];
     _assertTypeStr(f.type, 'U Function() Function<U>(U)');
   }
 
   test_genericMethods_inferGenericMethodType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25668
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   T m<T>(T x) => x;
 }
@@ -1845,7 +2295,7 @@ main() {
   }
 
   test_genericMethods_IterableAndFuture() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 import 'dart:async';
 
 Future<int> make(int x) => (new Future(() => x));
@@ -1854,19 +2304,25 @@ main() {
   Iterable<Future<int>> list = <int>[1, 2, 3].map(make);
   Future<List<int>> results = Future.wait(list);
   Future<String> results2 = results.then((List<int> list)
-    => list.fold('', (x, y) => x /*error:UNDEFINED_OPERATOR*/+ y.toString()));
+    => list.fold('', (x, y) => x + y.toString()));
 
   Future<String> results3 = results.then((List<int> list)
-    => list.fold('', /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/(String x, y) => x + y.toString()));
+    => list.fold('', (String x, y) => x + y.toString()));
 
   Future<String> results4 = results.then((List<int> list)
     => list.fold<String>('', (x, y) => x + y.toString()));
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 205, 8),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 279, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 315, 8),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 377, 33),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 432, 8),
+    ]);
   }
 
   test_genericMethods_nestedGenericInstantiation() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 import 'dart:math' as math;
 class Trace {
   List<Frame> frames = [];
@@ -1881,11 +2337,13 @@ main() {
         .fold(0, math.max);
   }).fold(0, math.max);
 }
-  ''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 153, 7),
+    ]);
   }
 
   test_genericMethods_usesGreatestLowerBound() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
@@ -1894,13 +2352,16 @@ T generic<T>(a(T _), b(T _)) => null;
 main() {
   var v = generic((F f) => null, (G g) => null);
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 118, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
 
   test_genericMethods_usesGreatestLowerBound_topLevel() async {
-    var mainUnit = await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 typedef Iterable<num> F(int x);
 typedef List<int> G(double x);
 
@@ -1908,19 +2369,19 @@ T generic<T>(a(T _), b(T _)) => null;
 
 var v = generic((F f) => null, (G g) => null);
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<int> Function(num)');
   }
 
   test_infer_assignToIndex() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 List<double> a = <double>[];
 var b = (a[0] = 1.0);
 ''');
   }
 
   test_infer_assignToProperty() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int f;
 }
@@ -1936,7 +2397,7 @@ var v_postfix_mm = (new A().f--);
   }
 
   test_infer_assignToProperty_custom() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A operator +(other) => this;
   A operator -(other) => this;
@@ -1952,7 +2413,7 @@ var v_postfix_mm = (new B().a--);
   }
 
   test_infer_assignToRef() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int f;
 }
@@ -1964,7 +2425,7 @@ var d = (c = 1);
   }
 
   test_infer_binary_custom() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   int operator +(other) => 1;
   double operator -(other) => 2.0;
@@ -1975,7 +2436,7 @@ var v_minus = new A() - 'bar';
   }
 
   test_infer_binary_doubleDouble() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a_equal = 1.0 == 2.0;
 var a_notEqual = 1.0 != 2.0;
 var a_add = 1.0 + 2.0;
@@ -1992,7 +2453,7 @@ var a_modulo = 1.0 % 2.0;
   }
 
   test_infer_binary_doubleInt() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a_equal = 1.0 == 2;
 var a_notEqual = 1.0 != 2;
 var a_add = 1.0 + 2;
@@ -2009,7 +2470,7 @@ var a_modulo = 1.0 % 2;
   }
 
   test_infer_binary_intDouble() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a_equal = 1 == 2.0;
 var a_notEqual = 1 != 2.0;
 var a_add = 1 + 2.0;
@@ -2026,7 +2487,7 @@ var a_modulo = 1 % 2.0;
   }
 
   test_infer_binary_intInt() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a_equal = 1 == 2;
 var a_notEqual = 1 != 2;
 var a_bitXor = 1 ^ 2;
@@ -2048,14 +2509,14 @@ var a_modulo = 1 % 2;
   }
 
   test_infer_conditional() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a = 1 == 2 ? 1 : 2.0;
 var b = 1 == 2 ? 1.0 : 2;
 ''');
   }
 
   test_infer_prefixExpression() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a_not = !true;
 var a_complement = ~1;
 var a_negate = -1;
@@ -2063,7 +2524,7 @@ var a_negate = -1;
   }
 
   test_infer_prefixExpression_custom() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A {
   A();
   int operator ~() => 1;
@@ -2076,7 +2537,7 @@ var v_negate = -a;
   }
 
   test_infer_throw() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var t = true;
 var a = (throw 0);
 var b = (throw 0) ? 1 : 2;
@@ -2086,7 +2547,7 @@ var d = t ? 1 : (throw 2);
   }
 
   test_infer_typeCast() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 class A<T> {}
 class B<T> extends A<T> {
   foo() {}
@@ -2100,7 +2561,7 @@ main() {
   }
 
   test_infer_typedListLiteral() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a = <int>[];
 var b = <double>[1.0, 2.0, 3.0];
 var c = <List<int>>[];
@@ -2109,7 +2570,7 @@ var d = <dynamic>[1, 2.0, false];
   }
 
   test_infer_typedMapLiteral() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var a = <int, String>{0: 'aaa', 1: 'bbb'};
 var b = <double, int>{1.1: 1, 2.2: 2};
 var c = <List<int>, Map<String, double>>{};
@@ -2120,28 +2581,32 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class B {
   void f() {}
 }
 class C extends B {
   f() {}
 }
-var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C().f();
-''');
+var x = new C().f();
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD, 65, 11),
+    ]);
   }
 
   test_inferConstsTransitively() async {
-    addFile('''
+    newFile('$testPackageLibPath/b.dart', content: '''
 const b1 = 2;
-''', name: '/b.dart');
-    addFile('''
-import 'main.dart';
+''');
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+import 'test.dart';
 import 'b.dart';
 const a1 = m2;
 const a2 = b1;
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertErrorsInCode('''
 import 'a.dart';
 const m1 = a1;
 const m2 = a2;
@@ -2150,11 +2615,13 @@ foo() {
   int i;
   i = m1;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
   }
 
   test_inferCorrectlyOnMultipleVariablesDeclaredTogether() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   var x, y = 2, z = "hi";
 }
@@ -2168,26 +2635,32 @@ foo() {
   int i;
 
   s = new B().x;
-  s = /*error:INVALID_ASSIGNMENT*/new B().y;
+  s = new B().y;
   s = new B().z;
-  s = /*error:INVALID_ASSIGNMENT*/new B().w;
+  s = new B().w;
 
   i = new B().x;
   i = new B().y;
-  i = /*error:INVALID_ASSIGNMENT*/new B().z;
+  i = new B().z;
   i = new B().w;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 112, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 121, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 148, 9),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 182, 9),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 234, 9),
+    ]);
   }
 
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A { int x; B operator+(other) => null; }
 class B extends A { B(ignore); }
 var a = new A();
 // Note: it doesn't matter that some of these refer to 'x'.
-var b = new B(/*error:UNDEFINED_IDENTIFIER*/x);  // allocations
-var c1 = [/*error:UNDEFINED_IDENTIFIER*/x];      // list literals
+var b = new B(x);  // allocations
+var c1 = [x];      // list literals
 var c2 = const [];
 var d = <dynamic, dynamic>{'a': 'b'};     // map literals
 var e = new A()..x = 3; // cascades
@@ -2196,38 +2669,54 @@ var f = 2 + 3;          // binary expressions are OK if the left operand
                         // connected component.
 var g = -3;
 var h = new A() + 3;
-var i = /*error:UNDEFINED_OPERATOR*/- new A();
-var j = /*info:UNNECESSARY_CAST*/null as B;
+var i = - new A();
+var j = null as B;
 
 test1() {
-  a = /*error:INVALID_ASSIGNMENT*/"hi";
+  a = "hi";
   a = new B(3);
-  b = /*error:INVALID_ASSIGNMENT*/"hi";
+  b = "hi";
   b = new B(3);
   c1 = [];
-  c1 = /*error:INVALID_ASSIGNMENT*/{};
+  c1 = {};
   c2 = [];
-  c2 = /*error:INVALID_ASSIGNMENT*/{};
+  c2 = {};
   d = {};
-  d = /*error:INVALID_ASSIGNMENT*/3;
+  d = 3;
   e = new A();
-  e = /*error:INVALID_ASSIGNMENT*/{};
+  e = {};
   f = 3;
-  f = /*error:INVALID_ASSIGNMENT*/false;
+  f = false;
   g = 1;
-  g = /*error:INVALID_ASSIGNMENT*/false;
-  h = /*error:INVALID_ASSIGNMENT*/false;
+  g = false;
+  h = false;
   h = new B('b');
   i = false;
   j = new B('b');
-  j = /*error:INVALID_ASSIGNMENT*/false;
-  j = /*error:INVALID_ASSIGNMENT*/[];
+  j = false;
+  j = [];
 }
-''');
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 171, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 201, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 572, 1),
+      error(HintCode.UNNECESSARY_CAST, 591, 9),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 619, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 647, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 687, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 709, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 729, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 753, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 772, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 794, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 807, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 869, 5),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 882, 2),
+    ]);
   }
 
   test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   var x;
 }
@@ -2240,11 +2729,14 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 78, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 99, 1),
+    ]);
   }
 
   test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   final x = null;
 }
@@ -2257,19 +2749,24 @@ foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+    ]);
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn() async {
-    addFile('''
-import 'main.dart';
+    newFile('$testPackageLibPath/a.dart', content: '''
+import 'test.dart';
 var x = 2; // ok to infer
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertNoErrorsInCode('''
 import 'a.dart';
 var y = x; // now ok :)
 
 test1() {
+  // ignore:unused_local_variable
   int t = 3;
   t = x;
   t = y;
@@ -2278,15 +2775,17 @@ test1() {
   }
 
   test_inferFromVariablesInCycleLibsWhenFlagIsOn2() async {
-    addFile('''
-import 'main.dart';
+    newFile('$testPackageLibPath/a.dart', content: '''
+import 'test.dart';
 class A { static var x = 2; }
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertNoErrorsInCode('''
 import 'a.dart';
 class B { static var y = A.x; }
 
 test1() {
+  // ignore:unused_local_variable
   int t = 3;
   t = A.x;
   t = B.y;
@@ -2295,89 +2794,109 @@ test1() {
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag() async {
-    addFile('''
+    newFile('$testPackageLibPath/a.dart', content: '''
 var x = 2;
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertErrorsInCode('''
 import 'a.dart';
 var y = x;
 
 test1() {
-  x = /*error:INVALID_ASSIGNMENT*/"hi";
-  y = /*error:INVALID_ASSIGNMENT*/"hi";
+  x = "hi";
+  y = "hi";
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 4),
+    ]);
   }
 
   test_inferFromVariablesInNonCycleImportsWithFlag2() async {
-    addFile('''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A { static var x = 2; }
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertErrorsInCode('''
 import 'a.dart';
 class B { static var y = A.x; }
 
 test1() {
-  A.x = /*error:INVALID_ASSIGNMENT*/"hi";
-  B.y = /*error:INVALID_ASSIGNMENT*/"hi";
+  A.x = "hi";
+  B.y = "hi";
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 68, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 82, 4),
+    ]);
   }
 
   test_inferGenericMethodType_named() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   T m<T>(int a, {String b, T c}) => null;
 }
 main() {
  var y = new C().m(1, b: 'bbb', c: 2.0);
 }
-''');
-    var y = findLocalVariable(unit, 'y');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+    ]);
+
+    var y = findLocalVariable(_resultUnit, 'y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_positional() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   T m<T>(int a, [T b]) => null;
 }
 main() {
   var y = new C().m(1, 2.0);
 }
-''');
-    var y = findLocalVariable(unit, 'y');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+    ]);
+
+    var y = findLocalVariable(_resultUnit, 'y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_positional2() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   T m<T>(int a, [String b, T c]) => null;
 }
 main() {
   var y = new C().m(1, 'bbb', 2.0);
 }
-''');
-    var y = findLocalVariable(unit, 'y');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
+    ]);
+
+    var y = findLocalVariable(_resultUnit, 'y');
     _assertTypeStr(y.type, 'double');
   }
 
   test_inferGenericMethodType_required() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   T m<T>(T x) => x;
 }
 main() {
   var y = new C().m(42);
 }
-''');
-    var y = findLocalVariable(unit, 'y');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+    ]);
+
+    var y = findLocalVariable(_resultUnit, 'y');
     _assertTypeStr(y.type, 'int');
   }
 
   test_inferListLiteralNestedInMapLiteral() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 class Resource {}
 class Folder extends Resource {}
 
@@ -2403,12 +2922,16 @@ main() {
     [getResource('/pkgA/lib/')]
   );
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 161, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 313, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 467, 3),
+    ]);
   }
 
   test_inferLocalFunctionReturnType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26414
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 main() {
   f0 () => 42;
   f1 () async => 42;
@@ -2421,33 +2944,47 @@ main() {
   num f6() => 42;
 
   f7 () => f7();
-  f8 () => /*error:REFERENCED_BEFORE_DECLARATION*/f9();
+  f8 () => f9();
   f9 () => f5();
 }
-''');
-    _assertTypeStr(findLocalFunction(unit, 'f0').type, 'int Function()');
-    _assertTypeStr(
-        findLocalFunction(unit, 'f1').type, 'Future<int> Function()');
+''', [
+      error(HintCode.UNUSED_ELEMENT, 11, 2),
+      error(HintCode.UNUSED_ELEMENT, 26, 2),
+      error(HintCode.UNUSED_ELEMENT, 48, 2),
+      error(HintCode.UNUSED_ELEMENT, 71, 2),
+      error(HintCode.UNUSED_ELEMENT, 100, 2),
+      error(HintCode.UNUSED_ELEMENT, 162, 2),
+      error(HintCode.UNUSED_ELEMENT, 177, 2),
+      error(HintCode.UNUSED_ELEMENT, 194, 2),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 203, 2,
+          contextMessages: [message(testFilePath, 211, 2)]),
+    ]);
 
-    _assertTypeStr(findLocalFunction(unit, 'f2').type, 'int Function()');
+    _assertTypeStr(findLocalFunction(_resultUnit, 'f0').type, 'int Function()');
     _assertTypeStr(
-        findLocalFunction(unit, 'f3').type, 'Future<int> Function()');
-    _assertTypeStr(
-        findLocalFunction(unit, 'f4').type, 'Iterable<int> Function()');
-    _assertTypeStr(
-        findLocalFunction(unit, 'f5').type, 'Stream<int> Function()');
+        findLocalFunction(_resultUnit, 'f1').type, 'Future<int> Function()');
 
-    _assertTypeStr(findLocalFunction(unit, 'f6').type, 'num Function()');
+    _assertTypeStr(findLocalFunction(_resultUnit, 'f2').type, 'int Function()');
+    _assertTypeStr(
+        findLocalFunction(_resultUnit, 'f3').type, 'Future<int> Function()');
+    _assertTypeStr(
+        findLocalFunction(_resultUnit, 'f4').type, 'Iterable<int> Function()');
+    _assertTypeStr(
+        findLocalFunction(_resultUnit, 'f5').type, 'Stream<int> Function()');
+
+    _assertTypeStr(findLocalFunction(_resultUnit, 'f6').type, 'num Function()');
 
     // Recursive cases: these infer in declaration order.
-    _assertTypeStr(findLocalFunction(unit, 'f7').type, 'dynamic Function()');
-    _assertTypeStr(findLocalFunction(unit, 'f8').type, 'dynamic Function()');
     _assertTypeStr(
-        findLocalFunction(unit, 'f9').type, 'Stream<int> Function()');
+        findLocalFunction(_resultUnit, 'f7').type, 'dynamic Function()');
+    _assertTypeStr(
+        findLocalFunction(_resultUnit, 'f8').type, 'dynamic Function()');
+    _assertTypeStr(
+        findLocalFunction(_resultUnit, 'f9').type, 'Stream<int> Function()');
   }
 
   test_inferParameterType_setter_fromField() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C extends D {
   set foo(x) {}
 }
@@ -2455,12 +2992,12 @@ class D {
   int foo;
 }
 ''');
-    var f = mainUnit.getType('C').accessors[0];
+    var f = _resultUnitElement.getType('C').accessors[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
   test_inferParameterType_setter_fromSetter() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C extends D {
   set foo(x) {}
 }
@@ -2468,12 +3005,12 @@ class D {
   set foo(int x) {}
 }
 ''');
-    var f = mainUnit.getType('C').accessors[0];
+    var f = _resultUnitElement.getType('C').accessors[0];
     _assertTypeStr(f.type, 'void Function(int)');
   }
 
   test_inferred_nonstatic_field_depends_on_static_field_complex() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   static var x = 'x';
   var y = {
@@ -2482,49 +3019,55 @@ class C {
   };
 }
 ''');
-    var x = mainUnit.getType('C').fields[0];
+    var x = _resultUnitElement.getType('C').fields[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = mainUnit.getType('C').fields[1];
+    var y = _resultUnitElement.getType('C').fields[1];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'Map<String, Map<String, String>>');
   }
 
   test_inferred_nonstatic_field_depends_on_toplevel_var_simple() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 var x = 'x';
 class C {
   var y = x;
 }
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'String');
-    var y = mainUnit.getType('C').fields[0];
+    var y = _resultUnitElement.getType('C').fields[0];
     expect(y.name, 'y');
     _assertTypeStr(y.type, 'String');
   }
 
   test_inferredInitializingFormalChecksDefaultValue() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class Foo {
   var x = 1;
-  Foo([this.x = /*error:INVALID_ASSIGNMENT*/"1"]);
-}''');
+  Foo([this.x = "1"]);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 3),
+    ]);
   }
 
   test_inferredType_blockClosure_noArgs_noReturn() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var f = () {};
 }
-''');
-    var f = findLocalVariable(unit, 'f');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var f = findLocalVariable(_resultUnit, 'f');
     _assertTypeStr(f.type, 'Null Function()');
   }
 
   test_inferredType_cascade() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class A {
   int a;
   List<int> b;
@@ -2532,25 +3075,25 @@ class A {
 }
 var v = new A()..a = 1..b.add(2)..m();
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'A');
   }
 
   test_inferredType_customBinaryOp() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   bool operator*(C other) => true;
 }
 C c;
 var x = c*c;
 ''');
-    var x = mainUnit.topLevelVariables[1];
+    var x = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customBinaryOp_viaInterface() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class I {
   bool operator*(C other) => true;
 }
@@ -2558,13 +3101,13 @@ abstract class C implements I {}
 C c;
 var x = c*c;
 ''');
-    var x = mainUnit.topLevelVariables[1];
+    var x = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customIndexOp() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   bool operator[](int index) => true;
 }
@@ -2572,14 +3115,17 @@ main() {
   C c;
   var x = c[0];
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customIndexOp_viaInterface() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class I {
   bool operator[](int index) => true;
 }
@@ -2588,27 +3134,30 @@ main() {
   C c;
   var x = c[0];
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customUnaryOp() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   bool operator-() => true;
 }
 C c;
 var x = -c;
 ''');
-    var x = mainUnit.topLevelVariables[1];
+    var x = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_customUnaryOp_viaInterface() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class I {
   bool operator-() => true;
 }
@@ -2616,26 +3165,26 @@ abstract class C implements I {}
 C c;
 var x = -c;
 ''');
-    var x = mainUnit.topLevelVariables[1];
+    var x = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_extractMethodTearOff() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   bool g() => true;
 }
 C f() => null;
 var x = f().g;
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
   test_inferredType_extractMethodTearOff_viaInterface() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class I {
   bool g() => true;
 }
@@ -2643,34 +3192,34 @@ abstract class C implements I {}
 C f() => null;
 var x = f().g;
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool Function()');
   }
 
   test_inferredType_fromTopLevelExecutableTearoff() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 var v = print;
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'void Function(Object)');
   }
 
   test_inferredType_invokeMethod() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   bool g() => true;
 }
 C f() => null;
 var x = f().g();
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_invokeMethod_viaInterface() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class I {
   bool g() => true;
 }
@@ -2678,139 +3227,139 @@ abstract class C implements I {}
 C f() => null;
 var x = f().g();
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'bool');
   }
 
   test_inferredType_isEnum() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 enum E { v1 }
 final x = E.v1;
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'E');
   }
 
   test_inferredType_isEnumValues() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 enum E { v1 }
 final x = E.values;
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'List<E>');
   }
 
   test_inferredType_isTypedef() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 typedef void F();
 final x = <String, F>{};
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Map<String, void Function()>');
   }
 
   test_inferredType_isTypedef_parameterized() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 typedef T F<T>();
 final x = <String, F<int>>{};
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Map<String, int Function()>');
   }
 
   test_inferredType_usesSyntheticFunctionType() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 int f() => null;
 String g() => null;
 var v = [f, g];
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function()>');
   }
 
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
 var v = [f, g];
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function(int Function(String))>');
   }
 
   test_inferredType_usesSyntheticFunctionType_namedParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 int f({int x}) => null;
 String g({int x}) => null;
 var v = [f, g];
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function({int x})>');
   }
 
   test_inferredType_usesSyntheticFunctionType_positionalParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 int f([int x]) => null;
 String g([int x]) => null;
 var v = [f, g];
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function([int])>');
   }
 
   test_inferredType_usesSyntheticFunctionType_requiredParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 int f(int x) => null;
 String g(int x) => null;
 var v = [f, g];
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'List<Object Function(int)>');
   }
 
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   static final f = (bool b) =>
       (int i) => {i: b};
 }
 ''');
-    var f = mainUnit.getType('C').fields[0];
+    var f = _resultUnitElement.getType('C').fields[0];
     _assertTypeStr(f.type, 'Map<int, bool> Function(int) Function(bool)');
   }
 
   test_inferredType_viaClosure_typeDependsOnArgs() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   static final f = (bool b) => b;
 }
 ''');
-    var f = mainUnit.getType('C').fields[0];
+    var f = _resultUnitElement.getType('C').fields[0];
     _assertTypeStr(f.type, 'bool Function(bool)');
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_field() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   static final f = (bool b) => 1;
 }
 ''');
-    var f = mainUnit.getType('C').fields[0];
+    var f = _resultUnitElement.getType('C').fields[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 
   test_inferredType_viaClosure_typeIndependentOfArgs_topLevel() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 final f = (bool b) => 1;
 ''');
-    var f = mainUnit.topLevelVariables[0];
+    var f = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(f.type, 'int Function(bool)');
   }
 
   test_inferReturnOfStatementLambda() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26139
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 List<String> strings() {
   var stuff = [].expand((i) {
     return <String>[];
@@ -2821,23 +3370,26 @@ List<String> strings() {
   }
 
   test_inferStaticsTransitively() async {
-    addFile('''
+    newFile('$testPackageLibPath/b.dart', content: '''
 final b1 = 2;
-''', name: '/b.dart');
-    addFile('''
-import 'main.dart';
+''');
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+import 'test.dart';
 import 'b.dart';
 final a1 = m2;
 class A {
   static final a2 = b1;
 }
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertNoErrorsInCode('''
 import 'a.dart';
 final m1 = a1;
 final m2 = A.a2;
 
 foo() {
+  // ignore:unused_local_variable
   int i;
   i = m1;
 }
@@ -2845,7 +3397,7 @@ foo() {
   }
 
   test_inferStaticsTransitively2() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 const x1 = 1;
 final x2 = 1;
 final y1 = x1;
@@ -2856,18 +3408,21 @@ foo() {
   i = y1;
   i = y2;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
+    ]);
   }
 
   test_inferStaticsTransitively3() async {
-    addFile('''
+    newFile('$testPackageLibPath/a.dart', content: '''
 const a1 = 3;
 const a2 = 4;
 class A {
   static const a3 = null;
 }
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertNoErrorsInCode('''
 import 'a.dart' show a1, A;
 import 'a.dart' as p show a2, A;
 const t1 = 1;
@@ -2878,6 +3433,7 @@ const t5 = A.a3;
 const t6 = p.A.a3;
 
 foo() {
+  // ignore:unused_local_variable
   int i;
   i = t1;
   i = t2;
@@ -2888,10 +3444,11 @@ foo() {
   }
 
   test_inferStaticsWithMethodInvocations() async {
-    addFile('''
+    newFile('$testPackageLibPath/a.dart', content: '''
 m3(String a, String b, [a1,a2]) {}
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertNoErrorsInCode('''
 import 'a.dart';
 class T {
   static final T foo = m1(m2(m3('', '')));
@@ -2902,7 +3459,7 @@ class T {
   }
 
   test_inferTypeOnOverriddenFields2() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   int x = 2;
 }
@@ -2912,14 +3469,18 @@ class B extends A {
 }
 
 foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
+  String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 80, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 84, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 101, 1),
+    ]);
   }
 
   test_inferTypeOnOverriddenFields4() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   final int x = 2;
 }
@@ -2929,83 +3490,108 @@ class B implements A {
 }
 
 foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
+  String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 93, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+    ]);
   }
 
   test_inferTypeOnVar() async {
     // Error also expected when declared type is `int`.
-    await checkFileElement('''
+    await assertErrorsInCode('''
 test1() {
   int x = 3;
-  x = /*error:INVALID_ASSIGNMENT*/"hi";
+  x = "hi";
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
+    ]);
   }
 
   test_inferTypeOnVar2() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 test2() {
   var x = 3;
-  x = /*error:INVALID_ASSIGNMENT*/"hi";
+  x = "hi";
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4),
+    ]);
   }
 
   test_inferTypeOnVarFromField() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   int x = 0;
 
   test1() {
     var a = x;
-    a = /*error:INVALID_ASSIGNMENT*/"hi";
+    a = "hi";
     a = 3;
     var b = y;
-    b = /*error:INVALID_ASSIGNMENT*/"hi";
+    b = "hi";
     b = 4;
     var c = z;
-    c = /*error:INVALID_ASSIGNMENT*/"hi";
+    c = "hi";
     c = 4;
   }
 
   int y; // field def after use
   final z = 42; // should infer `int`
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 139, 4),
+    ]);
   }
 
   test_inferTypeOnVarFromTopLevel() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 int x = 0;
 
 test1() {
   var a = x;
-  a = /*error:INVALID_ASSIGNMENT*/"hi";
+  a = "hi";
   a = 3;
   var b = y;
-  b = /*error:INVALID_ASSIGNMENT*/"hi";
+  b = "hi";
   b = 4;
   var c = z;
-  c = /*error:INVALID_ASSIGNMENT*/"hi";
+  c = "hi";
   c = 4;
 }
 
 int y = 0; // field def after use
 final z = 42; // should infer `int`
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 41, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 75, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 4),
+    ]);
   }
 
   test_inferTypeRegardlessOfDeclarationOrderOrCycles() async {
-    addFile('''
-import 'main.dart';
+    newFile('$testPackageLibPath/a.dart', content: '''
+import 'test.dart';
 
 class B extends A { }
-''', name: '/b.dart');
-    await checkFileElement('''
-import 'b.dart';
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
 class C extends B {
   get x => null;
 }
@@ -3014,13 +3600,17 @@ class A {
 }
 foo() {
   int y = new C().x;
-  String z = /*error:INVALID_ASSIGNMENT*/new C().x;
+  String z = new C().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 100, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 128, 9),
+    ]);
   }
 
   test_inferTypesOnGenericInstantiations_3() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A<T> {
   final T x = null;
   final T w = null;
@@ -3028,18 +3618,23 @@ class A<T> {
 
 class B implements A<int> {
   get x => 3;
-  get w => /*error:RETURN_OF_INVALID_TYPE*/"hello";
+  get w => "hello";
 }
 
 foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/new B().x;
+  String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 109, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 138, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 142, 9),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 159, 1),
+    ]);
   }
 
   test_inferTypesOnGenericInstantiations_4() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A<T> {
   T x;
 }
@@ -3050,14 +3645,18 @@ class B<E> extends A<E> {
 }
 
 foo() {
-  int y = /*error:INVALID_ASSIGNMENT*/new B<String>().x;
+  int y = new B<String>().x;
   String z = new B<String>().x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 91, 17),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+    ]);
   }
 
   test_inferTypesOnGenericInstantiations_5() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 abstract class I<E> {
   String m(a, String f(v, E e));
 }
@@ -3079,38 +3678,47 @@ class B<E> extends A<E> implements M {
 }
 
 foo () {
-  int y = /*error:INVALID_ASSIGNMENT*/new B().m(null, null);
+  int y = new B().m(null, null);
   String z = new B().m(null, null);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 310, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 314, 21),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 346, 1),
+    ]);
   }
 
   test_inferTypesOnGenericInstantiations_infer() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A<T> {
   final T x = null;
 }
 
 class B implements A<int> {
-  dynamic get /*error:INVALID_OVERRIDE*/x => 3;
+  dynamic get x => 3;
 }
 
 foo() {
   String y = new B().x;
   int z = new B().x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 106, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 127, 1),
+    ]);
   }
 
   test_inferTypesOnGenericInstantiationsInLibraryCycle() async {
     // Note: this is a regression test for bug #48.
-    addFile('''
-import 'main.dart';
+    newFile('$testPackageLibPath/a.dart', content: '''
+import 'test.dart';
 abstract class I<E> {
   A<E> m(a, String f(v, int e));
 }
-''', name: '/a.dart');
-    await checkFileElement('''
+''');
+
+    await assertErrorsInCode('''
 import 'a.dart';
 
 abstract class A<E> implements I<E> {
@@ -3131,14 +3739,18 @@ class B<E> extends A<E> implements M {
 }
 
 foo () {
-  int y = /*error:INVALID_ASSIGNMENT*/new B<String>().m(null, null).value;
+  int y = new B<String>().m(null, null).value;
   String z = new B<String>().m(null, null).value;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 264, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 268, 35),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 314, 1),
+    ]);
   }
 
   test_inferTypesOnLoopIndices_forEachLoop() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class Foo {
   int bar = 42;
 }
@@ -3146,7 +3758,7 @@ class Foo {
 class Bar<T extends Iterable<String>> {
   void foo(T t) {
     for (var i in t) {
-      int x = /*error:INVALID_ASSIGNMENT*/i;
+      int x = i;
     }
   }
 }
@@ -3154,7 +3766,7 @@ class Bar<T extends Iterable<String>> {
 class Baz<T, E extends Iterable<T>, S extends E> {
   void foo(S t) {
     for (var i in t) {
-      int x = /*error:INVALID_ASSIGNMENT*/i;
+      int x = i;
       T y = i;
     }
   }
@@ -3163,14 +3775,14 @@ class Baz<T, E extends Iterable<T>, S extends E> {
 test() {
   var list = <Foo>[];
   for (var x in list) {
-    String y = /*error:INVALID_ASSIGNMENT*/x;
+    String y = x;
   }
 
   for (dynamic x in list) {
     String y = x;
   }
 
-  for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/list) {
+  for (String x in list) {
     String y = x;
   }
 
@@ -3191,7 +3803,7 @@ test() {
 
   var map = <String, Foo>{};
   // Error: map must be an Iterable.
-  for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/map) {
+  for (var x in map) {
     String y = x;
   }
 
@@ -3201,31 +3813,50 @@ test() {
     String y = x;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 126, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 244, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 248, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 259, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 345, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 349, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 396, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 427, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 446, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 497, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 565, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 634, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 728, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 746, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 897, 1),
+    ]);
   }
 
   test_inferTypesOnLoopIndices_forLoopWithInference() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 test() {
   for (var i = 0; i < 10; i++) {
     int j = i + 1;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+    ]);
   }
 
   test_inferVariableVoid() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 void f() {}
 var x = f();
   ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     expect(x.name, 'x');
     _assertTypeStr(x.type, 'void');
   }
 
   test_lambdaDoesNotHavePropagatedTypeHint() async {
-    await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 List<String> getListOfString() => const <String>[];
 
 void foo() {
@@ -3246,141 +3877,176 @@ void bar() {
   }
 
   test_listLiterals() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 test1() {
   var x = [1, 2, 3];
-  x.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
-  x.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0);
+  x.add('hi');
+  x.add(4.0);
   x.add(4);
   List<num> y = x;
 }
 test2() {
   var x = [1, 2.0, 3];
-  x.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
+  x.add('hi');
   x.add(4.0);
   List<int> y = x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 54, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 134, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 167, 1),
+    ]);
   }
 
   test_listLiterals_topLevel() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 var x1 = [1, 2, 3];
 test1() {
-  x1.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
-  x1.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0);
+  x1.add('hi');
+  x1.add(4.0);
   x1.add(4);
   List<num> y = x1;
 }
 var x2 = [1, 2.0, 3];
 test2() {
-  x2.add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
+  x2.add('hi');
   x2.add(4.0);
   List<int> y = x2;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 39, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 55, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 137, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 171, 1),
+    ]);
   }
 
   test_listLiteralsCanInferNull_topLevel() async {
-    var unit = await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var x = [null];
 ''');
-    var x = unit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'List<Null>');
   }
 
   test_listLiteralsCanInferNullBottom() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 test1() {
   var x = [null];
-  x.add(/*error:INVALID_CAST_LITERAL*/42);
+  x.add(42);
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 36, 2),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'List<Null>');
   }
 
   test_mapLiterals() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 test1() {
   var x = { 1: 'x', 2: 'y' };
   x[3] = 'z';
-  x[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
-  x[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0] = 'u';
-  x[3] = /*error:INVALID_ASSIGNMENT*/42;
+  x['hi'] = 'w';
+  x[4.0] = 'u';
+  x[3] = 42;
   Map<num, String> y = x;
 }
 
 test2() {
   var x = { 1: 'x', 2: 'y', 3.0: new RegExp('.') };
   x[3] = 'z';
-  x[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
+  x['hi'] = 'w';
   x[4.0] = 'u';
-  x[3] = /*error:INVALID_ASSIGNMENT*/42;
+  x[3] = 42;
   Pattern p = null;
   x[2] = p;
   Map<int, String> y = x;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 75, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 119, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 209, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 247, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 302, 1),
+    ]);
   }
 
   test_mapLiterals_topLevel() async {
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 var x1 = { 1: 'x', 2: 'y' };
 test1() {
   x1[3] = 'z';
-  x1[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
-  x1[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0] = 'u';
-  x1[3] = /*error:INVALID_ASSIGNMENT*/42;
+  x1['hi'] = 'w';
+  x1[4.0] = 'u';
+  x1[3] = 42;
   Map<num, String> y = x1;
 }
 
 var x2 = { 1: 'x', 2: 'y', 3.0: new RegExp('.') };
 test2() {
   x2[3] = 'z';
-  x2[/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
+  x2['hi'] = 'w';
   x2[4.0] = 'u';
-  x2[3] = /*error:INVALID_ASSIGNMENT*/42;
+  x2[3] = 42;
   Pattern p = null;
   x2[2] = p;
   Map<int, String> y = x2;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 59, 4),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 214, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 254, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 310, 1),
+    ]);
   }
 
   test_mapLiteralsCanInferNull() async {
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 test1() {
   var x = { null: null };
-  x[/*error:INVALID_CAST_LITERAL*/3] = /*error:INVALID_CAST_LITERAL*/'z';
+  x[3] = 'z';
 }
-''');
-    var x = findLocalVariable(unit, 'x');
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 40, 1),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 45, 3),
+    ]);
+
+    var x = findLocalVariable(_resultUnit, 'x');
     _assertTypeStr(x.type, 'Map<Null, Null>');
   }
 
   test_mapLiteralsCanInferNull_topLevel() async {
-    var unit = await checkFileElement(r'''
+    await assertNoErrorsInCode(r'''
 var x = { null: null };
 ''');
-    var x = unit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Map<Null, Null>');
   }
 
   test_methodCall_withTypeArguments_instanceMethod() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   D<T> f<T>() => null;
 }
 class D<T> {}
 var f = new C().f<int>();
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_instanceMethod_identifierSequence() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   D<T> f<T>() => null;
 }
@@ -3388,65 +4054,75 @@ class D<T> {}
 C c;
 var f = c.f<int>();
 ''');
-    var v = mainUnit.topLevelVariables[1];
+    var v = _resultUnitElement.topLevelVariables[1];
     expect(v.name, 'f');
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_staticMethod() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   static D<T> f<T>() => null;
 }
 class D<T> {}
 var f = C.f<int>();
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_methodCall_withTypeArguments_topLevelFunction() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 D<T> f<T>() => null;
 class D<T> {}
 var g = f<int>();
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'D<int>');
   }
 
   test_noErrorWhenDeclaredTypeIsNumAndAssignedNull() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 test1() {
   num x = 3;
   x = null;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
+    ]);
   }
 
   test_nullCoalescingOperator() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26552
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 main() {
   List<int> x;
   var y = x ?? [];
   List<int> z = y;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+    ]);
+  }
+
+  test_nullCoalescingOperator2() async {
     // Don't do anything if we already have a context type.
-    var unit = await checkFile(r'''
+    await assertErrorsInCode(r'''
 main() {
   List<int> x;
   List<num> y = x ?? [];
 }
-''');
-    var y = findLocalVariable(unit, 'y');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
+
+    var y = findLocalVariable(_resultUnit, 'y');
     _assertTypeStr(y.initializer.returnType, 'List<num>');
   }
 
   test_nullLiteralShouldNotInferAsBottom() async {
     // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
-    await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 var h = null;
 void foo(int f(Object _)) {}
 
@@ -3454,7 +4130,7 @@ main() {
   var f = (Object x) => null;
   String y = f(42);
 
-  f = (x) => /*error:INVALID_CAST_LITERAL*/'hello';
+  f = (x) => 'hello';
 
   var g = null;
   g = 'hello';
@@ -3466,11 +4142,14 @@ main() {
   foo((x) => null);
   foo((x) => throw "not implemented");
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 117, 7),
+    ]);
   }
 
   test_propagateInferenceToFieldInClass() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   int x = 2;
 }
@@ -3481,11 +4160,13 @@ test() {
   print(a.x);     // doesn't require dynamic invoke
   print(a.x + 2); // ok to use in bigger expression
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+    ]);
   }
 
   test_propagateInferenceToFieldInClassDynamicWarnings() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   int x = 2;
 }
@@ -3496,27 +4177,32 @@ test() {
   print(a.x);
   print((a.x) + 2);
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
   }
 
   test_propagateInferenceTransitively() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class A {
   int x = 2;
 }
 
 test5() {
   var a1 = new A();
-  a1.x = /*error:INVALID_ASSIGNMENT*/"hi";
+  a1.x = "hi";
 
   A a2 = new A();
-  a2.x = /*error:INVALID_ASSIGNMENT*/"hi";
+  a2.x = "hi";
 }
-''');
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 65, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 99, 4),
+    ]);
   }
 
   test_propagateInferenceTransitively2() async {
-    await checkFileElement('''
+    await assertNoErrorsInCode('''
 class A {
   int x = 42;
 }
@@ -3544,16 +4230,16 @@ void main() {
   }
 
   test_referenceToTypedef() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 typedef void F();
 final x = F;
 ''');
-    var x = mainUnit.topLevelVariables[0];
+    var x = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(x.type, 'Type');
   }
 
   test_refineBinaryExpressionType_typeParameter_T_double() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class C<T extends num> {
   T a;
 
@@ -3564,11 +4250,16 @@ class C<T extends num> {
     double r4 = a / b;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 112, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 135, 2),
+    ]);
   }
 
   test_refineBinaryExpressionType_typeParameter_T_int() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class C<T extends num> {
   T a;
 
@@ -3584,11 +4275,15 @@ class C<T extends num> {
     a *= b;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+    ]);
   }
 
   test_refineBinaryExpressionType_typeParameter_T_T() async {
-    await checkFileElement('''
+    await assertErrorsInCode('''
 class C<T extends num> {
   T a;
 
@@ -3604,58 +4299,65 @@ class C<T extends num> {
     a *= b;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 2),
+    ]);
   }
 
   test_staticMethod_tearoff() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 const v = C.f;
 class C {
   static int f(String s) => null;
 }
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'int Function(String)');
   }
 
   test_unsafeBlockClosureInference_closureCall() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/26962
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = ((x) => 1.0)(() { return 1; });
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_constructorCall_explicitDynamicParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C<T> {
   C(T x());
 }
 var v = new C<dynamic>(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<dynamic>');
   }
 
   test_unsafeBlockClosureInference_constructorCall_explicitTypeParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C<T> {
   C(T x());
 }
 var v = new C<int>(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
 
   test_unsafeBlockClosureInference_constructorCall_implicitTypeParam() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C<T> {
   C(T x());
 }
@@ -3665,30 +4367,33 @@ main() {
       return 1;
     });
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C<int>');
   }
 
   test_unsafeBlockClosureInference_constructorCall_noTypeParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   C(x());
 }
 var v = new C(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'C');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<dynamic>(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
@@ -3696,31 +4401,31 @@ var v = f<dynamic>(() { return 1; });
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr1() async {
     // Note: (f<dynamic>) is not a valid syntax.
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<dynamic>)(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitDynamicParam_viaExpr2() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<dynamic>(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<int>(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
@@ -3728,27 +4433,27 @@ var v = f<int>(() { return 1; });
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/25824')
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr1() async {
     // Note: (f<int>) is not a valid syntax.
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f<int>)(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_explicitTypeParam_viaExpr2() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 List<T> f<T>(T g()) => <T>[g()];
 var v = (f)<int>(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = f(
     () {
@@ -3756,13 +4461,16 @@ main() {
     });
 }
 List<T> f<T>(T g()) => <T>[g()];
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_implicitTypeParam_viaExpr() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = (f)(
     () {
@@ -3770,129 +4478,162 @@ main() {
     });
 }
 List<T> f<T>(T g()) => <T>[g()];
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_functionCall_noTypeParam() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = f(() { return 1; });
 }
 double f(x) => 1.0;
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_functionCall_noTypeParam_viaExpr() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = (f)(() { return 1; });
 }
 double f(x) => 1.0;
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_unsafeBlockClosureInference_inList_dynamic() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = <dynamic>[() { return 1; }];
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_inList_typed() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 typedef int F();
 main() {
   var v = <F>[() { return 1; }];
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inList_untyped() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = [
     () {
       return 1;
     }];
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_dynamic() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = <int, dynamic>{1: () { return 1; }};
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'Map<int, dynamic>');
   }
 
   test_unsafeBlockClosureInference_inMap_typed() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 typedef int F();
 main() {
   var v = <int, F>{1: () { return 1; }};
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_inMap_untyped() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 main() {
   var v = {
     1: () {
       return 1;
     }};
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'Map<int, int Function()>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitDynamicParam() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
 main() {
   var v = new C().f<dynamic>(() { return 1; });
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<dynamic>');
   }
 
   test_unsafeBlockClosureInference_methodCall_explicitTypeParam() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
 main() {
   var v = new C().f<int>(() { return 1; });
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_methodCall_implicitTypeParam() async {
-    var unit = await checkFile('''
+    await assertErrorsInCode('''
 class C {
   List<T> f<T>(T g()) => <T>[g()];
 }
@@ -3902,25 +4643,28 @@ main() {
       return 1;
     });
 }
-''');
-    var v = findLocalVariable(unit, 'v');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 62, 1),
+    ]);
+
+    var v = findLocalVariable(_resultUnit, 'v');
     _assertTypeStr(v.type, 'List<int>');
   }
 
   test_unsafeBlockClosureInference_methodCall_noTypeParam() async {
-    var mainUnit = await checkFileElement('''
+    await assertNoErrorsInCode('''
 class C {
   double f(x) => 1.0;
 }
 var v = new C().f(() { return 1; });
 ''');
-    var v = mainUnit.topLevelVariables[0];
+    var v = _resultUnitElement.topLevelVariables[0];
     expect(v.name, 'v');
     _assertTypeStr(v.type, 'double');
   }
 
   test_voidReturnTypeEquivalentToDynamic() async {
-    var unit = await checkFileElement(r'''
+    await assertErrorsInCode(r'''
 T run<T>(T f()) {
   print("running");
   var t = f();
@@ -3942,12 +4686,26 @@ main() {
   y = 123;
   y = 'hi';
 }
-  ''');
+  ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 259, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 297, 1),
+    ]);
 
-    var x = unit.topLevelVariables[0];
-    var y = unit.topLevelVariables[1];
+    var x = _resultUnitElement.topLevelVariables[0];
+    var y = _resultUnitElement.topLevelVariables[1];
     _assertTypeStr(x.type, 'dynamic');
     _assertTypeStr(y.type, 'void');
+  }
+
+  Future<void> _assertNoErrors(String code) async {
+    await resolveTestCode(code);
+    assertErrorsInList(
+      result.errors.where((e) {
+        return e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+            e.errorCode is! TodoCode;
+      }).toList(),
+      [],
+    );
   }
 
   void _assertTypeStr(DartType type, String expected) {
