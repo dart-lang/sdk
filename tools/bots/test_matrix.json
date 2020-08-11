@@ -3439,6 +3439,32 @@
     },
     {
       "builders": [
+        "frontend-weekly"
+      ],
+      "meta": {
+        "description": "This configuration is used for running slow frontend tests for instance weekly."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "run tests",
+          "script": "tools/bots/flutter/compile_flutter.sh",
+          "arguments": [
+            "--leakTest"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "fuzz-linux"
       ],
       "meta": {
