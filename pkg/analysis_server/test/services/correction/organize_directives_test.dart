@@ -290,6 +290,53 @@ main() {
 ''');
   }
 
+  Future<void>
+      test_sort_imports_dontConnectFirstCommentsWithBlankLinesBetween() async {
+    await _computeUnitAndErrors(r'''
+// Copyright...
+
+// Some comment related to the line below
+import 'package:b/a.dart';
+import 'package:a/b.dart';''');
+    _assertOrganize(r'''
+// Copyright...
+
+import 'package:a/b.dart';
+// Some comment related to the line below
+import 'package:b/a.dart';''');
+  }
+
+  Future<void> test_sort_imports_keepFirstCommentUntouched() async {
+    await _computeUnitAndErrors(r'''
+// Copyright
+// Copyright2
+// Copyright3
+import 'package:b/a.dart';
+import 'package:a/b.dart';''');
+
+    _assertOrganize(r'''
+// Copyright
+// Copyright2
+// Copyright3
+import 'package:a/b.dart';
+import 'package:b/a.dart';''');
+  }
+
+  Future<void> test_sort_imports_keepSubsequentComments() async {
+    await _computeUnitAndErrors(r'''
+/// Copyright...
+library lib;
+
+import 'package:b/a.dart'; // We are keeping this because ...
+import 'package:a/b.dart';''');
+    _assertOrganize(r'''
+/// Copyright...
+library lib;
+
+import 'package:a/b.dart';
+import 'package:b/a.dart'; // We are keeping this because ...''');
+  }
+
   Future<void> test_sort_imports_packageAndPath() async {
     await _computeUnitAndErrors(r'''
 library lib;
@@ -312,6 +359,36 @@ import 'package:product.ui.api.aaa/manager2.dart';
 import 'package:product.ui.api.bbb/manager1.dart';
 import 'package:product2.client/entity.dart';
 ''');
+  }
+
+  Future<void> test_sort_imports_with_library_keepPrecedingComments() async {
+    await _computeUnitAndErrors(r'''
+/// Copyright...
+library lib;
+
+// Test comment
+
+// We are keeping this because ... l1
+// We are keeping this because ... l2
+// We are keeping this because ... l3
+import 'package:b/a.dart';
+// Comment for a
+
+import 'package:a/b.dart';''');
+
+    _assertOrganize(r'''
+/// Copyright...
+library lib;
+
+// Test comment
+
+// Comment for a
+
+import 'package:a/b.dart';
+// We are keeping this because ... l1
+// We are keeping this because ... l2
+// We are keeping this because ... l3
+import 'package:b/a.dart';''');
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {

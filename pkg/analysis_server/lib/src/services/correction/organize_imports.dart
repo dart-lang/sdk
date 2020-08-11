@@ -64,6 +64,34 @@ class ImportOrganizer {
         var priority = getDirectivePriority(directive);
         if (priority != null) {
           var offset = directive.offset;
+          if (directive.beginToken.precedingComments != null) {
+            var firstComment = directive.beginToken.precedingComments;
+            var comment = firstComment;
+            // Don't connect comments that have a blank line between them
+            while (comment.next != null) {
+              var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
+              var nextLine =
+                  lineInfo.getLocation(comment.next.offset).lineNumber;
+              if (nextLine - currentLine > 1) {
+                firstComment = comment.next;
+              }
+
+              comment = comment.next;
+            }
+            // Check if the comment is the first comment in the document
+            if (firstComment != unit.beginToken.precedingComments) {
+              var previousLine = lineInfo
+                  .getLocation(directive.beginToken.previous.end)
+                  .lineNumber;
+
+              // Check if the comment is after the last token of the previous line
+              // Only connect, if it's not on the same line as the last token of the previous line
+              if (lineInfo.getLocation(firstComment.offset).lineNumber !=
+                  previousLine) {
+                offset = firstComment.offset;
+              }
+            }
+          }
 
           var end = directive.end;
           var line = lineInfo.getLocation(end).lineNumber;
