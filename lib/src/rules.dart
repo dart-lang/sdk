@@ -41,6 +41,7 @@ import 'rules/avoid_setters_without_getters.dart';
 import 'rules/avoid_shadowing_type_parameters.dart';
 import 'rules/avoid_single_cascade_in_expression_statements.dart';
 import 'rules/avoid_slow_async_io.dart';
+import 'rules/avoid_type_to_string.dart';
 import 'rules/avoid_types_as_parameter_names.dart';
 import 'rules/avoid_types_on_closure_parameters.dart';
 import 'rules/avoid_unnecessary_containers.dart';
@@ -220,6 +221,7 @@ void registerLintRules() {
     ..register(AvoidShadowingTypeParameters())
     ..register(AvoidSingleCascadeInExpressionStatements())
     ..register(AvoidSlowAsyncIo())
+    ..register(AvoidTypeToString())
     ..register(AvoidTypesAsParameterNames())
     ..register(AvoidTypesOnClosureParameters())
     ..register(AvoidUnnecessaryContainers())
