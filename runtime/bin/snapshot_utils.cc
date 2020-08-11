@@ -468,6 +468,7 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
   dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
   if (kernel_buffer != NULL) {
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
+    free(kernel_buffer);
   } else {
     Dart_KernelCompilationResult result =
         dfe.CompileScript(script_name, false, package_config);
