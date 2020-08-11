@@ -577,6 +577,21 @@ abstract class C implements B {
 ''');
   }
 
+  test_external_field_covariant_inheritance() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  external covariant num x;
+}
+abstract class B implements A {
+  void set x(Object value); // Implicitly covariant
+}
+abstract class C implements B {
+  int get x;
+  void set x(int value); // Ok because covariant
+}
+''');
+  }
+
   test_getter_overrides_abstract_field_covariant_invalid() async {
     await assertErrorsInCode('''
 abstract class A {
@@ -645,6 +660,56 @@ abstract class B implements A {
     await assertNoErrorsInCode('''
 abstract class A {
   abstract num x;
+}
+abstract class B implements A {
+  int get x;
+}
+''');
+  }
+
+  test_getter_overrides_external_field_covariant_invalid() async {
+    await assertErrorsInCode('''
+class A {
+  external covariant int x;
+}
+abstract class B implements A {
+  num get x;
+  void set x(num value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 82, 1),
+    ]);
+  }
+
+  test_getter_overrides_external_field_covariant_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external covariant num x;
+}
+abstract class B implements A {
+  int get x;
+}
+''');
+  }
+
+  test_getter_overrides_external_field_invalid() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+abstract class B implements A {
+  num get x;
+  void set x(num value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 1),
+    ]);
+  }
+
+  test_getter_overrides_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external num x;
 }
 abstract class B implements A {
   int get x;
@@ -791,6 +856,43 @@ abstract class B implements A {
     await assertNoErrorsInCode('''
 abstract class A {
   abstract int x;
+}
+abstract class B implements A {
+  void set x(num value);
+}
+''');
+  }
+
+  test_setter_overrides_external_field_covariant_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external covariant num x;
+}
+abstract class B implements A {
+  int get x;
+  void set x(int value);
+}
+''');
+  }
+
+  test_setter_overrides_external_field_invalid() async {
+    await assertErrorsInCode('''
+class A {
+  external num x;
+}
+abstract class B implements A {
+  int get x;
+  void set x(int value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 86, 1),
+    ]);
+  }
+
+  test_setter_overrides_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
 }
 abstract class B implements A {
   void set x(num value);

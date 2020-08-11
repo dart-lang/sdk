@@ -80,7 +80,7 @@ class ConstructorFieldsVerifier {
     _fieldMap.forEach((FieldElement field, _InitState state) {
       if (state != _InitState.notInit) return;
       if (field.isLate) return;
-      if (field.isAbstract) return;
+      if (field.isAbstract || field.isExternal) return;
 
       if (field.isFinal) {
         notInitFinalFields.add(field);

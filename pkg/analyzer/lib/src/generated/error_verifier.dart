@@ -3566,7 +3566,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     for (var field in fields.variables) {
       var fieldElement = field.declaredElement as FieldElement;
-      if (fieldElement.isAbstract) continue;
+      if (fieldElement.isAbstract || fieldElement.isExternal) continue;
       if (field.initializer != null) continue;
 
       var type = fieldElement.type;
