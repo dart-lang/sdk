@@ -13,6 +13,7 @@ import "package:test/test.dart";
 import '../lib/sqlite.dart';
 
 void main() {
+  assert(Platform.script.hasAbsolutePath); // `pub run test` is broken.
   final dbPath = Platform.script.resolve("test.db").path;
   test("sqlite integration test", () {
     Database d = Database(dbPath);
@@ -166,6 +167,7 @@ void main() {
     r.close();
     d.close();
   });
+
   test("Utf8 unit test", () {
     final String test = 'Hasta Mañana';
     final medium = Utf8.toUtf8(test);

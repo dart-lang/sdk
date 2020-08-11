@@ -7,13 +7,11 @@ import "dart:ffi";
 
 import "package:ffi/ffi.dart";
 
-import "bindings/bindings.dart";
-
-import "bindings/types.dart" as types;
-import "bindings/types.dart" hide Database;
-
-import "bindings/constants.dart";
+import "third_party/sqlite/sqlite3_bindings_generated.dart" as bindings;
 import "collections/closable_iterator.dart";
+import "ffi/dylib_utils.dart";
+
+final sqlite = bindings.SQLite(dlopenPlatformSpecific("sqlite3"));
 
 /// [Database] represents an open connection to a SQLite database.
 ///
@@ -21,26 +19,27 @@ import "collections/closable_iterator.dart";
 ///
 /// This database interacts with SQLite synchonously.
 class Database {
-  Pointer<types.Database> _database;
+  Pointer<bindings.sqlite3> _database;
   bool _open = false;
 
   /// Open a database located at the file [path].
   Database(String path,
-      [int flags = Flags.SQLITE_OPEN_READWRITE | Flags.SQLITE_OPEN_CREATE]) {
-    Pointer<Pointer<types.Database>> dbOut = allocate();
-    final pathC = Utf8.toUtf8(path);
-    final int resultCode =
-        bindings.sqlite3_open_v2(pathC, dbOut, flags, nullptr);
+      [int flags =
+          bindings.SQLITE_OPEN_READWRITE | bindings.SQLITE_OPEN_CREATE]) {
+    Pointer<Pointer<bindings.sqlite3>> dbOut = allocate();
+    final pathC = Utf8.toUtf8(path).cast<Int8>();
+    final int resultCode = sqlite.sqlite3_open_v2(pathC, dbOut, flags, nullptr);
     _database = dbOut.value;
     free(dbOut);
     free(pathC);
 
-    if (resultCode == Errors.SQLITE_OK) {
+    if (resultCode == bindings.SQLITE_OK) {
       _open = true;
     } else {
       // Even if "open" fails, sqlite3 will still create a database object. We
       // can just destroy it.
       SQLiteException exception = _loadError(resultCode);
+      _open = true;
       close();
       throw exception;
     }
@@ -53,8 +52,8 @@ class Database {
   /// avoid resource leaks.
   void close() {
     assert(_open);
-    final int resultCode = bindings.sqlite3_close_v2(_database);
-    if (resultCode == Errors.SQLITE_OK) {
+    final int resultCode = sqlite.sqlite3_close_v2(_database);
+    if (resultCode == bindings.SQLITE_OK) {
       _open = false;
     } else {
       throw _loadError(resultCode);
@@ -63,43 +62,44 @@ class Database {
 
   /// Execute a query, discarding any returned rows.
   void execute(String query) {
-    Pointer<Pointer<Statement>> statementOut = allocate();
-    Pointer<Utf8> queryC = Utf8.toUtf8(query);
-    int resultCode = bindings.sqlite3_prepare_v2(
-        _database, queryC, -1, statementOut, nullptr);
-    Pointer<Statement> statement = statementOut.value;
+    Pointer<Pointer<bindings.sqlite3_stmt>> statementOut = allocate();
+    final queryC = Utf8.toUtf8(query).cast<Int8>();
+    int resultCode =
+        sqlite.sqlite3_prepare_v2(_database, queryC, -1, statementOut, nullptr);
+    Pointer<bindings.sqlite3_stmt> statement = statementOut.value;
     free(statementOut);
     free(queryC);
 
-    while (resultCode == Errors.SQLITE_ROW || resultCode == Errors.SQLITE_OK) {
-      resultCode = bindings.sqlite3_step(statement);
+    while (
+        resultCode == bindings.SQLITE_ROW || resultCode == bindings.SQLITE_OK) {
+      resultCode = sqlite.sqlite3_step(statement);
     }
-    bindings.sqlite3_finalize(statement);
-    if (resultCode != Errors.SQLITE_DONE) {
+    sqlite.sqlite3_finalize(statement);
+    if (resultCode != bindings.SQLITE_DONE) {
       throw _loadError(resultCode);
     }
   }
 
   /// Evaluate a query and return the resulting rows as an iterable.
   Result query(String query) {
-    Pointer<Pointer<Statement>> statementOut = allocate();
-    Pointer<Utf8> queryC = Utf8.toUtf8(query);
-    int resultCode = bindings.sqlite3_prepare_v2(
-        _database, queryC, -1, statementOut, nullptr);
-    Pointer<Statement> statement = statementOut.value;
+    Pointer<Pointer<bindings.sqlite3_stmt>> statementOut = allocate();
+    final queryC = Utf8.toUtf8(query).cast<Int8>();
+    int resultCode =
+        sqlite.sqlite3_prepare_v2(_database, queryC, -1, statementOut, nullptr);
+    Pointer<bindings.sqlite3_stmt> statement = statementOut.value;
     free(statementOut);
     free(queryC);
 
-    if (resultCode != Errors.SQLITE_OK) {
-      bindings.sqlite3_finalize(statement);
+    if (resultCode != bindings.SQLITE_OK) {
+      sqlite.sqlite3_finalize(statement);
       throw _loadError(resultCode);
     }
 
     Map<String, int> columnIndices = {};
-    int columnCount = bindings.sqlite3_column_count(statement);
+    int columnCount = sqlite.sqlite3_column_count(statement);
     for (int i = 0; i < columnCount; i++) {
       String columnName =
-          bindings.sqlite3_column_name(statement, i).ref.toString();
+          sqlite.sqlite3_column_name(statement, i).cast<Utf8>().ref.toString();
       columnIndices[columnName] = i;
     }
 
@@ -107,12 +107,13 @@ class Database {
   }
 
   SQLiteException _loadError([int errorCode]) {
-    String errorMessage = bindings.sqlite3_errmsg(_database).ref.toString();
+    String errorMessage =
+        sqlite.sqlite3_errmsg(_database).cast<Utf8>().ref.toString();
     if (errorCode == null) {
       return SQLiteException(errorMessage);
     }
     String errorCodeExplanation =
-        bindings.sqlite3_errstr(errorCode).ref.toString();
+        sqlite.sqlite3_errstr(errorCode).cast<Utf8>().ref.toString();
     return SQLiteException(
         "$errorMessage (Code $errorCode: $errorCodeExplanation)");
   }
@@ -126,7 +127,7 @@ class Database {
 class Result extends IterableBase<Row> implements ClosableIterable<Row> {
   final Database _database;
   final ClosableIterator<Row> _iterator;
-  final Pointer<Statement> _statement;
+  final Pointer<bindings.sqlite3_stmt> _statement;
   final Map<String, int> _columnIndices;
 
   Row _currentRow = null;
@@ -143,7 +144,7 @@ class Result extends IterableBase<Row> implements ClosableIterable<Row> {
 }
 
 class _ResultIterator implements ClosableIterator<Row> {
-  final Pointer<Statement> _statement;
+  final Pointer<bindings.sqlite3_stmt> _statement;
   final Map<String, int> _columnIndices;
 
   Row _currentRow = null;
@@ -156,8 +157,8 @@ class _ResultIterator implements ClosableIterator<Row> {
       throw SQLiteException("The result has already been closed.");
     }
     _currentRow?._setNotCurrent();
-    int stepResult = bindings.sqlite3_step(_statement);
-    if (stepResult == Errors.SQLITE_ROW) {
+    int stepResult = sqlite.sqlite3_step(_statement);
+    if (stepResult == bindings.SQLITE_ROW) {
       _currentRow = Row._(_statement, _columnIndices);
       return true;
     } else {
@@ -176,12 +177,12 @@ class _ResultIterator implements ClosableIterator<Row> {
   void close() {
     _currentRow?._setNotCurrent();
     _closed = true;
-    bindings.sqlite3_finalize(_statement);
+    sqlite.sqlite3_finalize(_statement);
   }
 }
 
 class Row {
-  final Pointer<Statement> _statement;
+  final Pointer<bindings.sqlite3_stmt> _statement;
   final Map<String, int> _columnIndices;
 
   bool _isCurrentRow = true;
@@ -210,10 +211,11 @@ class Row {
     Type dynamicType;
     if (convert == Convert.DynamicType) {
       dynamicType =
-          _typeFromCode(bindings.sqlite3_column_type(_statement, columnIndex));
+          _typeFromCode(sqlite.sqlite3_column_type(_statement, columnIndex));
     } else {
-      dynamicType = _typeFromText(bindings
+      dynamicType = _typeFromText(sqlite
           .sqlite3_column_decltype(_statement, columnIndex)
+          .cast<Utf8>()
           .ref
           .toString());
     }
@@ -240,7 +242,7 @@ class Row {
   /// integer.
   int readColumnByIndexAsInt(int columnIndex) {
     _checkIsCurrentRow();
-    return bindings.sqlite3_column_int(_statement, columnIndex);
+    return sqlite.sqlite3_column_int(_statement, columnIndex);
   }
 
   /// Reads column [columnName] and converts to [Type.Text] if not text.
@@ -251,7 +253,11 @@ class Row {
   /// Reads column [columnIndex] and converts to [Type.Text] if not text.
   String readColumnByIndexAsText(int columnIndex) {
     _checkIsCurrentRow();
-    return bindings.sqlite3_column_text(_statement, columnIndex).ref.toString();
+    return sqlite
+        .sqlite3_column_text(_statement, columnIndex)
+        .cast<Utf8>()
+        .ref
+        .toString();
   }
 
   void _checkIsCurrentRow() {
@@ -269,15 +275,15 @@ class Row {
 
 Type _typeFromCode(int code) {
   switch (code) {
-    case Types.SQLITE_INTEGER:
+    case bindings.SQLITE_INTEGER:
       return Type.Integer;
-    case Types.SQLITE_FLOAT:
+    case bindings.SQLITE_FLOAT:
       return Type.Float;
-    case Types.SQLITE_TEXT:
+    case bindings.SQLITE_TEXT:
       return Type.Text;
-    case Types.SQLITE_BLOB:
+    case bindings.SQLITE_BLOB:
       return Type.Blob;
-    case Types.SQLITE_NULL:
+    case bindings.SQLITE_NULL:
       return Type.Null;
   }
   throw Exception("Unknown type [$code]");
