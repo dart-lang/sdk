@@ -56,10 +56,10 @@ void defineCompileTests() {
         p.relativeFilePath,
       ],
     );
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
 
     result = p.runSync('run', ['main.jit']);
     expect(result.stdout, contains('I love jit'));
@@ -80,10 +80,10 @@ void defineCompileTests() {
       ],
     );
 
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
 
     result = Process.runSync(
       outFile,
@@ -113,10 +113,10 @@ void defineCompileTests() {
       ],
     );
 
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
 
     result = Process.runSync(
       outFile,
@@ -143,10 +143,10 @@ void defineCompileTests() {
       ],
     );
 
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
 
     final Directory binDir = File(Platform.resolvedExecutable).parent;
     result = Process.runSync(
@@ -195,9 +195,9 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
   });
 }
