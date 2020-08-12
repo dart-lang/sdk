@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -13,12 +10,36 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualElementsInConstSetTest);
-    defineReflectiveTests(EqualElementsInConstSetWithConstantsTest);
+    defineReflectiveTests(EqualElementsInConstSetTest_language24);
   });
 }
 
 @reflectiveTest
-class EqualElementsInConstSetTest extends PubPackageResolutionTest {
+class EqualElementsInConstSetTest extends PubPackageResolutionTest
+    with EqualElementsInConstSetTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class EqualElementsInConstSetTest_language24 extends PubPackageResolutionTest
+    with EqualElementsInConstSetTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin EqualElementsInConstSetTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_entry() async {
     await assertErrorsInCode('''
 var c = const {1, 2, 1};
@@ -33,7 +54,7 @@ var c = const {1, 2, 1};
         '''
 var c = const {1, if (1 < 0) 2 else 1};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
                     contextMessages: [
@@ -50,7 +71,7 @@ var c = const {1, if (1 < 0) 2 else 1};
         '''
 var c = const {if (0 < 1) 1 else 1};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 15, 19),
@@ -62,7 +83,7 @@ var c = const {if (0 < 1) 1 else 1};
         '''
 var c = const {1, if (0 < 1) 2 else 1};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
@@ -74,7 +95,7 @@ var c = const {1, if (0 < 1) 2 else 1};
         '''
 var c = const {if (0 < 1) 1 else 1};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 15, 19),
@@ -86,7 +107,7 @@ var c = const {if (0 < 1) 1 else 1};
         '''
 var c = const {2, if (1 < 0) 2};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
@@ -98,7 +119,7 @@ var c = const {2, if (1 < 0) 2};
         '''
 var c = const {1, if (0 < 1) 1};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
                     contextMessages: [
@@ -139,7 +160,7 @@ var c = const {const A<int>(), const A<num>()};
         '''
 var c = const {1, ...{2}};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),
@@ -151,7 +172,7 @@ var c = const {1, ...{2}};
         '''
 var c = const {1, ...{1}};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
                     contextMessages: [
@@ -171,14 +192,4 @@ var c = {1, 2, 1};
       error(HintCode.EQUAL_ELEMENTS_IN_SET, 15, 1),
     ]);
   }
-}
-
-@reflectiveTest
-class EqualElementsInConstSetWithConstantsTest
-    extends EqualElementsInConstSetTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

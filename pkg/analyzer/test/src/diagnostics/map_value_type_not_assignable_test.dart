@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -13,12 +10,36 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapValueTypeNotAssignableTest);
-    defineReflectiveTests(MapValueTypeNotAssignableWithConstantsTest);
+    defineReflectiveTests(MapValueTypeNotAssignableTest_language24);
   });
 }
 
 @reflectiveTest
-class MapValueTypeNotAssignableTest extends PubPackageResolutionTest {
+class MapValueTypeNotAssignableTest extends PubPackageResolutionTest
+    with MapValueTypeNotAssignableTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class MapValueTypeNotAssignableTest_language24 extends PubPackageResolutionTest
+    with MapValueTypeNotAssignableTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin MapValueTypeNotAssignableTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_ifElement_thenElseFalse_intInt_dynamic() async {
     await assertErrorsInCode(
         '''
@@ -26,7 +47,7 @@ const dynamic a = 0;
 const dynamic b = 0;
 var v = const <bool, int>{if (1 < 0) true: a else false: b};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 68, 32),
@@ -40,7 +61,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <bool, int>{if (1 < 0) true: a else false: b};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(
                     CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 101, 1),
@@ -56,7 +77,7 @@ var v = const <bool, int>{if (1 < 0) true: a else false: b};
 const dynamic a = 'a';
 var v = const <bool, int>{if (1 < 0) true: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 49, 18),
@@ -68,7 +89,7 @@ var v = const <bool, int>{if (1 < 0) true: a};
         '''
 var v = const <bool, int>{if (1 < 0) true: 'a'};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(
                     CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 43, 3),
@@ -86,7 +107,7 @@ var v = const <bool, int>{if (1 < 0) true: 'a'};
 const dynamic a = 0;
 var v = const <bool, int>{if (true) true: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 47, 17),
@@ -99,7 +120,7 @@ var v = const <bool, int>{if (true) true: a};
 const dynamic a = 'a';
 var v = const <bool, int>{if (true) true: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(
                     CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 65, 1),
@@ -115,7 +136,7 @@ var v = const <bool, int>{if (true) true: a};
 final a = 0;
 var v = const <bool, int>{if (1 < 2) true: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 56, 1),
               ]
@@ -153,7 +174,7 @@ var v = const <bool, int>{true: 'a'};
         '''
 var v = const <bool, int>{...{true: 1}};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 26, 12),
@@ -166,7 +187,7 @@ var v = const <bool, int>{...{true: 1}};
 const dynamic a = 'a';
 var v = const <bool, int>{...{true: a}};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(
                     CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
@@ -264,14 +285,4 @@ const dynamic a = 'a';
 var v = <bool, int>{...{true: a}};
 ''');
   }
-}
-
-@reflectiveTest
-class MapValueTypeNotAssignableWithConstantsTest
-    extends MapValueTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }
