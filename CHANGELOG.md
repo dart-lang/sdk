@@ -33,6 +33,13 @@ Updated the Linter to `0.1.118`, which includes:
 * Updated `unnecessary_statements` to skip `as` expressions.
 * Fixed `prefer_relative_imports` to work with path dependencies.
 
+## 2.9.1 - 2020-08-12
+
+This is a patch release that fixes unhandled exceptions in some Flutter
+applications (issue [flutter/flutter#63038][]).
+
+[flutter/flutter#63038]: https://github.com/flutter/flutter/issues/63038
+
 ## 2.9.0 - 2020-08-05
 
 ### Language
