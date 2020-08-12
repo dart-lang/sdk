@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library vm.transformations.list_factory_specializer;
+library vm.transformations.specializer.list_factory_specializer;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:vm/transformations/specializer/factory_specializer.dart';
 
 /// Replaces invocation of List factory constructors with
 /// factories of VM-specific classes.
@@ -19,7 +20,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 /// new List.generate(n, y) => new _GrowableList.generate(n, y)
 /// new List.generate(n, y, growable: false) => new _List.generate(n, y)
 ///
-class ListFactorySpecializer {
+class ListFactorySpecializer extends BaseSpecializer {
   final Procedure _defaultListFactory;
   final Procedure _listFilledFactory;
   final Procedure _listGenerateFactory;
@@ -57,75 +58,77 @@ class ListFactorySpecializer {
     assert(_fixedListFactory.isFactory);
     assert(_fixedListFilledFactory.isFactory);
     assert(_fixedListGenerateFactory.isFactory);
+    transformers.addAll({
+      _defaultListFactory: transformDefaultFactory,
+      _listFilledFactory: transformListFilledFactory,
+      _listGenerateFactory: transformListGeneratorFactory,
+    });
   }
 
-  TreeNode transformStaticInvocation(StaticInvocation node) {
-    final target = node.target;
-    if (target == _defaultListFactory) {
-      final args = node.arguments;
-      if (args.positional.isEmpty) {
-        return StaticInvocation(_growableListFactory,
-            Arguments([new IntLiteral(0)], types: args.types))
+  TreeNode transformDefaultFactory(StaticInvocation node) {
+    final args = node.arguments;
+    if (args.positional.isEmpty) {
+      return StaticInvocation(_growableListFactory,
+          Arguments([new IntLiteral(0)], types: args.types))
+        ..fileOffset = node.fileOffset;
+    } else {
+      return StaticInvocation(_fixedListFactory, args)
+        ..fileOffset = node.fileOffset;
+    }
+  }
+
+  TreeNode transformListFilledFactory(StaticInvocation node) {
+    final args = node.arguments;
+    assert(args.positional.length == 2);
+    final length = args.positional[0];
+    final fill = args.positional[1];
+    final fillingWithNull = fill is NullLiteral ||
+        (fill is ConstantExpression && fill.constant is NullConstant);
+    final bool growable = _getConstantOptionalArgument(args, 'growable', false);
+    if (growable == null) {
+      return node;
+    }
+    if (growable) {
+      if (fillingWithNull) {
+        return StaticInvocation(
+            _growableListFactory, Arguments([length], types: args.types))
           ..fileOffset = node.fileOffset;
       } else {
-        return StaticInvocation(_fixedListFactory, args)
+        return StaticInvocation(_growableListFilledFactory,
+            Arguments([length, fill], types: args.types))
           ..fileOffset = node.fileOffset;
       }
-    } else if (target == _listFilledFactory) {
-      final args = node.arguments;
-      assert(args.positional.length == 2);
-      final length = args.positional[0];
-      final fill = args.positional[1];
-      final fillingWithNull = fill is NullLiteral ||
-          (fill is ConstantExpression && fill.constant is NullConstant);
-      final bool growable =
-          _getConstantOptionalArgument(args, 'growable', false);
-      if (growable == null) {
-        return node;
-      }
-      if (growable) {
-        if (fillingWithNull) {
-          return StaticInvocation(
-              _growableListFactory, Arguments([length], types: args.types))
-            ..fileOffset = node.fileOffset;
-        } else {
-          return StaticInvocation(_growableListFilledFactory,
-              Arguments([length, fill], types: args.types))
-            ..fileOffset = node.fileOffset;
-        }
-      } else {
-        if (fillingWithNull) {
-          return StaticInvocation(
-              _fixedListFactory, Arguments([length], types: args.types))
-            ..fileOffset = node.fileOffset;
-        } else {
-          return StaticInvocation(_fixedListFilledFactory,
-              Arguments([length, fill], types: args.types))
-            ..fileOffset = node.fileOffset;
-        }
-      }
-    } else if (target == _listGenerateFactory) {
-      final args = node.arguments;
-      assert(args.positional.length == 2);
-      final length = args.positional[0];
-      final generator = args.positional[1];
-      final bool growable =
-          _getConstantOptionalArgument(args, 'growable', true);
-      if (growable == null) {
-        return node;
-      }
-      if (growable) {
-        return StaticInvocation(_growableListGenerateFactory,
-            Arguments([length, generator], types: args.types))
+    } else {
+      if (fillingWithNull) {
+        return StaticInvocation(
+            _fixedListFactory, Arguments([length], types: args.types))
           ..fileOffset = node.fileOffset;
       } else {
-        return StaticInvocation(_fixedListGenerateFactory,
-            Arguments([length, generator], types: args.types))
+        return StaticInvocation(_fixedListFilledFactory,
+            Arguments([length, fill], types: args.types))
           ..fileOffset = node.fileOffset;
       }
     }
+  }
 
-    return node;
+  TreeNode transformListGeneratorFactory(StaticInvocation node) {
+    final args = node.arguments;
+    assert(args.positional.length == 2);
+    final length = args.positional[0];
+    final generator = args.positional[1];
+    final bool growable = _getConstantOptionalArgument(args, 'growable', true);
+    if (growable == null) {
+      return node;
+    }
+    if (growable) {
+      return StaticInvocation(_growableListGenerateFactory,
+          Arguments([length, generator], types: args.types))
+        ..fileOffset = node.fileOffset;
+    } else {
+      return StaticInvocation(_fixedListGenerateFactory,
+          Arguments([length, generator], types: args.types))
+        ..fileOffset = node.fileOffset;
+    }
   }
 
   /// Returns constant value of the only optional argument in [args],

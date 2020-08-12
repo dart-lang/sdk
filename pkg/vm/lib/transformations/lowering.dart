@@ -9,9 +9,8 @@ import 'package:kernel/transformations/type_casts_optimizer.dart'
     as typeCastsOptimizer show transformAsExpression;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
-
+import 'package:vm/transformations/specializer/factory_specializer.dart';
 import 'late_var_init_transformer.dart' show LateVarInitTransformer;
-import 'list_factory_specializer.dart' show ListFactorySpecializer;
 
 /// VM-specific lowering transformations and optimizations combined into a
 /// single transformation pass.
@@ -27,16 +26,16 @@ void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
 class _Lowering extends Transformer {
   final TypeEnvironment env;
   final bool nullSafety;
-  final ListFactorySpecializer listFactorySpecializer;
   final LateVarInitTransformer lateVarInitTransformer;
+  final FactorySpecializer factorySpecializer;
 
   Member _currentMember;
   StaticTypeContext _cachedStaticTypeContext;
 
   _Lowering(CoreTypes coreTypes, ClassHierarchy hierarchy, this.nullSafety)
       : env = TypeEnvironment(coreTypes, hierarchy),
-        listFactorySpecializer = ListFactorySpecializer(coreTypes),
-        lateVarInitTransformer = LateVarInitTransformer();
+        lateVarInitTransformer = LateVarInitTransformer(),
+        factorySpecializer = FactorySpecializer(coreTypes);
 
   StaticTypeContext get _staticTypeContext =>
       _cachedStaticTypeContext ??= StaticTypeContext(_currentMember, env);
@@ -56,7 +55,7 @@ class _Lowering extends Transformer {
   @override
   visitStaticInvocation(StaticInvocation node) {
     node.transformChildren(this);
-    return listFactorySpecializer.transformStaticInvocation(node);
+    return factorySpecializer.transformStaticInvocation(node);
   }
 
   @override

@@ -35,7 +35,7 @@ static method main() → dynamic {
       #t1.{core::List::add}(i);
   } =>#t1;
   final core::Set<core::int*>* aSet = block {
-    final core::Set<core::int*>* #t2 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t2 = new col::_CompactLinkedHashSet::•<core::int*>();
     #t2.{core::Set::add}(1);
     if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t2.{core::Set::add}(2);
