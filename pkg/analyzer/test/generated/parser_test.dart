@@ -2499,7 +2499,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.CONST_AND_COVARIANT, 10, 5)]);
+        [expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 10, 5)]);
   }
 
   void test_constAndFinal() {
@@ -2514,7 +2514,8 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('const var x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(ParserErrorCode.CONST_AND_VAR, 6, 3)]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 3)]);
   }
 
   void test_constClass() {
@@ -2724,7 +2725,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.COVARIANT_AFTER_VAR, 4, 9)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 9)]);
   }
 
   void test_covariantAndFinal() {
@@ -2962,6 +2963,11 @@ class Foo {
     parseExpression("1 != 2 == 3", errors: [
       expectedError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 7, 2)
     ]);
+  }
+
+  void test_expectedBody_class() {
+    parseCompilationUnit("class A class B {}",
+        errors: [expectedError(ParserErrorCode.EXPECTED_BODY, 6, 1)]);
   }
 
   void test_expectedCaseOrDefault() {
@@ -3269,7 +3275,7 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_AFTER_CONST, 6, 8)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)]);
   }
 
   void test_externalAfterFactory() {
@@ -3285,7 +3291,7 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_AFTER_STATIC, 7, 8)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 7, 8)]);
   }
 
   void test_externalClass() {
@@ -3537,7 +3543,7 @@ class Foo {
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.COVARIANT_AFTER_FINAL, 6, 9),
+            expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 9),
             expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)
           ]
         : [expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)]);
@@ -4435,11 +4441,6 @@ class Wrong<T> {
     expect(statement, isNotNull);
   }
 
-  void test_missingClassBody() {
-    parseCompilationUnit("class A class B {}",
-        errors: [expectedError(ParserErrorCode.MISSING_CLASS_BODY, 6, 1)]);
-  }
-
   void test_missingClosingParenthesis() {
     createParser('(int a, int b ;',
         expectedEndOffset: 14 /* parsing ends at synthetic ')' */);
@@ -5158,7 +5159,7 @@ class Wrong<T> {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.STATIC_AFTER_FINAL, 6, 6)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 6)]);
   }
 
   void test_staticAfterFinal() {
@@ -5167,11 +5168,11 @@ class Wrong<T> {
     expectNotNullIfNoErrors(member);
     if (usingFastaParser) {
       listener.assertErrors([
-        expectedError(ParserErrorCode.STATIC_AFTER_CONST, 6, 6),
+        expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 6),
         expectedError(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 17, 1)
       ]);
     } else {
-      listener.assertErrorsWithCodes([ParserErrorCode.STATIC_AFTER_CONST]);
+      listener.assertErrorsWithCodes([ParserErrorCode.MODIFIER_OUT_OF_ORDER]);
     }
   }
 
@@ -5179,8 +5180,8 @@ class Wrong<T> {
     createParser('var static f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.STATIC_AFTER_VAR, 4, 6)]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 6)]);
   }
 
   void test_staticConstructor() {
@@ -16275,7 +16276,7 @@ mixin TopLevelParserTestMixin implements AbstractParserTestCase {
             : [
                 expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 4),
-                expectedError(ParserErrorCode.MISSING_CLASS_BODY, 18, 4),
+                expectedError(ParserErrorCode.EXPECTED_BODY, 18, 4),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
                 expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 1),

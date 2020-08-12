@@ -89,7 +89,7 @@ class UnrelatedClass extends Bar {}
     testRecovery('''
 class Foo extends CurrentlyTypingHere
 class UnrelatedClass extends Bar {}
-''', [ParserErrorCode.MISSING_CLASS_BODY], '''
+''', [ParserErrorCode.EXPECTED_BODY], '''
 class Foo extends CurrentlyTypingHere {}
 class UnrelatedClass extends Bar {}
 ''');
@@ -362,7 +362,7 @@ mixin UnrelatedMixin on Bar {}
     testRecovery('''
 mixin Foo implements CurrentlyTypingHere
 mixin UnrelatedMixin on Bar {}
-''', [ParserErrorCode.MISSING_CLASS_BODY], '''
+''', [ParserErrorCode.EXPECTED_BODY], '''
 mixin Foo implements CurrentlyTypingHere {}
 mixin UnrelatedMixin on Bar {}
 ''');
