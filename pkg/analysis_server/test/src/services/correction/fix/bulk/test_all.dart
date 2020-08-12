@@ -42,6 +42,7 @@ import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_is_not_empty_test.dart' as use_is_not_empty;
+import 'use_rethrow_test.dart' as use_rethrow;
 
 void main() {
   defineReflectiveSuite(() {
@@ -78,5 +79,6 @@ void main() {
     replace_with_var.main();
     use_curly_braces.main();
     use_is_not_empty.main();
+    use_rethrow.main();
   }, name: 'bulk');
 }
