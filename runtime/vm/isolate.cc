@@ -2729,8 +2729,11 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     isolate_object_store()->VisitObjectPointers(visitor);
   }
 
-  // Visit objects in the class table.
-  class_table()->VisitObjectPointers(visitor);
+  // Visit objects in the class table unless it's shared by the group.
+  // If it is shared, it is visited by IsolateGroup::VisitObjectPointers
+  if (group()->class_table() != class_table()) {
+    class_table()->VisitObjectPointers(visitor);
+  }
 
   // Visit objects in the field table.
   field_table()->VisitObjectPointers(visitor);
@@ -2895,6 +2898,11 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                        ValidationPolicy validate_frames) {
+  // if class table is shared, it's stored on isolate group
+  if (class_table() != nullptr) {
+    // Visit objects in the class table.
+    class_table()->VisitObjectPointers(visitor);
+  }
   for (Isolate* isolate : isolates_) {
     isolate->VisitObjectPointers(visitor, validate_frames);
   }
