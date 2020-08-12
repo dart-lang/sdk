@@ -1402,29 +1402,36 @@ class ProgramHashVisitor : public CodeVisitor {
 
   void VisitClass(const Class& cls) {
     str_ = cls.Name();
-    Hash(str_);
+    VisitInstance(str_);
   }
 
   void VisitFunction(const Function& function) {
     str_ = function.name();
-    Hash(str_);
+    VisitInstance(str_);
   }
 
   void VisitCode(const Code& code) {
     pool_ = code.object_pool();
-    for (intptr_t i = 0; i < pool_.Length(); i++) {
-      if (pool_.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
-        obj_ = pool_.ObjectAt(i);
-        if (obj_.IsInstance()) {
-          Hash(Instance::Cast(obj_));
-        }
-      }
-    }
+    VisitPool(pool_);
+
     instr_ = code.instructions();
     hash_ = CombineHashes(hash_, instr_.Hash());
   }
 
-  void Hash(const Instance& instance) {
+  void VisitPool(const ObjectPool& pool) {
+    if (pool.IsNull()) return;
+
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
+        obj_ = pool.ObjectAt(i);
+        if (obj_.IsInstance()) {
+          VisitInstance(Instance::Cast(obj_));
+        }
+      }
+    }
+  }
+
+  void VisitInstance(const Instance& instance) {
     hash_ = CombineHashes(hash_, instance.CanonicalizeHash());
   }
 
@@ -1445,6 +1452,8 @@ uint32_t ProgramVisitor::Hash(Thread* thread) {
 
   ProgramHashVisitor visitor(zone);
   WalkProgram(zone, thread->isolate(), &visitor);
+  visitor.VisitPool(ObjectPool::Handle(
+      zone, thread->isolate()->object_store()->global_object_pool()));
   return visitor.hash();
 }
 

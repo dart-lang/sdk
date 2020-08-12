@@ -16187,8 +16187,8 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 ObjectPoolPtr Code::GetObjectPool() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_use_bare_instructions) {
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     return Isolate::Current()->object_store()->global_object_pool();
   }
 #endif

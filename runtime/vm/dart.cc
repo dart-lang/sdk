@@ -335,8 +335,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         return Utils::StrDup(error.ToErrorCString());
       }
 
-      ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
-
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
       if (tbes.enabled()) {
@@ -735,7 +733,6 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
     I->group()->set_saved_initial_field_table(
         std::shared_ptr<FieldTable>(I->field_table()->Clone()));
 

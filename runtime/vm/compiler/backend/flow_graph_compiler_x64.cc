@@ -34,7 +34,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& stub =
         Code::ZoneHandle(object_store->write_barrier_wrappers_stub());
-    if (!stub.InVMIsolateHeap()) {
+    if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
         const intptr_t offset_into_target =
             Thread::WriteBarrierWrappersOffsetForRegister(reg);
@@ -45,7 +45,7 @@ void FlowGraphCompiler::ArchSpecificInitialization() {
 
     const auto& array_stub =
         Code::ZoneHandle(object_store->array_write_barrier_stub());
-    if (!array_stub.InVMIsolateHeap()) {
+    if (CanPcRelativeCall(stub)) {
       assembler_->generate_invoke_array_write_barrier_ = [&]() {
         assembler_->GenerateUnRelocatedPcRelativeCall();
         AddPcRelativeCallStubTarget(array_stub);
@@ -752,9 +752,8 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   // If the dst_type is instantiated we know the target TTS stub at
   // compile-time and can therefore use a pc-relative call.
-  const bool use_pc_relative_call = dst_type.IsInstantiated() &&
-                                    FLAG_precompiled_mode &&
-                                    FLAG_use_bare_instructions;
+  const bool use_pc_relative_call =
+      dst_type.IsInstantiated() && CanPcRelativeCall(dst_type);
   const Register kScratchReg =
       dst_type.IsTypeParameter() ? RSI : TypeTestABI::kDstTypeReg;
 
@@ -944,8 +943,7 @@ void FlowGraphCompiler::CompileGraph() {
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      !stub.InVMIsolateHeap()) {
+  if (CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallStubTarget(stub);
   } else {
@@ -956,8 +954,7 @@ void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
 
 void FlowGraphCompiler::EmitTailCallToStub(const Code& stub) {
   ASSERT(!stub.IsNull());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      !stub.InVMIsolateHeap()) {
+  if (CanPcRelativeCall(stub)) {
     __ LeaveDartFrame();
     __ GenerateUnRelocatedPcRelativeTailCall();
     AddPcRelativeTailCallStubTarget(stub);
@@ -1000,7 +997,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                Code::EntryKind entry_kind) {
   ASSERT(CanCallDart());
   ASSERT(is_optimizing());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (CanPcRelativeCall(target)) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallTarget(target, entry_kind);
     EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);

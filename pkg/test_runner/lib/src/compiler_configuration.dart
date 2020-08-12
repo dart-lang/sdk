@@ -716,7 +716,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       // mode.
       if (_configuration.useElf && arguments.last.contains("deferred")) ...[
         "--loading-unit-manifest=$tempDir/ignored.json",
-        "--use-bare-instructions=false",
+        "--use-table-dispatch=false",
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',

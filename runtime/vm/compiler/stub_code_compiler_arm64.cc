@@ -2266,7 +2266,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     if (is_cls_parameterized) {
-      if (!IsSameObject(NullObject(),
+      // TODO(41974): Assign all allocation stubs to the root loading unit?
+      if (false &&
+          !IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
@@ -2279,7 +2281,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
         __ br(R4);
       }
     } else {
-      if (!IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
+      // TODO(41974): Assign all allocation stubs to the root loading unit?
+      if (false &&
+          !IsSameObject(NullObject(), CastHandle<Object>(allocate_object))) {
         __ GenerateUnRelocatedPcRelativeTailCall();
         unresolved_calls->Add(new UnresolvedPcRelativeCall(
             __ CodeSize(), allocate_object, /*is_tail_call=*/true));

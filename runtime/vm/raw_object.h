@@ -2586,6 +2586,7 @@ class ArrayLayout : public InstanceLayout {
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
+  friend class ReversePc;
 
   friend class OldPage;
 };
@@ -2607,6 +2608,7 @@ class GrowableObjectArrayLayout : public InstanceLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
+  friend class ReversePc;
 };
 
 class LinkedHashMapLayout : public InstanceLayout {

@@ -60,17 +60,15 @@ class LoadingUnitSerializationData : public ZoneAllocated {
   LoadingUnitSerializationData* parent() const { return parent_; }
   intptr_t num_objects() const { return num_objects_; }
   void set_num_objects(intptr_t value) { num_objects_ = value; }
-  void AddDeferredObject(ObjectPtr obj) {
-    deferred_objects_.Add(&Object::ZoneHandle(obj));
+  void AddDeferredObject(CodePtr obj) {
+    deferred_objects_.Add(&Code::ZoneHandle(obj));
   }
-  GrowableArray<const Object*>* deferred_objects() {
-    return &deferred_objects_;
-  }
+  GrowableArray<Code*>* deferred_objects() { return &deferred_objects_; }
 
  private:
   intptr_t id_;
   LoadingUnitSerializationData* parent_;
-  GrowableArray<const Object*> deferred_objects_;
+  GrowableArray<Code*> deferred_objects_;
   intptr_t num_objects_;
 };
 
@@ -118,7 +116,7 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
-  virtual void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {}
+  virtual void PostLoad(Deserializer* deserializer, const Array& refs) {}
 
  protected:
   // The range of the ref array that belongs to this cluster.
@@ -403,17 +401,19 @@ class Serializer : public ThreadStackResource {
     Write<int32_t>(cid);
   }
 
+  void PrepareInstructions(GrowableArray<CodePtr>* codes);
   void WriteInstructions(InstructionsPtr instr,
                          uint32_t unchecked_offset,
                          CodePtr code,
-                         intptr_t index);
+                         bool deferred);
   uint32_t GetDataOffset(ObjectPtr object) const;
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
 
-  intptr_t PrepareCodeOrder();
   void WriteDispatchTable(const Array& entries);
 
+  Heap* heap() const { return heap_; }
+  Zone* zone() const { return zone_; }
   Snapshot::Kind kind() const { return kind_; }
   intptr_t next_ref_index() const { return next_ref_index_; }
 
@@ -428,6 +428,9 @@ class Serializer : public ThreadStackResource {
   bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
 
   bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
+  GrowableArray<LoadingUnitSerializationData*>* loading_units() {
+    return loading_units_;
+  }
   void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
     loading_units_ = units;
   }
@@ -491,6 +494,7 @@ class Serializer : public ThreadStackResource {
   intptr_t num_base_objects_;
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
+  intptr_t previous_text_offset_;
   SmiObjectIdMap smi_ids_;
   FieldTable* field_table_;
 
@@ -687,7 +691,10 @@ class Deserializer : public ThreadStackResource {
     return Read<int32_t>();
   }
 
-  void ReadInstructions(CodePtr code, intptr_t index, intptr_t start_index);
+  void ReadInstructions(CodePtr code, bool deferred);
+  void EndInstructions(const Array& refs,
+                       intptr_t start_index,
+                       intptr_t stop_index);
   ObjectPtr GetObjectAt(uint32_t offset) const;
 
   void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
@@ -701,23 +708,9 @@ class Deserializer : public ThreadStackResource {
 
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }
+  Zone* zone() const { return zone_; }
   Snapshot::Kind kind() const { return kind_; }
   FieldTable* field_table() const { return field_table_; }
-
-  // The number of code objects which were relocated during AOT snapshot
-  // writing.
-  //
-  // After relocating the instructions in the ".text" segment, the
-  // [CodeSerializationCluster] will re-order those code objects that get
-  // written out in the cluster.  The order will be dictated by the order of
-  // the code's instructions in the ".text" segment.
-  //
-  // The [code_order_length] represents therefore the prefix of code objects in
-  // the written out code cluster. (There might be code objects for which no
-  // relocation was performed.)
-  //
-  // This will be used to construct [ObjectStore::code_order_table].
-  intptr_t code_order_length() const { return code_order_length_; }
 
  private:
   Heap* heap_;
@@ -728,9 +721,9 @@ class Deserializer : public ThreadStackResource {
   intptr_t num_base_objects_;
   intptr_t num_objects_;
   intptr_t num_clusters_;
-  intptr_t code_order_length_ = 0;
   ArrayPtr refs_;
   intptr_t next_ref_index_;
+  intptr_t previous_text_offset_;
   DeserializationCluster** clusters_;
   FieldTable* field_table_;
 };

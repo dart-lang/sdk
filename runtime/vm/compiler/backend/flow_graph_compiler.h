@@ -1141,6 +1141,10 @@ class FlowGraphCompiler : public ValueObject {
   bool CanCallDart() const { return true; }
 #endif
 
+  bool CanPcRelativeCall(const Function& target) const;
+  bool CanPcRelativeCall(const Code& target) const;
+  bool CanPcRelativeCall(const AbstractType& target) const;
+
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:
