@@ -3366,6 +3366,10 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
   }
 };
 
+// Used to pack nullability into other serialized values.
+static constexpr intptr_t kNullabilityBitSize = 2;
+static constexpr intptr_t kNullabilityBitMask = (1 << kNullabilityBitSize) - 1;
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeSerializationCluster : public SerializationCluster {
  public:
@@ -3412,31 +3416,31 @@ class TypeSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      TypePtr type = canonical_objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-      s->WriteTokenPosition(type->ptr()->token_pos_);
-      const uint8_t combined =
-          (type->ptr()->type_state_ << 4) | type->ptr()->nullability_;
-      ASSERT(type->ptr()->type_state_ == (combined >> 4));
-      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
-      s->Write<uint8_t>(combined);
+      WriteType(s, canonical_objects_[i]);
     }
     count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      TypePtr type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-      s->WriteTokenPosition(type->ptr()->token_pos_);
-      const uint8_t combined =
-          (type->ptr()->type_state_ << 4) | type->ptr()->nullability_;
-      ASSERT(type->ptr()->type_state_ == (combined >> 4));
-      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
-      s->Write<uint8_t>(combined);
+      WriteType(s, objects_[i]);
     }
   }
 
  private:
+  void WriteType(Serializer* s, TypePtr type) {
+    AutoTraceObject(type);
+    WriteFromTo(type);
+    s->WriteTokenPosition(type->ptr()->token_pos_);
+    ASSERT(type->ptr()->type_state_ < (1 << TypeLayout::kTypeStateBitSize));
+    ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
+    static_assert(TypeLayout::kTypeStateBitSize + kNullabilityBitSize <=
+                      kBitsPerByte * sizeof(uint8_t),
+                  "Cannot pack type_state_ and nullability_ into a uint8_t");
+    const uint8_t combined = (type->ptr()->type_state_ << kNullabilityBitSize) |
+                             type->ptr()->nullability_;
+    ASSERT_EQUAL(type->ptr()->type_state_, combined >> kNullabilityBitSize);
+    ASSERT_EQUAL(type->ptr()->nullability_, combined & kNullabilityBitMask);
+    s->Write<uint8_t>(combined);
+  }
+
   GrowableArray<TypePtr> canonical_objects_;
   GrowableArray<TypePtr> objects_;
 };
@@ -3468,26 +3472,12 @@ class TypeDeserializationCluster : public DeserializationCluster {
     for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
          id++) {
       TypePtr type = static_cast<TypePtr>(d->Ref(id));
-      bool is_canonical = true;
-      Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     is_canonical);
-      ReadFromTo(type);
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      const uint8_t combined = d->Read<uint8_t>();
-      type->ptr()->type_state_ = combined >> 4;
-      type->ptr()->nullability_ = combined & 0xf;
+      ReadType(d, type, /*is_canonical=*/true);
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TypePtr type = static_cast<TypePtr>(d->Ref(id));
-      bool is_canonical = false;
-      Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     is_canonical);
-      ReadFromTo(type);
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      const uint8_t combined = d->Read<uint8_t>();
-      type->ptr()->type_state_ = combined >> 4;
-      type->ptr()->nullability_ = combined & 0xf;
+      ReadType(d, type, /*is_canonical=*/false);
     }
   }
 
@@ -3523,6 +3513,16 @@ class TypeDeserializationCluster : public DeserializationCluster {
   }
 
  private:
+  void ReadType(Deserializer* d, TypePtr type, bool is_canonical) {
+    Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
+                                   is_canonical);
+    ReadFromTo(type);
+    type->ptr()->token_pos_ = d->ReadTokenPosition();
+    const uint8_t combined = d->Read<uint8_t>();
+    type->ptr()->type_state_ = combined >> kNullabilityBitSize;
+    type->ptr()->nullability_ = combined & kNullabilityBitMask;
+  }
+
   intptr_t canonical_start_index_;
   intptr_t canonical_stop_index_;
 };
@@ -3659,10 +3659,15 @@ class TypeParameterSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(type->ptr()->parameterized_class_id_);
     s->WriteTokenPosition(type->ptr()->token_pos_);
     s->Write<int16_t>(type->ptr()->index_);
-    const uint8_t combined =
-        (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
-    ASSERT(type->ptr()->flags_ == (combined >> 4));
-    ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+    ASSERT(type->ptr()->flags_ < (1 << TypeParameterLayout::kFlagsBitSize));
+    ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
+    static_assert(TypeParameterLayout::kFlagsBitSize + kNullabilityBitSize <=
+                      kBitsPerByte * sizeof(uint8_t),
+                  "Cannot pack flags_ and nullability_ into a uint8_t");
+    const uint8_t combined = (type->ptr()->flags_ << kNullabilityBitSize) |
+                             type->ptr()->nullability_;
+    ASSERT_EQUAL(type->ptr()->flags_, combined >> kNullabilityBitSize);
+    ASSERT_EQUAL(type->ptr()->nullability_, combined & kNullabilityBitMask);
     s->Write<uint8_t>(combined);
   }
 
@@ -3752,8 +3757,8 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
     type->ptr()->token_pos_ = d->ReadTokenPosition();
     type->ptr()->index_ = d->Read<int16_t>();
     const uint8_t combined = d->Read<uint8_t>();
-    type->ptr()->flags_ = combined >> 4;
-    type->ptr()->nullability_ = combined & 0xf;
+    type->ptr()->flags_ = combined >> kNullabilityBitSize;
+    type->ptr()->nullability_ = combined & kNullabilityBitMask;
   }
 
   intptr_t canonical_start_index_;

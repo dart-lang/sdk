@@ -900,6 +900,7 @@ enum class Nullability : int8_t {
   kNullable = 0,
   kNonNullable = 1,
   kLegacy = 2,
+  // Adjust kNullabilityBitSize in clustered_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
