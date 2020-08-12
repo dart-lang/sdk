@@ -252,3 +252,5 @@ runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+value_class/simple: RuntimeError # Expected
+value_class/super_type: RuntimeError # Expected

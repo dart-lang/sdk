@@ -249,3 +249,6 @@ runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_do
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+value_class/simple: RuntimeError # Expected
+value_class/super_type: RuntimeError # Expected
+

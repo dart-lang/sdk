@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+@#C1
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class D = self::A with self::B {
+  synthetic constructor •() → self::D
+    : super self::A::•()
+    ;
+}
+class E = self::B with self::A {
+  synthetic constructor •() → self::E
+    : super self::B::•()
+    ;
+}
+@#C1
+class F = self::B with self::C {
+  synthetic constructor •() → self::F
+    : super self::B::•()
+    ;
+}
+static const field core::String valueClass = #C1;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "valueClass"
+}
