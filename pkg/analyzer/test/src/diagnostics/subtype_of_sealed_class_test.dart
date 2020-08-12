@@ -22,9 +22,11 @@ class SubtypeOfSealedClassTest extends PubPackageResolutionTest {
   }
 
   test_extendingSealedClass() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     await newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -40,9 +42,11 @@ class Bar extends Foo {}
   }
 
   test_implementingSealedClass() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -58,9 +62,11 @@ class Bar implements Foo {}
   }
 
   test_mixinApplicationOfSealedClass() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -77,9 +83,11 @@ class Bar2 = Bar1 with Foo;
   }
 
   test_mixinApplicationOfSealedMixin() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -96,9 +104,11 @@ class Bar2 = Bar1 with Foo;
   }
 
   test_mixingInWithSealedMixin() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -114,9 +124,11 @@ class Bar extends Object with Foo {}
   }
 
   test_mixinImplementsSealedClass() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';

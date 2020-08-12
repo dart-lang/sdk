@@ -33,9 +33,10 @@ class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
 
-    writeTestPackageConfig({
-      'aaa': '$workspaceRootPath/aaa',
-    });
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
   }
 
   test_export() async {
@@ -302,9 +303,10 @@ void f(A a) {}
 class DeprecatedMemberUse_PackageBuildWorkspaceTest
     extends _PackageBuildWorkspaceBase {
   test_generated() async {
-    writeTestPackageConfig({
-      'aaa': '$workspaceRootPath/aaa',
-    });
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
 
     newFile('$testPackageRootPath/pubspec.yaml', content: 'name: test');
     _newTestPackageGeneratedFile(
@@ -326,9 +328,10 @@ void f(A a) {}
   }
 
   test_lib() async {
-    writeTestPackageConfig({
-      'aaa': '$workspaceRootPath/aaa',
-    });
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+    );
 
     newFile('$workspaceRootPath/aaa/lib/a.dart', content: r'''
 @deprecated

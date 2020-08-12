@@ -416,14 +416,14 @@ class _SnippetTest extends PubPackageResolutionTest {
   }
 
   void _createAuxiliaryFiles(Map<String, String> auxiliaryFiles) {
-    Map<String, String> packageNameToRootPath = {};
+    var packageConfigBuilder = PackageConfigFileBuilder();
     for (String uriStr in auxiliaryFiles.keys) {
       if (uriStr.startsWith('package:')) {
         Uri uri = Uri.parse(uriStr);
 
         String packageName = uri.pathSegments[0];
         String packageRootPath = '/packages/$packageName';
-        packageNameToRootPath[packageName] = convertPath(packageRootPath);
+        packageConfigBuilder.add(name: packageName, rootPath: packageRootPath);
 
         String pathInLib = uri.pathSegments.skip(1).join('/');
         newFile(
@@ -437,6 +437,6 @@ class _SnippetTest extends PubPackageResolutionTest {
         );
       }
     }
-    writeTestPackageConfigWith(packageNameToRootPath, meta: true);
+    writeTestPackageConfig(packageConfigBuilder, meta: true);
   }
 }
