@@ -9,6 +9,8 @@ import 'add_override_test.dart' as add_override;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
 import 'convert_to_contains_test.dart' as convert_to_contains;
+import 'convert_to_generic_function_syntax_test.dart'
+    as convert_to_generic_function_syntax;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_single_quoted_strings_test.dart'
@@ -47,6 +49,7 @@ void main() {
     add_override.main();
     convert_documentation_into_line.main();
     convert_to_contains.main();
+    convert_to_generic_function_syntax.main();
     convert_to_if_element.main();
     convert_to_if_null.main();
     convert_to_single_quoted_strings.main();

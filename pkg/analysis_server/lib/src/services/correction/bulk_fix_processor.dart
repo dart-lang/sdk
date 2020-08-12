@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_conditional
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
@@ -82,6 +83,8 @@ class BulkFixProcessor {
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
     LintNames.prefer_final_fields: MakeFinal.newInstance,
+    LintNames.prefer_generic_function_type_aliases:
+        ConvertToGenericFunctionSyntax.newInstance,
     LintNames.prefer_if_elements_to_conditional_expressions:
         ConvertConditionalExpressionToIfElement.newInstance,
     LintNames.prefer_if_null_operators: ConvertToIfNull.newInstance,
