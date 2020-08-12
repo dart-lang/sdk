@@ -1,4 +1,11 @@
-## 2.9.0
+## 2.9.1 - 2020-08-12
+
+This is a patch release that fixes unhandled exceptions in some Flutter
+applications (issue [flutter/flutter#63038][]).
+
+[flutter/flutter#63038]: https://github.com/flutter/flutter/issues/63038
+
+## 2.9.0 - 2020-08-05
 
 ### Language
 
