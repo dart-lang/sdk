@@ -146,8 +146,6 @@ class E extends self::_E&Object&A&D {
   synthetic constructor •() → self::E*
     : super self::_E&Object&A&D::•()
     ;
-  forwarding-stub method method(covariant core::num* i, {core::String* s = #C1}) → core::String*
-    return super.{self::A::method}(i, s: s);
 }
 static method main() → dynamic {
   core::print(new self::C::•().{self::C::method}(0));

@@ -140,8 +140,6 @@ abstract class _E&Object&A&D = self::_E&Object&A with self::D /*isAnonymousMixin
 class E extends self::_E&Object&A&D {
   synthetic constructor •() → self::E*
     ;
-  forwarding-stub method method(covariant core::num* i, {core::String* s}) → core::String*
-    return super.{self::A::method}(i, s: s);
 }
 static method main() → dynamic
   ;

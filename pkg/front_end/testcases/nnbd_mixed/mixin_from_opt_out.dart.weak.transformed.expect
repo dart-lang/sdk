@@ -26,7 +26,6 @@ class Class extends self::_Class&Object&Mixin {
   synthetic constructor •() → self::Class
     : super self::_Class&Object&Mixin::•()
     ;
-  abstract forwarding-stub operator ==(dynamic other) → core::bool*;
 }
 static method main() → dynamic {
   core::print(new self::Class::•().{mix::Mixin::method}(null));

@@ -22,7 +22,6 @@ class F extends self::_F&B&D {
   synthetic constructor •() → self::F
     : super self::_F&B&D::•()
     ;
-  abstract forwarding-stub operator ==(dynamic other) → core::bool*;
 }
 static method main() → dynamic {}
 

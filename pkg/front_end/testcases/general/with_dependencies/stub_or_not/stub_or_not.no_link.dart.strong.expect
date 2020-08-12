@@ -1,7 +1,6 @@
 library;
 import self as self;
 import "stub_or_not_lib1.dart" as stu;
-import "stub_or_not_lib2.dart" as stu2;
 
 import "org-dartlang-testcase:///stub_or_not_lib1.dart";
 
@@ -9,7 +8,6 @@ class ProblemClass extends stu::Foo {
   synthetic constructor •() → self::ProblemClass*
     : super stu::Foo::•()
     ;
-  abstract forwarding-stub method handleEvent(covariant stu2::EvenFileB* entry) → void;
 }
 static method main() → dynamic {}
 
