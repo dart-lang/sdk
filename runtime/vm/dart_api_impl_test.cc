@@ -8768,7 +8768,39 @@ TEST_CASE(DartAPI_TimelineAsync) {
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
-void NotifyIdleShortNative(Dart_NativeArguments args) {
+static void HintFreedNative(Dart_NativeArguments args) {
+  int64_t size = 0;
+  EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));
+  Dart_HintFreed(size);
+}
+
+static Dart_NativeFunction HintFreed_native_lookup(Dart_Handle name,
+                                                   int argument_count,
+                                                   bool* auto_setup_scope) {
+  return HintFreedNative;
+}
+
+TEST_CASE(DartAPI_HintFreed) {
+  const char* kScriptChars =
+      "void hintFreed(int size) native 'Test_nativeFunc';\n"
+      "void main() {\n"
+      "  var v;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "    var t = [];\n"
+      "    for (var j = 0; j < 10000; j++) {\n"
+      "      t.add(List.filled(100, null));\n"
+      "    }\n"
+      "    v = t;\n"
+      "    hintFreed(100 * 10000 * 4);\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &HintFreed_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+static void NotifyIdleShortNative(Dart_NativeArguments args) {
   Dart_NotifyIdle(Dart_TimelineGetMicros() + 10 * kMicrosecondsPerMillisecond);
 }
 
@@ -8776,7 +8808,7 @@ static Dart_NativeFunction NotifyIdleShort_native_lookup(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleShortNative);
+  return NotifyIdleShortNative;
 }
 
 TEST_CASE(DartAPI_NotifyIdleShort) {
@@ -8799,7 +8831,7 @@ TEST_CASE(DartAPI_NotifyIdleShort) {
   EXPECT_VALID(result);
 }
 
-void NotifyIdleLongNative(Dart_NativeArguments args) {
+static void NotifyIdleLongNative(Dart_NativeArguments args) {
   Dart_NotifyIdle(Dart_TimelineGetMicros() + 100 * kMicrosecondsPerMillisecond);
 }
 
@@ -8807,7 +8839,7 @@ static Dart_NativeFunction NotifyIdleLong_native_lookup(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleLongNative);
+  return NotifyIdleLongNative;
 }
 
 TEST_CASE(DartAPI_NotifyIdleLong) {
@@ -8830,7 +8862,7 @@ TEST_CASE(DartAPI_NotifyIdleLong) {
   EXPECT_VALID(result);
 }
 
-void NotifyLowMemoryNative(Dart_NativeArguments args) {
+static void NotifyLowMemoryNative(Dart_NativeArguments args) {
   Dart_NotifyLowMemory();
 }
 
@@ -8838,7 +8870,7 @@ static Dart_NativeFunction NotifyLowMemory_native_lookup(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyLowMemoryNative);
+  return NotifyLowMemoryNative;
 }
 
 TEST_CASE(DartAPI_NotifyLowMemory) {

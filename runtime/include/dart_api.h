@@ -1141,6 +1141,18 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
 
 /**
+ * Notifies the VM that the embedder expects |size| bytes of memory have become
+ * unreachable. The VM may use this hint to adjust the garbage collector's
+ * growth policy.
+ *
+ * Multiple calls are interpreted as increasing, not replacing, the estimate of
+ * unreachable memory.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_HintFreed(intptr_t size);
+
+/**
  * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
  * may use this time to perform garbage collection or other tasks to avoid
  * delays during execution of Dart code in the future.
