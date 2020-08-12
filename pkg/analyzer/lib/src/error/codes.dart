@@ -10175,6 +10175,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try moving type arguments to after the type name.");
 
   /**
+   * Parameters:
+   * 0: the name of the extension being referenced
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION =
+      CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+          "The extension '{0}' is declared with {1} type parameters, "
+              "but {2} type arguments were given.",
+          correction: "Try adjusting the number of type arguments.");
+
+  /**
    * It will be a static type warning if <i>m</i> is not a generic method with
    * exactly <i>n</i> type parameters.
    *

@@ -165,7 +165,7 @@ main() {
   }
 
   test_override_downward_hasTypeArguments_wrongNumber() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 extension E<T> on Set<T> {
   void foo() {}
 }
@@ -173,7 +173,10 @@ extension E<T> on Set<T> {
 main() {
   E<int, bool>({}).foo();
 }
-''');
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 58,
+          11),
+    ]);
     var literal = findNode.setOrMapLiteral('{}).');
     assertType(literal, 'Set<dynamic>');
   }

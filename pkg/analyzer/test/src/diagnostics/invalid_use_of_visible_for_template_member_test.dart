@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
+import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -23,7 +23,7 @@ class InvalidUseOfVisibleForTemplateMemberTest
     super.setUp();
 
     var metaPath = '/packages/meta';
-    PackagesContent.addMetaPackageFiles(
+    MockPackages.addMetaPackageFiles(
       getFolder(metaPath),
     );
 

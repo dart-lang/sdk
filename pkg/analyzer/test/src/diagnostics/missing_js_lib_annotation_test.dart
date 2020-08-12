@@ -4,7 +4,7 @@
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
+import 'package:analyzer/src/test_utilities/mock_packages.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class MissingJSLibAnnotationTest extends PubPackageResolutionTest {
     super.setUp();
 
     var path = '/packages/js';
-    PackagesContent.addJsPackageFiles(
+    MockPackages.addJsPackageFiles(
       getFolder(path),
     );
     writeTestPackageConfig({'js': path});

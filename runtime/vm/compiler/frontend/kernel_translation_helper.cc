@@ -1829,8 +1829,9 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     unit.set_id(id);
 
     intptr_t parent_id = helper_->ReadUInt();
+    RELEASE_ASSERT(parent_id < id);
     parent ^= loading_units.At(parent_id);
-    ASSERT(parent.IsNull() == (parent_id == 0));
+    RELEASE_ASSERT(parent.IsNull() == (parent_id == 0));
     unit.set_parent(parent);
 
     intptr_t library_count = helper_->ReadUInt();
@@ -2001,8 +2002,11 @@ NameIndex KernelReaderHelper::ReadCanonicalNameReference() {
 
 NameIndex KernelReaderHelper::ReadInterfaceMemberNameReference() {
   NameIndex name_index = reader_.ReadCanonicalNameReference();
-  reader_
-      .ReadCanonicalNameReference();  // read interface target origin reference
+  NameIndex origin_name_index = reader_.ReadCanonicalNameReference();
+  if (!FLAG_precompiled_mode && origin_name_index != NameIndex::kInvalidName) {
+    // Reference to a skipped member signature target, return the origin target.
+    return origin_name_index;
+  }
   return name_index;
 }
 

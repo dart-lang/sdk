@@ -9,14 +9,15 @@ import '../dominators.dart';
 import '../metadata/loading_units.dart';
 
 class _LoadingUnitBuilder {
-  final int id;
+  int id;
   final _LibraryVertex root;
   final List<Library> members = <Library>[];
+  final List<_LoadingUnitBuilder> children = <_LoadingUnitBuilder>[];
 
-  _LoadingUnitBuilder(this.id, this.root);
+  _LoadingUnitBuilder(this.root);
 
-  int get parentId =>
-      root.dominator == null ? 0 : root.dominator.loadingUnit.id;
+  _LoadingUnitBuilder get parent => root.dominator?.loadingUnit;
+  int get parentId => parent == null ? 0 : parent.id;
 
   LoadingUnit asLoadingUnit() {
     return new LoadingUnit(
@@ -82,7 +83,7 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
   var loadingUnits = <_LoadingUnitBuilder>[];
   for (var vertex in map.values) {
     if (vertex.isLoadingRoot) {
-      var unit = new _LoadingUnitBuilder(loadingUnits.length + 1, vertex);
+      var unit = new _LoadingUnitBuilder(vertex);
       vertex.loadingUnit = unit;
       unit.members.add(vertex.library);
       loadingUnits.add(unit);
@@ -103,6 +104,24 @@ List<LoadingUnit> computeLoadingUnits(Component component) {
     }
     vertex.loadingUnit = dom.loadingUnit;
     vertex.loadingUnit.members.add(vertex.library);
+  }
+
+  // 4. Sort loading units so parents are before children. Normally this order
+  // would already exist as a side effect of loading sources in import order,
+  // but this isn't guarenteed when combining separately produced kernel files.
+  for (var unit in loadingUnits) {
+    var parent = unit.parent;
+    if (parent != null) {
+      parent.children.add(unit);
+    }
+  }
+  var index = 0;
+  loadingUnits.clear();
+  loadingUnits.add(root.loadingUnit);
+  while (index < loadingUnits.length) {
+    var unit = loadingUnits[index];
+    unit.id = ++index;
+    loadingUnits.addAll(unit.children);
   }
 
   return loadingUnits.map((u) => u.asLoadingUnit()).toList();
