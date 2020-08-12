@@ -585,10 +585,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.CLASS_IN_CLASS,
   ParserErrorCode.COLON_IN_PLACE_OF_IN,
   ParserErrorCode.CONFLICTING_MODIFIERS,
-  ParserErrorCode.CONST_AFTER_FACTORY,
-  ParserErrorCode.CONST_AND_COVARIANT,
   ParserErrorCode.CONST_AND_FINAL,
-  ParserErrorCode.CONST_AND_VAR,
   ParserErrorCode.CONST_CLASS,
   ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
   ParserErrorCode.CONST_ENUM,
@@ -598,8 +595,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
   ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
   ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
-  ParserErrorCode.COVARIANT_AFTER_FINAL,
-  ParserErrorCode.COVARIANT_AFTER_VAR,
   ParserErrorCode.COVARIANT_AND_STATIC,
   ParserErrorCode.COVARIANT_CONSTRUCTOR,
   ParserErrorCode.COVARIANT_MEMBER,
@@ -629,9 +624,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER,
   ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
   ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
-  ParserErrorCode.EXTERNAL_AFTER_CONST,
-  ParserErrorCode.EXTERNAL_AFTER_FACTORY,
-  ParserErrorCode.EXTERNAL_AFTER_STATIC,
   ParserErrorCode.EXTERNAL_CLASS,
   ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY,
   ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
@@ -691,7 +683,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
   ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
   ParserErrorCode.MISSING_CATCH_OR_FINALLY,
-  ParserErrorCode.MISSING_CLASS_BODY,
   ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
   ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
   ParserErrorCode.MISSING_ENUM_BODY,
@@ -748,9 +739,6 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.SETTER_CONSTRUCTOR,
   ParserErrorCode.SETTER_IN_FUNCTION,
   ParserErrorCode.STACK_OVERFLOW,
-  ParserErrorCode.STATIC_AFTER_CONST,
-  ParserErrorCode.STATIC_AFTER_FINAL,
-  ParserErrorCode.STATIC_AFTER_VAR,
   ParserErrorCode.STATIC_CONSTRUCTOR,
   ParserErrorCode.STATIC_GETTER_WITHOUT_BODY,
   ParserErrorCode.STATIC_OPERATOR,
@@ -821,7 +809,14 @@ ErrorCode errorCodeByUniqueName(String uniqueName) {
   if (_uniqueNameToCodeMap == null) {
     _uniqueNameToCodeMap = HashMap<String, ErrorCode>();
     for (ErrorCode errorCode in errorCodeValues) {
-      _uniqueNameToCodeMap[errorCode.uniqueName] = errorCode;
+      var uniqueName = errorCode.uniqueName;
+      assert(() {
+        if (_uniqueNameToCodeMap.containsKey(uniqueName)) {
+          throw StateError('Not unique: $uniqueName');
+        }
+        return true;
+      }());
+      _uniqueNameToCodeMap[uniqueName] = errorCode;
     }
   }
   return _uniqueNameToCodeMap[uniqueName];
