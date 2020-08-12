@@ -7473,6 +7473,14 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   TopLevelVariableElement get declaration => this;
 
   @override
+  bool get isExternal {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isExternal(linkedNode);
+    }
+    return hasModifier(Modifier.EXTERNAL);
+  }
+
+  @override
   bool get isStatic => true;
 
   @override

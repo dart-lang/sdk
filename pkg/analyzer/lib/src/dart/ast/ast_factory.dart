@@ -1020,9 +1020,10 @@ class AstFactoryImpl extends AstFactory {
           Comment comment,
           List<Annotation> metadata,
           VariableDeclarationList variableList,
-          Token semicolon) =>
+          Token semicolon,
+          {Token externalKeyword}) =>
       TopLevelVariableDeclarationImpl(
-          comment, metadata, variableList, semicolon);
+          comment, metadata, externalKeyword, variableList, semicolon);
 
   @override
   TryStatement tryStatement(

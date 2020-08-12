@@ -10261,6 +10261,16 @@ bool f() {}
 ''');
   }
 
+  test_top_level_variable_external() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+external int i;
+''');
+    checkElementText(library, '''
+external int i;
+''');
+  }
+
   test_type_arguments_explicit_dynamic_dynamic() async {
     var library = await checkLibrary('Map<dynamic, dynamic> m;');
     checkElementText(library, r'''

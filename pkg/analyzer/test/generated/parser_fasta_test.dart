@@ -4621,6 +4621,12 @@ mixin A {
     expectCommentText(declaration.documentationComment, '/// Doc');
   }
 
+  void test_parseTopLevelVariable_external() {
+    var unit = parseCompilationUnit('external int i;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNotNull);
+  }
+
   void test_parseTopLevelVariable_final_late() {
     var unit = parseCompilationUnit('final late a;',
         featureSet: nonNullable,
@@ -4675,6 +4681,12 @@ mixin A {
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseTopLevelVariable_non_external() {
+    var unit = parseCompilationUnit('int i;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNull);
   }
 }
 

@@ -4959,11 +4959,21 @@ abstract class ThrowExpression implements Expression {
 /// The declaration of one or more top-level variables of the same type.
 ///
 ///    topLevelVariableDeclaration ::=
-///        ('final' | 'const') type? staticFinalDeclarationList ';'
-///      | variableDeclaration ';'
+///        ('final' | 'const') <type>? <staticFinalDeclarationList> ';'
+///      | 'late' 'final' <type>? <initializedIdentifierList> ';'
+///      | 'late'? <varOrType> <initializedIdentifierList> ';'
+///      | 'external' <finalVarOrType> <identifierList> ';'
+///
+/// (Note: there is no <topLevelVariableDeclaration> production in the grammar;
+/// this is a subset of the grammar production <topLevelDeclaration>, which
+/// encompasses everything that can appear inside a Dart file after part
+/// directives).
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TopLevelVariableDeclaration implements CompilationUnitMember {
+  /// The `external` keyword, or `null` if the keyword was not used.
+  Token get externalKeyword;
+
   /// Return the semicolon terminating the declaration.
   Token get semicolon;
 

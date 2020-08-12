@@ -975,7 +975,8 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.documentationComment),
           cloneNodeList(node.metadata),
           cloneNode(node.variables),
-          cloneToken(node.semicolon));
+          cloneToken(node.semicolon),
+          externalKeyword: cloneToken(node.externalKeyword));
 
   @override
   TryStatement visitTryStatement(TryStatement node) => astFactory.tryStatement(
@@ -2193,6 +2194,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         isEqualNodes(node.variables, other.variables) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -5266,6 +5268,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
         _isEqualNodes(node.variables, toNode.variables),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }

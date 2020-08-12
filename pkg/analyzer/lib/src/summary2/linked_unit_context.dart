@@ -841,6 +841,8 @@ class LinkedUnitContext {
         var grandParent = parent.parent;
         if (grandParent is FieldDeclaration) {
           return grandParent.externalKeyword != null;
+        } else if (grandParent is TopLevelVariableDeclaration) {
+          return grandParent.externalKeyword != null;
         } else {
           throw UnimplementedError('${grandParent.runtimeType}');
         }
