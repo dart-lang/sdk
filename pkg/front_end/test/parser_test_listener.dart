@@ -531,6 +531,7 @@ class ParserTestListener implements Listener {
       Token endToken) {
     indent--;
     seen(abstractToken);
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -538,6 +539,8 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endClassFields('
+        '$abstractToken, '
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -559,6 +562,7 @@ class ParserTestListener implements Listener {
       Token endToken) {
     indent--;
     seen(abstractToken);
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -566,6 +570,8 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endMixinFields('
+        '$abstractToken, '
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -586,6 +592,8 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(abstractToken);
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -593,6 +601,8 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endExtensionFields('
+        '$abstractToken, '
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -1452,6 +1462,7 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -1459,6 +1470,7 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endTopLevelFields('
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
