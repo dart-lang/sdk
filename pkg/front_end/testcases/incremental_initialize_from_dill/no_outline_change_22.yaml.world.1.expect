@@ -214,7 +214,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return result;
     }
     method /*isNonNullableByDefault, from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toSet() → dart.core::Set<dart.core::int*> {
-      dart.core::Set<dart.core::int*> result = dart.collection::LinkedHashSet::•<dart.core::int*>();
+      dart.core::Set<dart.core::int*> result = new dart.collection::_CompactLinkedHashSet::•<dart.core::int*>();
       for (dart.core::int i = 0; i.{dart.core::num::<}(this.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
         result.{dart.core::Set::add}(this.{dart.core::List::[]}(i));
       }

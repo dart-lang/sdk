@@ -124,13 +124,13 @@ static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
     }
   } =>#t9;
   core::Set<Never> s1 = block {
-    final core::Set<Never> #t12 = col::LinkedHashSet::•<Never>();
+    final core::Set<Never> #t12 = new col::_CompactLinkedHashSet::•<Never>();
     for (final Never #t13 in n1)
       #t12.{core::Set::add}(#t13);
     #t12.{core::Set::add}(n1);
   } =>#t12;
   core::Set<Never> s2 = block {
-    final core::Set<Never> #t14 = col::LinkedHashSet::•<Never>();
+    final core::Set<Never> #t14 = new col::_CompactLinkedHashSet::•<Never>();
     final core::Iterable<Never>? #t15 = n1;
     if(!#t15.{core::Object::==}(null)) {
       core::Iterator<Never> :sync-for-iterator = #t15{core::Iterable<Never>}.{core::Iterable::iterator};
@@ -141,11 +141,11 @@ static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
     }
     #t14.{core::Set::add}(n1);
   } =>#t14;
-  core::Set<dynamic> s3 = let final core::Set<dynamic> #t17 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t18 = #t17.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:14:16: Error: Can't spread a value with static type 'Never?'.
+  core::Set<dynamic> s3 = let final core::Set<dynamic> #t17 = new col::_CompactLinkedHashSet::•<dynamic>() in let final core::bool #t18 = #t17.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:14:16: Error: Can't spread a value with static type 'Never?'.
   var s3 = {...n2, n1};
                ^") in let final core::bool #t19 = #t17.{core::Set::add}(n1) in #t17;
   core::Set<Never> s4 = block {
-    final core::Set<Never> #t20 = col::LinkedHashSet::•<Never>();
+    final core::Set<Never> #t20 = new col::_CompactLinkedHashSet::•<Never>();
     final core::Iterable<Never>? #t21 = n2;
     if(!#t21.{core::Object::==}(null)) {
       core::Iterator<Never> :sync-for-iterator = #t21{core::Iterable<Never>}.{core::Iterable::iterator};
@@ -156,11 +156,11 @@ static method test1(Never n1, Never? n2, core::Null? n3) → dynamic {
     }
     #t20.{core::Set::add}(n1);
   } =>#t20;
-  core::Set<dynamic> s5 = let final core::Set<dynamic> #t23 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t24 = #t23.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:16:16: Error: Can't spread a value with static type 'Null'.
+  core::Set<dynamic> s5 = let final core::Set<dynamic> #t23 = new col::_CompactLinkedHashSet::•<dynamic>() in let final core::bool #t24 = #t23.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:16:16: Error: Can't spread a value with static type 'Null'.
   var s5 = {...n3, n1};
                ^") in let final core::bool #t25 = #t23.{core::Set::add}(n1) in #t23;
   core::Set<Never> s6 = block {
-    final core::Set<Never> #t26 = col::LinkedHashSet::•<Never>();
+    final core::Set<Never> #t26 = new col::_CompactLinkedHashSet::•<Never>();
     final core::Iterable<Never>? #t27 = n3;
     if(!#t27.{core::Object::==}(null)) {
       core::Iterator<Never> :sync-for-iterator = #t27{core::Iterable<Never>}.{core::Iterable::iterator};
@@ -271,13 +271,13 @@ static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 ext
     }
   } =>#t48;
   core::Set<self::test2::N1> s1 = block {
-    final core::Set<self::test2::N1> #t51 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Set<self::test2::N1> #t51 = new col::_CompactLinkedHashSet::•<self::test2::N1>();
     for (final self::test2::N1 #t52 in n1)
       #t51.{core::Set::add}(#t52);
     #t51.{core::Set::add}(n1);
   } =>#t51;
   core::Set<self::test2::N1> s2 = block {
-    final core::Set<self::test2::N1> #t53 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Set<self::test2::N1> #t53 = new col::_CompactLinkedHashSet::•<self::test2::N1>();
     final core::Iterable<self::test2::N1>? #t54 = n1;
     if(!#t54.{core::Object::==}(null)) {
       core::Iterator<self::test2::N1> :sync-for-iterator = #t54{core::Iterable<self::test2::N1>}.{core::Iterable::iterator};
@@ -288,11 +288,11 @@ static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 ext
     }
     #t53.{core::Set::add}(n1);
   } =>#t53;
-  core::Set<dynamic> s3 = let final core::Set<dynamic> #t56 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t57 = #t56.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:36:16: Error: Can't spread a value with static type 'N2'.
+  core::Set<dynamic> s3 = let final core::Set<dynamic> #t56 = new col::_CompactLinkedHashSet::•<dynamic>() in let final core::bool #t57 = #t56.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:36:16: Error: Can't spread a value with static type 'N2'.
   var s3 = {...n2, n1};
                ^") in let final core::bool #t58 = #t56.{core::Set::add}(n1) in #t56;
   core::Set<self::test2::N1> s4 = block {
-    final core::Set<self::test2::N1> #t59 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Set<self::test2::N1> #t59 = new col::_CompactLinkedHashSet::•<self::test2::N1>();
     final core::Iterable<self::test2::N1>? #t60 = n2;
     if(!#t60.{core::Object::==}(null)) {
       core::Iterator<self::test2::N1> :sync-for-iterator = #t60{core::Iterable<self::test2::N1>}.{core::Iterable::iterator};
@@ -303,11 +303,11 @@ static method test2<N1 extends Never = Never, N2 extends Never? = Never?, N3 ext
     }
     #t59.{core::Set::add}(n1);
   } =>#t59;
-  core::Set<dynamic> s5 = let final core::Set<dynamic> #t62 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:38:16: Error: Can't spread a value with static type 'N3'.
+  core::Set<dynamic> s5 = let final core::Set<dynamic> #t62 = new col::_CompactLinkedHashSet::•<dynamic>() in let final core::bool #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/nnbd/issue42758.dart:38:16: Error: Can't spread a value with static type 'N3'.
   var s5 = {...n3, n1};
                ^") in let final core::bool #t64 = #t62.{core::Set::add}(n1) in #t62;
   core::Set<self::test2::N1> s6 = block {
-    final core::Set<self::test2::N1> #t65 = col::LinkedHashSet::•<self::test2::N1>();
+    final core::Set<self::test2::N1> #t65 = new col::_CompactLinkedHashSet::•<self::test2::N1>();
     final core::Iterable<self::test2::N1>? #t66 = n3;
     if(!#t66.{core::Object::==}(null)) {
       core::Iterator<self::test2::N1> :sync-for-iterator = #t66{core::Iterable<self::test2::N1>}.{core::Iterable::iterator};

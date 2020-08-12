@@ -24,6 +24,12 @@ class A {
 ''');
   }
 
+  test_external_variable_non_nullable() async {
+    await assertNoErrorsInCode('''
+external int x;
+''');
+  }
+
   test_staticField_futureOr_questionArgument_none() async {
     await assertNoErrorsInCode('''
 import 'dart:async';

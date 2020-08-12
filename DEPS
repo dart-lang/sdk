@@ -137,7 +137,7 @@ vars = {
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "2.0.0",
   "shelf_proxy_tag": "0.1.0+7",
-  "shelf_tag": "0.7.3+3",
+  "shelf_rev": "289309adc6c39aab0a63db676d550c517fc1cc2d",
   "shelf_web_socket_tag": "0.2.2+3",
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
@@ -394,7 +394,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/resource":
       Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":
-      Var("dart_git") + "shelf.git" + "@" + Var("shelf_tag"),
+      Var("dart_git") + "shelf.git" + "@" + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_packages_handler":
       Var("dart_git") + "shelf_packages_handler.git"
       + "@" + Var("shelf_packages_handler_tag"),

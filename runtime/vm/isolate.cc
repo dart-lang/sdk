@@ -405,9 +405,6 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
-
-  delete reverse_pc_lookup_cache_;
-  reverse_pc_lookup_cache_ = nullptr;
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {

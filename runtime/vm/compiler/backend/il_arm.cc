@@ -3773,8 +3773,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           ? object_store->stack_overflow_stub_with_fpu_regs_stub()
           : object_store->stack_overflow_stub_without_fpu_regs_stub());
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      using_shared_stub && !stub.InVMIsolateHeap()) {
+  if (using_shared_stub && compiler->CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall(LS);
     compiler->AddPcRelativeCallStubTarget(stub);
 
@@ -6576,8 +6575,7 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       NullErrorSlowPath::GetStub(compiler, exception_type(), live_fpu_regs));
   const bool using_shared_stub = locs()->call_on_shared_slow_path();
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-      using_shared_stub && !stub.InVMIsolateHeap()) {
+  if (using_shared_stub && compiler->CanPcRelativeCall(stub)) {
     __ GenerateUnRelocatedPcRelativeCall(EQUAL);
     compiler->AddPcRelativeCallStubTarget(stub);
 

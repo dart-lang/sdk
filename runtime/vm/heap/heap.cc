@@ -405,6 +405,10 @@ void Heap::EndOldSpaceGC() {
   ml.NotifyAll();
 }
 
+void Heap::HintFreed(intptr_t size) {
+  old_space_.HintFreed(size);
+}
+
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
   // Check if we want to collect new-space first, because if we want to collect

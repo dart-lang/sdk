@@ -1709,6 +1709,17 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   }
 }
 
+void PageSpaceController::HintFreed(intptr_t size) {
+  intptr_t size_in_words = size << kWordSizeLog2;
+  if (size_in_words > idle_gc_threshold_in_words_) {
+    idle_gc_threshold_in_words_ = 0;
+  } else {
+    idle_gc_threshold_in_words_ -= size_in_words;
+  }
+
+  // TODO(rmacnak): Hasten the soft threshold at some discount?
+}
+
 void PageSpaceController::MergeFrom(PageSpaceController* donor) {
   last_usage_.capacity_in_words += donor->last_usage_.capacity_in_words;
   last_usage_.used_in_words += donor->last_usage_.used_in_words;

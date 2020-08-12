@@ -121,6 +121,7 @@ class Heap {
   ObjectPtr FindNewObject(FindObjectVisitor* visitor);
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
+  void HintFreed(intptr_t size);
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
 

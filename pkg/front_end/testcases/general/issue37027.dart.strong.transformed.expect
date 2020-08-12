@@ -7,7 +7,7 @@ class C extends core::Object {
   final field core::Set<core::int*>* s;
   constructor •(core::List<core::int*>* ell) → self::C*
     : self::C::s = block {
-      final core::Set<core::int*>* #t1 = col::LinkedHashSet::•<core::int*>();
+      final core::Set<core::int*>* #t1 = new col::_CompactLinkedHashSet::•<core::int*>();
       {
         core::Iterator<core::int*>* :sync-for-iterator = ell.{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {

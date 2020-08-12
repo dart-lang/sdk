@@ -73,7 +73,6 @@ class ObjectIdRing;
 class ObjectPointerVisitor;
 class ObjectStore;
 class PersistentHandle;
-class ReversePcLookupCache;
 class RwLock;
 class SafepointRwLock;
 class SafepointHandler;
@@ -582,17 +581,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   ArrayPtr saved_unlinked_calls() const { return saved_unlinked_calls_; }
   void set_saved_unlinked_calls(const Array& saved_unlinked_calls);
 
-  // Returns the pc -> code lookup cache object for this isolate.
-  ReversePcLookupCache* reverse_pc_lookup_cache() const {
-    return reverse_pc_lookup_cache_;
-  }
-
-  // Sets the pc -> code lookup cache object for this isolate.
-  void set_reverse_pc_lookup_cache(ReversePcLookupCache* table) {
-    ASSERT(reverse_pc_lookup_cache_ == nullptr);
-    reverse_pc_lookup_cache_ = table;
-  }
-
   FieldTable* saved_initial_field_table() const {
     return saved_initial_field_table_.get();
   }
@@ -684,7 +672,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
-  ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> saved_initial_field_table_;
   uint32_t isolate_group_flags_ = 0;

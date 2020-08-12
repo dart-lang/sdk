@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/simple.dart:13:31: Error: No named parameter with the name 'numLegs'.
+//   Animal firstAnimal = Animal(numLegs: 4);
+//                               ^^^^^^^
+// pkg/front_end/testcases/value_class/simple.dart:8:7: Context: The class 'Animal' has a constructor that takes no arguments.
+// class Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/simple.dart:14:32: Error: No named parameter with the name 'numLegs'.
+//   Animal secondAnimal = Animal(numLegs: 4);
+//                                ^^^^^^^
+// pkg/front_end/testcases/value_class/simple.dart:8:7: Context: The class 'Animal' has a constructor that takes no arguments.
+// class Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/simple.dart:15:31: Error: No named parameter with the name 'numLegs'.
+//   Animal thirdAnimal = Animal(numLegs: 3);
+//                               ^^^^^^^
+// pkg/front_end/testcases/value_class/simple.dart:8:7: Context: The class 'Animal' has a constructor that takes no arguments.
+// class Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/simple.dart:9:13: Error: Final field 'numLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numLegs;
+//             ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+@#C1
+class Animal extends core::Object {
+  final field core::int numLegs = null;
+  synthetic constructor •() → self::Animal
+    : super core::Object::•()
+    ;
+}
+static const field core::String valueClass = #C1;
+static method main() → dynamic {
+  self::Animal firstAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:13:31: Error: No named parameter with the name 'numLegs'.
+  Animal firstAnimal = Animal(numLegs: 4);
+                              ^^^^^^^";
+  self::Animal secondAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:14:32: Error: No named parameter with the name 'numLegs'.
+  Animal secondAnimal = Animal(numLegs: 4);
+                               ^^^^^^^";
+  self::Animal thirdAnimal = invalid-expression "pkg/front_end/testcases/value_class/simple.dart:15:31: Error: No named parameter with the name 'numLegs'.
+  Animal thirdAnimal = Animal(numLegs: 3);
+                              ^^^^^^^";
+  self::expect(true, firstAnimal.{core::Object::==}(secondAnimal));
+  self::expect(false, firstAnimal.{core::Object::==}(thirdAnimal));
+  self::expect(true, firstAnimal.{core::Object::hashCode}.{core::num::==}(secondAnimal.{core::Object::hashCode}));
+  self::expect(false, firstAnimal.{core::Object::hashCode}.{core::num::==}(thirdAnimal.{core::Object::hashCode}));
+}
+static method expect(dynamic expected, dynamic actual, [dynamic expectNull = #C2]) → dynamic {
+  if(expectNull as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+    expected = null;
+  }
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}
+
+constants  {
+  #C1 = "valueClass"
+  #C2 = false
+}

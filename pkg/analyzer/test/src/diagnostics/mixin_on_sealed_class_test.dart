@@ -22,9 +22,11 @@ class MixinOnSealedClassTest extends PubPackageResolutionTest {
   }
 
   test_mixinOnSealedClass() async {
-    writeTestPackageConfigWith({
-      'foo': '$workspaceRootPath/foo',
-    }, meta: true);
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      meta: true,
+    );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';

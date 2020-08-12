@@ -32,6 +32,7 @@ void main(List<String> args) {
     packageDirectory('pkg/front_end/testcases/nnbd/'),
     packageDirectory('pkg/front_end/testcases/nnbd_mixed/'),
     packageDirectory('pkg/front_end/testcases/nonfunction_type_aliases/'),
+    packageDirectory('pkg/front_end/testcases/value_class/'),
   ];
 
   var feAnalyzerSharedPackageDirs = [

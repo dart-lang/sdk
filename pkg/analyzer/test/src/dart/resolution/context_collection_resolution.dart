@@ -184,8 +184,6 @@ abstract class ContextResolutionTest
     }
   }
 
-  /// TODO(scheglov) Replace this with a method that changes a file in
-  /// [AnalysisContextCollectionImpl].
   AnalysisDriver driverFor(String path) {
     var context = contextFor(path) as DriverBasedAnalysisContext;
     return context.driver;
@@ -241,6 +239,79 @@ abstract class ContextResolutionTest
   }
 }
 
+class PackageConfigFileBuilder {
+  final List<_PackageDescription> _packages = [];
+
+  void add({
+    @required String name,
+    @required String rootPath,
+    String packageUri = 'lib/',
+    String languageVersion,
+  }) {
+    if (_packages.any((e) => e.name == name)) {
+      throw StateError('Already added: $name');
+    }
+    _packages.add(
+      _PackageDescription(
+        name: name,
+        rootPath: rootPath,
+        packageUri: packageUri,
+        languageVersion: languageVersion,
+      ),
+    );
+  }
+
+  String toContent(String Function(String) toUriStr) {
+    var buffer = StringBuffer();
+
+    buffer.writeln('{');
+
+    var prefix = ' ' * 2;
+    buffer.writeln('$prefix"configVersion": 2,');
+    buffer.writeln('$prefix"packages": [');
+
+    for (var i = 0; i < _packages.length; i++) {
+      var package = _packages[i];
+
+      var prefix = ' ' * 4;
+      buffer.writeln('$prefix{');
+
+      prefix = ' ' * 6;
+      buffer.writeln('$prefix"name": "${package.name}",');
+
+      var rootUri = toUriStr(package.rootPath);
+      buffer.write('$prefix"rootUri": "$rootUri"');
+
+      if (package.packageUri != null) {
+        buffer.writeln(',');
+        buffer.write('$prefix"packageUri": "${package.packageUri}"');
+      }
+
+      if (package.languageVersion != null) {
+        buffer.writeln(',');
+        buffer.write('$prefix"languageVersion": "${package.languageVersion}"');
+      }
+
+      buffer.writeln();
+
+      prefix = ' ' * 4;
+      buffer.write(prefix);
+      buffer.writeln(i < _packages.length - 1 ? '},' : '}');
+    }
+
+    buffer.writeln('  ]');
+    buffer.writeln('}');
+
+    return buffer.toString();
+  }
+
+  PackageConfigFileBuilder _copy() {
+    var copy = PackageConfigFileBuilder();
+    copy._packages.addAll(_packages);
+    return copy;
+  }
+}
+
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
     var path = convertPath(testPackageRootPath);
@@ -262,7 +333,13 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig({});
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+    );
+  }
+
+  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+    newFile(path, content: config.toContent(toUriStr));
   }
 
   void writeTestPackageAnalysisOptionsFile(AnalysisOptionsFileConfig config) {
@@ -272,39 +349,36 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     );
   }
 
-  void writeTestPackageConfig(Map<String, String> nameToRootPath) {
-    nameToRootPath = {'test': testPackageRootPath, ...nameToRootPath};
-
-    var packagesFileBuffer = StringBuffer();
-    for (var entry in nameToRootPath.entries) {
-      var name = entry.key;
-      var rootPath = entry.value;
-      packagesFileBuffer.writeln(name + ':' + toUriStr('$rootPath/lib'));
-    }
-    // TODO(scheglov) Use package_config.json
-    newFile(
-      '$testPackageRootPath/.packages',
-      content: '$packagesFileBuffer',
-    );
-  }
-
-  void writeTestPackageConfigWith(
-    Map<String, String> nameToRootPath, {
+  void writeTestPackageConfig(
+    PackageConfigFileBuilder config, {
+    bool js = false,
     bool meta = false,
   }) {
-    var metaPath = '/packages/meta';
-    MockPackages.addMetaPackageFiles(
-      getFolder(metaPath),
-    );
+    config = config._copy();
+    config.add(name: 'test', rootPath: testPackageRootPath);
 
-    writeTestPackageConfig({
-      if (meta) 'meta': metaPath,
-      ...nameToRootPath,
-    });
+    if (js) {
+      var jsPath = '/packages/js';
+      MockPackages.addJsPackageFiles(
+        getFolder(jsPath),
+      );
+      config.add(name: 'js', rootPath: jsPath);
+    }
+
+    if (meta) {
+      var metaPath = '/packages/meta';
+      MockPackages.addMetaPackageFiles(
+        getFolder(metaPath),
+      );
+      config.add(name: 'meta', rootPath: metaPath);
+    }
+
+    var path = '$testPackageRootPath/.dart_tool/package_config.json';
+    writePackageConfig(path, config);
   }
 
   void writeTestPackageConfigWithMeta() {
-    writeTestPackageConfigWith({}, meta: true);
+    writeTestPackageConfig(PackageConfigFileBuilder(), meta: true);
   }
 
   void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
@@ -347,4 +421,18 @@ mixin WithNullSafetyMixin on PubPackageResolutionTest {
       ),
     );
   }
+}
+
+class _PackageDescription {
+  final String name;
+  final String rootPath;
+  final String packageUri;
+  final String languageVersion;
+
+  _PackageDescription({
+    @required this.name,
+    @required this.rootPath,
+    @required this.packageUri,
+    @required this.languageVersion,
+  });
 }

@@ -42,13 +42,22 @@ class DataDriven extends MultiCorrectionProducer {
     return <TransformSet>[];
   }
 
-  /// Return the name that was changed.
+  /// Return the name of the element that was changed.
   String get _name {
     var node = this.node;
     if (node is SimpleIdentifier) {
       return node.name;
     } else if (node is ConstructorName) {
       return node.name.name;
+    } else if (node is NamedType) {
+      return node.name.name;
+    } else if (node is TypeArgumentList) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.methodName.name;
+      } else if (parent is ExtensionOverride) {
+        return parent.extensionName.name;
+      }
     }
     return null;
   }

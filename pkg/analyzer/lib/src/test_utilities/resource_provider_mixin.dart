@@ -66,7 +66,7 @@ mixin ResourceProviderMixin {
   }
 
   File newPackagesFile(String directoryPath) {
-    String path = join(directoryPath, ContextLocatorImpl.PACKAGES_FILE_NAME);
+    String path = join(directoryPath, ContextLocatorImpl.DOT_PACKAGES_NAME);
     return newFile(path);
   }
 

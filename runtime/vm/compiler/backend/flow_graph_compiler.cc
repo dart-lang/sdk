@@ -2838,6 +2838,53 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
   return;
 }
 
+// The assignment to loading units here must match that in
+// AssignLoadingUnitsCodeVisitor, which runs after compilation is done.
+static intptr_t LoadingUnitOf(Zone* zone, const Function& function) {
+  const Class& cls = Class::Handle(zone, function.Owner());
+  const Library& lib = Library::Handle(zone, cls.library());
+  const LoadingUnit& unit = LoadingUnit::Handle(zone, lib.loading_unit());
+  ASSERT(!unit.IsNull());
+  return unit.id();
+}
+
+static intptr_t LoadingUnitOf(Zone* zone, const Code& code) {
+  // No WeakSerializationReference owners here because those are only
+  // introduced during AOT serialization.
+  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+    return LoadingUnit::kRootId;
+  } else if (code.IsAllocationStubCode()) {
+    const Class& cls = Class::Cast(Object::Handle(zone, code.owner()));
+    const Library& lib = Library::Handle(zone, cls.library());
+    const LoadingUnit& unit = LoadingUnit::Handle(zone, lib.loading_unit());
+    ASSERT(!unit.IsNull());
+    return unit.id();
+  } else if (code.IsFunctionCode()) {
+    return LoadingUnitOf(zone,
+                         Function::Cast(Object::Handle(zone, code.owner())));
+  } else {
+    UNREACHABLE();
+    return LoadingUnit::kIllegalId;
+  }
+}
+
+bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+         (LoadingUnitOf(zone_, function()) == LoadingUnitOf(zone_, target));
+}
+
+bool FlowGraphCompiler::CanPcRelativeCall(const Code& target) const {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+         !target.InVMIsolateHeap() &&
+         (LoadingUnitOf(zone_, function()) == LoadingUnitOf(zone_, target));
+}
+
+bool FlowGraphCompiler::CanPcRelativeCall(const AbstractType& target) const {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+         !target.InVMIsolateHeap() &&
+         (LoadingUnitOf(zone_, function()) == LoadingUnit::kRootId);
+}
+
 #undef __
 
 }  // namespace dart

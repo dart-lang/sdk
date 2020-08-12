@@ -215,7 +215,7 @@ class ObjectPointerVisitor;
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Array, dispatch_table_code_entries)                                       \
-  RW(Array, code_order_table)                                                  \
+  RW(GrowableObjectArray, code_order_tables)                                   \
   RW(Array, obfuscation_map)                                                   \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
