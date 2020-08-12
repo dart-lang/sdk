@@ -3423,7 +3423,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       CompileTimeErrorCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "All final variables must be initialized, but '{0}' isn't.",
           correction: "Try adding an initializer for the field.",
           hasPublishedDocs: true);
@@ -3436,7 +3436,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
       CompileTimeErrorCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
           "All final variables must be initialized, but '{0}' and '{1}' "
               "aren't.",
           correction: "Try adding initializers for the fields.",
@@ -3451,7 +3451,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
       CompileTimeErrorCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "All final variables must be initialized, but '{0}', '{1}', and {2} "
               "others aren't.",
           correction: "Try adding initializers for the fields.",
@@ -5877,7 +5877,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          ' CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
           "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
               "{4} more.",
           correction: "Try implementing the missing methods, or make the class "
@@ -5895,7 +5895,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          ' CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
           "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
           correction: "Try implementing the missing methods, or make the class "
               "abstract.",
@@ -5968,7 +5968,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          ' CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
           "Missing concrete implementation of '{0}'.",
           correction: "Try implementing the missing method, or make the class "
               "abstract.",
@@ -5984,7 +5984,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
           "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
           correction: "Try implementing the missing methods, or make the class "
               "abstract.",
@@ -5999,7 +5999,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
           "Missing concrete implementations of '{0}' and '{1}'.",
           correction: "Try implementing the missing methods, or make the class "
               "abstract.",
@@ -8101,7 +8101,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
       CompileTimeErrorCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
-          'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+          'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
           "A value of type '{0}' can't be returned from constructor '{2}' "
               "because it has a return type of '{1}'.",
           hasPublishedDocs: true);
@@ -8143,7 +8143,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
       CompileTimeErrorCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
-          'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+          'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
           "A value of type '{0}' can't be returned from function '{2}' because "
               "it has a return type of '{1}'.",
           hasPublishedDocs: true);
@@ -8157,7 +8157,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
       CompileTimeErrorCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
-          'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
+          'RETURN_OF_INVALID_TYPE_FROM_METHOD',
           "A value of type '{0}' can't be returned from method '{2}' because "
               "it has a return type of '{1}'.",
           hasPublishedDocs: true);
