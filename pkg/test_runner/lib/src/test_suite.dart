@@ -165,7 +165,19 @@ abstract class TestSuite {
       }
     }
 
-    return true;
+    // Normal runtime tests are always run.
+    if (testFile.isRuntimeTest) return true;
+
+    // Tests of web-specific static errors are run on web compilers.
+    if (testFile.isWebStaticErrorTest &&
+        (configuration.compiler == Compiler.dart2js ||
+            configuration.compiler == Compiler.dartdevc)) {
+      return true;
+    }
+
+    // Other static error tests are run on front-end-only configurations.
+    return configuration.compiler == Compiler.dart2analyzer ||
+        configuration.compiler == Compiler.fasta;
   }
 
   /// Whether a test with [expectations] should be skipped under the current
@@ -557,19 +569,6 @@ class StandardTestSuite extends TestSuite {
   /// options.
   void _testCasesFromTestFile(
       TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
-    // TODO(rnystrom): Skipping this here is a little unusual because most
-    // skips are handled in _addTestCase(). However, if the configuration
-    // is running on a browser, calling _addTestCase() will try to create
-    // a set of commands which ultimately causes an exception in
-    // DummyRuntimeConfiguration. This avoids that.
-    // If the test only has static expectations, skip it on any configurations
-    // that are not purely front ends.
-    if (!testFile.isRuntimeTest &&
-        configuration.compiler != Compiler.dart2analyzer &&
-        configuration.compiler != Compiler.fasta) {
-      return;
-    }
-
     // The configuration must support everything the test needs.
     if (!configuration.supportedFeatures.containsAll(testFile.requirements)) {
       return;
@@ -690,7 +689,7 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (testFile.hasCompileError &&
+    if ((testFile.hasCompileError || testFile.isStaticErrorTest) &&
         compilerConfiguration.hasCompiler &&
         !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
@@ -744,9 +743,9 @@ class StandardTestSuite extends TestSuite {
       return "/$prefixDartDir/$fileRelativeToDartDir";
     }
 
-    // Unreachable.
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
+    throw "unreachable";
   }
 
   String _uriForBrowserTest(String pathComponent) {
