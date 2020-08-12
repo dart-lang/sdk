@@ -37,8 +37,14 @@ class ContextLocatorImpl implements ContextLocator {
   /// The name of the analysis options file.
   static const String ANALYSIS_OPTIONS_NAME = 'analysis_options.yaml';
 
+  /// The name of the `.dart_tool` directory.
+  static const String DOT_DART_TOOL_NAME = '.dart_tool';
+
   /// The name of the packages file.
-  static const String PACKAGES_FILE_NAME = '.packages';
+  static const String PACKAGE_CONFIG_JSON_NAME = 'package_config.json';
+
+  /// The name of the packages file.
+  static const String DOT_PACKAGES_NAME = '.packages';
 
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
@@ -371,7 +377,16 @@ class ContextLocatorImpl implements ContextLocator {
 
   /// Return the packages file in the given [folder], or `null` if the folder
   /// does not contain a packages file.
-  File _getPackagesFile(Folder folder) => _getFile(folder, PACKAGES_FILE_NAME);
+  File _getPackagesFile(Folder folder) {
+    var file = folder
+        .getChildAssumingFolder(DOT_DART_TOOL_NAME)
+        .getChildAssumingFile(PACKAGE_CONFIG_JSON_NAME);
+    if (file.exists) {
+      return file;
+    }
+
+    return _getFile(folder, DOT_PACKAGES_NAME);
+  }
 
   /// Add to the given lists of [folders] and [files] all of the resources in
   /// the given list of [paths] that exist and are not contained within one of
