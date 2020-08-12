@@ -203,6 +203,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   /// A flag indicating whether local fields should be suggested.
   final bool suggestLocalFields;
 
+  /// A flag indicating whether suggestions are being made inside an `extends`
+  /// clause.
+  bool inExtendsClause = false;
+
   /// Only used when [useNewRelevance] is `false`.
   int privateMemberRelevance = DART_RELEVANCE_DEFAULT;
 
@@ -404,7 +408,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredMixin(MixinDeclaration declaration) {
-    if (visibilityTracker._isVisible(declaration.declaredElement) &&
+    if (!inExtendsClause &&
+        visibilityTracker._isVisible(declaration.declaredElement) &&
         opType.includeTypeNameSuggestions) {
       builder.suggestClass(declaration.declaredElement, kind: _defaultKind);
     }
@@ -443,6 +448,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         opType.includeTypeNameSuggestions) {
       builder.suggestTypeParameter(node.declaredElement);
     }
+  }
+
+  @override
+  void visitExtendsClause(ExtendsClause node) {
+    inExtendsClause = true;
+    return super.visitExtendsClause(node);
   }
 
   /// Return `true` if the [identifier] is composed of one or more underscore
