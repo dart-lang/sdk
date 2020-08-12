@@ -906,6 +906,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _compilationUnitMember(node);
+    _token(node.externalKeyword);
     node.variables.accept(this);
     _token(node.semicolon);
   }

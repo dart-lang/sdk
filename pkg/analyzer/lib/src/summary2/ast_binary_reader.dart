@@ -1548,6 +1548,8 @@ class AstBinaryReader {
         _readNodeListLazy(data.annotatedNode_metadata),
         _readNode(data.topLevelVariableDeclaration_variableList),
         _Tokens.SEMICOLON,
+        externalKeyword:
+            AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
       );
       LazyTopLevelVariableDeclaration.setData(node, data);
       return node;

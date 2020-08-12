@@ -1296,12 +1296,16 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TopLevelVariableDeclaration topLevelVariableDeclaration2(
-          Keyword keyword, List<VariableDeclaration> variables) =>
+          Keyword keyword, List<VariableDeclaration> variables,
+          {bool isExternal = false}) =>
       astFactory.topLevelVariableDeclaration(
           null,
           null,
           variableDeclarationList(keyword, null, variables),
-          TokenFactory.tokenFromType(TokenType.SEMICOLON));
+          TokenFactory.tokenFromType(TokenType.SEMICOLON),
+          externalKeyword: isExternal
+              ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL)
+              : null);
 
   static TryStatement tryStatement(Block body, Block finallyClause) =>
       tryStatement3(body, <CatchClause>[], finallyClause);

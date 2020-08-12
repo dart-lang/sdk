@@ -955,6 +955,9 @@ class TopLevelVariableMember extends VariableMember
   }
 
   @override
+  bool get isExternal => declaration.isExternal;
+
+  @override
   PropertyAccessorElement get setter {
     var baseSetter = declaration.setter;
     if (baseSetter == null) {

@@ -130,14 +130,17 @@ class DillMemberBuilder extends MemberBuilderImpl {
     throw new UnsupportedError('DillMemberBuilder.buildMembers');
   }
 
+  List<ClassMember> _localMembers;
+  List<ClassMember> _localSetters;
+
   @override
-  List<ClassMember> get localMembers => isSetter
+  List<ClassMember> get localMembers => _localMembers ??= isSetter
       ? const <ClassMember>[]
       : <ClassMember>[new DillClassMember(this, forSetter: false)];
 
   @override
   List<ClassMember> get localSetters =>
-      isSetter || member is Field && member.hasSetter
+      _localSetters ??= isSetter || member is Field && member.hasSetter
           ? <ClassMember>[new DillClassMember(this, forSetter: true)]
           : const <ClassMember>[];
 }

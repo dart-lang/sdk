@@ -2616,6 +2616,14 @@ class ToSourceVisitor2Test {
         AstTestFactory.throwExpression2(AstTestFactory.identifier3("e")));
   }
 
+  void test_visitTopLevelVariableDeclaration_external() {
+    _assertSource(
+        "external var a;",
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration("a")],
+            isExternal: true));
+  }
+
   void test_visitTopLevelVariableDeclaration_multiple() {
     _assertSource(
         "var a;",

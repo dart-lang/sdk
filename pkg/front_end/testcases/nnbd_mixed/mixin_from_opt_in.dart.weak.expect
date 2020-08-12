@@ -9,7 +9,6 @@ abstract class _Class&Object&Mixin = core::Object with mix::Mixin /*isAnonymousM
   const synthetic constructor •() → self::_Class&Object&Mixin*
     : super core::Object::•()
     ;
-  abstract member-signature method method(core::int* i) → core::int*;
   abstract member-signature get _identityHashCode() → core::int*;
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;

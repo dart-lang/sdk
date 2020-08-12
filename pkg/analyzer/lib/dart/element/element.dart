@@ -1694,6 +1694,9 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 abstract class TopLevelVariableElement implements PropertyInducingElement {
   @override
   TopLevelVariableElement get declaration;
+
+  /// Return `true` if this field was explicitly marked as being external.
+  bool get isExternal;
 }
 
 /// An element that defines a type.

@@ -2056,6 +2056,30 @@ class ClassHierarchyNodeBuilder {
         checkMemberVsSetter(classSetter, interfaceMember);
       }
 
+      if (classMember != null &&
+          interfaceMember != null &&
+          classMember != interfaceMember) {
+        if (classMember.isAbstract == interfaceMember.isAbstract) {
+          // TODO(johnniwinther): Ensure that we don't have both class and
+          //  interface members that can give rise to a forwarding stub in
+          //  the current class. We might already have registered a delayed
+          //  member computation for the [classMember] that we're replacing
+          //  and therefore create two stubs for this member.
+          classMember = interfaceMember;
+        }
+      }
+      if (classSetter != null &&
+          interfaceSetter != null &&
+          classSetter != interfaceSetter) {
+        if (classSetter.isAbstract == interfaceSetter.isAbstract) {
+          // TODO(johnniwinther): Ensure that we don't have both class and
+          //  interface members that can give rise to a forwarding stub in
+          //  the current class. We might already have registered a delayed
+          //  member computation for the [classMember] that we're replacing
+          //  and therefore create two stubs for this member.
+          classSetter = interfaceSetter;
+        }
+      }
       if (classMember != null) {
         classMemberMap[name] = classMember;
       }
@@ -2767,12 +2791,14 @@ abstract class DelayedMember implements ClassMember {
 /// implementation is the first element of [declarations].
 class InheritedImplementationInterfaceConflict extends DelayedMember {
   Member combinedMemberSignatureResult;
+  final ClassMember concreteMember;
 
   @override
   final bool isInheritableConflict;
 
   InheritedImplementationInterfaceConflict(
       ClassBuilder parent,
+      this.concreteMember,
       List<ClassMember> declarations,
       bool isProperty,
       bool isSetter,
@@ -2780,29 +2806,34 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       bool isAbstract,
       Name name,
       {this.isInheritableConflict = true})
-      : super(parent, declarations, isProperty, isSetter, modifyKernel,
+      : assert(!concreteMember.isAbstract),
+        super(parent, declarations, isProperty, isSetter, modifyKernel,
             isAbstract, name);
 
   @override
   bool isObjectMember(ClassBuilder objectClass) {
-    return declarations.first.isObjectMember(objectClass);
+    return concreteMember.isObjectMember(objectClass);
   }
 
   @override
   String toString() {
     return "InheritedImplementationInterfaceConflict("
-        "${classBuilder.fullNameForErrors}, "
+        "${classBuilder.fullNameForErrors}, $concreteMember, "
         "[${declarations.join(', ')}])";
   }
 
   @override
-  int get hashCode => super.hashCode + isInheritableConflict.hashCode * 11;
+  int get hashCode =>
+      super.hashCode +
+      concreteMember.hashCode * 11 +
+      isInheritableConflict.hashCode * 13;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return super == other &&
         other is InheritedImplementationInterfaceConflict &&
+        concreteMember == other.concreteMember &&
         isInheritableConflict == other.isInheritableConflict;
   }
 
@@ -2812,11 +2843,12 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return combinedMemberSignatureResult;
     }
     if (!classBuilder.isAbstract) {
-      ClassMember concreteImplementation = declarations.first;
-      for (int i = 1; i < declarations.length; i++) {
-        new DelayedOverrideCheck(
-                classBuilder, concreteImplementation, declarations[i])
-            .check(hierarchy);
+      for (int i = 0; i < declarations.length; i++) {
+        if (concreteMember != declarations[i]) {
+          new DelayedOverrideCheck(
+                  classBuilder, concreteMember, declarations[i])
+              .check(hierarchy);
+        }
       }
     }
     return combinedMemberSignatureResult = new InterfaceConflict(classBuilder,
@@ -2828,14 +2860,8 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InheritedImplementationInterfaceConflict(
-            parent,
-            declarations.toList(),
-            isProperty,
-            isSetter,
-            modifyKernel,
-            isAbstract,
-            name);
+        : new InheritedImplementationInterfaceConflict(parent, concreteMember,
+            [this], isProperty, isSetter, modifyKernel, isAbstract, name);
   }
 
   static ClassMember combined(
@@ -2864,6 +2890,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
     } else {
       return new InheritedImplementationInterfaceConflict(
           parent,
+          concreteImplementation.concrete,
           declarations,
           concreteImplementation.isProperty,
           isSetter,

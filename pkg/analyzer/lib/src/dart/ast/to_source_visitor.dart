@@ -1075,6 +1075,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
     safelyVisitNodeWithSuffix(node.variables, ";");
   }
 

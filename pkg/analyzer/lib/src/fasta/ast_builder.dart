@@ -2153,7 +2153,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
 
-    if (externalToken != null) {
+    if (externalToken != null && !enableNonNullable) {
       handleRecoverableError(
           messageExternalField, externalToken, externalToken);
     }
@@ -2169,7 +2169,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
-        comment, metadata, variableList, semicolon));
+        comment, metadata, variableList, semicolon,
+        externalKeyword: externalToken));
   }
 
   @override

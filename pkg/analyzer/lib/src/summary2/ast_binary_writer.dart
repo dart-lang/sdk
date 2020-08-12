@@ -1328,6 +1328,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
         informativeId: getInformativeId(node),
         topLevelVariableDeclaration_variableList: node.variables?.accept(this),
       );
+      builder.flags = AstBinaryFlags.encode(
+        isExternal: node.externalKeyword != null,
+      );
       _storeCompilationUnitMember(builder, node);
 
       return builder;

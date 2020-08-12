@@ -666,6 +666,12 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    safelyRecordKeywordCompletion(node.externalKeyword);
+    return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @override
   void visitTryStatement(TryStatement node) {
     safelyRecordKeywordCompletion(node.tryKeyword);
     safelyRecordKeywordCompletion(node.finallyKeyword);

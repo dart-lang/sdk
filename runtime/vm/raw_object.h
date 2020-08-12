@@ -2190,9 +2190,12 @@ class AbstractTypeLayout : public InstanceLayout {
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
+    // Adjust kTypeStateBitSize if more are added.
   };
 
  protected:
+  static constexpr intptr_t kTypeStateBitSize = 2;
+
   uword type_test_stub_entry_point_;  // Accessed from generated code.
   CodePtr type_test_stub_;  // Must be the last field, since subclasses use it
                             // in their VISIT_FROM.
@@ -2237,17 +2240,6 @@ class TypeRefLayout : public AbstractTypeLayout {
 };
 
 class TypeParameterLayout : public AbstractTypeLayout {
- public:
-  enum {
-    kFinalizedBit = 0,
-    kGenericCovariantImplBit,
-    kDeclarationBit,
-  };
-  class FinalizedBit : public BitField<uint8_t, bool, kFinalizedBit, 1> {};
-  class GenericCovariantImplBit
-      : public BitField<uint8_t, bool, kGenericCovariantImplBit, 1> {};
-  class DeclarationBit : public BitField<uint8_t, bool, kDeclarationBit, 1> {};
-
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -2262,6 +2254,13 @@ class TypeParameterLayout : public AbstractTypeLayout {
   int16_t index_;
   uint8_t flags_;
   int8_t nullability_;
+
+  using FinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
+  using GenericCovariantImplBit =
+      BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
+  using DeclarationBit =
+      BitField<decltype(flags_), bool, GenericCovariantImplBit::kNextBit, 1>;
+  static constexpr intptr_t kFlagsBitSize = DeclarationBit::kNextBit;
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 

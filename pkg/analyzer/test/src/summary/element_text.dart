@@ -971,6 +971,7 @@ class _ElementWriter {
     } else {
       writeDocumentation(e);
       writeMetadata(e, '', '\n');
+      writeIf(e is TopLevelVariableElementImpl && e.isExternal, 'external ');
     }
 
     writeIf(e.isLate, 'late ');

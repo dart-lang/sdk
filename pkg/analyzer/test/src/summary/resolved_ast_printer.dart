@@ -1269,6 +1269,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TopLevelVariableDeclaration');
     _withIndent(() {
       var properties = _Properties();
+      properties.addToken('externalKeyword', node.externalKeyword);
       properties.addToken('semicolon', node.semicolon);
       properties.addNode('variables', node.variables);
       _addCompilationUnitMember(properties, node);

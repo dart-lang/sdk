@@ -132,6 +132,29 @@ class ResolutionCopierTest with ElementsTypesMixin {
   @override
   final TypeProvider typeProvider = TestTypeProvider();
 
+  void test_topLevelVariableDeclaration_external() {
+    TopLevelVariableDeclaration fromNode =
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
+            isExternal: false);
+    TopLevelVariableElement element = TopLevelVariableElementImpl('x', -1);
+    fromNode.variables.variables[0].name.staticElement = element;
+    TopLevelVariableDeclaration toNode1 =
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
+            isExternal: false);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes matched so resolution data should have been copied.
+    expect(toNode1.variables.variables[0].declaredElement, same(element));
+    TopLevelVariableDeclaration toNode2 =
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
+            isExternal: true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes didn't match so resolution data should not have been copied.
+    expect(toNode2.variables.variables[0].declaredElement, isNull);
+  }
+
   void test_visitAdjacentStrings() {
     AdjacentStrings createNode() => astFactory.adjacentStrings([
           astFactory.simpleStringLiteral(null, 'hello'),

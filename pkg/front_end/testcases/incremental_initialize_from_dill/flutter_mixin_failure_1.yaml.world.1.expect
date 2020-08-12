@@ -71,7 +71,6 @@ library from "org-dartlang-test:///lib.dart" as lib {
     synthetic constructor •() → lib::Quux*
       : super lib::_Quux&Qux&MyMixin::•()
       ;
-    abstract forwarding-stub method hello(covariant lib::FooEntry* entry) → void;
   }
 }
 library from "org-dartlang-test:///main.dart" as main {

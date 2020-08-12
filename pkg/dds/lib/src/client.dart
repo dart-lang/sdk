@@ -215,7 +215,11 @@ class _DartDevelopmentServiceClient {
         return await Future.any(
           [
             // Forward the request to the service client or...
-            serviceClient.sendRequest(method, parameters.asMap),
+            serviceClient.sendRequest(method, parameters.asMap).catchError((_) {
+              throw _RpcErrorCodes.buildRpcException(
+                _RpcErrorCodes.kServiceDisappeared,
+              );
+            }, test: (error) => error is StateError),
             // if the service client closes, return an error response.
             serviceClient._clientPeer.done.then(
               (_) => throw _RpcErrorCodes.buildRpcException(

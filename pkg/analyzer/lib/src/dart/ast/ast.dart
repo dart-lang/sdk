@@ -9796,6 +9796,9 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   /// The top-level variables being declared.
   VariableDeclarationListImpl _variableList;
 
+  @override
+  Token externalKeyword;
+
   /// The semicolon terminating the declaration.
   @override
   Token semicolon;
@@ -9806,6 +9809,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   TopLevelVariableDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      this.externalKeyword,
       VariableDeclarationListImpl variableList,
       this.semicolon)
       : super(comment, metadata) {
@@ -9823,7 +9827,8 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => _variableList.beginToken;
+  Token get firstTokenAfterCommentAndMetadata =>
+      externalKeyword ?? _variableList.beginToken;
 
   @override
   VariableDeclarationList get variables => _variableList;

@@ -909,7 +909,8 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       VariableDeclarationList variableList,
-      Token semicolon);
+      Token semicolon,
+      {Token externalKeyword});
 
   /// Returns a newly created try statement. The list of [catchClauses] can be
   /// `null` if there are no catch clauses. The [finallyKeyword] and

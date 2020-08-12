@@ -677,6 +677,29 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    var variableDeclarationList = node.variables;
+    if (entity != variableDeclarationList) return;
+    var variables = variableDeclarationList.variables;
+    if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
+      return;
+    }
+    if (node.externalKeyword == null) {
+      _addSuggestion(Keyword.EXTERNAL);
+    }
+    if (variableDeclarationList.lateKeyword == null &&
+        request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
+    }
+    if (!variables.first.isConst) {
+      _addSuggestion(Keyword.CONST);
+    }
+    if (!variables.first.isFinal) {
+      _addSuggestion(Keyword.FINAL);
+    }
+  }
+
+  @override
   void visitTryStatement(TryStatement node) {
     var obj = entity;
     if (obj is CatchClause ||
