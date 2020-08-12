@@ -68,4 +68,20 @@ class A {
           text: "'x' must have a method body because 'A' isn't abstract."),
     ]);
   }
+
+  test_external_field() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int? x;
+}
+''');
+  }
+
+  test_external_field_final() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int? x;
+}
+''');
+  }
 }
