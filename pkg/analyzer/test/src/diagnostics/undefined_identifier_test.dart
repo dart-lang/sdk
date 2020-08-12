@@ -177,6 +177,13 @@ main(int p) {
 @reflectiveTest
 class UndefinedIdentifierWithNullSafetyTest extends UndefinedIdentifierTest
     with WithNullSafetyMixin {
+  test_get_from_external_variable_final_valid() async {
+    await assertNoErrorsInCode('''
+external final int x;
+int f() => x;
+''');
+  }
+
   test_get_from_external_variable_valid() async {
     await assertNoErrorsInCode('''
 external int x;

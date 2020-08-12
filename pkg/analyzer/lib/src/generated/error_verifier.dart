@@ -2584,8 +2584,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               [variable.name.name]);
         } else {
           var variableElement = variable.declaredElement;
-          if (variableElement is FieldElement && variableElement.isAbstract) {
-            // Abstract fields can't be initialized, so no error.
+          if (variableElement is FieldElement &&
+              (variableElement.isAbstract || variableElement.isExternal)) {
+            // Abstract and external fields can't be initialized, so no error.
+          } else if (variableElement is TopLevelVariableElement &&
+              variableElement.isExternal) {
+            // External top level variables can't be initialized, so no error.
           } else if (!_isNonNullableByDefault || !variable.isLate) {
             _errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
