@@ -515,6 +515,9 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.INVALID_OVERRIDE: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ImportLibrary.forType,
     ],
@@ -571,6 +574,18 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
+      DataDriven.newInstance,
     ],
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.newInstance,
