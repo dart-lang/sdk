@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.4
+- Fix bug causing name clash for Type class.
+
 ## 0.5.3
 - Add `compareProgramInfo` that takes in two program info objects and outputs
 a `Map` object containing the diff data.

@@ -148,6 +148,17 @@ void f() {
 ''');
   }
 
+  test_set_external_variable_final_invalid() async {
+    await assertErrorsInCode('''
+external final int x;
+void f(int value) {
+  x = value;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 44, 1),
+    ]);
+  }
+
   test_topLevelVariable_late() async {
     await assertNoErrorsInCode('''
 late final int a;

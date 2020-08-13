@@ -17,27 +17,27 @@ class Foo {
   @JS()
   external Foo(int bar);
   //       ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external factory Foo.fooFactory();
   //               ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external int get bar;
   //               ^^^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external set bar(int val);
   //           ^^^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external int baz();
   //           ^^^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Member has a JS interop annotation but the enclosing class does not.
   @JS()
   external static int bazStatic();
   //                  ^^^^^^^^^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Member has a JS interop annotation but the enclosing class does not.
 }
 
 @JS()

@@ -102,6 +102,23 @@ abstract class A {
 ''');
   }
 
+  test_field_external() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+''');
+  }
+
+  test_field_external_with_constructor() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+  A();
+}
+''');
+  }
+
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''
 class C {
@@ -172,5 +189,19 @@ f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
+  }
+
+  test_static_field_external() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static final int x;
+}
+''');
+  }
+
+  test_variable_external() async {
+    await assertNoErrorsInCode('''
+external final int x;
+''');
   }
 }

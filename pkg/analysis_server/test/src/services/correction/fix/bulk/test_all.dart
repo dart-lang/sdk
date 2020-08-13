@@ -16,6 +16,7 @@ import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_single_quoted_strings_test.dart'
     as convert_to_single_quoted_strings;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_method_test.dart' as create_method;
 import 'make_final_test.dart' as make_final;
 import 'remove_argument_test.dart' as remove_argument;
@@ -42,6 +43,7 @@ import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_is_not_empty_test.dart' as use_is_not_empty;
+import 'use_rethrow_test.dart' as use_rethrow;
 
 void main() {
   defineReflectiveSuite(() {
@@ -54,6 +56,7 @@ void main() {
     convert_to_if_null.main();
     convert_to_single_quoted_strings.main();
     convert_to_spread.main();
+    convert_to_where_type.main();
     create_method.main();
     make_final.main();
     remove_argument.main();
@@ -78,5 +81,6 @@ void main() {
     replace_with_var.main();
     use_curly_braces.main();
     use_is_not_empty.main();
+    use_rethrow.main();
   }, name: 'bulk');
 }

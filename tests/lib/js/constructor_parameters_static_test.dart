@@ -17,10 +17,10 @@ import 'package:expect/expect.dart';
 class Foo {
   external Foo({int? a});
   //                 ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
   external factory Foo.fooFactory({int? a});
-  //                                ^
-  // [web] TODO(srujzs): Add error once supported.
+  //                                    ^
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
 @JS()
@@ -28,21 +28,21 @@ class Foo {
 class Bar {
   external Bar({int? a});
   //                 ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 
   // Factories of an anonymous class can only contain named parameters.
   external factory Bar.barFactoryPositional(int? a);
   //                                             ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
   external factory Bar.barFactoryOptional([int? a]);
   //                                            ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
   external factory Bar.barFactoryMixedOptional(int? a, [int? b]);
   //                                                ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
   external factory Bar.barFactoryMixedNamed(int? a, {int? b});
   //                                             ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Factory constructors for @anonymous JS interop classes should not contain any positional parameters.
 
   // Named parameters are okay only for factories of an anonymous class.
   external factory Bar.barFactoryNamed({int? a});
@@ -52,10 +52,10 @@ class Bar {
 abstract class Baz {
   external Baz({int? a});
   //                 ^
-  // [web] TODO(srujzs): Add error once supported.
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
   external factory Baz.bazFactory({int? a});
-  //                                ^
-  // [web] TODO(srujzs): Add error once supported.
+  //                                    ^
+  // [web] Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.
 }
 
 main() {}

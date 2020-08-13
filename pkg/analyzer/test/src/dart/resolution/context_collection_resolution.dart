@@ -351,11 +351,17 @@ class PubPackageResolutionTest extends ContextResolutionTest {
 
   void writeTestPackageConfig(
     PackageConfigFileBuilder config, {
+    String languageVersion,
     bool js = false,
     bool meta = false,
   }) {
     config = config._copy();
-    config.add(name: 'test', rootPath: testPackageRootPath);
+
+    config.add(
+      name: 'test',
+      rootPath: testPackageRootPath,
+      languageVersion: languageVersion,
+    );
 
     if (js) {
       var jsPath = '/packages/js';

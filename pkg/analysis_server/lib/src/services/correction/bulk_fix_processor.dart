@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
@@ -42,6 +43,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_tear_o
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
@@ -90,6 +92,7 @@ class BulkFixProcessor {
     LintNames.prefer_if_null_operators: ConvertToIfNull.newInstance,
     LintNames.prefer_is_empty: ReplaceWithIsEmpty.newInstance,
     LintNames.prefer_is_not_empty: UesIsNotEmpty.newInstance,
+    LintNames.prefer_iterable_whereType: ConvertToWhereType.newInstance,
     LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
     LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
@@ -100,6 +103,7 @@ class BulkFixProcessor {
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,
     LintNames.unnecessary_overrides: RemoveMethodDeclaration.newInstance,
     LintNames.unnecessary_this: RemoveThisExpression.newInstance,
+    LintNames.use_rethrow_when_possible: UseRethrow.newInstance,
   };
 
   /// A map from an error code to a generator used to create the correction

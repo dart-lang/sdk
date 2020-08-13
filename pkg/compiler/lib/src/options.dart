@@ -340,6 +340,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// during each phase of compilation.
   bool showInternalProgress = false;
 
+  /// Enable printing of metrics at end of compilation.
+  // TODO(sra): Add command-line filtering of metrics.
+  bool reportPrimaryMetrics = false;
+
+  /// Enable printing of more metrics at end of compilation.
+  // TODO(sra): Add command-line filtering of metrics.
+  bool reportSecondaryMetrics = false;
+
   /// Track allocations in the JS output.
   ///
   /// This is an experimental feature.
@@ -496,6 +504,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..verbose = _hasOption(options, Flags.verbose)
+      ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
+      ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')

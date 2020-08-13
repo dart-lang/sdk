@@ -692,6 +692,31 @@ abstract class B implements A {
 ''');
   }
 
+  test_getter_overrides_external_field_final_invalid() async {
+    await assertErrorsInCode('''
+class A {
+  external final int x;
+}
+abstract class B implements A {
+  num get x;
+  void set x(num value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 1),
+    ]);
+  }
+
+  test_getter_overrides_external_field_final_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final num x;
+}
+abstract class B implements A {
+  int get x;
+}
+''');
+  }
+
   test_getter_overrides_external_field_invalid() async {
     await assertErrorsInCode('''
 class A {
@@ -867,6 +892,18 @@ abstract class B implements A {
     await assertNoErrorsInCode('''
 class A {
   external covariant num x;
+}
+abstract class B implements A {
+  int get x;
+  void set x(int value);
+}
+''');
+  }
+
+  test_setter_overrides_external_field_final_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final num x;
 }
 abstract class B implements A {
   int get x;

@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -13,12 +10,36 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapKeyTest);
-    defineReflectiveTests(NonConstantMapKeyWithConstantsTest);
+    defineReflectiveTests(NonConstantMapKeyTest_language24);
   });
 }
 
 @reflectiveTest
-class NonConstantMapKeyTest extends PubPackageResolutionTest {
+class NonConstantMapKeyTest extends PubPackageResolutionTest
+    with NonConstantMapKeyTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class NonConstantMapKeyTest_language24 extends PubPackageResolutionTest
+    with NonConstantMapKeyTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin NonConstantMapKeyTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_ifElement_thenTrue_elseFinal() async {
     await assertErrorsInCode(
         r'''
@@ -26,7 +47,7 @@ final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 0: 1 else a : 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 75, 1),
               ]
@@ -42,7 +63,7 @@ final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) a : 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 65, 1),
               ]
@@ -59,13 +80,4 @@ var v = const {a : 0};
       error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 36, 1),
     ]);
   }
-}
-
-@reflectiveTest
-class NonConstantMapKeyWithConstantsTest extends NonConstantMapKeyTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

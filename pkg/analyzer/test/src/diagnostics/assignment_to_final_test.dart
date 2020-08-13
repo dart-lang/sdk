@@ -98,4 +98,44 @@ void f(B b, int x) {
 }
 ''');
   }
+
+  test_set_external_field_final_invalid() async {
+    await assertErrorsInCode('''
+class A {
+  external final int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 61, 1),
+    ]);
+  }
+
+  test_set_external_field_final_overridden_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+abstract class B extends A {
+  void set x(int value);
+}
+void f(B b, int x) {
+  b.x = x; // ok because setter provided in derived class
+}
+''');
+  }
+
+  test_set_external_static_field_final_invalid() async {
+    await assertErrorsInCode('''
+class A {
+  external static final int x;
+}
+void f(int x) {
+  A.x = x;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 63, 1),
+    ]);
+  }
 }

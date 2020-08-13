@@ -699,4 +699,87 @@ class B implements A {
           1),
     ]);
   }
+
+  test_external_field_final_implement_getter() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''');
+  }
+
+  test_external_field_final_implement_none() async {
+    await assertErrorsInCode('''
+class A {
+  external final int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          42,
+          1),
+    ]);
+  }
+
+  test_external_field_implement_getter() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
+    ]);
+  }
+
+  test_external_field_implement_getter_and_setter() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {
+  int get x => 0;
+  void set x(int value) {}
+}
+''');
+  }
+
+  test_external_field_implement_none() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          36,
+          1),
+    ]);
+  }
+
+  test_external_field_implement_setter() async {
+    await assertErrorsInCode('''
+class A {
+  external int x;
+}
+class B implements A {
+  void set x(int value) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
+    ]);
+  }
 }

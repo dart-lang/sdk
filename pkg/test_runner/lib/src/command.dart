@@ -180,6 +180,9 @@ class CompilationCommand extends ProcessCommand {
     if (displayName == 'precompiler' || displayName == 'app_jit') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
+    } else if (displayName == 'dart2js') {
+      return Dart2jsCompilerCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
     } else if (displayName == 'dartdevc') {
       return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
           time, compilationSkipped, pid);
