@@ -306,7 +306,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     debugEvent("ClassExtends");
   }
 

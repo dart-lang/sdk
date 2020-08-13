@@ -88,7 +88,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       result = sb.toString().trim();
 
       // Try to format.
-      Exception formatterException;
+      dynamic formatterException;
       StackTrace formatterExceptionSt;
       try {
         result = new DartFormatter().format(result);

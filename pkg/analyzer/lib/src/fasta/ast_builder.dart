@@ -2447,10 +2447,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
+    // If more extends clauses was specified (parser has already issued an
+    // error) throw them away for now and pick the first one.
+    while (typeCount > 1) {
+      pop();
+      typeCount--;
+    }
     TypeName supertype = pop();
     if (supertype != null) {
       push(ast.extendsClause(extendsKeyword, supertype));

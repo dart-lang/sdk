@@ -366,7 +366,9 @@ MultipleExtends:
   template: "Each class definition can have at most one extends clause."
   tip: "Try choosing one superclass and define your class to implement (or mix in) the others."
   analyzerCode: ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES
-  script: "class A extends B extends C {}"
+  script:
+    - "class B{} class C{} class A extends B extends C {}"
+    - "class B{} class C{} class A extends B, C {}"
 
 MultipleWith:
   index: 24
