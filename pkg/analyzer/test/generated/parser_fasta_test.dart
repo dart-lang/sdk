@@ -254,6 +254,40 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(field.externalKeyword, isNotNull);
   }
 
+  void test_parseField_external_late() {
+    createParser('external late int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_late_final() {
+    createParser('external late final int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_static() {
+    createParser('external static int? i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
   void test_parseField_final_late() {
     createParser('final late T f;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -4623,6 +4657,26 @@ mixin A {
 
   void test_parseTopLevelVariable_external() {
     var unit = parseCompilationUnit('external int i;', featureSet: nonNullable);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNotNull);
+  }
+
+  void test_parseTopLevelVariable_external_late() {
+    var unit = parseCompilationUnit('external late int? i;',
+        featureSet: nonNullable,
+        errors: [
+          expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+        ]);
+    var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
+    expect(declaration.externalKeyword, isNotNull);
+  }
+
+  void test_parseTopLevelVariable_external_late_final() {
+    var unit = parseCompilationUnit('external late final int? i;',
+        featureSet: nonNullable,
+        errors: [
+          expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8),
+        ]);
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
   }

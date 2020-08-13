@@ -15,6 +15,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
         messageExternalField,
+        messageExternalLateField,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
@@ -866,9 +867,14 @@ class AstBuilder extends StackListener {
         }
       }
     }
-    if (externalToken != null && !enableNonNullable) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+    if (externalToken != null) {
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -2153,9 +2159,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("TopLevelFields");
 
-    if (externalToken != null && !enableNonNullable) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+    if (externalToken != null) {
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);

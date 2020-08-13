@@ -303,6 +303,8 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try removing the body of the getter, or "
           "removing the keyword 'external'.");
 
+  static const ParserErrorCode EXTERNAL_LATE_FIELD = _EXTERNAL_LATE_FIELD;
+
   static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY =
       _EXTERNAL_METHOD_WITH_BODY;
 

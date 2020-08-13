@@ -635,6 +635,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY,
   ParserErrorCode.EXTERNAL_FIELD,
   ParserErrorCode.EXTERNAL_GETTER_WITH_BODY,
+  ParserErrorCode.EXTERNAL_LATE_FIELD,
   ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
   ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY,
   ParserErrorCode.EXTERNAL_SETTER_WITH_BODY,

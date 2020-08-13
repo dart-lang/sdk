@@ -116,6 +116,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
   _ABSTRACT_STATIC_FIELD,
   _ABSTRACT_LATE_FIELD,
+  _EXTERNAL_LATE_FIELD,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -314,6 +315,10 @@ const ParserErrorCode _EXTERNAL_FIELD = ParserErrorCode(
     'EXTERNAL_FIELD', r"Fields can't be declared to be 'external'.",
     correction:
         "Try removing the keyword 'external', or replacing the field by an external getter and/or setter.");
+
+const ParserErrorCode _EXTERNAL_LATE_FIELD = ParserErrorCode(
+    'EXTERNAL_LATE_FIELD', r"External fields cannot be late.",
+    correction: "Try removing the 'external' or 'late' keyword.");
 
 const ParserErrorCode _EXTERNAL_METHOD_WITH_BODY = ParserErrorCode(
     'EXTERNAL_METHOD_WITH_BODY',

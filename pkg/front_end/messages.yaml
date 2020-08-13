@@ -805,7 +805,9 @@ ExternalFieldConstructorInitializer:
     - "abstract class C {external var f; C() : this.f = 0;}"
 
 ExternalLateField:
+  index: 109
   template: "External fields cannot be late."
+  analyzerCode: ParserErrorCode.EXTERNAL_LATE_FIELD
   tip: "Try removing the 'external' or 'late' keyword."
   configuration: nnbd-strong
   script:
