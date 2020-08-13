@@ -370,8 +370,6 @@ void main() async {
               diffToJson(diff),
               equals({
                 '#type': 'library',
-                '@stubs': {'#type': 'library'},
-                '@unknown': {'#type': 'library'},
                 'package:input': {
                   '#type': 'package',
                   'package:input/input.dart': {
@@ -421,8 +419,6 @@ void main() async {
               diffToJson(diff),
               equals({
                 '#type': 'library',
-                '@stubs': {'#type': 'library'},
-                '@unknown': {'#type': 'library'},
                 'package:input': {
                   '#type': 'package',
                   'package:input/input.dart': {
@@ -624,8 +620,6 @@ void main() async {
                   '#type': 'package',
                   'package:input/input.dart': {
                     '#type': 'library',
-                    '#size': lessThan(0),
-                    'K': {'#size': isA<int>(), '#type': 'class'},
                     '::': {
                       '#type': 'class',
                       'makeSomeClosures': {
@@ -691,10 +685,48 @@ Future withV8Profile(String prefix, Map<String, String> source,
 // On Windows there is some issue with interpreting entry point URI as a package URI
 // it instead gets interpreted as a file URI - which breaks comparison. So we
 // simply ignore entry point library (main.dart).
+// Additionally this function removes all nodes with the size below
+// the given threshold.
 Map<String, dynamic> diffToJson(ProgramInfo diff,
     {bool keepOnlyInputPackage = false}) {
   final diffJson = diff.toJson();
   diffJson.removeWhere((key, _) =>
       keepOnlyInputPackage ? key != 'package:input' : key.startsWith('file:'));
-  return diffJson;
+
+  // Rebuild the diff JSON discarding all nodes with size below threshold.
+  const smallChangeThreshold = 16;
+  Map<String, dynamic> discardSmallChanges(Map<String, dynamic> map) {
+    final result = <String, dynamic>{};
+
+    // First recursively process all children (skipping #type and #size keys).
+    for (var key in map.keys) {
+      if (key == '#type' || key == '#size') continue;
+      final value = discardSmallChanges(map[key]);
+      if (value != null) {
+        result[key] = value;
+      }
+    }
+
+    // Check if this node own #size is above the threshold and copy it
+    // into the result if it is.
+    final size = map['#size'] ?? 0;
+    if (size.abs() > smallChangeThreshold) {
+      result['#size'] = size;
+    }
+
+    // If the node has no children and its own size does not pass the threshold
+    // drop it.
+    if (result.isEmpty) {
+      return null;
+    }
+
+    // We decided that this node is meaningful - preserve its type.
+    if (map.containsKey('#type')) {
+      result['#type'] = map['#type'];
+    }
+
+    return result;
+  }
+
+  return discardSmallChanges(diffJson);
 }
