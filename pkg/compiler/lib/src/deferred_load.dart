@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
+import 'common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'common_elements.dart'
@@ -84,6 +85,20 @@ class OutputUnit implements Comparable<OutputUnit> {
   String toString() => "OutputUnit($name, $_imports)";
 }
 
+class _DeferredLoadTaskMetrics implements Metrics {
+  @override
+  String get namespace => 'deferred_load';
+
+  DurationMetric time = DurationMetric('time');
+  CountMetric hunkListElements = CountMetric('hunkListElements');
+
+  @override
+  Iterable<Metric> get primary => [time];
+
+  @override
+  Iterable<Metric> get secondary => [hunkListElements];
+}
+
 /// For each deferred import, find elements and constants to be loaded when that
 /// import is loaded. Elements that are used by several deferred imports are in
 /// shared OutputUnits.
@@ -133,6 +148,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   ImportSetLattice importSets = ImportSetLattice();
 
   final Compiler compiler;
+
+  @override
+  final _DeferredLoadTaskMetrics metrics = _DeferredLoadTaskMetrics();
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
   bool get newDeferredSplit => compiler.options.newDeferredSplit;
@@ -739,6 +757,7 @@ abstract class DeferredLoadTask extends CompilerTask {
         if (outputUnit == _mainOutputUnit) continue;
         if (outputUnit._imports.contains(import)) {
           hunksToLoad[_importDeferName[import]].add(outputUnit);
+          metrics.hunkListElements.add(1);
         }
       }
     }
@@ -835,6 +854,10 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// work item (e.g. we might converge faster if we pick first the update that
   /// contains a bigger delta.)
   OutputUnitData run(FunctionEntity main, KClosedWorld closedWorld) {
+    return metrics.time.measure(() => _run(main, closedWorld));
+  }
+
+  OutputUnitData _run(FunctionEntity main, KClosedWorld closedWorld) {
     if (!isProgramSplit || main == null || disableProgramSplit) {
       return _buildResult();
     }

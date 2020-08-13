@@ -89,6 +89,8 @@ class Flags {
   static const String verbose = '--verbose';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
+  static const String reportMetrics = '--report-metrics';
+  static const String reportAllMetrics = '--report-all-metrics';
 
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';

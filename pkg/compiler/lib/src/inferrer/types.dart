@@ -6,6 +6,7 @@ library types;
 
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart' show failedAt, retainDataForTesting;
+import '../common/metrics.dart' show Metrics;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -159,9 +160,14 @@ class GlobalTypeInferenceTask extends CompilerTask {
 
   GlobalTypeInferenceResults resultsForTesting;
 
+  Metrics _metrics;
+
   GlobalTypeInferenceTask(Compiler compiler)
       : compiler = compiler,
         super(compiler.measurer);
+
+  @override
+  Metrics get metrics => _metrics;
 
   /// Runs the global type-inference algorithm once.
   GlobalTypeInferenceResults runGlobalTypeInference(FunctionEntity mainElement,
@@ -170,10 +176,12 @@ class GlobalTypeInferenceTask extends CompilerTask {
       GlobalTypeInferenceResults results;
       if (compiler.disableTypeInference) {
         results = new TrivialGlobalTypeInferenceResults(closedWorld);
+        _metrics = Metrics.none();
       } else {
         typesInferrerInternal ??= compiler.backendStrategy
             .createTypesInferrer(closedWorld, inferredDataBuilder);
         results = typesInferrerInternal.analyzeMain(mainElement);
+        _metrics = typesInferrerInternal.metrics;
       }
       closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
       if (retainDataForTesting) {
