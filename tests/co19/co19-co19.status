@@ -50,10 +50,6 @@ LanguageFeatures/Super-bounded-types/*: Skip # Not migrated to NNBD
 LanguageFeatures/Triple-Shift/*: Skip # Not migrated to NNBD
 LanguageFeatures/int-to-double/*: Skip # Not migrated to NNBD
 LanguageFeatures/regression/*: Skip # Not migrated to NNBD
-LibTest/collection/ListBase/*: Skip # Not migrated to NNBD
-LibTest/collection/ListMixin/*: Skip # Not migrated to NNBD
-LibTest/core/CyclicInitializationError/*: Skip # Not migrated to NNBD
-LibTest/core/int/*: Skip # Not migrated to NNBD
 LibTest/html/CanvasRenderingContext2D/*: Skip # Not migrated to NNBD
 LibTest/html/Document/*: Skip # Not migrated to NNBD
 LibTest/html/Element/*: Skip # Not migrated to NNBD

@@ -178,6 +178,10 @@ LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
 LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 
+[ $arch == simarm64 && $runtime == dart_precompiled ]
+LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Issue 43036
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # Issue 43036
+
 [ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/isolate/Isolate/spawn_A06_t03: Crash
 

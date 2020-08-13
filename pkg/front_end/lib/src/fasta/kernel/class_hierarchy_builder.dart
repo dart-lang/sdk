@@ -243,17 +243,6 @@ abstract class ClassMember {
   void registerOverrideDependency(ClassMember overriddenMember);
 }
 
-/// Returns true if [a] is a class member conflict with [b].  [a] is assumed to
-/// be declared in the class, [b] is assumed to be inherited.
-///
-/// See the section named "Class Member Conflicts" in [Dart Programming
-/// Language Specification](
-/// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
-bool isInheritanceConflict(ClassMember a, ClassMember b) {
-  if (a.isStatic) return true;
-  return a.isProperty != b.isProperty;
-}
-
 bool hasSameSignature(FunctionNode a, FunctionNode b) {
   List<TypeParameter> aTypeParameters = a.typeParameters;
   List<TypeParameter> bTypeParameters = b.typeParameters;
@@ -346,9 +335,6 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   Types types;
 
-  Map<ClassMember, Map<ClassMember, ClassMember>> inheritanceConflictCache =
-      new Map.identity();
-
   ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
       : objectClass = objectClassBuilder.cls,
         futureClass = coreTypes.futureClass,
@@ -362,7 +348,6 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     substitutions.clear();
     _overrideChecks.clear();
     _delayedTypeComputations.clear();
-    inheritanceConflictCache.clear();
     _delayedMemberChecks.clear();
   }
 
@@ -651,35 +636,10 @@ class ClassHierarchyNodeBuilder {
       classBuilder.library.loader == hierarchy.loader;
 
   ClassMember checkInheritanceConflict(ClassMember a, ClassMember b) {
-    hierarchy.inheritanceConflictCache[a] ??= new Map.identity();
-    if (hierarchy.inheritanceConflictCache[a].containsKey(b)) {
-      return hierarchy.inheritanceConflictCache[a][b];
-    }
-
-    if (a.hasDeclarations) {
-      ClassMember result;
-      for (int i = 0; i < a.declarations.length; i++) {
-        ClassMember d = checkInheritanceConflict(a.declarations[i], b);
-        result ??= d;
-      }
-      hierarchy.inheritanceConflictCache[a][b] = result;
-      return result;
-    }
-    if (b.hasDeclarations) {
-      ClassMember result;
-      for (int i = 0; i < b.declarations.length; i++) {
-        ClassMember d = checkInheritanceConflict(a, b.declarations[i]);
-        result ??= d;
-      }
-      hierarchy.inheritanceConflictCache[a][b] = result;
-      return result;
-    }
-    if (isInheritanceConflict(a, b)) {
+    if (a.isStatic || a.isProperty != b.isProperty) {
       reportInheritanceConflict(a, b);
-      hierarchy.inheritanceConflictCache[a][b] = a;
       return a;
     }
-    hierarchy.inheritanceConflictCache[a][b] = null;
     return null;
   }
 
@@ -2693,7 +2653,10 @@ abstract class DelayedMember implements ClassMember {
   final Name name;
 
   DelayedMember(this.classBuilder, this.declarations, this.isProperty,
-      this.isSetter, this.modifyKernel, this.isExplicitlyAbstract, this.name);
+      this.isSetter, this.modifyKernel, this.isExplicitlyAbstract, this.name) {
+    assert(declarations.every((element) => element.isProperty == isProperty),
+        "isProperty mismatch for $this");
+  }
 
   @override
   bool get isSourceDeclaration => false;
