@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -462,7 +464,7 @@ class AssignmentCheckerTest extends Object
     var uriStr = 'package:test/test.dart';
 
     _myLibrary = LibraryElementImpl(analysisContext, analysisSession, uriStr,
-        -1, 0, typeSystem.isNonNullableByDefault);
+        -1, 0, FeatureSet.fromEnableFlags([EnableString.non_nullable]));
     _myLibrary.typeSystem = typeSystem;
     _myLibrary.typeProvider = coreLibrary.typeProvider;
 

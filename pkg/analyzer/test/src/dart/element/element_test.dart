@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -2197,8 +2198,8 @@ class LibraryElementImplTest {
 
   void test_setImports() {
     AnalysisContext context = TestAnalysisContext();
-    LibraryElementImpl library =
-        LibraryElementImpl(context, null, 'l1', -1, 0, true);
+    LibraryElementImpl library = LibraryElementImpl(
+        context, null, 'l1', -1, 0, FeatureSet.fromEnableFlags([]));
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)

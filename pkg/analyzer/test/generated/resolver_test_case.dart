@@ -488,12 +488,7 @@ class ResolverTestCase with ResourceProviderMixin {
         compilationUnit.source = definingCompilationUnitSource;
     var featureSet = context.analysisOptions.contextFeatures;
     LibraryElementImpl library = LibraryElementImpl(
-        context,
-        driver?.currentSession,
-        libraryName,
-        -1,
-        0,
-        featureSet.isEnabled(Feature.non_nullable));
+        context, driver?.currentSession, libraryName, -1, 0, featureSet);
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;

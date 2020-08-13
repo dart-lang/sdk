@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -78,11 +77,6 @@ class LinkedUnitContext {
 
   /// Return `true` if this unit is a part of a bundle that is being linked.
   bool get isLinking => bundleContext.isLinking;
-
-  /// TODO(scheglov) remove it
-  bool get isNNBD {
-    return _unit.featureSet.isEnabled(Feature.non_nullable);
-  }
 
   TypeProvider get typeProvider {
     var libraryReference = libraryContext.reference;
