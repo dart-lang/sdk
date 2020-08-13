@@ -2663,6 +2663,12 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(defaultParameter.isNamed, isTrue);
   }
 
+  void test_parseFormalParameter_external() {
+    parseNNBDFormalParameter('external int i', ParameterKind.REQUIRED, errors: [
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 1, 8),
+    ]);
+  }
+
   void test_parseFormalParameter_final_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
@@ -4405,6 +4411,13 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     expect(forLoopParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseLocalVariable_external() {
+    parseStatement('external int i;', featureSet: nonNullable);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8),
+    ]);
   }
 
   void test_partial_typeArg1_34850() {
