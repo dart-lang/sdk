@@ -491,7 +491,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInvalidField(node, fieldName, staticElement);
       if (staticElement is FieldElement) {
         _checkForFieldInitializerNotAssignable(node, staticElement);
-        _checkForAbstractFieldConstructorInitializer(
+        _checkForAbstractOrExternalFieldConstructorInitializer(
             node.fieldName, staticElement);
       }
       super.visitConstructorFieldInitializer(node);
@@ -605,7 +605,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (element is FieldFormalParameterElement) {
       FieldElement fieldElement = element.field;
       if (fieldElement != null) {
-        _checkForAbstractFieldConstructorInitializer(
+        _checkForAbstractOrExternalFieldConstructorInitializer(
             node.identifier, fieldElement);
       }
     }
@@ -1200,7 +1200,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // do checks
     _checkForInvalidAssignment(nameNode, initializerNode);
     _checkForImplicitDynamicIdentifier(node, nameNode);
-    _checkForAbstractFieldInitializer(node);
+    _checkForAbstractOrExternalVariableInitializer(node);
     // visit name
     nameNode.accept(this);
     // visit initializer
@@ -1294,21 +1294,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForAbstractFieldConstructorInitializer(
+  void _checkForAbstractOrExternalFieldConstructorInitializer(
       AstNode node, FieldElement fieldElement) {
     if (fieldElement.isAbstract) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER, node);
     }
+    if (fieldElement.isExternal) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER, node);
+    }
   }
 
-  void _checkForAbstractFieldInitializer(VariableDeclaration node) {
+  void _checkForAbstractOrExternalVariableInitializer(
+      VariableDeclaration node) {
     var declaredElement = node.declaredElement;
-    if (declaredElement is FieldElement &&
-        declaredElement.isAbstract &&
-        node.initializer != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, node.name);
+    if (node.initializer != null) {
+      if (declaredElement is FieldElement) {
+        if (declaredElement.isAbstract) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, node.name);
+        }
+        if (declaredElement.isExternal) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER, node.name);
+        }
+      } else if (declaredElement is TopLevelVariableElement) {
+        if (declaredElement.isExternal) {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER, node.name);
+        }
+      }
     }
   }
 

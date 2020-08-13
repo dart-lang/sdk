@@ -3273,6 +3273,7 @@ const Code<Null> codeExternalLateField = messageExternalLateField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalLateField = const MessageCode(
     "ExternalLateField",
+    index: 109,
     message: r"""External fields cannot be late.""",
     tip: r"""Try removing the 'external' or 'late' keyword.""");
 

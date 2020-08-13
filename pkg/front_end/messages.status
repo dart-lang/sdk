@@ -261,7 +261,6 @@ ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
 ExternalFieldConstructorInitializer/analyzerCode: Fail
 ExternalFieldInitializer/analyzerCode: Fail
-ExternalLateField/analyzerCode: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script10: Fail
 ExtraneousModifier/part_wrapped_script11: Fail

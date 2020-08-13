@@ -34,6 +34,7 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -1316,6 +1317,13 @@ abstract class LibraryElement implements Element {
 
   /// Return a list containing all of the exports defined in this library.
   List<ExportElement> get exports;
+
+  /// The set of features available to this library.
+  ///
+  /// Determined by the combination of the language version for the enclosing
+  /// package, enabled experiments, and the presence of a `// @dart` language
+  /// version override comment at the top of the file.
+  FeatureSet get featureSet;
 
   /// Return `true` if the defining compilation unit of this library contains at
   /// least one import directive whose URI uses the "dart-ext" scheme.

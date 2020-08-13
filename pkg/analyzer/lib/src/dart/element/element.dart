@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -5367,6 +5368,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     _exports = exports;
   }
+
+  @override
+  FeatureSet get featureSet => (linkedNode as CompilationUnit).featureSet;
 
   @override
   bool get hasExtUri {

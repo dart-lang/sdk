@@ -1,3 +1,6 @@
+## 0.39.18-dev
+* Added `LibraryElement.featureSet`.
+
 ## 0.39.17
 * Depend on cli_util 0.2.0.
 

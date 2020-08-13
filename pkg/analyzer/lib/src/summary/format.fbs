@@ -1247,15 +1247,13 @@ table LinkedNodeTypeTypeParameter {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 table LinkedNodeUnit {
-  isNNBD:bool (id: 3);
-
   isSynthetic:bool (id: 2);
 
   node:LinkedNode (id: 1);
 
   /// If the unit is a part, the URI specified in the `part` directive.
   /// Otherwise empty.
-  partUriStr:string (id: 4);
+  partUriStr:string (id: 3);
 
   /// The absolute URI.
   uriStr:string (id: 0);

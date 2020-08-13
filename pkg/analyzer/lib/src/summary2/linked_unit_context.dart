@@ -79,8 +79,8 @@ class LinkedUnitContext {
   /// Return `true` if this unit is a part of a bundle that is being linked.
   bool get isLinking => bundleContext.isLinking;
 
+  /// TODO(scheglov) remove it
   bool get isNNBD {
-    if (data != null) return data.isNNBD;
     return _unit.featureSet.isEnabled(Feature.non_nullable);
   }
 

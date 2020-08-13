@@ -2980,6 +2980,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Consider adding an access to an instance member.",
           hasPublishedDocs: true);
 
+  static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
+          'External fields cannot have initializers.',
+          correction:
+              "Try removing the field initializer or the 'external' keyword "
+              "from the field declaration.");
+
+  static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_FIELD_INITIALIZER',
+          'External fields cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'external' keyword.");
+
+  static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_VARIABLE_INITIALIZER',
+          'External variables cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'external' keyword.");
+
   /**
    * Parameters:
    * 0: the maximum number of positional arguments

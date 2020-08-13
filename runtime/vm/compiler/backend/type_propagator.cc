@@ -1701,61 +1701,6 @@ CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
 }
 
-static AbstractTypePtr ExtractElementTypeFromArrayType(
-    const AbstractType& array_type) {
-  if (array_type.IsTypeParameter()) {
-    return ExtractElementTypeFromArrayType(
-        AbstractType::Handle(TypeParameter::Cast(array_type).bound()));
-  }
-  if (!array_type.IsType()) {
-    return Object::dynamic_type().raw();
-  }
-  const intptr_t cid = array_type.type_class_id();
-  if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
-      cid == kImmutableArrayCid ||
-      array_type.type_class() ==
-          Isolate::Current()->object_store()->list_class()) {
-    const auto& type_args = TypeArguments::Handle(array_type.arguments());
-    return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);
-  }
-  return Object::dynamic_type().raw();
-}
-
-static AbstractTypePtr GetElementTypeFromArray(Value* array) {
-  return ExtractElementTypeFromArrayType(*(array->Type()->ToAbstractType()));
-}
-
-static CompileType ComputeArrayElementType(Value* array) {
-  // 1. Try to extract element type from array value.
-  auto& elem_type = AbstractType::Handle(GetElementTypeFromArray(array));
-  if (!elem_type.IsDynamicType()) {
-    return CompileType::FromAbstractType(elem_type);
-  }
-
-  // 2. Array value may be loaded from GrowableObjectArray.data.
-  // Unwrap and try again.
-  if (auto* load_field = array->definition()->AsLoadField()) {
-    if (load_field->slot().IsIdentical(Slot::GrowableObjectArray_data())) {
-      array = load_field->instance();
-      elem_type = GetElementTypeFromArray(array);
-      if (!elem_type.IsDynamicType()) {
-        return CompileType::FromAbstractType(elem_type);
-      }
-    }
-  }
-
-  // 3. If array was loaded from a Dart field, use field's static type.
-  // Unlike propagated type (which could be cid), static type may contain
-  // type arguments which can be used to figure out element type.
-  if (auto* load_field = array->definition()->AsLoadField()) {
-    if (load_field->slot().IsDartField()) {
-      elem_type =
-          ExtractElementTypeFromArrayType(load_field->slot().static_type());
-    }
-  }
-  return CompileType::FromAbstractType(elem_type);
-}
-
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
@@ -1764,7 +1709,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
         // The original call knew something.
         return *result_type_;
       }
-      return ComputeArrayElementType(array());
+      return CompileType::Dynamic();
 
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1804,15 +1749,6 @@ CompileType LoadIndexedInstr::ComputeType() const {
       UNIMPLEMENTED();
       return CompileType::Dynamic();
   }
-}
-
-bool LoadIndexedInstr::RecomputeType() {
-  if ((class_id_ == kArrayCid) || (class_id_ == kImmutableArrayCid)) {
-    // Array element type computation depends on computed
-    // types of other instructions and may change over time.
-    return UpdateType(ComputeType());
-  }
-  return false;
 }
 
 }  // namespace dart
