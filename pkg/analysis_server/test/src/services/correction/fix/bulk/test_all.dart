@@ -16,6 +16,7 @@ import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_single_quoted_strings_test.dart'
     as convert_to_single_quoted_strings;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_method_test.dart' as create_method;
 import 'make_final_test.dart' as make_final;
 import 'remove_argument_test.dart' as remove_argument;
@@ -55,6 +56,7 @@ void main() {
     convert_to_if_null.main();
     convert_to_single_quoted_strings.main();
     convert_to_spread.main();
+    convert_to_where_type.main();
     create_method.main();
     make_final.main();
     remove_argument.main();
