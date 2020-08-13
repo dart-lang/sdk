@@ -7028,8 +7028,19 @@ class LinkedNodeBuilder extends Object
     return _variantField_33 ??= <String>[];
   }
 
+  @override
+  List<String> get compilationUnit_featureSetStrings {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    return _variantField_33 ??= <String>[];
+  }
+
   set comment_tokens(List<String> value) {
     assert(kind == idl.LinkedNodeKind.comment);
+    _variantField_33 = value;
+  }
+
+  set compilationUnit_featureSetStrings(List<String> value) {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_33 = value;
   }
 
@@ -7749,12 +7760,14 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder.compilationUnit({
     List<LinkedNodeBuilder> compilationUnit_declarations,
     LinkedNodeBuilder compilationUnit_scriptTag,
+    List<String> compilationUnit_featureSetStrings,
     List<LinkedNodeBuilder> compilationUnit_directives,
     LinkedLibraryLanguageVersionBuilder compilationUnit_languageVersion,
     int informativeId,
   })  : _kind = idl.LinkedNodeKind.compilationUnit,
         _variantField_2 = compilationUnit_declarations,
         _variantField_6 = compilationUnit_scriptTag,
+        _variantField_33 = compilationUnit_featureSetStrings,
         _variantField_3 = compilationUnit_directives,
         _variantField_40 = compilationUnit_languageVersion,
         _variantField_36 = informativeId;
@@ -9378,6 +9391,14 @@ class LinkedNodeBuilder extends Object
       signature.addBool(this.compilationUnit_scriptTag != null);
       this.compilationUnit_scriptTag?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
+      if (this.compilationUnit_featureSetStrings == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.compilationUnit_featureSetStrings.length);
+        for (var x in this.compilationUnit_featureSetStrings) {
+          signature.addString(x);
+        }
+      }
       signature.addString(this.name ?? '');
       signature.addBool(this.compilationUnit_languageVersion != null);
       this.compilationUnit_languageVersion?.collectApiSignature(signature);
@@ -12866,6 +12887,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  List<String> get compilationUnit_featureSetStrings {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    _variantField_33 ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 33, const <String>[]);
+    return _variantField_33;
+  }
+
+  @override
   idl.LinkedNodeCommentType get comment_type {
     assert(kind == idl.LinkedNodeKind.comment);
     _variantField_29 ??= const _LinkedNodeCommentTypeReader()
@@ -13510,6 +13539,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (compilationUnit_scriptTag != null) {
         _result["compilationUnit_scriptTag"] =
             compilationUnit_scriptTag.toJson();
+      }
+      if (compilationUnit_featureSetStrings.isNotEmpty) {
+        _result["compilationUnit_featureSetStrings"] =
+            compilationUnit_featureSetStrings;
       }
       if (compilationUnit_directives.isNotEmpty) {
         _result["compilationUnit_directives"] = compilationUnit_directives
@@ -15050,6 +15083,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "compilationUnit_declarations": compilationUnit_declarations,
         "compilationUnit_scriptTag": compilationUnit_scriptTag,
+        "compilationUnit_featureSetStrings": compilationUnit_featureSetStrings,
         "compilationUnit_directives": compilationUnit_directives,
         "compilationUnit_languageVersion": compilationUnit_languageVersion,
         "flags": flags,
@@ -17469,18 +17503,10 @@ abstract class _LinkedNodeTypeTypeParameterMixin
 class LinkedNodeUnitBuilder extends Object
     with _LinkedNodeUnitMixin
     implements idl.LinkedNodeUnit {
-  bool _isNNBD;
   bool _isSynthetic;
   LinkedNodeBuilder _node;
   String _partUriStr;
   String _uriStr;
-
-  @override
-  bool get isNNBD => _isNNBD ??= false;
-
-  set isNNBD(bool value) {
-    this._isNNBD = value;
-  }
 
   @override
   bool get isSynthetic => _isSynthetic ??= false;
@@ -17514,13 +17540,11 @@ class LinkedNodeUnitBuilder extends Object
   }
 
   LinkedNodeUnitBuilder(
-      {bool isNNBD,
-      bool isSynthetic,
+      {bool isSynthetic,
       LinkedNodeBuilder node,
       String partUriStr,
       String uriStr})
-      : _isNNBD = isNNBD,
-        _isSynthetic = isSynthetic,
+      : _isSynthetic = isSynthetic,
         _node = node,
         _partUriStr = partUriStr,
         _uriStr = uriStr;
@@ -17536,7 +17560,6 @@ class LinkedNodeUnitBuilder extends Object
     signature.addBool(this._node != null);
     this._node?.collectApiSignature(signature);
     signature.addBool(this._isSynthetic == true);
-    signature.addBool(this._isNNBD == true);
     signature.addString(this._partUriStr ?? '');
   }
 
@@ -17554,9 +17577,6 @@ class LinkedNodeUnitBuilder extends Object
       offset_uriStr = fbBuilder.writeString(_uriStr);
     }
     fbBuilder.startTable();
-    if (_isNNBD == true) {
-      fbBuilder.addBool(3, true);
-    }
     if (_isSynthetic == true) {
       fbBuilder.addBool(2, true);
     }
@@ -17564,7 +17584,7 @@ class LinkedNodeUnitBuilder extends Object
       fbBuilder.addOffset(1, offset_node);
     }
     if (offset_partUriStr != null) {
-      fbBuilder.addOffset(4, offset_partUriStr);
+      fbBuilder.addOffset(3, offset_partUriStr);
     }
     if (offset_uriStr != null) {
       fbBuilder.addOffset(0, offset_uriStr);
@@ -17589,17 +17609,10 @@ class _LinkedNodeUnitImpl extends Object
 
   _LinkedNodeUnitImpl(this._bc, this._bcOffset);
 
-  bool _isNNBD;
   bool _isSynthetic;
   idl.LinkedNode _node;
   String _partUriStr;
   String _uriStr;
-
-  @override
-  bool get isNNBD {
-    _isNNBD ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
-    return _isNNBD;
-  }
 
   @override
   bool get isSynthetic {
@@ -17615,7 +17628,7 @@ class _LinkedNodeUnitImpl extends Object
 
   @override
   String get partUriStr {
-    _partUriStr ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    _partUriStr ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _partUriStr;
   }
 
@@ -17630,9 +17643,6 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (isNNBD != false) {
-      _result["isNNBD"] = isNNBD;
-    }
     if (isSynthetic != false) {
       _result["isSynthetic"] = isSynthetic;
     }
@@ -17650,7 +17660,6 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
 
   @override
   Map<String, Object> toMap() => {
-        "isNNBD": isNNBD,
         "isSynthetic": isSynthetic,
         "node": node,
         "partUriStr": partUriStr,

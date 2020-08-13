@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -363,7 +364,9 @@ class AstBinaryReader {
       directives: _readNodeList(data.compilationUnit_directives),
       declarations: _readNodeList(data.compilationUnit_declarations),
       endToken: null,
-      featureSet: null,
+      featureSet: ExperimentStatus.fromStrings(
+        data.compilationUnit_featureSetStrings,
+      ),
     );
     LazyCompilationUnit(node, data);
     return node;

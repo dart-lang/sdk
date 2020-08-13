@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -286,6 +287,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
+      compilationUnit_featureSetStrings:
+          (node.featureSet as ExperimentStatus).toStringList(),
       compilationUnit_languageVersion: LinkedLibraryLanguageVersionBuilder(
         package: LinkedLanguageVersionBuilder(
           major: nodeImpl.languageVersion.package.major,

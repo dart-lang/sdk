@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -179,7 +178,6 @@ class Linker {
             partUriStr: unitContext.partUriStr,
             uriStr: unitContext.uriStr,
             node: unitLinkedNode,
-            isNNBD: unit.featureSet.isEnabled(Feature.non_nullable),
           ),
         );
       }
