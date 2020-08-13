@@ -60,6 +60,7 @@ const Code<Null> codeAbstractExternalField = messageAbstractExternalField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractExternalField = const MessageCode(
     "AbstractExternalField",
+    index: 110,
     message: r"""Fields can't be declared both 'abstract' and 'external'.""",
     tip: r"""Try removing the 'abstract' or 'external' keyword.""");
 

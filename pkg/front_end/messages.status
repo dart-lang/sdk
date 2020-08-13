@@ -10,7 +10,6 @@ AbstractFieldConstructorInitializer/analyzerCode: Fail
 AbstractFieldInitializer/analyzerCode: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
-AbstractExternalField/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
 AccessError/analyzerCode: Fail

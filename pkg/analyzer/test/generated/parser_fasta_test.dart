@@ -182,6 +182,19 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(field.abstractKeyword, isNotNull);
   }
 
+  void test_parseField_abstract_external() {
+    createParser('abstract external int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 0, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+    expect(field.externalKeyword, isNotNull);
+  }
+
   void test_parseField_abstract_late() {
     createParser('abstract late int? i;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -251,6 +264,19 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     assertNoErrors();
     expect(member, isFieldDeclaration);
     FieldDeclaration field = member;
+    expect(field.externalKeyword, isNotNull);
+  }
+
+  void test_parseField_external_abstract() {
+    createParser('external abstract int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.ABSTRACT_EXTERNAL_FIELD, 9, 8),
+    ]);
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
     expect(field.externalKeyword, isNotNull);
   }
 
@@ -2637,6 +2663,12 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(defaultParameter.isNamed, isTrue);
   }
 
+  void test_parseFormalParameter_external() {
+    parseNNBDFormalParameter('external int i', ParameterKind.REQUIRED, errors: [
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 1, 8),
+    ]);
+  }
+
   void test_parseFormalParameter_final_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
@@ -4379,6 +4411,13 @@ class StatementParserTest_Fasta extends FastaParserTestCase
     expect(forLoopParts.updaters, hasLength(1));
     expect(forStatement.rightParenthesis, isNotNull);
     expect(forStatement.body, isNotNull);
+  }
+
+  void test_parseLocalVariable_external() {
+    parseStatement('external int i;', featureSet: nonNullable);
+    assertErrors(errors: [
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8),
+    ]);
   }
 
   void test_partial_typeArg1_34850() {

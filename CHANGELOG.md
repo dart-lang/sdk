@@ -179,7 +179,9 @@ Updated the Linter to `0.1.117`, which includes:
 * Fix git folder names in cache, allowing for ssh-style git
   dependencies.
 * Fix: Avoid precompilation of dependencies of global packages.
-* Fix: avoid multiple recompilation of binaries in global packages.
+* Fix: Avoid multiple recompilation of binaries in global packages.
+* Fix: Avoid exponential behaviour of error reporting from the solver.
+* Fix: Refresh binstubs after recompile in global run.
 
 ## 2.8.4 - 2020-06-04
 
