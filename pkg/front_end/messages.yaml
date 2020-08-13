@@ -557,7 +557,9 @@ AbstractClassMember:
     - "abstract class C {abstract static var f;}"
 
 AbstractExternalField:
+  index: 110
   template: "Fields can't be declared both 'abstract' and 'external'."
+  analyzerCode: ParserErrorCode.ABSTRACT_EXTERNAL_FIELD
   tip: "Try removing the 'abstract' or 'external' keyword."
   configuration: nnbd-strong
   script:

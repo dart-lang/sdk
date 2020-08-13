@@ -117,6 +117,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _ABSTRACT_STATIC_FIELD,
   _ABSTRACT_LATE_FIELD,
   _EXTERNAL_LATE_FIELD,
+  _ABSTRACT_EXTERNAL_FIELD,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -124,6 +125,11 @@ const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
     r"Members of classes can't be declared to be 'abstract'.",
     correction:
         "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _ABSTRACT_EXTERNAL_FIELD = ParserErrorCode(
+    'ABSTRACT_EXTERNAL_FIELD',
+    r"Fields can't be declared both 'abstract' and 'external'.",
+    correction: "Try removing the 'abstract' or 'external' keyword.");
 
 const ParserErrorCode _ABSTRACT_LATE_FIELD = ParserErrorCode(
     'ABSTRACT_LATE_FIELD', r"Abstract fields cannot be late.",

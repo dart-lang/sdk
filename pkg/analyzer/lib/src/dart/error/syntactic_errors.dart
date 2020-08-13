@@ -29,6 +29,9 @@ class ParserErrorCode extends ErrorCode {
       'ABSTRACT_ENUM', "Enums can't be declared to be 'abstract'.",
       correction: "Try removing the keyword 'abstract'.");
 
+  static const ParserErrorCode ABSTRACT_EXTERNAL_FIELD =
+      _ABSTRACT_EXTERNAL_FIELD;
+
   static const ParserErrorCode ABSTRACT_LATE_FIELD = _ABSTRACT_LATE_FIELD;
 
   static const ParserErrorCode ABSTRACT_STATIC_FIELD = _ABSTRACT_STATIC_FIELD;
