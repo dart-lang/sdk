@@ -15,6 +15,8 @@
 #include "platform/globals.h"
 #include "platform/utils.h"
 
+#define DART_DEV_ISOLATE_NAME "dartdev"
+
 namespace dart {
 namespace bin {
 
@@ -38,6 +40,10 @@ class DartDevIsolate {
   }
 
   static bool should_run_dart_dev() { return should_run_dart_dev_; }
+
+  // Attempts to find the DartDev snapshot. If the snapshot cannot be found,
+  // the VM will shutdown.
+  static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
 
   // Starts a DartDev instance in a new isolate and runs it to completion.
   //
@@ -82,10 +88,6 @@ class DartDevIsolate {
   };
 
  private:
-  // Attempts to find the DartDev snapshot. If the snapshot cannot be found,
-  // the VM will shutdown.
-  static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
-
   static DartDevRunner runner_;
   static bool should_run_dart_dev_;
 
