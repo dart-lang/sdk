@@ -4,12 +4,14 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -439,12 +441,15 @@ class ElementFactory {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = LibraryElementImpl(
-        context,
-        AnalysisSessionImpl(null),
-        libraryName,
-        0,
-        libraryName.length,
-        isNonNullableByDefault);
+      context,
+      AnalysisSessionImpl(null),
+      libraryName,
+      0,
+      libraryName.length,
+      FeatureSet.fromEnableFlags(
+        isNonNullableByDefault ? [EnableString.non_nullable] : [],
+      ),
+    );
     library.definingCompilationUnit = unit;
     return library;
   }

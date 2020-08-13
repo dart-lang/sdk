@@ -1347,88 +1347,13 @@ class TypeSystemImpl extends TypeSystem {
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType) {
-    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
-      if (rightType == leftType || rightType.isDartCoreInt) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.PLUS_EQ ||
-            operator == TokenType.MINUS_EQ ||
-            operator == TokenType.STAR_EQ ||
-            operator == TokenType.PLUS_PLUS ||
-            operator == TokenType.MINUS_MINUS) {
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(leftType as TypeImpl);
-          }
-          return leftType;
-        }
-      }
-      if (rightType.isDartCoreDouble) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.SLASH) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(doubleType);
-          }
-          return doubleType;
-        }
-      }
-      return currentType;
+    if (isNonNullableByDefault) {
+      return _refineBinaryExpressionTypeNullSafe(
+          leftType, operator, rightType, currentType);
+    } else {
+      return _refineBinaryExpressionTypeLegacy(
+          leftType, operator, rightType, currentType);
     }
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      if (isNonNullableByDefault) {
-        return promoteToNonNull(typeProvider.boolType);
-      }
-      return typeProvider.boolType;
-    }
-    if (leftType.isDartCoreInt) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        if (rightType.isDartCoreDouble) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(doubleType);
-          }
-          return doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ ||
-          operator == TokenType.PLUS_PLUS ||
-          operator == TokenType.MINUS_MINUS) {
-        if (rightType.isDartCoreInt) {
-          InterfaceTypeImpl intType = typeProvider.intType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(intType);
-          }
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
   }
 
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
@@ -1515,6 +1440,148 @@ class TypeSystemImpl extends TypeSystem {
       var typeParameterImpl = typeParameter as TypeParameterElementImpl;
       return typeParameterImpl.defaultType;
     }).toList();
+  }
+
+  DartType _refineBinaryExpressionTypeLegacy(DartType leftType,
+      TokenType operator, DartType rightType, DartType currentType) {
+    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
+      if (rightType == leftType || rightType.isDartCoreInt) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.PLUS_EQ ||
+            operator == TokenType.MINUS_EQ ||
+            operator == TokenType.STAR_EQ ||
+            operator == TokenType.PLUS_PLUS ||
+            operator == TokenType.MINUS_MINUS) {
+          return leftType;
+        }
+      }
+      if (rightType.isDartCoreDouble) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.SLASH) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          return doubleType;
+        }
+      }
+      return currentType;
+    }
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      return typeProvider.boolType;
+    }
+    if (leftType.isDartCoreInt) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        if (rightType.isDartCoreDouble) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          return doubleType;
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ ||
+          operator == TokenType.PLUS_PLUS ||
+          operator == TokenType.MINUS_MINUS) {
+        if (rightType.isDartCoreInt) {
+          InterfaceTypeImpl intType = typeProvider.intType;
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
+  }
+
+  DartType _refineBinaryExpressionTypeNullSafe(DartType leftType,
+      TokenType operator, DartType rightType, DartType currentType) {
+    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
+      if (rightType == leftType || rightType.isDartCoreInt) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.PLUS_EQ ||
+            operator == TokenType.MINUS_EQ ||
+            operator == TokenType.STAR_EQ ||
+            operator == TokenType.PLUS_PLUS ||
+            operator == TokenType.MINUS_MINUS) {
+          return promoteToNonNull(leftType as TypeImpl);
+        }
+      }
+      if (rightType.isDartCoreDouble) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.SLASH) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          return promoteToNonNull(doubleType);
+        }
+      }
+      return currentType;
+    }
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      return promoteToNonNull(typeProvider.boolType);
+    }
+    if (leftType.isDartCoreInt) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        if (rightType.isDartCoreDouble) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          return promoteToNonNull(doubleType);
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ ||
+          operator == TokenType.PLUS_PLUS ||
+          operator == TokenType.MINUS_MINUS) {
+        if (rightType.isDartCoreInt) {
+          InterfaceTypeImpl intType = typeProvider.intType;
+          return promoteToNonNull(intType);
+        }
+      }
+    }
+    // default
+    return currentType;
   }
 }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -706,7 +707,8 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
-    LibraryElement element = LibraryElementImpl(null, null, 'lib', -1, 0, true);
+    LibraryElement element = LibraryElementImpl(
+        null, null, 'lib', -1, 0, FeatureSet.fromEnableFlags([]));
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -716,7 +718,8 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitPartOfDirective() {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = LibraryElementImpl(null, null, 'lib', -1, 0, true);
+    LibraryElement element = LibraryElementImpl(
+        null, null, 'lib', -1, 0, FeatureSet.fromEnableFlags([]));
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));

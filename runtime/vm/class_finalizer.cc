@@ -213,6 +213,12 @@ bool ClassFinalizer::ProcessPendingClasses() {
       }
     }
 
+    if (FLAG_print_classes) {
+      for (intptr_t i = 0; i < class_array.Length(); i++) {
+        cls ^= class_array.At(i);
+        PrintClassInformation(cls);
+      }
+    }
     // Clear pending classes array.
     class_array = GrowableObjectArray::New();
     object_store->set_pending_classes(class_array);
@@ -1155,9 +1161,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
-  if (FLAG_print_classes) {
-    PrintClassInformation(cls);
-  }
   FinalizeMemberTypes(cls);
 
   if (cls.is_enum_class()) {

@@ -391,7 +391,7 @@ void Precompiler::DoCompileAll() {
 
       TraceForRetainedFunctions();
       FinalizeDispatchTable();
-      ReplaceFunctionPCRelativeCallEntries();
+      ReplaceFunctionStaticCallEntries();
 
       DropFunctions();
       DropFields();
@@ -1644,7 +1644,7 @@ void Precompiler::FinalizeDispatchTable() {
   printed.Release();
 }
 
-void Precompiler::ReplaceFunctionPCRelativeCallEntries() {
+void Precompiler::ReplaceFunctionStaticCallEntries() {
   class StaticCallTableEntryFixer : public CodeVisitor {
    public:
     explicit StaticCallTableEntryFixer(Zone* zone)
@@ -1660,7 +1660,9 @@ void Precompiler::ReplaceFunctionPCRelativeCallEntries() {
       for (auto& view : static_calls) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
         auto const kind = Code::KindField::decode(kind_and_offset_.Value());
-        if (kind != Code::kPcRelativeCall) continue;
+
+        if ((kind != Code::kCallViaCode) && (kind != Code::kPcRelativeCall))
+          continue;
 
         target_function_ = view.Get<Code::kSCallTableFunctionTarget>();
         if (target_function_.IsNull()) continue;
@@ -1671,6 +1673,12 @@ void Precompiler::ReplaceFunctionPCRelativeCallEntries() {
         ASSERT(!target_code_.IsStubCode());
         view.Set<Code::kSCallTableCodeOrTypeTarget>(target_code_);
         view.Set<Code::kSCallTableFunctionTarget>(Object::null_function());
+        if (kind == Code::kCallViaCode) {
+          auto const pc_offset =
+              Code::OffsetField::decode(kind_and_offset_.Value());
+          const uword pc = pc_offset + code.PayloadStart();
+          CodePatcher::PatchStaticCallAt(pc, code, target_code_);
+        }
         if (FLAG_trace_precompiler) {
           THR_Print("Updated static call entry to %s in \"%s\"\n",
                     target_function_.ToFullyQualifiedCString(),

@@ -301,7 +301,7 @@ class Precompiler : public ValueObject {
 
   void TraceForRetainedFunctions();
   void FinalizeDispatchTable();
-  void ReplaceFunctionPCRelativeCallEntries();
+  void ReplaceFunctionStaticCallEntries();
   void DropFunctions();
   void DropFields();
   void TraceTypesFromRetainedClasses();

@@ -5186,7 +5186,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   final LinkedUnitContext linkedContext;
 
-  final bool isNonNullableByDefaultInternal;
+  @override
+  final FeatureSet featureSet;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
@@ -5232,7 +5233,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
-      this.nameLength, this.isNonNullableByDefaultInternal)
+      this.nameLength, this.featureSet)
       : linkedContext = null,
         super(name, offset);
 
@@ -5245,7 +5246,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.linkedContext,
       Reference reference,
       CompilationUnit linkedNode)
-      : isNonNullableByDefaultInternal = linkedContext.isNNBD,
+      : featureSet = linkedNode.featureSet,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
@@ -5363,9 +5364,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  FeatureSet get featureSet => (linkedNode as CompilationUnit).featureSet;
-
-  @override
   bool get hasExtUri {
     if (linkedNode != null) {
       var unit = linkedContext.unit_withDirectives;
@@ -5480,6 +5478,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   bool get isNonNullableByDefault =>
       ElementTypeProvider.current.isLibraryNonNullableByDefault(this);
+
+  bool get isNonNullableByDefaultInternal {
+    return featureSet.isEnabled(Feature.non_nullable);
+  }
 
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.

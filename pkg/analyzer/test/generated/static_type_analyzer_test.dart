@@ -739,8 +739,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
 
-    _definingLibrary = LibraryElementImpl(
-        context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
+    _definingLibrary =
+        LibraryElementImpl(context, null, null, -1, 0, featureSet);
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
