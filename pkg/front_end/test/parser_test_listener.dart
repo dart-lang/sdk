@@ -192,9 +192,9 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     seen(extendsKeyword);
-    doPrint('handleClassExtends(' '$extendsKeyword)');
+    doPrint('handleClassExtends(' '$extendsKeyword, ' '$typeCount)');
   }
 
   void handleClassOrMixinImplements(

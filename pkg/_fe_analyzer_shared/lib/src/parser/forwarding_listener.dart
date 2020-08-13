@@ -1121,8 +1121,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
-    listener?.handleClassExtends(extendsKeyword);
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
+    listener?.handleClassExtends(extendsKeyword, typeCount);
   }
 
   @override

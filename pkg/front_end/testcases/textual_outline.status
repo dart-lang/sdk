@@ -109,6 +109,7 @@ general/error_recovery/constructor_recovery_get: FormatterCrash
 general/error_recovery/constructor_recovery_operator.crash: FormatterCrash
 general/error_recovery/constructor_recovery_return_type: FormatterCrash
 general/error_recovery/constructor_recovery_set: FormatterCrash
+general/error_recovery/issue_22313: FormatterCrash
 general/error_recovery/issue_39033.crash: FormatterCrash
 general/error_recovery/issue_39058_prime.crash: FormatterCrash
 general/error_recovery/issue_39202.crash: FormatterCrash

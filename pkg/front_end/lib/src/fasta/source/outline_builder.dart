@@ -522,6 +522,11 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleRecoverClassHeader() {
     debugEvent("handleRecoverClassHeader");
+    // TODO(jensj): Possibly use these instead... E.g. "class A extend B {}"
+    // will get here (because it's 'extends' with an 's') and discard the B...
+    // Also Analyzer actually merges the information meaning that the two could
+    // give different errors (if, say, one later assigns
+    // A to a variable of type B).
     pop(NullValue.TypeBuilderList); // Interfaces.
     pop(); // Supertype offset.
     pop(); // Supertype.
@@ -530,13 +535,19 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleRecoverMixinHeader() {
     debugEvent("handleRecoverMixinHeader");
+    // TODO(jensj): Possibly use these instead...
+    // See also handleRecoverClassHeader
     pop(NullValue.TypeBuilderList); // Interfaces.
     pop(NullValue.TypeBuilderList); // Supertype constraints.
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     debugEvent("handleClassExtends");
+    while (typeCount > 1) {
+      pop();
+      typeCount--;
+    }
     push(extendsKeyword?.charOffset ?? -1);
   }
 

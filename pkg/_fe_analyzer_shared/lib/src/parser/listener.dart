@@ -126,7 +126,10 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle an extends clause in a class declaration. Substructures:
   /// - supertype (may be a mixin application)
-  void handleClassExtends(Token extendsKeyword) {
+  /// The typeCount is for error recovery: Invalid code might have more than one
+  /// class specified in the extends clause. A parser error has already been
+  /// issued.
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     logEvent("ClassExtends");
   }
 

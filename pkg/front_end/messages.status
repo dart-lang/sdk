@@ -481,8 +481,6 @@ MixinFunction/script: Fail # TODO(johnniwinther): This message is currently igno
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
-MultipleExtends/part_wrapped_script: Fail
-MultipleExtends/script: Fail
 MultipleImplements/part_wrapped_script: Fail
 MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail

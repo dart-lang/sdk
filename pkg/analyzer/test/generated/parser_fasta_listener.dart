@@ -1260,9 +1260,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     expectIn('ClassDeclaration');
-    listener.handleClassExtends(extendsKeyword);
+    listener.handleClassExtends(extendsKeyword, typeCount);
   }
 
   @override

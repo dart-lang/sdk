@@ -1903,10 +1903,7 @@ class Parser {
           const ['extend', 'on'].contains(token.next.lexeme)) {
         reportRecoverableError(
             token.next, codes.templateExpectedInstead.withArguments('extends'));
-        Token incorrectExtendsKeyword = token.next;
-        token = computeType(incorrectExtendsKeyword, /* required = */ true)
-            .ensureTypeNotVoid(incorrectExtendsKeyword, this);
-        listener.handleClassExtends(incorrectExtendsKeyword);
+        token = parseClassExtendsSeenExtendsClause(token.next, token);
       } else {
         token = parseClassExtendsOpt(token);
       }
@@ -1966,14 +1963,33 @@ class Parser {
     // extends <typeNotVoid>
     Token next = token.next;
     if (optional('extends', next)) {
-      Token extendsKeyword = next;
-      token = computeType(next, /* required = */ true)
-          .ensureTypeNotVoid(next, this);
-      listener.handleClassExtends(extendsKeyword);
+      token = parseClassExtendsSeenExtendsClause(next, token);
     } else {
       listener.handleNoType(token);
-      listener.handleClassExtends(/* extendsKeyword = */ null);
+      listener.handleClassExtends(null, 1);
     }
+    return token;
+  }
+
+  Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
+    Token next = extendsKeyword;
+    token =
+        computeType(next, /* required = */ true).ensureTypeNotVoid(next, this);
+    int count = 1;
+
+    // Error recovery: extends <typeNotVoid>, <typeNotVoid> [...]
+    if (optional(',', token.next)) {
+      reportRecoverableError(token.next, codes.messageMultipleExtends);
+
+      while (optional(',', token.next)) {
+        next = token.next;
+        token = computeType(next, /* required = */ true)
+            .ensureTypeNotVoid(next, this);
+        count++;
+      }
+    }
+
+    listener.handleClassExtends(extendsKeyword, count);
     return token;
   }
 
