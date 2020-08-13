@@ -1178,6 +1178,7 @@ dart_ci_builder(
     category = "sdk|w",
     channels = CHANNELS,
     dimensions = windows(),
+    goma_rbe = True,
     on_cq = True,
     lkgr = True,
 )
