@@ -164,7 +164,8 @@ main() {
 
     assertSimpleIdentifier(
       findNode.simple('foo?'),
-      element: findElement.topGet('foo'),
+      readElement: findElement.topGet('foo'),
+      writeElement: null,
       type: 'A?',
     );
 

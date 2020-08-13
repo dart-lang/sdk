@@ -386,7 +386,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'Never',
     );
   }
@@ -400,7 +401,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
+      readElement: objectElement.getGetter('hashCode'),
+      writeElement: null,
       type: 'Never',
     );
   }
@@ -416,7 +418,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'Never',
     );
 
@@ -436,7 +439,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
+      readElement: objectElement.getMethod('toString'),
+      writeElement: null,
       type: 'Never',
     );
   }
@@ -452,7 +456,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'Never',
     );
 
@@ -474,7 +479,8 @@ void main(Never? x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'dynamic',
     );
   }
@@ -488,7 +494,8 @@ void main(Never? x) {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
+      readElement: objectElement.getGetter('hashCode'),
+      writeElement: null,
       type: 'int',
     );
   }
@@ -502,7 +509,8 @@ void main(Never? x) {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
+      readElement: objectElement.getMethod('toString'),
+      writeElement: null,
       type: 'String Function()',
     );
   }
@@ -571,10 +579,11 @@ void main() {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: elementMatcher(
+      readElement: elementMatcher(
         objectElement.getMethod('toString'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
+      writeElement: null,
       type: 'String Function()',
     );
   }
@@ -588,10 +597,11 @@ void main() {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: elementMatcher(
+      readElement: elementMatcher(
         objectElement.getGetter('hashCode'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
+      writeElement: null,
       type: 'int',
     );
   }

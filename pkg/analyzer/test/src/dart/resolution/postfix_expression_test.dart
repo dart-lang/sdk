@@ -64,7 +64,8 @@ f() {
 
     assertSimpleIdentifier(
       findNode.simple('x++'),
-      element: findElement.topSet('x'),
+      readElement: findElement.topGet('x'),
+      writeElement: findElement.topSet('x'),
       type: 'num',
     );
 

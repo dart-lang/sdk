@@ -67,9 +67,12 @@ main() {
     );
     assertType(assignment, 'num'); // num + int = num
 
-    SimpleIdentifier left = assignment.leftHandSide;
-    assertElement(left, findElement.localVar('v'));
-    assertType(left, 'num');
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.localVar('v'),
+      writeElement: findElement.localVar('v'),
+      type: 'num',
+    );
 
     Expression right = assignment.rightHandSide;
     assertType(right, 'int');
@@ -376,9 +379,12 @@ main() {
     assertElementNull(assignment);
     assertType(assignment, 'int');
 
-    SimpleIdentifier left = assignment.leftHandSide;
-    assertElement(left, findElement.localVar('v'));
-    assertType(left, 'num');
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.localVar('v'),
+      type: 'num',
+    );
 
     Expression right = assignment.rightHandSide;
     assertType(right, 'int');
@@ -550,9 +556,12 @@ class C {
     assertElementNull(assignment);
     assertType(assignment, 'int');
 
-    SimpleIdentifier left = assignment.leftHandSide;
-    assertElement(left, findElement.setter('f'));
-    assertType(left, 'num');
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.setter('f'),
+      type: 'num',
+    );
 
     var right = assignment.rightHandSide;
     assertType(right, 'int');
@@ -569,9 +578,12 @@ num v = 0;
     assertElementNull(assignment);
     assertType(assignment, 'int');
 
-    SimpleIdentifier left = assignment.leftHandSide;
-    assertElement(left, findElement.topSet('v'));
-    assertType(left, 'num');
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.topSet('v'),
+      type: 'num',
+    );
 
     var right = assignment.rightHandSide;
     assertType(right, 'int');
