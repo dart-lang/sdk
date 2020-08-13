@@ -400,7 +400,7 @@ def with_goma_rbe(goma_rbe, channel, dimensions, properties):
     """
     if dimensions["os"] == "Mac" and channel not in RBE_MAC_CHANNELS:
         return properties
-    if goma_rbe or (goma_rbe == None and dimensions["os"] == "Linux"):
+    if goma_rbe or (goma_rbe == None and dimensions["os"] in ("Mac", "Linux")):
         goma_properties = {}
         goma_properties.update(GOMA_RBE)
         goma_properties["enable_ats"] = dimensions["os"] != "Mac"
@@ -1170,7 +1170,6 @@ dart_ci_builder(
     category = "sdk|m",
     channels = CHANNELS,
     dimensions = mac(),
-    goma_rbe = True,
     lkgr = True,
 )
 dart_ci_builder(
