@@ -368,8 +368,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         if (target_.IsNull()) {
           target_ =
               Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
-          ASSERT(!Code::Cast(target_).IsFunctionCode());
-          // Allocation stub or AllocateContext or AllocateArray or ...
+          ASSERT(!target_.IsNull());  // Already bound.
           continue;
         }
 
@@ -1314,7 +1313,7 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
   void VisitCode(const Code& code) {
     intptr_t id;
     if (code.IsFunctionCode()) {
-      func_ ^= code.owner();
+      func_ ^= code.function();
       cls_ = func_.Owner();
       lib_ = cls_.library();
       unit_ = lib_.loading_unit();
