@@ -5223,9 +5223,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// computed yet.
   Namespace _publicNamespace;
 
-  /// A bit-encoded form of the capabilities associated with this library.
-  int _resolutionCapabilities = 0;
-
   /// The cached list of prefixes.
   List<PrefixElement> _prefixes;
 
@@ -5252,10 +5249,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
-    setResolutionCapability(
-        LibraryResolutionCapability.resolvedTypeNames, true);
-    setResolutionCapability(
-        LibraryResolutionCapability.constantExpressions, true);
   }
 
   @override
@@ -5707,14 +5700,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
-  /// Set whether the library has the given [capability] to
-  /// correspond to the given [value].
-  void setResolutionCapability(
-      LibraryResolutionCapability capability, bool value) {
-    _resolutionCapabilities =
-        BooleanArray.set(_resolutionCapabilities, capability.index, value);
-  }
-
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
     if (isNonNullableByDefault) return element;
@@ -5776,23 +5761,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return null;
   }
-
-  /// Return `true` if the [library] has the given [capability].
-  static bool hasResolutionCapability(
-      LibraryElement library, LibraryResolutionCapability capability) {
-    return library is LibraryElementImpl &&
-        BooleanArray.get(library._resolutionCapabilities, capability.index);
-  }
-}
-
-/// Enum of possible resolution capabilities that a [LibraryElementImpl] has.
-enum LibraryResolutionCapability {
-  /// All elements have their types resolved.
-  resolvedTypeNames,
-
-  /// All (potentially) constants expressions are set into corresponding
-  /// elements.
-  constantExpressions,
 }
 
 /// A concrete implementation of a [LocalVariableElement].

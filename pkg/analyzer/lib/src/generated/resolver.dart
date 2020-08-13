@@ -1800,8 +1800,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (executable is MethodElement ||
         executable is FunctionElement &&
             executable.enclosingElement is CompilationUnitElement) {
-      return LibraryElementImpl.hasResolutionCapability(
-          definingLibrary, LibraryResolutionCapability.constantExpressions);
+      return true;
     }
     return false;
   }
