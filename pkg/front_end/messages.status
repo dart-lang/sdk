@@ -220,6 +220,8 @@ ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
 ExperimentNotEnabled/example: Fail
+ExperimentNotEnabledNoFlag/example: Fail
+ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail
 ExplicitExtensionArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionArgumentMismatch/example: Fail
 ExplicitExtensionAsExpression/analyzerCode: Fail

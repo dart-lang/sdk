@@ -26,13 +26,7 @@ void main(List<String> args) {
   ];
 
   var cfePackageDirs = [
-    packageDirectory('pkg/front_end/testcases/agnostic/'),
-    packageDirectory('pkg/front_end/testcases/general_nnbd_opt_out/'),
-    packageDirectory('pkg/front_end/testcases/late_lowering/'),
-    packageDirectory('pkg/front_end/testcases/nnbd/'),
-    packageDirectory('pkg/front_end/testcases/nnbd_mixed/'),
-    packageDirectory('pkg/front_end/testcases/nonfunction_type_aliases/'),
-    packageDirectory('pkg/front_end/testcases/value_class/'),
+    packageDirectory('pkg/front_end/testcases/'),
   ];
 
   var feAnalyzerSharedPackageDirs = [
