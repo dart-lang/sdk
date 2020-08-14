@@ -1,0 +1,13 @@
+@valueClass
+class A {}
+
+class B {}
+
+class C {}
+
+const String valueClass = "valueClass";
+class D = A with B;
+class E = B with A;
+@valueClass
+class F = B with C;
+main() {}

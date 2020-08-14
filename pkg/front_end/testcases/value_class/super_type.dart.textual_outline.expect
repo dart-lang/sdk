@@ -1,0 +1,15 @@
+const String valueClass = "valueClass";
+
+@valueClass
+class Animal {
+  final int numLegs;
+}
+
+@valueClass
+class Cat implements Animal {
+  final int numLegs;
+  final int numWhiskers;
+}
+
+main() {}
+expect(expected, actual, [expectNull = false]) {}
