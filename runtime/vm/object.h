@@ -9572,6 +9572,9 @@ class Array : public Instance {
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
 
+  // Position of element type in type arguments.
+  static const intptr_t kElementTypeTypeArgPos = 0;
+
   virtual TypeArgumentsPtr GetTypeArguments() const {
     return raw_ptr()->type_arguments_;
   }
