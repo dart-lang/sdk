@@ -41,8 +41,10 @@ class AddTypeParameterChange extends Change<_Data> {
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     if (data is _TypeArgumentData) {
       _applyToTypeArguments(builder, data);
+    } else if (data is _TypeParameterData) {
+      _applyToTypeParameters(builder, data);
     } else {
-      _applyToTypeParameters(builder, data as _TypeParameterData);
+      throw StateError('Unsupported class of data: ${data.runtimeType}');
     }
   }
 
@@ -165,7 +167,7 @@ class _TypeArgumentData extends _Data {
 
 /// The data returned when updating a type parameter list.
 class _TypeParameterData extends _Data {
-  /// The list of type parameters to which a new type paramete is being added,
+  /// The list of type parameters to which a new type parameter is being added,
   /// or `null` if the first type parameter is being added.
   final TypeParameterList typeParameters;
 

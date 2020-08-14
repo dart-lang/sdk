@@ -6,14 +6,16 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/paramete
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
-/// A value extractor used to extract a specified argument of an invocation.
+/// A value extractor used to extract a specified argument from an invocation.
 class ArgumentExtractor extends ValueExtractor {
-  /// The parameter that defines the argument to be extracted.
+  /// The parameter corresponding to the argument from the original invocation,
+  /// or `null` if the value of the argument can't be taken from the original
+  /// invocation.
   final ParameterReference parameter;
 
   /// Initialize a newly created extractor to extract the argument that
   /// corresponds to the given [parameter].
-  ArgumentExtractor(this.parameter);
+  ArgumentExtractor(this.parameter) : assert(parameter != null);
 
   @override
   String from(AstNode node, CorrectionUtils utils) {
@@ -32,7 +34,7 @@ class LiteralExtractor extends ValueExtractor {
   /// The code to be returned.
   final String code;
 
-  /// Initialize a newly created  extractor to return the given [code].
+  /// Initialize a newly created extractor to return the given [code].
   LiteralExtractor(this.code);
 
   @override
