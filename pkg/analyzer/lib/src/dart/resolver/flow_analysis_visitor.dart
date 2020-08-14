@@ -351,6 +351,17 @@ class TypeSystemTypeOperations
   TypeSystemTypeOperations(this.typeSystem);
 
   @override
+  TypeClassification classifyType(DartType type) {
+    if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
+      return TypeClassification.nonNullable;
+    } else if (isSubtypeOf(type, typeSystem.typeProvider.nullType)) {
+      return TypeClassification.nullOrEquivalent;
+    } else {
+      return TypeClassification.potentiallyNullable;
+    }
+  }
+
+  @override
   DartType factor(DartType from, DartType what) {
     return typeSystem.factor(from, what);
   }

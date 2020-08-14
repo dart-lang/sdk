@@ -136,13 +136,13 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     var flow = _flowAnalysis?.flow;
-    flow?.equalityOp_rightBegin(left);
+    flow?.equalityOp_rightBegin(left, left.staticType);
 
     var right = node.rightOperand;
     right.accept(_resolver);
     right = node.rightOperand;
 
-    flow?.equalityOp_end(node, right, notEqual: notEqual);
+    flow?.equalityOp_end(node, right, right.staticType, notEqual: notEqual);
 
     _resolveUserDefinableElement(
       node,

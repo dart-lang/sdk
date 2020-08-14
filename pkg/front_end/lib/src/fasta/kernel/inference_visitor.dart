@@ -3520,7 +3520,7 @@ class InferenceVisitor
       int fileOffset, Expression left, DartType leftType, Expression right,
       {bool isNot}) {
     assert(isNot != null);
-    inferrer.flowAnalysis.equalityOp_rightBegin(left);
+    inferrer.flowAnalysis.equalityOp_rightBegin(left, leftType);
     ObjectAccessTarget equalsTarget = inferrer.findInterfaceMember(
         leftType, equalsName, fileOffset,
         includeExtensionMethods: true);
@@ -3557,7 +3557,9 @@ class InferenceVisitor
     if (isNot) {
       equals = new Not(equals)..fileOffset = fileOffset;
     }
-    inferrer.flowAnalysis.equalityOp_end(equals, right, notEqual: isNot);
+    inferrer.flowAnalysis.equalityOp_end(
+        equals, right, rightResult.inferredType,
+        notEqual: isNot);
     return new ExpressionInferenceResult(
         equalsTarget.isNever
             ? const NeverType(Nullability.nonNullable)

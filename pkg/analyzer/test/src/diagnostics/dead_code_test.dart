@@ -846,6 +846,20 @@ void f(int a) {
 
 @reflectiveTest
 class DeadCodeWithNullSafetyTest extends DeadCodeTest with WithNullSafetyMixin {
+  test_assert_dead_message() async {
+    // We don't warn if an assert statement is live but its message is dead,
+    // because this results in nuisance warnings for desirable assertions (e.g.
+    // a `!= null` assertion that is redundant with strong checking but still
+    // useful with weak checking).
+    await assertErrorsInCode('''
+void f(Object waldo) {
+  assert(waldo != null, "Where's Waldo?");
+}
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+    ]);
+  }
+
   test_flowEnd_tryStatement_body() async {
     await assertErrorsInCode(r'''
 Never foo() => throw 0;

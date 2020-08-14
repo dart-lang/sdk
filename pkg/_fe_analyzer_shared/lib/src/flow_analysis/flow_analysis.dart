@@ -363,11 +363,12 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
 
   /// Call this method just after visiting a binary `==` or `!=` expression.
   void equalityOp_end(Expression wholeExpression, Expression rightOperand,
+      Type rightOperandType,
       {bool notEqual = false});
 
   /// Call this method just after visiting the left hand side of a binary `==`
   /// or `!=` expression.
-  void equalityOp_rightBegin(Expression leftOperand);
+  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType);
 
   /// This method should be called at the conclusion of flow analysis for a top
   /// level function or method.  Performs assertion checks.
@@ -811,17 +812,20 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
 
   @override
   void equalityOp_end(Expression wholeExpression, Expression rightOperand,
+      Type rightOperandType,
       {bool notEqual = false}) {
     _wrap(
-        'equalityOp_end($wholeExpression, $rightOperand, notEqual: $notEqual)',
-        () => _wrapped.equalityOp_end(wholeExpression, rightOperand,
+        'equalityOp_end($wholeExpression, $rightOperand, $rightOperandType, '
+        'notEqual: $notEqual)',
+        () => _wrapped.equalityOp_end(
+            wholeExpression, rightOperand, rightOperandType,
             notEqual: notEqual));
   }
 
   @override
-  void equalityOp_rightBegin(Expression leftOperand) {
-    _wrap('equalityOp_rightBegin($leftOperand)',
-        () => _wrapped.equalityOp_rightBegin(leftOperand));
+  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
+    _wrap('equalityOp_rightBegin($leftOperand, $leftOperandType)',
+        () => _wrapped.equalityOp_rightBegin(leftOperand, leftOperandType));
   }
 
   @override
@@ -1651,8 +1655,26 @@ class FlowModel<Variable, Type> {
   }
 }
 
+/// Enum representing the different classifications of types that can be
+/// returned by [TypeOperations.classifyType].
+enum TypeClassification {
+  /// The type is `Null` or an equivalent type (e.g. `Never?`)
+  nullOrEquivalent,
+
+  /// The type is a potentially nullable type, but not equivalent to `Null`
+  /// (e.g. `int?`, or a type variable whose bound is potentially nullable)
+  potentiallyNullable,
+
+  /// The type is a non-nullable type.
+  nonNullable,
+}
+
 /// Operations on types, abstracted from concrete type interfaces.
 abstract class TypeOperations<Variable, Type> {
+  /// Classifies the given type into one of the three categories defined by
+  /// the [TypeClassification] enum.
+  TypeClassification classifyType(Type type);
+
   /// Returns the "remainder" of [from] when [what] has been removed from
   /// consideration by an instance check.
   Type factor(Type from, Type what);
@@ -2277,6 +2299,21 @@ class _ConditionalContext<Variable, Type>
       'thenInfo: $_thenInfo)';
 }
 
+/// [_FlowContext] representing an equality comparison using `==` or `!=`.
+class _EqualityOpContext<Variable, Type> extends _BranchContext {
+  /// The type of the expression on the LHS of `==` or `!=`.
+  final Type _leftOperandType;
+
+  _EqualityOpContext(
+      ExpressionInfo<Variable, Type> conditionInfo, this._leftOperandType)
+      : super(conditionInfo);
+
+  @override
+  String toString() =>
+      '_EqualityOpContext(conditionInfo: $_conditionInfo, lhsType: '
+      '$_leftOperandType)';
+}
+
 class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     Type> implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
   /// The [TypeOperations], used to access types, and check subtyping.
@@ -2420,31 +2457,49 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
 
   @override
   void equalityOp_end(Expression wholeExpression, Expression rightOperand,
+      Type rightOperandType,
       {bool notEqual = false}) {
-    _BranchContext<Variable, Type> context =
-        _stack.removeLast() as _BranchContext<Variable, Type>;
+    _EqualityOpContext<Variable, Type> context =
+        _stack.removeLast() as _EqualityOpContext<Variable, Type>;
     ExpressionInfo<Variable, Type> lhsInfo = context._conditionInfo;
+    Type leftOperandType = context._leftOperandType;
     ExpressionInfo<Variable, Type> rhsInfo = _getExpressionInfo(rightOperand);
-    Variable variable;
-    if (lhsInfo is _NullInfo<Variable, Type> &&
+    ExpressionInfo<Variable, Type> equalityInfo;
+    TypeClassification leftOperandTypeClassification =
+        typeOperations.classifyType(leftOperandType);
+    TypeClassification rightOperandTypeClassification =
+        typeOperations.classifyType(rightOperandType);
+    if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
+        rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
+      return booleanLiteral(wholeExpression, !notEqual);
+    } else if ((leftOperandTypeClassification ==
+                TypeClassification.nullOrEquivalent &&
+            rightOperandTypeClassification == TypeClassification.nonNullable) ||
+        (rightOperandTypeClassification ==
+                TypeClassification.nullOrEquivalent &&
+            leftOperandTypeClassification == TypeClassification.nonNullable)) {
+      return booleanLiteral(wholeExpression, notEqual);
+    } else if (lhsInfo is _NullInfo<Variable, Type> &&
         rhsInfo is _VariableReadInfo<Variable, Type>) {
-      variable = rhsInfo._variable;
+      assert(
+          leftOperandTypeClassification == TypeClassification.nullOrEquivalent);
+      equalityInfo =
+          _current.tryMarkNonNullable(typeOperations, rhsInfo._variable);
     } else if (rhsInfo is _NullInfo<Variable, Type> &&
         lhsInfo is _VariableReadInfo<Variable, Type>) {
-      variable = lhsInfo._variable;
+      equalityInfo =
+          _current.tryMarkNonNullable(typeOperations, lhsInfo._variable);
     } else {
       return;
     }
-    ExpressionInfo<Variable, Type> expressionInfo =
-        _current.tryMarkNonNullable(typeOperations, variable);
     _storeExpressionInfo(wholeExpression,
-        notEqual ? expressionInfo : ExpressionInfo.invert(expressionInfo));
+        notEqual ? equalityInfo : ExpressionInfo.invert(equalityInfo));
   }
 
   @override
-  void equalityOp_rightBegin(Expression leftOperand) {
-    _stack.add(
-        new _BranchContext<Variable, Type>(_getExpressionInfo(leftOperand)));
+  void equalityOp_rightBegin(Expression leftOperand, Type leftOperandType) {
+    _stack.add(new _EqualityOpContext<Variable, Type>(
+        _getExpressionInfo(leftOperand), leftOperandType));
   }
 
   @override

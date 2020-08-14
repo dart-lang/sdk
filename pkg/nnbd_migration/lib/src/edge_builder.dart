@@ -414,11 +414,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
       var leftType = _dispatch(leftOperand);
       _graph.connectDummy(leftType.node, DummyOrigin(source, node));
-      _flowAnalysis.equalityOp_rightBegin(leftOperand);
+      _flowAnalysis.equalityOp_rightBegin(leftOperand, leftType);
       var rightType = _dispatch(rightOperand);
       _graph.connectDummy(rightType.node, DummyOrigin(source, node));
       bool notEqual = operatorType == TokenType.BANG_EQ;
-      _flowAnalysis.equalityOp_end(node, rightOperand, notEqual: notEqual);
+      _flowAnalysis.equalityOp_end(node, rightOperand, rightType,
+          notEqual: notEqual);
 
       void buildNullConditionInfo(NullLiteral nullLiteral,
           Expression otherOperand, NullabilityNode otherNode) {
