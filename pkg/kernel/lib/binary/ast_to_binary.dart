@@ -1191,6 +1191,19 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         !(node.isMemberSignature &&
             node.memberSignatureOriginReference == null),
         "No member signature origin for member signature $node.");
+    assert(!(node.isMemberSignature && node.isForwardingStub),
+        "Procedure is both member signature and forwarding stub: $node.");
+    assert(!(node.isMemberSignature && node.isForwardingSemiStub),
+        "Procedure is both member signature and forwarding semi stub: $node.");
+    assert(
+        !(node.forwardingStubInterfaceTarget is Procedure &&
+            (node.forwardingStubInterfaceTarget as Procedure)
+                .isMemberSignature),
+        "Forwarding stub interface target is member signature: $node.");
+    assert(
+        !(node.forwardingStubSuperTarget is Procedure &&
+            (node.forwardingStubSuperTarget as Procedure).isMemberSignature),
+        "Forwarding stub super target is member signature: $node.");
 
     procedureOffsets.add(getBufferOffset());
 
