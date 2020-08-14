@@ -114,11 +114,6 @@ LibTest/isolate/Isolate/*: Skip # Not migrated to NNBD
 LibTest/isolate/RawReceivePort/*: Skip # Not migrated to NNBD
 LibTest/isolate/ReceivePort/*: Skip # Not migrated to NNBD
 LibTest/isolate/SendPort/*: Skip # Not migrated to NNBD
-LibTest/math/*: Skip # Not migrated to NNBD
-LibTest/math/MutableRectangle/*: Skip # Not migrated to NNBD
-LibTest/math/Point/*: Skip # Not migrated to NNBD
-LibTest/math/Random/*: Skip # Not migrated to NNBD
-LibTest/math/Rectangle/*: Skip # Not migrated to NNBD
 LibTest/mirrors/*: Skip # Not migrated to NNBD
 LibTest/typed_data/*: Skip # Not migrated to NNBD
 LibTest/typed_data/ByteBuffer/*: Skip # Not migrated to NNBD
