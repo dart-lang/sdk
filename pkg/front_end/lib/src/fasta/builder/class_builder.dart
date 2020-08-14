@@ -884,8 +884,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     procedure.isAbstract = false;
     procedure.isNoSuchMethodForwarder = true;
+    procedure.isMemberSignature = false;
     procedure.isForwardingStub = false;
     procedure.isForwardingSemiStub = false;
+    procedure.memberSignatureOrigin = null;
+    procedure.forwardingStubInterfaceTarget = null;
+    procedure.forwardingStubSuperTarget = null;
   }
 
   Uri _getMemberUri(Member member) {

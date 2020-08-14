@@ -296,6 +296,42 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     if (node.isAbstract && node.isExternal) {
       problem(node, "Procedure cannot be both abstract and external.");
     }
+    if (node.isMemberSignature && node.isForwardingStub) {
+      problem(
+          node,
+          "Procedure cannot be both a member signature and a forwarding stub: "
+          "$node.");
+    }
+    if (node.isMemberSignature && node.isForwardingSemiStub) {
+      problem(
+          node,
+          "Procedure cannot be both a member signature and a forwarding semi "
+          "stub $node.");
+    }
+    if (node.isMemberSignature && node.isNoSuchMethodForwarder) {
+      problem(
+          node,
+          "Procedure cannot be both a member signature and a noSuchMethod "
+          "forwarder $node.");
+    }
+    if (node.isMemberSignature && node.memberSignatureOrigin == null) {
+      problem(
+          node, "Member signature must have a member signature origin $node.");
+    }
+    if (node.forwardingStubInterfaceTarget != null &&
+        !(node.isForwardingStub || node.isForwardingSemiStub)) {
+      problem(
+          node,
+          "Only forwarding stubs can have a forwarding stub interface target "
+          "$node.");
+    }
+    if (node.forwardingStubSuperTarget != null &&
+        !(node.isForwardingStub || node.isForwardingSemiStub)) {
+      problem(
+          node,
+          "Only forwarding stubs can have a forwarding stub super target "
+          "$node.");
+    }
     node.function.accept(this);
     classTypeParametersAreInScope = false;
     visitList(node.annotations, this);
