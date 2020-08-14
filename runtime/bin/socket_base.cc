@@ -254,14 +254,10 @@ void FUNCTION_NAME(InternetAddress_ParseScopedLinkLocalAddress)(
   AddressList<SocketAddress>* addresses =
       SocketBase::LookupAddress(address, type, &os_error);
   if (addresses != NULL) {
-    Dart_Handle list = Dart_NewList(addresses->count());
-    for (intptr_t i = 0; i < addresses->count(); i++) {
-      SocketAddress* addr = addresses->GetAt(i);
-      Dart_ListSetAt(
-          list, i, Dart_NewInteger(SocketAddress::GetAddrScope(addr->addr())));
-    }
+    SocketAddress* addr = addresses->GetAt(0);
+    Dart_SetReturnValue(
+        args, Dart_NewInteger(SocketAddress::GetAddrScope(addr->addr())));
     delete addresses;
-    Dart_SetReturnValue(args, list);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(os_error));
     delete os_error;

@@ -228,7 +228,13 @@ class RunCommand extends DartdevCommand<int> {
         : args.sublist(pathIndex + 1);
     try {
       path = Uri.parse(path).toFilePath();
-    } catch (_) {}
+    } catch (_) {
+      // Input path will either be a valid path or a file uri
+      // (e.g /directory/file.dart or file:///directory/file.dart). We will try
+      // parsing it as a Uri, but if parsing failed for any reason (likely
+      // because path is not a file Uri), `path` will be passed without
+      // modification to the VM.
+    }
     VmInteropHandler.run(path, runArgs);
     return 0;
   }

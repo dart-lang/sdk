@@ -8415,10 +8415,11 @@ main() {
       SimpleIdentifier identifier = prefixed.identifier;
       assertSimpleIdentifier(
         identifier,
-        element: elementMatcher(
+        readElement: elementMatcher(
           objectHashCode,
           isLegacy: isNullSafetySdkAndLegacyLibrary,
         ),
+        writeElement: null,
         type: 'int',
       );
     }

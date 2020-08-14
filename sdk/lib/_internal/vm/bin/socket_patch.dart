@@ -235,24 +235,25 @@ class _InternetAddress implements InternetAddress {
       }
       var inAddr = _parse(address);
       if (inAddr == null) {
-        throw ArgumentError.value("Invalid internet address $address");
+        throw ArgumentError('Invalid internet address $address');
       }
       InternetAddressType type = inAddr.length == _IPv4AddrLength
           ? InternetAddressType.IPv4
           : InternetAddressType.IPv6;
       if (scopeID != null && scopeID.length > 0) {
         if (type != InternetAddressType.IPv6) {
-          throw ArgumentError.value("IPv4 addresses cannot have a scope id");
+          throw ArgumentError.value(
+              address, 'address', 'IPv4 addresses cannot have a scope ID');
         }
-        // This is an IPv6 address with scope id.
-        var list = _parseScopedLinkLocalAddress(originalAddress);
 
-        if (list is! OSError && (list as List).isNotEmpty) {
-          return _InternetAddress(InternetAddressType.IPv6, originalAddress,
-              null, inAddr, list.first);
+        final scopeID = _parseScopedLinkLocalAddress(originalAddress);
+
+        if (scopeID is int) {
+          return _InternetAddress(
+              InternetAddressType.IPv6, originalAddress, null, inAddr, scopeID);
         } else {
           throw ArgumentError.value(
-              "Invalid IPv6 address $address with scope ID");
+              address, 'address', 'Invalid IPv6 address with scope ID');
         }
       }
       return _InternetAddress(type, originalAddress, null, inAddr, 0);
@@ -286,7 +287,7 @@ class _InternetAddress implements InternetAddress {
     checkNotNullable(address, "address");
     try {
       return _InternetAddress.fromString(address);
-    } catch (e) {
+    } on ArgumentError catch (_) {
       return null;
     }
   }
@@ -352,8 +353,8 @@ class _InternetAddress implements InternetAddress {
 
   static String _rawAddrToString(Uint8List address)
       native "InternetAddress_RawAddrToString";
-  static List _parseScopedLinkLocalAddress(String address)
-      native "InternetAddress_ParseScopedLinkLocalAddress";
+  static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
+      String address) native "InternetAddress_ParseScopedLinkLocalAddress";
   static Uint8List? _parse(String address) native "InternetAddress_Parse";
 }
 

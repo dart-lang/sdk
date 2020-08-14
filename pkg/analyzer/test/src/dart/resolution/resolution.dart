@@ -594,11 +594,30 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertSimpleIdentifier(
     SimpleIdentifier node, {
-    @required Object element,
+    @required Object readElement,
+    @required Object writeElement,
     @required String type,
   }) {
-    assertElement(node.staticElement, element);
-    assertType(node, type);
+    var isRead = node.inGetterContext();
+    var isWrite = node.inSetterContext();
+    if (isRead && isWrite) {
+      // TODO(scheglov) enable this
+//      assertElement(node.auxiliaryElements?.staticElement, readElement);
+      assertElement(node.staticElement, writeElement);
+    } else if (isRead) {
+      assertElement(node.staticElement, readElement);
+    } else {
+      expect(isWrite, isTrue);
+      assertElement(node.staticElement, writeElement);
+    }
+
+    if (isRead) {
+      assertType(node, type);
+    } else {
+      // TODO(scheglov) enforce this
+//      expect(type, isNull);
+//      assertTypeNull(node);
+    }
   }
 
   void assertSubstitution(
