@@ -261,6 +261,16 @@ void ProgramVisitor::WalkProgram(Zone* zone,
       walker.AddToWorklist(function);
       ASSERT(!function.HasImplicitClosureFunction());
     }
+    // TODO(dartbug.com/43049): Use a more general solution and remove manual
+    // tracking through object_store->ffi_callback_functions.
+    const auto& ffi_callback_entries = GrowableObjectArray::Handle(
+        zone, object_store->ffi_callback_functions());
+    if (!ffi_callback_entries.IsNull()) {
+      for (intptr_t i = 0; i < ffi_callback_entries.Length(); i++) {
+        function ^= ffi_callback_entries.At(i);
+        walker.AddToWorklist(function);
+      }
+    }
   }
 
   if (visitor->IsCodeVisitor()) {
@@ -382,7 +392,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         // directly.
         //
         // In precompiled mode, the binder runs after tree shaking, during which
-        // all targets have been compiled, and so the binder replace all static
+        // all targets have been compiled, and so the binder replaces all static
         // calls with direct calls to the target.
         //
         // Cf. runtime entry PatchStaticCall called from CallStaticFunction

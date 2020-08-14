@@ -4182,7 +4182,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
   Fragment otherwise_fragment(otherwise);
   otherwise_fragment += IntConstant(condition_start_offset.Pos());
   otherwise_fragment += IntConstant(condition_end_offset.Pos());
-  Tag tag = ReadTag();                   // read (first part of) message.
+  Tag tag = ReadTag();  // read (first part of) message.
   if (tag == kSomething) {
     otherwise_fragment += BuildExpression();  // read (rest of) message.
   } else {
@@ -4748,8 +4748,8 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
                                         needs_stacktrace, is_synthetic);
   // Fill in the body of the catch.
   for (intptr_t i = 0; i < catch_count; ++i) {
-    intptr_t catch_offset = ReaderOffset();   // Catch has no tag.
-    TokenPosition position = ReadPosition();  // read position.
+    intptr_t catch_offset = ReaderOffset();          // Catch has no tag.
+    TokenPosition position = ReadPosition();         // read position.
     const AbstractType& type_guard = T.BuildType();  // read guard.
     handler_types.SetAt(i, type_guard);
 
@@ -5269,6 +5269,15 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
       Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
                                   native_sig, target, exceptional_return));
   code += Constant(result);
+
+  auto& ffi_callback_functions = GrowableObjectArray::Handle(Z);
+  ffi_callback_functions ^= I->object_store()->ffi_callback_functions();
+  if (ffi_callback_functions.IsNull()) {
+    ffi_callback_functions ^= GrowableObjectArray::New();
+    I->object_store()->set_ffi_callback_functions(ffi_callback_functions);
+  }
+  ffi_callback_functions.Add(result);
+
   return code;
 }
 
