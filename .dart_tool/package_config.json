@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-08-12T09:00:03.727658",
+  "generated": "2020-08-13T10:20:32.864803",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -269,38 +269,8 @@
       "languageVersion": "2.2"
     },
     {
-      "name": "front_end_agnostic",
-      "rootUri": "../pkg/front_end/testcases/agnostic",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_general_nnbd_opt_out",
-      "rootUri": "../pkg/front_end/testcases/general_nnbd_opt_out",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_late_lowering",
-      "rootUri": "../pkg/front_end/testcases/late_lowering",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nnbd",
-      "rootUri": "../pkg/front_end/testcases/nnbd",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nnbd_mixed",
-      "rootUri": "../pkg/front_end/testcases/nnbd_mixed",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nonfunction_type_aliases",
-      "rootUri": "../pkg/front_end/testcases/nonfunction_type_aliases",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_value_class",
-      "rootUri": "../pkg/front_end/testcases/value_class",
+      "name": "front_end_testcases",
+      "rootUri": "../pkg/front_end/testcases",
       "packageUri": ".nonexisting/"
     },
     {

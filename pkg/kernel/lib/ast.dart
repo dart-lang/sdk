@@ -10079,6 +10079,9 @@ class Version extends Object {
     return false;
   }
 
+  /// Returns this language version as a 'major.minor' text.
+  String toText() => '${major}.${minor}';
+
   @override
   int get hashCode {
     return major.hashCode * 13 + minor.hashCode * 17;

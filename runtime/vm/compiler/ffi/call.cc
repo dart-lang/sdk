@@ -4,6 +4,7 @@
 
 #include "vm/compiler/ffi/call.h"
 
+#include "vm/class_finalizer.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -49,6 +50,13 @@ FunctionPtr TrampolineFunction(const Function& dart_signature,
   }
   function.set_parameter_names(parameter_names);
   function.SetFfiCSignature(c_signature);
+
+  Type& type = Type::Handle(zone);
+  type ^= function.SignatureType(Nullability::kLegacy);
+  type ^= ClassFinalizer::FinalizeType(owner_class, type);
+  function.SetSignatureType(type);
+  ASSERT(
+      Type::Handle(function.SignatureType(Nullability::kLegacy)).IsFinalized());
 
   return function.raw();
 }
