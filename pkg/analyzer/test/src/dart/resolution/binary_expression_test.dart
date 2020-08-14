@@ -15,7 +15,10 @@ main() {
 }
 
 @reflectiveTest
-class BinaryExpressionResolutionTest extends PubPackageResolutionTest {
+class BinaryExpressionResolutionTest extends PubPackageResolutionTest
+    with BinaryExpressionResolutionTestCases {}
+
+mixin BinaryExpressionResolutionTestCases on PubPackageResolutionTest {
   test_bangEq() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -70,8 +73,9 @@ f(int a, int b) {
   }
 
   test_ifNull() async {
-    await assertNoErrorsInCode(r'''
-f(int a, double b) {
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertNoErrorsInCode('''
+f(int$question a, double b) {
   a ?? b;
 }
 ''');
@@ -230,7 +234,8 @@ f(int a, int b) {
 
 @reflectiveTest
 class BinaryExpressionResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, BinaryExpressionResolutionTestCases {
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
