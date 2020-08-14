@@ -228,7 +228,7 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 // TODO(markzipan): Make this non-nullable if we can ensure this returns
 // an empty list or if null and the empty list are semantically the same.
 List? getGenericArgs(type) =>
-    JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
+    JS<List?>('', '#', safeGetOwnProperty(type, _typeArguments));
 
 List? getGenericArgVariances(type) =>
     JS<List?>('', '#', safeGetOwnProperty(type, _variances));
