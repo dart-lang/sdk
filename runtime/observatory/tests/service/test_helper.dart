@@ -25,11 +25,6 @@ const List<String> extraDebuggingArgs = useCausalAsyncStacks
     ? const ['--causal-async-stacks', '--no-lazy-async-stacks']
     : const ['--no-causal-async-stacks', '--lazy-async-stacks'];
 
-List<IsolateTest> ifLazyAsyncStacks(List<IsolateTest> lazyTests) {
-  if (useCausalAsyncStacks) return const <IsolateTest>[];
-  return lazyTests;
-}
-
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
 String serviceHttpAddress;
@@ -286,7 +281,7 @@ class _ServiceTesteeLauncher {
           .transform(utf8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
-        print('>testee>err> $line');
+        print('>testee>err> ${line.trim()}');
       });
       process.exitCode.then((exitCode) async {
         await serviceInfoDir.delete(recursive: true);

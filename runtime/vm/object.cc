@@ -6969,6 +6969,26 @@ void Function::set_parent_function(const Function& value) const {
   }
 }
 
+FunctionPtr Function::GetGeneratedClosure() const {
+  const auto& closure_functions = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->closure_functions());
+  auto& entry = Object::Handle();
+
+  for (auto i = (closure_functions.Length() - 1); i >= 0; i--) {
+    entry = closure_functions.At(i);
+
+    ASSERT(entry.IsFunction());
+
+    const auto& closure_function = Function::Cast(entry);
+    if (closure_function.parent_function() == raw() &&
+        closure_function.is_generated_body()) {
+      return closure_function.raw();
+    }
+  }
+
+  return Function::null();
+}
+
 // Enclosing outermost function of this local function.
 FunctionPtr Function::GetOutermostFunction() const {
   FunctionPtr parent = parent_function();

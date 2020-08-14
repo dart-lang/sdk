@@ -2746,6 +2746,11 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
+  // Enclosed generated closure function of this local function.
+  // This will only work after the closure function has been allocated in the
+  // isolate's object_store.
+  FunctionPtr GetGeneratedClosure() const;
+
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
 
