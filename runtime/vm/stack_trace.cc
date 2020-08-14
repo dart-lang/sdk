@@ -395,6 +395,7 @@ void StackTraceUtils::CollectFramesLazy(
   CallerClosureFinder caller_closure_finder(zone);
   auto& pc_descs = PcDescriptors::Handle();
 
+  // Start by traversing the sync. part of the stack.
   for (; frame != nullptr; frame = frames.NextFrame()) {
     if (skip_frames > 0) {
       skip_frames--;
@@ -461,6 +462,7 @@ void StackTraceUtils::CollectFramesLazy(
       // Skip: Already handled this frame's function above.
       closure = caller_closure_finder.FindCaller(closure);
 
+      // Traverse the trail of async futures all the way up.
       for (; !closure.IsNull();
            closure = caller_closure_finder.FindCaller(closure)) {
         function = closure.function();

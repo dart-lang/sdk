@@ -8,7 +8,6 @@ import 'dart:io' show File, Platform, exitCode;
 import 'dart:isolate' show Isolate, ReceivePort, SendPort;
 
 import 'package:args/args.dart' show ArgParser;
-
 import 'package:testing/src/chain.dart' show CreateContext, Result, Step;
 import 'package:testing/src/expectation.dart' show Expectation;
 import 'package:testing/src/log.dart' show Logger;
@@ -17,13 +16,14 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'fasta/expression_suite.dart' as expression show createContext;
-import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/fast_strong_suite.dart' as fast_strong show createContext;
 import 'fasta/incremental_suite.dart' as incremental show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
+import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/strong_tester.dart' as strong show createContext;
 import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
+import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
 import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
@@ -271,6 +271,8 @@ const List<Suite> suites = [
   const Suite(
       "spelling_test_src", spelling_src.createContext, "../testing.json"),
   const Suite("fasta/weak", weak.createContext, "../../testing.json"),
+  const Suite("fasta/textual_outline", textual_outline.createContext,
+      "../../testing.json"),
 ];
 
 const Duration timeoutDuration = Duration(minutes: 25);

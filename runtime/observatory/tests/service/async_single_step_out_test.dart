@@ -35,12 +35,6 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_D), // await helper
   stepInto,
 
-  ...ifLazyAsyncStacks(<IsolateTest>[
-    hasStoppedAtBreakpoint,
-    stoppedAtLine(17), // helper() async {}
-    stepInto,
-  ]),
-
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A), // print.
   stepOver,
@@ -57,7 +51,7 @@ var tests = <IsolateTest>[
   stoppedAtLine(25), // await helper (weird dispatching)
   smartNext,
 
-  hasStoppedAtBreakpoint, //19
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_E), // arrive after the await.
   resumeIsolate
 ];

@@ -1,0 +1,11 @@
+@valueClass
+class A {}
+
+class B {}
+
+class C extends A with B {}
+
+class C extends B with A {}
+
+const String valueClass = "valueClass";
+main() {}

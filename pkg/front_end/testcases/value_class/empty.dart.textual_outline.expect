@@ -1,0 +1,6 @@
+const String valueClass = "valueClass";
+
+@valueClass
+class EmptyClass {}
+
+main() {}

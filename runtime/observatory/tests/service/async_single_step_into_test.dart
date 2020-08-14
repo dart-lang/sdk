@@ -34,12 +34,6 @@ var tests = <IsolateTest>[
   stoppedAtLine(LINE_D),
   stepInto,
 
-  ...ifLazyAsyncStacks(<IsolateTest>[
-    hasStoppedAtBreakpoint,
-    stoppedAtLine(16),
-    stepInto, // helper() async { ... }
-  ]),
-
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // print.

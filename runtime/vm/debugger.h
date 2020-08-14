@@ -519,6 +519,10 @@ class Debugger {
                                      intptr_t line_number,
                                      intptr_t column_number);
 
+  // Sets synthetic breakpoint at async_op to step over the synthetic part of
+  // the stack trace.
+  Breakpoint* SetBreakpointAtAsyncOp(const Function& async_op);
+
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
                                                   intptr_t column_number);

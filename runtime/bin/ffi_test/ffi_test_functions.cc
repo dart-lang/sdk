@@ -1038,4 +1038,8 @@ DART_EXPORT void CallbackNativeTypePointerReturn(void* (*f)()) {
   p2[0] = 42;
 }
 
+DART_EXPORT int32_t PassStruct(void*) {
+  return 42;
+}
+
 }  // namespace dart

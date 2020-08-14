@@ -1,0 +1,8 @@
+@valueClass
+class Animal {
+  final int numLegs;
+}
+
+const String valueClass = "valueClass";
+expect(expected, actual, [expectNull = false]) {}
+main() {}

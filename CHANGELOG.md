@@ -38,6 +38,14 @@ Updated the Linter to `0.1.118`, which includes:
 * Updated `unnecessary_statements` to skip `as` expressions.
 * Fixed `prefer_relative_imports` to work with path dependencies.
 
+#### Pub
+
+* `pub run` and `pub global run` accepts a `--(no-)-sound-null-safety` flag,
+  that is passed to the VM.
+* Fix: Avoid multiple recompilation of binaries in global packages.
+* Fix: Avoid exponential behaviour of error reporting from the solver.
+* Fix: Refresh binstubs after recompile in global run.
+
 ## 2.9.1 - 2020-08-12
 
 This is a patch release that fixes unhandled exceptions in some Flutter
@@ -163,8 +171,6 @@ Updated the Linter to `0.1.117`, which includes:
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
   experiments in the Dart VM (and language).
-* `pub run` and `pub global run` accepts a `--(no-)-sound-null-safety flag, that
-  is passed to the VM.
 * Warn when publishing the first null-safe version of a package.
 * `pub outdated`:
   * If the current version of a dependency is a prerelease
@@ -184,9 +190,6 @@ Updated the Linter to `0.1.117`, which includes:
 * Fix git folder names in cache, allowing for ssh-style git
   dependencies.
 * Fix: Avoid precompilation of dependencies of global packages.
-* Fix: Avoid multiple recompilation of binaries in global packages.
-* Fix: Avoid exponential behaviour of error reporting from the solver.
-* Fix: Refresh binstubs after recompile in global run.
 
 ## 2.8.4 - 2020-06-04
 
