@@ -47,10 +47,14 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
   analytics =
       createAnalyticsInstance(args.contains('--disable-dartdev-analytics'));
 
-  // On the first run, print the message to alert users that anonymous data will
-  // be collected by default.
-  if (analytics.firstRun) {
+  // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
+  // and the user is on a terminal, then print the disclosure and set
+  // analytics.disclosureShownOnTerminal.
+  if (analytics is DartdevAnalytics &&
+      !analytics.disclosureShownOnTerminal &&
+      io.stdout.hasTerminal) {
     print(analyticsNoticeOnFirstRunMessage);
+    analytics.disclosureShownOnTerminal = true;
   }
 
   // When `--disable-analytics` or `--enable-analytics` are called we perform
@@ -152,8 +156,9 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
           timeout: const Duration(milliseconds: 200));
     }
 
-    // As the notification to the user read on the first run, analytics are
-    // enabled by default, on the first run only.
+    // Set the enabled flag in the analytics object to true. Note: this will not
+    // enable the analytics unless the disclosure was shown (terminal
+    // detected), and the machine is not detected to be a bot.
     if (analytics.firstRun) {
       analytics.enabled = true;
     }

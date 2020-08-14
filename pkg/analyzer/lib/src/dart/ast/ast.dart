@@ -8893,6 +8893,65 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   Precedence get precedence => Precedence.primary;
 
+  /// If this identifier is used as an expression to read a value, this
+  /// is the element that provides the value.
+  ///
+  /// In valid code this can be almost any element, usually a
+  /// [LocalVariableElement], a [ParameterElement], or a
+  /// [PropertyAccessorElement] getter.
+  ///
+  /// In invalid code, for recovery, we might use a [PropertyAccessorElement]
+  /// setter `print(mySetter)` even though the setter cannot be used to read a
+  /// value. We do this to help the user to navigate to the setter, and maybe
+  /// add the corresponding getter.
+  ///
+  /// Return `null` if this identifier is not used to read a value, or the
+  /// AST structure has not been resolved, or if this identifier could not be
+  /// resolved.
+  ///
+  /// If this identifier is used as the target for a compound assignment
+  /// `x += 2`, both [readElement] and [writeElement] could be not `null`.
+  ///
+  /// If [referenceElement] is not `null`, then both [readElement] and
+  /// [writeElement] are `null`, because the identifier is not being used to
+  /// read or write a value.
+  ///
+  /// If either [readElement] or [writeElement] are not `null`, the
+  /// [referenceElement] is `null`, because the identifier is being used to
+  /// read or write a value.
+  ///
+  /// All three [readElement], [writeElement], and [referenceElement] can be
+  /// `null` when the AST structure has not been resolved, or this identifier
+  /// could not be resolved.
+  Element get readElement => null;
+
+  /// This element is set when this identifier is used not as an expression,
+  /// but just to reference some element.
+  ///
+  /// Examples are the name of the type in a [TypeName], the name of the method
+  /// in a [MethodInvocation], the name of the constructor in a
+  /// [ConstructorName], the name of the property in a [PropertyAccess], the
+  /// prefix and the identifier in a [PrefixedIdentifier] (which then can be
+  /// used to read or write a value).
+  ///
+  /// In invalid code, for recovery, any element could be used, e.g. a
+  /// setter as a type name `set mySetter(_) {} mySetter topVar;`. We do this
+  /// to help the user to navigate to this element, and maybe change its name,
+  /// add a new declaration, etc.
+  ///
+  /// Return `null` if this identifier is used to either read or write a value,
+  /// or the AST structure has not been resolved, or if this identifier could
+  /// not be resolved.
+  ///
+  /// If either [readElement] or [writeElement] are not `null`, the
+  /// [referenceElement] is `null`, because the identifier is being used to
+  /// read or write a value.
+  ///
+  /// All three [readElement], [writeElement], and [referenceElement] can be
+  /// `null` when the AST structure has not been resolved, or this identifier
+  /// could not be resolved.
+  Element get referenceElement => null;
+
   @override
   Element get staticElement => _staticElement;
 
@@ -8900,6 +8959,39 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   set staticElement(Element element) {
     _staticElement = element;
   }
+
+  /// If this identifier is used as a target to assign a value, explicitly
+  /// using an [AssignmentExpression], or implicitly using a [PrefixExpression]
+  /// or [PostfixExpression], this is the element that is used to write the
+  /// value.
+  ///
+  /// In valid code this is a [LocalVariableElement], [ParameterElement], or a
+  /// [PropertyAccessorElement] setter.
+  ///
+  /// In invalid code, for recovery, we might use other elements, for example a
+  /// [PropertyAccessorElement] getter `myGetter = 0` even though the getter
+  /// cannot be used to write a value. We do this to help the user to navigate
+  /// to the getter, and maybe add the corresponding setter.
+  ///
+  /// Return `null` if this identifier is not used to write a value, or the
+  /// AST structure has not been resolved, or if this identifier could not be
+  /// resolved.
+  ///
+  /// If this identifier is used as the target for a compound assignment
+  /// `x += 2`, both [readElement] and [writeElement] could be not `null`.
+  ///
+  /// If [referenceElement] is not `null`, then both [readElement] and
+  /// [writeElement] are `null`, because the identifier is not being used to
+  /// read or write a value.
+  ///
+  /// If either [readElement] or [writeElement] are not `null`, the
+  /// [referenceElement] is `null`, because the identifier is being used to
+  /// read or write a value.
+  ///
+  /// All three [readElement], [writeElement], and [referenceElement] can be
+  /// `null` when the AST structure has not been resolved, or this identifier
+  /// could not be resolved.
+  Element get writeElement => null;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);

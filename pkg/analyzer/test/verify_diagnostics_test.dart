@@ -53,6 +53,9 @@ class DocumentationValidator {
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
+    // Produces two diagnostics when it should only produce one (see
+    // https://github.com/dart-lang/sdk/issues/43051)
+    'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should
