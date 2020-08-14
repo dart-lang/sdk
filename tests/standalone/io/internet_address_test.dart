@@ -209,6 +209,12 @@ void testRawPath() {
   Expect.equals(InternetAddressType.unix, address.type);
 }
 
+void testInvalidScopedId() {
+  Expect.throws<ArgumentError>(() => InternetAddress('::1%invalid'), (error) {
+    return error.toString().contains('scope ID');
+  });
+}
+
 void main() {
   testDefaultAddresses();
   testConstructor();
@@ -219,4 +225,5 @@ void main() {
   testRawAddress();
   testRawAddressIPv6();
   testRawPath();
+  testInvalidScopedId();
 }
