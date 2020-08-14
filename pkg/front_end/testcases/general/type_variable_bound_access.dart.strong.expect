@@ -53,6 +53,35 @@ Try correcting the name to the name of an existing getter, or defining a getter 
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
   abstract member-signature get runtimeType() → core::Type*;
 }
+class Class<X5 extends self::Class::X4* = core::int*, X4 extends self::Class::X3* = core::int*, X3 extends self::Class::X2* = core::int*, X2 extends self::Class::X1* = core::int*, X1 extends self::Class::X0* = core::int*, X0 extends core::int* = core::int*> extends core::Object {
+  generic-covariant-impl field self::Class::X0* field0 = null;
+  generic-covariant-impl field self::Class::X1* field1 = null;
+  generic-covariant-impl field self::Class::X2* field2 = null;
+  generic-covariant-impl field self::Class::X3* field3 = null;
+  generic-covariant-impl field self::Class::X4* field4 = null;
+  generic-covariant-impl field self::Class::X5* field5 = null;
+  synthetic constructor •() → self::Class<self::Class::X5*, self::Class::X4*, self::Class::X3*, self::Class::X2*, self::Class::X1*, self::Class::X0*>*
+    : super core::Object::•()
+    ;
+  method method() → dynamic {
+    this.{self::Class::field0}.{core::int::isEven};
+    this.{self::Class::field1}.{core::int::isEven};
+    this.{self::Class::field2}.{core::int::isEven};
+    this.{self::Class::field3}.{core::int::isEven};
+    this.{self::Class::field4}.{core::int::isEven};
+    this.{self::Class::field5}.{core::int::isEven};
+  }
+  abstract member-signature get _identityHashCode() → core::int*;
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
+  abstract member-signature operator ==(dynamic other) → core::bool*;
+  abstract member-signature get hashCode() → core::int*;
+  abstract member-signature method toString() → core::String*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
+  abstract member-signature get runtimeType() → core::Type*;
+}
 static method main() → dynamic {
   new self::DynamicClass::•<core::num*, core::int*>(0.5, 2).{self::DynamicClass::method}();
   new self::NumClass::•<core::num*, core::double*>(2, 0.5).{self::NumClass::method1}();

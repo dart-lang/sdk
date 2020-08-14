@@ -1,0 +1,18 @@
+external int topLevelField = 0;
+external final int finalTopLevelField = 0;
+external const int constField = 0;
+abstract class A {
+  external int fieldWithInitializer = 0;
+  external int initializedField1;
+  external int initializedField2;
+  A(this.initializedField1) : this.initializedField2 = 0;
+  external static int staticField = 0;
+  external static final int finalStaticField = 0;
+}
+mixin B {
+  external static int staticField = 0;
+  external static final int finalStaticField = 0;
+}
+extension Extension ;
+on A (){ }
+main() { }

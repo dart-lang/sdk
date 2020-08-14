@@ -7,5 +7,9 @@ part of dart._http;
 /// Embedder-specific `dart:_http` configuration.
 
 /// [HttpClient] will disallow HTTP URLs if this value is set to `false`.
+///
+/// TODO(https://github.com/dart-lang/sdk/issues/41796): This setting will be
+/// removed in favor of explicit domain settings.
+@deprecated
 @pragma("vm:entry-point")
 bool _embedderAllowsHttp = true;

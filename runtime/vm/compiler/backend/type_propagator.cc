@@ -877,10 +877,10 @@ bool CompileType::CanBeSmi() {
   return CanPotentiallyBeSmi(*ToAbstractType(), /*recurse=*/true);
 }
 
-void CompileType::PrintTo(BufferFormatter* f) const {
+void CompileType::PrintTo(BaseTextBuffer* f) const {
   const char* type_name = "?";
   if (IsNone()) {
-    f->Print("T{}");
+    f->AddString("T{}");
     return;
   } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
@@ -894,7 +894,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
     type_name = "!null";
   }
 
-  f->Print("T{%s%s}", type_name, is_nullable_ ? "?" : "");
+  f->Printf("T{%s%s}", type_name, is_nullable_ ? "?" : "");
 }
 
 const char* CompileType::ToCString() const {

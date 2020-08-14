@@ -1325,16 +1325,13 @@ class _File {
       List<String> parameterNames,
       List<String> parameterTypes,
       Declaration parent,
-      List<String> relevanceTags,
+      @required List<String> relevanceTags,
       int requiredParameterCount,
       String returnType,
       String typeParameters,
     }) {
       if (Identifier.isPrivateName(name.name)) {
         return null;
-      }
-      if (isConst) {
-        relevanceTags = [...?relevanceTags, 'isConst'];
       }
 
       var locationOffset = name.offset;
@@ -1392,6 +1389,7 @@ class _File {
           if (classMember is ConstructorDeclaration) {
             var parameters = classMember.parameters;
             var defaultArguments = _computeDefaultArguments(parameters);
+            var isConst = classMember.constKeyword != null;
 
             var constructorName = classMember.name;
             constructorName ??= SimpleIdentifierImpl(
@@ -1402,6 +1400,7 @@ class _File {
               ),
             );
 
+            // TODO(brianwilkerson) Should we be passing in `isConst`?
             addDeclaration(
               defaultArgumentListString: defaultArguments?.text,
               defaultArgumentListTextRanges: defaultArguments?.ranges,
@@ -1412,12 +1411,18 @@ class _File {
               parameterNames: _getFormalParameterNames(parameters),
               parameterTypes: _getFormalParameterTypes(parameters),
               parent: parent,
+              relevanceTags: [
+                'ElementKind.CONSTRUCTOR',
+                if (isConst) 'ElementKind.CONSTRUCTOR+const'
+              ],
               requiredParameterCount:
                   _getFormalParameterRequiredCount(parameters),
               returnType: classMember.returnType.name,
             );
             hasConstructor = true;
           } else if (classMember is FieldDeclaration) {
+            // TODO(brianwilkerson) Why are we creating declarations for
+            //  instance members?
             var isStatic = classMember.isStatic;
             var isConst = classMember.fields.isConst;
             var isFinal = classMember.fields.isFinal;
@@ -1431,7 +1436,11 @@ class _File {
                 kind: DeclarationKind.FIELD,
                 name: field.name,
                 parent: parent,
-                relevanceTags: RelevanceTags._forExpression(field.initializer),
+                relevanceTags: [
+                  'ElementKind.FIELD',
+                  if (isConst) 'ElementKind.FIELD+const',
+                  ...?RelevanceTags._forExpression(field.initializer)
+                ],
                 returnType: _getTypeAnnotationString(classMember.fields.type),
               );
             }
@@ -1445,6 +1454,7 @@ class _File {
                 kind: DeclarationKind.GETTER,
                 name: classMember.name,
                 parent: parent,
+                relevanceTags: ['ElementKind.FIELD'],
                 returnType: _getTypeAnnotationString(classMember.returnType),
               );
             } else if (classMember.isSetter) {
@@ -1457,6 +1467,7 @@ class _File {
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
+                relevanceTags: ['ElementKind.FIELD'],
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
               );
@@ -1473,6 +1484,7 @@ class _File {
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
+                relevanceTags: ['ElementKind.METHOD'],
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
                 returnType: _getTypeAnnotationString(classMember.returnType),
@@ -1489,6 +1501,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,
+          relevanceTags: ['ElementKind.CLASS'],
         );
         if (classDeclaration == null) continue;
 
@@ -1519,7 +1532,7 @@ class _File {
             parameterNames: [],
             parameterTypes: [],
             parent: classDeclaration,
-            relevanceTags: null,
+            relevanceTags: ['ElementKind.CONSTRUCTOR'],
             requiredParameterCount: 0,
             returnType: node.name.name,
             typeParameters: null,
@@ -1530,12 +1543,14 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS_TYPE_ALIAS,
           name: node.name,
+          relevanceTags: ['ElementKind.CLASS'],
         );
       } else if (node is EnumDeclaration) {
         var enumDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
           name: node.name,
+          relevanceTags: ['ElementKind.ENUM'],
         );
         if (enumDeclaration == null) continue;
 
@@ -1547,6 +1562,10 @@ class _File {
             kind: DeclarationKind.ENUM_CONSTANT,
             name: constant.name,
             parent: enumDeclaration,
+            relevanceTags: [
+              'ElementKind.ENUM_CONSTANT',
+              'ElementKind.ENUM_CONSTANT+const'
+            ],
           );
         }
       } else if (node is ExtensionDeclaration) {
@@ -1555,8 +1574,11 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.EXTENSION,
             name: node.name,
+            relevanceTags: ['ElementKind.EXTENSION'],
           );
         }
+        // TODO(brianwilkerson) Should we be creating declarations for the
+        //  static members of the extension?
       } else if (node is FunctionDeclaration) {
         var functionExpression = node.functionExpression;
         var parameters = functionExpression.parameters;
@@ -1565,6 +1587,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.GETTER,
             name: node.name,
+            relevanceTags: ['ElementKind.FUNCTION'],
             returnType: _getTypeAnnotationString(node.returnType),
           );
         } else if (node.isSetter) {
@@ -1575,6 +1598,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
+            relevanceTags: ['ElementKind.FUNCTION'],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
           );
@@ -1589,6 +1613,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
+            relevanceTags: ['ElementKind.FUNCTION'],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
             returnType: _getTypeAnnotationString(node.returnType),
@@ -1607,6 +1632,7 @@ class _File {
           parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
+          relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
           requiredParameterCount: _getFormalParameterRequiredCount(parameters),
           returnType: _getTypeAnnotationString(functionType.returnType),
           typeParameters: functionType.typeParameters?.toSource(),
@@ -1620,6 +1646,7 @@ class _File {
           parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
+          relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
           requiredParameterCount: _getFormalParameterRequiredCount(parameters),
           returnType: _getTypeAnnotationString(node.returnType),
           typeParameters: node.typeParameters?.toSource(),
@@ -1629,6 +1656,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.MIXIN,
           name: node.name,
+          relevanceTags: ['ElementKind.MIXIN'],
         );
         if (mixinDeclaration == null) continue;
         addClassMembers(mixinDeclaration, node.members);
@@ -1643,7 +1671,11 @@ class _File {
             isFinal: isFinal,
             kind: DeclarationKind.VARIABLE,
             name: variable.name,
-            relevanceTags: RelevanceTags._forExpression(variable.initializer),
+            relevanceTags: [
+              'ElementKind.TOP_LEVEL_VARIABLE',
+              if (isConst) 'ElementKind.TOP_LEVEL_VARIABLE+const',
+              ...?RelevanceTags._forExpression(variable.initializer)
+            ],
             returnType: _getTypeAnnotationString(node.variables.type),
           );
         }
@@ -1653,8 +1685,11 @@ class _File {
 
   void _computeRelevanceTags(List<Declaration> declarations) {
     for (var declaration in declarations) {
-      declaration._relevanceTags ??=
-          RelevanceTags._forDeclaration(uriStr, declaration);
+      var tags = RelevanceTags._forDeclaration(uriStr, declaration);
+      if (tags != null) {
+        declaration._relevanceTags ??= [];
+        declaration._relevanceTags.addAll(tags);
+      }
       _computeRelevanceTags(declaration.children);
     }
   }

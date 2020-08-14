@@ -182,8 +182,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       // others (for example "flutter").
       final response = await sendRequest(
           Method.workspace_configuration,
-          ConfigurationParams([
-            ConfigurationItem(null, 'dart'),
+          ConfigurationParams(items: [
+            ConfigurationItem(section: 'dart'),
           ]));
 
       final result = response.result;
@@ -218,7 +218,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// version is not known.
   VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
     return documentVersions[path] ??
-        VersionedTextDocumentIdentifier(null, Uri.file(path).toString());
+        VersionedTextDocumentIdentifier(uri: Uri.file(path).toString());
   }
 
   void handleClientConnection(
@@ -269,7 +269,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
               sendErrorResponse(message, result.error);
             } else {
               channel.sendResponse(ResponseMessage(
-                  message.id, result.result, null, jsonRpcVersion));
+                  id: message.id,
+                  result: result.result,
+                  jsonrpc: jsonRpcVersion));
             }
           } else if (message is NotificationMessage) {
             final result = await messageHandler.handleMessage(message);
@@ -290,9 +292,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           sendErrorResponse(
               message,
               ResponseError(
-                ServerErrorCodes.UnhandledError,
-                errorMessage,
-                null,
+                code: ServerErrorCodes.UnhandledError,
+                message: errorMessage,
               ));
           logException(errorMessage, error, stackTrace);
         }
@@ -303,9 +304,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
-      Method.window_logMessage,
-      LogMessageParams(MessageType.Error, message),
-      jsonRpcVersion,
+      method: Method.window_logMessage,
+      params: LogMessageParams(type: MessageType.Error, message: message),
+      jsonrpc: jsonRpcVersion,
     ));
   }
 
@@ -335,7 +336,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    resourceProvider.setOverlay(path, content: content, modificationStamp: 0);
+    resourceProvider.setOverlay(path,
+        content: content, modificationStamp: overlayModificationStamp++);
 
     _afterOverlayChanged(path, plugin.AddContentOverlay(content));
   }
@@ -360,49 +362,51 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
 
     resourceProvider.setOverlay(path,
-        content: newContent, modificationStamp: 0);
+        content: newContent, modificationStamp: overlayModificationStamp++);
 
     _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    final params =
-        PublishClosingLabelsParams(Uri.file(path).toString(), labels);
+    final params = PublishClosingLabelsParams(
+        uri: Uri.file(path).toString(), labels: labels);
     final message = NotificationMessage(
-      CustomMethods.PublishClosingLabels,
-      params,
-      jsonRpcVersion,
+      method: CustomMethods.PublishClosingLabels,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params = PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final params = PublishDiagnosticsParams(
+        uri: Uri.file(path).toString(), diagnostics: errors);
     final message = NotificationMessage(
-      Method.textDocument_publishDiagnostics,
-      params,
-      jsonRpcVersion,
+      method: Method.textDocument_publishDiagnostics,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
-    final params =
-        PublishFlutterOutlineParams(Uri.file(path).toString(), outline);
+    final params = PublishFlutterOutlineParams(
+        uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      CustomMethods.PublishFlutterOutline,
-      params,
-      jsonRpcVersion,
+      method: CustomMethods.PublishFlutterOutline,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
 
   void publishOutline(String path, Outline outline) {
-    final params = PublishOutlineParams(Uri.file(path).toString(), outline);
+    final params =
+        PublishOutlineParams(uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      CustomMethods.PublishOutline,
-      params,
-      jsonRpcVersion,
+      method: CustomMethods.PublishOutline,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
@@ -417,8 +421,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
-      channel.sendResponse(
-          ResponseMessage(message.id, null, error, jsonRpcVersion));
+      channel.sendResponse(ResponseMessage(
+          id: message.id, error: error, jsonrpc: jsonRpcVersion));
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it
       // as show instead of log.
@@ -455,10 +459,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     completers[requestId] = completer;
 
     channel.sendRequest(RequestMessage(
-      Either2<num, String>.t1(requestId),
-      method,
-      params,
-      jsonRpcVersion,
+      id: Either2<num, String>.t1(requestId),
+      method: method,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     ));
 
     return completer.future;
@@ -484,9 +488,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// the [status] information.
   void sendStatusNotification(nd.AnalysisStatus status) {
     channel.sendNotification(NotificationMessage(
-      CustomMethods.AnalyzerStatus,
-      AnalyzerStatusParams(status.isAnalyzing),
-      jsonRpcVersion,
+      method: CustomMethods.AnalyzerStatus,
+      params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
+      jsonrpc: jsonRpcVersion,
     ));
   }
 
@@ -515,7 +519,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // during normal analysis (for example dot folders are skipped over in
     // _handleWatchEventImpl).
     return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file);
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
@@ -538,9 +543,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void showMessageToUser(MessageType type, String message) {
     channel.sendNotification(NotificationMessage(
-      Method.window_showMessage,
-      ShowMessageParams(type, message),
-      jsonRpcVersion,
+      method: Method.window_showMessage,
+      params: ShowMessageParams(type: type, message: message),
+      jsonrpc: jsonRpcVersion,
     ));
   }
 
@@ -657,6 +662,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
     var builder = createContextBuilder(folder, options);
     var analysisDriver = builder.buildDriver(contextRoot);
+    final textDocumentCapabilities =
+        analysisServer.clientCapabilities?.textDocument;
+    final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
+        textDocumentCapabilities?.publishDiagnostics?.tagSupport?.valueSet ??
+            []);
     analysisDriver.results.listen((result) {
       var path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
@@ -665,7 +675,12 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             result.errors
                 .where((e) => e.errorCode.type != ErrorType.TODO)
                 .toList(),
-            toDiagnostic);
+            (result, error, [severity]) => toDiagnostic(
+                  result,
+                  error,
+                  supportedTags: supportedDiagnosticTags,
+                  errorSeverity: severity,
+                ));
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
       }

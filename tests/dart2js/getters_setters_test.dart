@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class GettersSettersTest {
-  static int foo;
+  static int? foo;
 
   static get bar {
     return foo;
@@ -67,8 +67,8 @@ class GettersSettersTest {
 
 class A {
   A();
-  int x_;
-  static int foo;
+  int? x_;
+  static int? foo;
 
   static get bar {
     return foo;
@@ -79,7 +79,7 @@ class A {
   }
 
   int get x {
-    return x_;
+    return x_!;
   }
 
   void set x(int value) {
@@ -91,7 +91,7 @@ class A {
   }
 
   int operator [](int index) {
-    return x_ + index;
+    return x_! + index;
   }
 
   void operator []=(int index, int value) {
@@ -99,7 +99,7 @@ class A {
   }
 
   int getX_() {
-    return x_;
+    return x_!;
   }
 }
 
@@ -108,14 +108,14 @@ class B extends A {
 }
 
 class C extends A {
-  int y_;
+  int? y_;
 
   C() {
     this.x_ = 0;
   }
 
   int get x {
-    return y_;
+    return y_!;
   }
 
   void set x(int value) {

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class NewWithUndefinedConstructorTest extends DriverResolutionTest {
+class NewWithUndefinedConstructorTest extends PubPackageResolutionTest {
   test_default() async {
     await assertErrorsInCode('''
 class A {
@@ -24,7 +24,7 @@ f() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1),
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 38, 1),
     ]);
   }
 
@@ -59,7 +59,7 @@ f() {
   new A.name();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4),
+      error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 35, 4),
     ]);
   }
 }

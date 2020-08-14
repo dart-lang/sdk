@@ -7,7 +7,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get x() → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->i]  get x() → dynamic
     return 0;
 }
 class A extends core::Object {

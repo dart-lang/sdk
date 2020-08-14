@@ -80,7 +80,7 @@ class MyAssistContributor extends Object
   }
 
   void _wrapInIf() {
-    ChangeBuilder builder = new DartChangeBuilder(session);
+    ChangeBuilder builder = new ChangeBuilder(session: session);
     // TODO Build the edit to wrap the selection in a 'if' statement.
     addAssist(wrapInIf, builder);
   }

@@ -11,6 +11,7 @@
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -1632,20 +1633,13 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
     int argument_count,
     const Array& argument_names) {
   // Search the superclass chain for the selector.
-  Function& function = Function::Handle(Z);
-  Class& iterate_klass = Class::Handle(Z, klass.raw());
-  while (!iterate_klass.IsNull()) {
-    function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
-    if (!function.IsNull()) {
-      if (function.AreValidArguments(type_args_len, argument_count,
-                                     argument_names,
-                                     /* error_message = */ NULL)) {
-        return function;
-      }
-    }
-    iterate_klass = iterate_klass.SuperClass();
-  }
-  return Function::Handle();
+  ArgumentsDescriptor args_desc(
+      Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
+                           type_args_len, argument_count, argument_names)));
+  Function& function =
+      Function::Handle(Z, Resolver::ResolveDynamicForReceiverClassAllowPrivate(
+                              klass, name, args_desc, /*allow_add=*/false));
+  return function;
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
@@ -2014,14 +2008,6 @@ Fragment StreamingFlowGraphBuilder::CheckArgumentType(
       type, variable->name(), AssertAssignableInstr::kParameterCheck);
 }
 
-Fragment StreamingFlowGraphBuilder::CheckTypeArgumentBound(
-    const AbstractType& parameter,
-    const AbstractType& bound,
-    const String& dst_name) {
-  return flow_graph_builder_->AssertSubtype(TokenPosition::kNoSource, parameter,
-                                            bound, dst_name);
-}
-
 Fragment StreamingFlowGraphBuilder::EnterScope(
     intptr_t kernel_offset,
     const LocalScope** scope /* = nullptr */) {
@@ -2339,16 +2325,27 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
     instructions += CheckNull(position, receiver, getter_name);
   }
 
-  if (!direct_call.target_.IsNull()) {
+  const String* mangled_name = &getter_name;
+  const Function* direct_call_target = &direct_call.target_;
+  if (H.IsRoot(itarget_name)) {
+    mangled_name = &String::ZoneHandle(
+        Z, Function::CreateDynamicInvocationForwarderName(getter_name));
+    if (!direct_call_target->IsNull()) {
+      direct_call_target = &Function::ZoneHandle(
+          direct_call.target_.GetDynamicInvocationForwarder(*mangled_name));
+    }
+  }
+
+  if (!direct_call_target->IsNull()) {
     ASSERT(CompilerState::Current().is_aot());
     instructions +=
-        StaticCall(position, direct_call.target_, 1, Array::null_array(),
+        StaticCall(position, *direct_call_target, 1, Array::null_array(),
                    ICData::kNoRebind, &result_type);
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
     instructions +=
-        InstanceCall(position, getter_name, Token::kGET, kTypeArgsLen, 1,
+        InstanceCall(position, *mangled_name, Token::kGET, kTypeArgsLen, 1,
                      Array::null_array(), kNumArgsChecked, *interface_target,
                      *tearoff_interface_target, &result_type);
   }
@@ -4753,19 +4750,12 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
   for (intptr_t i = 0; i < catch_count; ++i) {
     intptr_t catch_offset = ReaderOffset();   // Catch has no tag.
     TokenPosition position = ReadPosition();  // read position.
-    Tag tag = PeekTag();                      // peek guard type.
-    AbstractType* type_guard = NULL;
-    if (tag != kDynamicType) {
-      type_guard = &T.BuildType();  // read guard.
-      handler_types.SetAt(i, *type_guard);
-    } else {
-      SkipDartType();  // read guard.
-      handler_types.SetAt(i, Object::dynamic_type());
-    }
+    const AbstractType& type_guard = T.BuildType();  // read guard.
+    handler_types.SetAt(i, type_guard);
 
     Fragment catch_handler_body = EnterScope(catch_offset);
 
-    tag = ReadTag();  // read first part of exception.
+    Tag tag = ReadTag();  // read first part of exception.
     if (tag == kSomething) {
       catch_handler_body += LoadLocal(CurrentException());
       catch_handler_body +=
@@ -4799,22 +4789,22 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       }
     }
 
-    if (type_guard != NULL) {
+    if (!type_guard.IsCatchAllType()) {
       catch_body += LoadLocal(CurrentException());
 
-      if (!type_guard->IsInstantiated(kCurrentClass)) {
+      if (!type_guard.IsInstantiated(kCurrentClass)) {
         catch_body += LoadInstantiatorTypeArguments();
       } else {
         catch_body += NullConstant();
       }
 
-      if (!type_guard->IsInstantiated(kFunctions)) {
+      if (!type_guard.IsInstantiated(kFunctions)) {
         catch_body += LoadFunctionTypeArguments();
       } else {
         catch_body += NullConstant();
       }
 
-      catch_body += Constant(*type_guard);
+      catch_body += Constant(type_guard);
 
       catch_body += InstanceCall(
           position, Library::PrivateCoreLibName(Symbols::_instanceOf()),

@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -19,7 +19,7 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     for (var node = this.node; node != null; node = node.parent) {
       if (node is DeclaredIdentifier) {
         return _removeFromDeclaredIdentifier(builder, node);
@@ -36,8 +36,8 @@ class RemoveTypeAnnotation extends CorrectionProducer {
     }
   }
 
-  Future<void> _removeFromDeclarationList(DartChangeBuilder builder,
-      VariableDeclarationList declarationList) async {
+  Future<void> _removeFromDeclarationList(
+      ChangeBuilder builder, VariableDeclarationList declarationList) async {
     // we need a type
     var typeNode = declarationList.type;
     if (typeNode == null) {
@@ -59,7 +59,7 @@ class RemoveTypeAnnotation extends CorrectionProducer {
       return;
     }
     var keyword = declarationList.keyword;
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var typeRange = range.startStart(typeNode, firstVariable);
       if (keyword != null && keyword.lexeme != 'var') {
         builder.addSimpleReplacement(typeRange, '');
@@ -70,14 +70,14 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   }
 
   Future<void> _removeFromDeclaredIdentifier(
-      DartChangeBuilder builder, DeclaredIdentifier declaration) async {
+      ChangeBuilder builder, DeclaredIdentifier declaration) async {
     var typeNode = declaration.type;
     if (typeNode == null) {
       return;
     }
     var keyword = declaration.keyword;
     var variableName = declaration.identifier;
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var typeRange = range.startStart(typeNode, variableName);
       if (keyword != null && keyword.lexeme != 'var') {
         builder.addSimpleReplacement(typeRange, '');
@@ -88,12 +88,12 @@ class RemoveTypeAnnotation extends CorrectionProducer {
   }
 
   Future<void> _removeTypeAnnotation(
-      DartChangeBuilder builder, TypeAnnotation type) async {
+      ChangeBuilder builder, TypeAnnotation type) async {
     if (type == null) {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(range.startStart(type, type.endToken.next));
     });
   }

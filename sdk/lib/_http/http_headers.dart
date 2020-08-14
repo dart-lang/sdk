@@ -646,8 +646,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   String _originalHeaderName(String name) {
-    // TODO: Update syntax to_originalHeaderNames?[name].
-    return _originalHeaderNames?.[name] ?? name;
+    return _originalHeaderNames?[name] ?? name;
   }
 }
 

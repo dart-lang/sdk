@@ -13,10 +13,9 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
@@ -65,7 +64,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final _InvalidAccessVerifier _invalidAccessVerifier;
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
-  WorkspacePackage _workspacePackage;
+  final WorkspacePackage _workspacePackage;
 
   /// The [LinterContext] used for possible const calculations.
   LinterContext _linterContext;
@@ -87,9 +86,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     String content, {
     @required TypeSystemImpl typeSystem,
     @required InheritanceManager3 inheritanceManager,
-    @required ResourceProvider resourceProvider,
     @required DeclaredVariables declaredVariables,
     @required AnalysisOptions analysisOptions,
+    @required WorkspacePackage workspacePackage,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
@@ -97,10 +96,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
-            _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
+            _InvalidAccessVerifier(_errorReporter, _currentLibrary),
+        _workspacePackage = workspacePackage {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
-    String libraryPath = _currentLibrary.source.fullName;
-    _workspacePackage = _getPackage(libraryPath, resourceProvider);
 
     _linterContext = LinterContextImpl(
       null /* allUnits */,
@@ -282,7 +280,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
-    _checkStrictInferenceInParameters(node.parameters);
+    _checkStrictInferenceInParameters(node.parameters,
+        body: node.body, initializers: node.initializers);
     super.visitConstructorDeclaration(node);
   }
 
@@ -363,7 +362,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (node.parent is CompilationUnit && !node.isSetter) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
-      _checkStrictInferenceInParameters(node.functionExpression.parameters);
+      _checkStrictInferenceInParameters(node.functionExpression.parameters,
+          body: node.functionExpression.body);
       super.visitFunctionDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -384,7 +384,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     DartType functionType = InferenceContext.getContext(node);
     if (functionType is! FunctionType) {
-      _checkStrictInferenceInParameters(node.parameters);
+      _checkStrictInferenceInParameters(node.parameters, body: node.body);
     }
     super.visitFunctionExpression(node);
   }
@@ -403,6 +403,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+    _checkStrictInferenceInParameters(node.parameters);
     super.visitFunctionTypeAlias(node);
   }
 
@@ -496,7 +497,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (!node.isSetter && !elementIsOverride()) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
-      _checkStrictInferenceInParameters(node.parameters);
+      _checkStrictInferenceInParameters(node.parameters, body: node.body);
 
       ExecutableElement overriddenElement = getConcreteOverriddenElement();
       if (overriddenElement == null && (node.isSetter || node.isGetter)) {
@@ -1316,9 +1317,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// In "strict-inference" mode, check that each of the [parameters]' type is
   /// specified.
-  void _checkStrictInferenceInParameters(FormalParameterList parameters) {
+  ///
+  /// Only parameters which are referenced in [initializers] or [body] are
+  /// reported. If [initializers] and [body] are both null, the parameters are
+  /// assumed to originate from a typedef, function-typed parameter, or function
+  /// which is abstract or external.
+  void _checkStrictInferenceInParameters(FormalParameterList parameters,
+      {List<ConstructorInitializer> initializers, FunctionBody body}) {
+    _UsedParameterVisitor usedParameterVisitor;
+
+    bool isParameterReferenced(SimpleFormalParameter parameter) {
+      if ((body == null || body is EmptyFunctionBody) && initializers == null) {
+        // The parameter is in a typedef, or function that is abstract,
+        // external, etc.
+        return true;
+      }
+      if (usedParameterVisitor == null) {
+        // Visit the function body and initializers once to determine whether
+        // each of the parameters is referenced.
+        usedParameterVisitor = _UsedParameterVisitor(
+            parameters.parameters.map((p) => p.declaredElement).toSet());
+        body?.accept(usedParameterVisitor);
+        for (var initializer in initializers ?? []) {
+          initializer.accept(usedParameterVisitor);
+        }
+      }
+
+      return usedParameterVisitor.isUsed(parameter.declaredElement);
+    }
+
     void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
-      if (parameter.type == null) {
+      if (parameter.type == null && isParameterReferenced(parameter)) {
         ParameterElement element = parameter.declaredElement;
         _errorReporter.reportErrorForNode(
           HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
@@ -1354,20 +1383,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           reportNode,
           [displayName]);
     }
-  }
-
-  WorkspacePackage _getPackage(String root, ResourceProvider resourceProvider) {
-    Workspace workspace = _currentLibrary.session?.analysisContext?.workspace;
-    // If there is no driver setup (as in test environments), we need to create
-    // a workspace ourselves.
-    // todo (pq): fix tests or otherwise de-dup this logic shared w/ library_analyzer.
-    if (workspace == null) {
-      final builder = ContextBuilder(
-          resourceProvider, null /* sdkManager */, null /* contentCache */);
-      workspace =
-          ContextBuilder.createWorkspace(resourceProvider, root, builder);
-    }
-    return workspace?.findPackageFor(root);
   }
 
   bool _isLibraryInWorkspacePackage(LibraryElement library) {
@@ -1543,9 +1558,9 @@ class _InvalidAccessVerifier {
     }
     AstNode grandparent = parent?.parent;
 
-    var element;
-    var name;
-    var node;
+    Element element;
+    String name;
+    AstNode node;
 
     if (grandparent is ConstructorName) {
       element = grandparent.staticElement;
@@ -1626,18 +1641,7 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return false;
     }
-    if (element == superElement) {
-      return true;
-    }
-    // TODO(scheglov) `allSupertypes` is very expensive
-    var allSupertypes = element.allSupertypes;
-    for (var i = 0; i < allSupertypes.length; i++) {
-      var supertype = allSupertypes[i];
-      if (supertype.element == superElement) {
-        return true;
-      }
-    }
-    return false;
+    return element.thisType.asInstanceOf(superElement) != null;
   }
 
   bool _hasVisibleForTemplate(Element element) {
@@ -1680,4 +1684,28 @@ class _InvalidAccessVerifier {
   bool _inExportDirective(SimpleIdentifier identifier) =>
       identifier.parent is Combinator &&
       identifier.parent.parent is ExportDirective;
+}
+
+/// A visitor that determines, upon visiting a function body and/or a
+/// constructor's initializers, whether a parameter is referenced.
+class _UsedParameterVisitor extends RecursiveAstVisitor<void> {
+  final Set<ParameterElement> _parameters;
+
+  final Set<ParameterElement> _usedParameters = {};
+
+  _UsedParameterVisitor(this._parameters);
+
+  bool isUsed(ParameterElement parameter) =>
+      _usedParameters.contains(parameter);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+    if (_parameters.contains(element)) {
+      _usedParameters.add(element);
+    }
+  }
 }

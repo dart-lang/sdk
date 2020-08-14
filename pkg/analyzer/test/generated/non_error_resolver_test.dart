@@ -4,16 +4,14 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -23,13 +21,7 @@ main() {
 }
 
 @reflectiveTest
-class NonConstantValueInInitializer extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0',
-        additionalFeatures: [Feature.constant_update_2018]);
-
+class NonConstantValueInInitializer extends PubPackageResolutionTest {
   test_intLiteralInDoubleContext_const_exact() async {
     await assertNoErrorsInCode(r'''
 const double x = 0;
@@ -63,13 +55,13 @@ void main() {
 }
 
 @reflectiveTest
-class NonErrorResolverTest extends DriverResolutionTest {
+class NonErrorResolverTest extends PubPackageResolutionTest {
   test_ambiguousExport() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
 class M {}
 ''');
-    newFile("/test/lib/lib2.dart", content: r'''
+    newFile("$testPackageLibPath/lib2.dart", content: r'''
 library lib2;
 class N {}
 ''');
@@ -81,12 +73,12 @@ export 'lib2.dart';
   }
 
   test_ambiguousExport_combinators_hide() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library L1;
 class A {}
 class B {}
 ''');
-    newFile("/test/lib/lib2.dart", content: r'''
+    newFile("$testPackageLibPath/lib2.dart", content: r'''
 library L2;
 class B {}
 class C {}
@@ -99,12 +91,12 @@ export 'lib2.dart' hide B;
   }
 
   test_ambiguousExport_combinators_show() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library L1;
 class A {}
 class B {}
 ''');
-    newFile("/test/lib/lib2.dart", content: r'''
+    newFile("$testPackageLibPath/lib2.dart", content: r'''
 library L2;
 class B {}
 class C {}
@@ -117,7 +109,7 @@ export 'lib2.dart' show C;
   }
 
   test_ambiguousExport_sameDeclaration() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 class N {}
 ''');
@@ -129,7 +121,7 @@ export 'lib.dart';
   }
 
   test_ambiguousImport_dart_implicitHide() async {
-    newFile('/test/lib/lib.dart', content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 class Future {
   static const zero = 0;
 }
@@ -144,17 +136,17 @@ main() {
   }
 
   test_ambiguousImport_hideCombinator() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
 class N {}
 class N1 {}
 ''');
-    newFile("/test/lib/lib2.dart", content: r'''
+    newFile("$testPackageLibPath/lib2.dart", content: r'''
 library lib2;
 class N {}
 class N2 {}
 ''');
-    newFile("/test/lib/lib3.dart", content: r'''
+    newFile("$testPackageLibPath/lib3.dart", content: r'''
 library lib3;
 class N {}
 class N3 {}
@@ -172,12 +164,12 @@ main() {
   }
 
   test_ambiguousImport_showCombinator() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
 class N {}
 class N1 {}
 ''');
-    newFile("/test/lib/lib2.dart", content: r'''
+    newFile("$testPackageLibPath/lib2.dart", content: r'''
 library lib2;
 class N {}
 class N2 {}
@@ -195,7 +187,7 @@ main() {
   }
 
   test_annotated_partOfDeclaration() async {
-    newFile('/test/lib/part.dart', content: '''
+    newFile('$testPackageLibPath/part.dart', content: '''
 @deprecated part of L;
 ''');
     await assertNoErrorsInCode('''
@@ -421,7 +413,7 @@ main() {
   }
 
   test_assignmentToFinals_importWithPrefix() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
 bool x = false;''');
     await assertNoErrorsInCode(r'''
@@ -716,7 +708,7 @@ class E {}
   }
 
   test_closure_in_type_inferred_variable_in_other_lib() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 var y = (Object x) => x is int && x.isEven;
 ''');
     await assertNoErrorsInCode('''
@@ -778,13 +770,13 @@ const Type d = dynamic;
   }
 
   test_const_imported_defaultParameterValue_withImportPrefix() async {
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 import 'c.dart' as ccc;
 class B {
   const B([p = ccc.value]);
 }
 ''');
-    newFile('/test/lib/c.dart', content: r'''
+    newFile('$testPackageLibPath/c.dart', content: r'''
 const int value = 12345;
 ''');
     await assertNoErrorsInCode(r'''
@@ -861,7 +853,7 @@ class A {
   }
 
   test_constDeferredClass_new() async {
-    newFile('/test/lib/lib.dart', content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 class A {
   const A.b();
 }
@@ -882,7 +874,7 @@ const C = F;
   }
 
   test_constEval_propertyExtraction_fieldStatic_targetType() async {
-    newFile("/test/lib/math.dart", content: r'''
+    newFile("$testPackageLibPath/math.dart", content: r'''
 library math;
 const PI = 3.14;
 ''');
@@ -903,7 +895,7 @@ const C = A.m;
   }
 
   test_constEval_symbol() async {
-    newFile("/test/lib/math.dart", content: r'''
+    newFile("$testPackageLibPath/math.dart", content: r'''
 library math;
 const PI = 3.14;
 ''');
@@ -1086,7 +1078,7 @@ f(g({p})) {}
   }
 
   test_deprecatedMemberUse_hide() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
 class A {}
 @deprecated
@@ -1324,27 +1316,6 @@ class A {
 ''');
   }
 
-  test_for_in_scope() async {
-    await assertNoErrorsInCode('''
-main() {
-  List<List<int>> x = [[1]];
-  for (int x in x.first) {
-    print(x.isEven);
-  }
-}
-''');
-  }
-
-  test_forEach_genericFunctionType() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  for (Null Function<T>(T, Null) e in <dynamic>[]) {
-    e;
-  }
-}
-''');
-  }
-
   test_functionDeclaration_scope_returnType() async {
     await assertNoErrorsInCode('''
 int f(int) { return 0; }
@@ -1553,7 +1524,7 @@ void test1() {
   }
 
   test_importDuplicatedLibraryName() async {
-    newFile("/test/lib/lib.dart", content: "library lib;");
+    newFile("$testPackageLibPath/lib.dart", content: "library lib;");
     await assertErrorsInCode(r'''
 library test;
 import 'lib.dart';
@@ -1566,8 +1537,8 @@ import 'lib.dart';
   }
 
   test_importDuplicatedLibraryUnnamed() async {
-    newFile("/test/lib/lib1.dart");
-    newFile("/test/lib/lib2.dart");
+    newFile("$testPackageLibPath/lib1.dart");
+    newFile("$testPackageLibPath/lib2.dart");
     // No warning on duplicate import (https://github.com/dart-lang/sdk/issues/24156)
     await assertErrorsInCode(r'''
 library test;
@@ -1580,7 +1551,7 @@ import 'lib2.dart';
   }
 
   test_importOfNonLibrary_libraryDeclared() async {
-    newFile("/test/lib/part.dart", content: r'''
+    newFile("$testPackageLibPath/part.dart", content: r'''
 library lib1;
 class A {}
 ''');
@@ -1592,7 +1563,7 @@ A a;
   }
 
   test_importOfNonLibrary_libraryNotDeclared() async {
-    newFile("/test/lib/part.dart", content: '''
+    newFile("$testPackageLibPath/part.dart", content: '''
 class A {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -1603,11 +1574,11 @@ A a;
   }
 
   test_importPrefixes_withFirstLetterDifference() async {
-    newFile("/test/lib/lib1.dart", content: r'''
+    newFile("$testPackageLibPath/lib1.dart", content: r'''
 library lib1;
 test1() {}
 ''');
-    newFile("/test/lib/lib2.dart", content: r'''
+    newFile("$testPackageLibPath/lib2.dart", content: r'''
 library lib2;
 test2() {}
 ''');
@@ -1816,7 +1787,7 @@ class A {
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_field() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library L;
 class A {
   static var _m;
@@ -1833,7 +1804,7 @@ class B extends A {
   }
 
   test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library L;
 class A {
   static _m() {}
@@ -1927,7 +1898,7 @@ class A {
   }
 
   test_invalidAnnotation_constantVariable_field_importWithPrefix() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 class A {
   static const C = 0;
@@ -1951,7 +1922,7 @@ main() {
   }
 
   test_invalidAnnotation_constantVariable_topLevel_importWithPrefix() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 const C = 0;
 ''');
@@ -1964,7 +1935,7 @@ main() {
   }
 
   test_invalidAnnotation_constConstructor_importWithPrefix() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 class A {
   const A(int p);
@@ -1979,7 +1950,7 @@ main() {
   }
 
   test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 class A {
   const A.named(int p);
@@ -2156,12 +2127,12 @@ class A {
   }
 
   Future test_issue32114() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class O {}
 
 typedef T Func<T extends O>(T e);
 ''');
-    newFile('/test/lib/b.dart', content: '''
+    newFile('$testPackageLibPath/b.dart', content: '''
 import 'a.dart';
 export 'a.dart' show Func;
 
@@ -2202,7 +2173,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 93, 1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 97, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
     var z = result.unit.declaredElement.topLevelVariables
         .where((e) => e.name == 'z')
@@ -2211,7 +2182,7 @@ void main() {
   }
 
   test_issue_35320_lists() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 const x = const <String>['a'];
 ''');
     await assertNoErrorsInCode('''
@@ -2231,7 +2202,7 @@ int f(v) {
   }
 
   test_issue_35320_maps() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 const x = const <String, String>{'a': 'b'};
 ''');
     await assertNoErrorsInCode('''
@@ -2251,7 +2222,7 @@ int f(v) {
   }
 
   test_loadLibraryDefined() async {
-    newFile('/test/lib/lib.dart', content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 foo() => 22;''');
     await assertNoErrorsInCode(r'''
@@ -2817,19 +2788,19 @@ main() {
   null[0];
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 0, 0),
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 0, 0),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 0, 0),
     ]);
   }
 
   test_optionalNew_rewrite() async {
-    newFile("/test/lib/a.dart", content: r'''
+    newFile("$testPackageLibPath/a.dart", content: r'''
 class A {
   const A();
   const A.named();
 }
 ''');
-    newFile("/test/lib/b.dart", content: r'''
+    newFile("$testPackageLibPath/b.dart", content: r'''
 import 'a.dart';
 import 'a.dart' as p;
 
@@ -2859,7 +2830,7 @@ main() {
   }
 
   test_optionalNew_rewrite_instantiatesToBounds() async {
-    newFile("/test/lib/a.dart", content: r'''
+    newFile("$testPackageLibPath/a.dart", content: r'''
 class Unbounded<T> {
   const Unbounded();
   const Unbounded.named();
@@ -2869,7 +2840,7 @@ class Bounded<T extends String> {
   const Bounded.named();
 }
 ''');
-    newFile("/test/lib/b.dart", content: r'''
+    newFile("$testPackageLibPath/b.dart", content: r'''
 import 'a.dart';
 import 'a.dart' as p;
 
@@ -3064,13 +3035,13 @@ class _InvertedCodec<T2, S2> extends Codec<T2, S2> {
   }
 
   test_sharedDeferredPrefix() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 f1() {}
 ''');
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 f2() {}
 ''');
-    newFile('/test/lib/lib3.dart', content: r'''
+    newFile('$testPackageLibPath/lib3.dart', content: r'''
 f3() {}
 ''');
     await assertNoErrorsInCode(r'''
@@ -3088,7 +3059,7 @@ class A<T extends void Function(T)>{}
   }
 
   test_typedef_not_function() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 typedef F = int;
 ''');
     await assertNoErrorsInCode('''
@@ -3352,7 +3323,7 @@ main() {
   }
 
   test_typeType_class_prefixed() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 class C {}''');
     await assertNoErrorsInCode(r'''
@@ -3375,7 +3346,7 @@ main() {
   }
 
   test_typeType_functionTypeAlias_prefixed() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile("$testPackageLibPath/lib.dart", content: r'''
 library lib;
 typedef F();''');
     await assertNoErrorsInCode(r'''

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class UnnecessaryCastTest extends DriverResolutionTest {
+class UnnecessaryCastTest extends PubPackageResolutionTest {
   test_conditionalExpression_changesResultType_left() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -219,7 +218,7 @@ void f<T>(T a) {
 class UnnecessaryCastTestWithNullSafety extends UnnecessaryCastTest
     with WithNullSafetyMixin {
   test_interfaceType_star_toNone() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 int a = 0;
 ''');
@@ -237,7 +236,7 @@ void f() {
   }
 
   test_interfaceType_star_toQuestion() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 int a = 0;
 ''');

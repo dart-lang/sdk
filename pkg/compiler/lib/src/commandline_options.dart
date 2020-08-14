@@ -22,11 +22,15 @@ class Flags {
   static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
   static const String enableAsserts = '--enable-asserts';
+  static const String enableNullAssertions = '--null-assertions';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String experimentalTrackAllocations =
       '--experimental-track-allocations';
   static const String experimentalAllocationsPath =
       '--experimental-allocations-path';
+
+  static const String experimentalWrapped = '--experimental-wrapped';
+  static const String experimentalPowersets = '--experimental-powersets';
 
   // Temporary experiment for code generation of locals for frequently used
   // 'this' and constants.
@@ -104,6 +108,8 @@ class Flags {
   static const String newDeferredSplit = '--new-deferred-split';
   static const String reportInvalidInferredDeferredTypes =
       '--report-invalid-deferred-types';
+  static const String deferClassTypes = '--defer-class-types';
+  static const String noDeferClassTypes = '--no-defer-class-types';
 
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
@@ -151,6 +157,9 @@ class Option {
   static const String enableLanguageExperiments =
       '${Flags.enableLanguageExperiments}|'
       '${Flags.enableLanguageExperiments}=.*';
+
+  static const String multiRoots = '--multi-root=.+';
+  static const String multiRootScheme = '--multi-root-scheme=.+';
 
   // Experimental options.
   static const String resolutionInput = '--resolution-input=.+';

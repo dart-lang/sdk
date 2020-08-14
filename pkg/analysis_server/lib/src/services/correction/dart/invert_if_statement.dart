@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class InvertIfStatement extends CorrectionProducer {
@@ -14,7 +14,7 @@ class InvertIfStatement extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.INVERT_IF_STATEMENT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! IfStatement) {
       return;
     }
@@ -31,7 +31,7 @@ class InvertIfStatement extends CorrectionProducer {
     var thenSource = utils.getNodeText(thenStatement);
     var elseSource = utils.getNodeText(elseStatement);
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(condition), invertedCondition);
       builder.addSimpleReplacement(range.node(thenStatement), elseSource);
       builder.addSimpleReplacement(range.node(elseStatement), thenSource);

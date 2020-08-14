@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,15 +14,8 @@ main() {
 }
 
 @reflectiveTest
-class LateFinalLocalAlreadyAssignedTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class LateFinalLocalAlreadyAssignedTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_assignmentExpression_compound() async {
     await assertErrorsInCode('''
 main() {

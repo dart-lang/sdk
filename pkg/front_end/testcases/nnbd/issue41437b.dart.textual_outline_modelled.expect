@@ -1,0 +1,12 @@
+Iterable<bool> getIterableBool() sync* {}
+Iterable<bool> test1() sync* {}
+Iterable<bool> test2() => getNull();
+Iterable<bool> test4() sync* {}
+Iterable<bool> test5() => getIterableNull();
+Iterable<bool> test6() => getIterableBool();
+Iterable<bool> test7() sync* {}
+Iterable<dynamic> getIterableNull() sync* {}
+bool test3() => getNull();
+dynamic getNull() => null;
+main() {}
+test() async {}

@@ -1024,6 +1024,9 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
   AbstractType& result = AbstractType::Handle(
       Z, instr->type().InstantiateFrom(
              instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
+  if (result.IsTypeRef()) {
+    result = TypeRef::Cast(result).type();
+  }
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();
   SetValue(instr, result);

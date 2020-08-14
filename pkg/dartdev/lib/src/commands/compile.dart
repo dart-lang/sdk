@@ -11,6 +11,7 @@ import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../sdk.dart';
+import '../vm_interop_handler.dart';
 
 const int compileErrorExitCode = 64;
 
@@ -65,6 +66,19 @@ class CompileJSCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(sdk.dart2js)) {
+      return 255;
+    }
+    final String librariesPath = path.absolute(
+      sdk.sdkPath,
+      'lib',
+      'libraries.json',
+    );
+
+    if (!Sdk.checkArtifactExists(librariesPath)) {
+      return 255;
+    }
+
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       log.stderr('Missing Dart entry point.');
@@ -76,9 +90,11 @@ class CompileJSCommand extends DartdevCommand<int> {
       return -1;
     }
 
-    final process = await startProcess(sdk.dart2js, argResults.arguments);
-    routeToStdout(process);
-    return process.exitCode;
+    VmInteropHandler.run(sdk.dart2js, [
+      '--libraries-spec=$librariesPath',
+      ...argResults.arguments,
+    ]);
+    return 0;
   }
 }
 
@@ -135,6 +151,7 @@ class CompileSnapshotCommand extends DartdevCommand<int> {
     args.add(path.canonicalize(sourcePath));
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
+    // TODO(bkonyi): perform compilation in same process.
     final process = await startProcess(sdk.dart, args);
     routeToStdout(process);
     return process.exitCode;
@@ -159,12 +176,12 @@ class CompileNativeCommand extends DartdevCommand<int> {
       )
       ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
 Set values of environment variables. To specify multiple variables, use multiple options or use commas to separate key-value pairs.
-E.g.: dart2native -Da=1,b=2 main.dart''')
+E.g.: dart compile $commandName -Da=1,b=2 main.dart''')
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
       ..addOption('packages', abbr: 'p', valueHelp: 'path', help: '''
 Get package locations from the specified file instead of .packages. <path> can be relative or absolute.
-E.g.: dart2native --packages=/tmp/pkgs main.dart
+E.g.: dart compile $commandName --packages=/tmp/pkgs main.dart
 ''')
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file. <path> can be relative or absolute.
@@ -176,6 +193,10 @@ Remove debugging information from the output and save it separately to the speci
 
   @override
   FutureOr<int> run() async {
+    if (!Sdk.checkArtifactExists(genKernel) ||
+        !Sdk.checkArtifactExists(genSnapshot)) {
+      return 255;
+    }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       log.stderr('Missing Dart entry point.');
@@ -221,6 +242,12 @@ class CompileCommand extends Command {
       help: 'to a JIT snapshot',
       fileExt: 'jit',
       formatName: 'app-jit',
+    ));
+    addSubcommand(CompileSnapshotCommand(
+      commandName: 'kernel',
+      help: 'to a kernel snapshot',
+      fileExt: 'dill',
+      formatName: 'kernel',
     ));
     addSubcommand(CompileNativeCommand(
       commandName: 'exe',

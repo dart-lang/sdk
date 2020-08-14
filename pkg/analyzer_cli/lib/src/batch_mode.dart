@@ -13,8 +13,8 @@ typedef BatchRunnerHandler = Future<ErrorSeverity> Function(List<String> args);
 /// Provides a framework to read command line options from stdin and feed them
 /// to a callback.
 class BatchRunner {
-  final outSink;
-  final errorSink;
+  final StringSink outSink;
+  final StringSink errorSink;
 
   BatchRunner(this.outSink, this.errorSink);
 

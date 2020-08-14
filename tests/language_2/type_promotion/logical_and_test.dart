@@ -33,19 +33,19 @@ void main() {
   if (a is D && ((a = new D()) != null)) {
     b = a.d;
     //    ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   }
   if (a is D && (b = a.d)) {
     b = a.d;
     //    ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'd' isn't defined for the class 'A'.
     a = null;
   }
   if ((((a) is D) && (b = (a).d))) {
     b = a.d;
     //    ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'd' isn't defined for the class 'A'.
     a = null;
   }

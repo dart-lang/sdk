@@ -160,7 +160,7 @@ template("build_gen_snapshot") {
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
-    deps = [ ":generate_abi_version_cc_file" ] + extra_deps
+    deps = extra_deps
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
 
@@ -178,7 +178,6 @@ template("build_gen_snapshot") {
       "snapshot_utils.h",
 
       # Very limited native resolver provided.
-      "$target_gen_dir/abi_version.cc",
       "builtin_gen_snapshot.cc",
       "dfe.cc",
       "dfe.h",
@@ -199,7 +198,7 @@ template("build_gen_snapshot") {
     }
 
     if (is_mac) {
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
       ]
@@ -445,13 +444,13 @@ template("dart_io") {
     defines = []
     deps = [ "//third_party/zlib" ] + extra_deps
     if (is_mac || is_ios) {
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "Security.framework",
       ]
 
       if (is_mac) {
-        libs += [ "CoreServices.framework" ]
+        frameworks += [ "CoreServices.framework" ]
       }
     }
 
@@ -551,7 +550,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   ]
   args = [
     "--enable-experiment=non-nullable",
-    "--null-safety",
+    "--sound-null-safety",
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
@@ -728,25 +727,6 @@ source_set("dart_kernel_platform_cc") {
             get_target_outputs(":platform_strong_dill_linkable")
 }
 
-action("generate_abi_version_cc_file") {
-  inputs = [
-    "../../tools/utils.py",
-    "../../tools/VERSION",
-    "abi_version_in.cc",
-  ]
-  output = "$target_gen_dir/abi_version.cc"
-  outputs = [ output ]
-
-  script = "../../tools/make_version.py"
-  args = [
-    "--quiet",
-    "--output",
-    rebase_path(output, root_build_dir),
-    "--input",
-    rebase_path("abi_version_in.cc", root_build_dir),
-  ]
-}
-
 template("dart_executable") {
   use_product_mode = dart_runtime_mode == "release"
   if (defined(invoker.use_product_mode)) {
@@ -803,7 +783,6 @@ template("dart_executable") {
 
     deps = [
       ":crashpad",
-      ":generate_abi_version_cc_file",
       "//third_party/boringssl",
       "//third_party/zlib",
     ]
@@ -840,7 +819,6 @@ template("dart_executable") {
                 "snapshot_utils.h",
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
-                "$target_gen_dir/abi_version.cc",
               ] + extra_sources
 
     if (is_win) {
@@ -878,6 +856,8 @@ dart_executable("dart") {
   }
   extra_sources = [
     "builtin.cc",
+    "dartdev_isolate.cc",
+    "dartdev_isolate.h",
     "dfe.cc",
     "dfe.h",
     "gzip.cc",
@@ -1004,7 +984,6 @@ executable("run_vm_tests") {
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
-    ":generate_abi_version_cc_file",
     ":standalone_dart_io",
     "..:libdart_precompiler",
     "//third_party/zlib",
@@ -1041,7 +1020,6 @@ executable("run_vm_tests") {
   heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
 
   sources = [
-              "$target_gen_dir/abi_version.cc",
               "builtin.cc",
               "dfe.cc",
               "dfe.h",
@@ -1056,7 +1034,8 @@ executable("run_vm_tests") {
               "snapshot_utils.h",
               "vmservice_impl.cc",
               "vmservice_impl.h",
-            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
+            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
+            io_impl_tests
 
   if (!is_win) {
     # Adds all symbols to the dynamic symbol table, not just used ones.

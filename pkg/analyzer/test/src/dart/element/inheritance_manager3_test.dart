@@ -2,21 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritanceManager3Test);
-    defineReflectiveTests(InheritanceManager3WithNnbdTest);
+    defineReflectiveTests(InheritanceManager3WithNullSafetyTest);
   });
 }
 
@@ -1043,17 +1041,10 @@ class B extends A {
 }
 
 @reflectiveTest
-class InheritanceManager3WithNnbdTest extends _InheritanceManager3Base {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class InheritanceManager3WithNullSafetyTest extends _InheritanceManager3Base
+    with WithNullSafetyMixin {
   test_getInheritedMap_topMerge_method() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.6
 class A {
   void foo({int a}) {}
@@ -1103,7 +1094,7 @@ class Y extends A<Object?> with M<dynamic> {}
   }
 
   test_getMember_optIn_inheritsOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -1127,7 +1118,7 @@ class B extends A {
   }
 
   test_getMember_optIn_inheritsOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.6
 class A {
   int foo(int a, int b) => 0;
@@ -1212,7 +1203,7 @@ class X extends A implements B {}
   }
 
   test_getMember_optOut_inheritsOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -1238,7 +1229,7 @@ class B extends A {
   }
 
   test_getMember_optOut_mixesOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
@@ -1263,12 +1254,12 @@ class B with A {
   }
 
   test_getMember_optOut_passOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int foo(int a, int? b) => 0;
 }
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.6
 import 'a.dart';
 class B extends A {
@@ -1292,7 +1283,7 @@ class C extends B {}
   }
 }
 
-class _InheritanceManager3Base extends DriverResolutionTest {
+class _InheritanceManager3Base extends PubPackageResolutionTest {
   InheritanceManager3 manager;
 
   @override

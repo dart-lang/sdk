@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,13 +17,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNullValueTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
+class InvalidUseOfNullValueTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_as() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -71,7 +63,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
-      error(StaticWarningCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
+      error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
     ]);
   }
 
@@ -132,16 +124,7 @@ m(bool cond) {
 
 @reflectiveTest
 class UncheckedUseOfNullableValueInsideExtensionTest
-    extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_indexExpression_nonNullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -171,15 +154,15 @@ class A {
 extension E on A? {
   void bar() {
     this[0];
-    this?.[0];
+    this?[0];
 
     this[0] = 0;
-    this?.[0] = 0;
+    this?[0] = 0;
   }
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 126, 4),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 155, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 126, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 154, 4),
     ]);
   }
 
@@ -219,8 +202,8 @@ extension E on A? {
   }
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 3),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 79, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 79, 4),
     ]);
   }
 
@@ -250,7 +233,7 @@ extension E on A? {
   }
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 78, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 78, 4),
     ]);
   }
 
@@ -294,8 +277,8 @@ extension E on A? {
   }
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 102, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 102, 4),
     ]);
   }
 
@@ -339,23 +322,15 @@ extension E on A? {
   }
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 106, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 93, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 106, 4),
     ]);
   }
 }
 
 @reflectiveTest
-class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class UncheckedUseOfNullableValueTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
@@ -372,7 +347,7 @@ m() {
   if(x && true) {}
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
     ]);
   }
 
@@ -401,7 +376,7 @@ m() {
   assert(x);
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
     ]);
   }
 
@@ -422,7 +397,7 @@ m(B b) {
   b.a.x = 2;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 100, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 100, 3),
     ]);
     var assignment1 = findNode.assignment('b.a?.x = 1');
     var assignment2 = findNode.assignment('b.a.x = 2');
@@ -465,7 +440,7 @@ m(B b) {
   b.a.y += 0;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 109, 5),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 109, 5),
     ]);
     var assignment1 = findNode.assignment('b.a.x +=');
     var assignment2 = findNode.assignment('b.a.y +=');
@@ -492,7 +467,7 @@ m(B b) {
   b.a.x += 2;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
     ]);
     var assignment1 = findNode.assignment('b.a?.x += 1');
     var assignment2 = findNode.assignment('b.a.x += 2');
@@ -509,7 +484,7 @@ m(int x, int? y) {
   y += 0;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 31, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 31, 1),
     ]);
     var assignment1 = findNode.assignment('x +=');
     var assignment2 = findNode.assignment('y +=');
@@ -553,7 +528,7 @@ m() {
   x..[0] = 1;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
   }
 
@@ -573,7 +548,7 @@ m() {
   x..abs();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -593,7 +568,7 @@ m() {
   x..isEven;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -634,7 +609,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 1),
     ]);
   }
 
@@ -648,8 +623,8 @@ m(int? x) {
   x.foo;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 58, 1),
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 58, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
     ]);
   }
 
@@ -669,7 +644,7 @@ m() {
   if (x) {}
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
     ]);
   }
 
@@ -689,7 +664,7 @@ m() {
   x[0];
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
     ]);
   }
 
@@ -709,7 +684,7 @@ m() {
   x();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
     ]);
   }
 
@@ -729,7 +704,7 @@ m() {
   x();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 25, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 25, 1),
     ]);
   }
 
@@ -785,7 +760,7 @@ m() {
   x.isEven;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
     assertSimpleIdentifier(
       findNode.simple('isEven'),
@@ -810,7 +785,7 @@ m() {
   (x).isEven;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 3),
     ]);
   }
 
@@ -829,7 +804,7 @@ m<T extends int?>(T x) {
   x.isEven;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
     ]);
   }
 
@@ -839,7 +814,7 @@ m<T extends Function>(List<T?> x) {
   x.first();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 38, 7),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 38, 7),
     ]);
   }
 
@@ -885,7 +860,7 @@ m() {
   x.round();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -899,8 +874,8 @@ m(int? x) {
   x.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 54, 1),
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 56, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 54, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 56, 3),
     ]);
   }
 
@@ -935,7 +910,7 @@ m(Function? x) {
   x.call();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
     ]);
   }
 
@@ -958,7 +933,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -978,7 +953,7 @@ m() {
   if(!x) {}
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
     ]);
   }
 
@@ -1035,7 +1010,7 @@ m() {
   x - 3;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -1055,7 +1030,7 @@ m() {
   x + 3;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -1078,7 +1053,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
   }
 
@@ -1096,7 +1071,7 @@ m(int? x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
     ]);
   }
 
@@ -1112,7 +1087,7 @@ m(A? x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 77, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 77, 1),
     ]);
   }
 
@@ -1135,7 +1110,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 20, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 20, 1),
     ]);
   }
 
@@ -1153,7 +1128,7 @@ m(int? x) {
   ++x;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 16, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 16, 1),
     ]);
   }
 
@@ -1176,7 +1151,7 @@ m() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
     ]);
   }
 
@@ -1192,7 +1167,7 @@ m(A? x) {
   -x;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 73, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 73, 1),
     ]);
   }
 
@@ -1212,7 +1187,7 @@ m() {
   if(x || false) {}
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
     ]);
   }
 
@@ -1230,7 +1205,7 @@ m(int? x) {
   x += 1;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
     ]);
   }
 
@@ -1246,7 +1221,7 @@ m(A? a) {
   a.x; // 2
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 66, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 66, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
     var propertyAccess2 = findNode.prefixed('a.x; // 2');
@@ -1277,7 +1252,7 @@ m(B b) {
   b.a.x; // 2
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
     ]);
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
     var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
@@ -1308,7 +1283,7 @@ m(B? b) {
   b.a.x; // 2
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1344,7 +1319,7 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 142, 5),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 142, 5),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1380,7 +1355,7 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 148, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 148, 3),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1414,7 +1389,7 @@ m() {
   [...list];
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 4),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 4),
     ]);
   }
 
@@ -1434,7 +1409,7 @@ m() {
   x ? 0 : 1;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
     ]);
   }
 

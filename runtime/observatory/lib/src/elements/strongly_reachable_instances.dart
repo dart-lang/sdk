@@ -49,7 +49,8 @@ class StronglyReachableInstancesElement extends CustomElement
     return e;
   }
 
-  StronglyReachableInstancesElement.created() : super.created('strongly-reachable-instances');
+  StronglyReachableInstancesElement.created()
+      : super.created('strongly-reachable-instances');
 
   @override
   void attached() {

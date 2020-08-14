@@ -30,6 +30,7 @@ import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
 
@@ -95,7 +96,7 @@ class FileState {
     signatureBuilder.addString(path);
     signatureBuilder.addBytes(libraryCycle.signature);
 
-    var content = getContent();
+    var content = getContentWithSameDigest();
     signatureBuilder.addString(content);
 
     return signatureBuilder.toHex();
@@ -112,6 +113,20 @@ class FileState {
     } catch (_) {
       return '';
     }
+  }
+
+  /// Return the content of the file, the empty string if cannot be read.
+  ///
+  /// Additionally, we read the file digest, end verify that it is the same
+  /// as the [_digest] that we recorded in [refresh]. If it is not, then the
+  /// file was changed, and we failed to call [FileSystemState.changeFile]
+  String getContentWithSameDigest() {
+    var digest = utf8.encode(_fsState.getFileDigest(path));
+    if (!const ListEquality<int>().equals(digest, _digest)) {
+      throw StateError('File was changed, but not invalidated: $path');
+    }
+
+    return getContent();
   }
 
   void internal_setLibraryCycle(LibraryCycle cycle, String signature) {
@@ -166,6 +181,7 @@ class FileState {
     @required OperationPerformanceImpl performance,
   }) {
     _fsState.testView.refreshedFiles.add(path);
+    performance.getDataInt('count').increment();
 
     performance.run('digest', (_) {
       _digest = utf8.encode(_fsState.getFileDigest(path));
@@ -184,13 +200,16 @@ class FileState {
           return getContent();
         });
 
-        var unit = performance.run('parse', (_) {
+        var unit = performance.run('parse', (performance) {
+          performance.getDataInt('count').increment();
+          performance.getDataInt('length').add(content.length);
           return parse(AnalysisErrorListener.NULL_LISTENER, content);
         });
 
-        performance.run('unlinked', (_) {
+        performance.run('unlinked', (performance) {
           var unlinkedBuilder = serializeAstCiderUnlinked(_digest, unit);
           bytes = unlinkedBuilder.toBuffer();
+          performance.getDataInt('length').add(bytes.length);
           _fsState._byteStore.put(unlinkedKey, _digest, bytes);
         });
 

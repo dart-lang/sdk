@@ -1132,7 +1132,6 @@ void Assembler::StoreInternalPointer(Register object,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kWord);
 }
 

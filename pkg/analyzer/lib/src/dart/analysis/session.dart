@@ -231,7 +231,7 @@ class SynchronousSession {
   AnalysisOptionsImpl get analysisOptions => _analysisOptions;
 
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
-    this._analysisOptions = analysisOptions;
+    _analysisOptions = analysisOptions;
 
     _typeSystemLegacy?.updateOptions(
       implicitCasts: analysisOptions.implicitCasts,

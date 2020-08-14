@@ -1735,6 +1735,7 @@ main() {
     var intVar = _Var('x', _Type('int'));
     var intQVar = _Var('x', _Type('int?'));
     var objectQVar = _Var('x', _Type('Object?'));
+    var nullVar = _Var('x', _Type('Null'));
     group('setReachable', () {
       var unreachable = FlowModel<_Var, _Type>(false);
       var reachable = FlowModel<_Var, _Type>(true);
@@ -2367,6 +2368,15 @@ main() {
           objectQVar:
               _matchVariableModel(chain: ['int?', 'int'], ofInterest: ['int?'])
         });
+      });
+
+      test('promote to Never', () {
+        var h = _Harness();
+        var s1 = FlowModel<_Var, _Type>(true);
+        var s2 = s1.tryMarkNonNullable(h, nullVar).ifTrue;
+        expect(s2.reachable, false);
+        expect(s2.infoFor(nullVar),
+            _matchVariableModel(chain: ['Never'], ofInterest: []));
       });
     });
 
@@ -3160,6 +3170,7 @@ class _Harness extends TypeOperations<_Var, _Type> {
     'List <: Object': true,
     'Never <: int': true,
     'Never <: int?': true,
+    'Never <: Null': true,
     'Never? <: int': false,
     'Never? <: int?': true,
     'Never? <: num?': true,
@@ -3334,6 +3345,11 @@ class _Harness extends TypeOperations<_Var, _Type> {
     return variable.isLocalVariableWithoutDeclaredType;
   }
 
+  @override
+  bool isNever(_Type type) {
+    return type.type == 'Never';
+  }
+
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
   /// [subExpression] has the given [type].
   LazyExpression isNotType(LazyExpression subExpression, String type) {
@@ -3428,6 +3444,8 @@ class _Harness extends TypeOperations<_Var, _Type> {
   _Type promoteToNonNull(_Type type) {
     if (type.type.endsWith('?')) {
       return _Type(type.type.substring(0, type.type.length - 1));
+    } else if (type.type == 'Null') {
+      return _Type('Never');
     } else {
       return type;
     }

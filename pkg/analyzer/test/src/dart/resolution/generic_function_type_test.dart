@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class GenericFunctionTypeResolutionTest extends DriverResolutionTest {
+class GenericFunctionTypeResolutionTest extends PubPackageResolutionTest {
   /// Test that when [GenericFunctionType] is used in a constant variable
   /// initializer, analysis does not throw an exception; and that the next
   /// [GenericFunctionType] is also handled correctly.

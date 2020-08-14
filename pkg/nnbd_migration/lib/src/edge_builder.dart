@@ -9,12 +9,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -2994,11 +2995,26 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// upcast T to that type if possible, skipping the flatten when not
   /// necessary.
   DecoratedType _wrapFuture(DecoratedType type, AstNode node) {
-    if (type.type.isDartCoreNull || type.type.isBottom) {
+    var dartType = type.type;
+    if (dartType.isDartCoreNull || dartType.isBottom) {
       return _futureOf(type, node);
     }
 
-    if (_typeSystem.isSubtypeOf(type.type, typeProvider.futureDynamicType)) {
+    if (dartType is InterfaceType &&
+        dartType.element == typeProvider.futureOrElement) {
+      var typeArguments = type.typeArguments;
+      if (typeArguments.length == 1) {
+        // Wrapping FutureOr<T?1>?2 should produce Future<T?3>, where either 1
+        // or 2 being nullable causes 3 to become nullable.
+        var typeArgument = typeArguments[0];
+        return _futureOf(
+            typeArgument
+                .withNode(NullabilityNode.forLUB(typeArgument.node, type.node)),
+            node);
+      }
+    }
+
+    if (_typeSystem.isSubtypeOf(dartType, typeProvider.futureDynamicType)) {
       return _decoratedClassHierarchy.asInstanceOf(
           type, typeProvider.futureDynamicType.element);
     }

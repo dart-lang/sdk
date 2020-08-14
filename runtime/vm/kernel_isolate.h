@@ -64,6 +64,8 @@ class KernelIsolate : public AllStatic {
       Dart_SourceFile source_files[]);
 
   static Dart_KernelCompilationResult CompileExpressionToKernel(
+      const uint8_t* platform_kernel,
+      intptr_t platform_kernel_size,
       const char* expression,
       const Array& definitions,
       const Array& type_definitions,

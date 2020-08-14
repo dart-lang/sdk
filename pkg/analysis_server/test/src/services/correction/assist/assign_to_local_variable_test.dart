@@ -79,6 +79,17 @@ void f(p) {}
     await assertNoAssistAt('345');
   }
 
+  Future<void> test_recovery_splitExpression() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+Future<void> _extractDataForSite() async {
+  final Map<String, Object> data = {};
+  final data['table'][] //marker
+}
+''');
+    assertNoAssistAt('] //marker');
+  }
+
   Future<void> test_throw() async {
     await resolveTestUnit('''
 main() {

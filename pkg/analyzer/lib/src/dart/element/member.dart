@@ -84,6 +84,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   }
 
   @override
+  InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
 
@@ -329,6 +332,9 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return PropertyAccessorMember(baseGetter, _substitution, isLegacy);
   }
+
+  @override
+  bool get isAbstract => declaration.isAbstract;
 
   @override
   bool get isCovariant => declaration.isCovariant;

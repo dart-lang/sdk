@@ -769,6 +769,20 @@ class LinkedUnitContext {
       return false;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.isAbstract(node);
+    } else if (node is VariableDeclaration) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        var grandParent = parent.parent;
+        if (grandParent is FieldDeclaration) {
+          return grandParent.abstractKeyword != null;
+        } else {
+          throw UnimplementedError('${grandParent.runtimeType}');
+        }
+      } else {
+        throw UnimplementedError('${parent.runtimeType}');
+      }
+    } else if (node is EnumConstantDeclaration) {
+      return false;
     }
     throw UnimplementedError('${node.runtimeType}');
   }
@@ -922,10 +936,7 @@ class LinkedUnitContext {
     if (linkedType == null) return null;
 
     var kind = linkedType.kind;
-    if (kind == LinkedNodeTypeKind.bottom) {
-      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (kind == LinkedNodeTypeKind.dynamic_) {
+    if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {
       var typeParameterDataList = linkedType.functionTypeParameters;
@@ -985,6 +996,9 @@ class LinkedUnitContext {
         typeArguments: linkedType.interfaceTypeArguments.map(readType).toList(),
         nullabilitySuffix: nullabilitySuffix,
       );
+    } else if (kind == LinkedNodeTypeKind.never) {
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
       TypeParameterElement element;
       var id = linkedType.typeParameterId;

@@ -11,14 +11,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ImportAddShow extends CorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // prepare ImportDirective
     var importDirective = node.thisOrAncestorOfType<ImportDirective>();
     if (importDirective == null) {
@@ -42,7 +42,7 @@ class ImportAddShow extends CorrectionProducer {
     if (referencedNames.isEmpty) {
       return;
     }
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var showCombinator = ' show ${referencedNames.join(', ')}';
       builder.addSimpleInsertion(importDirective.end - 1, showCombinator);
     });

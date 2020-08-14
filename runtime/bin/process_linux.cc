@@ -231,6 +231,8 @@ class ExitCodeHandler {
             process_count_--;
           }
         }
+      } else if (pid < 0) {
+        FATAL1("Wait for process exit failed: %d", errno);
       }
     }
   }

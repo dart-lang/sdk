@@ -17,7 +17,7 @@
 
 namespace dart {
 
-class BufferFormatter;
+class BaseTextBuffer;
 
 namespace compiler {
 
@@ -102,7 +102,7 @@ class NativeType : public ZoneAllocated {
   // Otherwise, return original representation.
   const NativeType& WidenTo4Bytes(Zone* zone) const;
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString() const;
 
   virtual ~NativeType() {}
@@ -153,7 +153,7 @@ class NativeFundamentalType : public NativeType {
   virtual bool Equals(const NativeType& other) const;
   virtual NativeFundamentalType& Split(intptr_t part, Zone* zone) const;
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
 
   virtual ~NativeFundamentalType() {}
 

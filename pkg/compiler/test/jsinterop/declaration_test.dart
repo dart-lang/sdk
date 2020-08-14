@@ -14,7 +14,7 @@ import '../helpers/memory_compiler.dart';
 
 const List<Test> TESTS = const <Test>[
   const Test('Empty js-interop class.', '''
-@JS() 
+@JS()
 library test;
 
 import 'package:js/js.dart';
@@ -81,19 +81,6 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Js-interop class with external method with named parameters.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-class A {
-  external method({a, b});
-}
-
-main() => new A();
-''', errors: const [MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS]),
   const Test('Js-interop class with static method.', '''
 @JS()
 library test;
@@ -370,38 +357,6 @@ class A {
 
 main() => new A(a: 1);
 '''),
-  const Test('External factory constructor with required parameters.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-@anonymous
-class A {
-  external factory A(a, b);
-}
-
-main() => new A(1, 2);
-''', errors: const [
-    MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS
-  ]),
-  const Test('External factory constructor with optional parameters.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-@anonymous
-class A {
-  external factory A([a, b]);
-}
-
-main() => new A(1);
-''', errors: const [
-    MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS
-  ]),
   const Test('Function-typed return type', '''
 @JS()
 library lib;

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class TopLevelInstanceGetterTest extends DriverResolutionTest {
+class TopLevelInstanceGetterTest extends PubPackageResolutionTest {
   test_call() async {
     await assertNoErrorsInCode('''
 class A {
@@ -48,7 +48,7 @@ var b = a.g();
   }
 
   test_field_imported() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   int f;
 }
@@ -322,7 +322,7 @@ var b = new B<int>.named(a.x);
   test_implicitlyTyped_new_explicit_type_params_prefixed() async {
     // The reference to a.x does not trigger TOP_LEVEL_INSTANCE_GETTER because
     // it can't possibly affect the type of b.
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 class B<T> {
   B(x);
 }
@@ -385,7 +385,7 @@ var b = new B.named(a.x);
   }
 
   test_implicitlyTyped_new_not_generic_prefixed() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 class B {
   B(x);
 }
@@ -403,7 +403,7 @@ var b = new foo.B(a.x);
   }
 
   test_implicitlyTyped_new_prefixed() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 class B<T> {
   B(x);
 }

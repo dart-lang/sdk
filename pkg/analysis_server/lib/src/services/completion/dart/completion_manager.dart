@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/completion/dart/local_library_contr
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
@@ -50,7 +51,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
-import 'package:meta/meta.dart';
 
 /// [DartCompletionManager] determines if a completion request is Dart specific
 /// and forwards those requests to all [DartCompletionContributor]s.
@@ -102,7 +102,8 @@ class DartCompletionManager {
   Future<List<CompletionSuggestion>> computeSuggestions(
     OperationPerformanceImpl performance,
     CompletionRequest request, {
-    @required bool enableUriContributor,
+    bool enableOverrideContributor = true,
+    bool enableUriContributor = true,
   }) async {
     request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.result.path)) {
@@ -145,7 +146,7 @@ class DartCompletionManager {
       LocalLibraryContributor(),
       LocalReferenceContributor(),
       NamedConstructorContributor(),
-      OverrideContributor(),
+      if (enableOverrideContributor) OverrideContributor(),
       StaticMemberContributor(),
       TypeMemberContributor(),
       if (enableUriContributor) UriContributor(),
@@ -242,9 +243,25 @@ class DartCompletionManager {
   }
 
   void _addIncludedSuggestionRelevanceTags(DartCompletionRequestImpl request) {
-    if (request.inConstantContext && request.useNewRelevance) {
-      includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
-          'isConst', RelevanceBoost.constInConstantContext));
+    if (request.useNewRelevance) {
+      var location = request.opType.completionLocation;
+      if (location != null) {
+        var locationTable = elementKindRelevance[location];
+        if (locationTable != null) {
+          var inConstantContext = request.inConstantContext;
+          for (var entry in locationTable.entries) {
+            var kind = entry.key.toString();
+            var elementBoost = (entry.value.upper * 100).floor();
+            includedSuggestionRelevanceTags
+                .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
+            if (inConstantContext) {
+              includedSuggestionRelevanceTags.add(
+                  IncludedSuggestionRelevanceTag(
+                      '$kind+const', elementBoost + 100));
+            }
+          }
+        }
+      }
     }
 
     var type = request.contextType;
@@ -262,6 +279,12 @@ class DartCompletionManager {
           ),
         );
       } else {
+        // TODO(brianwilkerson) This was previously used to boost exact type
+        //  matches. For example, if the context type was `Foo`, then the class
+        //  `Foo` and it's constructors would be given this boost. Now this
+        //  boost will almost always be ignored because the element boost will
+        //  be bigger. Find a way to use this boost without negating the element
+        //  boost, which is how we get constructors to come before classes.
         var relevance = request.useNewRelevance
             ? RelevanceBoost.availableDeclaration
             : DART_RELEVANCE_BOOST_AVAILABLE_DECLARATION;
@@ -385,11 +408,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
         var identifier = entity.name;
-        if (offset >= entity.offset &&
-            offset - entity.offset < identifier.length) {
+        if (offset >= entity.offset && offset < entity.end) {
           return identifier.substring(0, offset - entity.offset);
+        } else if (offset == entity.end) {
+          return identifier;
         }
-        return identifier;
       }
       var children = (entity as AstNode).childEntities;
       entity = children.isEmpty ? null : children.first;

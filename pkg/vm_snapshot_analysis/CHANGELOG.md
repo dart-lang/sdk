@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.3
+- Add `compareProgramInfo` that takes in two program info objects and outputs
+a `Map` object containing the diff data.
+
+## 0.5.2
+- Add support for package paths that look like `package:foo.bar.baz/src/foobar.dart`
+- Move `commands` back to lib.
+
+## 0.5.0+1
+- Fix broken package by moving non-executable file out of bin/ directory.
+
+## 0.5.0
+- Remove `dart:io` dependency from package `lib`, and move `commands` to `bin`.
+- Replace `loadProgramInfo` util method with `loadProgramInfoFromJson`, which
+expects an `Object` parameter instead of a `File` parameter.
+- `buildComparisonTreemap` now expects two `Object` parameters for `oldJson` and
+`newJson` instead of two `File` parameters.
+- `compare` command now prints difference breakdown by node type when this
+information is available.
+
 ## 0.4.0
 
 - Add `buildComparisonTreemap` for constructing treemap representing the diff

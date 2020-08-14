@@ -225,6 +225,7 @@ TEST_CASE(EvalExpression) {
 
     Dart_KernelCompilationResult compilation_result =
         KernelIsolate::CompileExpressionToKernel(
+            /*platform_kernel=*/nullptr, /*platform_kernel_size=*/0,
             expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
             String::Handle(lib_handle.url()).ToCString(), "A",
             /* is_static= */ false);

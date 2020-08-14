@@ -1018,8 +1018,7 @@ class B extends A {
     assertNotSuggested('_B');
     // hidden element not suggested
     assertNotSuggested('D');
-    assertSuggestFunction('D1', 'dynamic',
-        isDeprecated: true, relevance: DART_RELEVANCE_LOW);
+    assertSuggestFunction('D1', 'dynamic', isDeprecated: true);
     assertNotSuggested('D2');
     // Not imported, so not suggested
     assertNotSuggested('D3');
@@ -1873,8 +1872,8 @@ main() {
     await computeSuggestions();
 
     assertSuggestEnum('E');
-    assertSuggestEnumConst('E.one', hasTypeBoost: true);
-    assertSuggestEnumConst('E.two', hasTypeBoost: true);
+    assertSuggestEnumConst('E.one');
+    assertSuggestEnumConst('E.two');
 
     assertSuggestEnum('F');
     assertSuggestEnumConst('F.three');
@@ -2769,15 +2768,9 @@ main() {
 ''');
     await computeSuggestions();
 
-    assertSuggestConstructor('A',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
-    assertSuggestConstructor('B',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
-    assertSuggestConstructor('C',
-        elemOffset: -1,
-        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_SUBTYPE);
+    assertSuggestConstructor('A', elemOffset: -1);
+    assertSuggestConstructor('B', elemOffset: -1);
+    assertSuggestConstructor('C', elemOffset: -1);
     assertSuggestConstructor('D', elemOffset: -1);
   }
 

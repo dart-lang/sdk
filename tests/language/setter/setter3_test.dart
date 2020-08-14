@@ -11,10 +11,10 @@ class A {
   void set bar(x) {}
   dynamic set baz(x) {}
 //^^^^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
   bool set bob(x) {}
 //^^^^
-// [analyzer] STATIC_WARNING.NON_VOID_RETURN_FOR_SETTER
+// [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 //         ^^^
 // [analyzer] COMPILE_TIME_ERROR.BODY_MIGHT_COMPLETE_NORMALLY
 // [cfe] A non-null value must be returned since the return type 'bool' doesn't allow null.

@@ -754,7 +754,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addString(linterVersion ?? '');
       buffer.addInt(lintRules.length);
       for (Linter lintRule in lintRules) {
-        buffer.addString(lintRule.lintCode.uniqueName);
+        buffer.addString(lintRule.name);
       }
 
       // Append plugin names.
@@ -858,19 +858,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-  }
-
-  /// Return whether the given lists of lints are equal.
-  static bool compareLints(List<Linter> a, List<Linter> b) {
-    if (a.length != b.length) {
-      return false;
-    }
-    for (int i = 0; i < a.length; i++) {
-      if (a[i].lintCode != b[i].lintCode) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /// Predicate used for [analyzeFunctionBodiesPredicate] when

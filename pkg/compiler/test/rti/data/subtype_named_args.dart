@@ -53,19 +53,19 @@ typedef okWithDynamicFunc_2({int x, bool y, List<Map> z, classesFunc v});
 
 main() {
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({D a, B b, C c, A d}) {} is classesFunc);
   Expect.isTrue(
       /*needsSignature*/
       ({A a, A b, A c, A d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({D a, D b, D c, D d}) {} is classesFunc);
   Expect.isTrue(
       /*needsSignature*/
@@ -79,7 +79,7 @@ main() {
       ({Map<num, num> m, List<List<A1>> l, G<A, A1, A1, A1> g}) {}
           is genericsFunc);
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({Map<int, int> m, List<List<D>> l, G<D, D, D, D> g}) {} is genericsFunc);
   Expect.isTrue(
       /*needsSignature*/
@@ -89,13 +89,13 @@ main() {
       ({Object m, Object l, Object g}) {} is genericsFunc);
 
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
   Expect.isTrue(
-      /*spec.needsSignature*/
+      /*needsSignature*/
       ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
-  Expect.isTrue((
+  Expect.isTrue(/*needsSignature*/(
       {okWithClassesFunc_1 f1,
       okWithGenericsFunc_1 f2,
       okWithDynamicFunc_1 f3}) {} is funcFunc);

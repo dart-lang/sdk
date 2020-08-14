@@ -6,12 +6,12 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 abstract class FlutterParentAndChild extends CorrectionProducer {
   Future<void> swapParentAndChild(
-      DartChangeBuilder builder,
+      ChangeBuilder builder,
       InstanceCreationExpression parent,
       InstanceCreationExpression child) async {
     // The child must have its own child.
@@ -19,7 +19,7 @@ abstract class FlutterParentAndChild extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(parent), (builder) {
         var childArgs = child.argumentList;
         var parentArgs = parent.argumentList;
@@ -96,7 +96,7 @@ class FlutterSwapWithChild extends FlutterParentAndChild {
   AssistKind get assistKind => DartAssistKind.FLUTTER_SWAP_WITH_CHILD;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var parent = flutter.identifyNewExpression(node);
     if (!flutter.isWidgetCreation(parent)) {
       return;

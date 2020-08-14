@@ -26,13 +26,6 @@
 
 namespace dart {
 
-// Forward declarations.
-class Serializer;
-class Deserializer;
-class ObjectStore;
-class ImageWriter;
-class ImageReader;
-
 // For full snapshots, we use a clustered snapshot format that trades longer
 // serialization time for faster deserialization time and smaller snapshots.
 // Objects are clustered by class to allow writing type information once per
@@ -49,6 +42,37 @@ class ImageReader;
 // Finally, each cluster is given an opportunity to perform some fix-ups that
 // require the graph has been fully loaded, such as rehashing, though most
 // clusters do not require fixups.
+
+// Forward declarations.
+class Serializer;
+class Deserializer;
+class ObjectStore;
+class ImageWriter;
+class ImageReader;
+
+class LoadingUnitSerializationData : public ZoneAllocated {
+ public:
+  LoadingUnitSerializationData(intptr_t id,
+                               LoadingUnitSerializationData* parent)
+      : id_(id), parent_(parent), deferred_objects_(), num_objects_(0) {}
+
+  intptr_t id() const { return id_; }
+  LoadingUnitSerializationData* parent() const { return parent_; }
+  intptr_t num_objects() const { return num_objects_; }
+  void set_num_objects(intptr_t value) { num_objects_ = value; }
+  void AddDeferredObject(ObjectPtr obj) {
+    deferred_objects_.Add(&Object::ZoneHandle(obj));
+  }
+  GrowableArray<const Object*>* deferred_objects() {
+    return &deferred_objects_;
+  }
+
+ private:
+  intptr_t id_;
+  LoadingUnitSerializationData* parent_;
+  GrowableArray<const Object*> deferred_objects_;
+  intptr_t num_objects_;
+};
 
 class SerializationCluster : public ZoneAllocated {
  public:
@@ -142,7 +166,8 @@ class Serializer : public ThreadStackResource {
   // Reference value for objects that either are not reachable from the roots or
   // should never have a reference in the snapshot (because they are dropped,
   // for example). Should be the default value for Heap::GetObjectId.
-  static const intptr_t kUnreachableReference = 0;
+  static constexpr intptr_t kUnreachableReference = 0;
+  COMPILE_ASSERT(kUnreachableReference == WeakTable::kNoValue);
 
   static constexpr bool IsReachableReference(intptr_t ref) {
     return ref == kUnallocatedReference || IsAllocatedReference(ref);
@@ -163,6 +188,8 @@ class Serializer : public ThreadStackResource {
   intptr_t WriteVMSnapshot(const Array& symbols);
   void WriteProgramSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
+  void WriteUnitSnapshot(LoadingUnitSerializationData* unit,
+                         uint32_t program_hash);
 
   void AddVMIsolateBaseObjects();
 
@@ -384,6 +411,7 @@ class Serializer : public ThreadStackResource {
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
 
+  intptr_t PrepareCodeOrder();
   void WriteDispatchTable(const Array& entries);
 
   Snapshot::Kind kind() const { return kind_; }
@@ -398,6 +426,14 @@ class Serializer : public ThreadStackResource {
   // in the profile representing this object.
   // Returns true if [obj] has an artificial profile node associated with it.
   bool CreateArtificalNodeIfNeeded(ObjectPtr obj);
+
+  bool InCurrentLoadingUnit(ObjectPtr obj, bool record = false);
+  void set_loading_units(GrowableArray<LoadingUnitSerializationData*>* units) {
+    loading_units_ = units;
+  }
+  void set_current_loading_unit_id(intptr_t id) {
+    current_loading_unit_id_ = id;
+  }
 
  private:
   static const char* ReadOnlyObjectType(intptr_t cid);
@@ -451,6 +487,7 @@ class Serializer : public ThreadStackResource {
   SerializationCluster** clusters_by_cid_;
   GrowableArray<ObjectPtr> stack_;
   intptr_t num_cids_;
+  intptr_t num_tlc_cids_;
   intptr_t num_base_objects_;
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
@@ -479,6 +516,9 @@ class Serializer : public ThreadStackResource {
 #if defined(DART_PRECOMPILER)
   IntMap<intptr_t> deduped_instructions_sources_;
 #endif
+
+  intptr_t current_loading_unit_id_ = 0;
+  GrowableArray<LoadingUnitSerializationData*>* loading_units_ = nullptr;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
@@ -576,6 +616,7 @@ class Deserializer : public ThreadStackResource {
   ApiErrorPtr VerifyImageAlignment();
 
   void ReadProgramSnapshot(ObjectStore* object_store);
+  ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
   void ReadVMSnapshot();
 
   void AddVMIsolateBaseObjects();
@@ -719,7 +760,11 @@ class FullSnapshotWriter {
   Heap* heap() const { return isolate()->heap(); }
 
   // Writes a full snapshot of the program(VM isolate, regular isolate group).
-  void WriteFullSnapshot();
+  void WriteFullSnapshot(
+      GrowableArray<LoadingUnitSerializationData*>* data = nullptr);
+  void WriteUnitSnapshot(GrowableArray<LoadingUnitSerializationData*>* units,
+                         LoadingUnitSerializationData* unit,
+                         uint32_t program_hash);
 
   intptr_t VmIsolateSnapshotSize() const { return vm_isolate_snapshot_size_; }
   intptr_t IsolateSnapshotSize() const { return isolate_snapshot_size_; }
@@ -729,7 +774,8 @@ class FullSnapshotWriter {
   intptr_t WriteVMSnapshot();
 
   // Writes a full snapshot of regular Dart isolate group.
-  void WriteProgramSnapshot(intptr_t num_base_objects);
+  void WriteProgramSnapshot(intptr_t num_base_objects,
+                            GrowableArray<LoadingUnitSerializationData*>* data);
 
   Thread* thread_;
   Snapshot::Kind kind_;
@@ -761,9 +807,12 @@ class FullSnapshotReader {
 
   ApiErrorPtr ReadVMSnapshot();
   ApiErrorPtr ReadProgramSnapshot();
+  ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
 
  private:
   ApiErrorPtr ConvertToApiError(char* message);
+  void PatchGlobalObjectPool();
+  void InitializeBSS();
 
   Snapshot::Kind kind_;
   Thread* thread_;

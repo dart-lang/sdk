@@ -3055,6 +3055,98 @@ void _f() {
     visitTypeAnnotation(findNode.typeAnnotation('dynamic'), 'dynamic');
   }
 
+  Future<void> test_typeName_futureOr_dynamic_nullable() async {
+    await analyze('''
+import 'dart:async';
+void _f() {
+  FutureOr<dynamic> x = null;
+}
+''');
+    // The type of `x` should be `FutureOr<dynamic>?`, but this is equivalent to
+    // `FutureOr<dynamic>`, so we don't add a `?`.  Note: expected type is
+    // still `FutureOr<dynamic>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<dynamic> x'), 'FutureOr<dynamic>?',
+        changes: {});
+  }
+
+  Future<void> test_typeName_futureOr_inner() async {
+    await analyze('''
+import 'dart:async';
+void _f(FutureOr<int/*?*/> x) {
+  FutureOr<int> y = x;
+}
+''');
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<int> y'), 'FutureOr<int?>',
+        changes: {findNode.typeAnnotation('int> y'): isMakeNullable});
+  }
+
+  Future<void> test_typeName_futureOr_null_nullable() async {
+    await analyze('''
+import 'dart:async';
+void _f() {
+  FutureOr<Null> x = null;
+}
+''');
+    // The type of `x` should be `FutureOr<Null>?`, but this is equivalent to
+    // `FutureOr<Null>`, so we don't add a `?`.  Note: expected type is
+    // still `FutureOr<Null>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<Null> x'), 'FutureOr<Null>?',
+        changes: {});
+  }
+
+  Future<void> test_typeName_futureOr_outer() async {
+    await analyze('''
+import 'dart:async';
+void _f(FutureOr<int>/*?*/ x) {
+  FutureOr<int> y = x;
+}
+''');
+    var typeAnnotation = findNode.typeAnnotation('FutureOr<int> y');
+    visitTypeAnnotation(typeAnnotation, 'FutureOr<int>?',
+        changes: {typeAnnotation: isMakeNullable});
+  }
+
+  Future<void> test_typeName_futureOr_redundant() async {
+    await analyze('''
+import 'dart:async';
+void _f(bool b, FutureOr<int>/*?*/ x, FutureOr<int/*?*/> y) {
+  FutureOr<int> z = b ? x : y;
+}
+''');
+    // The type of `z` should be `FutureOr<int?>?`, but this is equivalent to
+    // `FutureOr<int?>`, so we only add the first `?`.  Note: expected type is
+    // still `FutureOr<int?>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<int> z'), 'FutureOr<int?>?',
+        changes: {findNode.typeAnnotation('int> z'): isMakeNullable});
+  }
+
+  Future<void> test_typeName_futureOr_void_nullable() async {
+    await analyze('''
+import 'dart:async';
+void _f() {
+  FutureOr<void> x = null;
+}
+''');
+    // The type of `x` should be `FutureOr<void>?`, but this is equivalent to
+    // `FutureOr<void>`, so we don't add a `?`.  Note: expected type is
+    // still `FutureOr<void>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<void> x'), 'FutureOr<void>?',
+        changes: {});
+  }
+
   Future<void> test_typeName_generic_nonNullable() async {
     await analyze('''
 void _f() {
@@ -3083,6 +3175,19 @@ void _f() {
 ''');
     visitTypeAnnotation(findNode.typeAnnotation('List<int>'), 'List<int?>',
         changes: {findNode.typeAnnotation('int'): isMakeNullable});
+  }
+
+  Future<void> test_typeName_generic_nullable_arg_and_outer() async {
+    await analyze('''
+void _f(bool b) {
+  List<int> i = b ? [null] : null;
+}
+''');
+    var listInt = findNode.typeAnnotation('List<int>');
+    visitTypeAnnotation(listInt, 'List<int?>?', changes: {
+      findNode.typeAnnotation('int'): isMakeNullable,
+      listInt: isMakeNullable
+    });
   }
 
   Future<void> test_typeName_simple_nonNullable() async {

@@ -1,4 +1,35 @@
-## 2.9.0
+## 2.10.0
+
+### Core libraries
+
+#### `dart:typed_data`
+
+*   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
+    It's temporarily being exported from `dart:io` as well.
+
+### Dart VM
+
+*   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
+    referred object cannot be accessed through them.
+
+### Tools
+
+#### Linter
+
+Updated the Linter to `0.1.118`, which includes:
+
+* New lint: `unnecessary_nullable_for_final_variable_declarations`.
+* Fixed NPE in `prefer_asserts_in_initializer_lists`.
+* Fixed range error in `unnecessary_string_escapes`.
+* `unsafe_html` updated to support unique error codes.
+* Updates to `diagnostic_describe_all_properties` to check for `Diagnosticable`s (not `DiagnosticableMixin`s).
+* New lint: `use_late`.
+* Fixed `unnecessary_lambdas` to respect deferred imports.
+* Updated `public_member_api_docs` to check mixins.
+* Updated `unnecessary_statements` to skip `as` expressions.
+* Fixed `prefer_relative_imports` to work with path dependencies.
+
+## 2.9.0 - 2020-08-05
 
 ### Language
 
@@ -116,19 +147,27 @@ Updated the Linter to `0.1.117`, which includes:
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
   experiments in the Dart VM (and language).
+* Warn when publishing the first null-safe version of a package.
+* `pub outdated`:
+  * Introduce `--mode=null-safety` flag that will report which of your
+    dependencies you can upgrade to fully support null safety.
+  * If the current version of a dependency is a prerelease
+    version, use prereleases for latest if there is no newer stable.
+  * Don't require a `pubspec.lock` file. When the lockfile is missing, the
+    **Current** column is empty.
+* `pub upgrade`: Show summary count of outdated packages after running.
+  It will also only show newer packages if they are not prereleases or
+  the package is already a prerelease.
 * Publishing Flutter plugins using the old plugin format is no longer allowed.
   Plugins using the old plugin format can still be consumed.
-* Introduce `pub outdated --mode=null-safety` that will report which of your
-  dependencies you can upgrade to fully support null safety.
-* Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
-* Warn at publishing first time a package version opts in to null-safety.
-* Preserve Windows line endings in pubspec.lock if they are already there (#2489)
+* `pub run`: Fix precompilation with relative `PUB_CACHE` paths
+  ([#2486](https://github.com/dart-lang/pub/pull/2486)).
+* Preserve Windows line endings in `pubspec.lock` if they are already there
+  ([#2489](https://github.com/dart-lang/pub/pull/2489)).
 * Better terminal color-detection. Use colors in terminals on Windows.
-* `pub outdated`: If the current version of a dependency is a prerelease
-  version, use prereleases for latest if no newer stable.
-* `pub outdated` now works without a lockfile. In that case the 'Current'
-  column will be empty.
-* `pub upgrade`: Show summary count of outdated packages after running.
+* Fix git folder names in cache, allowing for ssh-style git
+  dependencies.
+* Fix: Avoid precompilation of dependencies of global packages.
 
 ## 2.8.4 - 2020-06-04
 

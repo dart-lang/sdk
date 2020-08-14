@@ -434,17 +434,19 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
-  List<Uri> deps = result.deps.toList();
-  for (Uri dependency in await computeHostDependencies(hostPlatform)) {
-    // Add the dependencies of the compiler's own sources.
-    if (dependency != outlineOutput) {
-      // We're computing the dependencies for [outlineOutput], so we shouldn't
-      // include it in the deps file.
-      deps.add(dependency);
+  if (c.options.emitDeps) {
+    List<Uri> deps = result.deps.toList();
+    for (Uri dependency in await computeHostDependencies(hostPlatform)) {
+      // Add the dependencies of the compiler's own sources.
+      if (dependency != outlineOutput) {
+        // We're computing the dependencies for [outlineOutput], so we shouldn't
+        // include it in the deps file.
+        deps.add(dependency);
+      }
     }
+    await writeDepsFile(fullOutput,
+        new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
   }
-  await writeDepsFile(
-      fullOutput, new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
 }
 
 Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {

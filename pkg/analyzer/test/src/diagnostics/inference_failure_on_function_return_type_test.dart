@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,10 +16,17 @@ main() {
 /// Tests of HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE with the
 /// "strict-inference" static analysis option.
 @reflectiveTest
-class InferenceFailureOnFunctionReturnTypeTest extends DriverResolutionTest {
+class InferenceFailureOnFunctionReturnTypeTest
+    extends PubPackageResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..strictInference = true;
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictInference: true,
+      ),
+    );
+  }
 
   test_classInstanceGetter() async {
     await assertErrorsInCode(r'''

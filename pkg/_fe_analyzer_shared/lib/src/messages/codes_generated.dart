@@ -46,6 +46,53 @@ const MessageCode messageAbstractClassMember = const MessageCode(
         r"""Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractExtensionField = messageAbstractExtensionField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractExtensionField = const MessageCode(
+    "AbstractExtensionField",
+    message: r"""Extension fields can't be declared 'abstract'.""",
+    tip: r"""Try removing the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractExternalField = messageAbstractExternalField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractExternalField = const MessageCode(
+    "AbstractExternalField",
+    message: r"""Fields can't be declared both 'abstract' and 'external'.""",
+    tip: r"""Try removing the 'abstract' or 'external' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFieldConstructorInitializer =
+    messageAbstractFieldConstructorInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFieldConstructorInitializer = const MessageCode(
+    "AbstractFieldConstructorInitializer",
+    message: r"""Abstract fields cannot have initializers.""",
+    tip:
+        r"""Try removing the field initializer or the 'abstract' keyword from the field declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFieldInitializer = messageAbstractFieldInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFieldInitializer = const MessageCode(
+    "AbstractFieldInitializer",
+    message: r"""Abstract fields cannot have initializers.""",
+    tip: r"""Try removing the initializer or the 'abstract' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractLateField = messageAbstractLateField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractLateField = const MessageCode(
+    "AbstractLateField",
+    message: r"""Abstract fields cannot be late.""",
+    tip: r"""Try removing the 'abstract' or 'late' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -80,6 +127,15 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
           """Factory redirects to class '${name}', which is abstract and can't be instantiated.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractStaticField = messageAbstractStaticField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractStaticField = const MessageCode(
+    "AbstractStaticField",
+    message: r"""Static fields can't be declared 'abstract'.""",
+    tip: r"""Try removing the 'abstract' or 'static' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateAccessError =
@@ -1253,6 +1309,14 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalNonNull = messageConstEvalNonNull;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalNonNull = const MessageCode(
+    "ConstEvalNonNull",
+    message: r"""Constant expression must be non-null.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalNotListOrSetInSpread =
     messageConstEvalNotListOrSetInSpread;
 
@@ -2244,95 +2308,6 @@ Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedLibraryExport =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""A library with name '#name' is exported more than once.""",
-        withArguments: _withArgumentsDuplicatedLibraryExport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedLibraryExport =
-    const Code<Message Function(String name)>(
-        "DuplicatedLibraryExport", templateDuplicatedLibraryExport,
-        analyzerCodes: <String>["EXPORT_DUPLICATED_LIBRARY_NAMED"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedLibraryExport(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedLibraryExport,
-      message: """A library with name '${name}' is exported more than once.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDuplicatedLibraryExportContext =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' is also exported here.""",
-        withArguments: _withArgumentsDuplicatedLibraryExportContext);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedLibraryExportContext =
-    const Code<Message Function(String name)>("DuplicatedLibraryExportContext",
-        templateDuplicatedLibraryExportContext,
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedLibraryExportContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedLibraryExportContext,
-      message: """'${name}' is also exported here.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)> templateDuplicatedLibraryImport =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""A library with name '#name' is imported more than once.""",
-        withArguments: _withArgumentsDuplicatedLibraryImport);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedLibraryImport =
-    const Code<Message Function(String name)>(
-        "DuplicatedLibraryImport", templateDuplicatedLibraryImport,
-        analyzerCodes: <String>["IMPORT_DUPLICATED_LIBRARY_NAMED"],
-        severity: Severity.warning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedLibraryImport(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedLibraryImport,
-      message: """A library with name '${name}' is imported more than once.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateDuplicatedLibraryImportContext =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""'#name' is also imported here.""",
-        withArguments: _withArgumentsDuplicatedLibraryImportContext);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeDuplicatedLibraryImportContext =
-    const Code<Message Function(String name)>("DuplicatedLibraryImportContext",
-        templateDuplicatedLibraryImportContext,
-        severity: Severity.context);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsDuplicatedLibraryImportContext(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeDuplicatedLibraryImportContext,
-      message: """'${name}' is also imported here.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
@@ -3269,6 +3244,35 @@ const MessageCode messageExternalField = const MessageCode("ExternalField",
     message: r"""Fields can't be declared to be 'external'.""",
     tip:
         r"""Try removing the keyword 'external', or replacing the field by an external getter and/or setter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFieldConstructorInitializer =
+    messageExternalFieldConstructorInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFieldConstructorInitializer = const MessageCode(
+    "ExternalFieldConstructorInitializer",
+    message: r"""External fields cannot have initializers.""",
+    tip:
+        r"""Try removing the field initializer or the 'external' keyword from the field declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFieldInitializer = messageExternalFieldInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFieldInitializer = const MessageCode(
+    "ExternalFieldInitializer",
+    message: r"""External fields cannot have initializers.""",
+    tip: r"""Try removing the initializer or the 'external' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalLateField = messageExternalLateField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalLateField = const MessageCode(
+    "ExternalLateField",
+    message: r"""External fields cannot be late.""",
+    tip: r"""Try removing the 'external' or 'late' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalMethodWithBody = messageExternalMethodWithBody;
@@ -5406,6 +5410,38 @@ Message _withArgumentsInvokeNonFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropAnonymousFactoryPositionalParameters =
+    messageJsInteropAnonymousFactoryPositionalParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropAnonymousFactoryPositionalParameters =
+    const MessageCode("JsInteropAnonymousFactoryPositionalParameters",
+        message:
+            r"""Factory constructors for @anonymous JS interop classes should not contain any positional parameters.""",
+        tip: r"""Try replacing them with named parameters instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
+    messageJsInteropEnclosingClassJSAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropEnclosingClassJSAnnotation = const MessageCode(
+    "JsInteropEnclosingClassJSAnnotation",
+    message:
+        r"""Member has a JS interop annotation but the enclosing class does not.""",
+    tip: r"""Try adding the annotation to the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropEnclosingClassJSAnnotationContext =
+    messageJsInteropEnclosingClassJSAnnotationContext;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
+    const MessageCode("JsInteropEnclosingClassJSAnnotationContext",
+        severity: Severity.context,
+        message: r"""This is the enclosing class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropIndexNotSupported =
     messageJsInteropIndexNotSupported;
 
@@ -5415,6 +5451,16 @@ const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
     message:
         r"""JS interop classes do not support [] and []= operator methods.""",
     tip: r"""Try replacing with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNamedParameters = messageJsInteropNamedParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNamedParameters = const MessageCode(
+    "JsInteropNamedParameters",
+    message:
+        r"""Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class.""",
+    tip: r"""Try replacing them with normal or optional parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropNonExternalConstructor =
@@ -6275,14 +6321,6 @@ const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
     analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
     message: r"""Can only use type variables in instance methods.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonNullAwareSpreadIsNull = messageNonNullAwareSpreadIsNull;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonNullAwareSpreadIsNull = const MessageCode(
-    "NonNullAwareSpreadIsNull",
-    message: r"""Can't spread a value with static type Null.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
@@ -7871,6 +7909,46 @@ const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
     "StrongModeNNBDButOptOut",
     message:
         r"""A library can't opt out of null safety by default, when using sound null safety.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        List<String>
+            _names)> templateStrongModeNNBDPackageOptOut = const Template<
+        Message Function(List<String> _names)>(
+    messageTemplate:
+        r"""Cannot run with sound null safety as one or more dependencies do not
+support null safety:
+
+#names
+
+Run 'pub outdated --mode=null-safety' to determine if versions of your
+dependencies supporting null safety are available.""",
+    withArguments: _withArgumentsStrongModeNNBDPackageOptOut);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(List<String> _names)>
+    codeStrongModeNNBDPackageOptOut =
+    const Code<Message Function(List<String> _names)>(
+  "StrongModeNNBDPackageOptOut",
+  templateStrongModeNNBDPackageOptOut,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
+  if (_names.isEmpty) throw 'No names provided';
+  String names = itemizeNames(_names);
+  return new Message(codeStrongModeNNBDPackageOptOut,
+      message:
+          """Cannot run with sound null safety as one or more dependencies do not
+support null safety:
+
+${names}
+
+Run 'pub outdated --mode=null-safety' to determine if versions of your
+dependencies supporting null safety are available.""",
+      arguments: {'names': _names});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsExpression = messageSuperAsExpression;

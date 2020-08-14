@@ -16,6 +16,7 @@ HOST_OS = utils.GuessOS()
 HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
+AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
@@ -286,12 +287,13 @@ def ProcessOptions(args):
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
             return False
-    for arch in args.arch:
-        archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6',
-            'simarm64', 'arm64', 'simarm_x64'
-        ]
-        if not arch in archs:
+    for i, arch in enumerate(args.arch):
+        if not arch in AVAILABLE_ARCHS:
+            # Normalise to lower case form to make it less case-picky.
+            arch_lower = arch.lower()
+            if arch_lower in AVAILABLE_ARCHS:
+                args.arch[i] = arch_lower
+                continue
             print("Unknown arch %s" % arch)
             return False
     oses = [ProcessOsOption(os_name) for os_name in args.os]
@@ -345,133 +347,153 @@ def ide_switch(host_os):
         return '--ide=json'
 
 
+def AddCommonGnOptionArgs(parser):
+    """Adds arguments that will change the default GN arguments."""
+
+    parser.add_argument('--goma', help='Use goma', action='store_true')
+    parser.add_argument('--no-goma',
+                        help='Disable goma',
+                        dest='goma',
+                        action='store_false')
+    parser.set_defaults(goma=True)
+
+    parser.add_argument('--verify-sdk-hash',
+                        help='Enable SDK hash checks (default)',
+                        dest='verify_sdk_hash',
+                        action='store_true')
+    parser.add_argument('-nvh',
+                        '--no-verify-sdk-hash',
+                        help='Disable SDK hash checks',
+                        dest='verify_sdk_hash',
+                        action='store_false')
+    parser.set_defaults(verify_sdk_hash=True)
+
+    parser.add_argument('--bytecode',
+                        '-b',
+                        help='Use bytecode in Dart VM',
+                        dest='bytecode',
+                        action="store_true")
+    parser.add_argument('--no-bytecode',
+                        help='Disable bytecode in Dart VM',
+                        dest='bytecode',
+                        action="store_false")
+    parser.set_defaults(bytecode=False)
+
+    parser.add_argument('--clang', help='Use Clang', action='store_true')
+    parser.add_argument('--no-clang',
+                        help='Disable Clang',
+                        dest='clang',
+                        action='store_false')
+    parser.set_defaults(clang=True)
+
+    parser.add_argument(
+        '--platform-sdk',
+        help='Directs the create_sdk target to create a smaller "Platform" SDK',
+        default=MakePlatformSDK(),
+        action='store_true')
+    parser.add_argument('--use-crashpad',
+                        default=False,
+                        dest='use_crashpad',
+                        action='store_true')
+    parser.add_argument('--use-qemu',
+                        default=False,
+                        dest='use_qemu',
+                        action='store_true')
+    parser.add_argument('--exclude-kernel-service',
+                        help='Exclude the kernel service.',
+                        default=False,
+                        dest='exclude_kernel_service',
+                        action='store_true')
+    parser.add_argument('--arm-float-abi',
+                        type=str,
+                        help='The ARM float ABI (soft, softfp, hard)',
+                        metavar='[soft,softfp,hard]',
+                        default='')
+
+    parser.add_argument('--code-coverage',
+                        help='Enable code coverage for the standalone VM',
+                        default=False,
+                        dest="code_coverage",
+                        action='store_true')
+    parser.add_argument('--debug-opt-level',
+                        '-d',
+                        help='The optimization level to use for debug builds',
+                        type=str)
+    parser.add_argument('--gn-args',
+                        help='Set extra GN args',
+                        dest='gn_args',
+                        action='append')
+    parser.add_argument(
+        '--toolchain-prefix',
+        '-t',
+        type=str,
+        help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
+    parser.add_argument('--ide',
+                        help='Generate an IDE file.',
+                        default=os_has_ide(HOST_OS),
+                        action='store_true')
+    parser.add_argument(
+        '--target-sysroot',
+        '-s',
+        type=str,
+        help='Comma-separated list of arch=/path/to/sysroot mappings')
+
+
+def AddCommonConfigurationArgs(parser):
+    """Adds arguments that influence which configuration will be built."""
+    parser.add_argument("-a",
+                        "--arch",
+                        type=str,
+                        help='Target architectures (comma-separated).',
+                        metavar='[all,' + ','.join(AVAILABLE_ARCHS) + ']',
+                        default=utils.GuessArchitecture())
+    parser.add_argument('--mode',
+                        '-m',
+                        type=str,
+                        help='Build variants (comma-separated).',
+                        metavar='[all,debug,release,product]',
+                        default='debug')
+    parser.add_argument('--os',
+                        type=str,
+                        help='Target OSs (comma-separated).',
+                        metavar='[all,host,android,fuchsia]',
+                        default='host')
+    parser.add_argument('--sanitizer',
+                        type=str,
+                        help='Build variants (comma-separated).',
+                        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+                        default='none')
+
+
+def AddOtherArgs(parser):
+    """Adds miscellaneous arguments to the parser."""
+    parser.add_argument('--workers',
+                        '-w',
+                        type=int,
+                        help='Number of simultaneous GN invocations',
+                        dest='workers',
+                        default=multiprocessing.cpu_count())
+    parser.add_argument("-v",
+                        "--verbose",
+                        help='Verbose output.',
+                        default=False,
+                        action="store_true")
+
+
 def parse_args(args):
     args = args[1:]
     parser = argparse.ArgumentParser(
         description='A script to run `gn gen`.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    common_group = parser.add_argument_group('Common Arguments')
+
+    config_group = parser.add_argument_group('Configuration Related Arguments')
+    AddCommonConfigurationArgs(config_group)
+
+    gn_group = parser.add_argument_group('GN Related Arguments')
+    AddCommonGnOptionArgs(gn_group)
+
     other_group = parser.add_argument_group('Other Arguments')
-
-    common_group.add_argument(
-        '--arch',
-        '-a',
-        type=str,
-        help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,'
-        'simarm64,arm64,simarm_x64]',
-        default='x64')
-    common_group.add_argument(
-        '--mode',
-        '-m',
-        type=str,
-        help='Build variants (comma-separated).',
-        metavar='[all,debug,release,product]',
-        default='debug')
-    common_group.add_argument(
-        '--os',
-        type=str,
-        help='Target OSs (comma-separated).',
-        metavar='[all,host,android,fuchsia]',
-        default='host')
-    common_group.add_argument(
-        '--sanitizer',
-        type=str,
-        help='Build variants (comma-separated).',
-        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
-        default='none')
-    common_group.add_argument(
-        "-v",
-        "--verbose",
-        help='Verbose output.',
-        default=False,
-        action="store_true")
-
-    other_group.add_argument(
-        '--arm-float-abi',
-        type=str,
-        help='The ARM float ABI (soft, softfp, hard)',
-        metavar='[soft,softfp,hard]',
-        default='')
-    other_group.add_argument(
-        '--bytecode',
-        '-b',
-        help='Use bytecode in Dart VM',
-        default=False,
-        action="store_true")
-    other_group.add_argument(
-        '--no-bytecode',
-        help='Disable bytecode in Dart VM',
-        dest='bytecode',
-        action="store_false")
-    other_group.add_argument(
-        '--clang', help='Use Clang', default=True, action='store_true')
-    other_group.add_argument(
-        '--no-clang', help='Disable Clang', dest='clang', action='store_false')
-    other_group.add_argument(
-        '--code-coverage',
-        help='Enable code coverage for the standalone VM',
-        default=False,
-        dest="code_coverage",
-        action='store_true')
-    other_group.add_argument(
-        '--debug-opt-level',
-        '-d',
-        help='The optimization level to use for debug builds',
-        type=str)
-    other_group.add_argument(
-        '--goma', help='Use goma', default=True, action='store_true')
-    other_group.add_argument(
-        '--no-goma', help='Disable goma', dest='goma', action='store_false')
-    other_group.add_argument(
-        '--ide',
-        help='Generate an IDE file.',
-        default=os_has_ide(HOST_OS),
-        action='store_true')
-    other_group.add_argument(
-        '--exclude-kernel-service',
-        help='Exclude the kernel service.',
-        default=False,
-        dest='exclude_kernel_service',
-        action='store_true')
-    other_group.add_argument(
-        '--gn-args', help='Set extra GN args', dest='gn_args', action='append')
-    other_group.add_argument(
-        '--platform-sdk',
-        help='Directs the create_sdk target to create a smaller "Platform" SDK',
-        default=MakePlatformSDK(),
-        action='store_true')
-    other_group.add_argument(
-        '--target-sysroot',
-        '-s',
-        type=str,
-        help='Comma-separated list of arch=/path/to/sysroot mappings')
-    other_group.add_argument(
-        '--toolchain-prefix',
-        '-t',
-        type=str,
-        help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
-    other_group.add_argument(
-        '--workers',
-        '-w',
-        type=int,
-        help='Number of simultaneous GN invocations',
-        dest='workers',
-        default=multiprocessing.cpu_count())
-    other_group.add_argument(
-        '--use-crashpad',
-        default=False,
-        dest='use_crashpad',
-        action='store_true')
-    other_group.add_argument(
-        '--use-qemu',
-        default=False,
-        dest='use_qemu',
-        action='store_true')
-    other_group.add_argument('--no-verify-sdk-hash',
-                             help='Disable SDK hash checks.',
-                             default=False,
-                             action='store_true')
+    AddOtherArgs(other_group)
 
     options = parser.parse_args(args)
     if not ProcessOptions(options):
@@ -491,36 +513,39 @@ def RunCommand(command):
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
                 e.output)
 
-def Main(argv):
-    starttime = time.time()
-    args = parse_args(argv)
 
+def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     gn = os.path.join(DART_ROOT, 'buildtools',
                       'gn.exe' if utils.IsWindows() else 'gn')
     if not os.path.isfile(gn):
-        print("Couldn't find the gn binary at path: " + gn)
-        return 1
+        raise Exception("Couldn't find the gn binary at path: " + gn)
 
+    # TODO(infra): Re-enable --check. Many targets fail to use
+    # public_deps to re-expose header files to their dependents.
+    # See dartbug.com/32364
+    command = [gn, 'gen', out_dir]
+    gn_args = ToCommandLine(
+        ToGnArgs(args, mode, arch, target_os, sanitizer, args.verify_sdk_hash))
+    gn_args += GetGNArgs(args)
+    if args.ide:
+        command.append(ide_switch(HOST_OS))
+    command.append('--args=%s' % ' '.join(gn_args))
+
+    return command
+
+
+def RunGnOnConfiguredConfigurations(args):
     commands = []
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
                     out_dir = GetOutDir(mode, arch, target_os, sanitizer)
-                    # TODO(infra): Re-enable --check. Many targets fail to use
-                    # public_deps to re-expose header files to their dependents.
-                    # See dartbug.com/32364
-                    command = [gn, 'gen', out_dir]
-                    gn_args = ToCommandLine(
-                        ToGnArgs(args, mode, arch, target_os, sanitizer,
-                                 not args.no_verify_sdk_hash))
-                    gn_args += GetGNArgs(args)
+                    commands.append(
+                        BuildGnCommand(args, mode, arch, target_os, sanitizer,
+                                       out_dir))
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)
-                    if args.ide:
-                        command.append(ide_switch(HOST_OS))
-                    command.append('--args=%s' % ' '.join(gn_args))
-                    commands.append(command)
 
     pool = multiprocessing.Pool(args.workers)
     results = pool.map(RunCommand, commands, chunksize=1)
@@ -528,6 +553,13 @@ def Main(argv):
         if r != 0:
             print(r.strip())
             return 1
+
+
+def Main(argv):
+    starttime = time.time()
+    args = parse_args(argv)
+
+    RunGnOnConfiguredConfigurations(args)
 
     endtime = time.time()
     if args.verbose:

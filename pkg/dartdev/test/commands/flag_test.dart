@@ -79,12 +79,50 @@ void help() {
     var result = p.runSync('--help', ['--verbose']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains('migrate '));
+    expect(result.stdout, isEmpty);
+    expect(result.stderr,
+        contains('The following options are only used for VM development'));
   });
 
   test('--help -v', () {
     p = project();
     var result = p.runSync('--help', ['-v']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, isEmpty);
+    expect(result.stderr,
+        contains('The following options are only used for VM development'));
+  });
+
+  test('help', () {
+    p = project();
+    var result = p.runSync('help', []);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains(DartdevRunner.dartdevDescription));
+    expect(result.stdout,
+        contains('Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]'));
+    expect(result.stdout, contains('Global options:'));
+    expect(result.stdout, contains('Available commands:'));
+    expect(result.stdout, contains('analyze '));
+    expect(result.stdout, contains('create '));
+    expect(result.stdout, contains('compile '));
+    expect(result.stdout, contains('format '));
+    expect(result.stdout, contains('migrate '));
+  });
+
+  test('help --verbose', () {
+    p = project();
+    var result = p.runSync('help', ['--verbose']);
+
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('migrate '));
+  });
+
+  test('help -v', () {
+    p = project();
+    var result = p.runSync('help', ['-v']);
 
     expect(result.exitCode, 0);
     expect(result.stdout, contains('migrate '));

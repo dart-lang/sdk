@@ -138,8 +138,8 @@ main() {
       '54',
     ]);
 
-    await runTest('tests/dart2js_2/native/native_test.dart',
-        'tests/dart2js_2/native/', {
+    await runTest(
+        'tests/dart2js_2/native/native_test.dart', 'tests/dart2js_2/native/', {
       'Class': Kind.regular,
       'NativeClass': Kind.native,
       'topLevelField': Kind.regular,
@@ -226,7 +226,10 @@ runTest(String fileName, String location, Map<String, Kind> expectations,
       subTest.lines[lineIndex] = line;
       int commentIndex = prefix.indexOf('// ');
       if (commentIndex != -1) {
-        subTest.expectedError = prefix.substring(commentIndex + 3).trim();
+        String combinedErrors = prefix.substring(commentIndex + 3);
+        for (String error in combinedErrors.split(',')) {
+          subTest.expectedErrors.add(error.trim());
+        }
       }
       commonLines.add('');
     } else {
@@ -325,17 +328,20 @@ runNegativeTest(
       entryPoint: entryPoint,
       memorySourceFiles: sources,
       diagnosticHandler: collector);
-  Expect.isFalse(result.isSuccess, "Expected compile time error for\n$subTest");
-  Expect.equals(
-      1, collector.errors.length, "Expected compile time error for\n$subTest");
-  Expect.equals(
-      'MessageKind.${subTest.expectedError}',
-      collector.errors.first.messageKind.toString(),
-      "Unexpected compile time error for\n$subTest");
+  Expect.isFalse(result.isSuccess,
+      "Expected compile time error(s) for\n$subTest");
+  List<String> expected =
+      subTest.expectedErrors.map((error) => 'MessageKind.' + error).toList();
+  List<String> actual =
+      collector.errors.map((error) => error.messageKind.toString()).toList();
+  expected.sort();
+  actual.sort();
+  Expect.listEquals(expected, actual,
+      "Unexpected compile time error(s) for\n$subTest");
 }
 
 class SubTest {
-  String expectedError;
+  List<String> expectedErrors = [];
   final Map<int, String> lines = <int, String>{};
 
   String generateCode(List<String> commonLines) {

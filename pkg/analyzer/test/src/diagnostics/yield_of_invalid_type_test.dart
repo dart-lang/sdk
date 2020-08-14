@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest extends DriverResolutionTest {
+class YieldOfInvalidTypeTest extends PubPackageResolutionTest {
   test_none_asyncStar_dynamic_to_streamInt() async {
     await assertErrorsInCode(
         '''
@@ -29,7 +27,7 @@ Stream<int> f() async* {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 72, 1),
+          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 72, 1),
         ], legacy: []));
   }
 
@@ -39,8 +37,8 @@ int f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 25, 1),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 25, 1),
     ]);
   }
 
@@ -58,8 +56,8 @@ Iterable<int> f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 1),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 13),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 35, 1),
     ]);
   }
 
@@ -91,7 +89,7 @@ Stream<String> f() async* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 58, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 58, 1),
     ]);
   }
 
@@ -112,7 +110,7 @@ Iterable<int> f() sync* {
 }
 ''',
         expectedErrorsByNullability(nullable: [
-          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 51, 1),
+          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 51, 1),
         ], legacy: []));
   }
 
@@ -122,8 +120,8 @@ int f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 24, 1),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 24, 1),
     ]);
   }
 
@@ -157,7 +155,7 @@ Iterable<String> f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 37, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 37, 1),
     ]);
   }
 
@@ -169,8 +167,8 @@ Stream<int> f() sync* {
   yield 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 54, 1),
+      error(CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 22, 11),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 54, 1),
     ]);
   }
 
@@ -222,7 +220,7 @@ f() async* {
   yield* 0;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 22, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 22, 1),
     ]);
   }
 
@@ -233,7 +231,7 @@ f() async* {
   yield* a;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 41, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 41, 1),
     ]);
   }
 
@@ -246,7 +244,7 @@ Stream<int> f() async* {
   yield* a;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 75, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 75, 1),
     ]);
   }
 
@@ -259,7 +257,7 @@ Stream<int> f() async* {
   yield* a;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 78, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 78, 1),
     ]);
   }
 
@@ -287,7 +285,7 @@ Stream<int> f() async* {
 Stream g() => throw 0;
 ''',
         expectedErrorsByNullability(nullable: [
-          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 56, 3),
+          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 56, 3),
         ], legacy: []));
   }
 
@@ -325,7 +323,7 @@ Stream<int> f() async* {
 
 Stream<String> g() => throw 0;
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 56, 3),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 56, 3),
     ]);
   }
 
@@ -365,7 +363,7 @@ f() sync* {
   yield* 0;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 21, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 21, 1),
     ]);
   }
 
@@ -378,7 +376,7 @@ main() {
   f;
 }
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 41, 1),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 41, 1),
     ]);
   }
 
@@ -402,7 +400,7 @@ Iterable<int> f() sync* {
 Iterable g() => throw 0;
 ''',
         expectedErrorsByNullability(nullable: [
-          error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 3),
+          error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 35, 3),
         ], legacy: []));
   }
 
@@ -434,18 +432,11 @@ Iterable<int> f() sync* {
 
 Iterable<String> g() => throw 0;
 ''', [
-      error(StaticTypeWarningCode.YIELD_OF_INVALID_TYPE, 35, 3),
+      error(CompileTimeErrorCode.YIELD_OF_INVALID_TYPE, 35, 3),
     ]);
   }
 }
 
 @reflectiveTest
-class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+class YieldOfInvalidTypeTest2 extends YieldOfInvalidTypeTest
+    with WithNullSafetyMixin {}

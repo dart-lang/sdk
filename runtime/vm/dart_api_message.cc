@@ -139,6 +139,10 @@ static int GetTypedDataSizeInBytes(Dart_TypedData_Type type) {
     case Dart_TypedData_kUint64:
     case Dart_TypedData_kFloat64:
       return 8;
+    case Dart_TypedData_kInt32x4:
+    case Dart_TypedData_kFloat32x4:
+    case Dart_TypedData_kFloat64x2:
+      return 16;
     default:
       break;
   }
@@ -636,7 +640,10 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
   V(Int64, int64_t)                                                            \
   V(Uint64, uint64_t)                                                          \
   V(Float32, float)                                                            \
-  V(Float64, double)
+  V(Float64, double)                                                           \
+  V(Int32x4, simd128_value_t)                                                  \
+  V(Float32x4, simd128_value_t)                                                \
+  V(Float64x2, simd128_value_t)
 
 #define EMIT_TYPED_DATA_CASES(type, c_type)                                    \
   case kTypedData##type##ArrayCid:                                             \

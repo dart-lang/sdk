@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/cider/completion.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show CompletionSuggestion, CompletionSuggestionKind, ElementKind;
 import 'package:meta/meta.dart';
@@ -23,10 +25,10 @@ class CiderCompletionComputerTest extends CiderServiceTest {
   final CiderCompletionCache _completionCache = CiderCompletionCache();
 
   CiderCompletionComputer _computer;
+  void Function(ResolvedUnitResult) _testResolvedUnit;
+
   CiderCompletionResult _completionResult;
   List<CompletionSuggestion> _suggestions;
-
-  Future<void> test_limitedResolution_;
 
   @override
   void setUp() {
@@ -67,25 +69,6 @@ main() {
       'suggestions',
       'DartCompletionManager - KeywordContributor',
     ]);
-  }
-
-  Future<void> test_compute_performance_timers() async {
-    await _compute(r'''
-main() {
-  ^
-}
-''');
-
-    void assertTimerNotEmpty(Duration duration) {
-      expect(duration, isNotNull);
-      expect(duration, isNot(Duration.zero));
-    }
-
-    var performance = _completionResult.performance;
-    assertTimerNotEmpty(performance.file);
-    assertTimerNotEmpty(performance.imports);
-    assertTimerNotEmpty(performance.resolution);
-    assertTimerNotEmpty(performance.suggestions);
   }
 
   Future<void> test_compute_prefixStart_hasPrefix() async {
@@ -284,6 +267,22 @@ void f() {
     _assertHasNamedArgument(name: 'bbb');
   }
 
+  Future<void> test_filterSort_namedArgument_noPrefix_beforeOther() async {
+    await _compute(r'''
+void foo({int aaa = 0, int aab = 0}) {}
+
+voif f() {
+  foo(
+    ^
+    aaa: 0,
+  );
+}
+
+''');
+
+    _assertHasNamedArgument(name: 'aab');
+  }
+
   Future<void> test_filterSort_preferLocal() async {
     await _compute(r'''
 var a = 0;
@@ -314,10 +313,34 @@ main() {
     ]);
   }
 
-  Future<void> test_limitedResolution_class_method() async {
+  Future<void> test_limitedResolution_class_field_startWithType() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
+    await _compute(r'''
+class A {
+  void foo() {
+    print(0);
+  }
+
+  Str^
+}
+''');
+
+    _assertHasClass(text: 'String');
+  }
+
+  Future<void> test_limitedResolution_class_method_body() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
     await _compute(r'''
 class A<T> {
-  void foo() {}
+  void foo() {
+    print(0);
+  }
 
   void bar<U>(int a) {
     ^
@@ -342,9 +365,81 @@ enum E { e }
     _assertHasTypeParameter(text: 'U');
   }
 
-  Future<void> test_limitedResolution_unit_function() async {
+  Future<void> test_limitedResolution_class_method_parameterType() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
     await _compute(r'''
-void foo() {}
+class A {
+  void foo() {
+    print(0);
+  }
+
+  void bar(Str^) {}
+}
+''');
+
+    _assertHasClass(text: 'String');
+  }
+
+  Future<void>
+      test_limitedResolution_class_method_returnType_hasPartial() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
+    await _compute(r'''
+class A {
+  void foo() {
+    print(0);
+  }
+
+  Str^ bar() {}
+}
+''');
+
+    _assertHasClass(text: 'String');
+  }
+
+  Future<void> test_limitedResolution_hasPart() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+class A {}
+''');
+
+    await _compute(r'''
+part 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_inPart() async {
+    newFile('/workspace/dart/test/lib/a.dart', content: r'''
+part 'test.dart';
+class A {}
+''');
+
+    await _compute(r'''
+part of 'a.dart';
+^
+''');
+
+    _assertHasClass(text: 'int');
+    _assertHasClass(text: 'A');
+  }
+
+  Future<void> test_limitedResolution_unit_function_body() async {
+    _configureToCheckNotResolved(
+      identifiers: {'print'},
+    );
+
+    await _compute(r'''
+void foo() {
+  print(0);
+}
 
 void bar(int a) {
   ^
@@ -555,8 +650,26 @@ import 'a.dart';
       path: convertPath(testPath),
       line: context.line,
       column: context.character,
+      testResolvedUnit: _testResolvedUnit,
     );
     _suggestions = _completionResult.suggestions;
+  }
+
+  /// Configure the [CiderCompletionComputer] to check that when resolving
+  /// for completion we don't resolve unnecessary node.
+  void _configureToCheckNotResolved({Set<String> identifiers}) {
+    _testResolvedUnit = (resolvedUnitResult) {
+      var unit = resolvedUnitResult.unit;
+      unit.accept(
+        FunctionAstVisitor(
+          simpleIdentifier: (node) {
+            if (identifiers.contains(node.name) && node.staticElement != null) {
+              fail('Unexpectedly resolved node: $node');
+            }
+          },
+        ),
+      );
+    };
   }
 
   /// TODO(scheglov) Implement incremental updating

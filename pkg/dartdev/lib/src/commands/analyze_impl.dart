@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server_client/protocol.dart'
+    show EditBulkFixesResult, ResponseDecoder;
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
@@ -22,17 +24,23 @@ class AnalysisServer {
   Process _process;
   final StreamController<bool> _analyzingController =
       StreamController<bool>.broadcast();
+  final StreamController<EditBulkFixesResult> _bulkFixesController =
+      StreamController<EditBulkFixesResult>.broadcast();
   final StreamController<FileAnalysisErrors> _errorsController =
       StreamController<FileAnalysisErrors>.broadcast();
   bool _didServerErrorOccur = false;
 
   int _id = 0;
 
+  String _fixRequestId;
+
   bool get didServerErrorOccur => _didServerErrorOccur;
 
   Stream<bool> get onAnalyzing => _analyzingController.stream;
 
   Stream<FileAnalysisErrors> get onErrors => _errorsController.stream;
+
+  Stream<EditBulkFixesResult> get onBulkFixes => _bulkFixesController.stream;
 
   Future<int> get onExit => _process.exitCode;
 
@@ -81,6 +89,13 @@ class AnalysisServer {
     });
   }
 
+  void requestBulkFixes(String filePath) {
+    _sendCommand('edit.bulkFixes', <String, dynamic>{
+      'included': [path.canonicalize(filePath)],
+    });
+    _fixRequestId = _id.toString();
+  }
+
   void _sendCommand(String method, Map<String, dynamic> params) {
     final String message = json.encode(<String, dynamic>{
       'id': (++_id).toString(),
@@ -123,6 +138,11 @@ class AnalysisServer {
         }
         // Dispose of the process at this point so the process doesn't hang.
         dispose();
+      } else if (response['id'] == _fixRequestId) {
+        var decoder = ResponseDecoder(null);
+        var result =
+            EditBulkFixesResult.fromJson(decoder, 'result', response['result']);
+        _bulkFixesController.add(result);
       }
     }
   }

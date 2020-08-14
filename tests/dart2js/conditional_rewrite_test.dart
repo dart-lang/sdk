@@ -48,10 +48,10 @@ main() {
 }
 
 bool get isConditionCheckDisabled {
-  bool b = null;
+  bool? b = null;
   for (int i = 0; i < 3; i++) {
     try {
-      b = !b;
+      b = !(b as dynamic);
     } catch (e) {
       return false;
     }

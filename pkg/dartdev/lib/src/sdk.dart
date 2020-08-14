@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import 'core.dart';
+
 final Sdk sdk = Sdk();
 
 String get _computeSdkPath {
@@ -46,14 +48,48 @@ class Sdk {
   String get dart => Platform.resolvedExecutable;
 
   String get analysisServerSnapshot => path.absolute(
-      sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
+        sdkPath,
+        'bin',
+        'snapshots',
+        'analysis_server.dart.snapshot',
+      );
 
-  String get dart2js => path.absolute(sdkPath, 'bin', _binName('dart2js'));
+  String get dart2js => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart2js.dart.snapshot',
+      );
 
-  String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
+  String get dartfmt => path.absolute(
+        sdkPath,
+        'bin',
+        _binName('dartfmt'),
+      );
 
-  String get pub => path.absolute(sdkPath, 'bin', _binName('pub'));
+  String get ddsSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dds.dart.snapshot',
+      );
+
+  String get pub => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'pub.dart.snapshot',
+      );
 
   static String _binName(String base) =>
       Platform.isWindows ? '$base.bat' : base;
+
+  static bool checkArtifactExists(String path) {
+    if (!File(path).existsSync()) {
+      log.stderr('Could not find $path. Have you built the full '
+          'Dart SDK?');
+      return false;
+    }
+    return true;
+  }
 }

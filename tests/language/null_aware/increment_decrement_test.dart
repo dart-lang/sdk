@@ -52,18 +52,18 @@ main() {
   { E e1 = new E(); D? d = new D(e1); E? e2 = d?.v++; Expect.identical(e1, e2); }
   { G g = new G(); D? d = new D(g); F? f = d?.v++; Expect.identical(f, g); }
   //                                       ^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'E?' can't be assigned to a variable of type 'F?'.
   { E e1 = new E(); D.staticE = e1; E? e2 = D?.staticE++; Expect.identical(e1, e2); }
   { h.E e1 = new h.E(); h.D.staticE = e1; h.E? e2 = h.D?.staticE++; Expect.identical(e1, e2); }
   { G g = new G(); D.staticE = g; F? f = D?.staticE++; Expect.identical(f, g); }
   //                                     ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                               ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
   { h.G g = new h.G(); h.D.staticE = g; h.F? f = h.D?.staticE++; Expect.identical(f, g); }
   //                                             ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                                         ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
 
@@ -79,18 +79,18 @@ main() {
   { E e1 = new E(); D? d = new D(e1); E? e2 = d?.v--; Expect.identical(e1, e2); }
   { G g = new G(); D? d = new D(g); F? f = d?.v--; Expect.identical(f, g); }
   //                                       ^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'E?' can't be assigned to a variable of type 'F?'.
   { E e1 = new E(); D.staticE = e1; E? e2 = D?.staticE--; Expect.identical(e1, e2); }
   { h.E e1 = new h.E(); h.D.staticE = e1; h.E? e2 = h.D?.staticE--; Expect.identical(e1, e2); }
   { G g = new G(); D.staticE = g; F? f = D?.staticE--; Expect.identical(f, g); }
   //                                     ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                               ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
   { h.G g = new h.G(); h.D.staticE = g; h.F? f = h.D?.staticE--; Expect.identical(f, g); }
   //                                             ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                                         ^
   // [cfe] A value of type 'E' can't be assigned to a variable of type 'F?'.
 
@@ -106,19 +106,19 @@ main() {
   { D? d = new D(new E()); F? f = ++d?.v; Expect.identical(d!.v, f); }
   { D? d = new D(new E()); H? h = ++d?.v; Expect.identical(d!.v, h); }
   //                              ^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                ^
   // [cfe] A value of type 'G?' can't be assigned to a variable of type 'H?'.
   { D.staticE = new E(); F? f = ++D?.staticE; Expect.identical(D.staticE, f); }
   { h.D.staticE = new h.E(); h.F? f = ++h.D?.staticE; Expect.identical(h.D.staticE, f); }
   { D.staticE = new E(); H? h = ++D?.staticE; Expect.identical(D.staticE, h); }
   //                            ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                 ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
   { h.D.staticE = new h.E(); h.H? hh = ++h.D?.staticE; Expect.identical(h.D.staticE, hh); }
   //                                   ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                          ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
 
@@ -134,19 +134,19 @@ main() {
   { D? d = new D(new E()); F? f = --d?.v; Expect.identical(d!.v, f); }
   { D? d = new D(new E()); H? h = --d?.v; Expect.identical(d!.v, h); }
   //                              ^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                ^
   // [cfe] A value of type 'G?' can't be assigned to a variable of type 'H?'.
   { D.staticE = new E(); F? f = --D?.staticE; Expect.identical(D.staticE, f); }
   { h.D.staticE = new h.E(); h.F? f = --h.D?.staticE; Expect.identical(h.D.staticE, f); }
   { D.staticE = new E(); H? h = --D?.staticE; Expect.identical(D.staticE, h); }
   //                            ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                 ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
   { h.D.staticE = new h.E(); h.H? hh = --h.D?.staticE; Expect.identical(h.D.staticE, hh); }
   //                                   ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                          ^
   // [cfe] A value of type 'G' can't be assigned to a variable of type 'H?'.
 }

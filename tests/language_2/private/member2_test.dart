@@ -10,7 +10,7 @@ class Test extends B {
   test() {
     _staticField = true;
 //  ^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [cfe] The setter '_staticField' isn't defined for the class 'Test'.
   }
 }

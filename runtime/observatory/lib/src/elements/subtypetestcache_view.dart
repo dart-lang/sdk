@@ -82,7 +82,8 @@ class SubtypeTestCacheViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  SubtypeTestCacheViewElement.created() : super.created('subtypetestcache-view');
+  SubtypeTestCacheViewElement.created()
+      : super.created('subtypetestcache-view');
 
   @override
   attached() {

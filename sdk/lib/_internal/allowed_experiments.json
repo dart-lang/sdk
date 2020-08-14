@@ -34,10 +34,22 @@
     "collection": {
       "experimentSet": "nullSafety"
     },
+    "convert": {
+      "experimentSet": "nullSafety"
+    },
+    "crypto": {
+      "experimentSet": "nullSafety"
+    },
+    "csslib": {
+      "experimentSet": "nullSafety"
+    },
     "dart_internal": {
       "experimentSet": "nullSafety"
     },
     "fake_async": {
+      "experimentSet": "nullSafety"
+    },
+    "file": {
       "experimentSet": "nullSafety"
     },
     "fixnum": {
@@ -47,6 +59,12 @@
       "experimentSet": "nullSafety"
     },
     "flutter_test": {
+      "experimentSet": "nullSafety"
+    },
+    "flutter_goldens": {
+      "experimentSet": "nullSafety"
+    },
+    "flutter_goldens_client": {
       "experimentSet": "nullSafety"
     },
     "js": {
@@ -64,7 +82,13 @@
     "pedantic": {
       "experimentSet": "nullSafety"
     },
+    "platform": {
+      "experimentSet": "nullSafety"
+    },
     "pool": {
+      "experimentSet": "nullSafety"
+    },
+    "process": {
       "experimentSet": "nullSafety"
     },
     "sky_engine": {

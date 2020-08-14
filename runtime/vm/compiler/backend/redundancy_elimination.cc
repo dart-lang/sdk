@@ -1539,6 +1539,118 @@ void LICM::Optimize() {
   }
 }
 
+void DelayAllocations::Optimize(FlowGraph* graph) {
+  // Go through all AllocateObject instructions and move them down to their
+  // dominant use when doing so is sound.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> moved;
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+
+    for (ForwardInstructionIterator instr_it(block); !instr_it.Done();
+         instr_it.Advance()) {
+      Definition* def = instr_it.Current()->AsDefinition();
+      if (def != nullptr && (def->IsAllocateObject() || def->IsCreateArray()) &&
+          def->env() == nullptr && !moved.HasKey(def)) {
+        Instruction* use = DominantUse(def);
+        if (use != nullptr && !use->IsPhi() && IsOneTimeUse(use, def)) {
+          instr_it.RemoveCurrentFromGraph();
+          def->InsertBefore(use);
+          moved.Insert(def);
+        }
+      }
+    }
+  }
+}
+
+Instruction* DelayAllocations::DominantUse(Definition* def) {
+  // Find the use that dominates all other uses.
+
+  // Collect all uses.
+  DirectChainedHashMap<IdentitySetKeyValueTrait<Instruction*>> uses;
+  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    uses.Insert(use);
+  }
+  for (Value::Iterator it(def->env_use_list()); !it.Done(); it.Advance()) {
+    Instruction* use = it.Current()->instruction();
+    uses.Insert(use);
+  }
+
+  // Find the dominant use.
+  Instruction* dominant_use = nullptr;
+  auto use_it = uses.GetIterator();
+  while (auto use = use_it.Next()) {
+    // Start with the instruction before the use, then walk backwards through
+    // blocks in the dominator chain until we hit the definition or another use.
+    Instruction* instr = nullptr;
+    if (auto phi = (*use)->AsPhi()) {
+      // For phi uses, the dominant use only has to dominate the
+      // predecessor block corresponding to the phi input.
+      ASSERT(phi->InputCount() == phi->block()->PredecessorCount());
+      for (intptr_t i = 0; i < phi->InputCount(); i++) {
+        if (phi->InputAt(i)->definition() == def) {
+          instr = phi->block()->PredecessorAt(i)->last_instruction();
+          break;
+        }
+      }
+      ASSERT(instr != nullptr);
+    } else {
+      instr = (*use)->previous();
+    }
+
+    bool dominated = false;
+    while (instr != def) {
+      if (uses.HasKey(instr)) {
+        // We hit another use.
+        dominated = true;
+        break;
+      }
+      if (auto block = instr->AsBlockEntry()) {
+        instr = block->dominator()->last_instruction();
+      } else {
+        instr = instr->previous();
+      }
+    }
+    if (!dominated) {
+      if (dominant_use != nullptr) {
+        // More than one use reached the definition, which means no use
+        // dominates all other uses.
+        return nullptr;
+      }
+      dominant_use = *use;
+    }
+  }
+
+  return dominant_use;
+}
+
+bool DelayAllocations::IsOneTimeUse(Instruction* use, Definition* def) {
+  // Check that this use is always executed at most once for each execution of
+  // the definition, i.e. that there is no path from the use to itself that
+  // doesn't pass through the definition.
+  BlockEntryInstr* use_block = use->GetBlock();
+  BlockEntryInstr* def_block = def->GetBlock();
+  if (use_block == def_block) return true;
+
+  DirectChainedHashMap<IdentitySetKeyValueTrait<BlockEntryInstr*>> seen;
+  GrowableArray<BlockEntryInstr*> worklist;
+  worklist.Add(use_block);
+
+  while (!worklist.is_empty()) {
+    BlockEntryInstr* block = worklist.RemoveLast();
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      if (pred == use_block) return false;
+      if (pred == def_block) continue;
+      if (seen.HasKey(pred)) continue;
+      seen.Insert(pred);
+      worklist.Add(pred);
+    }
+  }
+  return true;
+}
+
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph, AliasedSet* aliased_set)

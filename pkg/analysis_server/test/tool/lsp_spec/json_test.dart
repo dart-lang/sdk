@@ -20,15 +20,17 @@ void main() {
 
     test('returns correct output for union types', () {
       final message = RequestMessage(
-          Either2<num, String>.t1(1), Method.shutdown, null, 'test');
+          id: Either2<num, String>.t1(1),
+          method: Method.shutdown,
+          jsonrpc: 'test');
       final output = json.encode(message.toJson());
       expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
     });
 
     test('returns correct output for union types containing interface types',
         () {
-      final params = Either2<String, TextDocumentItem>.t2(
-          TextDocumentItem('!uri', '!language', 1, '!text'));
+      final params = Either2<String, TextDocumentItem>.t2(TextDocumentItem(
+          uri: '!uri', languageId: '!language', version: 1, text: '!text'));
       final output = json.encode(params);
       expect(
           output,
@@ -37,17 +39,19 @@ void main() {
     });
 
     test('returns correct output for types with lists', () {
-      final start = Position(1, 1);
-      final end = Position(2, 2);
-      final range = Range(start, end);
-      final location = Location('y-uri', range);
+      final start = Position(line: 1, character: 1);
+      final end = Position(line: 2, character: 2);
+      final range = Range(start: start, end: end);
+      final location = Location(uri: 'y-uri', range: range);
       final codeAction = Diagnostic(
-        range,
-        DiagnosticSeverity.Error,
-        'test_err',
-        '/tmp/source.dart',
-        'err!!',
-        [DiagnosticRelatedInformation(location, 'message')],
+        range: range,
+        severity: DiagnosticSeverity.Error,
+        code: 'test_err',
+        source: '/tmp/source.dart',
+        message: 'err!!',
+        relatedInformation: [
+          DiagnosticRelatedInformation(location: location, message: 'message')
+        ],
       );
       final output = json.encode(codeAction.toJson());
       final expected = '''{
@@ -77,7 +81,12 @@ void main() {
     });
 
     test('serialises enums to their underlying values', () {
-      final foldingRange = FoldingRange(1, 2, 3, 4, FoldingRangeKind.Comment);
+      final foldingRange = FoldingRange(
+          startLine: 1,
+          startCharacter: 2,
+          endLine: 3,
+          endCharacter: 4,
+          kind: FoldingRangeKind.Comment);
       final output = json.encode(foldingRange.toJson());
       final expected = '''{
         "startLine":1,
@@ -93,7 +102,8 @@ void main() {
     test('ResponseMessage does not include an error with a result', () {
       final id = Either2<num, String>.t1(1);
       final result = 'my result';
-      final resp = ResponseMessage(id, result, null, jsonRpcVersion);
+      final resp =
+          ResponseMessage(id: id, result: result, jsonrpc: jsonRpcVersion);
       final jsonMap = resp.toJson();
       expect(jsonMap, contains('result'));
       expect(jsonMap, isNot(contains('error')));
@@ -236,7 +246,7 @@ void main() {
 
     test('ResponseMessage can include a null result', () {
       final id = Either2<num, String>.t1(1);
-      final resp = ResponseMessage(id, null, null, jsonRpcVersion);
+      final resp = ResponseMessage(id: id, jsonrpc: jsonRpcVersion);
       final jsonMap = resp.toJson();
       expect(jsonMap, contains('result'));
       expect(jsonMap, isNot(contains('error')));
@@ -244,8 +254,10 @@ void main() {
 
     test('ResponseMessage does not include a result for an error', () {
       final id = Either2<num, String>.t1(1);
-      final error = ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
-      final resp = ResponseMessage(id, null, error, jsonRpcVersion);
+      final error =
+          ResponseError(code: ErrorCodes.ParseError, message: 'Error');
+      final resp =
+          ResponseMessage(id: id, error: error, jsonrpc: jsonRpcVersion);
       final jsonMap = resp.toJson();
       expect(jsonMap, contains('error'));
       expect(jsonMap, isNot(contains('result')));
@@ -254,8 +266,10 @@ void main() {
     test('ResponseMessage throws if both result and error are non-null', () {
       final id = Either2<num, String>.t1(1);
       final result = 'my result';
-      final error = ResponseError<String>(ErrorCodes.ParseError, 'Error', null);
-      final resp = ResponseMessage(id, result, error, jsonRpcVersion);
+      final error =
+          ResponseError(code: ErrorCodes.ParseError, message: 'Error');
+      final resp = ResponseMessage(
+          id: id, result: result, error: error, jsonrpc: jsonRpcVersion);
       expect(resp.toJson, throwsA(TypeMatcher<String>()));
     });
   });
@@ -295,8 +309,9 @@ void main() {
       // Create some JSON that includes a VersionedTextDocumentIdenfitier but
       // where the class definition only references a TextDocumentIdemntifier.
       final input = jsonEncode(TextDocumentPositionParams(
-        VersionedTextDocumentIdentifier(111, 'file:///foo/bar.dart'),
-        Position(1, 1),
+        textDocument: VersionedTextDocumentIdentifier(
+            version: 111, uri: 'file:///foo/bar.dart'),
+        position: Position(line: 1, character: 1),
       ).toJson());
       final params = TextDocumentPositionParams.fromJson(jsonDecode(input));
       expect(params.textDocument,
@@ -315,11 +330,18 @@ void main() {
   });
 
   test('objects with lists can round-trip through to json and back', () {
-    final obj = InitializeParams(1, '!root', null, null,
-        ClientCapabilities(null, null, null), '!trace', [
-      WorkspaceFolder('!uri1', '!name1'),
-      WorkspaceFolder('!uri2', '!name2'),
-    ]);
+    final obj = InitializeParams(
+      processId: 1,
+      clientInfo:
+          InitializeParamsClientInfo(name: 'server name', version: '1.2.3'),
+      rootPath: '!root',
+      capabilities: ClientCapabilities(),
+      trace: '!trace',
+      workspaceFolders: [
+        WorkspaceFolder(uri: '!uri1', name: '!name1'),
+        WorkspaceFolder(uri: '!uri2', name: '!name2'),
+      ],
+    );
     final json = jsonEncode(obj);
     final restoredObj = InitializeParams.fromJson(jsonDecode(json));
 
@@ -334,7 +356,12 @@ void main() {
   });
 
   test('objects with enums can round-trip through to json and back', () {
-    final obj = FoldingRange(1, 2, 3, 4, FoldingRangeKind.Comment);
+    final obj = FoldingRange(
+        startLine: 1,
+        startCharacter: 2,
+        endLine: 3,
+        endCharacter: 4,
+        kind: FoldingRangeKind.Comment);
     final json = jsonEncode(obj);
     final restoredObj = FoldingRange.fromJson(jsonDecode(json));
 
@@ -346,13 +373,13 @@ void main() {
   });
 
   test('objects with maps can round-trip through to json and back', () {
-    final start = Position(1, 1);
-    final end = Position(2, 2);
-    final range = Range(start, end);
-    final obj = WorkspaceEdit(<String, List<TextEdit>>{
-      'fileA': [TextEdit(range, 'text A')],
-      'fileB': [TextEdit(range, 'text B')]
-    }, null);
+    final start = Position(line: 1, character: 1);
+    final end = Position(line: 2, character: 2);
+    final range = Range(start: start, end: end);
+    final obj = WorkspaceEdit(changes: <String, List<TextEdit>>{
+      'fileA': [TextEdit(range: range, newText: 'text A')],
+      'fileB': [TextEdit(range: range, newText: 'text B')]
+    });
     final json = jsonEncode(obj);
     final restoredObj = WorkspaceEdit.fromJson(jsonDecode(json));
 

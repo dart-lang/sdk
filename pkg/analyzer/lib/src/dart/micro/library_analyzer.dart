@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dart2js_verifier.dart';
@@ -70,7 +69,6 @@ class LibraryAnalyzer {
 
   LibraryElement _libraryElement;
 
-  LibraryScope _libraryScope;
   final Map<FileState, LineInfo> _fileToLineInfo = {};
 
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
@@ -86,7 +84,7 @@ class LibraryAnalyzer {
 
   final Set<ConstantEvaluationTarget> _constants = {};
 
-  final String Function(String path) getFileContent;
+  final String Function(FileState file) getFileContent;
 
   LibraryAnalyzer(
     this._analysisOptions,
@@ -118,25 +116,30 @@ class LibraryAnalyzer {
     performance.run('parse', (performance) {
       for (FileState file in _library.libraryFiles) {
         if (completionPath == null || file.path == completionPath) {
-          units[file] = _parse(file);
+          units[file] = _parse(
+            file: file,
+            performance: performance,
+          );
         }
       }
     });
 
     // Resolve URIs in directives to corresponding sources.
-    FeatureSet featureSet = units[_library].featureSet;
+    FeatureSet featureSet = units.values.first.featureSet;
 
-    units.forEach((file, unit) {
-      _validateFeatureSet(unit, featureSet);
-      _resolveUriBasedDirectives(file, unit);
+    performance.run('resolveUriDirectives', (performance) {
+      units.forEach((file, unit) {
+        _validateFeatureSet(unit, featureSet);
+        _resolveUriBasedDirectives(file, unit);
+      });
     });
 
-    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-
-    _libraryScope = LibraryScope(_libraryElement);
+    performance.run('libraryElement', (performance) {
+      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    });
 
     performance.run('resolveDirectives', (performance) {
-      _resolveDirectives(units);
+      _resolveDirectives(units, completionPath);
     });
 
     performance.run('resolveFiles', (performance) {
@@ -234,7 +237,7 @@ class LibraryAnalyzer {
     if (_analysisOptions.lint) {
       performance.run('computeLints', (performance) {
         var allUnits = _library.libraryFiles.map((file) {
-          var content = _getFileContent(file.path);
+          var content = getFileContent(file);
           return LinterContextUnit(content, units[file]);
         }).toList();
         for (int i = 0; i < allUnits.length; i++) {
@@ -268,7 +271,7 @@ class LibraryAnalyzer {
       unit.accept(Dart2JSVerifier(errorReporter));
     }
 
-    var content = _getFileContent(file.path);
+    var content = getFileContent(file);
     unit.accept(
       BestPracticesVerifier(
         errorReporter,
@@ -279,8 +282,8 @@ class LibraryAnalyzer {
         declaredVariables: _declaredVariables,
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
-        resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions,
+        workspacePackage: null, // TODO(scheglov) implement it
       ),
     );
 
@@ -450,15 +453,6 @@ class LibraryAnalyzer {
     });
   }
 
-  /// Catch all exceptions from the `getFileContent` function.
-  String _getFileContent(String path) {
-    try {
-      return getFileContent(path);
-    } catch (_) {
-      return '';
-    }
-  }
-
   WorkspacePackage _getPackage(CompilationUnit unit) {
     final libraryPath = _library.source.fullName;
     Workspace workspace =
@@ -514,20 +508,35 @@ class LibraryAnalyzer {
   }
 
   /// Return a  parsed unresolved [CompilationUnit].
-  CompilationUnit _parse(FileState file) {
-    AnalysisErrorListener errorListener = _getErrorListener(file);
-    String content = _getFileContent(file.path);
+  CompilationUnit _parse({
+    @required FileState file,
+    @required OperationPerformanceImpl performance,
+  }) {
+    String content = getFileContent(file);
 
+    performance.getDataInt('count').increment();
+    performance.getDataInt('length').add(content.length);
+
+    AnalysisErrorListener errorListener = _getErrorListener(file);
     CompilationUnit unit = file.parse(errorListener, content);
 
     LineInfo lineInfo = unit.lineInfo;
     _fileToLineInfo[file] = lineInfo;
-    _fileToIgnoreInfo[file] = IgnoreInfo.calculateIgnores(content, lineInfo);
+    _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
     return unit;
   }
 
-  void _resolveDirectives(Map<FileState, CompilationUnit> units) {
+  void _resolveDirectives(
+    Map<FileState, CompilationUnit> units,
+    String completionPath,
+  ) {
+    if (completionPath != null) {
+      var completionUnit = units.values.first;
+      completionUnit.element = _unitElementWithPath(completionPath);
+      return;
+    }
+
     CompilationUnit definingCompilationUnit = units[_library];
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
@@ -616,7 +625,7 @@ class LibraryAnalyzer {
                     [name]);
               } else if (libraryNameNode.name != name) {
                 libraryErrorReporter.reportErrorForNode(
-                    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [libraryNameNode.name, name]);
               }
@@ -624,7 +633,7 @@ class LibraryAnalyzer {
               Source source = nameOrSource.source;
               if (source != _library.source) {
                 libraryErrorReporter.reportErrorForNode(
-                    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                    CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
                     partUri,
                     [_library.uriStr, source.uri]);
               }
@@ -677,14 +686,14 @@ class LibraryAnalyzer {
         unitElement: unitElement,
         errorListener: errorListener,
         featureSet: unit.featureSet,
-        nameScope: _libraryScope,
+        nameScope: _libraryElement.scope,
         elementWalker: ElementWalker.forCompilationUnit(unitElement),
       ),
     );
 
     unit.accept(VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        nameScope: _libraryScope));
+        nameScope: _libraryElement.scope));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
@@ -700,7 +709,7 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper);
 
     if (completionOffset != null) {
-      var node = NodeLocator2(completionOffset).searchWithin(unit);
+      var node = NodeLocator(completionOffset).searchWithin(unit);
       var enclosingExecutable = node?.thisOrAncestorMatching((e) {
         return e.parent is ClassDeclaration || e.parent is CompilationUnit;
       });
@@ -748,6 +757,15 @@ class LibraryAnalyzer {
         directive.uriSource = defaultSource;
       }
     }
+  }
+
+  CompilationUnitElement _unitElementWithPath(String path) {
+    for (var unitElement in _libraryElement.units) {
+      if (unitElement.source.fullName == path) {
+        return unitElement;
+      }
+    }
+    return null;
   }
 
   /// Validate that the feature set associated with the compilation [unit] is

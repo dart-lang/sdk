@@ -19,10 +19,10 @@ main() {
   new A.foo(42);
   new A.bar(foo());
   //    ^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Method not found: 'A.bar'.
   new A();
   //  ^
-  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT
   // [cfe] Method not found: 'A'.
 }

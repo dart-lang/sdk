@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 class M<T> {
   T field1 = 0;
   //         ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'int' can't be assigned to a variable of type 'T'.
   T field2 = 0 as dynamic;
 }

@@ -80,6 +80,7 @@ class ConstructorFieldsVerifier {
     _fieldMap.forEach((FieldElement field, _InitState state) {
       if (state != _InitState.notInit) return;
       if (field.isLate) return;
+      if (field.isAbstract) return;
 
       if (field.isFinal) {
         notInitFinalFields.add(field);
@@ -117,19 +118,19 @@ class ConstructorFieldsVerifier {
 
     if (names.length == 1) {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
         node.returnType,
         names,
       );
     } else if (names.length == 2) {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
         node.returnType,
         names,
       );
     } else {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
         node.returnType,
         [names[0], names[1], names.length - 2],
       );
@@ -172,7 +173,7 @@ class ConstructorFieldsVerifier {
           } else if (state == _InitState.initInDeclaration) {
             if (element.isFinal || element.isConst) {
               _errorReporter.reportErrorForNode(
-                StaticWarningCode
+                CompileTimeErrorCode
                     .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
                 fieldName,
               );
@@ -209,7 +210,7 @@ class ConstructorFieldsVerifier {
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             _errorReporter.reportErrorForNode(
-              StaticWarningCode
+              CompileTimeErrorCode
                   .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
               parameter.identifier,
               [fieldElement.displayName],

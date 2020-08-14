@@ -476,6 +476,8 @@ class KernelCompilationRequest : public ValueObject {
 
   Dart_KernelCompilationResult SendAndWaitForResponse(
       Dart_Port kernel_port,
+      const uint8_t* platform_kernel,
+      intptr_t platform_kernel_size,
       const char* expression,
       const Array& definitions,
       const Array& type_definitions,
@@ -493,6 +495,25 @@ class KernelCompilationRequest : public ValueObject {
     send_port.type = Dart_CObject_kSendPort;
     send_port.value.as_send_port.id = port_;
     send_port.value.as_send_port.origin_id = ILLEGAL_PORT;
+
+    Dart_CObject dart_platform_kernel;
+    if (platform_kernel != NULL) {
+      dart_platform_kernel.type = Dart_CObject_kExternalTypedData;
+      dart_platform_kernel.value.as_external_typed_data.type =
+          Dart_TypedData_kUint8;
+      dart_platform_kernel.value.as_external_typed_data.length =
+          platform_kernel_size;
+      dart_platform_kernel.value.as_external_typed_data.data =
+          const_cast<uint8_t*>(platform_kernel);
+      dart_platform_kernel.value.as_external_typed_data.peer =
+          const_cast<uint8_t*>(platform_kernel);
+      dart_platform_kernel.value.as_external_typed_data.callback =
+          PassThroughFinalizer;
+    } else {
+      // If NULL, the kernel service looks up the platform dill file
+      // next to the executable.
+      dart_platform_kernel.type = Dart_CObject_kNull;
+    }
 
     Dart_CObject expression_object;
     expression_object.type = Dart_CObject_kString;
@@ -560,19 +581,17 @@ class KernelCompilationRequest : public ValueObject {
     if (source->script_kernel_buffer != nullptr) {
       num_dills++;
     }
-    Array& hot_reload_blobs = Array::Handle();
-    if (source->hot_reload_blobs_ != nullptr) {
-      hot_reload_blobs = source->hot_reload_blobs_;
+    Array& loaded_blobs = Array::Handle();
+    if (source->loaded_blobs_ != nullptr) {
+      loaded_blobs = source->loaded_blobs_;
       WeakProperty& weak_property = WeakProperty::Handle();
-      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
-        weak_property ^= hot_reload_blobs.At(i);
+      for (intptr_t i = 0; i < loaded_blobs.Length(); i++) {
+        weak_property ^= loaded_blobs.At(i);
         if (weak_property.key() != ExternalTypedData::null()) {
           num_dills++;
         }
       }
     }
-    // TODO(jensj): Get the platform somehow. Currently the dart side simply
-    // loads the dill from file.
 
     Dart_CObject dills_object;
     dills_object.type = Dart_CObject_kArray;
@@ -584,10 +603,10 @@ class KernelCompilationRequest : public ValueObject {
                            source->kernel_buffer_size);
     dill_num = setDillData(dills_array, dill_num, source->script_kernel_buffer,
                            source->script_kernel_size);
-    if (!hot_reload_blobs.IsNull()) {
+    if (!loaded_blobs.IsNull()) {
       WeakProperty& weak_property = WeakProperty::Handle();
-      for (intptr_t i = 0; i < hot_reload_blobs.Length(); i++) {
-        weak_property ^= hot_reload_blobs.At(i);
+      for (intptr_t i = 0; i < loaded_blobs.Length(); i++) {
+        weak_property ^= loaded_blobs.At(i);
         if (weak_property.key() != ExternalTypedData::null()) {
           ExternalTypedData& externalTypedData = ExternalTypedData::Handle(
               thread->zone(), ExternalTypedData::RawCast(weak_property.key()));
@@ -601,9 +620,9 @@ class KernelCompilationRequest : public ValueObject {
     }
     dills_object.value.as_array.values = dills_array;
 
-    Dart_CObject hot_reload_count;
-    hot_reload_count.type = Dart_CObject_kInt64;
-    hot_reload_count.value.as_int64 = source->num_hot_reloads_;
+    Dart_CObject num_blob_loads;
+    num_blob_loads.type = Dart_CObject_kInt64;
+    num_blob_loads.value.as_int64 = source->num_blob_loads_;
 
     Dart_CObject suppress_warnings;
     suppress_warnings.type = Dart_CObject_kBool;
@@ -637,6 +656,7 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject* message_arr[] = {&tag,
                                    &send_port,
                                    &isolate_id,
+                                   &dart_platform_kernel,
                                    &expression_object,
                                    &definitions_object,
                                    &type_definitions_object,
@@ -644,7 +664,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &class_object,
                                    &is_static_object,
                                    &dills_object,
-                                   &hot_reload_count,
+                                   &num_blob_loads,
                                    &suppress_warnings,
                                    &enable_asserts,
                                    &experimental_flags_object,
@@ -777,7 +797,7 @@ class KernelCompilationRequest : public ValueObject {
     null_safety.value.as_int32 =
         (isolate != NULL) ? (isolate->null_safety() ? kNullSafetyOptionStrong
                                                     : kNullSafetyOptionWeak)
-                          : FLAG_null_safety;
+                          : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -1088,6 +1108,8 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
 }
 
 Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
+    const uint8_t* platform_kernel,
+    intptr_t platform_kernel_size,
     const char* expression,
     const Array& definitions,
     const Array& type_definitions,
@@ -1105,9 +1127,10 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
   TransitionVMToNative transition(Thread::Current());
   KernelCompilationRequest request;
   ASSERT(is_static || (klass != nullptr));
-  return request.SendAndWaitForResponse(kernel_port, expression, definitions,
-                                        type_definitions, library_url, klass,
-                                        is_static, experimental_flags_);
+  return request.SendAndWaitForResponse(
+      kernel_port, platform_kernel, platform_kernel_size, expression,
+      definitions, type_definitions, library_url, klass, is_static,
+      experimental_flags_);
 }
 
 Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(

@@ -9,7 +9,7 @@ class Foo<T> {
   dynamic make() {
     return new T();
     //         ^
-    // [analyzer] STATIC_WARNING.CREATION_WITH_NON_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
     // [cfe] Method not found: 'T'.
   }
 }

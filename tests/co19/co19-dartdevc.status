@@ -72,6 +72,17 @@ Language/Metadata/before*: Skip # dart:mirrors not supported https://github.com/
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
 Language/Types/Interface_Types/subtype_t27: Skip # Times out
 Language/Types/Interface_Types/subtype_t28: Skip # Times out
+LibTest/core/DateTime/DateTime.fromMicrosecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/microsecond_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/microsecondsSinceEpoch_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/parse_A01_t03: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/to8601String_A01_t01: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/to8601String_A01_t02: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/DateTime/to8601String_A01_t03: SkipByDesign # microseconds are not supported in JavaScript
+LibTest/core/int/operator_remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
+LibTest/core/int/operator_truncating_division_A01_t02: SkipByDesign # Division by zero is not an error in JavaScript
+LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represented in JavaScript
+LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: Skip # Times out
 LibTest/html/Element/blur_A01_t01: Skip # Times out
 LibTest/html/Element/focus_A01_t01: Skip # Times out

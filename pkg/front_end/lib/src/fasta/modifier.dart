@@ -51,7 +51,7 @@ const int initializingFormalMask = hasInitializerMask << 1;
 const int declaresConstConstructorMask = initializingFormalMask << 1;
 
 /// Not a real modifier, and by setting it to zero, it is automatically ignored
-/// by [Modifier.validate] below.
+/// by [Modifier.toMask] below.
 const int varMask = 0;
 
 const Modifier Abstract = const Modifier(ModifierEnum.Abstract, abstractMask);
@@ -90,10 +90,8 @@ class Modifier {
 
   toString() => "modifier(${'$kind'.substring('ModifierEnum.'.length)})";
 
-  static int validate(List<Modifier> modifiers, {bool isAbstract: false}) {
-    // TODO(ahe): Rename this method, validation is now taken care of by the
-    // parser.
-    int result = isAbstract ? abstractMask : 0;
+  static int toMask(List<Modifier> modifiers) {
+    int result = 0;
     if (modifiers == null) return result;
     for (Modifier modifier in modifiers) {
       result |= modifier.mask;
@@ -107,5 +105,14 @@ class Modifier {
     if (identical('final', lexeme)) return Final.mask;
     if (identical('var', lexeme)) return Var.mask;
     return unhandled(lexeme, "Modifier.validateVarFinalOrConst", -1, null);
+  }
+
+  /// Returns [modifier] with [abstractMask] added if [isAbstract] and
+  /// [modifiers] doesn't contain [externalMask].
+  static int addAbstractMask(int modifiers, {bool isAbstract: false}) {
+    if (isAbstract && (modifiers & externalMask) == 0) {
+      modifiers |= abstractMask;
+    }
+    return modifiers;
   }
 }

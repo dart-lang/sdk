@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFinalNoSetterTest extends DriverResolutionTest {
+class AssignmentToFinalNoSetterTest extends PubPackageResolutionTest {
   test_instance_undefined_hasGetter() async {
     await assertErrorsInCode('''
 extension E on int {
@@ -24,7 +24,7 @@ f() {
   0.foo = 1;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
     ]);
   }
 
@@ -37,7 +37,7 @@ main() {
   A a = new A();
   a.x = 0;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 60, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 60, 1),
     ]);
   }
 
@@ -52,7 +52,7 @@ class B {
 main() {
   B.a.x = 0;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 71, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 71, 1),
     ]);
   }
 }

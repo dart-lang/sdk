@@ -16,7 +16,7 @@ class C {
   C();
   factory C.l() = A<lib.K>;
   //                ^^^^^
-  // [analyzer] STATIC_WARNING.TYPE_ANNOTATION_DEFERRED_CLASS
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ANNOTATION_DEFERRED_CLASS
   // [cfe] unspecified
   get t => null;
 }

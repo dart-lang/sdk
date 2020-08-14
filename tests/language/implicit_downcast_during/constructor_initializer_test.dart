@@ -10,7 +10,7 @@ class C {
   B b;
   C(A a) : b = a;
   //           ^
-  // [analyzer] STATIC_WARNING.FIELD_INITIALIZER_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }
 

@@ -45,8 +45,7 @@ class InvocationInferenceHelper {
   /// type that is being invoked.
   DartType computeInvokeReturnType(DartType type) {
     if (type is FunctionType) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41065
-      return type.returnType ?? DynamicTypeImpl.instance;
+      return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
     }
@@ -217,7 +216,7 @@ class InvocationInferenceHelper {
       expression.staticType = DynamicTypeImpl.instance;
     } else {
       expression.staticType = type;
-      if (identical(type, NeverTypeImpl.instance)) {
+      if (_typeSystem.isBottom(type)) {
         _flowAnalysis?.flow?.handleExit();
       }
     }
@@ -407,7 +406,7 @@ class InvocationInferenceHelper {
     List<DartType> typeArguments;
     if (typeArgumentList.arguments.length != typeParameters.length) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
         typeArgumentList,
         [
           rawType,

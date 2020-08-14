@@ -1008,27 +1008,19 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(temp);
   __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
 
-  if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ movl(temp,
-            compiler::Immediate(compiler::target::Thread::exit_through_ffi()));
-    __ TransitionGeneratedToNative(branch, FPREG, temp,
-                                   /*enter_safepoint=*/true);
-    __ call(branch);
-    __ TransitionNativeToGenerated(temp, /*leave_safepoint=*/true);
-  } else {
-    // We cannot trust that this code will be executable within a safepoint.
-    // Therefore we delegate the responsibility of entering/exiting the
-    // safepoint to a stub which in the VM isolate's heap, which will never lose
-    // execute permission.
-    __ movl(temp,
-            compiler::Address(
-                THR, compiler::target::Thread::
-                         call_native_through_safepoint_entry_point_offset()));
+  ASSERT(!CanExecuteGeneratedCodeInSafepoint());
+  // We cannot trust that this code will be executable within a safepoint.
+  // Therefore we delegate the responsibility of entering/exiting the
+  // safepoint to a stub which in the VM isolate's heap, which will never lose
+  // execute permission.
+  __ movl(temp,
+          compiler::Address(
+              THR, compiler::target::Thread::
+                       call_native_through_safepoint_entry_point_offset()));
 
-    // Calls EAX within a safepoint and clobbers EBX.
-    ASSERT(temp == EBX && branch == EAX);
-    __ call(temp);
-  }
+  // Calls EAX within a safepoint and clobbers EBX.
+  ASSERT(temp == EBX && branch == EAX);
+  __ call(temp);
 
   // The x86 calling convention requires floating point values to be returned on
   // the "floating-point stack" (aka. register ST0). We don't use the
@@ -1882,7 +1874,10 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sizeof(classid_t) == kInt16Size);
+  ASSERT(compiler::target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
+  ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
+
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
@@ -2213,7 +2208,10 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 }
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sizeof(classid_t) == kInt16Size);
+  ASSERT(compiler::target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
+  ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
+
   compiler::Label skip_store;
 
   const Register instance_reg = locs()->in(0).reg();
@@ -2560,7 +2558,9 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 }
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sizeof(classid_t) == kInt16Size);
+  ASSERT(compiler::target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
+  ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {

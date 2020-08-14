@@ -7,7 +7,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateDefinitionClassTest extends DriverResolutionTest {
+class DuplicateDefinitionClassTest extends PubPackageResolutionTest {
   test_instance_field_field() async {
     await assertErrorsInCode(r'''
 class C {
@@ -327,7 +327,7 @@ f(,[]) {}
 }
 
 @reflectiveTest
-class DuplicateDefinitionExtensionTest extends DriverResolutionTest {
+class DuplicateDefinitionExtensionTest extends PubPackageResolutionTest {
   test_extendedType_instance() async {
     await assertNoErrorsInCode('''
 class A {
@@ -637,7 +637,7 @@ extension E on A {}
 }
 
 @reflectiveTest
-class DuplicateDefinitionMixinTest extends DriverResolutionTest {
+class DuplicateDefinitionMixinTest extends PubPackageResolutionTest {
   test_instance_field_field() async {
     await assertErrorsInCode(r'''
 mixin M {
@@ -936,7 +936,7 @@ mixin M {
 }
 
 @reflectiveTest
-class DuplicateDefinitionTest extends DriverResolutionTest {
+class DuplicateDefinitionTest extends PubPackageResolutionTest {
   test_catch() async {
     await assertErrorsInCode(r'''
 main() {
@@ -1158,8 +1158,8 @@ class A {}
   }
 
   test_unitMembers_part_library() async {
-    var libPath = convertPath('/test/lib/lib.dart');
-    var aPath = convertPath('/test/lib/a.dart');
+    var libPath = convertPath('$testPackageLibPath/lib.dart');
+    var aPath = convertPath('$testPackageLibPath/a.dart');
     newFile(libPath, content: '''
 part 'a.dart';
 
@@ -1182,9 +1182,9 @@ class A {}
   }
 
   test_unitMembers_part_part() async {
-    var libPath = convertPath('/test/lib/lib.dart');
-    var aPath = convertPath('/test/lib/a.dart');
-    var bPath = convertPath('/test/lib/b.dart');
+    var libPath = convertPath('$testPackageLibPath/lib.dart');
+    var aPath = convertPath('$testPackageLibPath/a.dart');
+    var bPath = convertPath('$testPackageLibPath/b.dart');
     newFile(libPath, content: '''
 part 'a.dart';
 part 'b.dart';

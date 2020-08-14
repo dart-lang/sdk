@@ -2,24 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PostfixExpressionResolutionTest);
-    defineReflectiveTests(PostfixExpressionResolutionWithNnbdTest);
+    defineReflectiveTests(PostfixExpressionResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class PostfixExpressionResolutionTest extends DriverResolutionTest {
+class PostfixExpressionResolutionTest extends PubPackageResolutionTest {
   test_dec_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(int x) {
@@ -83,17 +80,8 @@ f() {
 }
 
 @reflectiveTest
-class PostfixExpressionResolutionWithNnbdTest
-    extends PostfixExpressionResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class PostfixExpressionResolutionWithNullSafetyTest
+    extends PostfixExpressionResolutionTest with WithNullSafetyMixin {
   test_inc_localVariable_depromote() async {
     await assertNoErrorsInCode(r'''
 class A {

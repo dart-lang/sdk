@@ -6,7 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class NonConstantDefaultValueTest extends DriverResolutionTest {
+class NonConstantDefaultValueTest extends PubPackageResolutionTest {
   test_appliedTypeParameter_defaultConstructorValue() async {
     await assertErrorsInCode(r'''
 void f<T>(T t) => t;
@@ -59,6 +59,83 @@ void f<T>(T t) => t;
 
 void bar<T>([void Function(T Function()) p = f]) {}
 ''', [ExpectedError(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 67, 1)]);
+  }
+
+  test_constructor_inDifferentFile() async {
+    newFile('/test/lib/a.dart', content: '''
+import 'b.dart';
+const v = const MyClass();
+''');
+    await assertErrorsInCode('''
+class MyClass {
+  const MyClass([p = foo]);
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 37, 3),
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 37, 3),
+    ]);
+  }
+
+  test_constructor_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  A({x : y}) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
+  test_constructor_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  A([x = y]) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
+  test_function_named() async {
+    await assertErrorsInCode(r'''
+int y;
+f({x : y}) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 14, 1),
+    ]);
+  }
+
+  test_function_positional() async {
+    await assertErrorsInCode(r'''
+int y;
+f([x = y]) {}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 14, 1),
+    ]);
+  }
+
+  test_method_named() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  m({x : y}) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
+  }
+
+  test_method_positional() async {
+    await assertErrorsInCode(r'''
+class A {
+  int y;
+  m([x = y]) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 28, 1),
+    ]);
   }
 
   test_noAppliedTypeParameters_defaultConstructorValue_dynamic() async {

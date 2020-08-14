@@ -177,7 +177,7 @@ ConstantPool {
   [0] = ObjectRef 'a'
   [1] = ObjectRef const 42
   [2] = ObjectRef 'b'
-  [3] = ObjectRef const <dart:core::String> ['default_b']
+  [3] = ObjectRef const <dart:core::String*> ['default_b']
   [4] = ObjectRef 'c'
   [5] = ObjectRef 'default_c'
   [6] = ObjectRef 'y = '
@@ -193,8 +193,8 @@ ConstantPool {
 
 
 Function 'foo3', static, has-optional-named-params, reflectable, debuggable
-    type-params <dart:core::Object P, dart:core::Object Q>
-    parameters [dynamic 'z', dynamic 'y', dart:core::bool 'a', dart:core::Map < #lib::foo3::TypeParam/0, #lib::foo3::TypeParam/1 > 'b'] (required: 2)
+    type-params <dart:core::Object* P, dart:core::Object* Q>
+    parameters [dynamic 'z', dynamic 'y', dart:core::bool* 'a', dart:core::Map < #lib::foo3::TypeParam/0*, #lib::foo3::TypeParam/1* >* 'b'] (required: 2)
     return-type void
 
 Bytecode {
@@ -225,7 +225,7 @@ ConstantPool {
   [1] = ObjectRef const false
   [2] = ObjectRef 'b'
   [3] = ObjectRef null
-  [4] = Type #lib::foo3::TypeParam/0
+  [4] = Type #lib::foo3::TypeParam/0*
   [5] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [6] = Reserved
 }

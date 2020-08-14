@@ -299,14 +299,6 @@ class AnalysisServer extends AbstractAnalysisServer {
     flutterWidgetDescriptions.flush();
   }
 
-  /// Read all files, resolve all URIs, and perform required analysis in
-  /// all current analysis drivers.
-  void reanalyze() {
-    for (var driver in driverMap.values) {
-      driver.resetUriResolution();
-    }
-  }
-
   /// Send the given [notification] to the client.
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
@@ -480,7 +472,8 @@ class AnalysisServer extends AbstractAnalysisServer {
     // during normal analysis (for example dot folders are skipped over in
     // _handleWatchEventImpl).
     return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file);
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
   }
 
   Future<void> shutdown() {
@@ -654,7 +647,7 @@ class AnalysisServerOptions {
 
   /// Return `true` if the new relevance computations should be used when
   /// computing code completion suggestions.
-  bool useNewRelevance = false;
+  bool useNewRelevance = true;
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();

@@ -17,6 +17,8 @@ import 'package:vm_snapshot_analysis/precompiler_trace.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 
+import 'utils.dart';
+
 class ExplainCommand extends Command<void> {
   @override
   final name = 'explain';
@@ -55,16 +57,18 @@ precompiler trace (an output of --trace-precompiler-to flag).
     if (!sizesJson.existsSync()) {
       usageException('Size profile ${sizesJson.path} does not exist!');
     }
+    final sizesJsonRaw = await loadJsonFromFile(sizesJson);
 
     final traceJson = File(argResults.rest[1]);
     if (!traceJson.existsSync()) {
       usageException('Size profile ${traceJson.path} does not exist!');
     }
+    final traceJsonRaw = await loadJsonFromFile(traceJson);
 
-    final callGraph = await loadTrace(traceJson);
+    final callGraph = loadTrace(traceJsonRaw);
     callGraph.computeDominators();
 
-    final programInfo = await loadProgramInfo(sizesJson);
+    final programInfo = loadProgramInfoFromJson(sizesJsonRaw);
 
     final histogram = Histogram.fromIterable<CallGraphNode>(
         callGraph.dynamicCalls, sizeOf: (dynamicCall) {

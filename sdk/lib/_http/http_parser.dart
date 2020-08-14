@@ -978,7 +978,6 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   static bool _isValueChar(int byte) {
     return (byte > 31 && byte < 128) ||
-        (byte == _CharCode.SP) ||
         (byte == _CharCode.HT);
   }
 

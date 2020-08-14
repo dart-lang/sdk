@@ -132,6 +132,9 @@ ConstEvalNegativeShift:
 ConstEvalTruncateError:
   template: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
 
+ConstEvalNonNull:
+  template: "Constant expression must be non-null."
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
@@ -548,8 +551,53 @@ AbstractClassMember:
     - "abstract class C {abstract m();}"
     - "abstract class C {abstract get m;}"
     - "abstract class C {abstract set m(int x);}"
-    - "abstract class C {abstract f;}"
-    - "abstract class C {abstract static f;}"
+    - "abstract class C {abstract var f;}"
+    - "abstract class C {abstract static var f;}"
+
+AbstractExternalField:
+  template: "Fields can't be declared both 'abstract' and 'external'."
+  tip: "Try removing the 'abstract' or 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract external var f;}"
+    - "abstract class C {external abstract var f;}"
+
+AbstractStaticField:
+  template: "Static fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' or 'static' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract static var f;}"
+
+AbstractExtensionField:
+  template: "Extension fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' keyword."
+# Separate class and extension field handling to to support this.
+#  configuration: nnbd-strong
+#  script:
+#    - "extension C on int {abstract static var f;}"
+
+AbstractFieldInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the initializer or the 'abstract' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f = 0;}"
+
+AbstractFieldConstructorInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'abstract' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f; C(this.f);}"
+    - "abstract class C {abstract var f; C() : this.f = 0;}"
+
+AbstractLateField:
+  template: "Abstract fields cannot be late."
+  tip: "Try removing the 'abstract' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract late var f;}"
 
 ClassInClass:
   index: 53
@@ -734,6 +782,31 @@ ExternalField:
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   script:
     - "class C { external var f; }"
+
+
+ExternalFieldInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the initializer or the 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external var f = 0;"
+    - "abstract class C {external var f = 0;}"
+
+ExternalFieldConstructorInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'external' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {external var f; C(this.f);}"
+    - "abstract class C {external var f; C() : this.f = 0;}"
+
+ExternalLateField:
+  template: "External fields cannot be late."
+  tip: "Try removing the 'external' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external late var f;"
+    - "abstract class C {external late var f;}"
 
 InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."
@@ -1187,6 +1260,16 @@ Unspecified:
 
 StrongModeNNBDButOptOut:
   template: "A library can't opt out of null safety by default, when using sound null safety."
+
+StrongModeNNBDPackageOptOut:
+  template:  |
+    Cannot run with sound null safety as one or more dependencies do not
+    support null safety:
+
+    #names
+
+    Run 'pub outdated --mode=null-safety' to determine if versions of your
+    dependencies supporting null safety are available.
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
@@ -1819,37 +1902,12 @@ DuplicatedExport:
     lib2.dart: "class A {}"
     main.dart: "export 'lib1.dart'; export 'lib2.dart';"
 
-DuplicatedLibraryExport:
-  template: "A library with name '#name' is exported more than once."
-  analyzerCode: EXPORT_DUPLICATED_LIBRARY_NAMED
-  script:
-    lib1.dart: "library foo;"
-    lib2.dart: "library foo;"
-    main.dart: "export 'lib1.dart'; export 'lib2.dart';"
-
-DuplicatedLibraryExportContext:
-  template: "'#name' is also exported here."
-  severity: CONTEXT
-
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
   severity: IGNORED
-
-DuplicatedLibraryImport:
-  template: "A library with name '#name' is imported more than once."
-  severity: WARNING
-  analyzerCode: IMPORT_DUPLICATED_LIBRARY_NAMED
-  script:
-    lib1.dart: "library foo;"
-    lib2.dart: "library foo;"
-    main.dart: "import 'lib1.dart'; import 'lib2.dart';"
-
-DuplicatedLibraryImportContext:
-  template: "'#name' is also imported here."
-  severity: CONTEXT
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
@@ -3413,6 +3471,16 @@ ReturnWithoutExpressionAsync:
   configuration: nnbd-strong
   declaration: "Future<int> foo() async { return; }"
 
+InvalidReturn:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "int foo() { return true; }"
+
+InvalidReturnAsync:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return true; }"
+
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
   configuration: nnbd-strong
@@ -3821,7 +3889,7 @@ SpreadMapElement:
   severity: CONTEXT
 
 NonNullAwareSpreadIsNull:
-  template: "Can't spread a value with static type Null."
+  template: "Can't spread a value with static type '#type'."
   script: >
     main() {
       <int>[...null];
@@ -4018,9 +4086,25 @@ NullableInterfaceError:
 NullableMixinError:
   template: "Can't mix '#name' in because it's marked with '?'."
 
+JsInteropAnonymousFactoryPositionalParameters:
+  template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
+  tip: "Try replacing them with named parameters instead."
+
+JsInteropEnclosingClassJSAnnotation:
+  template: "Member has a JS interop annotation but the enclosing class does not."
+  tip: "Try adding the annotation to the enclosing class."
+
+JsInteropEnclosingClassJSAnnotationContext:
+  template: "This is the enclosing class."
+  severity: CONTEXT
+
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+JsInteropNamedParameters:
+  template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  tip: "Try replacing them with normal or optional parameters."
 
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."

@@ -49,7 +49,7 @@ class C3 {
   const C3()
       : field = new C0()
       //^^^^^
-      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //      ^
       // [cfe] 'field' is a final instance variable that has already been initialized.
       //      ^

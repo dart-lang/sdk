@@ -1,11 +1,14 @@
 // Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
+
 // This file has been automatically generated.  Please do not edit it manually.
 // To regenerate the file, use the SDK script
 // "pkg/analyzer/tool/summary/generate.dart $IDL_FILE_PATH",
 // or "pkg/analyzer/tool/generate_files" for the analyzer package IDL/sources.
+
+// The generator sometimes generates unnecessary 'this' references.
+// ignore_for_file: unnecessary_this
 
 library analyzer.src.summary.format;
 
@@ -137,7 +140,7 @@ class _LinkedNodeTypeKindReader extends fb.Reader<idl.LinkedNodeTypeKind> {
     int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.LinkedNodeTypeKind.values.length
         ? idl.LinkedNodeTypeKind.values[index]
-        : idl.LinkedNodeTypeKind.bottom;
+        : idl.LinkedNodeTypeKind.dynamic_;
   }
 }
 
@@ -16691,7 +16694,7 @@ class LinkedNodeTypeBuilder extends Object
   }
 
   @override
-  idl.LinkedNodeTypeKind get kind => _kind ??= idl.LinkedNodeTypeKind.bottom;
+  idl.LinkedNodeTypeKind get kind => _kind ??= idl.LinkedNodeTypeKind.dynamic_;
 
   set kind(idl.LinkedNodeTypeKind value) {
     this._kind = value;
@@ -16850,7 +16853,7 @@ class LinkedNodeTypeBuilder extends Object
     if (offset_interfaceTypeArguments != null) {
       fbBuilder.addOffset(4, offset_interfaceTypeArguments);
     }
-    if (_kind != null && _kind != idl.LinkedNodeTypeKind.bottom) {
+    if (_kind != null && _kind != idl.LinkedNodeTypeKind.dynamic_) {
       fbBuilder.addUint8(5, _kind.index);
     }
     if (_nullabilitySuffix != null &&
@@ -16954,7 +16957,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   idl.LinkedNodeTypeKind get kind {
     _kind ??= const _LinkedNodeTypeKindReader()
-        .vTableGet(_bc, _bcOffset, 5, idl.LinkedNodeTypeKind.bottom);
+        .vTableGet(_bc, _bcOffset, 5, idl.LinkedNodeTypeKind.dynamic_);
     return _kind;
   }
 
@@ -17010,7 +17013,7 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
       _result["interfaceTypeArguments"] =
           interfaceTypeArguments.map((_value) => _value.toJson()).toList();
     }
-    if (kind != idl.LinkedNodeTypeKind.bottom) {
+    if (kind != idl.LinkedNodeTypeKind.dynamic_) {
       _result["kind"] = kind.toString().split('.')[1];
     }
     if (nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {
@@ -17789,6 +17792,7 @@ class PackageBundleSdkBuilder extends Object
     with _PackageBundleSdkMixin
     implements idl.PackageBundleSdk {
   String _allowedExperimentsJson;
+  LinkedLanguageVersionBuilder _languageVersion;
 
   @override
   String get allowedExperimentsJson => _allowedExperimentsJson ??= '';
@@ -17798,26 +17802,48 @@ class PackageBundleSdkBuilder extends Object
     this._allowedExperimentsJson = value;
   }
 
-  PackageBundleSdkBuilder({String allowedExperimentsJson})
-      : _allowedExperimentsJson = allowedExperimentsJson;
+  @override
+  LinkedLanguageVersionBuilder get languageVersion => _languageVersion;
+
+  /// The language version of the SDK.
+  set languageVersion(LinkedLanguageVersionBuilder value) {
+    this._languageVersion = value;
+  }
+
+  PackageBundleSdkBuilder(
+      {String allowedExperimentsJson,
+      LinkedLanguageVersionBuilder languageVersion})
+      : _allowedExperimentsJson = allowedExperimentsJson,
+        _languageVersion = languageVersion;
 
   /// Flush [informative] data recursively.
-  void flushInformative() {}
+  void flushInformative() {
+    _languageVersion?.flushInformative();
+  }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
     signature.addString(this._allowedExperimentsJson ?? '');
+    signature.addBool(this._languageVersion != null);
+    this._languageVersion?.collectApiSignature(signature);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_allowedExperimentsJson;
+    fb.Offset offset_languageVersion;
     if (_allowedExperimentsJson != null) {
       offset_allowedExperimentsJson =
           fbBuilder.writeString(_allowedExperimentsJson);
     }
+    if (_languageVersion != null) {
+      offset_languageVersion = _languageVersion.finish(fbBuilder);
+    }
     fbBuilder.startTable();
     if (offset_allowedExperimentsJson != null) {
       fbBuilder.addOffset(0, offset_allowedExperimentsJson);
+    }
+    if (offset_languageVersion != null) {
+      fbBuilder.addOffset(1, offset_languageVersion);
     }
     return fbBuilder.endTable();
   }
@@ -17840,12 +17866,20 @@ class _PackageBundleSdkImpl extends Object
   _PackageBundleSdkImpl(this._bc, this._bcOffset);
 
   String _allowedExperimentsJson;
+  idl.LinkedLanguageVersion _languageVersion;
 
   @override
   String get allowedExperimentsJson {
     _allowedExperimentsJson ??=
         const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
     return _allowedExperimentsJson;
+  }
+
+  @override
+  idl.LinkedLanguageVersion get languageVersion {
+    _languageVersion ??=
+        const _LinkedLanguageVersionReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _languageVersion;
   }
 }
 
@@ -17856,12 +17890,16 @@ abstract class _PackageBundleSdkMixin implements idl.PackageBundleSdk {
     if (allowedExperimentsJson != '') {
       _result["allowedExperimentsJson"] = allowedExperimentsJson;
     }
+    if (languageVersion != null) {
+      _result["languageVersion"] = languageVersion.toJson();
+    }
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
         "allowedExperimentsJson": allowedExperimentsJson,
+        "languageVersion": languageVersion,
       };
 
   @override

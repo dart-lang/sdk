@@ -32,7 +32,7 @@ import "dart:_internal"
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
-import "dart:async" show Completer, Future, Timer;
+import "dart:async" show Completer, DeferredLoadException, Future, Timer;
 
 import "dart:collection"
     show

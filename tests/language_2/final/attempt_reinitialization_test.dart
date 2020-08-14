@@ -5,7 +5,7 @@
 class Foo {
   Foo(this.x);
   //       ^
-  // [analyzer] STATIC_WARNING.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
   // [cfe] 'x' is a final instance variable that has already been initialized.
   final int x = 42;
 }
@@ -15,7 +15,7 @@ class CoffeeShop {
   CoffeeShop.name(String shopName)
       : this.shopName = shopName;
       //     ^^^^^^^^
-      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //              ^
       // [cfe] 'shopName' is a final instance variable that has already been initialized.
 }

@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateField extends CorrectionProducer {
@@ -21,7 +21,7 @@ class CreateField extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_FIELD;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<FieldFormalParameter>();
     if (parameter != null) {
       await _proposeFromFieldFormalParameter(builder, parameter);
@@ -31,7 +31,7 @@ class CreateField extends CorrectionProducer {
   }
 
   Future<void> _proposeFromFieldFormalParameter(
-      DartChangeBuilder builder, FieldFormalParameter parameter) async {
+      ChangeBuilder builder, FieldFormalParameter parameter) async {
     var targetClassNode = parameter.thisOrAncestorOfType<ClassDeclaration>();
     if (targetClassNode == null) {
       return;
@@ -42,9 +42,9 @@ class CreateField extends CorrectionProducer {
     //
     // Add proposal.
     //
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var fieldType = parameter.type?.type;
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
         builder.write(targetLocation.prefix);
         builder.writeFieldDeclaration(_fieldName,
             nameGroupName: 'NAME', type: fieldType, typeGroupName: 'TYPE');
@@ -53,7 +53,7 @@ class CreateField extends CorrectionProducer {
     });
   }
 
-  Future<void> _proposeFromIdentifier(DartChangeBuilder builder) async {
+  Future<void> _proposeFromIdentifier(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier) {
       return;
     }
@@ -110,10 +110,10 @@ class CreateField extends CorrectionProducer {
     // build field source
     var targetSource = targetClassElement.source;
     var targetFile = targetSource.fullName;
-    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(targetFile, (builder) {
       var fieldTypeNode = climbPropertyAccess(nameNode);
       var fieldType = inferUndefinedExpressionType(fieldTypeNode);
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
         builder.write(targetLocation.prefix);
         builder.writeFieldDeclaration(_fieldName,
             isStatic: staticModifier,

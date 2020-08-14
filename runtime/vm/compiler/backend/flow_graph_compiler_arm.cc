@@ -875,16 +875,6 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
       compiler::target::Code::entry_point_offset(Code::EntryKind::kUnchecked)));
 }
 
-void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
-  // LR: return address.
-  // SP: receiver.
-  // Sequence node has one return node, its input is load field node.
-  __ Comment("Intrinsic Getter");
-  __ ldr(R0, compiler::Address(SP, 0 * compiler::target::kWordSize));
-  __ LoadFieldFromOffset(kWord, R0, R0, offset);
-  __ Ret();
-}
-
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() && function.IsOptimizable() &&

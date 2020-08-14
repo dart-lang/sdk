@@ -340,24 +340,21 @@ class FastaCompilationCommand extends CompilationCommand {
 }
 
 class VMKernelCompilationCommand extends CompilationCommand {
-  final List<String> batchArgs;
-
   VMKernelCompilationCommand(
       String outputFile,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      this.batchArgs,
       {bool alwaysCompile,
       int index = 0})
-      : super('vm_compile_to_kernel $batchArgs', outputFile,
-            bootstrapDependencies, executable, arguments, environmentOverrides,
+      : super('vm_compile_to_kernel', outputFile, bootstrapDependencies,
+            executable, arguments, environmentOverrides,
             alwaysCompile: alwaysCompile, index: index);
 
   VMKernelCompilationCommand indexedCopy(int index) =>
       VMKernelCompilationCommand(outputFile, _bootstrapDependencies, executable,
-          arguments, environmentOverrides, batchArgs,
+          arguments, environmentOverrides,
           alwaysCompile: _alwaysCompile, index: index);
 
   VMKernelCompilationCommandOutput createOutput(
@@ -372,11 +369,6 @@ class VMKernelCompilationCommand extends CompilationCommand {
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 
   int get maxNumRetries => 1;
-
-  @override
-  List<String> get batchArguments {
-    return batchArgs;
-  }
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==

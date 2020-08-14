@@ -684,6 +684,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   int pid = 0;
   int heapAllocatedMemoryUsage = 0;
   int heapAllocationCount = 0;
+  int currentMemory;
   int maxRSS;
   int currentRSS;
   bool profileVM = false;
@@ -1032,6 +1033,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     heapAllocatedMemoryUsage = map['_heapAllocatedMemoryUsage'];
     heapAllocationCount = map['_heapAllocationCount'];
     embedder = map['_embedder'];
+    currentMemory = map['_currentMemory'];
     maxRSS = map['_maxRSS'];
     currentRSS = map['_currentRSS'];
     profileVM = map['_profilerMode'] == 'VM';

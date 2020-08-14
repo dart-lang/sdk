@@ -38,7 +38,7 @@ class FeatureComputerTest extends AbstractSingleUnitTest {
     if (expectedType == null) {
       expect(type, null);
     } else {
-      expect(type?.getDisplayString(), expectedType);
+      expect(type?.getDisplayString(withNullability: false), expectedType);
     }
   }
 

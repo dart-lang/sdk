@@ -590,17 +590,49 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+  TypeParameterTypeImpl typeParameterType(
+    TypeParameterElement element, {
+    @required NullabilitySuffix nullabilitySuffix,
+    DartType promotedBound,
+  }) {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl typeParameterTypeNone(
+    TypeParameterElement element, {
+    DartType promotedBound,
+  }) {
+    return typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+      promotedBound: promotedBound,
+    );
   }
 
   TypeParameterTypeImpl typeParameterTypeQuestion(
-      TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.question);
+    TypeParameterElement element, {
+    DartType promotedBound,
+  }) {
+    return typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+      promotedBound: promotedBound,
+    );
   }
 
-  TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
+  TypeParameterTypeImpl typeParameterTypeStar(
+    TypeParameterElement element, {
+    DartType promotedBound,
+  }) {
+    return typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.star,
+      promotedBound: promotedBound,
+    );
   }
 }
 

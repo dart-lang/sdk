@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -335,9 +335,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   test_constrainedByBounds5() async {
     // Test that upwards inference with two type variables does not
-    // propogate from the constrained variable to the unconstrained
+    // propagate from the constrained variable to the unconstrained
     // variable if they are ordered right to left, when the variable
-    // appears co and contra variantly, and that an error is issued
+    // appears co- and contra-variantly, and that an error is issued
     // for the non-matching bound.
     String code = r'''
     typedef To Func1<From, To>(From x);
@@ -346,7 +346,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    assertErrors(source, [CompileTimeErrorCode.COULD_NOT_INFER]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     List<Statement> statements =
@@ -912,7 +912,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr does not have the constituent type methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
-    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -920,7 +920,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr does not have the Future type methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
-    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -928,7 +928,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr<dynamic> does not have all methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
-    ''', errors: [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
     _isDynamic(invoke.staticType);
   }
 
@@ -981,7 +981,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
-    ''', errors: [StrongModeCode.COULD_NOT_INFER]);
+    ''', errors: [CompileTimeErrorCode.COULD_NOT_INFER]);
     _isFutureOfInt(invoke.staticType);
   }
 
@@ -1093,8 +1093,8 @@ test() {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1119,9 +1119,9 @@ test() {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1147,8 +1147,8 @@ test() {
  ''');
     var analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.INVALID_CAST_LITERAL,
-      StrongModeCode.INVALID_CAST_LITERAL
+      CompileTimeErrorCode.INVALID_CAST_LITERAL,
+      CompileTimeErrorCode.INVALID_CAST_LITERAL
     ]);
     var unit = analysisResult.unit;
     var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
@@ -1170,7 +1170,7 @@ test() {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.COULD_NOT_INFER,
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1198,8 +1198,8 @@ test(Iterable values) {
  ''');
     await computeAnalysisResult(source);
     _expectInferenceError(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ], r'''
 Couldn't infer type parameter 'T'.
 
@@ -1223,7 +1223,7 @@ test() {
 }
  ''');
     await computeAnalysisResult(source);
-    _expectInferenceError(source, [StrongModeCode.COULD_NOT_INFER], r'''
+    _expectInferenceError(source, [CompileTimeErrorCode.COULD_NOT_INFER], r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1263,9 +1263,9 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1290,9 +1290,9 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1317,9 +1317,9 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     assertNoErrors(source);
     verify([source]);
     var unit = analysisResult.unit;
-    var body = (AstFinder.getTopLevelFunction(unit, '_mergeSort')
+    var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
-        .body as BlockFunctionBody);
+        .body as BlockFunctionBody;
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
@@ -1364,8 +1364,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     ''');
     var analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.COULD_NOT_INFER,
-      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+      CompileTimeErrorCode.COULD_NOT_INFER,
+      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
     var unit = analysisResult.unit;
@@ -1934,7 +1934,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
    ''';
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [StrongModeCode.INVALID_CAST_LITERAL]);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_CAST_LITERAL]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
@@ -1986,7 +1986,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Source source = addSource(code);
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
     assertErrors(source, [
-      StrongModeCode.INVALID_CAST_LITERAL,
+      CompileTimeErrorCode.INVALID_CAST_LITERAL,
     ]);
     verify([source]);
     CompilationUnit unit = analysisResult.unit;
@@ -2375,7 +2375,7 @@ class B<T2, U2> {
     assertErrors(source, errorCodes);
     var errors = analysisResults[source]
         .errors
-        .where((e) => e.errorCode == StrongModeCode.COULD_NOT_INFER)
+        .where((e) => e.errorCode == CompileTimeErrorCode.COULD_NOT_INFER)
         .map((e) => e.message)
         .toList();
     expect(errors.length, 1);
@@ -3262,10 +3262,10 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 3),
-      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
     ]);
     // Note: this correctly reports the error
-    // StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
+    // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
     // when run without the driver, it reports no errors.  So we don't bother
     // checking whether the correct errors were reported.
     expectInitializerType('foo', 'Future<String>');
@@ -3341,7 +3341,7 @@ void test() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
-      error(StrongModeCode.COULD_NOT_INFER, 81, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 81, 1),
     ]);
     _assertLocalVarType('c', 'C<List<dynamic>, List<List<dynamic>>>');
   }
@@ -3456,7 +3456,7 @@ void g() {
 ''', [
       error(HintCode.MISSING_RETURN, 3, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
-      error(StrongModeCode.COULD_NOT_INFER, 73, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 73, 1),
     ]);
     _assertLocalVarType('c', 'List<dynamic>');
   }
@@ -3523,168 +3523,6 @@ class C<E> {
   static T g<T>(T e) => null;
   static final h = g;
 }
-''');
-  }
-
-  test_notInstantiatedBound_class_error_recursion() async {
-    await assertErrorsInCode(r'''
-class A<T extends B> {} // points to a
-class B<T extends A> {} // points to b
-class C<T extends A> {} // points to a cyclical type
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 18, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 57, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 96, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_class_error_recursion_less_direct() async {
-    await assertErrorsInCode(r'''
-class A<T extends B<A>> {}
-class B<T extends A<B>> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 20, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 47, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_class_error_recursion_typedef() async {
-    await assertErrorsInCode(r'''
-typedef F(C value);
-class C<T extends F> {}
-class D<T extends C> {}
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 19),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 38, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 62, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_argument() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<K>> {}
-class C<T extends A> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 51, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_argument2() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<List<K>>> {}
-class C<T extends A> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 57, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_direct() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends K> {}
-class C<T extends A> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 45, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_class_indirect() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends K> {}
-class C<T extends List<A>> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 50, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_functionType() async {
-    await assertErrorsInCode(r'''
-class A<T extends Function(T)> {}
-class B<T extends T Function()> {}
-class C<T extends A> {}
-class D<T extends B> {}
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 87, 1),
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 111, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_typedef_argument() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<K>> {}
-typedef void F<T extends A>();
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 58, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_typedef_argument2() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends List<List<K>>> {}
-typedef void F<T extends A>();
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 64, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_error_typedef_direct() async {
-    await assertErrorsInCode(r'''
-class A<K, V extends K> {}
-typedef void F<T extends A>();
-''', [
-      error(StrongModeCode.NOT_INSTANTIATED_BOUND, 52, 1),
-    ]);
-  }
-
-  test_notInstantiatedBound_ok_class() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends int> {}
-class C1<T extends A> {}
-class C2<T extends List<A>> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_class2() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-class C<T extends A<int>> {}
-class D<T extends C> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_class3() async {
-    await assertNoErrorsInCode(r'''
-class A<T> {}
-class B<T extends int> {}
-class C<T extends A<B>> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_class4() async {
-    await assertNoErrorsInCode(r'''
-class A<K, V> {}
-class B<T extends int> {}
-class C<T extends A<B, B>> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_function() async {
-    await assertNoErrorsInCode(r'''
-class A<T extends void Function()> {}
-class B<T extends A> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_class_typedef() async {
-    await assertNoErrorsInCode(r'''
-typedef void F<T extends int>();
-class C<T extends F> {}
-''');
-  }
-
-  test_notInstantiatedBound_ok_typedef_class() async {
-    await assertNoErrorsInCode(r'''
-class C<T extends int> {}
-typedef void F<T extends C>();
 ''');
   }
 
@@ -3829,7 +3667,7 @@ void main() {
   test_returnOfInvalidType_object_void() async {
     await assertErrorsInCode(
         "Object f() { void voidFn() => null; return voidFn(); }", [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 43, 8),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 43, 8),
     ]);
   }
 
@@ -3840,8 +3678,8 @@ class A {
 }
 dynamic set g(int x) => null;
 ''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 7),
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 47, 7),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 7),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 47, 7),
     ]);
   }
 
@@ -3864,7 +3702,7 @@ class A {
 }
 set g(int x) => 42;
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 41, 4),
     ]);
   }
 
@@ -3885,8 +3723,8 @@ class A {
 }
 Object set g(x) => null;
 ''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 12, 6),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 46, 6),
     ]);
   }
 
@@ -3935,7 +3773,7 @@ main() {
 }
 
 @reflectiveTest
-class StrongModeTypePropagationTest extends DriverResolutionTest {
+class StrongModeTypePropagationTest extends PubPackageResolutionTest {
   test_foreachInference_dynamic_disabled() async {
     await resolveTestCode(r'''
 main() {

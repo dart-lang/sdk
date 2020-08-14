@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PropertyAccessResolutionTest);
-    defineReflectiveTests(PropertyAccessResolutionWithNnbdTest);
+    defineReflectiveTests(PropertyAccessResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class PropertyAccessResolutionTest extends DriverResolutionTest {
+class PropertyAccessResolutionTest extends PubPackageResolutionTest {
   test_tearOff_method() async {
     await assertNoErrorsInCode('''
 class A {
@@ -36,16 +34,8 @@ bar() {
 }
 
 @reflectiveTest
-class PropertyAccessResolutionWithNnbdTest
-    extends PropertyAccessResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class PropertyAccessResolutionWithNullSafetyTest
+    extends PropertyAccessResolutionTest with WithNullSafetyMixin {
   test_implicitCall_tearOff_nullable() async {
     await assertErrorsInCode('''
 class A {
@@ -60,7 +50,7 @@ int Function() foo() {
   return B().a; // ref
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5),
     ]);
 
     var identifier = findNode.simple('a; // ref');

@@ -18,6 +18,7 @@ import 'package:kernel/target/targets.dart';
 
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
+import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/vm/constants_native_effects.dart';
@@ -101,7 +102,14 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(component, backend, defines,
-          const constants.SimpleErrorReporter(), constants.EvaluationMode.weak);
+          const constants.SimpleErrorReporter(), constants.EvaluationMode.weak,
+          desugarSets: false,
+          evaluateAnnotations: true,
+          enableTripleShift: false,
+          errorOnUnevaluatedConstant: false);
+      break;
+    case 'value-class':
+      component = valueClass.transformComponent(component);
       break;
     case 'empty':
       component = empty.transformComponent(component);

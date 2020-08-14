@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertIntoIsNotEmpty extends CorrectionProducer {
@@ -16,7 +16,7 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // prepare "expr.isEmpty"
     AstNode isEmptyAccess;
     SimpleIdentifier isEmptyIdentifier;
@@ -58,7 +58,7 @@ class ConvertIntoIsNotEmpty extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
           range.startStart(prefixExpression, prefixExpression.operand));
       builder.addSimpleReplacement(range.node(isEmptyIdentifier), 'isNotEmpty');

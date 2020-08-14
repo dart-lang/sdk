@@ -313,12 +313,12 @@ class _ResolverVisitor_isVariableAccessedInClosure
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    bool inClosure = this._inClosure;
+    bool inClosure = _inClosure;
     try {
-      this._inClosure = true;
+      _inClosure = true;
       super.visitFunctionExpression(node);
     } finally {
-      this._inClosure = inClosure;
+      _inClosure = inClosure;
     }
   }
 

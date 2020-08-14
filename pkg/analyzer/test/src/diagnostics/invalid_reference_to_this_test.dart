@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidReferenceToThisTest);
-    defineReflectiveTests(InvalidReferenceToThisTest_NNBD);
+    defineReflectiveTests(InvalidReferenceToThisWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest extends DriverResolutionTest {
+class InvalidReferenceToThisTest extends PubPackageResolutionTest {
   test_constructor_valid() async {
     await assertErrorsInCode(r'''
 class A {
@@ -137,13 +134,8 @@ class A {
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest_NNBD extends InvalidReferenceToThisTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
+class InvalidReferenceToThisWithNullSafetyTest
+    extends InvalidReferenceToThisTest with WithNullSafetyMixin {
   test_instanceVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 class A {

@@ -4,10 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -17,16 +19,19 @@ class FeatureSetProvider {
   static const isNullSafetySdk = true;
 
   final AllowedExperiments _allowedExperiments;
+  final ResourceProvider _resourceProvider;
   final Packages _packages;
   final FeatureSet _packageDefaultFeatureSet;
   final FeatureSet _nonPackageDefaultFeatureSet;
 
   FeatureSetProvider._({
     @required AllowedExperiments allowedExperiments,
+    @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
     @required FeatureSet nonPackageDefaultFeatureSet,
   })  : _allowedExperiments = allowedExperiments,
+        _resourceProvider = resourceProvider,
         _packages = packages,
         _packageDefaultFeatureSet = packageDefaultFeatureSet,
         _nonPackageDefaultFeatureSet = nonPackageDefaultFeatureSet;
@@ -44,7 +49,7 @@ class FeatureSetProvider {
       }
     }
 
-    var package = _packages.packageForPath(path);
+    var package = _findPackage(uri, path);
     if (package != null) {
       var experiments = _allowedExperiments.forPackage(package.name);
       if (experiments != null) {
@@ -65,8 +70,7 @@ class FeatureSetProvider {
     if (uri.isScheme('dart')) {
       return ExperimentStatus.currentVersion;
     }
-
-    var package = _packages.packageForPath(path);
+    var package = _findPackage(uri, path);
     if (package != null) {
       var languageVersion = package.languageVersion;
       if (languageVersion != null) {
@@ -77,8 +81,31 @@ class FeatureSetProvider {
     return ExperimentStatus.currentVersion;
   }
 
+  /// Return the package corresponding to the [uri] or [path], `null` if none.
+  Package _findPackage(Uri uri, String path) {
+    if (uri.isScheme('package')) {
+      var pathSegments = uri.pathSegments;
+      if (pathSegments.isNotEmpty) {
+        var packageName = pathSegments.first;
+        var package = _packages[packageName];
+        if (package != null) {
+          return package;
+        }
+      }
+    } else if (uri.isScheme('file')) {
+      var uriPath = fileUriToNormalizedPath(_resourceProvider.pathContext, uri);
+      var package = _packages.packageForPath(uriPath);
+      if (package != null) {
+        return package;
+      }
+    }
+
+    return _packages.packageForPath(path);
+  }
+
   static FeatureSetProvider build({
     @required SourceFactory sourceFactory,
+    @required ResourceProvider resourceProvider,
     @required Packages packages,
     @required FeatureSet packageDefaultFeatureSet,
     @required FeatureSet nonPackageDefaultFeatureSet,
@@ -86,6 +113,7 @@ class FeatureSetProvider {
     var allowedExperiments = _experimentsForSdk(sourceFactory.dartSdk);
     return FeatureSetProvider._(
       allowedExperiments: allowedExperiments,
+      resourceProvider: resourceProvider,
       packages: packages,
       packageDefaultFeatureSet: packageDefaultFeatureSet,
       nonPackageDefaultFeatureSet: nonPackageDefaultFeatureSet,

@@ -21,7 +21,7 @@ import "dart:isolate" show SendPort;
 bool debugger({bool when: true, String? message}) native "Developer_debugger";
 
 @patch
-Object inspect(Object object) native "Developer_inspect";
+Object? inspect(Object? object) native "Developer_inspect";
 
 @patch
 void log(String message,

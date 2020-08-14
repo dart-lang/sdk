@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract get instanceField() → core::int;
+  abstract set instanceField(core::int #t1) → void;
+  abstract get finalInstanceField() → core::int;
+  abstract get covariantInstanceField() → core::num;
+  abstract set covariantInstanceField(covariant core::num #t2) → void;
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  abstract get instanceField() → core::int;
+  abstract set instanceField(core::int #t3) → void;
+  abstract get finalInstanceField() → core::int;
+  abstract get covariantInstanceField() → core::num;
+  abstract set covariantInstanceField(covariant core::num #t4) → void;
+}
+static method main() → dynamic {}

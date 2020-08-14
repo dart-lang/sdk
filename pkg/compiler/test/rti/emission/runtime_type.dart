@@ -7,7 +7,7 @@
 /*class: A:checks=[],instance*/
 class A<T> {}
 
-/*class: B:checks=[],typeArgument*/
+/*class: B:checks=[],onlyForRti,typeArgument*/
 class B<T> {}
 
 main() {

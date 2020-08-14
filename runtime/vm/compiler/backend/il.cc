@@ -202,7 +202,6 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;
-    if (cls.is_patch()) continue;
     if (cls.IsTopLevel()) continue;
 
     // We are either interested in [CidRange]es of subclasses or subtypes.
@@ -310,7 +309,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
         for (; j < current_cid; ++j) {
           if (table->HasValidClassAt(j)) {
             klass = table->At(j);
-            if (!klass.is_patch() && !klass.IsTopLevel()) {
+            if (!klass.IsTopLevel()) {
               // If we care about abstract classes also, we cannot skip over any
               // arbitrary abstract class, only those which are subtypes.
               if (include_abstract) {
@@ -3171,16 +3170,17 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
 
-#if defined(TARGET_ARCH_IS_32_BIT)
-    // Do not erase extending conversions from 32-bit untagged to 64-bit values
-    // because untagged does not specify whether it is signed or not.
-    if ((box_defn->from() == kUntagged) && to() == kUnboxedInt64) {
-      return this;
-    }
-#endif
-
+    // It's safe to discard any other conversions from and then back to the same
+    // integer type.
     if (box_defn->from() == to()) {
       return box_defn->value()->definition();
+    }
+
+    // Do not merge conversions where the first starts from Untagged or the
+    // second ends at Untagged, since we expect to see either UnboxedIntPtr
+    // or UnboxedFfiIntPtr as the other type in an Untagged conversion.
+    if ((box_defn->from() == kUntagged) || (to() == kUntagged)) {
+      return this;
     }
 
     IntConverterInstr* converter = new IntConverterInstr(
@@ -5535,7 +5535,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant() ? index()->definition() : this;
 }
 

@@ -7,24 +7,46 @@ part of dds;
 /// Representation of a single DDS client which manages the connection and
 /// DDS request intercepting / forwarding.
 class _DartDevelopmentServiceClient {
-  _DartDevelopmentServiceClient(
+  factory _DartDevelopmentServiceClient.fromWebSocket(
+    DartDevelopmentService dds,
+    WebSocketChannel ws,
+    json_rpc.Peer vmServicePeer,
+  ) =>
+      _DartDevelopmentServiceClient._(
+        dds,
+        ws,
+        vmServicePeer,
+      );
+
+  factory _DartDevelopmentServiceClient.fromSSEConnection(
+    DartDevelopmentService dds,
+    SseConnection sse,
+    json_rpc.Peer vmServicePeer,
+  ) =>
+      _DartDevelopmentServiceClient._(
+        dds,
+        sse,
+        vmServicePeer,
+      );
+
+  _DartDevelopmentServiceClient._(
     this.dds,
-    this.ws,
+    this.connection,
     json_rpc.Peer vmServicePeer,
   ) : _vmServicePeer = vmServicePeer {
     _clientPeer = json_rpc.Peer(
       // Manually create a StreamChannel<String> instead of calling
-      // ws.cast<String>() as cast() results in addStream() being called,
+      // .cast<String>() as cast() results in addStream() being called,
       // binding the underlying sink. This results in a StateError being thrown
       // if we try and add directly to the sink, which we do for binary events
       // in _StreamManager's streamNotify().
       StreamChannel<String>(
-        ws.stream.cast(),
+        connection.stream.cast(),
         StreamController(sync: true)
           ..stream
               .cast()
-              .listen((event) => ws.sink.add(event))
-              .onDone(() => ws.sink.close()),
+              .listen((event) => connection.sink.add(event))
+              .onDone(() => connection.sink.close()),
       ),
       strictProtocolChecks: false,
     );
@@ -231,8 +253,8 @@ class _DartDevelopmentServiceClient {
   String _name;
 
   final _DartDevelopmentService dds;
+  final StreamChannel connection;
   final Map<String, String> services = {};
   final json_rpc.Peer _vmServicePeer;
-  final WebSocketChannel ws;
   json_rpc.Peer _clientPeer;
 }

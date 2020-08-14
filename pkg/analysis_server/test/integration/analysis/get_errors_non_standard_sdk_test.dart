@@ -29,6 +29,8 @@ class AnalysisDomainGetErrorsTest
     Directory(path.join(sdkPath, 'lib', 'async')).createSync(recursive: true);
     Directory(path.join(sdkPath, 'lib', 'fake')).createSync(recursive: true);
 
+    File(path.join(sdkPath, 'version')).writeAsStringSync('2.10.0');
+
     File(path.join(sdkPath, 'lib', 'core', 'core.dart')).writeAsStringSync(r'''
 library dart.core;
 import 'dart:async';

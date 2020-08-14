@@ -2,44 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong
-
 import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    num local(num n) => null;
+    num local(num n) => null as dynamic;
     return local;
   }
 
   method2() {
-    num local(int n) => null;
+    num local(int n) => null as dynamic;
     return local;
   }
 
   method3() {
-    Object local(num n) => null;
+    Object local(num n) => null as dynamic;
     return local;
   }
 }
 
 class Class2<T> {
   method4() {
-    num local(T n) => null;
+    num local(T n) => null as dynamic;
     return local;
   }
 }
 
 class Class3<T> {
   method5() {
-    T local(num n) => null;
+    T local(num n) => null as dynamic;
     return local;
   }
 }
 
 class Class4<T> {
   method6() {
-    num local(num n, T t) => null;
+    num local(num n, T t) => null as dynamic;
     return local;
   }
 }

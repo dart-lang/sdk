@@ -941,28 +941,32 @@ bool InductionVar::CanComputeBounds(LoopInfo* loop,
   return false;
 }
 
-const char* InductionVar::ToCString() const {
-  char buffer[1024];
-  BufferFormatter f(buffer, sizeof(buffer));
+void InductionVar::PrintTo(BaseTextBuffer* f) const {
   switch (kind_) {
     case kInvariant:
       if (mult_ != 0) {
-        f.Print("(%" Pd64 " + %" Pd64 " x %.4s)", offset_, mult_,
-                def_->ToCString());
+        f->Printf("(%" Pd64 " + %" Pd64 " x %.4s)", offset_, mult_,
+                  def_->ToCString());
       } else {
-        f.Print("%" Pd64, offset_);
+        f->Printf("%" Pd64, offset_);
       }
       break;
     case kLinear:
-      f.Print("LIN(%s + %s * i)", initial_->ToCString(), next_->ToCString());
+      f->Printf("LIN(%s + %s * i)", initial_->ToCString(), next_->ToCString());
       break;
     case kWrapAround:
-      f.Print("WRAP(%s, %s)", initial_->ToCString(), next_->ToCString());
+      f->Printf("WRAP(%s, %s)", initial_->ToCString(), next_->ToCString());
       break;
     case kPeriodic:
-      f.Print("PERIOD(%s, %s)", initial_->ToCString(), next_->ToCString());
+      f->Printf("PERIOD(%s, %s)", initial_->ToCString(), next_->ToCString());
       break;
   }
+}
+
+const char* InductionVar::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
@@ -1112,24 +1116,28 @@ bool LoopInfo::IsInRange(Instruction* pos, Value* index, Value* length) {
   return false;
 }
 
-const char* LoopInfo::ToCString() const {
-  char buffer[1024];
-  BufferFormatter f(buffer, sizeof(buffer));
-  f.Print("%*c", static_cast<int>(2 * NestingDepth()), ' ');
-  f.Print("loop%" Pd " B%" Pd " ", id_, header_->block_id());
+void LoopInfo::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("%*c", static_cast<int>(2 * NestingDepth()), ' ');
+  f->Printf("loop%" Pd " B%" Pd " ", id_, header_->block_id());
   intptr_t num_blocks = 0;
   for (BitVector::Iterator it(blocks_); !it.Done(); it.Advance()) {
     num_blocks++;
   }
-  f.Print("#blocks=%" Pd, num_blocks);
-  if (outer_ != nullptr) f.Print(" outer=%" Pd, outer_->id_);
-  if (inner_ != nullptr) f.Print(" inner=%" Pd, inner_->id_);
-  if (next_ != nullptr) f.Print(" next=%" Pd, next_->id_);
-  f.Print(" [");
+  f->Printf("#blocks=%" Pd, num_blocks);
+  if (outer_ != nullptr) f->Printf(" outer=%" Pd, outer_->id_);
+  if (inner_ != nullptr) f->Printf(" inner=%" Pd, inner_->id_);
+  if (next_ != nullptr) f->Printf(" next=%" Pd, next_->id_);
+  f->AddString(" [");
   for (intptr_t i = 0, n = back_edges_.length(); i < n; i++) {
-    f.Print(" B%" Pd, back_edges_[i]->block_id());
+    f->Printf(" B%" Pd, back_edges_[i]->block_id());
   }
-  f.Print(" ]");
+  f->AddString(" ]");
+}
+
+const char* LoopInfo::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 

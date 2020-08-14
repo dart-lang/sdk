@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
@@ -133,10 +131,12 @@ class UnboxingInfoManager {
     for (final superType in cls.supers) {
       final superClass = superType.classNode;
       bool linked = false;
-      superClass.procedures.forEach((Procedure procedure) {
-        if (member.name == procedure.name) {
-          _linkMembers(member, procedure);
-          linked = true;
+      superClass.members.forEach((Member superMember) {
+        if (member.isInstanceMember) {
+          if (member.name == superMember.name) {
+            _linkMembers(member, superMember);
+            linked = true;
+          }
         }
       });
       if (!linked) {
@@ -158,17 +158,10 @@ class UnboxingInfoManager {
   }
 
   Member _validMemberOrNull(Member member) {
-    if (member == null || (member is! Procedure && member is! Constructor)) {
+    if (member == null ||
+        (member is! Procedure && member is! Constructor && member is! Field)) {
       return null;
     }
-
-    // TODO(dartbug.com/33549): Support setters with unboxed arguments
-    // For this, fields should also be considered in the partition
-    // and be annotated with the UnboxingInfoMetadata.
-    if (member is Procedure && (member.isSetter || member.isGetter)) {
-      return null;
-    }
-
     return member;
   }
 
@@ -187,7 +180,9 @@ class UnboxingInfoManager {
     final int memberId = _allUnboxingInfo.length;
     assertx(memberId == _partitionIds.length);
     assertx(_partitionIds.length == _partitionRank.length);
-    final int argsLen = member.function.requiredParameterCount;
+    final int argsLen = member is Field
+        ? (member.hasSetter ? 1 : 0)
+        : member.function.requiredParameterCount;
     _memberIds[member] = memberId;
     _allUnboxingInfo.add(UnboxingInfoMetadata(argsLen));
     _partitionIds.add(memberId);
@@ -202,9 +197,7 @@ class UnboxingInfoManager {
     // have boxed parameters and return values.
     return (_isNative(member) ||
         _nativeCodeOracle.isMemberReferencedFromNativeCode(member) ||
-        _isEnclosingClassSubtypeOfNum(member) ||
-        (!_isConstructorOrStatic(member) &&
-            !_needsDynamicInvocationForwarder(member)));
+        _isEnclosingClassSubtypeOfNum(member));
   }
 
   bool _isNative(Member member) {
@@ -219,30 +212,6 @@ class UnboxingInfoManager {
     return (member.enclosingClass != null &&
         ConeType(_typeHierarchy.getTFClass(member.enclosingClass))
             .isSubtypeOf(_typeHierarchy, _coreTypes.numClass));
-  }
-
-  bool _needsDynamicInvocationForwarder(Procedure procedure) {
-    for (var param in procedure.function.positionalParameters) {
-      if (!_isTopTypeForAssignability(param.type) &&
-          !param.isCovariant &&
-          !param.isGenericCovariantImpl) {
-        return true;
-      }
-    }
-
-    for (var param in procedure.function.namedParameters) {
-      if (!_isTopTypeForAssignability(param.type) &&
-          !param.isCovariant &&
-          !param.isGenericCovariantImpl) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  bool _isTopTypeForAssignability(DartType type) {
-    return (_coreTypes.isTop(type) || (type == Object) || (type == FutureOr));
   }
 
   int _getMemberId(Member member) {

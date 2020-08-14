@@ -38,6 +38,16 @@ namespace dart {
 // Note: If this interface is changed please also update
 // sdk/runtime/tools/dartfuzz/ffiapi.dart
 
+int32_t globalVar;
+
+DART_EXPORT void SetGlobalVar(int32_t v) {
+  globalVar = v;
+}
+
+DART_EXPORT int32_t GetGlobalVar() {
+  return globalVar;
+}
+
 // Sums two ints and adds 42.
 // Simple function to test trampolines.
 // Also used for testing argument exception on passing null instead of a Dart

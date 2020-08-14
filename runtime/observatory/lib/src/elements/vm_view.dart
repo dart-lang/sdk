@@ -112,10 +112,107 @@ class VMViewElement extends CustomElement implements Renderable {
             .element,
         new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
+      describeProcess(),
       describeVM(),
       describeIsolateGroups(),
       new ViewFooterElement(queue: _r.queue).element
     ];
+  }
+
+  Element describeProcess() {
+    return new DivElement()
+      ..classes = ['content-centered-big']
+      ..children = <HtmlElement>[
+        new HeadingElement.h1()..text = 'Process',
+        new DivElement()
+          ..classes = ['memberList']
+          ..children = <Element>[
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'pid',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = '${_vm.pid}'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'current memory'
+                  ..title =
+                      'current value of the resident set size of the process running this VM',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.currentRSS != null
+                      ? Utils.formatSize(_vm.currentRSS)
+                      : "unavailable"
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'peak memory'
+                  ..title =
+                      'highest value of the resident set size of the process running this VM',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.maxRSS != null
+                      ? Utils.formatSize(_vm.maxRSS)
+                      : "unavailable"
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'malloc memory',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.heapAllocatedMemoryUsage != null
+                      ? Utils.formatSize(_vm.heapAllocatedMemoryUsage)
+                      : 'unavailable'
+                  ..title = _vm.heapAllocatedMemoryUsage != null
+                      ? '${_vm.heapAllocatedMemoryUsage} bytes'
+                      : null
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..text = 'malloc allocation count',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.heapAllocationCount != null
+                      ? '${_vm.heapAllocationCount}'
+                      : 'unavailable'
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'view ',
+                    new AnchorElement(href: Uris.nativeMemory())
+                      ..text = 'malloc profile'
+                  ],
+                new DivElement()
+                  ..classes = ['memberName']
+                  ..children = <Element>[
+                    new SpanElement()..text = 'view ',
+                    new AnchorElement(href: Uris.processSnapshot())
+                      ..text = 'process memory'
+                  ]
+              ]
+          ],
+        new BRElement(),
+      ];
   }
 
   Element describeVM() {
@@ -162,6 +259,19 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
+                  ..text = 'current memory'
+                  ..title = 'current amount of memory consumed by the Dart VM',
+                new DivElement()
+                  ..classes = ['memberValue']
+                  ..text = _vm.currentMemory != null
+                      ? Utils.formatSize(_vm.currentMemory)
+                      : "unavailable"
+              ],
+            new DivElement()
+              ..classes = ['memberItem']
+              ..children = <Element>[
+                new DivElement()
+                  ..classes = ['memberName']
                   ..text = 'started at',
                 new DivElement()
                   ..classes = ['memberValue']
@@ -187,71 +297,6 @@ class VMViewElement extends CustomElement implements Renderable {
                   ..classes = ['memberValue']
                   ..text = '${new DateTime.now()}'
               ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'pid',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = '${_vm.pid}'
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'peak process memory'
-                  ..title =
-                      'highest value of the resident set size of the process running this VM',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.maxRSS != null
-                      ? Utils.formatSize(_vm.maxRSS)
-                      : "unavailable"
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'current process memory'
-                  ..title =
-                      'current value of the resident set size of the process running this VM',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.currentRSS != null
-                      ? Utils.formatSize(_vm.currentRSS)
-                      : "unavailable"
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.heapAllocatedMemoryUsage != null
-                      ? Utils.formatSize(_vm.heapAllocatedMemoryUsage)
-                      : 'unavailable'
-                  ..title = _vm.heapAllocatedMemoryUsage != null
-                      ? '${_vm.heapAllocatedMemoryUsage} bytes'
-                      : null
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc allocation count',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.heapAllocationCount != null
-                      ? '${_vm.heapAllocationCount}'
-                      : 'unavailable'
-              ],
             new BRElement(),
             new DivElement()
               ..classes = ['memberItem']
@@ -269,24 +314,6 @@ class VMViewElement extends CustomElement implements Renderable {
                     new AnchorElement(href: Uris.timeline())..text = 'timeline'
                   ]
               ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..children = <Element>[
-                    new SpanElement()..text = 'view ',
-                    new AnchorElement(href: Uris.nativeMemory())
-                      ..text = 'malloc profile'
-                  ],
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..children = <Element>[
-                    new SpanElement()..text = 'view ',
-                    new AnchorElement(href: Uris.processSnapshot())
-                      ..text = 'process memory'
-                  ]
-              ]
           ],
         new BRElement(),
       ];

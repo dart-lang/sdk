@@ -65,9 +65,9 @@ class LibraryContext {
     @required SourceFactory sourceFactory,
     @required this.externalSummaries,
     @required FileState targetLibrary,
-  })  : this.logger = logger,
-        this.byteStore = byteStore,
-        this.analysisSession = session {
+  })  : logger = logger,
+        byteStore = byteStore,
+        analysisSession = session {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
@@ -172,7 +172,7 @@ class LibraryContext {
                       '[cycle: $cycle]'
                       '[loadedBundles: ${loadedBundles.toList()}]'
                       '[elementFactory.libraries: $libraryUriList]';
-                  throw LibraryCycleLinkException(
+                  throw CaughtExceptionWithFiles(
                     'Cycle loading state error',
                     StackTrace.current,
                     {'status': statusText},
@@ -314,19 +314,10 @@ class LibraryContext {
         fileContentMap[file.path] = file.content;
       }
     }
-    throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
+    throw CaughtExceptionWithFiles(exception, stackTrace, fileContentMap);
   }
 }
 
 class LibraryContextTestView {
   final List<Set<String>> linkedCycles = [];
-}
-
-/// TODO(scheglov) replace in the internal patch
-class LibraryCycleLinkException extends CaughtExceptionWithFiles {
-  LibraryCycleLinkException(
-    Object exception,
-    StackTrace stackTrace,
-    Map<String, String> fileContentMap,
-  ) : super(exception, stackTrace, fileContentMap);
 }

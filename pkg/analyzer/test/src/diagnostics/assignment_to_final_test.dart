@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalTest);
-    defineReflectiveTests(AssignmentToFinalWithNnbdTest);
+    defineReflectiveTests(AssignmentToFinalWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AssignmentToFinalTest extends DriverResolutionTest {
+class AssignmentToFinalTest extends PubPackageResolutionTest {
   test_instanceVariable() async {
     await assertErrorsInCode('''
 class A {
@@ -27,7 +25,7 @@ f() {
   A a = new A();
   a.v = 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL, 54, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
     ]);
   }
 
@@ -40,18 +38,14 @@ f() {
   A a = new A();
   a.v += 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FINAL, 54, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class AssignmentToFinalWithNnbdTest extends AssignmentToFinalTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
+class AssignmentToFinalWithNullSafetyTest extends AssignmentToFinalTest
+    with WithNullSafetyMixin {
   test_field_late() async {
     await assertNoErrorsInCode('''
 class A {
@@ -74,6 +68,33 @@ class A {
     a = 1;
     b = 1;
   }
+}
+''');
+  }
+
+  test_set_abstract_field_final_invalid() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 70, 1),
+    ]);
+  }
+
+  test_set_abstract_field_final_overridden_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+abstract class B extends A {
+  void set x(int value);
+}
+void f(B b, int x) {
+  b.x = x; // ok because setter provided in derived class
 }
 ''');
   }

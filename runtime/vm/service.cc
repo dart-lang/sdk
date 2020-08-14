@@ -1117,6 +1117,9 @@ void Service::HandleEvent(ServiceEvent* event) {
     }
     // Ignore events when no one is listening to the event stream.
     return;
+  } else if (event->stream_info() != NULL &&
+             FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
+    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;
@@ -1139,7 +1142,7 @@ void Service::HandleEvent(ServiceEvent* event) {
       event->stream_info()->consumer() != nullptr) {
     auto length = js.buffer()->length();
     event->stream_info()->consumer()(
-        reinterpret_cast<uint8_t*>(js.buffer()->buf()), length);
+        reinterpret_cast<uint8_t*>(js.buffer()->buffer()), length);
   }
 }
 
@@ -1620,8 +1623,9 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   data[reservation + 0] = 0;
   data[reservation + 1] = 128;
   data[reservation + 2] = 255;
-  SendEventWithData(echo_stream.id(), "_Echo", reservation, js.buffer()->buf(),
-                    js.buffer()->length(), data, data_size);
+  SendEventWithData(echo_stream.id(), "_Echo", reservation,
+                    js.buffer()->buffer(), js.buffer()->length(), data,
+                    data_size);
 }
 
 static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {
@@ -1694,6 +1698,84 @@ static ObjectPtr LookupObjectId(Thread* thread,
   return ring->GetObjectForId(id, kind);
 }
 
+static ObjectPtr LookupClassMembers(Thread* thread,
+                                    const Class& klass,
+                                    char** parts,
+                                    int num_parts) {
+  auto isolate = thread->isolate();
+  auto zone = thread->zone();
+
+  if (num_parts != 4) {
+    return Object::sentinel().raw();
+  }
+
+  const char* encoded_id = parts[3];
+  auto& id = String::Handle(String::New(encoded_id));
+  id = String::DecodeIRI(id);
+  if (id.IsNull()) {
+    return Object::sentinel().raw();
+  }
+
+  if (strcmp(parts[2], "fields") == 0) {
+    // Field ids look like: "classes/17/fields/name"
+    const auto& field = Field::Handle(klass.LookupField(id));
+    if (field.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return field.raw();
+  }
+  if (strcmp(parts[2], "functions") == 0) {
+    // Function ids look like: "classes/17/functions/name"
+    const auto& function = Function::Handle(klass.LookupFunction(id));
+    if (function.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return function.raw();
+  }
+  if (strcmp(parts[2], "implicit_closures") == 0) {
+    // Function ids look like: "classes/17/implicit_closures/11"
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    const auto& func =
+        Function::Handle(zone, klass.ImplicitClosureFunctionFromIndex(id));
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+  }
+  if (strcmp(parts[2], "dispatchers") == 0) {
+    // Dispatcher Function ids look like: "classes/17/dispatchers/11"
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    const auto& func =
+        Function::Handle(zone, klass.InvocationDispatcherFunctionFromIndex(id));
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+  }
+  if (strcmp(parts[2], "closures") == 0) {
+    // Closure ids look like: "classes/17/closures/11"
+    intptr_t id;
+    if (!GetIntegerId(parts[3], &id)) {
+      return Object::sentinel().raw();
+    }
+    Function& func = Function::Handle(zone);
+    func = isolate->ClosureFunctionFromIndex(id);
+    if (func.IsNull()) {
+      return Object::sentinel().raw();
+    }
+    return func.raw();
+  }
+
+  UNREACHABLE();
+  return Object::sentinel().raw();
+}
+
 static ObjectPtr LookupHeapObjectLibraries(Isolate* isolate,
                                            char** parts,
                                            int num_parts) {
@@ -1721,9 +1803,30 @@ static ObjectPtr LookupHeapObjectLibraries(Isolate* isolate,
   if (!lib_found) {
     return Object::sentinel().raw();
   }
+
+  const auto& klass = Class::Handle(lib.toplevel_class());
+  ASSERT(!klass.IsNull());
+
   if (num_parts == 2) {
     return lib.raw();
   }
+  if (strcmp(parts[2], "fields") == 0) {
+    // Library field ids look like: "libraries/17/fields/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+  if (strcmp(parts[2], "functions") == 0) {
+    // Library function ids look like: "libraries/17/functions/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+  if (strcmp(parts[2], "closures") == 0) {
+    // Library function ids look like: "libraries/17/closures/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+  if (strcmp(parts[2], "implicit_closures") == 0) {
+    // Library function ids look like: "libraries/17/implicit_closures/name"
+    return LookupClassMembers(Thread::Current(), klass, parts, num_parts);
+  }
+
   if (strcmp(parts[2], "scripts") == 0) {
     // Script ids look like "libraries/35/scripts/library%2Furl.dart/12345"
     if (num_parts != 5) {
@@ -1780,86 +1883,19 @@ static ObjectPtr LookupHeapObjectClasses(Thread* thread,
   }
   if (strcmp(parts[2], "closures") == 0) {
     // Closure ids look like: "classes/17/closures/11"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone);
-    func = isolate->ClosureFunctionFromIndex(id);
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "fields") == 0) {
     // Field ids look like: "classes/17/fields/name"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    const char* encoded_id = parts[3];
-    String& id = String::Handle(zone, String::New(encoded_id));
-    id = String::DecodeIRI(id);
-    if (id.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    Field& field = Field::Handle(zone, cls.LookupField(id));
-    if (field.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return field.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "functions") == 0) {
     // Function ids look like: "classes/17/functions/name"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    const char* encoded_id = parts[3];
-    String& id = String::Handle(zone, String::New(encoded_id));
-    id = String::DecodeIRI(id);
-    if (id.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone, cls.LookupFunction(id));
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "implicit_closures") == 0) {
     // Function ids look like: "classes/17/implicit_closures/11"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone);
-    func = cls.ImplicitClosureFunctionFromIndex(id);
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "dispatchers") == 0) {
     // Dispatcher Function ids look like: "classes/17/dispatchers/11"
-    if (num_parts != 4) {
-      return Object::sentinel().raw();
-    }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
-      return Object::sentinel().raw();
-    }
-    Function& func = Function::Handle(zone);
-    func = cls.InvocationDispatcherFunctionFromIndex(id);
-    if (func.IsNull()) {
-      return Object::sentinel().raw();
-    }
-    return func.raw();
-
+    return LookupClassMembers(thread, cls, parts, num_parts);
   } else if (strcmp(parts[2], "types") == 0) {
     // Type ids look like: "classes/17/types/11"
     if (num_parts != 4) {
@@ -2704,7 +2740,8 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         cls = instance.clazz();
         isStatic = false;
       }
-      if (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid) {
+      if (!cls.IsTopLevel() &&
+          (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid)) {
         js->PrintError(
             kInvalidParams,
             "Expressions can be evaluated only with regular Dart instances");
@@ -2834,9 +2871,12 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
+  const uint8_t* kernel_buffer = Service::dart_library_kernel();
+  const intptr_t kernel_buffer_len = Service::dart_library_kernel_length();
+
   Dart_KernelCompilationResult compilation_result =
       KernelIsolate::CompileExpressionToKernel(
-          js->LookupParam("expression"),
+          kernel_buffer, kernel_buffer_len, js->LookupParam("expression"),
           Array::Handle(Array::MakeFixedLength(params)),
           Array::Handle(Array::MakeFixedLength(type_params)),
           js->LookupParam("libraryUri"), js->LookupParam("klass"), is_static);
@@ -4059,11 +4099,7 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_process_memory_usage_params[] = {
-    NULL,
-};
-
-static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
+static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   JSONObject response(js);
   response.AddProperty("type", "ProcessMemoryUsage");
 
@@ -4073,41 +4109,55 @@ static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
   rss.AddProperty64("size", Service::CurrentRSS());
   JSONArray rss_children(&rss, "children");
 
+  JSONObject vm(&rss_children);
+  intptr_t vm_size = 0;
   {
-    JSONObject profiler(&rss_children);
-    profiler.AddProperty("name", "Profiler");
-    profiler.AddProperty("description", "Samples from the Dart VM's profiler");
-    profiler.AddProperty64("size", Profiler::Size());
-    JSONArray(&profiler, "children");
-  }
+    JSONArray vm_children(&vm, "children");
+
+    {
+      JSONObject profiler(&vm_children);
+      profiler.AddProperty("name", "Profiler");
+      profiler.AddProperty("description",
+                           "Samples from the Dart VM's profiler");
+      intptr_t size = Profiler::Size();
+      vm_size += size;
+      profiler.AddProperty64("size", size);
+      JSONArray(&profiler, "children");
+    }
 
   {
-    JSONObject timeline(&rss_children);
+    JSONObject timeline(&vm_children);
     timeline.AddProperty("name", "Timeline");
     timeline.AddProperty(
         "description",
         "Timeline events from dart:developer and Dart_TimelineEvent");
-    timeline.AddProperty64("size", Timeline::recorder()->Size());
+    intptr_t size = Timeline::recorder()->Size();
+    vm_size += size;
+    timeline.AddProperty64("size", size);
     JSONArray(&timeline, "children");
   }
 
   {
-    JSONObject zone(&rss_children);
+    JSONObject zone(&vm_children);
     zone.AddProperty("name", "Zone");
     zone.AddProperty("description", "Arena allocation in the Dart VM");
-    zone.AddProperty64("size", Zone::Size());
+    intptr_t size = Zone::Size();
+    vm_size += size;
+    zone.AddProperty64("size", size);
     JSONArray(&zone, "children");
   }
 
   {
-    JSONObject semi(&rss_children);
+    JSONObject semi(&vm_children);
     semi.AddProperty("name", "SemiSpace Cache");
     semi.AddProperty("description", "Cached heap regions");
-    semi.AddProperty64("size", SemiSpace::CachedSize());
+    intptr_t size = SemiSpace::CachedSize();
+    vm_size += size;
+    semi.AddProperty64("size", size);
     JSONArray(&semi, "children");
   }
 
-  IsolateGroup::ForEach([&rss_children](IsolateGroup* isolate_group) {
+  IsolateGroup::ForEach([&vm_children, &vm_size](IsolateGroup* isolate_group) {
     // Note: new_space()->CapacityInWords() includes memory that hasn't been
     // allocated from the OS yet.
     int64_t capacity = (isolate_group->heap()->new_space()->UsedInWords() +
@@ -4116,10 +4166,11 @@ static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
     int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
     int64_t free = capacity - used;
 
-    JSONObject group(&rss_children);
+    JSONObject group(&vm_children);
     group.AddPropertyF("name", "IsolateGroup %s",
                        isolate_group->source()->name);
     group.AddProperty("description", "Dart heap capacity");
+    vm_size += capacity;
     group.AddProperty64("size", capacity);
     JSONArray group_children(&group, "children");
 
@@ -4139,7 +4190,21 @@ static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
       JSONArray(&jsfree, "children");
     }
   });
+  }  // vm_children
 
+  vm.AddProperty("name", "Dart VM");
+  vm.AddProperty("description", "");
+  vm.AddProperty64("size", vm_size);
+
+  return vm_size;
+}
+
+static const MethodParameter* get_process_memory_usage_params[] = {
+    NULL,
+};
+
+static bool GetProcessMemoryUsage(Thread* thread, JSONStream* js) {
+  GetProcessMemoryUsageHelper(js);
   return true;
 }
 
@@ -4238,12 +4303,11 @@ class PersistentHandleVisitor : public HandleVisitor {
     obj.AddPropertyF(
         "peer", "0x%" Px "",
         reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
-    obj.AddPropertyF(
-        "callbackAddress", "0x%" Px "",
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
+    obj.AddPropertyF("callbackAddress", "0x%" Px "",
+                     weak_persistent_handle->callback_address());
     // Attempt to include a native symbol name.
     char* name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+        weak_persistent_handle->callback_address(), nullptr);
     obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
     if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);
@@ -4560,6 +4624,11 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
         jsarr_isolate_groups.AddValue(isolate_group);
       }
     });
+  }
+  {
+    JSONStream discard_js;
+    intptr_t vm_memory = GetProcessMemoryUsageHelper(&discard_js);
+    jsobj.AddProperty("_currentMemory", vm_memory);
   }
 }
 

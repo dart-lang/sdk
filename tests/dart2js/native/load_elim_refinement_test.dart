@@ -5,11 +5,11 @@
 import 'native_testing.dart';
 
 class A {
-  int a;
+  int? a;
 }
 
 class B extends A {
-  int b;
+  int? b;
 }
 
 @pragma('dart2js:noInline')

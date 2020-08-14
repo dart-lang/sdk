@@ -113,7 +113,9 @@ class CompilationResult {
     if (compiledProcedure == null) {
       buffer.write("<no procedure>");
     } else {
-      new Printer(buffer).visitProcedure(compiledProcedure);
+      Printer printer = new Printer(buffer);
+      printer.visitProcedure(compiledProcedure);
+      printer.writeConstantTable(new Component());
     }
     Uri base = entryPoint.resolve(".");
     return "$buffer".replaceAll("$base", "org-dartlang-testcase:///");

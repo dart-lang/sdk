@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,9 +18,9 @@ main() {
 }
 
 @reflectiveTest
-class SpreadExpressionFromDeferredLibraryTest extends DriverResolutionTest {
+class SpreadExpressionFromDeferredLibraryTest extends PubPackageResolutionTest {
   test_inList_deferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const List c = [];''');
     await assertErrorsInCode(
         r'''
@@ -42,7 +42,7 @@ f() {
   }
 
   test_inList_deferred_notConst() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const List c = [];''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -52,7 +52,7 @@ f() {
   }
 
   test_inList_notDeferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const List c = [];''');
     await assertErrorsInCode(
         r'''
@@ -68,7 +68,7 @@ f() {
   }
 
   test_inMap_deferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const Map c = <int, int>{};''');
     await assertErrorsInCode(
         r'''
@@ -90,7 +90,7 @@ f() {
   }
 
   test_inMap_notConst() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const Map c = <int, int>{};''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -100,7 +100,7 @@ f() {
   }
 
   test_inMap_notDeferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const Map c = <int, int>{};''');
     await assertErrorsInCode(
         r'''
@@ -116,7 +116,7 @@ f() {
   }
 
   test_inSet_deferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const Set c = <int>{};''');
     await assertErrorsInCode(
         r'''
@@ -138,7 +138,7 @@ f() {
   }
 
   test_inSet_notConst() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const Set c = <int>{};''');
     await assertNoErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -148,7 +148,7 @@ f() {
   }
 
   test_inSet_notDeferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const Set c = <int>{};''');
     await assertErrorsInCode(
         r'''

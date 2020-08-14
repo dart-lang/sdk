@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class FinalNotInitializedConstructorTest extends DriverResolutionTest {
+class FinalNotInitializedConstructorTest extends PubPackageResolutionTest {
   test_1() async {
     await assertErrorsInCode('''
 class A {
@@ -22,7 +22,7 @@ class A {
   A() {}
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
     ]);
   }
 
@@ -34,7 +34,7 @@ class A {
   A() {}
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 42, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 42, 1),
     ]);
   }
 
@@ -47,7 +47,8 @@ class A {
   A() {}
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 57, 1),
+      error(
+          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS, 57, 1),
     ]);
   }
 
@@ -59,7 +60,7 @@ class A {
   A._();
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 45, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 45, 1),
     ]);
   }
 

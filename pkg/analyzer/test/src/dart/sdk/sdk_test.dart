@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,7 +31,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     expect(sdk.allowedExperimentsJson, isNull);
 
@@ -45,7 +50,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     expect(sdk.urlMappings, hasLength(5));
   }
@@ -54,7 +63,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     expectSource(String posixPath, String dartUri) {
       Uri uri = Uri.parse(posixToOSFileUri(posixPath));
@@ -73,7 +86,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     SdkLibrary lib = sdk.getSdkLibrary('dart:fox');
     expect(lib, isNotNull);
@@ -85,7 +102,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     void expectSource(String dartUri, String posixPath) {
       Source source = sdk.mapDartUri(dartUri);

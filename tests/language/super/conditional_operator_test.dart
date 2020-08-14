@@ -50,7 +50,7 @@ class C extends B {
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     1 * super?.field;
     //  ^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     //       ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
@@ -70,7 +70,7 @@ class C extends B {
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
     !super?.field;
 //   ^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_NEGATION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_NEGATION_EXPRESSION
 //        ^^
 // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
 // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.

@@ -227,7 +227,7 @@ class Parser {
 
   /// Set the token with which the parse is to begin to the given [token].
   set currentToken(Token token) {
-    this._currentToken = token;
+    _currentToken = token;
   }
 
   /// Return `true` if the parser is to parse asserts in the initializer list of
@@ -293,7 +293,7 @@ class Parser {
 
   /// Set whether parser is to parse function bodies.
   set parseFunctionBodies(bool parseFunctionBodies) {
-    this._parseFunctionBodies = parseFunctionBodies;
+    _parseFunctionBodies = parseFunctionBodies;
   }
 
   /// Return the content of a string with the given literal representation. The

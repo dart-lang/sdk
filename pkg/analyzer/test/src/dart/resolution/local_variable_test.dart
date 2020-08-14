@@ -8,8 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../constant/potentially_constant_test.dart';
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class LocalVariableResolutionTest extends DriverResolutionTest {
+class LocalVariableResolutionTest extends PubPackageResolutionTest {
   test_demoteTypeParameterType() async {
     await assertNoErrorsInCode('''
 void f<T>(T a, T b) {
@@ -128,7 +127,7 @@ void f() {
   }
 
   test_nonNullifyType() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 var a = 0;
 ''');

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ConvertToNormalParameter extends CorrectionProducer {
@@ -14,7 +14,7 @@ class ConvertToNormalParameter extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_NORMAL_PARAMETER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is SimpleIdentifier &&
         node.parent is FieldFormalParameter &&
         node.parent.parent is FormalParameterList &&
@@ -27,13 +27,12 @@ class ConvertToNormalParameter extends CorrectionProducer {
       // prepare type
       var type = parameterElement.type;
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         // replace parameter
         if (type.isDynamic) {
           builder.addSimpleReplacement(range.node(parameter), name);
         } else {
-          builder.addReplacement(range.node(parameter),
-              (DartEditBuilder builder) {
+          builder.addReplacement(range.node(parameter), (builder) {
             builder.writeType(type);
             builder.write(' ');
             builder.write(name);

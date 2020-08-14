@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinOfNonClassTest);
-    defineReflectiveTests(MixinOfNonClassWithNnbdTest);
+    defineReflectiveTests(MixinOfNonClassWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MixinOfNonClassTest extends DriverResolutionTest {
+class MixinOfNonClassTest extends PubPackageResolutionTest {
   test_class() async {
     await assertErrorsInCode(r'''
 int A = 7;
@@ -60,12 +58,8 @@ class C = A with B;
 }
 
 @reflectiveTest
-class MixinOfNonClassWithNnbdTest extends MixinOfNonClassTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
+class MixinOfNonClassWithNullSafetyTest extends MixinOfNonClassTest
+    with WithNullSafetyMixin {
   test_Never() async {
     await assertErrorsInCode('''
 class A with Never {}

@@ -649,6 +649,8 @@ class AstBinaryReader {
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
     var node = astFactory.fieldDeclaration2(
       comment: _readDocumentationComment(data),
+      abstractKeyword:
+          AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
       fieldList: _readNode(data.fieldDeclaration_fields),

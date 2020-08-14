@@ -8,7 +8,7 @@ class Class {
   static set o(_) {}
   m() => o;
   //     ^
-  // [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Getter not found: 'o'.
   noSuchMethod(_) => 42;
 }

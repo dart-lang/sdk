@@ -17,6 +17,9 @@ For more information about the analyzer, see
 
 This page uses the following terms.
 
+[constant context]: #constant-context
+[potentially non-nullable]: #potentially-non-nullable
+
 ### Constant context
 
 A _constant context_ is a region of code in which it isn't necessary to include
@@ -581,9 +584,8 @@ type is a potentially non-nullable type._
 #### Description
 
 The analyzer produces this diagnostic when a method or function has a
-return type that's <a href=”#potentially-non-nullable”>potentially
-non-nullable</a> but would implicitly return `null` if control reached the
-end of the function.
+return type that's [potentially non-nullable][] but would implicitly return
+`null` if control reached the end of the function.
 
 #### Example
 
@@ -862,7 +864,8 @@ abstract class C {
 
 ### const_constructor_param_type_mismatch
 
-_A value of type '{0}' can't be assigned to a parameter of type '{1}'._
+_A value of type '{0}' can't be assigned to a parameter of type '{1}' in a const
+constructor._
 
 #### Description
 
@@ -3439,6 +3442,9 @@ var x;
 
 ### invalid_null_aware_operator
 
+_The target expression can't be null because of short-circuiting, so the
+null-aware operator '{0}' can't be used._
+
 _The target expression can't be null, so the null-aware operator '{0}' can't be
 used._
 
@@ -3974,11 +3980,11 @@ non-null default value is provided._
 #### Description
 
 The analyzer produces this diagnostic when an optional parameter, whether
-positional or named, has a <a href=”#potentially-non-nullable”>potentially
-non-nullable</a> type and doesn't specify a default value. Optional
-parameters that have no explicit default value have an implicit default
-value of `null`. If the type of the parameter doesn't allow the parameter
-to have a value of `null`, then the implicit default value isn't valid.
+positional or named, has a [potentially non-nullable][] type and doesn't
+specify a default value. Optional parameters that have no explicit default
+value have an implicit default value of `null`. If the type of the
+parameter doesn't allow the parameter to have a value of `null`, then the
+implicit default value isn't valid.
 
 #### Example
 
@@ -4751,7 +4757,7 @@ _The values in a const list literal must be constants._
 The analyzer produces this diagnostic when an element in a constant list
 literal isn't a constant value. The list literal can be constant either
 explicitly (because it's prefixed by the `const` keyword) or implicitly
-(because it appears in a [constant context](#constant-context)).
+(because it appears in a [constant context][]).
 
 #### Examples
 
@@ -5057,8 +5063,7 @@ _The non-nullable local variable '{0}' must be assigned before it can be used._
 
 The analyzer produces this diagnostic when a local variable is referenced
 and has all these characteristics:
-- Has a type that's <a href=”#potentially-non-nullable”>potentially
-  non-nullable</a>.
+- Has a type that's [potentially non-nullable][].
 - Doesn't have an initializer.
 - Isn't marked as `late`.
 - The analyzer can't prove that the local variable will be assigned before
@@ -5230,8 +5235,7 @@ _Non-nullable instance field '{0}' must be initialized._
 
 The analyzer produces this diagnostic when a field is declared and has all
 these characteristics:
-- Has a type that's <a href=”#potentially-non-nullable”>potentially
-  non-nullable</a>
+- Has a type that's [potentially non-nullable][]
 - Doesn't have an initializer
 - Isn't marked as `late`
 
@@ -6217,11 +6221,10 @@ version 2.3.2, but this code is required to be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when an `as` expression inside a
-[constant context](#constant-context) is found in code that has an SDK
-constraint whose lower bound is less than 2.3.2. Using an `as` expression
-in a [constant context](#constant-context) wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
+[constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.3.2. Using an `as` expression in a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6253,7 +6256,7 @@ environment:
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use an `as` expression, or change the code so that the `as`
-expression isn't in a [constant context](#constant-context):
+expression isn't in a [constant context][]:
 
 {% prettify dart tag=pre+code %}
 num x = 3;
@@ -6268,11 +6271,11 @@ supported until version 2.3.2, but this code is required to be able to run on ea
 #### Description
 
 The analyzer produces this diagnostic when any use of the `&`, `|`, or `^`
-operators on the class `bool` inside a
-[constant context](#constant-context) is found in code that has an SDK
-constraint whose lower bound is less than 2.3.2. Using these operators in a
-[constant context](#constant-context) wasn't supported in earlier versions,
-so this code won't be able to run against earlier versions of the SDK.
+operators on the class `bool` inside a [constant context][] is found in
+code that has an SDK constraint whose lower bound is less than 2.3.2. Using
+these operators in a [constant context][] wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
 
 #### Examples
 
@@ -6305,7 +6308,7 @@ environment:
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use these operators, or change the code so that the expression
-isn't in a [constant context](#constant-context):
+isn't in a [constant context][]:
 
 {% prettify dart tag=pre+code %}
 const bool a = true;
@@ -6321,11 +6324,10 @@ _Using the operator '==' for non-primitive types wasn't supported until version
 #### Description
 
 The analyzer produces this diagnostic when the operator `==` is used on a
-non-primitive type inside a [constant context](#constant-context) is found
-in code that has an SDK constraint whose lower bound is less than 2.3.2.
-Using this operator in a [constant context](#constant-context) wasn't
-supported in earlier versions, so this code won't be able to run against
-earlier versions of the SDK.
+non-primitive type inside a [constant context][] is found in code that has
+an SDK constraint whose lower bound is less than 2.3.2. Using this operator
+in a [constant context][] wasn't supported in earlier versions, so this
+code won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6359,7 +6361,7 @@ environment:
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `==` operator, or change the code so that the
-expression isn't in a [constant context](#constant-context):
+expression isn't in a [constant context][]:
 
 {% prettify dart tag=pre+code %}
 class C {}
@@ -6431,11 +6433,10 @@ version 2.3.2, but this code is required to be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when an `is` expression inside a
-[constant context](#constant-context) is found in code that has an SDK
-constraint whose lower bound is less than 2.3.2. Using an `is` expression
-in a [constant context](#constant-context) wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
+[constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.3.2. Using an `is` expression in a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6468,7 +6469,7 @@ environment:
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `is` operator, or, if that isn't possible, change the
 code so that the `is` expression isn't in a
-[constant context](#constant-context):
+[constant context][]:
 
 {% prettify dart tag=pre+code %}
 const x = 4;
@@ -6584,11 +6585,10 @@ version 2.5.0, but this code is required to be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when an if or spread element inside
-a [constant context](#constant-context) is found in code that has an
-SDK constraint whose lower bound is less than 2.5.0. Using an if or
-spread element inside a [constant context](#constant-context) wasn't
-supported in earlier versions, so this code won't be able to run against
-earlier versions of the SDK.
+a [constant context][] is found in code that has an SDK constraint whose
+lower bound is less than 2.5.0. Using an if or spread element inside a
+[constant context][] wasn't supported in earlier versions, so this code
+won't be able to run against earlier versions of the SDK.
 
 #### Examples
 
@@ -6627,7 +6627,7 @@ const b = [1, 2];
 {% endprettify %}
 
 If that isn't possible, change the code so that the element isn't in a
-[constant context](#constant-context):
+[constant context][]:
 
 {% prettify dart tag=pre+code %}
 const a = [1, 2];
@@ -6897,8 +6897,8 @@ dereferenced._
 #### Description
 
 The analyzer produces this diagnostic when an expression whose type is
-<a href=”#potentially-non-nullable”>potentially non-nullable</a> is
-dereferenced without first verifying that the value isn't `null`.
+[potentially non-nullable][] is dereferenced without first verifying that
+the value isn't `null`.
 
 #### Example
 
@@ -8101,6 +8101,8 @@ void f() {
 
 ### unused_element
 
+_A value for optional parameter '{0}' isn't ever given._
+
 _The declaration '{0}' isn't referenced._
 
 #### Description
@@ -8369,7 +8371,7 @@ code so that it doesn't depend on the value.
 
 ### variable_type_mismatch
 
-_A value of type '{0}' can't be assigned to a variable of type '{1}'._
+_A value of type '{0}' can't be assigned to a const variable of type '{1}'._
 
 #### Description
 

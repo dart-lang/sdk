@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/greatest_lower_bound.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/replace_top_bottom_visitor.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
 import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
@@ -87,6 +88,19 @@ abstract class TypeSystem implements public.TypeSystem {
       }
     }
     // Implement the case: "In any other circumstance, flatten(T) = T."
+    return type;
+  }
+
+  DartType futureOrBase(DartType type) {
+    // If `T` is `FutureOr<S>` for some `S`,
+    // then `futureOrBase(T)` = `futureOrBase(S)`
+    if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      return futureOrBase(
+        type.typeArguments[0],
+      );
+    }
+
+    // Otherwise `futureOrBase(T)` = `T`.
     return type;
   }
 
@@ -241,37 +255,22 @@ abstract class TypeSystem implements public.TypeSystem {
     var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
-      if (substitution.substituteType(srcTypes[i]) != destTypes[i]) {
+      var srcType = substitution.substituteType(srcTypes[i]);
+      var destType = destTypes[i];
+      if (isNonNullableByDefault) {
+        // TODO(scheglov) waiting for the spec
+        // https://github.com/dart-lang/sdk/issues/42605
+      } else {
+        srcType = toLegacyType(srcType);
+        destType = toLegacyType(destType);
+      }
+      if (srcType != destType) {
         // Failed to find an appropriate substitution
         return null;
       }
     }
 
     return inferredTypes;
-  }
-
-  /// Searches the superinterfaces of [type] for implementations of
-  /// [genericType] and returns the most specific type argument used for that
-  /// generic type.
-  ///
-  /// For a more general/robust solution, use [InterfaceTypeImpl.asInstanceOf].
-  ///
-  /// For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
-  /// returns [int].
-  ///
-  /// Returns `null` if [type] does not implement [genericType].
-  DartType mostSpecificTypeArgument(DartType type, DartType genericType) {
-    if (type is! InterfaceType) return null;
-    if (genericType is! InterfaceType) return null;
-
-    var asInstanceOf = (type as InterfaceTypeImpl)
-        .asInstanceOf((genericType as InterfaceType).element);
-
-    if (asInstanceOf != null) {
-      return asInstanceOf.typeArguments[0];
-    }
-
-    return null;
   }
 
   /// Returns a non-nullable version of [type].  This is equivalent to the
@@ -343,6 +342,11 @@ abstract class TypeSystem implements public.TypeSystem {
     }
 
     return type;
+  }
+
+  DartType toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Tries to promote from the first type from the second type, and returns the
@@ -970,8 +974,10 @@ class TypeSystemImpl extends TypeSystem {
   /// Return `true`  for things in the equivalence class of `Never`.
   bool isBottom(DartType type) {
     // BOTTOM(Never) is true
-    if (identical(type, NeverTypeImpl.instance)) {
-      return true;
+    if (type is NeverType) {
+      var result = type.nullabilitySuffix != NullabilitySuffix.question;
+      assert(type.isBottom == result);
+      return result;
     }
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
@@ -979,16 +985,21 @@ class TypeSystemImpl extends TypeSystem {
     if (type is TypeParameterTypeImpl) {
       var T = type.promotedBound;
       if (T != null) {
-        return isBottom(T);
+        var result = isBottom(T);
+        assert(type.isBottom == result);
+        return result;
       }
 
       T = type.element.bound;
       if (T != null) {
-        return isBottom(T);
+        var result = isBottom(T);
+        assert(type.isBottom == result);
+        return result;
       }
     }
 
     // BOTTOM(T) is false otherwise
+    assert(!type.isBottom);
     return false;
   }
 
@@ -1420,16 +1431,32 @@ class TypeSystemImpl extends TypeSystem {
     return currentType;
   }
 
+  /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
+  /// `Object?` with `Null` or `Never` and all contravariant occurrences of
+  /// `Null` or `Never` with `Object` or `Object?`.
+  DartType replaceTopAndBottom(DartType dartType) {
+    if (isNonNullableByDefault) {
+      return ReplaceTopBottomVisitor.run(
+        topType: objectQuestion,
+        bottomType: NeverTypeImpl.instance,
+        typeSystem: this,
+        type: dartType,
+      );
+    } else {
+      return ReplaceTopBottomVisitor.run(
+        topType: DynamicTypeImpl.instance,
+        bottomType: typeProvider.nullType,
+        typeSystem: this,
+        type: dartType,
+      );
+    }
+  }
+
   /// Return `true` if runtime types [T1] and [T2] are equal.
   ///
   /// nnbd/feature-specification.md#runtime-type-equality-operator
   bool runtimeTypesEqual(DartType T1, DartType T2) {
     return RuntimeTypeEqualityHelper(this).equal(T1, T2);
-  }
-
-  DartType toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   /// Merges two types into a single type.

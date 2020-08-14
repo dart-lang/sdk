@@ -57,7 +57,8 @@ namespace dart {
   V(LateInitializationError)                                                   \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \
-  V(SwitchableCallMiss)
+  V(SwitchableCallMiss)                                                        \
+  V(NotLoaded)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

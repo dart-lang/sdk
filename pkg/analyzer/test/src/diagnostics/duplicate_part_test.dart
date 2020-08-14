@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class DuplicatePartTest extends DriverResolutionTest {
+class DuplicatePartTest extends PubPackageResolutionTest {
   test_no_duplicates() async {
-    newFile('/test/lib/part1.dart', content: '''
+    newFile('$testPackageLibPath/part1.dart', content: '''
 part of lib;
 ''');
-    newFile('/test/lib/part2.dart', content: '''
+    newFile('$testPackageLibPath/part2.dart', content: '''
 part of lib;
 ''');
     await assertNoErrorsInCode(r'''
@@ -30,7 +30,7 @@ part 'part2.dart';
   }
 
   test_sameSource() async {
-    newFile('/test/lib/part.dart', content: 'part of lib;');
+    newFile('$testPackageLibPath/part.dart', content: 'part of lib;');
     await assertErrorsInCode(r'''
 library lib;
 part 'part.dart';
@@ -41,7 +41,7 @@ part 'foo/../part.dart';
   }
 
   test_sameUri() async {
-    newFile('/test/lib/part.dart', content: 'part of lib;');
+    newFile('$testPackageLibPath/part.dart', content: 'part of lib;');
     await assertErrorsInCode(r'''
 library lib;
 part 'part.dart';

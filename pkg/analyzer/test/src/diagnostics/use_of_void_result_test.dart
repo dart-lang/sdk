@@ -6,8 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class UseOfVoidResultTest extends DriverResolutionTest {
+class UseOfVoidResultTest extends PubPackageResolutionTest {
   test_andVoidLhsError() async {
     await assertErrorsInCode('''
 void main() {
@@ -25,7 +24,7 @@ void main() {
   x && true;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
     ]);
   }
 
@@ -36,7 +35,7 @@ void main() {
   true && x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 34, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 34, 1),
     ]);
   }
 
@@ -50,7 +49,7 @@ class A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 49, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 49, 1),
     ]);
   }
 
@@ -64,7 +63,7 @@ class A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 51, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 51, 1),
     ]);
   }
 
@@ -113,7 +112,7 @@ main() {
   E(f()).g;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 71, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 71, 3),
     ]);
   }
 
@@ -139,7 +138,7 @@ class A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 51, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 51, 1),
     ]);
   }
 
@@ -163,7 +162,7 @@ void main() {
   "$x";
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 28, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 1),
     ]);
   }
 
@@ -175,7 +174,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 27, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
     ]);
   }
 
@@ -197,7 +196,7 @@ void main() {
   x || true;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
     ]);
   }
 
@@ -208,7 +207,7 @@ void main() {
   false || x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 35, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 35, 1),
     ]);
   }
 
@@ -219,7 +218,7 @@ void main() {
   throw x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 32, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 32, 1),
     ]);
   }
 
@@ -232,8 +231,8 @@ void main() {
 ''', [
       // TODO(mfairhurst) suppress UNDEFINED_OPERATOR
       error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 26, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 27, 1),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1),
     ]);
   }
 
@@ -244,7 +243,7 @@ void main(List list) {
   list[x] = null;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 40, 1),
     ]);
   }
 
@@ -255,7 +254,7 @@ void main(List list) {
   list[x];
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 40, 1),
     ]);
   }
 
@@ -267,7 +266,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 38, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 38, 1),
     ]);
   }
 
@@ -278,7 +277,7 @@ void main() {
   x[0];
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 27, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 3),
     ]);
   }
 
@@ -289,7 +288,7 @@ void main() {
   x.foo = null;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 28, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 3),
     ]);
   }
 
@@ -310,7 +309,7 @@ void main() {
   x ? null : null;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
     ]);
   }
 
@@ -323,7 +322,7 @@ void main(bool c) {
   c ? x : null;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 36, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 36, 1),
     ]);
   }
 
@@ -336,7 +335,7 @@ void main(bool c) {
   c ? null : x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 43, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 43, 1),
     ]);
   }
 
@@ -347,7 +346,7 @@ void main() {
   do {} while (x);
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 39, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 39, 1),
     ]);
   }
 
@@ -369,7 +368,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 45, 1),
     ]);
   }
 
@@ -381,7 +380,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 40, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 40, 1),
     ]);
   }
 
@@ -393,7 +392,7 @@ void main() {
   for (x in [1, 2]) {}
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 31, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 31, 1),
     ]);
   }
 
@@ -413,7 +412,7 @@ void main() {
   x is int;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
     ]);
   }
 
@@ -424,7 +423,7 @@ void main() {
   <dynamic>[x];
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 36, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 36, 1),
     ]);
   }
 
@@ -445,7 +444,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 50, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 50, 1),
     ]);
   }
 
@@ -468,7 +467,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 2),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 53, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 53, 1),
     ]);
   }
 
@@ -490,7 +489,7 @@ void main() {
   x ?? 499;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 1),
     ]);
   }
 
@@ -511,7 +510,7 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 28, 2),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 2),
     ]);
   }
 
@@ -522,7 +521,7 @@ void main() {
   switch(x) {}
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 33, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 33, 1),
     ]);
   }
 
@@ -533,7 +532,7 @@ void main() {
   while (x) {};
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 33, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 33, 1),
     ]);
   }
 
@@ -544,7 +543,7 @@ void main() {
   x?.foo;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 29, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 3),
     ]);
   }
 
@@ -555,7 +554,7 @@ void main() {
   x.foo;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 28, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 28, 3),
     ]);
   }
 
@@ -569,7 +568,7 @@ extension on void {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 22, 8),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 96, 4),
     ]);
   }
 
@@ -582,7 +581,7 @@ dynamic main() {
   return x;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
   }
 
@@ -603,7 +602,7 @@ void main() {
   use(x);
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 54, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 54, 1),
     ]);
   }
 
@@ -627,7 +626,7 @@ class A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 45, 1),
     ]);
   }
 
@@ -653,9 +652,9 @@ class A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 47, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 47, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 56, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 56, 1),
     ]);
   }
 
@@ -668,7 +667,7 @@ class A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 47, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 47, 1),
     ]);
   }
 
@@ -691,7 +690,7 @@ main(void x) async* {
   yield* x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 31, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 31, 1),
     ]);
   }
 
@@ -701,7 +700,7 @@ main(void x) sync* {
   yield* x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 30, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 30, 1),
     ]);
   }
 
@@ -711,7 +710,7 @@ main(void x) async* {
   yield x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 30, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 30, 1),
     ]);
   }
 
@@ -721,13 +720,13 @@ main(void x) sync* {
   yield x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 29, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class UseOfVoidResultTest_NonNullable extends DriverResolutionTest
+class UseOfVoidResultTest_NonNullable extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_await() async {
     await assertErrorsInCode('''
@@ -735,7 +734,7 @@ main(void x) async {
   await x;
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 29, 1),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 29, 1),
     ]);
   }
 
@@ -744,7 +743,7 @@ main(void x) async {
 f(void x) {
   x!;
 }
-''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 14, 2)]);
+''', [ExpectedError(CompileTimeErrorCode.USE_OF_VOID_RESULT, 14, 2)]);
 
     assertType(findNode.postfix('x!'), 'void');
   }

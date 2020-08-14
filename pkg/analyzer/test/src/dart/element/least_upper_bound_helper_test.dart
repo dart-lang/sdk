@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
+import '../../../generated/type_system_test.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
+class InterfaceLeastUpperBoundHelperTest extends AbstractTypeSystemTest {
   @override
   final TestTypeProvider typeProvider = TestTypeProvider();
 
@@ -535,6 +535,7 @@ class InterfaceLeastUpperBoundHelperTest with ElementsTypesMixin {
   }
 
   Set<InstantiatedClass> _superInterfaces(InstantiatedClass type) {
-    return InterfaceLeastUpperBoundHelper.computeSuperinterfaceSet(type);
+    var helper = InterfaceLeastUpperBoundHelper(typeSystem);
+    return helper.computeSuperinterfaceSet(type);
   }
 }

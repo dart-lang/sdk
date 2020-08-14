@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  static int a;
+  static int? a;
   A();
   static foo() {
     // Make sure 'A' is not resolved to the constructor.

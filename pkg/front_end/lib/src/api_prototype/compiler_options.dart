@@ -236,6 +236,10 @@ class CompilerOptions {
       "."
       "${kernel.defaultLanguageVersion.minor}";
 
+  /// If `true`, a '.d' file with input dependencies is generated when
+  /// compiling the platform dill.
+  bool emitDeps = true;
+
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic: true,
       bool ignoreVerbose: true,
@@ -290,6 +294,7 @@ class CompilerOptions {
     if (writeFileOnCrashReport != other.writeFileOnCrashReport) return false;
     if (nnbdMode != other.nnbdMode) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
+    if (emitDeps != other.emitDeps) return false;
 
     return true;
   }

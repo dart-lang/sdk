@@ -17,8 +17,15 @@ import 'package:http/http.dart' as http;
 
 const numAttempts = 20;
 const failuresPerConfiguration = 20;
-const queryUrl = 'https://firestore.googleapis.com/v1/'
-    'projects/dart-ci/databases/(default)/documents:runQuery';
+
+bool useStagingDatabase;
+
+String get queryUrl {
+  var project = useStagingDatabase ? "dart-ci-staging" : "dart-ci";
+  return 'https://firestore.googleapis.com/v1/'
+      'projects/$project/databases/(default)/documents:runQuery';
+}
+
 String builder;
 String builderBase;
 int buildNumber;
@@ -46,6 +53,11 @@ ${parser.usage}''');
   exit(1);
 }
 
+Future<String> readGcloudAuthToken(String path) async {
+  String token = await File(path).readAsString();
+  return token.split("\n").first;
+}
+
 main(List<String> args) async {
   final parser = new ArgParser();
   parser.addFlag('help', help: 'Show the program usage.', negatable: false);
@@ -53,16 +65,23 @@ main(List<String> args) async {
       abbr: 'a', help: 'Authorization token with cloud-platform scope');
   parser.addOption('builder', abbr: 'b', help: 'The builder name');
   parser.addOption('build_number', abbr: 'n', help: 'The build number');
+  parser.addFlag('staging',
+      abbr: 's', help: 'use staging database', defaultsTo: false);
 
   final options = parser.parse(args);
   if (options['help']) {
     usage(parser);
   }
 
+  useStagingDatabase = options['staging'];
   builder = options['builder'];
   buildNumber = int.parse(options['build_number']);
   builderBase = builder.replaceFirst(RegExp('-try\$'), '');
-  token = await File(options['auth_token']).readAsString();
+  if (options['auth_token'] == null) {
+    print('Option "--auth_token (-a)" is required\n');
+    usage(parser);
+  }
+  token = await readGcloudAuthToken(options['auth_token']);
   client = http.Client();
   for (int count = 0; count < numAttempts; ++count) {
     if (count > 0) {
@@ -104,7 +123,7 @@ main(List<String> args) async {
           ].join(' '));
         }
       } else {
-        print('No results recieved for build $buildNumber of $builder');
+        print('No results received for build $buildNumber of $builder');
       }
     } else {
       print('HTTP status ${response.statusCode} received '

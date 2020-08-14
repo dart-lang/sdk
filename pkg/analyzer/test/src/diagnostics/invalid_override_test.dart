@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideTest);
-    defineReflectiveTests(InvalidOverrideWithNnbdTest);
+    defineReflectiveTests(InvalidOverrideWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidOverrideTest extends DriverResolutionTest {
+class InvalidOverrideTest extends PubPackageResolutionTest {
   test_getter_returnType() async {
     await assertErrorsInCode('''
 class A {
@@ -563,19 +560,100 @@ class B implements I<int>, J<String> {
 }
 
 @reflectiveTest
-class InvalidOverrideWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    )
-    ..implicitCasts = false;
+class InvalidOverrideWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
+  test_abstract_field_covariant_inheritance() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract covariant num x;
+}
+abstract class B implements A {
+  void set x(Object value); // Implicitly covariant
+}
+abstract class C implements B {
+  int get x;
+  void set x(int value); // Ok because covariant
+}
+''');
+  }
 
-  @override
-  bool get typeToStringWithNullability => true;
+  test_getter_overrides_abstract_field_covariant_invalid() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract covariant int x;
+}
+abstract class B implements A {
+  num get x;
+  void set x(num value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 91, 1),
+    ]);
+  }
+
+  test_getter_overrides_abstract_field_covariant_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract covariant num x;
+}
+abstract class B implements A {
+  int get x;
+}
+''');
+  }
+
+  test_getter_overrides_abstract_field_final_invalid() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+abstract class B implements A {
+  num get x;
+  void set x(num value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 87, 1),
+    ]);
+  }
+
+  test_getter_overrides_abstract_field_final_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final num x;
+}
+abstract class B implements A {
+  int get x;
+}
+''');
+  }
+
+  test_getter_overrides_abstract_field_invalid() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+abstract class B implements A {
+  num get x;
+  void set x(num value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 81, 1),
+    ]);
+  }
+
+  test_getter_overrides_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract num x;
+}
+abstract class B implements A {
+  int get x;
+}
+''');
+  }
 
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 abstract class A {
   A catchError(void Function(Object) a);
 }
@@ -592,7 +670,7 @@ class B implements A {
   }
 
   test_method_parameter_interfaceOptOut_concreteOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void foo(Object a) {}
 }
@@ -609,7 +687,7 @@ class B extends A {
   }
 
   test_mixedInheritance_1() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
@@ -623,7 +701,7 @@ class Bq {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -639,7 +717,7 @@ class D extends C implements Bq {}
   }
 
   test_mixedInheritance_2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class B {
   List<int Function(int)> get a => [];
   set a(List<int Function(int)> _) {}
@@ -653,7 +731,7 @@ class Bq {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -671,8 +749,57 @@ class D extends C {
 ''');
   }
 
+  test_setter_overrides_abstract_field_covariant_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract covariant num x;
+}
+abstract class B implements A {
+  int get x;
+  void set x(int value);
+}
+''');
+  }
+
+  test_setter_overrides_abstract_field_final_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final num x;
+}
+abstract class B implements A {
+  int get x;
+  void set x(int value);
+}
+''');
+  }
+
+  test_setter_overrides_abstract_field_invalid() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract num x;
+}
+abstract class B implements A {
+  int get x;
+  void set x(int value);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1),
+    ]);
+  }
+
+  test_setter_overrides_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+abstract class B implements A {
+  void set x(num value);
+}
+''');
+  }
+
   test_viaLegacy_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A1 {
   int m() => 0;
   int get g => 0;
@@ -686,7 +813,7 @@ class A2 {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart=2.6
 import 'a.dart';
 
@@ -709,7 +836,7 @@ class Y extends L {
   }
 
   test_viaLegacy_mixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A1 {
   int m() => 0;
   int get g => 0;
@@ -723,7 +850,7 @@ mixin A2 {
 }
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 // @dart=2.6
 import 'a.dart';
 

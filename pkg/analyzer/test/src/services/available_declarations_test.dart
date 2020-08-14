@@ -500,7 +500,7 @@ part of 'a.dart';
       ),
       'A',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
 
     newFile(filePath, content: 'class B {}');
@@ -515,7 +515,7 @@ part of 'a.dart';
       ),
       'B',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::B'],
     );
   }
 
@@ -550,7 +550,7 @@ dependencies:
       ),
       'A',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:aaa/a.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:aaa/a.dart::A'],
     );
 
     newFile(filePath, content: 'class B {}');
@@ -565,7 +565,7 @@ dependencies:
       ),
       'B',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:aaa/a.dart::B'],
+      relevanceTags: ['ElementKind.CLASS', 'package:aaa/a.dart::B'],
     );
   }
 
@@ -587,7 +587,7 @@ dependencies:
       ),
       'A',
       DeclarationKind.CLASS,
-      relevanceTags: ['dart:math::A'],
+      relevanceTags: ['ElementKind.CLASS', 'dart:math::A'],
     );
 
     newFile(filePath, content: 'class B {}');
@@ -602,7 +602,7 @@ dependencies:
       ),
       'B',
       DeclarationKind.CLASS,
-      relevanceTags: ['dart:math::B'],
+      relevanceTags: ['ElementKind.CLASS', 'dart:math::B'],
     );
   }
 
@@ -1129,21 +1129,21 @@ class D {}
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
       'B',
       DeclarationKind.CLASS,
       isAbstract: true,
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::B'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'C'),
       'C',
       DeclarationKind.CLASS,
       isDeprecated: true,
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::C'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'D'),
@@ -1151,7 +1151,7 @@ class D {}
       DeclarationKind.CLASS,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb\nccc ccc',
-      relevanceTags: ['package:test/test.dart::D'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::D'],
     );
   }
 
@@ -1192,7 +1192,7 @@ class C {
       'f1',
       DeclarationKind.FIELD,
       isStatic: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1201,7 +1201,7 @@ class C {
       DeclarationKind.FIELD,
       isFinal: true,
       isStatic: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1210,14 +1210,18 @@ class C {
       DeclarationKind.FIELD,
       isConst: true,
       isStatic: true,
-      relevanceTags: ['dart:core::int', 'isConst'],
+      relevanceTags: [
+        'ElementKind.FIELD',
+        'ElementKind.FIELD+const',
+        'dart:core::int',
+      ],
       returnType: 'int',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'f4'),
       'f4',
       DeclarationKind.FIELD,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1225,7 +1229,7 @@ class C {
       'f5',
       DeclarationKind.FIELD,
       isFinal: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1233,7 +1237,7 @@ class C {
       'f6',
       DeclarationKind.FIELD,
       isDeprecated: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1242,7 +1246,7 @@ class C {
       DeclarationKind.FIELD,
       isDeprecated: true,
       isFinal: true,
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1251,7 +1255,7 @@ class C {
       DeclarationKind.FIELD,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
-      relevanceTags: ['dart:core::int'],
+      relevanceTags: ['ElementKind.FIELD', 'dart:core::int'],
       returnType: 'int',
     );
   }
@@ -1284,12 +1288,14 @@ class C {
       'g1',
       DeclarationKind.GETTER,
       isStatic: true,
+      relevanceTags: ['ElementKind.FIELD'],
       returnType: 'int',
     );
     _assertDeclaration(
       _getDeclaration(classDeclaration.children, 'g2'),
       'g2',
       DeclarationKind.GETTER,
+      relevanceTags: ['ElementKind.FIELD'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1297,6 +1303,7 @@ class C {
       'g3',
       DeclarationKind.GETTER,
       isDeprecated: true,
+      relevanceTags: ['ElementKind.FIELD'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -1305,6 +1312,7 @@ class C {
       DeclarationKind.GETTER,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
+      relevanceTags: ['ElementKind.FIELD'],
       returnType: 'int',
     );
   }
@@ -1342,6 +1350,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.METHOD'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1352,6 +1361,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.METHOD'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1364,6 +1374,7 @@ class C {
       parameters: '(int a)',
       parameterNames: ['a'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.METHOD'],
       requiredParameterCount: 1,
       returnType: 'void',
     );
@@ -1375,6 +1386,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.METHOD'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1387,6 +1399,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.METHOD'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1423,6 +1436,7 @@ class C {
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FIELD'],
       requiredParameterCount: 1,
     );
     _assertDeclaration(
@@ -1432,6 +1446,7 @@ class C {
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FIELD'],
       requiredParameterCount: 1,
     );
     _assertDeclaration(
@@ -1442,6 +1457,7 @@ class C {
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FIELD'],
       requiredParameterCount: 1,
     );
     _assertDeclaration(
@@ -1453,6 +1469,7 @@ class C {
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FIELD'],
       requiredParameterCount: 1,
     );
   }
@@ -1480,14 +1497,14 @@ class C = Object with M;
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.CLASS_TYPE_ALIAS,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
       'B',
       DeclarationKind.CLASS_TYPE_ALIAS,
       isDeprecated: true,
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::B'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'C'),
@@ -1495,7 +1512,7 @@ class C = Object with M;
       DeclarationKind.CLASS_TYPE_ALIAS,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::C'],
     );
   }
 
@@ -1536,7 +1553,7 @@ class C {
       parameterNames: [],
       parameters: '()',
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CONSTRUCTOR', 'package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1547,7 +1564,7 @@ class C {
       parameterNames: [],
       parameters: '()',
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CONSTRUCTOR', 'package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1559,7 +1576,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CONSTRUCTOR', 'package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1572,7 +1589,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CONSTRUCTOR', 'package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1585,7 +1602,7 @@ class C {
       parameters: '(Map<String, int> p1, int p2, {double p3})',
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['Map<String, int>', 'int', 'double'],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CONSTRUCTOR', 'package:test/test.dart::C'],
       requiredParameterCount: 2,
       returnType: 'C',
     );
@@ -1598,7 +1615,7 @@ class C {
       parameters: '(this.f1, this.f2)',
       parameterNames: ['f1', 'f2'],
       parameterTypes: ['', ''],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.CONSTRUCTOR', 'package:test/test.dart::C'],
       requiredParameterCount: 2,
       returnType: 'C',
     );
@@ -1625,14 +1642,14 @@ enum C {v}
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.ENUM,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.ENUM', 'package:test/test.dart::A'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
       'B',
       DeclarationKind.ENUM,
       isDeprecated: true,
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: ['ElementKind.ENUM', 'package:test/test.dart::B'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'C'),
@@ -1640,7 +1657,7 @@ enum C {v}
       DeclarationKind.ENUM,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.ENUM', 'package:test/test.dart::C'],
     );
   }
 
@@ -1669,14 +1686,22 @@ enum MyEnum {
       _getDeclaration(enumDeclaration.children, 'a'),
       'a',
       DeclarationKind.ENUM_CONSTANT,
-      relevanceTags: ['package:test/test.dart::MyEnum'],
+      relevanceTags: [
+        'ElementKind.ENUM_CONSTANT',
+        'ElementKind.ENUM_CONSTANT+const',
+        'package:test/test.dart::MyEnum'
+      ],
     );
     _assertDeclaration(
       _getDeclaration(enumDeclaration.children, 'b'),
       'b',
       DeclarationKind.ENUM_CONSTANT,
       isDeprecated: true,
-      relevanceTags: ['package:test/test.dart::MyEnum'],
+      relevanceTags: [
+        'ElementKind.ENUM_CONSTANT',
+        'ElementKind.ENUM_CONSTANT+const',
+        'package:test/test.dart::MyEnum'
+      ],
     );
     _assertDeclaration(
       _getDeclaration(enumDeclaration.children, 'c'),
@@ -1684,7 +1709,11 @@ enum MyEnum {
       DeclarationKind.ENUM_CONSTANT,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
-      relevanceTags: ['package:test/test.dart::MyEnum'],
+      relevanceTags: [
+        'ElementKind.ENUM_CONSTANT',
+        'ElementKind.ENUM_CONSTANT+const',
+        'package:test/test.dart::MyEnum'
+      ],
     );
   }
 
@@ -1713,12 +1742,14 @@ extension C on String {}
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.EXTENSION,
+      relevanceTags: ['ElementKind.EXTENSION'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
       'B',
       DeclarationKind.EXTENSION,
       isDeprecated: true,
+      relevanceTags: ['ElementKind.EXTENSION'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'C'),
@@ -1726,6 +1757,7 @@ extension C on String {}
       DeclarationKind.EXTENSION,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb\nccc ccc',
+      relevanceTags: ['ElementKind.EXTENSION'],
     );
   }
 
@@ -1757,6 +1789,7 @@ void e<T extends num, U>() {}
       parameterNames: [],
       parameters: '()',
       parameterTypes: [],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1768,6 +1801,7 @@ void e<T extends num, U>() {}
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1780,6 +1814,7 @@ void e<T extends num, U>() {}
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1792,6 +1827,7 @@ void e<T extends num, U>() {}
       parameters: '(Map<String, int> p1, int p2, {double p3})',
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['Map<String, int>', 'int', 'double'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 2,
       returnType: 'List<String>',
     );
@@ -1802,6 +1838,7 @@ void e<T extends num, U>() {}
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 0,
       returnType: 'void',
       typeParameters: '<T extends num, U>',
@@ -1830,6 +1867,7 @@ void d(int a, {int b, @required int c, @required int d, int e}) {}
       parameterNames: [],
       parameters: '()',
       parameterTypes: [],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1842,6 +1880,7 @@ void d(int a, {int b, @required int c, @required int d, int e}) {}
       parameters: '(int a, double bb, String ccc)',
       parameterNames: ['a', 'bb', 'ccc'],
       parameterTypes: ['int', 'double', 'String'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 3,
       returnType: 'void',
     );
@@ -1854,6 +1893,7 @@ void d(int a, {int b, @required int c, @required int d, int e}) {}
       parameters: '(int a, [double b, String c])',
       parameterNames: ['a', 'b', 'c'],
       parameterTypes: ['int', 'double', 'String'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 1,
       returnType: 'void',
     );
@@ -1866,6 +1906,7 @@ void d(int a, {int b, @required int c, @required int d, int e}) {}
       parameters: '(int a, {int b, @required int c, @required int d, int e})',
       parameterNames: ['a', 'b', 'c', 'd', 'e'],
       parameterTypes: ['int', 'int', 'int', 'int', 'int'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 1,
       returnType: 'void',
     );
@@ -1901,7 +1942,10 @@ typedef F = void Function<T extends num, U>();
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::A'
+      ],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1913,7 +1957,10 @@ typedef F = void Function<T extends num, U>();
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::B'
+      ],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1926,7 +1973,10 @@ typedef F = void Function<T extends num, U>();
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::C'
+      ],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -1937,7 +1987,10 @@ typedef F = void Function<T extends num, U>();
       parameters: '(int p1, [double p2, String p3])',
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['int', 'double', 'String'],
-      relevanceTags: ['package:test/test.dart::D'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::D'
+      ],
       requiredParameterCount: 1,
       returnType: 'int',
     );
@@ -1948,7 +2001,10 @@ typedef F = void Function<T extends num, U>();
       parameters: '(int, double, {String p3})',
       parameterNames: ['', '', 'p3'],
       parameterTypes: ['int', 'double', 'String'],
-      relevanceTags: ['package:test/test.dart::E'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::E'
+      ],
       requiredParameterCount: 2,
       returnType: 'void',
     );
@@ -1960,7 +2016,10 @@ typedef F = void Function<T extends num, U>();
       parameterNames: [],
       parameterTypes: [],
       requiredParameterCount: 0,
-      relevanceTags: ['package:test/test.dart::F'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::F'
+      ],
       returnType: 'void',
       typeParameters: '<T extends num, U>',
     );
@@ -2008,7 +2067,10 @@ typedef void F<T extends num, U>();
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::A'
+      ],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -2020,7 +2082,10 @@ typedef void F<T extends num, U>();
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::B'
+      ],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -2033,7 +2098,10 @@ typedef void F<T extends num, U>();
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::C'
+      ],
       requiredParameterCount: 0,
       returnType: 'void',
     );
@@ -2044,7 +2112,10 @@ typedef void F<T extends num, U>();
       parameters: '(int p1, [double p2, String p3])',
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['int', 'double', 'String'],
-      relevanceTags: ['package:test/test.dart::D'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::D'
+      ],
       requiredParameterCount: 1,
       returnType: 'int',
     );
@@ -2055,7 +2126,10 @@ typedef void F<T extends num, U>();
       parameters: '(int p1, double p2, {String p3})',
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['int', 'double', 'String'],
-      relevanceTags: ['package:test/test.dart::E'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::E'
+      ],
       requiredParameterCount: 2,
       returnType: 'void',
     );
@@ -2067,7 +2141,10 @@ typedef void F<T extends num, U>();
       parameterNames: [],
       parameterTypes: [],
       requiredParameterCount: 0,
-      relevanceTags: ['package:test/test.dart::F'],
+      relevanceTags: [
+        'ElementKind.FUNCTION_TYPE_ALIAS',
+        'package:test/test.dart::F'
+      ],
       returnType: 'void',
       typeParameters: '<T extends num, U>',
     );
@@ -2094,6 +2171,7 @@ int get c => 0;
       _getDeclaration(library.declarations, 'a'),
       'a',
       DeclarationKind.GETTER,
+      relevanceTags: ['ElementKind.FUNCTION'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -2101,6 +2179,7 @@ int get c => 0;
       'b',
       DeclarationKind.GETTER,
       isDeprecated: true,
+      relevanceTags: ['ElementKind.FUNCTION'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -2109,6 +2188,7 @@ int get c => 0;
       DeclarationKind.GETTER,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
+      relevanceTags: ['ElementKind.FUNCTION'],
       returnType: 'int',
     );
   }
@@ -2147,7 +2227,7 @@ class A {}
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
   }
 
@@ -2166,7 +2246,7 @@ class A {}
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.CLASS,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
   }
 
@@ -2268,7 +2348,7 @@ class B {}
       locationPath: testPath,
       locationStartColumn: 7,
       locationStartLine: 1,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::A'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
@@ -2278,7 +2358,7 @@ class B {}
       locationPath: testPath,
       locationStartColumn: 7,
       locationStartLine: 3,
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: ['ElementKind.CLASS', 'package:test/test.dart::B'],
     );
   }
 
@@ -2304,14 +2384,14 @@ mixin C {}
       _getDeclaration(library.declarations, 'A'),
       'A',
       DeclarationKind.MIXIN,
-      relevanceTags: ['package:test/test.dart::A'],
+      relevanceTags: ['ElementKind.MIXIN', 'package:test/test.dart::A'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'B'),
       'B',
       DeclarationKind.MIXIN,
       isDeprecated: true,
-      relevanceTags: ['package:test/test.dart::B'],
+      relevanceTags: ['ElementKind.MIXIN', 'package:test/test.dart::B'],
     );
     _assertDeclaration(
       _getDeclaration(library.declarations, 'C'),
@@ -2319,7 +2399,7 @@ mixin C {}
       DeclarationKind.MIXIN,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb\nccc ccc',
-      relevanceTags: ['package:test/test.dart::C'],
+      relevanceTags: ['ElementKind.MIXIN', 'package:test/test.dart::C'],
     );
   }
 
@@ -2347,6 +2427,7 @@ set c(int value) {}
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 1,
     );
     _assertDeclaration(
@@ -2357,6 +2438,7 @@ set c(int value) {}
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 1,
     );
     _assertDeclaration(
@@ -2368,6 +2450,7 @@ set c(int value) {}
       parameters: '(int value)',
       parameterNames: ['value'],
       parameterTypes: ['int'],
+      relevanceTags: ['ElementKind.FUNCTION'],
       requiredParameterCount: 1,
     );
   }
@@ -2397,6 +2480,7 @@ final double e = 2.7;
       _getDeclaration(library.declarations, 'a'),
       'a',
       DeclarationKind.VARIABLE,
+      relevanceTags: ['ElementKind.TOP_LEVEL_VARIABLE'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -2404,6 +2488,7 @@ final double e = 2.7;
       'b',
       DeclarationKind.VARIABLE,
       isDeprecated: true,
+      relevanceTags: ['ElementKind.TOP_LEVEL_VARIABLE'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -2412,6 +2497,7 @@ final double e = 2.7;
       DeclarationKind.VARIABLE,
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
+      relevanceTags: ['ElementKind.TOP_LEVEL_VARIABLE'],
       returnType: 'int',
     );
     _assertDeclaration(
@@ -2419,7 +2505,11 @@ final double e = 2.7;
       'd',
       DeclarationKind.VARIABLE,
       isConst: true,
-      relevanceTags: ['dart:core::int', 'isConst'],
+      relevanceTags: [
+        'ElementKind.TOP_LEVEL_VARIABLE',
+        'ElementKind.TOP_LEVEL_VARIABLE+const',
+        'dart:core::int',
+      ],
       returnType: '',
     );
     _assertDeclaration(
@@ -2427,7 +2517,7 @@ final double e = 2.7;
       'e',
       DeclarationKind.VARIABLE,
       isFinal: true,
-      relevanceTags: ['dart:core::double'],
+      relevanceTags: ['ElementKind.TOP_LEVEL_VARIABLE', 'dart:core::double'],
       returnType: 'double',
     );
   }
@@ -2435,6 +2525,20 @@ final double e = 2.7;
 
 @reflectiveTest
 class ExportTest extends _Base {
+  test_classTypeAlias() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+mixin M {}
+class A = Object with M;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.mixin('M'),
+      _ExpectedDeclaration.classTypeAlias('A'),
+    ]);
+  }
+
   test_combinators_hide() async {
     newFile('/home/test/lib/a.dart', content: r'''
 class A {}
@@ -2570,6 +2674,32 @@ enum E2 {a, b}
     ]);
   }
 
+  test_function() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+int foo() => 0;
+int bar() => 0;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.function('foo'),
+      _ExpectedDeclaration.function('bar'),
+    ]);
+  }
+
+  test_functionTypeAlias() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+typedef F = int Function();
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.functionTypeAlias('F'),
+    ]);
+  }
+
   test_missing() async {
     newFile('/home/test/lib/test.dart', content: r'''
 export 'a.dart';
@@ -2672,6 +2802,18 @@ class C {}
       _ExpectedDeclaration.class_('C', [
         _ExpectedDeclaration.constructor(''),
       ]),
+    ]);
+  }
+
+  test_variable() async {
+    newFile('/home/test/lib/test.dart', content: r'''
+int foo = 0;
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/test.dart', declarations: [
+      _ExpectedDeclaration.variable('foo'),
     ]);
   }
 }

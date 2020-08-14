@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == dart_precompiled ]
+check_for_aot_snapshot_jit_test: SkipByDesign
 http_launch_test: Skip
 io/addlatexhash_test: Skip
 io/dart_std_io_pipe_test: Skip

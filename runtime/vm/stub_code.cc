@@ -160,7 +160,8 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
   auto object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
-  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+  const Error& error =
+      Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
     return object_store->allocate_array_stub();
@@ -220,7 +221,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
       }
     };
     auto bg_compiler_fun = [&]() {
-      ForceGrowthSafepointOperationScope safepoint_scope(thread);
+      ASSERT(Thread::Current()->IsAtSafepoint());
       stub = cls.allocation_stub();
       // Check if stub was already generated.
       if (!stub.IsNull()) {

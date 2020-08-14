@@ -4416,8 +4416,8 @@ class Wrong<T> {
     ]);
     FunctionDeclaration declaration = unit.declarations.first;
     BlockFunctionBody blockBody = declaration.functionExpression.body;
-    ExpressionStatement statement = (blockBody).block.statements.first;
-    Expression expression = (statement).expression;
+    ExpressionStatement statement = blockBody.block.statements.first;
+    Expression expression = statement.expression;
     expect(expression, isSuperExpression);
     SuperExpression superExpression = expression;
     expect(superExpression.superKeyword, isNotNull);
@@ -6880,9 +6880,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     InstanceCreationExpressionImpl expression =
         parseExpression('new a.b.c<C>()', errors: [
       expectedError(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          8,
-          1)
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 8, 1)
     ]);
     expect(expression, isNotNull);
     expect(expression.keyword.keyword, Keyword.NEW);
@@ -11450,7 +11448,7 @@ class C {
 
   void test_missing_commaInArgumentList() {
     MethodInvocation expression = parseExpression("f(x: 1 y: 2)",
-        errors: ([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]));
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     NodeList<Expression> arguments = expression.argumentList.arguments;
     expect(arguments, hasLength(2));
   }
@@ -15153,7 +15151,7 @@ main() {
     }
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
     assertErrorsWithCodes(
-        [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
     expect(statement.expression, isNotNull);
   }
 

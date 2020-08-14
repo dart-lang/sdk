@@ -22,8 +22,8 @@ testeeDo() {
 
 Future checkTimeline(VM vm) async {
   var result = await TimelineRepositoryBase().getCpuProfileTimeline(vm);
-  var isString = new isInstanceOf<String>();
-  var isInt = new isInstanceOf<int>();
+  var isString = isA<String>();
+  var isInt = isA<int>();
   Map frames = result['stackFrames'];
   expect(frames.length, greaterThan(10), reason: "Should have many samples");
   for (Map frame in frames.values) {

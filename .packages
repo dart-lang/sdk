@@ -92,11 +92,13 @@ source_map_stack_trace:third_party/pkg/source_map_stack_trace/lib
 sourcemap_testing:pkg/sourcemap_testing/lib
 source_maps:third_party/pkg/source_maps/lib
 source_span:third_party/pkg/source_span/lib
+sse:third_party/pkg/sse/lib
 stack_trace:third_party/pkg/stack_trace/lib
 stagehand:third_party/pkg/stagehand/lib
 status_file:pkg/status_file/lib
 stream_channel:third_party/pkg/stream_channel/lib
 string_scanner:third_party/pkg/string_scanner/lib
+sync_http:third_party/pkg/sync_http/lib
 telemetry:pkg/telemetry/lib
 term_glyph:third_party/pkg/term_glyph/lib
 test:third_party/pkg/test/pkgs/test/lib
@@ -110,10 +112,12 @@ testing:pkg/testing/lib
 tflite_native:third_party/pkg/tflite_native/lib
 typed_data:third_party/pkg/typed_data/lib
 usage:third_party/pkg/usage/lib
+vector_math:third_party/pkg/vector_math/lib
 vm:pkg/vm/lib
 vm_service:pkg/vm_service/lib
 vm_snapshot_analysis:pkg/vm_snapshot_analysis/lib
 watcher:third_party/pkg/watcher/lib
+webdriver:third_party/pkg/webdriver/lib
 web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
 yaml:third_party/pkg/yaml/lib

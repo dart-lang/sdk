@@ -1562,6 +1562,38 @@ abstract class IntegrationTestMixin {
     return EditGetDartfixInfoResult.fromJson(decoder, 'result', result);
   }
 
+  /// Analyze the specified sources for fixes that can be applied in bulk and
+  /// return a set of suggested edits for those sources. These edits may
+  /// include changes to sources outside the set of specified sources if a
+  /// change in a specified source requires it.
+  ///
+  /// Parameters
+  ///
+  /// included: List<FilePath>
+  ///
+  ///   A list of the files and directories for which edits should be
+  ///   suggested.
+  ///
+  ///   If a request is made with a path that is invalid, e.g. is not absolute
+  ///   and normalized, an error of type INVALID_FILE_PATH_FORMAT will be
+  ///   generated. If a request is made for a file which does not exist, or
+  ///   which is not currently subject to analysis (e.g. because it is not
+  ///   associated with any analysis root specified to
+  ///   analysis.setAnalysisRoots), an error of type FILE_NOT_ANALYZED will be
+  ///   generated.
+  ///
+  /// Returns
+  ///
+  /// edits: List<SourceFileEdit>
+  ///
+  ///   A list of source edits to apply the recommended changes.
+  Future<EditBulkFixesResult> sendEditBulkFixes(List<String> included) async {
+    var params = EditBulkFixesParams(included).toJson();
+    var result = await server.send('edit.bulkFixes', params);
+    var decoder = ResponseDecoder(null);
+    return EditBulkFixesResult.fromJson(decoder, 'result', result);
+  }
+
   /// Analyze the specified sources for recommended changes and return a set of
   /// suggested edits for those sources. These edits may include changes to
   /// sources outside the set of specified sources if a change in a specified

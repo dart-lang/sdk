@@ -245,8 +245,8 @@ main() async {
       platformDill,
       ...Platform.executableArguments.where((arg) =>
           arg.startsWith('--enable-experiment=') ||
-          arg == '--null-safety' ||
-          arg == '--no-null-safety'),
+          arg == '--sound-null-safety' ||
+          arg == '--no-sound-null-safety'),
       '-o',
       dillPath,
       _thisTestPath

@@ -141,8 +141,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _findFlutterStateClass() {
-    var flutter = Flutter.of(resolvedUnit);
-    if (flutter.isStatefulWidgetDeclaration(element)) {
+    if (Flutter.instance.isStatefulWidgetDeclaration(element)) {
       var oldStateName = oldName + 'State';
       _flutterWidgetState = element.library.getType(oldStateName) ??
           element.library.getType('_' + oldStateName);

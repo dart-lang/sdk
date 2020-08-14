@@ -87,7 +87,7 @@ class Spelunker {
   FeatureSet featureSet;
 
   Spelunker(this.path, {IOSink sink, FeatureSet featureSet})
-      : this.sink = sink ?? stdout,
+      : sink = sink ?? stdout,
         featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
 
   void spelunk() {

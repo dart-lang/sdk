@@ -59,6 +59,8 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   bool get isExternal;
 
+  bool get isAbstract;
+
   void buildOutlineExpressions(LibraryBuilder library, CoreTypes coreTypes);
 
   /// Returns the [ClassMember]s for the non-setter members created for this
@@ -122,6 +124,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
 
   @override
   bool get isExternal => (modifiers & externalMask) != 0;
+
+  @override
+  bool get isAbstract => (modifiers & abstractMask) != 0;
 
   @override
   LibraryBuilder get library {

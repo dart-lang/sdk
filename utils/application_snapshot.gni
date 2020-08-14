@@ -134,6 +134,7 @@ template("_application_snapshot") {
     args += [ rebase_path(main_dart) ]
   }
 
+  # Create a snapshot from kernel built above.
   dart_action(target_name) {
     deps = extra_deps + [ ":${target_name}_dill" ]
     depfile = "$output.d"
@@ -143,6 +144,10 @@ template("_application_snapshot") {
     inputs = extra_inputs
 
     outputs = [ output ]
+
+    # Explicitly set DFE so Dart doesn't implicitly depend on the kernel service
+    # snapshot (creating a circular dep. for kernel-service_snapshot).
+    dfe = "$_dart_root/pkg/vm/bin/kernel_service.dart"
 
     abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output, root_build_dir)

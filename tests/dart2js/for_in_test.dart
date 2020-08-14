@@ -42,7 +42,10 @@ class MyListIterator<T> implements Iterator<T> {
         index = -1;
 
   bool moveNext() => ++index < values.length;
-  T get current => (0 <= index && index < values.length) ? values[index] : null;
+  T get current {
+    assert(0 <= index && index < values.length);
+    return values[index];
+  }
 }
 
 void main() {

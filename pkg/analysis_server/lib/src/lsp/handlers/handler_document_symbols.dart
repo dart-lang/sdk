@@ -80,14 +80,15 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     Outline outline,
   ) {
     return DocumentSymbol(
-      toElementName(outline.element),
-      outline.element.parameters,
-      elementKindToSymbolKind(clientSupportedSymbolKinds, outline.element.kind),
-      outline.element.isDeprecated,
-      toRange(lineInfo, outline.codeOffset, outline.codeLength),
-      toRange(lineInfo, outline.element.location.offset,
+      name: toElementName(outline.element),
+      detail: outline.element.parameters,
+      kind: elementKindToSymbolKind(
+          clientSupportedSymbolKinds, outline.element.kind),
+      deprecated: outline.element.isDeprecated,
+      range: toRange(lineInfo, outline.codeOffset, outline.codeLength),
+      selectionRange: toRange(lineInfo, outline.element.location.offset,
           outline.element.location.length),
-      outline.children
+      children: outline.children
           ?.map((child) =>
               _asDocumentSymbol(clientSupportedSymbolKinds, lineInfo, child))
           ?.toList(),
@@ -102,15 +103,16 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     Outline outline,
   ) {
     return SymbolInformation(
-      toElementName(outline.element),
-      elementKindToSymbolKind(clientSupportedSymbolKinds, outline.element.kind),
-      outline.element.isDeprecated,
-      Location(
-        documentUri,
-        toRange(lineInfo, outline.element.location.offset,
+      name: toElementName(outline.element),
+      kind: elementKindToSymbolKind(
+          clientSupportedSymbolKinds, outline.element.kind),
+      deprecated: outline.element.isDeprecated,
+      location: Location(
+        uri: documentUri,
+        range: toRange(lineInfo, outline.element.location.offset,
             outline.element.location.length),
       ),
-      containerName,
+      containerName: containerName,
     );
   }
 

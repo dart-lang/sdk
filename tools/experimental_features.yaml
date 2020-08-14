@@ -85,7 +85,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: 2.9
+current-version: '2.10.0'
 
 features:
   non-nullable:
@@ -104,6 +104,8 @@ features:
     help: "Alternative invalidation strategy for incremental compilation"
     category: "CFE"
 
+  value-class:
+    help: "Value class"
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.

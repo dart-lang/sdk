@@ -256,9 +256,7 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   }
 }
 
-static void DeleteFilter(void* isolate_data,
-                         Dart_WeakPersistentHandle handle,
-                         void* filter_pointer) {
+static void DeleteFilter(void* isolate_data, void* filter_pointer) {
   Filter* filter = reinterpret_cast<Filter*>(filter_pointer);
   delete filter;
 }
@@ -272,8 +270,8 @@ Dart_Handle Filter::SetFilterAndCreateFinalizer(Dart_Handle filter,
   if (Dart_IsError(err)) {
     return err;
   }
-  Dart_NewWeakPersistentHandle(filter, reinterpret_cast<void*>(filter_pointer),
-                               size, DeleteFilter);
+  Dart_NewFinalizableHandle(filter, reinterpret_cast<void*>(filter_pointer),
+                            size, DeleteFilter);
   return err;
 }
 

@@ -1157,7 +1157,7 @@ class DoubleState extends NumState {
     if (value == null) {
       return UNKNOWN_VALUE;
     }
-    return DoubleState(-(value));
+    return DoubleState(-value);
   }
 
   @override

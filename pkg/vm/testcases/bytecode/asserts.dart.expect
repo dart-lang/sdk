@@ -11,7 +11,7 @@ Class '', script = '#lib'
 
 
 Function 'test1', static, reflectable, debuggable
-    parameters [dart:core::bool 'condition'] (required: 1)
+    parameters [dart:core::bool* 'condition'] (required: 1)
     return-type void
 
 Bytecode {
@@ -37,7 +37,7 @@ ConstantPool {
 
 
 Function 'test2', static, reflectable, debuggable
-    parameters [FunctionType () -> dart:core::bool 'condition', FunctionType () -> dart:core::String 'message'] (required: 2)
+    parameters [FunctionType ()* -> dart:core::bool* 'condition', FunctionType ()* -> dart:core::String* 'message'] (required: 2)
     return-type void
 
 Bytecode {

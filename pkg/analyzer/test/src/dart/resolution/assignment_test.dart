@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentDriverResolutionTest extends DriverResolutionTest {
+class AssignmentDriverResolutionTest extends PubPackageResolutionTest {
   test_compound_indexExpression() async {
     await resolveTestCode(r'''
 main() {
@@ -153,10 +153,10 @@ main(int i) {
   i %= 1.2;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 33, 3),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 45, 3),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 57, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 45, 3),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 57, 3),
     ]);
     assertType(findNode.assignment('+='), 'double');
     assertType(findNode.assignment('-='), 'double');
@@ -187,7 +187,7 @@ main(double a, int b) {
   a ??= b;
 }
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 32, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 32, 1),
     ]);
     assertType(findNode.assignment('??='), 'num');
   }

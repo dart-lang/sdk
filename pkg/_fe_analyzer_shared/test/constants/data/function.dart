@@ -16,16 +16,16 @@ const Map<String, int> Function(String, int) instantiation1 =
 main() {
   print(
       /*cfe|dart2js.Function(method1)*/
-      /*analyzer.Function(method1,type=T Function<T>(T))*/
+      /*analyzer.Function(method1,type=T* Function<T>(T*)*)*/
       function0);
   print(
       /*cfe.Instantiation(method1<int>)*/
       /*dart2js.Instantiation(method1<int*>)*/
-      /*analyzer.Function(method1,type=int Function(int))*/
+      /*analyzer.Function(method1,type=int* Function(int*)*)*/
       instantiation0);
   print(
       /*cfe.Instantiation(method2<String,int>)*/
       /*dart2js.Instantiation(method2<String*,int*>)*/
-      /*analyzer.Function(method2,type=Map<String, int> Function(String, int))*/
+      /*analyzer.Function(method2,type=Map<String*, int*>* Function(String*, int*)*)*/
       instantiation1);
 }

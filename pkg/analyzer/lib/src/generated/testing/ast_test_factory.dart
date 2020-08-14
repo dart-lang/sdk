@@ -516,8 +516,12 @@ class AstTestFactory {
           argumentList: argumentList);
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
-          TypeAnnotation type, List<VariableDeclaration> variables) =>
+          TypeAnnotation type, List<VariableDeclaration> variables,
+          {bool isAbstract = false}) =>
       astFactory.fieldDeclaration2(
+          abstractKeyword: isAbstract
+              ? TokenFactory.tokenFromKeyword(Keyword.ABSTRACT)
+              : null,
           staticKeyword:
               isStatic ? TokenFactory.tokenFromKeyword(Keyword.STATIC) : null,
           fieldList: variableDeclarationList(keyword, type, variables),
@@ -778,14 +782,27 @@ class AstTestFactory {
           [List<Combinator> combinators]) =>
       importDirective(null, uri, false, prefix, combinators);
 
-  static IndexExpression indexExpression(Expression array, Expression index,
-          [TokenType leftBracket = TokenType.OPEN_SQUARE_BRACKET]) =>
-      astFactory.indexExpressionForTarget2(
-          target: array,
-          leftBracket: TokenFactory.tokenFromType(leftBracket),
-          index: index,
-          rightBracket:
-              TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
+  static IndexExpression indexExpression({
+    @required Expression target,
+    bool hasQuestion = false,
+    @required Expression index,
+  }) {
+    return astFactory.indexExpressionForTarget2(
+      target: target,
+      question: hasQuestion
+          ? TokenFactory.tokenFromType(
+              TokenType.QUESTION,
+            )
+          : null,
+      leftBracket: TokenFactory.tokenFromType(
+        TokenType.OPEN_SQUARE_BRACKET,
+      ),
+      index: index,
+      rightBracket: TokenFactory.tokenFromType(
+        TokenType.CLOSE_SQUARE_BRACKET,
+      ),
+    );
+  }
 
   static IndexExpression indexExpressionForCascade(Expression array,
           Expression index, TokenType period, TokenType leftBracket) =>

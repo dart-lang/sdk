@@ -11,7 +11,7 @@ import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../dart/resolution/driver_resolution.dart';
+import '../../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-abstract class AbstractLinterContextTest extends DriverResolutionTest {
+abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
   LinterContextImpl context;
 
   Future<void> resolve(String content) async {
@@ -246,7 +246,7 @@ f<U>() => A<U>();
   }
 
   void test_true_computeDependencies() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
 
@@ -286,7 +286,7 @@ A f() => A([1, 2, 3]);
   }
 
   void test_true_importedClass_defaultValue() async {
-    var aPath = convertPath('/test/lib/a.dart');
+    var aPath = convertPath('$testPackageLibPath/a.dart');
     newFile(aPath, content: r'''
 class A {
   final int a;
@@ -329,7 +329,7 @@ f<U>() => [A<U>()];
   }
 
   void test_listLiteral_true_computeDependencies() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
 
@@ -463,7 +463,7 @@ var x = 42;
 @reflectiveTest
 class PubDependencyTest extends AbstractLinterContextTest {
   test_dependencies() async {
-    newFile('/test/pubspec.yaml', content: '''
+    newFile('$testPackageRootPath/pubspec.yaml', content: '''
 name: test
 
 dependencies:

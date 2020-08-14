@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddFieldFormalParameters extends CorrectionProducer {
@@ -15,7 +15,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
       return;
     }
@@ -38,7 +38,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
     if (flutter.isExactlyStatelessWidgetType(superType) ||
         flutter.isExactlyStatefulWidgetType(superType)) {
       if (parameters.isNotEmpty && parameters.last.isNamed) {
-        await builder.addFileEdit(file, (builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(
             parameters.last.end,
             ', $fieldParametersCode',
@@ -56,7 +56,7 @@ class AddFieldFormalParameters extends CorrectionProducer {
       }
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       if (lastRequiredParameter != null) {
         builder.addSimpleInsertion(
           lastRequiredParameter.end,

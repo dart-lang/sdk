@@ -644,11 +644,59 @@ void _testEqualsExpression() {
 0 != 1''');
 }
 
-void _testBinaryExpression() {}
+void _testBinaryExpression() {
+  testExpression(
+      new BinaryExpression(new IntLiteral(0), new Name('+'), new IntLiteral(1)),
+      '''
+0 + 1''');
+  testExpression(
+      new BinaryExpression(
+          new BinaryExpression(
+              new IntLiteral(0), new Name('-'), new IntLiteral(1)),
+          new Name('+'),
+          new BinaryExpression(
+              new IntLiteral(2), new Name('-'), new IntLiteral(3))),
+      '''
+0 - 1 + 2 - 3''');
+  testExpression(
+      new BinaryExpression(
+          new BinaryExpression(
+              new IntLiteral(0), new Name('*'), new IntLiteral(1)),
+          new Name('+'),
+          new BinaryExpression(
+              new IntLiteral(2), new Name('/'), new IntLiteral(3))),
+      '''
+0 * 1 + 2 / 3''');
+  testExpression(
+      new BinaryExpression(
+          new BinaryExpression(
+              new IntLiteral(0), new Name('+'), new IntLiteral(1)),
+          new Name('*'),
+          new BinaryExpression(
+              new IntLiteral(2), new Name('-'), new IntLiteral(3))),
+      '''
+(0 + 1) * (2 - 3)''');
+}
 
-void _testUnaryExpression() {}
+void _testUnaryExpression() {
+  testExpression(new UnaryExpression(new Name('unary-'), new IntLiteral(0)), '''
+-0''');
+  testExpression(new UnaryExpression(new Name('~'), new IntLiteral(0)), '''
+~0''');
 
-void _testParenthesizedExpression() {}
+  testExpression(
+      new UnaryExpression(
+          new Name('unary-'),
+          new BinaryExpression(
+              new IntLiteral(0), new Name('+'), new IntLiteral(1))),
+      '''
+-(0 + 1)''');
+}
+
+void _testParenthesizedExpression() {
+  testExpression(new ParenthesizedExpression(new IntLiteral(0)), '''
+(0)''');
+}
 
 void _testSpreadElement() {
   testExpression(new SpreadElement(new IntLiteral(0), false), '''

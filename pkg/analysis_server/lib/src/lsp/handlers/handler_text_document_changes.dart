@@ -149,8 +149,8 @@ class TextDocumentOpenHandler
       // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
       server.documentVersions[path] = VersionedTextDocumentIdentifier(
-        params.textDocument.version,
-        params.textDocument.uri,
+        version: params.textDocument.version,
+        uri: params.textDocument.uri,
       );
       server.onOverlayCreated(path, doc.text);
 

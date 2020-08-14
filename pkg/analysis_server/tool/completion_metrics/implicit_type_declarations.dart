@@ -111,7 +111,10 @@ class ImpliedTypeCollector extends RecursiveAstVisitor<void> {
       var rhsType = node.initializer?.staticType;
       if (rhsType != null && !rhsType.isDynamic) {
         // Record the name with the type.
-        data.recordImpliedType(node.name.name, rhsType.getDisplayString());
+        data.recordImpliedType(
+          node.name.name,
+          rhsType.getDisplayString(withNullability: false),
+        );
       }
     }
   }

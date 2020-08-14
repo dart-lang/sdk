@@ -267,9 +267,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The relevance data being collected.
   final RelevanceData data;
 
-  /// The object used to determine Flutter-specific features.
-  Flutter flutter;
-
   InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
@@ -292,11 +289,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// [data].
   RelevanceDataCollector(this.data);
 
-  /// Initialize this collector prior to visiting the unit in the [result].
-  void initializeFrom(ResolvedUnitResult result) {
-    flutter = Flutter.of(result);
-  }
-
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     // There are no completions.
@@ -314,7 +306,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var context = _argumentListContext(node);
     var parent = node.parent;
     var inWidgetConstructor = parent is InstanceCreationExpression &&
-        flutter.isWidgetType(parent.staticType);
+        Flutter.instance.isWidgetType(parent.staticType);
     for (var argument in node.arguments) {
       var realArgument = argument;
       var argumentKind = 'unnamed';
@@ -1981,7 +1973,6 @@ class RelevanceMetricsComputer {
             continue;
           }
 
-          collector.initializeFrom(resolvedUnitResult);
           resolvedUnitResult.unit.accept(collector);
         } catch (exception, stacktrace) {
           print('Exception caught analyzing: "$filePath"');

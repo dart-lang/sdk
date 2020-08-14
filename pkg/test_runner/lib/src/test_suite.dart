@@ -55,14 +55,16 @@ abstract class TestSuite {
   TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
+      if (Platform.isWindows) 'DART_SUPPRESS_WER': '1',
+      if (Platform.isWindows && configuration.copyCoreDumps)
+        'DART_CRASHPAD_HANDLER':
+            Uri.base.resolve(buildDir + '/crashpad_handler.exe').toFilePath(),
+      if (configuration.chromePath != null)
+        'CHROME_PATH': Uri.base.resolve(configuration.chromePath).toFilePath(),
+      if (configuration.firefoxPath != null)
+        'FIREFOX_PATH':
+            Uri.base.resolve(configuration.firefoxPath).toFilePath(),
     };
-    if (Platform.isWindows) {
-      _environmentOverrides['DART_SUPPRESS_WER'] = '1';
-      if (configuration.copyCoreDumps) {
-        _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-            Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
-      }
-    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -555,16 +557,14 @@ class StandardTestSuite extends TestSuite {
   /// options.
   void _testCasesFromTestFile(
       TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
-    // Static error tests are skipped on every implementation except analyzer
-    // and Fasta.
-    // TODO(rnystrom): Should other configurations that use CFE support static
-    // error tests?
     // TODO(rnystrom): Skipping this here is a little unusual because most
     // skips are handled in _addTestCase(). However, if the configuration
     // is running on a browser, calling _addTestCase() will try to create
     // a set of commands which ultimately causes an exception in
     // DummyRuntimeConfiguration. This avoids that.
-    if (testFile.isStaticErrorTest &&
+    // If the test only has static expectations, skip it on any configurations
+    // that are not purely front ends.
+    if (!testFile.isRuntimeTest &&
         configuration.compiler != Compiler.dart2analyzer &&
         configuration.compiler != Compiler.fasta) {
       return;
@@ -577,7 +577,7 @@ class StandardTestSuite extends TestSuite {
 
     var expectationSet = expectations.expectations(testFile.name);
     if (configuration.compilerConfiguration.hasCompiler &&
-        (testFile.hasCompileError || testFile.isStaticErrorTest)) {
+        (testFile.hasCompileError || !testFile.isRuntimeTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -747,7 +747,6 @@ class StandardTestSuite extends TestSuite {
     // Unreachable.
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
-    return null;
   }
 
   String _uriForBrowserTest(String pathComponent) {
@@ -808,8 +807,10 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
+        var nullAssertions =
+            testFile.sharedOptions.contains('--null-assertions');
         content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
-            configuration.compiler, configuration.nnbdMode);
+            configuration.compiler, configuration.nnbdMode, nullAssertions);
       }
     }
 

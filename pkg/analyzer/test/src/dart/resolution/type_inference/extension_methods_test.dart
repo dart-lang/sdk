@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExtensionMethodsTest extends DriverResolutionTest {
+class ExtensionMethodsTest extends PubPackageResolutionTest {
   test_implicit_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -306,7 +306,7 @@ f(String s) {
   E(s).foo();
 }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 69, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 69, 1),
     ]);
     var override = findNode.extensionOverride('E(s)');
     assertElementTypeStrings(override.typeArgumentTypes, ['String']);

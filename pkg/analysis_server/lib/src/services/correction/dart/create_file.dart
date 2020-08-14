@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateFile extends CorrectionProducer {
@@ -19,7 +19,7 @@ class CreateFile extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_FILE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral) {
       var parent = node.parent;
@@ -31,7 +31,7 @@ class CreateFile extends CorrectionProducer {
           var fullName = source.fullName;
           if (resourceProvider.pathContext.isAbsolute(fullName) &&
               AnalysisEngine.isDartFileName(fullName)) {
-            await builder.addFileEdit(fullName, (builder) {
+            await builder.addDartFileEdit(fullName, (builder) {
               builder.addSimpleInsertion(0, '// TODO Implement this library.');
             });
             _fileName = source.shortName;
@@ -41,8 +41,7 @@ class CreateFile extends CorrectionProducer {
         var source = parent.uriSource;
         if (source != null) {
           var libName = resolvedResult.libraryElement.name;
-          await builder.addFileEdit(source.fullName,
-              (DartFileEditBuilder builder) {
+          await builder.addDartFileEdit(source.fullName, (builder) {
             // TODO(brianwilkerson) Consider using the URI rather than name.
             builder.addSimpleInsertion(0, 'part of $libName;$eol$eol');
           });

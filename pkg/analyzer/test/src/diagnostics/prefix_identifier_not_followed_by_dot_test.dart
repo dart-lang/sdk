@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class PrefixIdentifierNotFollowedByDotTest extends DriverResolutionTest {
+class PrefixIdentifierNotFollowedByDotTest extends PubPackageResolutionTest {
   test_assignment_compound_in_method() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -32,7 +32,7 @@ class C {
   }
 
   test_assignment_compound_not_in_method() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -46,7 +46,7 @@ f() {
   }
 
   test_assignment_in_method() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -62,7 +62,7 @@ class C {
   }
 
   test_assignment_not_in_method() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -76,7 +76,7 @@ f() {
   }
 
   test_compoundAssignment() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -90,7 +90,7 @@ f() {
   }
 
   test_conditionalMethodInvocation() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 g() {}
 ''');
@@ -105,7 +105,7 @@ f() {
   }
 
   test_conditionalPropertyAccess_call_loadLibrary() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -119,7 +119,7 @@ f() {
   }
 
   test_conditionalPropertyAccess_get() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 var x;
 ''');
@@ -134,7 +134,7 @@ f() {
   }
 
   test_conditionalPropertyAccess_get_loadLibrary() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -148,7 +148,7 @@ f() {
   }
 
   test_conditionalPropertyAccess_set() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 var x;
 ''');
@@ -163,7 +163,7 @@ f() {
   }
 
   test_conditionalPropertyAccess_set_loadLibrary() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''
@@ -177,7 +177,7 @@ f() {
   }
 
   test_prefix_not_followed_by_dot() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 ''');
     await assertErrorsInCode('''

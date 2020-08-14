@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/infer_from_promoted.dart:16:21: Error: A value of type 'String' can't be returned from a function with return type 'int'.
+//   d = (a, b) => '$a';
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F<invariant T extends core::Object? = dynamic> = (T%, T%) → T%;
+static method test1() → dynamic {
+  dynamic d = (core::int a, core::int b) → core::int => a;
+  d as{ForNonNullableByDefault} (core::int, core::int) → core::int;
+  d = <S extends core::Object? = dynamic>(S% a, S% b) → S% => a;
+}
+static method test2() → dynamic {
+  dynamic d = (core::int a, core::int b) → core::int => a;
+  d as{ForNonNullableByDefault} (core::int, core::int) → core::int;
+  d = (core::int a, core::int b) → core::int => let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/infer_from_promoted.dart:16:21: Error: A value of type 'String' can't be returned from a function with return type 'int'.
+  d = (a, b) => '\$a';
+                    ^" in "${a}" as{TypeError,ForNonNullableByDefault} core::int;
+}
+static method main() → dynamic {}

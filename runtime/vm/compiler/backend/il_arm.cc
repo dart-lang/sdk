@@ -2386,7 +2386,9 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sizeof(classid_t) == kInt16Size);
+  ASSERT(compiler::target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
+  ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
@@ -2861,7 +2863,9 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 }
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sizeof(classid_t) == kInt16Size);
+  ASSERT(compiler::target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
+  ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
   compiler::Label skip_store;
 
@@ -3266,7 +3270,9 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 }
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(sizeof(classid_t) == kInt16Size);
+  ASSERT(compiler::target::ObjectLayout::kClassIdTagSize == 16);
+  ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
+  ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
   const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
@@ -4954,24 +4960,35 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
   // FLAG_use_bare_instructions mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
+  auto object_store = Isolate::Current()->object_store();
+  const bool stubs_in_vm_isolate =
+      object_store->allocate_mint_with_fpu_regs_stub()
+          ->ptr()
+          ->InVMIsolateHeap() ||
+      object_store->allocate_mint_without_fpu_regs_stub()
+          ->ptr()
+          ->InVMIsolateHeap();
+  const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
+                                     FLAG_use_bare_instructions &&
+                                     !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       ValueFitsSmi()
           ? LocationSummary::kNoCall
-          : ((SlowPathSharingSupported(opt) && FLAG_use_bare_instructions &&
-              !Isolate::Current()
-                   ->object_store()
-                   ->allocate_mint_with_fpu_regs_stub()
-                   ->ptr()
-                   ->InVMIsolateHeap())
-                 ? LocationSummary::kCallOnSharedSlowPath
-                 : LocationSummary::kCallOnSlowPath));
+          : ((shared_slow_path_call ? LocationSummary::kCallOnSharedSlowPath
+                                    : LocationSummary::kCallOnSlowPath)));
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  if (!ValueFitsSmi()) {
-    summary->set_temp(0, Location::RegisterLocation(R1));
+  if (ValueFitsSmi()) {
+    summary->set_out(0, Location::RequiresRegister());
+  } else if (shared_slow_path_call) {
+    summary->set_out(0,
+                     Location::RegisterLocation(AllocateMintABI::kResultReg));
+    summary->set_temp(0, Location::RegisterLocation(AllocateMintABI::kTempReg));
+  } else {
+    summary->set_out(0, Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
   }
-  summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
 
@@ -5007,7 +5024,8 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
         live_fpu_regs ? object_store->allocate_mint_with_fpu_regs_stub()
                       : object_store->allocate_mint_without_fpu_regs_stub());
 
-    ASSERT(!locs()->live_registers()->ContainsRegister(R0));
+    ASSERT(!locs()->live_registers()->ContainsRegister(
+        AllocateMintABI::kResultReg));
     auto extended_env = compiler->SlowPathEnvironmentFor(this, 0);
     compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
                                locs(), DeoptId::kNone, extended_env);

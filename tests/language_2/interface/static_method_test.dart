@@ -12,6 +12,6 @@ abstract class A {
 main() {
   A();
 //^
-// [analyzer] STATIC_WARNING.INSTANTIATE_ABSTRACT_CLASS
+// [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
 // [cfe] The class 'A' is abstract and can't be instantiated.
 }

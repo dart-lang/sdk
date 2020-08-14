@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InstanceAccessToStaticMemberTest extends DriverResolutionTest {
+class InstanceAccessToStaticMemberTest extends PubPackageResolutionTest {
   test_extension_getter() async {
     await assertErrorsInCode('''
 class C {}
@@ -28,7 +28,7 @@ f(C c) {
   g(c).a;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 93, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 93, 1),
     ]);
     assertElement(
       findNode.simple('a;'),
@@ -48,7 +48,7 @@ f(C c) {
   c.a();
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
     assertElement(
       findNode.methodInvocation('a();'),
@@ -68,11 +68,63 @@ f(C c) {
   c.a = 2;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
     assertElement(
       findNode.simple('a = 2;'),
       findElement.setter('a'),
     );
+  }
+
+  test_method_reference() async {
+    await assertErrorsInCode(r'''
+class A {
+  static m() {}
+}
+main(A a) {
+  a.m;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+    ]);
+  }
+
+  test_propertyAccess_field() async {
+    await assertErrorsInCode(r'''
+class A {
+  static var f;
+}
+main(A a) {
+  a.f;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
+    ]);
+  }
+
+  test_propertyAccess_getter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static get f => 42;
+}
+main(A a) {
+  a.f;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
+    ]);
+  }
+
+  test_propertyAccess_setter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static set f(x) {}
+}
+main(A a) {
+  a.f = 42;
+}
+''', [
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
+    ]);
   }
 }

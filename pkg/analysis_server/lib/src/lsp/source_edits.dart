@@ -8,7 +8,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:dart_style/dart_style.dart';
 
-final DartFormatter formatter = DartFormatter();
+DartFormatter formatter = DartFormatter();
 
 /// Transforms a sequence of LSP document change events to a sequence of source
 /// edits used by analysis plugins.
@@ -17,45 +17,66 @@ final DartFormatter formatter = DartFormatter();
 /// changes into account, this will also apply the edits to [oldContent].
 ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
   String oldContent,
-  List<TextDocumentContentChangeEvent> changes, {
+  List<
+          Either2<TextDocumentContentChangeEvent1,
+              TextDocumentContentChangeEvent2>>
+      changes, {
   failureIsCritical = false,
 }) {
   var newContent = oldContent;
   final serverEdits = <server.SourceEdit>[];
 
   for (var change in changes) {
-    if (change.range == null && change.rangeLength == null) {
-      serverEdits
-        ..clear()
-        ..add(server.SourceEdit(0, newContent.length, change.text));
-      newContent = change.text;
-    } else {
-      final lines = LineInfo.fromContent(newContent);
-      final offsetStart = toOffset(lines, change.range.start,
-          failureIsCritial: failureIsCritical);
-      final offsetEnd = toOffset(lines, change.range.end,
-          failureIsCritial: failureIsCritical);
-      if (offsetStart.isError) {
-        return ErrorOr.error(offsetStart.error);
-      }
-      if (offsetEnd.isError) {
-        return ErrorOr.error(offsetEnd.error);
-      }
-      newContent = newContent.replaceRange(
-          offsetStart.result, offsetEnd.result, change.text);
-      serverEdits.add(server.SourceEdit(offsetStart.result,
-          offsetEnd.result - offsetStart.result, change.text));
+    // Change is a union that may/may not include a range. If no range
+    // is provided (t2 of the union) the whole document should be replaced.
+    final result = change.map(
+      // TextDocumentContentChangeEvent1
+      // {range, text}
+      (change) {
+        final lines = LineInfo.fromContent(newContent);
+        final offsetStart = toOffset(lines, change.range.start,
+            failureIsCritial: failureIsCritical);
+        final offsetEnd = toOffset(lines, change.range.end,
+            failureIsCritial: failureIsCritical);
+        if (offsetStart.isError) {
+          return ErrorOr.error(offsetStart.error);
+        }
+        if (offsetEnd.isError) {
+          return ErrorOr.error(offsetEnd.error);
+        }
+        newContent = newContent.replaceRange(
+            offsetStart.result, offsetEnd.result, change.text);
+        serverEdits.add(server.SourceEdit(offsetStart.result,
+            offsetEnd.result - offsetStart.result, change.text));
+      },
+      // TextDocumentContentChangeEvent2
+      // {text}
+      (change) {
+        serverEdits
+          ..clear()
+          ..add(server.SourceEdit(0, newContent.length, change.text));
+        newContent = change.text;
+      },
+    );
+    // If any change fails, immediately return the error.
+    if (result?.isError ?? false) {
+      return ErrorOr.error(result.error);
     }
   }
   return ErrorOr.success(Pair(newContent, serverEdits));
 }
 
-List<TextEdit> generateEditsForFormatting(String unformattedSource) {
+List<TextEdit> generateEditsForFormatting(
+    String unformattedSource, int lineLength) {
   final lineInfo = LineInfo.fromContent(unformattedSource);
   final code =
       SourceCode(unformattedSource, uri: null, isCompilationUnit: true);
   SourceCode formattedResult;
   try {
+    // If the lineLength has changed, recreate the formatter with the new setting.
+    if (lineLength != formatter.pageWidth) {
+      formatter = DartFormatter(pageWidth: lineLength);
+    }
     formattedResult = formatter.formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the the
@@ -75,8 +96,9 @@ List<TextEdit> generateEditsForFormatting(String unformattedSource) {
   final end = lineInfo.getLocation(unformattedSource.length);
   return [
     TextEdit(
-      Range(Position(0, 0), toPosition(end)),
-      formattedSource,
+      range:
+          Range(start: Position(line: 0, character: 0), end: toPosition(end)),
+      newText: formattedSource,
     )
   ];
 }

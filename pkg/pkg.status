@@ -62,6 +62,7 @@ compiler/test/sourcemaps/source_mapping_test: Slow, Pass
 compiler/test/sourcemaps/stacktrace_test: Slow, Pass
 dartdev/test/commands/analyze_test: Slow, Pass
 dartdev/test/commands/help_test: Slow, Pass
+dartdev/test/smoke/*: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests

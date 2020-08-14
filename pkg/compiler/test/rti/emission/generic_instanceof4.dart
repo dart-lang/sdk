@@ -12,7 +12,7 @@ class A<T> {
   }
 }
 
-/*class: BB:checkedInstance,checks=[],typeArgument*/
+/*class: BB:checkedInstance,checks=[],onlyForRti,typeArgument*/
 class BB {}
 
 /*class: B:checks=[$isBB],instance*/

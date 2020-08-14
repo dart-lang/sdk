@@ -1544,7 +1544,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
   ]);
 
   AnalysisError invalid_assignment_error =
-      AnalysisError(null, 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+      AnalysisError(null, 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
     ['x'],
     ['y']
   ]);
@@ -1591,7 +1591,7 @@ abstract class ContextManagerTest with ResourceProviderMixin {
     resourceProvider.newFolder(projPath);
     // Create an SDK in the mock file system.
     MockSdk(resourceProvider: resourceProvider);
-    var sdkManager = DartSdkManager(convertPath('/sdk'));
+    var sdkManager = DartSdkManager(convertPath(sdkRoot));
     manager = ContextManagerImpl(
         resourceProvider,
         sdkManager,

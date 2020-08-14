@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -20,7 +20,7 @@ class SortChildPropertyLast extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.SORT_CHILD_PROPERTY_LAST;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var childProp = _findNamedExpression(node);
     if (childProp == null) {
       return;
@@ -41,7 +41,7 @@ class SortChildPropertyLast extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder fileEditBuilder) {
+    await builder.addDartFileEdit(file, (fileEditBuilder) {
       var start = childProp.beginToken.previous.end;
       var end = childProp.endToken.next.end;
       var childRange = range.startOffsetEndOffset(start, end);

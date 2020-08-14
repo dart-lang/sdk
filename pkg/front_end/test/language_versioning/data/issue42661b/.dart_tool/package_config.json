@@ -1,0 +1,11 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "pack",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.7"
+    }
+  ]
+}

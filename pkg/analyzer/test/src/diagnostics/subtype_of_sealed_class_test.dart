@@ -206,6 +206,7 @@ mixin Bar5 implements Foo {}
   /// that [root] is the root of a PubWorkspace, and a PubWorkspacePackage.
   void _newPubPackageRoot(String root) {
     newFile('$root/pubspec.yaml');
+    configureWorkspace(root: root);
   }
 
   /// Resolve the file with the given [path].

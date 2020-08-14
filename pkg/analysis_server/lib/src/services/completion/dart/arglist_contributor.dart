@@ -163,7 +163,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   bool _isInFlutterCreation() {
-    var flutter = Flutter.of(request.result);
+    var flutter = Flutter.instance;
     var containingNode = request.target?.containingNode;
     var newExpr = containingNode != null
         ? flutter.identifyNewExpression(containingNode.parent)

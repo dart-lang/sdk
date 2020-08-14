@@ -12,13 +12,13 @@ class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
   synthetic constructor •() → self::B<self::B::T%>
     : super self::A::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method testT1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=(i)->i]  method testT1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
     return _in::unsafeCast<self::B::T%>(x);
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method testT2negative([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
     return x as{ForNonNullableByDefault} self::B::T%;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method testT3([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
     return _in::unsafeCast<self::B::T%>(x);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method testNullableT1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8] [@vm.unboxing-info.metadata=(i)->i]  method testNullableT1([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] dynamic x) → dynamic
     return _in::unsafeCast<self::B::T?>(x);
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method testNullableT2([@vm.inferred-type.metadata=dart.core::Null? (value: null)] dynamic x) → dynamic
     return _in::unsafeCast<self::B::T?>(x);

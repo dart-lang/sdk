@@ -18,25 +18,25 @@ main() {
 //        ^
 // [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
 //^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 
   foo.bar.nonFunctionStatic(0);
 //        ^
 // [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
 //^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 
   foo.bar.nonFunctionStatic(0, 0);
 //        ^
 // [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
 //^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 
   foo.bar.nonFunctionStatic(0, 0, 0, 0, 0, 0);
 //        ^
 // [cfe] Error: 'nonFunctionStatic' isn't a function or method and can't be invoked.
 //^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
 
   foo.bar.add(4);
   //         ^

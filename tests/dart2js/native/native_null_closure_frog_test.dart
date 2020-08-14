@@ -10,8 +10,8 @@ typedef void MyFunctionType();
 
 @Native("A")
 class A {
-  setClosure(MyFunctionType f) native;
-  check(MyFunctionType f) native;
+  setClosure(MyFunctionType? f) native;
+  check(MyFunctionType? f) native;
   invoke() native;
 }
 

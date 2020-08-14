@@ -1845,37 +1845,54 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // TODO(fishythefish): Correctly constant fold `null as T` (also in
     // [visitAsCheckSimple]) when running with strong NNBD. We might get this
     // for free if nullability is precisely propagated to the typemasks.
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
 
-    // See if this check can be lowered to a simple one.
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
-      DartType dartType = recipe.type;
-      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
-          dartType, _closedWorld.commonElements, _options.useLegacySubtyping);
-      if (specializedCheck != null) {
-        AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType, nullable: true);
-        return HAsCheckSimple(node.checkedInput, dartType, checkedType,
-            node.isTypeError, specializedCheck, node.instructionType);
-      }
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return node.checkedInput;
-      }
+      node.checkedTypeExpression = recipe.type;
+    }
+
+    if (node.isRedundant(_closedWorld, useNullSafety: _options.useNullSafety)) {
+      return node.checkedInput;
+    }
+
+    // See if this check can be lowered to a simple one.
+    MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
+        node.checkedTypeExpression,
+        _closedWorld.commonElements,
+        _options.useLegacySubtyping);
+    if (specializedCheck != null) {
+      AbstractValueWithPrecision checkedType = _abstractValueDomain
+          .createFromStaticType(node.checkedTypeExpression, nullable: true);
+      return HAsCheckSimple(
+          node.checkedInput,
+          node.checkedTypeExpression,
+          checkedType,
+          node.isTypeError,
+          specializedCheck,
+          node.instructionType);
     }
     return node;
   }
 
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    if (node.isRedundant(_closedWorld, useNullSafety: _options.useNullSafety)) {
+      return node.checkedInput;
+    }
     return node;
   }
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      node.dartType = recipe.type;
+    }
+
+    AbstractBool result =
+        node.evaluate(_closedWorld, useNullSafety: _options.useNullSafety);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -1883,36 +1900,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return _graph.addConstantBool(true, _closedWorld);
     }
 
-    HInstruction typeInput = node.typeInput;
-    if (typeInput is HLoadType) {
-      TypeExpressionRecipe recipe = typeInput.typeExpression;
-      DartType dartType = recipe.type;
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      }
+    IsTestSpecialization specialization =
+        SpecializedChecks.findIsTestSpecialization(
+            node.dartType, _graph, _closedWorld);
 
-      IsTestSpecialization specialization =
-          SpecializedChecks.findIsTestSpecialization(
-              dartType, _graph, _closedWorld);
+    if (specialization == IsTestSpecialization.isNull ||
+        specialization == IsTestSpecialization.notNull) {
+      HInstruction nullTest = HIdentity(node.checkedInput,
+          _graph.addConstantNull(_closedWorld), _abstractValueDomain.boolType);
+      if (specialization == IsTestSpecialization.isNull) return nullTest;
+      nullTest.sourceInformation = node.sourceInformation;
+      node.block.addBefore(node, nullTest);
+      return HNot(nullTest, _abstractValueDomain.boolType);
+    }
 
-      if (specialization == IsTestSpecialization.isNull ||
-          specialization == IsTestSpecialization.notNull) {
-        HInstruction nullTest = HIdentity(
-            node.checkedInput,
-            _graph.addConstantNull(_closedWorld),
-            _abstractValueDomain.boolType);
-        if (specialization == IsTestSpecialization.isNull) return nullTest;
-        nullTest.sourceInformation = node.sourceInformation;
-        node.block.addBefore(node, nullTest);
-        return HNot(nullTest, _abstractValueDomain.boolType);
-      }
-
-      if (specialization != null) {
-        AbstractValueWithPrecision checkedType = _abstractValueDomain
-            .createFromStaticType(dartType, nullable: false);
-        return HIsTestSimple(dartType, checkedType, specialization,
-            node.checkedInput, _abstractValueDomain.boolType);
-      }
+    if (specialization != null) {
+      AbstractValueWithPrecision checkedType = _abstractValueDomain
+          .createFromStaticType(node.dartType, nullable: false);
+      return HIsTestSimple(node.dartType, checkedType, specialization,
+          node.checkedInput, _abstractValueDomain.boolType);
     }
 
     // TODO(fishythefish): Prune now-unneeded is-tests from the metadata.
@@ -1922,7 +1928,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    AbstractBool result =
+        node.evaluate(_closedWorld, useNullSafety: _options.useNullSafety);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }

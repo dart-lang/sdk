@@ -186,10 +186,8 @@ class DevCompilerTarget extends Target {
       return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
     }
     if (name.startsWith('set:')) {
-      return createInvocation('setter', [
-        SymbolLiteral(name.substring(4) + '='),
-        arguments.positional.single
-      ]);
+      return createInvocation('setter',
+          [SymbolLiteral(name.substring(4)), arguments.positional.single]);
     }
     var ctorArgs = <Expression>[
       SymbolLiteral(name),

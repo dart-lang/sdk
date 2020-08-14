@@ -412,6 +412,14 @@ abstract class AbstractAnalysisServer {
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
 
+  /// Read all files, resolve all URIs, and perform required analysis in
+  /// all current analysis drivers.
+  void reanalyze() {
+    for (var driver in driverMap.values) {
+      driver.resetUriResolution();
+    }
+  }
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,

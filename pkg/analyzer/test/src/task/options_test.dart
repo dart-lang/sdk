@@ -80,7 +80,7 @@ analyzer:
       ['x']
     ]);
     var invalid_assignment = AnalysisError(
-        TestSource(), 0, 1, StaticTypeWarningCode.INVALID_ASSIGNMENT, [
+        TestSource(), 0, 1, CompileTimeErrorCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
@@ -484,7 +484,7 @@ linter:
 }
 
 class TestRule extends LintRule {
-  TestRule() : super(name: 'fantastic_test_rule');
+  TestRule() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name) : super(name: name);
+  TestRule.withName(String name) : super(name: name, description: '');
 }

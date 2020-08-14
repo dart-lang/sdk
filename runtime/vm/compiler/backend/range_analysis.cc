@@ -1310,22 +1310,22 @@ class BoundsCheckGeneralizer {
   }
 
 #ifndef PRODUCT
-  static void PrettyPrintIndexBoundRecursively(BufferFormatter* f,
+  static void PrettyPrintIndexBoundRecursively(BaseTextBuffer* f,
                                                Definition* index_bound) {
     BinarySmiOpInstr* binary_op = index_bound->AsBinarySmiOp();
     if (binary_op != NULL) {
-      f->Print("(");
+      f->AddString("(");
       PrettyPrintIndexBoundRecursively(f, binary_op->left()->definition());
-      f->Print(" %s ", Token::Str(binary_op->op_kind()));
+      f->Printf(" %s ", Token::Str(binary_op->op_kind()));
       PrettyPrintIndexBoundRecursively(f, binary_op->right()->definition());
-      f->Print(")");
+      f->AddString(")");
     } else if (index_bound->IsConstant()) {
-      f->Print("%" Pd "",
-               Smi::Cast(index_bound->AsConstant()->value()).Value());
+      f->Printf("%" Pd "",
+                Smi::Cast(index_bound->AsConstant()->value()).Value());
     } else {
-      f->Print("v%" Pd "", index_bound->ssa_temp_index());
+      f->Printf("v%" Pd "", index_bound->ssa_temp_index());
     }
-    f->Print(" {%s}", Range::ToCString(index_bound->range()));
+    f->Printf(" {%s}", Range::ToCString(index_bound->range()));
   }
 
   static const char* IndexBoundToCString(Definition* index_bound) {
@@ -2858,6 +2858,15 @@ static void CacheRange(Range** slot,
   }
 }
 
+void BinaryIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  auto const left_size =
+      RepresentationToRangeSize(RequiredInputRepresentation(0));
+  auto const right_size =
+      RepresentationToRangeSize(RequiredInputRepresentation(1));
+  InferRangeHelper(GetInputRange(analysis, left_size, left()),
+                   GetInputRange(analysis, right_size, right()), range);
+}
+
 void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const Range* right_smi_range = analysis->GetSmiRange(right());
   // TODO(vegorov) completely remove this once GetSmiRange is eliminated.
@@ -2867,16 +2876,6 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
                RangeBoundary::kRangeBoundarySmi);
   }
   InferRangeHelper(analysis->GetSmiRange(left()), right_smi_range, range);
-}
-
-void BinaryInt32OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(analysis->GetSmiRange(left()),
-                   analysis->GetSmiRange(right()), range);
-}
-
-void BinaryInt64OpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  InferRangeHelper(left()->definition()->range(),
-                   right()->definition()->range(), range);
 }
 
 void ShiftIntegerOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {

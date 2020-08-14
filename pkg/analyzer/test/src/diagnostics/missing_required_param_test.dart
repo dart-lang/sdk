@@ -2,28 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingRequiredParamTest);
-    defineReflectiveTests(MissingRequiredParamWithNnbdTest);
+    defineReflectiveTests(MissingRequiredParamWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
+class MissingRequiredParamTest extends PubPackageResolutionTest {
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
   test_constructor_argumentGiven() async {
@@ -191,23 +188,22 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile('/a_lib.dart', content: r'''
-library a_lib;
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:meta/meta.dart';
 class A {
   void m({@Required('must specify an `a`') int a}) {}
 }
 ''');
-    newFile('/test.dart', content: r'''
-import "a_lib.dart";
+    newFile('$testPackageLibPath/test.dart', content: r'''
+import 'a.dart';
 f() {
   new A().m();
 }
 ''');
 
-    await _resolveFile('/a_lib.dart');
-    await _resolveFile('/test.dart', [
-      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 37, 1),
+    await _resolveFile('$testPackageLibPath/a.dart');
+    await _resolveFile('$testPackageLibPath/test.dart', [
+      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 33, 1),
     ]);
   }
 
@@ -246,12 +242,8 @@ class C {
 }
 
 @reflectiveTest
-class MissingRequiredParamWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
+class MissingRequiredParamWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_constructor_argumentGiven() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -314,6 +306,18 @@ main() {
     ]);
   }
 
+  test_function_call() async {
+    await assertErrorsInCode(r'''
+void f({required int a}) {}
+
+main() {
+  f.call();
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 46, 2),
+    ]);
+  }
+
   test_functionInvocation() async {
     await assertErrorsInCode(r'''
 void Function({required int a}) f() => throw '';
@@ -339,7 +343,7 @@ f() {
   }
 
   test_method_inOtherLib() async {
-    newFile('/test/lib/a_lib.dart', content: r'''
+    newFile('$testPackageLibPath/a_lib.dart', content: r'''
 class A {
   void m({required int a}) {}
 }
@@ -355,7 +359,7 @@ f() {
   }
 
   test_method_legacy() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void foo({required int a}) {}
 }

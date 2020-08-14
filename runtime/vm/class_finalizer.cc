@@ -59,8 +59,8 @@ static void RemoveCHAOptimizedCode(
   }
 }
 
-void AddSuperType(const AbstractType& type,
-                  GrowableArray<intptr_t>* finalized_super_classes) {
+static void AddSuperType(const AbstractType& type,
+                         GrowableArray<intptr_t>* finalized_super_classes) {
   ASSERT(type.HasTypeClass());
   ASSERT(!type.IsDynamicType());
   if (type.IsObjectType()) {
@@ -1151,14 +1151,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  if (cls.is_patch()) {
-    // The fields and functions of a patch class are copied to the
-    // patched class after parsing. There is nothing to finalize.
-    ASSERT(Array::Handle(cls.functions()).Length() == 0);
-    ASSERT(Array::Handle(cls.fields()).Length() == 0);
-    cls.set_is_finalized();
-    return;
-  }
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
@@ -1170,33 +1162,69 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Mark as loaded and finalized.
   cls.Finalize();
   FinalizeMemberTypes(cls);
-  // Run additional checks after all types are finalized.
-  if (FLAG_use_cha_deopt) {
-    GrowableArray<intptr_t> cids;
-    CollectFinalizedSuperClasses(cls, &cids);
-    CollectImmediateSuperInterfaces(cls, &cids);
-    RemoveCHAOptimizedCode(cls, cids);
-  }
-
-  if (FLAG_use_cha_deopt) {
-    Zone* zone = thread->zone();
-    ClassTable* class_table = thread->isolate()->class_table();
-    auto& interface_class = Class::Handle(zone);
-
-    // We scan every interface this [cls] implements and invalidate all CHA code
-    // which depends on knowing the implementors of that interface.
-    GrowableArray<intptr_t> cids;
-    InterfaceFinder finder(zone, class_table, &cids);
-    finder.FindAllInterfaces(cls);
-    for (intptr_t j = 0; j < cids.length(); ++j) {
-      interface_class = class_table->At(cids[j]);
-      interface_class.DisableCHAImplementorUsers();
-    }
-  }
 
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
+
+  // The rest of finalization for non-top-level class has to be done with
+  // stopped mutators. It will be done by AllocateFinalizeClass. before new
+  // instance of a class is created in GetAllocationStubForClass.
+  if (cls.IsTopLevel()) {
+    cls.set_is_allocate_finalized();
+  }
+}
+
+ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
+  ASSERT(cls.is_finalized());
+  if (cls.is_allocate_finalized()) {
+    return Error::null();
+  }
+
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+
+  if (FLAG_trace_class_finalization) {
+    THR_Print("Allocate finalize %s\n", cls.ToCString());
+  }
+
+#if defined(SUPPORT_TIMELINE)
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "AllocateFinalizeClass");
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "class", cls.ToCString());
+  }
+#endif  // defined(SUPPORT_TIMELINE)
+
+  // Run additional checks after all types are finalized.
+  if (FLAG_use_cha_deopt && !cls.IsTopLevel()) {
+    {
+      GrowableArray<intptr_t> cids;
+      CollectFinalizedSuperClasses(cls, &cids);
+      CollectImmediateSuperInterfaces(cls, &cids);
+      RemoveCHAOptimizedCode(cls, cids);
+    }
+
+    Zone* zone = thread->zone();
+    ClassTable* class_table = thread->isolate()->class_table();
+    auto& interface_class = Class::Handle(zone);
+
+    // We scan every interface this [cls] implements and invalidate all CHA
+    // code which depends on knowing the implementors of that interface.
+    {
+      GrowableArray<intptr_t> cids;
+      InterfaceFinder finder(zone, class_table, &cids);
+      finder.FindAllInterfaces(cls);
+      for (intptr_t j = 0; j < cids.length(); ++j) {
+        interface_class = class_table->At(cids[j]);
+        interface_class.DisableCHAImplementorUsers();
+      }
+    }
+  }
+
+  cls.set_is_allocate_finalized();
+  return Error::null();
 }
 
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
@@ -1426,7 +1454,7 @@ void ClassFinalizer::SortClasses() {
       continue;
     }
     cls = table->At(cid);
-    if (cls.is_patch() || !cls.is_declaration_loaded()) {
+    if (!cls.is_declaration_loaded()) {
       continue;
     }
     if (cls.SuperClass() == I->object_store()->object_class()) {
@@ -1490,7 +1518,12 @@ class CidRewriteVisitor : public ObjectVisitor {
   void VisitObject(ObjectPtr obj) {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
-      cls->ptr()->id_ = Map(cls->ptr()->id_);
+      const classid_t old_cid = cls->ptr()->id_;
+      if (ClassTable::IsTopLevelCid(old_cid)) {
+        // We don't remap cids of top level classes.
+        return;
+      }
+      cls->ptr()->id_ = Map(old_cid);
     } else if (obj->IsField()) {
       FieldPtr field = Field::RawCast(obj);
       field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);

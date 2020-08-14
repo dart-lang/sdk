@@ -35,7 +35,9 @@ const dartLanguageId = 'dart';
 /// communication to be printed to stdout.
 const debugPrintCommunication = false;
 
-final beginningOfDocument = Range(Position(0, 0), Position(0, 0));
+final beginningOfDocument = Range(
+    start: Position(line: 0, character: 0),
+    end: Position(line: 0, character: 0));
 
 abstract class AbstractLspAnalysisServerTest
     with
@@ -145,31 +147,9 @@ abstract class AbstractLspAnalysisServerTest
 }
 
 mixin ClientCapabilitiesHelperMixin {
-  final emptyTextDocumentClientCapabilities = TextDocumentClientCapabilities(
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null);
+  final emptyTextDocumentClientCapabilities = TextDocumentClientCapabilities();
 
-  final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities(
-      null, null, null, null, null, null, null, null);
+  final emptyWorkspaceClientCapabilities = ClientCapabilitiesWorkspace();
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
@@ -189,8 +169,8 @@ mixin ClientCapabilitiesHelperMixin {
     return TextDocumentClientCapabilities.fromJson(json);
   }
 
-  WorkspaceClientCapabilities extendWorkspaceCapabilities(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace extendWorkspaceCapabilities(
+    ClientCapabilitiesWorkspace source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
     // TODO(dantup): As above - it seems like this round trip should be
@@ -201,7 +181,7 @@ mixin ClientCapabilitiesHelperMixin {
         json[key] = workspaceCapabilities[key];
       });
     }
-    return WorkspaceClientCapabilities.fromJson(json);
+    return ClientCapabilitiesWorkspace.fromJson(json);
   }
 
   TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
@@ -228,8 +208,8 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  WorkspaceClientCapabilities withApplyEditSupport(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace withApplyEditSupport(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
@@ -247,7 +227,7 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemDeprecatedSupport(
+  TextDocumentClientCapabilities withCompletionItemDeprecatedFlagSupport(
     TextDocumentClientCapabilities source,
   ) {
     return extendTextDocumentCapabilities(source, {
@@ -280,22 +260,46 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  WorkspaceClientCapabilities withConfigurationSupport(
-    WorkspaceClientCapabilities source,
+  TextDocumentClientCapabilities withCompletionItemTagSupport(
+    TextDocumentClientCapabilities source,
+    List<CompletionItemTag> tags,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'completion': {
+        'completionItem': {
+          'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
+        }
+      }
+    });
+  }
+
+  ClientCapabilitiesWorkspace withConfigurationSupport(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {'configuration': true});
   }
 
-  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
-    WorkspaceClientCapabilities source,
+  TextDocumentClientCapabilities withDiagnosticTagSupport(
+    TextDocumentClientCapabilities source,
+    List<DiagnosticTag> tags,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'publishDiagnostics': {
+        'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
+      }
+    });
+  }
+
+  ClientCapabilitiesWorkspace withDidChangeConfigurationDynamicRegistration(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source,
+  ClientCapabilitiesWorkspace withDocumentChangesSupport(
+    ClientCapabilitiesWorkspace source,
   ) {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
@@ -370,8 +374,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
   Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
   final String simplePubspecContent = 'name: my_project';
-  final startOfDocPos = Position(0, 0);
-  final startOfDocRange = Range(Position(0, 0), Position(0, 0));
+  final startOfDocPos = Position(line: 0, character: 0);
+  final startOfDocRange = Range(
+      start: Position(line: 0, character: 0),
+      end: Position(line: 0, character: 0));
 
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
@@ -514,13 +520,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future changeFile(
     int newVersion,
     Uri uri,
-    List<TextDocumentContentChangeEvent> changes,
+    List<
+            Either2<TextDocumentContentChangeEvent1,
+                TextDocumentContentChangeEvent2>>
+        changes,
   ) async {
     var notification = makeNotification(
       Method.textDocument_didChange,
       DidChangeTextDocumentParams(
-        VersionedTextDocumentIdentifier(newVersion, uri.toString()),
-        changes,
+        textDocument: VersionedTextDocumentIdentifier(
+            version: newVersion, uri: uri.toString()),
+        contentChanges: changes,
       ),
     );
     await sendNotificationToServer(notification);
@@ -530,9 +540,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     var notification = makeNotification(
       Method.workspace_didChangeWorkspaceFolders,
       DidChangeWorkspaceFoldersParams(
-        WorkspaceFoldersChangeEvent(
-          add?.map(toWorkspaceFolder)?.toList() ?? const [],
-          remove?.map(toWorkspaceFolder)?.toList() ?? const [],
+        event: WorkspaceFoldersChangeEvent(
+          added: add?.map(toWorkspaceFolder)?.toList() ?? const [],
+          removed: remove?.map(toWorkspaceFolder)?.toList() ?? const [],
         ),
       ),
     );
@@ -542,7 +552,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future closeFile(Uri uri) async {
     var notification = makeNotification(
       Method.textDocument_didClose,
-      DidCloseTextDocumentParams(TextDocumentIdentifier(uri.toString())),
+      DidCloseTextDocumentParams(
+          textDocument: TextDocumentIdentifier(uri: uri.toString())),
     );
     await sendNotificationToServer(notification);
   }
@@ -551,8 +562,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.workspace_executeCommand,
       ExecuteCommandParams(
-        command.command,
-        command.arguments,
+        command: command.command,
+        arguments: command.arguments,
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -646,8 +657,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_formatting,
       DocumentFormattingParams(
-        TextDocumentIdentifier(fileUri),
-        FormattingOptions(2, true), // These currently don't do anything
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        options: FormattingOptions(
+            tabSize: 2,
+            insertSpaces: true), // These currently don't do anything
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -658,10 +671,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_onTypeFormatting,
       DocumentOnTypeFormattingParams(
-        TextDocumentIdentifier(fileUri),
-        pos,
-        character,
-        FormattingOptions(2, true), // These currently don't do anything
+        ch: character,
+        options: FormattingOptions(
+            tabSize: 2,
+            insertSpaces: true), // These currently don't do anything
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -675,12 +690,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
-          TextDocumentIdentifier(fileUri),
-          range ?? beginningOfDocument,
-          // TODO(dantup): We may need to revise the tests/implementation when
-          // it's clear how we're supposed to handle diagnostics:
-          // https://github.com/Microsoft/language-server-protocol/issues/583
-          CodeActionContext([], kinds)),
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        range: range ?? beginningOfDocument,
+        // TODO(dantup): We may need to revise the tests/implementation when
+        // it's clear how we're supposed to handle diagnostics:
+        // https://github.com/Microsoft/language-server-protocol/issues/583
+        context: CodeActionContext(diagnostics: [], only: kinds),
+      ),
     );
     return expectSuccessfulResponseTo(request);
   }
@@ -690,9 +706,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_completion,
       CompletionParams(
-        context,
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        context: context,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
@@ -702,8 +718,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_definition,
       TextDocumentPositionParams(
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<List<Location>>(request);
@@ -721,8 +737,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_documentHighlight,
       TextDocumentPositionParams(
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<List<DocumentHighlight>>(request);
@@ -733,7 +749,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_documentSymbol,
       DocumentSymbolParams(
-        TextDocumentIdentifier(fileUri),
+        textDocument: TextDocumentIdentifier(uri: fileUri),
       ),
     );
     return expectSuccessfulResponseTo(request);
@@ -742,7 +758,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<FoldingRange>> getFoldingRegions(Uri uri) {
     final request = makeRequest(
       Method.textDocument_foldingRange,
-      FoldingRangeParams(TextDocumentIdentifier(uri.toString())),
+      FoldingRangeParams(
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+      ),
     );
     return expectSuccessfulResponseTo<List<FoldingRange>>(request);
   }
@@ -750,7 +768,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<Hover> getHover(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_hover,
-      TextDocumentPositionParams(TextDocumentIdentifier(uri.toString()), pos),
+      TextDocumentPositionParams(
+          textDocument: TextDocumentIdentifier(uri: uri.toString()),
+          position: pos),
     );
     return expectSuccessfulResponseTo<Hover>(request);
   }
@@ -763,8 +783,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_implementation,
       TextDocumentPositionParams(
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<List<Location>>(request);
@@ -778,9 +798,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_references,
       ReferenceParams(
-        ReferenceContext(includeDeclarations),
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        context: ReferenceContext(includeDeclaration: includeDeclarations),
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<List<Location>>(request);
@@ -790,8 +810,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_signatureHelp,
       TextDocumentPositionParams(
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<SignatureHelp>(request);
@@ -804,8 +824,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       CustomMethods.Super,
       TextDocumentPositionParams(
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<Location>(request);
@@ -814,7 +834,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
     final request = makeRequest(
       Method.workspace_symbol,
-      WorkspaceSymbolParams(query),
+      WorkspaceSymbolParams(query: query),
     );
     return expectSuccessfulResponseTo(request);
   }
@@ -872,7 +892,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Uri rootUri,
     List<Uri> workspaceFolders,
     TextDocumentClientCapabilities textDocumentCapabilities,
-    WorkspaceClientCapabilities workspaceCapabilities,
+    ClientCapabilitiesWorkspace workspaceCapabilities,
+    ClientCapabilitiesWindow windowCapabilities,
     Map<String, Object> initializationOptions,
     bool throwOnFailure = true,
   }) async {
@@ -884,17 +905,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
         Method.initialize,
         InitializeParams(
-            null,
-            rootPath,
-            rootUri?.toString(),
-            initializationOptions,
-            ClientCapabilities(
-              workspaceCapabilities,
-              textDocumentCapabilities,
-              null,
-            ),
-            null,
-            workspaceFolders?.map(toWorkspaceFolder)?.toList()));
+          rootPath: rootPath,
+          rootUri: rootUri?.toString(),
+          initializationOptions: initializationOptions,
+          capabilities: ClientCapabilities(
+            workspace: workspaceCapabilities,
+            textDocument: textDocumentCapabilities,
+            window: windowCapabilities,
+          ),
+          workspaceFolders: workspaceFolders?.map(toWorkspaceFolder)?.toList(),
+        ));
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));
 
@@ -912,24 +932,27 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   NotificationMessage makeNotification(Method method, ToJsonable params) {
-    return NotificationMessage(method, params, jsonRpcVersion);
+    return NotificationMessage(
+        method: method, params: params, jsonrpc: jsonRpcVersion);
   }
 
   RequestMessage makeRenameRequest(
       int version, Uri uri, Position pos, String newName) {
     final docIdentifier = version != null
-        ? VersionedTextDocumentIdentifier(version, uri.toString())
-        : TextDocumentIdentifier(uri.toString());
+        ? VersionedTextDocumentIdentifier(version: version, uri: uri.toString())
+        : TextDocumentIdentifier(uri: uri.toString());
     final request = makeRequest(
       Method.textDocument_rename,
-      RenameParams(docIdentifier, pos, newName),
+      RenameParams(
+          newName: newName, textDocument: docIdentifier, position: pos),
     );
     return request;
   }
 
   RequestMessage makeRequest(Method method, ToJsonable params) {
     final id = Either2<num, String>.t1(_id++);
-    return RequestMessage(id, method, params, jsonRpcVersion);
+    return RequestMessage(
+        id: id, method: method, params: params, jsonrpc: jsonRpcVersion);
   }
 
   /// Watches for `client/registerCapability` requests and updates
@@ -968,7 +991,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     var notification = makeNotification(
       Method.textDocument_didOpen,
       DidOpenTextDocumentParams(
-          TextDocumentItem(uri.toString(), dartLanguageId, version, content)),
+          textDocument: TextDocumentItem(
+              uri: uri.toString(),
+              languageId: dartLanguageId,
+              version: version,
+              text: content)),
     );
     await sendNotificationToServer(notification);
     await pumpEventQueue();
@@ -996,8 +1023,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     final request = makeRequest(
       Method.textDocument_prepareRename,
       TextDocumentPositionParams(
-        TextDocumentIdentifier(uri.toString()),
-        pos,
+        textDocument: TextDocumentIdentifier(uri: uri.toString()),
+        position: pos,
       ),
     );
     return expectSuccessfulResponseTo<RangeAndPlaceholder>(request);
@@ -1048,9 +1075,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           throw 'Found unclosed range starting at offset $startMarker';
         }
         yield Range(
-          positionFromOffset(
+          start: positionFromOffset(
               startMarker + offsetForEarlierMarkers, contentsWithoutMarkers),
-          positionFromOffset(
+          end: positionFromOffset(
               endMarker + offsetForEarlierMarkers - rangeMarkerStart.length,
               contentsWithoutMarkers),
         );
@@ -1090,7 +1117,11 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return changeFile(
       newVersion,
       uri,
-      [TextDocumentContentChangeEvent(null, null, content)],
+      [
+        Either2<TextDocumentContentChangeEvent1,
+                TextDocumentContentChangeEvent2>.t2(
+            TextDocumentContentChangeEvent2(text: content))
+      ],
     );
   }
 
@@ -1105,14 +1136,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
   void respondTo<T>(RequestMessage request, T responseParams) {
-    sendResponseToServer(
-        ResponseMessage(request.id, responseParams, null, jsonRpcVersion));
+    sendResponseToServer(ResponseMessage(
+        id: request.id, result: responseParams, jsonrpc: jsonRpcVersion));
   }
 
   Future<ResponseMessage> sendDidChangeConfiguration() {
     final request = makeRequest(
       Method.workspace_didChangeConfiguration,
-      DidChangeConfigurationParams(null),
+      DidChangeConfigurationParams(),
     );
     return sendRequestToServer(request);
   }
@@ -1134,7 +1165,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   WorkspaceFolder toWorkspaceFolder(Uri uri) {
-    return WorkspaceFolder(uri.toString(), path.basename(uri.toFilePath()));
+    return WorkspaceFolder(
+      uri: uri.toString(),
+      name: path.basename(uri.toFilePath()),
+    );
   }
 
   /// Tells the server the config has changed, and provides the supplied config

@@ -19,11 +19,11 @@ void main() {
     Function2<Function2<int, double>, Function2<int, double>> left;
     left = t1;
     //     ^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'A Function(B) Function(B Function(A))' can't be assigned to a variable of type 'double Function(int) Function(double Function(int))'.
     left = t2;
     //     ^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'A Function(B) Function(B Function(A))' can't be assigned to a variable of type 'double Function(int) Function(double Function(int))'.
   }
 }

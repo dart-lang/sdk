@@ -8,9 +8,9 @@ import 'package:analyzer/src/dart/analysis/dependency/node.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import '../../resolution/driver_resolution.dart';
+import '../../resolution/context_collection_resolution.dart';
 
-class BaseDependencyTest extends DriverResolutionTest {
+class BaseDependencyTest extends PubPackageResolutionTest {
 //  DependencyTracker tracker;
   String a;
   String b;
@@ -62,7 +62,7 @@ class BaseDependencyTest extends DriverResolutionTest {
 //    }
 
     newFile(path, content: content);
-    driver.changeFile(path);
+    driverFor(path).changeFile(path);
 
     var units = await _resolveLibrary(path);
     var uri = units.first.declaredElement.source.uri;
@@ -104,9 +104,9 @@ class BaseDependencyTest extends DriverResolutionTest {
     super.setUp();
 //    var logger = PerformanceLog(null);
 //    tracker = DependencyTracker(logger);
-    a = convertPath('/test/lib/a.dart');
-    b = convertPath('/test/lib/b.dart');
-    c = convertPath('/test/lib/c.dart');
+    a = convertPath('$testPackageLibPath/a.dart');
+    b = convertPath('$testPackageLibPath/b.dart');
+    c = convertPath('$testPackageLibPath/c.dart');
     aUri = Uri.parse('package:test/a.dart');
     bUri = Uri.parse('package:test/b.dart');
     cUri = Uri.parse('package:test/c.dart');
@@ -138,7 +138,8 @@ class BaseDependencyTest extends DriverResolutionTest {
   }
 
   Future<List<CompilationUnit>> _resolveLibrary(String libraryPath) async {
-    var resolvedLibrary = await driver.getResolvedLibrary(libraryPath);
+    var session = contextFor(libraryPath).currentSession;
+    var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
     return resolvedLibrary.units.map((ru) => ru.unit).toList();
   }
 }

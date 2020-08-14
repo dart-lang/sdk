@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -9,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:vm_snapshot_analysis/instruction_sizes.dart'
     as instruction_sizes;
 import 'package:vm_snapshot_analysis/program_info.dart';
+import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
 
 import 'utils.dart';
@@ -182,8 +184,8 @@ void main() async {
   group('instruction-sizes', () {
     test('basic-parsing', () async {
       await withSymbolSizes('basic-parsing', testSource, (sizesJson) async {
-        final symbols =
-            instruction_sizes.fromJson(await loadJson(File(sizesJson)));
+        final json = await loadJson(File(sizesJson));
+        final symbols = instruction_sizes.fromJson(json);
         expect(symbols, isNotNull,
             reason: 'Sizes file was successfully parsed');
         expect(symbols.length, greaterThan(0),
@@ -256,7 +258,8 @@ void main() async {
     test('program-info-from-sizes', () async {
       await withSymbolSizes('program-info-from-sizes', testSource,
           (sizesJson) async {
-        final info = await loadProgramInfo(File(sizesJson));
+        final json = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(json);
         expect(info.root.children, contains('dart:core'));
         expect(info.root.children, contains('dart:typed_data'));
         expect(info.root.children, contains('package:input'));
@@ -303,7 +306,8 @@ void main() async {
 
     test('histograms', () async {
       await withSymbolSizes('histograms', testSource, (sizesJson) async {
-        final info = await loadProgramInfo(File(sizesJson));
+        final json = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(json);
         final bySymbol = computeHistogram(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
@@ -356,8 +360,10 @@ void main() async {
       await withSymbolSizes('diff-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-2', testSourceModified,
             (modifiedSizesJson) async {
-          final info = await loadProgramInfo(File(sizesJson));
-          final modifiedInfo = await loadProgramInfo(File(modifiedSizesJson));
+          final infoJson = await loadJson(File(sizesJson));
+          final info = loadProgramInfoFromJson(infoJson);
+          final modifiedJson = await loadJson(File(modifiedSizesJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson);
           final diff = computeDiff(info, modifiedInfo);
 
           expect(
@@ -403,9 +409,11 @@ void main() async {
       await withSymbolSizes('diff-collapsed-1', testSource, (sizesJson) async {
         await withSymbolSizes('diff-collapsed-2', testSourceModified2,
             (modifiedSizesJson) async {
-          final info = await loadProgramInfo(File(sizesJson),
-              collapseAnonymousClosures: true);
-          final modifiedInfo = await loadProgramInfo(File(modifiedSizesJson),
+          final json = await loadJson(File(sizesJson));
+          final info =
+              loadProgramInfoFromJson(json, collapseAnonymousClosures: true);
+          final modifiedJson = await loadJson(File(modifiedSizesJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson,
               collapseAnonymousClosures: true);
           final diff = computeDiff(info, modifiedInfo);
 
@@ -442,7 +450,8 @@ void main() async {
     test('program-info-from-profile', () async {
       await withV8Profile('program-info-from-profile', testSource,
           (profileJson) async {
-        final info = await loadProgramInfo(File(profileJson));
+        final infoJson = await loadJson(File(profileJson));
+        final info = loadProgramInfoFromJson(infoJson);
         expect(info.root.children, contains('dart:core'));
         expect(info.root.children, contains('dart:typed_data'));
         expect(info.root.children, contains('package:input'));
@@ -500,7 +509,8 @@ void main() async {
 
     test('histograms', () async {
       await withV8Profile('histograms', testSource, (sizesJson) async {
-        final info = await loadProgramInfo(File(sizesJson));
+        final infoJson = await loadJson(File(sizesJson));
+        final info = loadProgramInfoFromJson(infoJson);
         final bySymbol = computeHistogram(info, HistogramType.bySymbol);
         expect(
             bySymbol.buckets,
@@ -553,8 +563,10 @@ void main() async {
       await withV8Profile('diff-1', testSource, (profileJson) async {
         await withV8Profile('diff-2', testSourceModified,
             (modifiedProfileJson) async {
-          final info = await loadProgramInfo(File(profileJson));
-          final modifiedInfo = await loadProgramInfo(File(modifiedProfileJson));
+          final infoJson = await loadJson(File(profileJson));
+          final info = loadProgramInfoFromJson(infoJson);
+          final modifiedJson = await loadJson(File(modifiedProfileJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson);
           final diff = computeDiff(info, modifiedInfo);
 
           expect(
@@ -597,9 +609,11 @@ void main() async {
       await withV8Profile('diff-collapsed-1', testSource, (profileJson) async {
         await withV8Profile('diff-collapsed-2', testSourceModified2,
             (modifiedProfileJson) async {
-          final info = await loadProgramInfo(File(profileJson),
+          final infoJson = await loadJson(File(profileJson));
+          final info = loadProgramInfoFromJson(infoJson,
               collapseAnonymousClosures: true);
-          final modifiedInfo = await loadProgramInfo(File(modifiedProfileJson),
+          final modifiedJson = await loadJson(File(modifiedProfileJson));
+          final modifiedInfo = loadProgramInfoFromJson(modifiedJson,
               collapseAnonymousClosures: true);
           final diff = computeDiff(info, modifiedInfo);
 
@@ -627,6 +641,40 @@ void main() async {
                 }
               }));
         });
+      });
+    });
+
+    test('treemap', () async {
+      await withV8Profile('treemap', testSource, (profileJson) async {
+        final infoJson = await loadJson(File(profileJson));
+        final info = await loadProgramInfoFromJson(infoJson,
+            collapseAnonymousClosures: true);
+        final treemap = treemapFromInfo(info);
+
+        List<Map<String, dynamic>> childrenOf(Map<String, dynamic> node) =>
+            (node['children'] as List).cast();
+
+        String nameOf(Map<String, dynamic> node) => node['n'];
+
+        Map<String, dynamic> findChild(Map<String, dynamic> node, String name) {
+          return childrenOf(node)
+              .firstWhere((child) => nameOf(child) == name, orElse: () => null);
+        }
+
+        Set<String> childrenNames(Map<String, dynamic> node) {
+          return childrenOf(node).map(nameOf).toSet();
+        }
+
+        // Verify that we don't include package names twice into paths
+        // while building the treemap.
+        if (Platform.isWindows) {
+          // Note: in Windows we don't consider main.dart part of package:input
+          // for some reason.
+          expect(findChild(treemap, 'package:input/input.dart'), isNotNull);
+        } else {
+          expect(childrenNames(findChild(treemap, 'package:input')),
+              equals({'<self>', 'main.dart', 'input.dart'}));
+        }
       });
     });
   });

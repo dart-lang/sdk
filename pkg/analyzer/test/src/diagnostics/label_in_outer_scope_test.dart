@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class LabelInOuterScopeTest extends DriverResolutionTest {
+class LabelInOuterScopeTest extends PubPackageResolutionTest {
   test_label_in_outer_scope() async {
     await assertErrorsInCode(r'''
 class A {

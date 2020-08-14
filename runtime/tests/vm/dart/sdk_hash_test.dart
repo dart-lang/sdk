@@ -14,7 +14,6 @@ import 'snapshot_test_helper.dart';
 
 // Keep in sync with pkg/kernel/lib/binary/tag.dart:
 const tagComponentFile = [0x90, 0xAB, 0xCD, 0xEF];
-const tagBinaryFormatVersion = [0x00, 0x00, 0x00, 43];
 
 Future<void> main(List<String> args) async {
   if (args.length == 1 && args[0] == '--child') {
@@ -53,7 +52,6 @@ Future<void> main(List<String> args) async {
       // The SDK Hash is located after the ComponentFile and BinaryFormatVersion
       // tags (both UInt32).
       Expect.listEquals(tagComponentFile, bytes.sublist(0, 4));
-      Expect.listEquals(tagBinaryFormatVersion, bytes.sublist(4, 8));
       Expect.notEquals('0000000000', ascii.decode(bytes.sublist(8, 10)));
       // Flip the first byte in the hash:
       bytes[8] = ~bytes[8];

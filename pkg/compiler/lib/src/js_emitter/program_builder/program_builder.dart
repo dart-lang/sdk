@@ -135,6 +135,7 @@ class ProgramBuilder {
       this._rtiNeededClasses,
       this._mainFunction)
       : this.collector = new Collector(
+            _options,
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
@@ -153,6 +154,10 @@ class ProgramBuilder {
   /// update the superclass in the [Class].
   final Map<ClassEntity, Class> _classes = <ClassEntity, Class>{};
 
+  /// Mapping from [ClassEntity] to constructed [ClassTypeData] object. Used to build
+  /// libraries.
+  final Map<ClassEntity, ClassTypeData> _classTypeData = {};
+
   /// Mapping from [OutputUnit] to constructed [Fragment]. We need this to
   /// generate the deferredLoadingMap (to know which hunks to load).
   final Map<OutputUnit, Fragment> _outputs = <OutputUnit, Fragment>{};
@@ -162,6 +167,8 @@ class ProgramBuilder {
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
   Set<Class> _unneededNativeClasses;
+
+  List<StubMethod> _jsInteropIsChecks = [];
 
   /// Classes that have been allocated during a profile run.
   ///
@@ -182,6 +189,7 @@ class ProgramBuilder {
     _closedWorld.outputUnitData.outputUnits
         .forEach(_registry.registerOutputUnit);
     collector.outputClassLists.forEach(_registry.registerClasses);
+    collector.outputClassTypeLists.forEach(_registry.registerClassTypes);
     collector.outputStaticLists.forEach(_registry.registerMembers);
     collector.outputConstantLists.forEach(_registerConstants);
     collector.outputStaticNonFinalFieldLists.forEach(_registry.registerMembers);
@@ -195,6 +203,11 @@ class ProgramBuilder {
     collector.outputClassLists
         .forEach((OutputUnit _, List<ClassEntity> classes) {
       classes.forEach(_buildClass);
+    });
+
+    collector.outputClassTypeLists
+        .forEach((OutputUnit _, List<ClassEntity> types) {
+      types.forEach(_buildClassTypeData);
     });
 
     // Resolve the superclass references after we've processed all the classes.
@@ -432,7 +445,8 @@ class ProgramBuilder {
         element, name, null, _registerStaticStateHolder(), code,
         isFinal: false,
         isLazy: false,
-        isInitializedByConstant: initialValue != null);
+        isInitializedByConstant: initialValue != null,
+        usesNonNullableInitialization: element.library.isNonNullableByDefault);
   }
 
   List<StaticField> _buildStaticLazilyInitializedFields(
@@ -461,15 +475,18 @@ class ProgramBuilder {
     // the holder-instance.
     return new StaticField(
         element, name, getterName, _registerStaticStateHolder(), code,
-        isFinal: !element.isAssignable, isLazy: true);
+        isFinal: !element.isAssignable,
+        isLazy: true,
+        usesNonNullableInitialization: element.library.isNonNullableByDefault);
   }
 
   List<Library> _buildLibraries(LibrariesMap librariesMap) {
     List<Library> libraries = new List<Library>(librariesMap.length);
     int count = 0;
     librariesMap.forEach((LibraryEntity library, List<ClassEntity> classes,
-        List<MemberEntity> members) {
-      libraries[count++] = _buildLibrary(library, classes, members);
+        List<MemberEntity> members, List<ClassEntity> classTypeElements) {
+      libraries[count++] =
+          _buildLibrary(library, classes, members, classTypeElements);
     });
     return libraries;
   }
@@ -492,9 +509,11 @@ class ProgramBuilder {
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
     Class interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
+
+    interceptorClass?.isChecks?.addAll(_jsInteropIsChecks);
     Set<String> stubNames = {};
-    librariesMap
-        .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
+    librariesMap.forEach((LibraryEntity library,
+        List<ClassEntity> classElements, _memberElement, _typeElement) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
           _elementEnvironment.forEachLocalClassMember(cls,
@@ -594,7 +613,7 @@ class ProgramBuilder {
   // Note that a library-element may have multiple [Library]s, if it is split
   // into multiple output units.
   Library _buildLibrary(LibraryEntity library, List<ClassEntity> classElements,
-      List<MemberEntity> memberElements) {
+      List<MemberEntity> memberElements, List<ClassEntity> classTypeElements) {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = memberElements
@@ -614,12 +633,17 @@ class ProgramBuilder {
             !cls.isNative || !_unneededNativeClasses.contains(cls))
         .toList(growable: false);
 
+    List<ClassTypeData> classTypeData = classTypeElements
+        .map((ClassEntity classTypeElement) => _classTypeData[classTypeElement])
+        .toList();
+    classTypeData.addAll(classes.map((Class cls) => cls.typeData).toList());
+
     bool visitStatics = true;
     List<Field> staticFieldsForReflection =
         _buildFields(library: library, visitStatics: visitStatics);
 
-    return new Library(
-        library, uri, statics, classes, staticFieldsForReflection);
+    return new Library(library, uri, statics, classes, classTypeData,
+        staticFieldsForReflection);
   }
 
   bool _isSoftDeferred(ClassEntity element) {
@@ -627,13 +651,19 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassEntity cls) {
-    bool onlyForRti = collector.classesOnlyNeededForRti.contains(cls);
+    bool onlyForConstructor =
+        collector.classesOnlyNeededForConstructor.contains(cls);
+    bool onlyForRti = _options.deferClassTypes
+        ? false
+        : collector.classesOnlyNeededForRti.contains(cls);
     bool hasRtiField = _rtiNeed.classNeedsTypeArguments(cls);
     if (_nativeData.isJsInteropClass(cls)) {
+      // TODO(joshualitt): Can we just emit JSInteropClasses as types?
       // TODO(jacobr): check whether the class has any active static fields
       // if it does not we can suppress it completely.
       onlyForRti = true;
     }
+    bool onlyForConstructorOrRti = onlyForConstructor || onlyForRti;
     bool isClosureBaseClass = cls == _commonElements.closureClass;
 
     List<Method> methods = [];
@@ -693,14 +723,14 @@ class ProgramBuilder {
       callStubs.add(_buildStubMethod(name, function));
     }
 
-    if (_commonElements.isInstantiationClass(cls) && !onlyForRti) {
+    if (_commonElements.isInstantiationClass(cls) && !onlyForConstructorOrRti) {
       callStubs.addAll(_generateInstantiationStubs(cls));
     }
 
     // MixinApplications run through the members of their mixin. Here, we are
     // only interested in direct members.
     bool isSuperMixinApplication = false;
-    if (!onlyForRti) {
+    if (!onlyForConstructorOrRti) {
       if (_elementEnvironment.isSuperMixinApplication(cls)) {
         List<MemberEntity> members = <MemberEntity>[];
         void add(MemberEntity member) {
@@ -725,14 +755,14 @@ class ProgramBuilder {
       }
     }
     bool isInterceptedClass = _interceptorData.isInterceptedClass(cls);
-    List<Field> instanceFields = onlyForRti
-        ? const <Field>[]
+    List<Field> instanceFields = onlyForConstructorOrRti
+        ? const []
         : _buildFields(
             cls: cls,
             visitStatics: false,
             isHolderInterceptedClass: isInterceptedClass);
-    List<Field> staticFieldsForReflection = onlyForRti
-        ? const <Field>[]
+    List<Field> staticFieldsForReflection = onlyForConstructorOrRti
+        ? const []
         : _buildFields(
             cls: cls,
             visitStatics: true,
@@ -750,9 +780,7 @@ class ProgramBuilder {
       // Currently we generate duplicates if a class is implemented by multiple
       // js-interop classes.
       typeTests.forEachProperty(_sorter, (js.Name name, js.Node code) {
-        _classes[_commonElements.jsJavaScriptObjectClass]
-            .isChecks
-            .add(_buildStubMethod(name, code));
+        _jsInteropIsChecks.add(_buildStubMethod(name, code));
       });
     } else {
       for (Field field in instanceFields) {
@@ -785,9 +813,10 @@ class ProgramBuilder {
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
         _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
+    ClassTypeData typeData = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
-        !onlyForRti &&
+        !onlyForConstructorOrRti &&
         !isSuperMixinApplication) {
       assert(!_nativeData.isNativeClass(cls));
       assert(methods.isEmpty);
@@ -795,6 +824,7 @@ class ProgramBuilder {
 
       result = new MixinApplication(
           cls,
+          typeData,
           name,
           holder,
           instanceFields,
@@ -802,14 +832,15 @@ class ProgramBuilder {
           callStubs,
           checkedSetters,
           isChecks,
-          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
-          onlyForRti: onlyForRti);
+          onlyForRti: onlyForRti,
+          onlyForConstructor: onlyForConstructor);
     } else {
       result = new Class(
           cls,
+          typeData,
           name,
           holder,
           methods,
@@ -819,11 +850,11 @@ class ProgramBuilder {
           noSuchMethodStubs,
           checkedSetters,
           isChecks,
-          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
           onlyForRti: onlyForRti,
+          onlyForConstructor: onlyForConstructor,
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
           isSoftDeferred: _isSoftDeferred(cls),
@@ -831,6 +862,10 @@ class ProgramBuilder {
     }
     _classes[cls] = result;
     return result;
+  }
+
+  void _buildClassTypeData(ClassEntity cls) {
+    _classTypeData[cls] = ClassTypeData(cls, _rtiChecks.requiredChecks[cls]);
   }
 
   void associateNamedTypeVariablesNewRti() {
@@ -843,8 +878,13 @@ class ProgramBuilder {
               : _classHierarchy.subclassesOf(declaration);
       for (ClassEntity entity in subtypes) {
         Class cls = _classes[entity];
-        if (cls == null) continue;
-        cls.namedTypeVariablesNewRti.add(typeVariable);
+        if (cls != null) {
+          cls.typeData.namedTypeVariables.add(typeVariable);
+        }
+        ClassTypeData classTypeData = _classTypeData[entity];
+        if (classTypeData != null) {
+          classTypeData.namedTypeVariables.add(typeVariable);
+        }
       }
     }
   }

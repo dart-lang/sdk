@@ -381,26 +381,12 @@ class FunctionsTraits {
   static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    Zone* zone = Thread::Current()->zone();
-    String& a_s = String::Handle(zone);
-    String& b_s = String::Handle(zone);
-    a_s = a.IsFunction() ? Function::Cast(a).name() : String::Cast(a).raw();
-    b_s = b.IsFunction() ? Function::Cast(b).name() : String::Cast(b).raw();
-    ASSERT(a_s.IsSymbol() && b_s.IsSymbol());
-    return a_s.raw() == b_s.raw();
+    return String::Cast(a).raw() == String::Cast(b).raw();
   }
-  static uword Hash(const Object& obj) {
-    if (obj.IsFunction()) {
-      return String::Handle(Function::Cast(obj).name()).Hash();
-    } else {
-      ASSERT(String::Cast(obj).IsSymbol());
-      return String::Cast(obj).Hash();
-    }
-  }
-  static ObjectPtr NewKey(const Function& function) { return function.raw(); }
+  static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
 };
 
-typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
+typedef UnorderedHashMap<FunctionsTraits> UniqueFunctionsMap;
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 // ObfuscationMap maps Strings to Strings.

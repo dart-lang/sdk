@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class StaticTypeWarningCodeTest extends DriverResolutionTest {
+class StaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_assert_message_suppresses_type_promotion() async {
     // If a variable is assigned to inside the expression for an assert
     // message, type promotion should be suppressed, just as it would be if the
@@ -34,7 +34,7 @@ f(Object x) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 65, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 65, 3),
     ]);
   }
 
@@ -59,7 +59,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 72, 10),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 72, 10),
     ]);
   }
 
@@ -84,7 +84,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
     ]);
   }
 
@@ -135,7 +135,7 @@ f() async {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
     ]);
   }
 
@@ -185,38 +185,8 @@ void main() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 271, 4),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 289, 2),
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 304, 2),
-    ]);
-  }
-
-  test_expectedOneListTypeArgument() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int> [];
-}
-''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 11, 10),
-    ]);
-  }
-
-  test_expectedOneSetTypeArgument() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int, int>{2, 3};
-}
-''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
-    ]);
-  }
-
-  test_expectedTwoMapTypeArguments_three() async {
-    await assertErrorsInCode(r'''
-main() {
-  <int, int, int> {};
-}
-''', [
-      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 289, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 304, 2),
     ]);
   }
 
@@ -237,7 +207,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 22, 10),
     ]);
   }
 
@@ -302,7 +272,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 27, 10),
     ]);
   }
 
@@ -336,7 +306,7 @@ class Foo<T extends Iterable<int>> {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 1),
-      error(StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 86, 8),
     ]);
   }
 
@@ -362,184 +332,9 @@ f() {
     ]);
   }
 
-  test_illegalAsyncGeneratorReturnType_function_nonStream() async {
-    await assertErrorsInCode('''
-int f() async* {}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 0, 3),
-    ]);
-  }
-
-  test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-abstract class SubStream<T> implements Stream<T> {}
-SubStream<int> f() async* {}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 73, 14),
-    ]);
-  }
-
-  test_illegalAsyncGeneratorReturnType_method_nonStream() async {
-    await assertErrorsInCode('''
-class C {
-  int f() async* {}
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 12, 3),
-    ]);
-  }
-
-  test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-abstract class SubStream<T> implements Stream<T> {}
-class C {
-  SubStream<int> f() async* {}
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE, 85, 14),
-    ]);
-  }
-
-  test_illegalSyncGeneratorReturnType_function_nonIterator() async {
-    await assertErrorsInCode('''
-int f() sync* {}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 0, 3),
-    ]);
-  }
-
-  test_illegalSyncGeneratorReturnType_function_subclassOfIterator() async {
-    await assertErrorsInCode('''
-abstract class SubIterator<T> implements Iterator<T> {}
-SubIterator<int> f() sync* {}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 56, 16),
-    ]);
-  }
-
-  test_illegalSyncGeneratorReturnType_method_nonIterator() async {
-    await assertErrorsInCode('''
-class C {
-  int f() sync* {}
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 12, 3),
-    ]);
-  }
-
-  test_illegalSyncGeneratorReturnType_method_subclassOfIterator() async {
-    await assertErrorsInCode('''
-abstract class SubIterator<T> implements Iterator<T> {}
-class C {
-  SubIterator<int> f() sync* {}
-}
-''', [
-      error(StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE, 68, 16),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_method_reference() async {
-    await assertErrorsInCode(r'''
-class A {
-  static m() {}
-}
-main(A a) {
-  a.m;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_propertyAccess_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  static var f;
-}
-main(A a) {
-  a.f;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 44, 1),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_propertyAccess_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static get f => 42;
-}
-main(A a) {
-  a.f;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 50, 1),
-    ]);
-  }
-
-  test_instanceAccessToStaticMember_propertyAccess_setter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static set f(x) {}
-}
-main(A a) {
-  a.f = 42;
-}
-''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 49, 1),
-    ]);
-  }
-
-  test_invocationOfNonFunctionExpression_literal() async {
-    await assertErrorsInCode(r'''
-f() {
-  3(5);
-}
-''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 8, 1),
-    ]);
-  }
-
-  test_nonTypeAsTypeArgument_notAType() async {
-    await assertErrorsInCode(r'''
-int A;
-class B<E> {}
-f(B<A> b) {}
-''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 25, 1),
-    ]);
-  }
-
-  test_nonTypeAsTypeArgument_undefinedIdentifier() async {
-    await assertErrorsInCode(r'''
-class B<E> {}
-f(B<A> b) {}
-''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 18, 1),
-    ]);
-  }
-
-  test_typeParameterSupertypeOfItsBound_1of1() async {
-    await assertErrorsInCode(r'''
-class A<T extends T> {
-}
-''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
-    ]);
-  }
-
-  test_typeParameterSupertypeOfItsBound_2of3() async {
-    await assertErrorsInCode(r'''
-class A<T1 extends T3, T2, T3 extends T1> {
-}
-''', [
-      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 13),
-      error(
-          StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 13),
-    ]);
-  }
+  // TODO(srawlins) Figure out what to do with the rest of these tests.
+  //  The names do not correspond to diagnostic codes, so it isn't clear what
+  //  they're testing.
 
   test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() async {
     await assertErrorsInCode(r'''
@@ -549,7 +344,7 @@ main(Object p) {
   p = 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 71, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 71, 6),
     ]);
   }
 
@@ -559,7 +354,7 @@ main(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 6),
     ]);
   }
 
@@ -569,7 +364,7 @@ main(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 59, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 59, 6),
     ]);
   }
 
@@ -581,7 +376,7 @@ main(Object p) {
   p = 42;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 68, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 68, 6),
     ]);
   }
 
@@ -593,7 +388,7 @@ main(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 78, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 78, 6),
     ]);
   }
 
@@ -603,7 +398,7 @@ main(Object p) {
   p is String ? (p.length + (p = 42)) : 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 36, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 36, 6),
     ]);
   }
 
@@ -619,7 +414,7 @@ main(Object p) {
   p = 0;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 83, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 83, 6),
     ]);
   }
 
@@ -631,7 +426,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 66, 6),
     ]);
   }
 
@@ -649,7 +444,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 100, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 100, 1),
     ]);
   }
 
@@ -667,7 +462,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 105, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 105, 1),
     ]);
   }
 
@@ -680,7 +475,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
     ]);
   }
 
@@ -693,7 +488,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 55, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 55, 6),
     ]);
   }
 
@@ -706,7 +501,7 @@ main(Object p) {
   () {p = 0;};
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
     ]);
   }
 
@@ -719,7 +514,7 @@ main(Object p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 59, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 59, 6),
     ]);
   }
 
@@ -732,7 +527,7 @@ main(Object p) {
   f() {p = 0;};
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 44, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 44, 6),
       error(HintCode.UNUSED_ELEMENT, 58, 1),
     ]);
   }
@@ -747,7 +542,7 @@ main(Object p) {
 }
 ''', [
       error(HintCode.UNUSED_ELEMENT, 19, 1),
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 60, 6),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 6),
     ]);
   }
 
@@ -765,7 +560,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 103, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 103, 1),
     ]);
   }
 
@@ -783,65 +578,7 @@ main(A<V> p) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 112, 1),
-    ]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static int get a => 0;
-}
-class B extends A {
-  int b() {
-    return a;
-  }
-}
-''', [
-      error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          80,
-          1),
-    ]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() async {
-    await assertErrorsInCode(r'''
-class A {
-  static int foo;
-}
-
-class B extends A {
-  static bar() {
-    foo.abs();
-  }
-}
-''', [
-      error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          72,
-          3),
-    ]);
-  }
-
-  test_unqualifiedReferenceToNonLocalStaticMember_setter() async {
-    await assertErrorsInCode(r'''
-class A {
-  static set a(x) {}
-}
-class B extends A {
-  b(y) {
-    a = y;
-  }
-}
-''', [
-      error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-          66,
-          1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 112, 1),
     ]);
   }
 
@@ -854,13 +591,13 @@ main(A<NoSuchType> a) {
   a.element.anyGetterExistsInDynamic;
 }
 ''', [
-      error(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT, 35, 10),
+      error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 35, 10),
     ]);
   }
 }
 
 @reflectiveTest
-class StrongModeStaticTypeWarningCodeTest extends DriverResolutionTest {
+class StrongModeStaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {
     await assertNoErrorsInCode('''
 import 'dart:async';

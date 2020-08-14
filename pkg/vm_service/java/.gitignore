@@ -26,6 +26,7 @@ src/org/dartlang/vm/service/consumer/GetStackConsumer.java
 src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/KillConsumer.java
 src/org/dartlang/vm/service/consumer/PauseConsumer.java
+src/org/dartlang/vm/service/consumer/ProcessMemoryUsageConsumer.java
 src/org/dartlang/vm/service/consumer/ProtocolListConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadSourcesConsumer.java
 src/org/dartlang/vm/service/consumer/RemoveBreakpointConsumer.java
@@ -41,6 +42,7 @@ src/org/dartlang/vm/service/consumer/TimelineFlagsConsumer.java
 src/org/dartlang/vm/service/consumer/TimestampConsumer.java
 src/org/dartlang/vm/service/consumer/VMConsumer.java
 src/org/dartlang/vm/service/consumer/VersionConsumer.java
+src/org/dartlang/vm/service/consumer/WebSocketTargetConsumer.java
 src/org/dartlang/vm/service/element/AllocationProfile.java
 src/org/dartlang/vm/service/element/BoundField.java
 src/org/dartlang/vm/service/element/BoundVariable.java
@@ -95,6 +97,8 @@ src/org/dartlang/vm/service/element/Null.java
 src/org/dartlang/vm/service/element/NullRef.java
 src/org/dartlang/vm/service/element/Obj.java
 src/org/dartlang/vm/service/element/ObjRef.java
+src/org/dartlang/vm/service/element/ProcessMemoryItem.java
+src/org/dartlang/vm/service/element/ProcessMemoryUsage.java
 src/org/dartlang/vm/service/element/ProfileFunction.java
 src/org/dartlang/vm/service/element/Protocol.java
 src/org/dartlang/vm/service/element/ProtocolList.java
@@ -125,3 +129,4 @@ src/org/dartlang/vm/service/element/UnresolvedSourceLocation.java
 src/org/dartlang/vm/service/element/VM.java
 src/org/dartlang/vm/service/element/VMRef.java
 src/org/dartlang/vm/service/element/Version.java
+src/org/dartlang/vm/service/element/WebSocketTarget.java

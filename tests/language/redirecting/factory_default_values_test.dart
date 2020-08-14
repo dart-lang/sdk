@@ -20,7 +20,7 @@ class A {
   //                         ^
   // [cfe] Can't have a default value here because any default values of 'A' would be used instead.
   //                               ^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_FUNCTION_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_FUNCTION_TYPE
   // [cfe] The constructor function type 'A Function(int, [int])' isn't a subtype of 'A Function(int, {int b})'.
 
   int a;

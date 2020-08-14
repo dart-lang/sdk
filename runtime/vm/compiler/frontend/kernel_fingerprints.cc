@@ -227,8 +227,10 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
-    case kNeverType:
       // those contain nothing.
+      break;
+    case kNeverType:
+      BuildHash(static_cast<uint32_t>(ReadNullability()));
       break;
     case kInterfaceType:
       CalculateInterfaceTypeFingerprint(false);

@@ -17,7 +17,8 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
+import 'package:analyzer/src/error/codes.dart'
+    show CompileTimeErrorCode, HintCode;
 import 'package:meta/meta.dart';
 
 /// Tracks upper and lower type bounds for a set of type parameters.
@@ -164,7 +165,7 @@ class GenericInferrer {
     var knownTypes = <TypeParameterElement, DartType>{};
     for (int i = 0; i < typeFormals.length; i++) {
       TypeParameterElement typeParam = typeFormals[i];
-      var constraints = this._constraints[typeParam];
+      var constraints = _constraints[typeParam];
       var typeParamBound = typeParam.bound != null
           ? Substitution.fromPairs(typeFormals, inferredTypes)
               .substituteType(typeParam.bound)
@@ -187,7 +188,7 @@ class GenericInferrer {
       if (!success) {
         if (failAtError) return null;
         errorReporter?.reportErrorForNode(
-            StrongModeCode.COULD_NOT_INFER,
+            CompileTimeErrorCode.COULD_NOT_INFER,
             errorNode,
             [typeParam.name, _formatError(typeParam, inferred, constraints)]);
 
@@ -201,8 +202,8 @@ class GenericInferrer {
         if (failAtError) return null;
         var typeFormals = (inferred as FunctionType).typeFormals;
         var typeFormalsStr = typeFormals.map(_elementStr).join(', ');
-        errorReporter
-            ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
+        errorReporter?.reportErrorForNode(
+            CompileTimeErrorCode.COULD_NOT_INFER, errorNode, [
           typeParam.name,
           ' Inferred candidate type ${_typeStr(inferred)} has type parameters'
               ' [$typeFormalsStr], but a function with'
@@ -223,8 +224,13 @@ class GenericInferrer {
         // by [infer], with [typeParam] filled in as its bounds. This is
         // considered a failure of inference, under the "strict-inference"
         // mode.
-        if (errorNode is ConstructorName) {
-          String constructorName = '${errorNode.type}.${errorNode.name}';
+        if (errorNode is ConstructorName &&
+            !(errorNode.type.type as InterfaceType)
+                .element
+                .hasOptionalTypeArgs) {
+          String constructorName = errorNode.name == null
+              ? errorNode.type.name.name
+              : '${errorNode.type}.${errorNode.name}';
           errorReporter?.reportErrorForNode(
               HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
               errorNode,
@@ -248,8 +254,8 @@ class GenericInferrer {
         var typeParamBound = Substitution.fromPairs(typeFormals, inferredTypes)
             .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
-        errorReporter
-            ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
+        errorReporter?.reportErrorForNode(
+            CompileTimeErrorCode.COULD_NOT_INFER, errorNode, [
           typeParam.name,
           "\nRecursive bound cannot be instantiated: '$typeParamBound'."
               "\nConsider passing explicit type argument(s) "
@@ -496,7 +502,7 @@ class GenericInferrer {
       var prefix = parts[0];
       var middle = parts[1];
       var prefixPad = ' ' * (prefixMax - prefix.length);
-      var middlePad = ' ' * (prefixMax);
+      var middlePad = ' ' * prefixMax;
       var end = "";
       if (parts.length > 2) {
         end = '\n  $middlePad ${parts[2]}';

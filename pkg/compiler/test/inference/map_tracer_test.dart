@@ -252,13 +252,13 @@ doTest(String allocation,
   checkType(String name, keyType, valueType) {
     MemberEntity element = findMember(closedWorld, name);
     MapTypeMask mask = results.resultOfMember(element).type;
-    Expect.equals(keyType, simplify(mask.keyType, closedWorld), name);
-    Expect.equals(valueType, simplify(mask.valueType, closedWorld), name);
+    Expect.equals(keyType, simplify(mask.keyType, commonMasks), name);
+    Expect.equals(valueType, simplify(mask.valueType, commonMasks), name);
   }
 
-  K(TypeMask other) => simplify(keyType.union(other, closedWorld), closedWorld);
+  K(TypeMask other) => simplify(keyType.union(other, commonMasks), commonMasks);
   V(TypeMask other) =>
-      simplify(valueType.union(other, closedWorld), closedWorld).nullable();
+      simplify(valueType.union(other, commonMasks), commonMasks).nullable();
 
   checkType('mapInField', K(aKeyType), V(commonMasks.numType));
   checkType('mapPassedToMethod', K(aKeyType), V(commonMasks.numType));

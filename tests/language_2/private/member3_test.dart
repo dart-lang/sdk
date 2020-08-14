@@ -10,7 +10,7 @@ class Test extends B {
   test() {
     _fun();
 //  ^^^^
-// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
 // [cfe] The method '_fun' isn't defined for the class 'Test'.
   }
 }

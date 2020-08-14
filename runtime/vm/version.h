@@ -14,8 +14,6 @@ class Version : public AllStatic {
   static const char* String();
   static const char* SnapshotString();
   static const char* CommitString();
-  static int CurrentAbiVersion();
-  static int OldestSupportedAbiVersion();
   static const char* SdkHash();
 
  private:

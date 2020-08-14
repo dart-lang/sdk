@@ -145,6 +145,16 @@ class LICM : public ValueObject {
   FlowGraph* const flow_graph_;
 };
 
+// Move allocations down to their first use. Improves write barrier elimination.
+class DelayAllocations : public AllStatic {
+ public:
+  static void Optimize(FlowGraph* graph);
+
+ private:
+  static Instruction* DominantUse(Definition* def);
+  static bool IsOneTimeUse(Instruction* use, Definition* def);
+};
+
 class CheckStackOverflowElimination : public AllStatic {
  public:
   // For leaf functions with only a single [StackOverflowInstr] we remove it.

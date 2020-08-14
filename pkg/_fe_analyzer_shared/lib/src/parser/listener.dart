@@ -367,6 +367,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -386,6 +387,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -395,8 +397,8 @@ class Listener implements UnescapeErrorListener {
       Token beginToken,
       Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   /// Handle the end of a extension field declaration.  Substructures:
@@ -407,6 +409,7 @@ class Listener implements UnescapeErrorListener {
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -416,8 +419,8 @@ class Listener implements UnescapeErrorListener {
       Token beginToken,
       Token endToken) {
     // TODO(danrubel): push implementation into subclasses
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and

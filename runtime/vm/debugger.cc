@@ -1962,10 +1962,14 @@ void Debugger::DeoptimizeWorld() {
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
   Code& code = Code::Handle(zone);
-  intptr_t num_classes = class_table.NumCids();
-  for (intptr_t i = 1; i < num_classes; i++) {
-    if (class_table.HasValidClassAt(i)) {
-      cls = class_table.At(i);
+
+  const intptr_t num_classes = class_table.NumCids();
+  const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
+  for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
+    const classid_t cid =
+        i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);
+    if (class_table.HasValidClassAt(cid)) {
+      cls = class_table.At(cid);
 
       // Disable optimized functions.
       functions = cls.functions();
@@ -3297,9 +3301,12 @@ void Debugger::FindCompiledFunctions(
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
-  for (intptr_t i = 1; i < num_classes; i++) {
-    if (class_table.HasValidClassAt(i)) {
-      cls = class_table.At(i);
+  const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
+  for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
+    const classid_t cid =
+        i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);
+    if (class_table.HasValidClassAt(cid)) {
+      cls = class_table.At(cid);
       // If the class is not finalized, e.g. if it hasn't been parsed
       // yet entirely, we can ignore it. If it contains a function with
       // an unresolved breakpoint, we will detect it if and when the
@@ -3426,11 +3433,15 @@ bool Debugger::FindBestFit(const Script& script,
 
     const ClassTable& class_table = *isolate_->class_table();
     const intptr_t num_classes = class_table.NumCids();
-    for (intptr_t i = 1; i < num_classes; i++) {
-      if (!class_table.HasValidClassAt(i)) {
+    const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
+    for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
+      const classid_t cid =
+          i < num_classes ? i
+                          : ClassTable::CidFromTopLevelIndex(i - num_classes);
+      if (!class_table.HasValidClassAt(cid)) {
         continue;
       }
-      cls = class_table.At(i);
+      cls = class_table.At(cid);
       // This class is relevant to us only if it belongs to the
       // library to which |script| belongs.
       if (cls.library() != lib.raw()) {

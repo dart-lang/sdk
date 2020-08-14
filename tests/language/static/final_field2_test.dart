@@ -20,7 +20,7 @@ class B {
 main() {
   A.x = 2;
 //^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_CONST
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
 //  ^
 // [cfe] Setter not found: 'x'.
   new B();

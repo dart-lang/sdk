@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
@@ -11,8 +10,7 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidLanguageOverrideGreaterTest extends DriverResolutionTest
+class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
   test_greaterThanLatest() async {
     var latestVersion = ExperimentStatus.currentVersion;
@@ -40,12 +38,12 @@ class A {}
   test_greaterThanPackage() async {
     _configureTestPackageLanguageVersion('2.5');
     await assertNoErrorsInCode(r'''
-// @dart = 2.9
+// @dart = 2.10
 int? a;
 ''');
     _assertUnitLanguageVersion(
       package: Version.parse('2.5.0'),
-      override: Version.parse('2.9.0'),
+      override: Version.parse('2.10.0'),
     );
   }
 
@@ -72,15 +70,18 @@ class A {}
   }
 
   void _configureTestPackageLanguageVersion(String versionStr) {
-    driver.configure(
-      packages: Packages({
-        'test': Package(
-          name: 'test',
-          rootFolder: getFolder('/test'),
-          libFolder: getFolder('/test/lib'),
-          languageVersion: Version.parse(versionStr + '.0'),
-        ),
-      }),
-    );
+    newFile('$testPackageRootPath/.dart_tool/package_config.json', content: '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "test",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "$versionStr"
+    }
+  ]
+}
+''');
   }
 }

@@ -9,7 +9,7 @@ Library '#lib'
 
 Class '', script = '#lib'
 
-Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < dart:core::Null >, getter = 'get:asyncInFieldInitializer', reflectable, static, has-initializer
+Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int* >*)* -> dart:async::Future < dart:core::Null? >*, getter = 'get:asyncInFieldInitializer', reflectable, static, has-initializer
     initializer
 Bytecode {
   Entry                3
@@ -34,11 +34,11 @@ ConstantPool {
   [0] = ClosureFunction 0
   [1] = InstanceField dart:core::_Closure::_context (field)
   [2] = Reserved
-  [3] = Type dart:async::Future < dart:core::int >
+  [3] = Type dart:async::Future < dart:core::int* >*
   [4] = ObjectRef 'x'
   [5] = SubtypeTestCache
   [6] = Class dart:async::_AsyncAwaitCompleter
-  [7] = ObjectRef < dart:core::Null >
+  [7] = ObjectRef < dart:core::Null? >
   [8] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [9] = Reserved
   [10] = ClosureFunction 1
@@ -67,7 +67,7 @@ ConstantPool {
   [33] = Reserved
   [34] = EndClosureFunctionScope
 }
-Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < dart:core::Null >
+Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int* >* x) -> dart:async::Future < dart:core::Null? >*
 ClosureCode {
   EntryFixed           2, 4
   Push                 FP[-6]
@@ -233,7 +233,7 @@ L1:
 
 Function 'foo', static, reflectable, async
     parameters [] (required: 0)
-    return-type dart:async::Future < dart:core::int >
+    return-type dart:async::Future < dart:core::int* >*
 
 Bytecode {
   Entry                7
@@ -293,7 +293,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = Class dart:async::_AsyncAwaitCompleter
-  [1] = ObjectRef < dart:core::int >
+  [1] = ObjectRef < dart:core::int* >
   [2] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0
@@ -380,8 +380,8 @@ L1:
 
 
 Function 'simpleAsyncAwait', static, reflectable, async
-    parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b'] (required: 2)
-    return-type dart:async::Future < dart:core::int >
+    parameters [dart:async::Future < dart:core::int* >* 'a', dart:async::Future < dart:core::int* >* 'b'] (required: 2)
+    return-type dart:async::Future < dart:core::int* >*
 
 Bytecode {
   Entry                4
@@ -449,7 +449,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = Class dart:async::_AsyncAwaitCompleter
-  [1] = ObjectRef < dart:core::int >
+  [1] = ObjectRef < dart:core::int* >
   [2] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0
@@ -605,8 +605,8 @@ L1:
 
 
 Function 'loops', static, reflectable, async
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
-    return-type dart:async::Future < dart:core::int >
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
+    return-type dart:async::Future < dart:core::int* >*
 
 Bytecode {
   Entry                4
@@ -671,7 +671,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = Class dart:async::_AsyncAwaitCompleter
-  [1] = ObjectRef < dart:core::int >
+  [1] = ObjectRef < dart:core::int* >
   [2] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0
@@ -951,8 +951,8 @@ L1:
 
 
 Function 'tryCatchRethrow', static, reflectable, async
-    parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b', dart:async::Future < dart:core::int > 'c'] (required: 3)
-    return-type dart:async::Future < dart:core::int >
+    parameters [dart:async::Future < dart:core::int* >* 'a', dart:async::Future < dart:core::int* >* 'b', dart:async::Future < dart:core::int* >* 'c'] (required: 3)
+    return-type dart:async::Future < dart:core::int* >*
 
 Bytecode {
   Entry                4
@@ -1023,7 +1023,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = Class dart:async::_AsyncAwaitCompleter
-  [1] = ObjectRef < dart:core::int >
+  [1] = ObjectRef < dart:core::int* >
   [2] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0
@@ -1033,7 +1033,7 @@ ConstantPool {
   [8] = DirectCall 'dart:async::_awaitHelper', ArgDesc num-args 4, num-type-args 0, names []
   [9] = Reserved
   [10] = Type dynamic
-  [11] = Type dart:core::Error
+  [11] = Type dart:core::Error*
   [12] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
   [13] = Reserved
   [14] = ObjectRef 'fin'
@@ -1480,7 +1480,7 @@ L1:
 
 
 Function 'closure', static, reflectable, debuggable
-    parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
+    parameters [dart:async::Future < dart:core::int* >* 'a'] (required: 1)
     return-type dynamic
 
 Bytecode {
@@ -1517,7 +1517,7 @@ ConstantPool {
   [1] = InstanceField dart:core::_Closure::_context (field)
   [2] = Reserved
   [3] = Class dart:async::_AsyncAwaitCompleter
-  [4] = ObjectRef < dart:core::int >
+  [4] = ObjectRef < dart:core::int* >
   [5] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [6] = Reserved
   [7] = ClosureFunction 1
@@ -1549,7 +1549,7 @@ ConstantPool {
   [33] = Reserved
   [34] = EndClosureFunctionScope
 }
-Closure #lib::closure::'nested' async () -> dart:async::Future < dart:core::int >
+Closure #lib::closure::'nested' async () -> dart:async::Future < dart:core::int* >*
 ClosureCode {
   EntryFixed           1, 4
   Push                 FP[-5]
@@ -1776,8 +1776,8 @@ L1:
 
 
 Function 'testAssert', static, reflectable, async
-    parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
-    return-type dart:async::Future < dart:core::int >
+    parameters [dart:async::Future < dart:core::int* >* 'a'] (required: 1)
+    return-type dart:async::Future < dart:core::int* >*
 
 Bytecode {
   Entry                4
@@ -1842,7 +1842,7 @@ Bytecode {
 }
 ConstantPool {
   [0] = Class dart:async::_AsyncAwaitCompleter
-  [1] = ObjectRef < dart:core::int >
+  [1] = ObjectRef < dart:core::int* >
   [2] = DirectCall 'dart:async::_AsyncAwaitCompleter:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0

@@ -441,7 +441,6 @@ class ContextsPage extends DiagnosticPageWithNav {
   String describe(AnalysisOptionsImpl options) {
     var b = StringBuffer();
 
-    b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
@@ -1357,7 +1356,7 @@ class ProfilePage extends DiagnosticPageWithNav {
         var firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
         var secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
         if (firstTime == secondTime) {
-          return first.lintCode.name.compareTo(second.lintCode.name);
+          return first.name.compareTo(second.name);
         }
         return secondTime - firstTime;
       });
@@ -1365,7 +1364,7 @@ class ProfilePage extends DiagnosticPageWithNav {
       _writeRow(['Lint code', 'Time (in ms)'], header: true);
       for (var rule in rules) {
         var time = lintRegistry.getTimer(rule).elapsedMilliseconds;
-        _writeRow([rule.lintCode.name, printMilliseconds(time)]);
+        _writeRow([rule.name, printMilliseconds(time)]);
       }
       buf.write('</table>');
     }

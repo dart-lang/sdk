@@ -23,14 +23,14 @@ main() {
   acceptFunNumOptBool(funNumOptBool);
   acceptFunNumOptBool(funNum);
   //                  ^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'void Function(num)' can't be assigned to the parameter type 'void Function(num, {bool b})'.
   acceptFunNumOptBool(funNumBool);
   //                  ^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'void Function(num, bool)' can't be assigned to the parameter type 'void Function(num, {bool b})'.
   acceptFunNumOptBool(funNumOptBoolX);
   //                  ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'void Function(num, {bool x})' can't be assigned to the parameter type 'void Function(num, {bool b})'.
 }

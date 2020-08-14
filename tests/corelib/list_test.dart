@@ -546,7 +546,10 @@ class Yes {
 }
 
 class MyList<E> extends ListBase<E> {
-  List<E> _source;
+  // TODO(42496): Use a nullable list because insert() is implemented in terms
+  // of length=. Change this back to `E` and remove the `as E` below when that
+  // issue is fixed.
+  List<E?> _source;
   MyList(this._source);
   int get length => _source.length;
   void set length(int length) {
@@ -557,7 +560,7 @@ class MyList<E> extends ListBase<E> {
     _source.add(element);
   }
 
-  E operator [](int index) => _source[index];
+  E operator [](int index) => _source[index] as E;
   void operator []=(int index, E value) {
     _source[index] = value;
   }

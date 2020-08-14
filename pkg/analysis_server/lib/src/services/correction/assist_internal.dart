@@ -72,10 +72,9 @@ import 'package:analysis_server/src/services/correction/dart/surround_with.dart'
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart'
     hide AssistContributor;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
@@ -195,7 +194,7 @@ class AssistProcessor extends BaseProcessor {
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
 
-      var builder = DartChangeBuilderImpl.forWorkspace(context.workspace);
+      var builder = ChangeBuilder(workspace: context.workspace);
       await producer.compute(builder);
 
       _addAssistFromBuilder(builder, producer.assistKind,
@@ -217,7 +216,7 @@ class AssistProcessor extends BaseProcessor {
     return assists;
   }
 
-  void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
+  void _addAssistFromBuilder(ChangeBuilder builder, AssistKind kind,
       {List<Object> args}) {
     if (builder == null) {
       return;
@@ -249,7 +248,7 @@ class AssistProcessor extends BaseProcessor {
         var producer = generator();
         producer.configure(context);
 
-        var builder = DartChangeBuilderImpl.forWorkspace(context.workspace);
+        var builder = ChangeBuilder(workspace: context.workspace);
         await producer.compute(builder);
         _addAssistFromBuilder(builder, producer.assistKind,
             args: producer.assistArguments);
@@ -259,7 +258,7 @@ class AssistProcessor extends BaseProcessor {
       var multiProducer = multiGenerator();
       multiProducer.configure(context);
       for (var producer in multiProducer.producers) {
-        var builder = DartChangeBuilderImpl.forWorkspace(context.workspace);
+        var builder = ChangeBuilder(workspace: context.workspace);
         producer.configure(context);
         await producer.compute(builder);
         _addAssistFromBuilder(builder, producer.assistKind,

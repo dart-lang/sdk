@@ -54,12 +54,14 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(res, hasLength(2));
     expect(
         res,
-        contains(
-            Location(mainFileUri.toString(), rangeFromMarkers(mainContents))));
+        contains(Location(
+            uri: mainFileUri.toString(),
+            range: rangeFromMarkers(mainContents))));
     expect(
         res,
-        contains(Location(referencedFileUri.toString(),
-            rangeFromMarkers(referencedContents))));
+        contains(Location(
+            uri: referencedFileUri.toString(),
+            range: rangeFromMarkers(referencedContents))));
   }
 
   Future<void> test_acrossFiles_withoutDeclaration() async {
@@ -122,7 +124,8 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(
       res,
       contains(
-        Location(mainFileUri.toString(), rangeFromMarkers(contents)),
+        Location(
+            uri: mainFileUri.toString(), range: rangeFromMarkers(contents)),
       ),
     );
   }
@@ -142,7 +145,8 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(
       res,
       contains(
-        Location(mainFileUri.toString(), rangeFromMarkers(contents)),
+        Location(
+            uri: mainFileUri.toString(), range: rangeFromMarkers(contents)),
       ),
     );
   }

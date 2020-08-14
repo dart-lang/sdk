@@ -79,6 +79,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get stringType => typeProvider.stringType;
 
+  String get testFilePath => '/test/lib/test.dart';
+
   TypeProvider get typeProvider => result.typeProvider;
 
   TypeSystemImpl get typeSystem => result.typeSystem;
@@ -89,7 +91,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile('/test/lib/test.dart', content: content);
+    newFile(testFilePath, content: content);
   }
 
   void assertAssignment(
@@ -206,9 +208,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementNull(Expression node) {
-    Element actual = getNodeElement(node);
-    expect(actual, isNull);
+  void assertElementNull(Object nodeOrElement) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    expect(element, isNull);
   }
 
   void assertElementString(Element element, String expected) {
@@ -257,6 +265,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return result;
   }
 
+  Future<void> assertErrorsInFile2(
+    String path,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    path = convertPath(path);
+
+    var result = await resolveFile(path);
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
   void assertErrorsInList(
     List<AnalysisError> errors,
     List<ExpectedError> expectedErrors,
@@ -271,6 +289,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     List<ExpectedError> expectedErrors,
   ) {
     assertErrorsInList(result.errors, expectedErrors);
+  }
+
+  void assertErrorsInResult(List<ExpectedError> expectedErrors) {
+    assertErrorsInResolvedUnit(result, expectedErrors);
   }
 
   void assertFunctionExpressionInvocation(
@@ -306,7 +328,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
-  void assertImportPrefix(SimpleIdentifier identifier, PrefixElement element) {
+  /// In valid code [element] must be a [PrefixElement], but for invalid code
+  /// like `int.double v;` we want to resolve `int` somehow. Still not type.
+  void assertImportPrefix(SimpleIdentifier identifier, Element element) {
     assertElement(identifier, element);
     assertTypeNull(identifier);
   }
@@ -496,6 +520,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResolvedUnit(result, const []);
   }
 
+  void assertNoErrorsInResult() {
+    assertErrorsInResult(const []);
+  }
+
   void assertParameterElement(
     Expression expression,
     ParameterElement expected,
@@ -639,7 +667,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeName(
       TypeName node, Element expectedElement, String expectedType,
-      {PrefixElement expectedPrefix}) {
+      {Element expectedPrefix}) {
     assertType(node, expectedType);
 
     if (expectedPrefix == null) {
@@ -747,17 +775,31 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path);
 
-  /// Put the [code] into the test file, and resolve it.
-  Future<void> resolveTestCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-  }
+  /// Resolve the file with the [path] into [result].
+  Future<void> resolveFile2(String path) async {
+    path = convertPath(path);
 
-  Future<void> resolveTestFile() async {
-    var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);
+    expect(result.state, ResultState.VALID);
+
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
+  }
+
+  /// Create a new file with the [path] and [content], resolve it into [result].
+  Future<void> resolveFileCode(String path, String content) {
+    newFile(path, content: content);
+    return resolveFile2(path);
+  }
+
+  /// Put the [code] into the test file, and resolve it.
+  Future<void> resolveTestCode(String code) {
+    addTestFile(code);
+    return resolveTestFile();
+  }
+
+  Future<void> resolveTestFile() {
+    return resolveFile2(testFilePath);
   }
 
   /// Choose the type display string, depending on whether the [result] is

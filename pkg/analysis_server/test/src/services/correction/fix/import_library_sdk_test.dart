@@ -211,7 +211,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 main() {}
 ''', errorFilter: (error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER;
+      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
     });
   }
 

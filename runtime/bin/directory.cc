@@ -232,9 +232,7 @@ void FUNCTION_NAME(Directory_GetAsyncDirectoryListerPointer)(
   }
 }
 
-static void ReleaseListing(void* isolate_callback_data,
-                           Dart_WeakPersistentHandle handle,
-                           void* peer) {
+static void ReleaseListing(void* isolate_callback_data, void* peer) {
   AsyncDirectoryListing* listing =
       reinterpret_cast<AsyncDirectoryListing*>(peer);
   listing->Release();
@@ -247,8 +245,8 @@ void FUNCTION_NAME(Directory_SetAsyncDirectoryListerPointer)(
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
   AsyncDirectoryListing* listing =
       reinterpret_cast<AsyncDirectoryListing*>(listing_pointer);
-  Dart_NewWeakPersistentHandle(dart_this, reinterpret_cast<void*>(listing),
-                               sizeof(*listing), ReleaseListing);
+  Dart_NewFinalizableHandle(dart_this, reinterpret_cast<void*>(listing),
+                            sizeof(*listing), ReleaseListing);
   Dart_Handle result = Dart_SetNativeInstanceField(
       dart_this, kAsyncDirectoryListerFieldIndex, listing_pointer);
   ThrowIfError(result);

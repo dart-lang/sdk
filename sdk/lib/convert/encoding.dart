@@ -65,12 +65,12 @@ abstract class Encoding extends Codec<String, List<int>> {
     "utf-8": utf8
   };
 
-  /// Gets an [Encoding] object from the name of the character set
-  /// name. The names used are the IANA official names for the
-  /// character set (see
-  /// http://www.iana.org/assignments/character-sets/character-sets.xml).
+  /// Returns an [Encoding] for a named character set.
   ///
-  /// The [name] passed is case insensitive.
+  /// The names used are the IANA official names for the character set (see
+  /// [IANA character sets][]). The names are case insensitive.
+  ///
+  /// [IANA character sets]: http://www.iana.org/assignments/character-sets/character-sets.xml
   ///
   /// If character set is not supported `null` is returned.
   static Encoding? getByName(String? name) {

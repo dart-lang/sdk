@@ -12,16 +12,18 @@ import 'utils.dart';
 
 Future testGetCurrentPosition() async {
   var position = await window.navigator.geolocation.getCurrentPosition();
-  Expect.isNotNull(position.coords.latitude);
-  Expect.isNotNull(position.coords.longitude);
-  Expect.isNotNull(position.coords.accuracy);
+  var coords = position.coords!;
+  Expect.isNotNull(coords.latitude);
+  Expect.isNotNull(coords.longitude);
+  Expect.isNotNull(coords.accuracy);
 }
 
 Future testWatchPosition() async {
   var position = await window.navigator.geolocation.watchPosition().first;
-  Expect.isNotNull(position.coords.latitude);
-  Expect.isNotNull(position.coords.longitude);
-  Expect.isNotNull(position.coords.accuracy);
+  var coords = position.coords!;
+  Expect.isNotNull(coords.latitude);
+  Expect.isNotNull(coords.longitude);
+  Expect.isNotNull(coords.accuracy);
 }
 
 main() {

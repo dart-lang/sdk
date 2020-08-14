@@ -64,13 +64,23 @@ abstract class _TestFileBase {
   /// generated from a multitest. Otherwise, returns an empty string.
   String get multitestKey;
 
-  /// If the text contains static error expectations, it's a "static error
+  /// If the test contains static error expectations, it's a "static error
   /// test".
   ///
   /// These tests exist to validate that a front end reports the right static
-  /// errors. They are skipped on configurations that don't intend to test
-  /// static error reporting.
+  /// errors. Unless the expected errors are all warnings, a static error test
+  /// is skipped on configurations that are not purely front end.
   bool get isStaticErrorTest => expectedErrors.isNotEmpty;
+
+  /// If the tests has no static error expectations, or all of the expectations
+  /// are warnings, then the test tests runtime semantics.
+  ///
+  /// Note that this is *not* the negation of [isStaticErrorTest]. A test that
+  /// contains only warning expectations is both a static "error" test and a
+  /// runtime test. The test runner will validate that the front ends produce
+  /// the expected warnings *and* that a runtime also correctly executes the
+  /// test.
+  bool get isRuntimeTest => expectedErrors.every((error) => error.isWarning);
 
   /// A hash code used to spread tests across shards.
   int get shardHash {

@@ -12,7 +12,7 @@ Class '', script = '#lib'
 
 Function 'simpleClosure', static, reflectable, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Bytecode {
   Entry                4
@@ -51,7 +51,7 @@ ConstantPool {
   [0] = ClosureFunction 0
   [1] = InstanceField dart:core::_Closure::_context (field)
   [2] = Reserved
-  [3] = Type dart:core::int
+  [3] = Type dart:core::int*
   [4] = ObjectRef 'y'
   [5] = SubtypeTestCache
   [6] = EndClosureFunctionScope
@@ -63,7 +63,7 @@ ConstantPool {
   [12] = Reserved
   [13] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
 }
-Closure #lib::simpleClosure::'<anonymous closure>' (dart:core::int y) -> dart:core::Null
+Closure #lib::simpleClosure::'<anonymous closure>' (dart:core::int* y) -> dart:core::Null?
 ClosureCode {
   EntryFixed           2, 3
   Push                 FP[-6]
@@ -92,7 +92,7 @@ L1:
 
 
 Function 'callWithArgs', static, reflectable, debuggable
-    type-params <dart:core::Object T1, dart:core::Object T2, dart:core::Object T3, dart:core::Object T4, dart:core::Object T5, dart:core::Object T6, dart:core::Object T7, dart:core::Object T8>
+    type-params <dart:core::Object* T1, dart:core::Object* T2, dart:core::Object* T3, dart:core::Object* T4, dart:core::Object* T5, dart:core::Object* T6, dart:core::Object* T7, dart:core::Object* T8>
     parameters [] (required: 0)
     return-type void
 
@@ -161,15 +161,15 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = ObjectRef < dart:core::Type >
-  [1] = Type #lib::callWithArgs::TypeParam/0
-  [2] = Type #lib::callWithArgs::TypeParam/1
-  [3] = Type #lib::callWithArgs::TypeParam/2
-  [4] = Type #lib::callWithArgs::TypeParam/3
-  [5] = Type #lib::callWithArgs::TypeParam/4
-  [6] = Type #lib::callWithArgs::TypeParam/5
-  [7] = Type #lib::callWithArgs::TypeParam/6
-  [8] = Type #lib::callWithArgs::TypeParam/7
+  [0] = ObjectRef < dart:core::Type* >
+  [1] = Type #lib::callWithArgs::TypeParam/0*
+  [2] = Type #lib::callWithArgs::TypeParam/1*
+  [3] = Type #lib::callWithArgs::TypeParam/2*
+  [4] = Type #lib::callWithArgs::TypeParam/3*
+  [5] = Type #lib::callWithArgs::TypeParam/4*
+  [6] = Type #lib::callWithArgs::TypeParam/5*
+  [7] = Type #lib::callWithArgs::TypeParam/6*
+  [8] = Type #lib::callWithArgs::TypeParam/7*
   [9] = DirectCall 'dart:core::List::_fromLiteral (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [10] = Reserved
   [11] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
@@ -218,21 +218,21 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = ObjectRef < #lib::C3, #lib::C4 >
+  [0] = ObjectRef < #lib::C3*, #lib::C4* >
   [1] = Class #lib::A
-  [2] = ObjectRef < #lib::C1, #lib::C2 >
+  [2] = ObjectRef < #lib::C1*, #lib::C2* >
   [3] = DirectCall '#lib::A:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [4] = Reserved
   [5] = InterfaceCall '#lib::A::foo', ArgDesc num-args 1, num-type-args 2, names []
   [6] = Reserved
-  [7] = ObjectRef < dart:core::List < #lib::C3 >, dart:core::List < #lib::C4 > >
-  [8] = ObjectRef < dart:core::List < #lib::C1 >, dart:core::List < #lib::C2 > >
+  [7] = ObjectRef < dart:core::List < #lib::C3* >*, dart:core::List < #lib::C4* >* >
+  [8] = ObjectRef < dart:core::List < #lib::C1* >*, dart:core::List < #lib::C2* >* >
 }
 
 
 Function 'testPartialInstantiation', static, reflectable, debuggable
     parameters [] (required: 0)
-    return-type FunctionType (dart:core::int) -> dynamic
+    return-type FunctionType (dart:core::int*)* -> dynamic
 
 Bytecode {
   Entry                7
@@ -297,7 +297,7 @@ ConstantPool {
   [7] = Reserved
   [8] = DirectCall 'dart:_internal::_prependTypeArguments', ArgDesc num-args 4, num-type-args 0, names []
   [9] = Reserved
-  [10] = Type #lib::testPartialInstantiation::Closure/0::TypeParam/0
+  [10] = Type #lib::testPartialInstantiation::Closure/0::TypeParam/0*
   [11] = ObjectRef 't'
   [12] = SubtypeTestCache
   [13] = EndClosureFunctionScope
@@ -305,12 +305,12 @@ ConstantPool {
   [15] = Reserved
   [16] = InstanceField dart:core::_Closure::_function (field)
   [17] = Reserved
-  [18] = ObjectRef < dart:core::int >
+  [18] = ObjectRef < dart:core::int* >
   [19] = DirectCall 'dart:_internal::_boundsCheckForPartialInstantiation', ArgDesc num-args 2, num-type-args 0, names []
   [20] = Reserved
   [21] = Class dart:core::_Closure
 }
-Closure #lib::testPartialInstantiation::'foo' <dart:core::Object T> (#lib::testPartialInstantiation::Closure/0::TypeParam/0 t) -> void
+Closure #lib::testPartialInstantiation::'foo' <dart:core::Object* T> (#lib::testPartialInstantiation::Closure/0::TypeParam/0* t) -> void
 ClosureCode {
   EntryFixed           2, 3
   Push                 FP[-6]
@@ -362,12 +362,12 @@ ConstantPool {
 }
 
 Class 'C1', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C1
+    return-type #lib::C1*
 
 Bytecode {
   Entry                0
@@ -386,50 +386,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C2', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C2
+    return-type #lib::C2*
 
 Bytecode {
   Entry                0
@@ -448,50 +448,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C3', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C3
+    return-type #lib::C3*
 
 Bytecode {
   Entry                0
@@ -510,50 +510,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C4', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C4
+    return-type #lib::C4*
 
 Bytecode {
   Entry                0
@@ -572,50 +572,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C5', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C5
+    return-type #lib::C5*
 
 Bytecode {
   Entry                0
@@ -634,50 +634,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C6', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C6
+    return-type #lib::C6*
 
 Bytecode {
   Entry                0
@@ -696,50 +696,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C7', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C7
+    return-type #lib::C7*
 
 Bytecode {
   Entry                0
@@ -758,50 +758,50 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C8', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C8
+    return-type #lib::C8*
 
 Bytecode {
   Entry                0
@@ -820,51 +820,51 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'A', script = '#lib'
-    type-params <dart:core::Object T1, dart:core::Object T2> (args: 2)
-    extends dart:core::Object
+    type-params <dart:core::Object* T1, dart:core::Object* T2> (args: 2)
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::A < #lib::A::TypeParam/0, #lib::A::TypeParam/1 >
+    return-type #lib::A < #lib::A::TypeParam/0*, #lib::A::TypeParam/1* >*
 
 Bytecode {
   Entry                0
@@ -882,7 +882,7 @@ ConstantPool {
 
 
 Function 'foo', reflectable, debuggable
-    type-params <dart:core::Object T3, dart:core::Object T4>
+    type-params <dart:core::Object* T3, dart:core::Object* T4>
     parameters [] (required: 0)
     return-type void
 
@@ -942,21 +942,21 @@ ConstantPool {
   [9] = Reserved
   [10] = ClosureFunction 1
   [11] = ClosureFunction 2
-  [12] = ObjectRef < dart:core::Type >
-  [13] = Type #lib::A::TypeParam/0
+  [12] = ObjectRef < dart:core::Type* >
+  [13] = Type #lib::A::TypeParam/0*
   [14] = TypeArgumentsField #lib::A
-  [15] = Type #lib::A::TypeParam/1
-  [16] = Type #lib::A::foo::TypeParam/0
-  [17] = Type #lib::A::foo::TypeParam/1
-  [18] = Type #lib::A::foo::Closure/0::TypeParam/0
-  [19] = Type #lib::A::foo::Closure/0::TypeParam/1
-  [20] = Type #lib::A::foo::Closure/1::TypeParam/0
-  [21] = Type #lib::A::foo::Closure/1::TypeParam/1
+  [15] = Type #lib::A::TypeParam/1*
+  [16] = Type #lib::A::foo::TypeParam/0*
+  [17] = Type #lib::A::foo::TypeParam/1*
+  [18] = Type #lib::A::foo::Closure/0::TypeParam/0*
+  [19] = Type #lib::A::foo::Closure/0::TypeParam/1*
+  [20] = Type #lib::A::foo::Closure/1::TypeParam/0*
+  [21] = Type #lib::A::foo::Closure/1::TypeParam/1*
   [22] = DirectCall 'dart:core::List::_fromLiteral (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [23] = Reserved
   [24] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [25] = Reserved
-  [26] = ObjectRef < #lib::A::TypeParam/0, #lib::A::TypeParam/1, #lib::A::foo::TypeParam/0, #lib::A::foo::TypeParam/1, #lib::A::foo::Closure/0::TypeParam/0, #lib::A::foo::Closure/0::TypeParam/1, #lib::A::foo::Closure/1::TypeParam/0, #lib::A::foo::Closure/1::TypeParam/1 >
+  [26] = ObjectRef < #lib::A::TypeParam/0*, #lib::A::TypeParam/1*, #lib::A::foo::TypeParam/0*, #lib::A::foo::TypeParam/1*, #lib::A::foo::Closure/0::TypeParam/0*, #lib::A::foo::Closure/0::TypeParam/1*, #lib::A::foo::Closure/1::TypeParam/0*, #lib::A::foo::Closure/1::TypeParam/1* >
   [27] = DirectCall '#lib::callWithArgs', ArgDesc num-args 0, num-type-args 8, names []
   [28] = Reserved
   [29] = EndClosureFunctionScope
@@ -966,14 +966,14 @@ ConstantPool {
   [33] = Reserved
   [34] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [35] = EndClosureFunctionScope
-  [36] = ObjectRef < #lib::C7, #lib::C8 >
+  [36] = ObjectRef < #lib::C7*, #lib::C8* >
   [37] = ObjectRef ArgDesc num-args 1, num-type-args 2, names []
-  [38] = ObjectRef < dart:core::List < #lib::C7 >, dart:core::List < #lib::C8 > >
+  [38] = ObjectRef < dart:core::List < #lib::C7* >*, dart:core::List < #lib::C8* >* >
   [39] = EndClosureFunctionScope
-  [40] = ObjectRef < #lib::C5, #lib::C6 >
-  [41] = ObjectRef < dart:core::List < #lib::C5 >, dart:core::List < #lib::C6 > >
+  [40] = ObjectRef < #lib::C5*, #lib::C6* >
+  [41] = ObjectRef < dart:core::List < #lib::C5* >*, dart:core::List < #lib::C6* >* >
 }
-Closure #lib::A::foo::'nested1' <dart:core::Object T5, dart:core::Object T6> () -> void
+Closure #lib::A::foo::'nested1' <dart:core::Object* T5, dart:core::Object* T6> () -> void
 ClosureCode {
   EntryFixed           1, 5
   Push                 FP[-5]
@@ -1033,7 +1033,7 @@ L2:
   ReturnTOS
 }
 
-Closure #lib::A::foo::Closure/0::'nested2' <dart:core::Object T7, dart:core::Object T8> () -> void
+Closure #lib::A::foo::Closure/0::'nested2' <dart:core::Object* T7, dart:core::Object* T8> () -> void
 ClosureCode {
   EntryFixed           1, 5
   Push                 FP[-5]
@@ -1083,7 +1083,7 @@ L2:
   ReturnTOS
 }
 
-Closure #lib::A::foo::Closure/1::'<anonymous closure>' () -> dart:core::Null
+Closure #lib::A::foo::Closure/1::'<anonymous closure>' () -> dart:core::Null?
 ClosureCode {
   EntryFixed           1, 4
   Push                 FP[-5]
@@ -1169,52 +1169,52 @@ ClosureCode {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'B', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
-Field 'foo', type = dart:core::int, getter = 'get:foo', setter = 'set:foo', reflectable, has-initializer
+Field 'foo', type = dart:core::int*, getter = 'get:foo', setter = 'set:foo', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::B
+    return-type #lib::B*
 
 Bytecode {
   Entry                0
@@ -1320,7 +1320,7 @@ ConstantPool {
   [0] = ClosureFunction 0
   [1] = InstanceField dart:core::_Closure::_context (field)
   [2] = Reserved
-  [3] = Type dart:core::int
+  [3] = Type dart:core::int*
   [4] = ObjectRef 'y'
   [5] = SubtypeTestCache
   [6] = ClosureFunction 1
@@ -1343,7 +1343,7 @@ ConstantPool {
   [23] = Reserved
   [24] = EndClosureFunctionScope
 }
-Closure #lib::B::topLevel::'<anonymous closure>' (dart:core::int y) -> dart:core::Null
+Closure #lib::B::topLevel::'<anonymous closure>' (dart:core::int* y) -> dart:core::Null?
 ClosureCode {
   EntryFixed           2, 4
   Push                 FP[-6]
@@ -1443,7 +1443,7 @@ ClosureCode {
   ReturnTOS
 }
 
-Closure #lib::B::topLevel::'<anonymous closure>' () -> dart:core::Null
+Closure #lib::B::topLevel::'<anonymous closure>' () -> dart:core::Null?
 ClosureCode {
   EntryFixed           1, 3
   Push                 FP[-5]
@@ -1464,50 +1464,50 @@ ClosureCode {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'C', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::C
+    return-type #lib::C*
 
 Bytecode {
   Entry                0
@@ -1618,7 +1618,7 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = ObjectRef < dart:core::Function >
+  [0] = ObjectRef < dart:core::Function* >
   [1] = ObjectRef const <dynamic> []
   [2] = DirectCall 'dart:core::List::_fromLiteral (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
@@ -1632,16 +1632,16 @@ ConstantPool {
   [11] = Reserved
   [12] = InstanceField dart:core::_Closure::_function (field)
   [13] = Reserved
-  [14] = InstantiatedInterfaceCall 'dart:core::List::add', ArgDesc num-args 2, num-type-args 0, names [], receiver dart:core::List < dart:core::Function >
+  [14] = InstantiatedInterfaceCall 'dart:core::List::add', ArgDesc num-args 2, num-type-args 0, names [], receiver dart:core::List < dart:core::Function* >*
   [15] = Reserved
   [16] = Reserved
   [17] = ClosureFunction 1
-  [18] = Type dart:core::int
+  [18] = Type dart:core::int*
   [19] = ObjectRef 'ii'
   [20] = SubtypeTestCache
   [21] = EndClosureFunctionScope
 }
-Closure #lib::C::testForLoop::'<anonymous closure>' () -> dart:core::int
+Closure #lib::C::testForLoop::'<anonymous closure>' () -> dart:core::int*
 ClosureCode {
   EntryFixed           1, 2
   Push                 FP[-5]
@@ -1658,7 +1658,7 @@ ClosureCode {
   ReturnTOS
 }
 
-Closure #lib::C::testForLoop::'<anonymous closure>' (dart:core::int ii) -> dart:core::Null
+Closure #lib::C::testForLoop::'<anonymous closure>' (dart:core::int* ii) -> dart:core::Null?
 ClosureCode {
   EntryFixed           2, 3
   Push                 FP[-6]
@@ -1688,7 +1688,7 @@ L1:
 
 
 Function 'testForInLoop', reflectable, debuggable
-    parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
+    parameters [dart:core::List < dart:core::int* >* 'list'] (required: 1)
     return-type void
 
 Bytecode {
@@ -1762,7 +1762,7 @@ ConstantPool {
   [17] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [18] = Reserved
 }
-Closure #lib::C::testForInLoop::'<anonymous closure>' () -> dart:core::Null
+Closure #lib::C::testForInLoop::'<anonymous closure>' () -> dart:core::Null?
 ClosureCode {
   EntryFixed           1, 3
   Push                 FP[-5]
@@ -1783,51 +1783,51 @@ ClosureCode {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'D', script = '#lib'
-    type-params <dart:core::Object T> (args: 1)
-    extends dart:core::Object
+    type-params <dart:core::Object* T> (args: 1)
+    extends dart:core::Object*
 
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::D < #lib::D::TypeParam/0 >
+    return-type #lib::D < #lib::D::TypeParam/0* >*
 
 Bytecode {
   Entry                0
@@ -1845,7 +1845,7 @@ ConstantPool {
 
 
 Function 'foo', reflectable, debuggable
-    parameters [#lib::D::TypeParam/0 't'] (required: 1)
+    parameters [#lib::D::TypeParam/0* 't'] (required: 1)
     return-type dynamic
 
 Bytecode {
@@ -1885,7 +1885,7 @@ L1:
 }
 Parameter flags: [2]
 ConstantPool {
-  [0] = Type #lib::D::TypeParam/0
+  [0] = Type #lib::D::TypeParam/0*
   [1] = TypeArgumentsField #lib::D
   [2] = ObjectRef 't'
   [3] = SubtypeTestCache
@@ -1900,7 +1900,7 @@ ConstantPool {
   [12] = InstanceField dart:core::_Closure::_function (field)
   [13] = Reserved
 }
-Closure #lib::D::foo::'<anonymous closure>' () -> #lib::D::TypeParam/0
+Closure #lib::D::foo::'<anonymous closure>' () -> #lib::D::TypeParam/0*
 ClosureCode {
   EntryFixed           1, 2
   Push                 FP[-5]
@@ -1959,7 +1959,7 @@ ConstantPool {
   [12] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [13] = EndClosureFunctionScope
 }
-Closure #lib::D::bar::'<anonymous closure>' () -> dart:core::Null
+Closure #lib::D::bar::'<anonymous closure>' () -> dart:core::Null?
 ClosureCode {
   EntryFixed           1, 4
   Push                 FP[-5]
@@ -1993,7 +1993,7 @@ ClosureCode {
   ReturnTOS
 }
 
-Closure #lib::D::bar::Closure/0::'inner' () -> dart:core::Null
+Closure #lib::D::bar::Closure/0::'inner' () -> dart:core::Null?
 ClosureCode {
   EntryFixed           1, 2
   Push                 FP[-5]
@@ -2008,52 +2008,52 @@ ClosureCode {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'E', script = '#lib', abstract
-    extends dart:core::Object
+    extends dart:core::Object*
 
-Field 'foo1', type = FunctionType (dart:core::int, dart:core::int) -> dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable, has-initializer
+Field 'foo1', type = FunctionType (dart:core::int*, dart:core::int*)* -> dart:core::int*, getter = 'get:foo1', setter = 'set:foo1', reflectable, has-initializer
     value = null
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
-    return-type #lib::E
+    return-type #lib::E*
 
 Bytecode {
   Entry                0
@@ -2073,23 +2073,23 @@ ConstantPool {
 
 Function 'get:foo2', getter, abstract, reflectable, debuggable
     parameters [] (required: 0)
-    return-type FunctionType <dart:core::Object T> (null::TypeParam/0, null::TypeParam/0) -> dart:core::int
+    return-type FunctionType <dart:core::Object* T> (null::TypeParam/0*, null::TypeParam/0*)* -> dart:core::int*
 
 Function 'evalArg1', abstract, reflectable, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'evalArg2', abstract, reflectable, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'getE', abstract, reflectable, debuggable
     parameters [] (required: 0)
-    return-type #lib::E
+    return-type #lib::E*
 
 Function 'testCallThroughGetter1', reflectable, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Bytecode {
   Entry                3
@@ -2122,7 +2122,7 @@ ConstantPool {
 
 Function 'testCallThroughGetter2', reflectable, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Bytecode {
   Entry                3
@@ -2148,7 +2148,7 @@ ConstantPool {
   [1] = Reserved
   [2] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
   [3] = Reserved
-  [4] = ObjectRef < dart:core::int >
+  [4] = ObjectRef < dart:core::int* >
   [5] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
   [6] = Reserved
   [7] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
@@ -2157,7 +2157,7 @@ ConstantPool {
 
 Function 'testCallThroughGetter3', reflectable, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Bytecode {
   Entry                4
@@ -2188,7 +2188,7 @@ ConstantPool {
   [3] = Reserved
   [4] = InterfaceCall '#lib::E::evalArg2', ArgDesc num-args 1, num-type-args 0, names []
   [5] = Reserved
-  [6] = ObjectRef < dart:core::int >
+  [6] = ObjectRef < dart:core::int* >
   [7] = InterfaceCall '#lib::E::get:foo2', ArgDesc num-args 1, num-type-args 0, names []
   [8] = Reserved
   [9] = ObjectRef ArgDesc num-args 3, num-type-args 1, names []
@@ -2197,43 +2197,43 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 
 }
 ]library #lib from "#lib" as #lib {

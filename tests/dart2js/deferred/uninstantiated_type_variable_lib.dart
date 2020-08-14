@@ -8,7 +8,7 @@
 class A {}
 
 class Box<T> {
-  int value;
+  int? value;
 }
 
 class B<T> extends A {

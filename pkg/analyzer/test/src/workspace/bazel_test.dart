@@ -130,6 +130,58 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         exists: true);
   }
 
+  void test_resolveAbsolute_file_bin_to_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+      '/workspace/bazel-bin/'
+    ]);
+    _assertResolve('file:///workspace/bazel-bin/my/foo/test/foo1.dart',
+        '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
+  void test_resolveAbsolute_file_genfiles_to_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/test/foo1.dart'
+    ]);
+    _assertResolve('file:///workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        '/workspace/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
+  void test_resolveAbsolute_file_not_in_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/other/my/foo/test/foo1.dart'
+    ]);
+    _assertNoResolve('file:///other/my/foo/test/foo1.dart');
+  }
+
+  void test_resolveAbsolute_file_readonly_to_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/READONLY/workspace/',
+      '/workspace/my/foo/test/foo1.dart'
+    ]);
+    _assertResolve('file:///READONLY/workspace/my/foo/test/foo1.dart',
+        '/workspace/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
+  void test_resolveAbsolute_file_workspace_to_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/my/foo/test/foo1.dart'
+    ]);
+    _assertResolve('file:///workspace/my/foo/test/foo1.dart',
+        '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
   void test_resolveAbsolute_genfiles() {
     _addResources([
       '/workspace/WORKSPACE',
@@ -463,6 +515,11 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     workspace =
         BazelWorkspace.find(resourceProvider, convertPath(workspacePath));
     resolver = BazelPackageUriResolver(workspace);
+  }
+
+  void _assertNoResolve(String uriStr) {
+    var uri = Uri.parse(uriStr);
+    expect(resolver.resolveAbsolute(uri), isNull);
   }
 
   void _assertResolve(String uriStr, String posixPath,

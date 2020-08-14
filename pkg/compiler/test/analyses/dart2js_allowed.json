@@ -219,10 +219,7 @@
   "pkg/compiler/lib/src/inferrer/type_graph_nodes.dart": {
     "Dynamic invocation of 'add'.": 1,
     "Dynamic invocation of 'remove'.": 1,
-    "Dynamic access of 'type'.": 4,
-    "Dynamic invocation of 'containsOnlyInt'.": 1,
-    "Dynamic access of 'isEmpty'.": 1,
-    "Dynamic invocation of 'satisfies'.": 2
+    "Dynamic access of 'type'.": 4
   },
   "pkg/compiler/lib/src/inferrer/locals_handler.dart": {
     "Dynamic access of 'isEmpty'.": 1,

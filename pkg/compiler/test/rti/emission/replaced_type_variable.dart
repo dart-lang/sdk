@@ -14,7 +14,7 @@ class Class<T> {
   Type get type => T;
 }
 
-/*class: A:checks=[],typeArgument*/
+/*class: A:checks=[],onlyForRti,typeArgument*/
 class A {}
 
 @pragma('dart2js:noInline')

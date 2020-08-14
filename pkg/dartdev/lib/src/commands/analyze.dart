@@ -73,7 +73,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
     });
 
     await analysisCompleter.future;
-
+    await server.dispose();
     progress.finish(showTiming: true);
 
     errors.sort();

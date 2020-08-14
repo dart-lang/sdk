@@ -79,6 +79,9 @@ import 'package:analyzer/dart/element/element.dart';
 ///
 /// Clients may extend this class.
 class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
+  /// Initialize a newly created visitor.
+  const GeneralizingElementVisitor();
+
   @override
   R visitClassElement(ClassElement element) => visitElement(element);
 
@@ -191,6 +194,9 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 ///
 /// Clients may extend this class.
 class RecursiveElementVisitor<R> implements ElementVisitor<R> {
+  /// Initialize a newly created visitor.
+  const RecursiveElementVisitor();
+
   @override
   R visitClassElement(ClassElement element) {
     element.visitChildren(this);
@@ -325,6 +331,9 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 ///
 /// Clients may extend this class.
 class SimpleElementVisitor<R> implements ElementVisitor<R> {
+  /// Initialize a newly created visitor.
+  const SimpleElementVisitor();
+
   @override
   R visitClassElement(ClassElement element) => null;
 
@@ -398,6 +407,9 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 ///
 /// Clients may extend this class.
 class ThrowingElementVisitor<R> implements ElementVisitor<R> {
+  /// Initialize a newly created visitor.
+  const ThrowingElementVisitor();
+
   @override
   R visitClassElement(ClassElement element) => _throw(element);
 

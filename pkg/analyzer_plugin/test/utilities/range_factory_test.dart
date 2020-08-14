@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -14,12 +15,22 @@ import '../support/abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SourceRangesTest);
+    defineReflectiveTests(RangeFactoryTest);
   });
 }
 
 @reflectiveTest
-class SourceRangesTest extends AbstractSingleUnitTest {
+class RangeFactoryTest extends AbstractSingleUnitTest {
+  /// Assuming that the test code starts with a function whose block body starts
+  /// with a method invocation, return the list of arguments in that invocation.
+  NodeList<Expression> get _argumentList {
+    var f = testUnit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
+    return invocation.argumentList.arguments;
+  }
+
   Future<void> test_elementName() async {
     await resolveTestUnit('class ABC {}');
     var element = findElement('ABC');
@@ -59,6 +70,117 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     var mainFunction = testUnit.declarations[0] as FunctionDeclaration;
     var mainName = mainFunction.name;
     expect(range.node(mainName), SourceRange(0, 4));
+  }
+
+  Future<void> test_nodeInList_argumentList_first_named() async {
+    await resolveTestUnit('''
+void f() {
+  g(a: 1, b: 2);
+}
+void g({int a, int b}) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 6));
+  }
+
+  Future<void> test_nodeInList_argumentList_first_positional() async {
+    await resolveTestUnit('''
+void f() {
+  g(1, 2);
+}
+void g(int a, int b) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 3));
+  }
+
+  Future<void> test_nodeInList_argumentList_last_named() async {
+    await resolveTestUnit('''
+void f() {
+  g(a: 1, b: 2);
+}
+void g({int a, int b}) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
+  }
+
+  Future<void> test_nodeInList_argumentList_last_positional() async {
+    await resolveTestUnit('''
+void f() {
+  g(1, 2);
+}
+void g(int a, int b) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(16, 3));
+  }
+
+  Future<void> test_nodeInList_argumentList_middle_named() async {
+    await resolveTestUnit('''
+void f() {
+  g(a: 1, b: 2, c: 3);
+}
+void g({int a, int b, int c}) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(19, 6));
+  }
+
+  Future<void> test_nodeInList_argumentList_middle_positional() async {
+    await resolveTestUnit('''
+void f() {
+  g(1, 2, 3);
+}
+void g(int a, int b, int c) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[1]), SourceRange(16, 3));
+  }
+
+  Future<void> test_nodeInList_argumentList_only_named() async {
+    await resolveTestUnit('''
+void f() {
+  g(a: 1);
+}
+void g({int a}) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 4));
+  }
+
+  Future<void> test_nodeInList_argumentList_only_named_trailingComma() async {
+    await resolveTestUnit('''
+void f() {
+  g(a: 1,);
+}
+void g({int a}) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 5));
+  }
+
+  Future<void> test_nodeInList_argumentList_only_positional() async {
+    await resolveTestUnit('''
+void f() {
+  g(1);
+}
+void g(int a) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 1));
+  }
+
+  Future<void>
+      test_nodeInList_argumentList_only_positional_trailingComma() async {
+    await resolveTestUnit('''
+void f() {
+  g(1,);
+}
+void g(int a) {}
+''');
+    var list = _argumentList;
+    expect(range.nodeInList(list, list[0]), SourceRange(15, 2));
   }
 
   Future<void> test_nodes() async {

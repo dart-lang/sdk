@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
+import 'dart:isolate';
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:dart_style/src/cli/format_command.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:usage/usage.dart';
@@ -15,17 +17,18 @@ import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
-import 'src/commands/format.dart';
 import 'src/commands/pub.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
+import 'src/vm_interop_handler.dart';
 
 /// This is typically called from bin/, but given the length of the method and
 /// analytics logic, it has been moved here. Also note that this method calls
 /// [io.exit(code)] directly.
-Future<void> runDartdev(List<String> args) async {
+Future<void> runDartdev(List<String> args, SendPort port) async {
+  VmInteropHandler.initialize(port);
   final stopwatch = Stopwatch();
   int result;
 
@@ -68,6 +71,12 @@ Future<void> runDartdev(List<String> args) async {
     io.exit(0);
   }
 
+  // --launch-dds is provided by the VM if the VM service is to be enabled. In
+  // that case, we need to launch DDS as well.
+  // TODO(bkonyi): add support for pub run (#42726)
+  if (args.contains('--launch-dds')) {
+    RunCommand.launchDds = true;
+  }
   String commandName;
 
   try {
@@ -78,6 +87,22 @@ Future<void> runDartdev(List<String> args) async {
     if (args.contains('--disable-dartdev-analytics')) {
       args = List.from(args)..remove('--disable-dartdev-analytics');
     }
+
+    // Run also can't be called with '--launch-dds', remove it if it's
+    // contained in args.
+    if (args.contains('--launch-dds')) {
+      args = List.from(args)..remove('--launch-dds');
+    }
+
+    // These flags have a format that can't be handled by package:args, so
+    // while they are valid flags we'll assume the VM has verified them by this
+    // point.
+    args = args
+        .where(
+          (element) => !(element.contains('--observe') ||
+              element.contains('--enable-vm-service')),
+        )
+        .toList();
 
     // Before calling to run, send the first ping to analytics to have the first
     // ping, as well as the command itself, running in parallel.
@@ -133,7 +158,7 @@ Future<void> runDartdev(List<String> args) async {
       analytics.enabled = true;
     }
     analytics.close();
-    io.exit(exitCode);
+    VmInteropHandler.exit(exitCode);
   }
 }
 
@@ -166,13 +191,20 @@ class DartdevRunner<int> extends CommandRunner {
         help: 'Disable anonymous analytics for this `dart *` run',
         hide: true);
 
+    // Another hidden flag used by the VM to indicate that DDS should be
+    // launched. Should be removed for all commands other than `run`.
+    argParser.addFlag('launch-dds',
+        negatable: false, hide: true, help: 'Launch DDS.');
+
     addCommand(AnalyzeCommand());
     addCommand(CreateCommand(verbose: verbose));
     addCommand(CompileCommand());
+// Enable experimental `fix` command
+//    addCommand(FixCommand());
     addCommand(FormatCommand());
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(PubCommand());
-    addCommand(RunCommand());
+    addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
   }
 
@@ -192,7 +224,7 @@ class DartdevRunner<int> extends CommandRunner {
         io.stderr.writeln(
             "Error when reading '$firstArg': No such file or directory.");
         // This is the exit code used by the frontend.
-        io.exit(254);
+        VmInteropHandler.exit(254);
       }
     }
 

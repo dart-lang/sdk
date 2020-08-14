@@ -167,11 +167,15 @@ class MethodNode extends CallableNode {
   }
 }
 
+bool _isProperty(Entity entity) =>
+    entity is MemberEntity && (entity.isField || entity.isGetter);
+
 class CallablePropertyNode extends CallableNode {
   final MemberEntity property;
   final DartType type;
 
-  CallablePropertyNode(this.property, this.type);
+  CallablePropertyNode(this.property, this.type)
+      : assert(_isProperty(property));
 
   @override
   Entity get entity => property;
@@ -181,8 +185,6 @@ class CallablePropertyNode extends CallableNode {
 
   @override
   bool selectorApplies(Selector selector, BuiltWorld world) {
-    if (world.annotationsData.getParameterCheckPolicy(property).isTrusted)
-      return false;
     if (property.memberName != selector.memberName) return false;
     if (type is FunctionType &&
         !selector.callStructure
@@ -305,6 +307,8 @@ class TypeVariableTests {
     Iterable<RtiNode> dependencies;
     if (entity is ClassEntity) {
       dependencies = _classes[entity]?.dependencies;
+    } else if (_isProperty(entity)) {
+      dependencies = _callableProperties[entity]?.dependencies;
     } else {
       dependencies = _methods[entity]?.dependencies;
     }
@@ -1031,6 +1035,8 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         });
       } else if (entity is FunctionEntity) {
         methodsNeedingTypeArguments.add(entity);
+      } else if (_isProperty(entity)) {
+        // Do nothing. We just need to visit the dependencies.
       } else {
         localFunctionsNeedingTypeArguments.add(entity);
       }
@@ -1137,6 +1143,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     classesUsingTypeVariableLiterals.forEach(potentiallyNeedTypeArguments);
     methodsUsingTypeVariableLiterals.forEach(potentiallyNeedTypeArguments);
     localFunctionsUsingTypeVariableLiterals
+        .forEach(potentiallyNeedTypeArguments);
+
+    typeVariableTests._callableProperties.keys
         .forEach(potentiallyNeedTypeArguments);
 
     if (closedWorld.isMemberUsed(
@@ -1317,7 +1326,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     typeVariableTests
         .forEachAppliedSelector((Selector selector, Set<Entity> targets) {
       for (Entity target in targets) {
-        if (target is MemberEntity && (target.isField || target.isGetter) ||
+        if (_isProperty(target) ||
             methodsNeedingTypeArguments.contains(target) ||
             localFunctionsNeedingTypeArguments.contains(target)) {
           selectorsNeedingTypeArguments.add(selector);

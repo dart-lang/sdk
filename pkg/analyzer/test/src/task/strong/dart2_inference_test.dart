@@ -11,7 +11,7 @@ import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../dart/resolution/driver_resolution.dart';
+import '../../dart/resolution/context_collection_resolution.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -23,7 +23,7 @@ void main() {
 ///
 /// https://github.com/dart-lang/sdk/issues/31638
 @reflectiveTest
-class Dart2InferenceTest extends DriverResolutionTest {
+class Dart2InferenceTest extends PubPackageResolutionTest {
   test_bool_assert() async {
     var code = r'''
 T f<T>(int _) => null;

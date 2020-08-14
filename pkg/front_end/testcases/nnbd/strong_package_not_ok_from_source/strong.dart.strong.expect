@@ -1,0 +1,27 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/nnbd/strong_package_not_ok_from_source/opt_in_package/lib/opt_out_lib.dart:5:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart=2.7
+// ^^^^^^^^^^^^
+//
+//
+// Problems in component:
+//
+// Error: Cannot run with sound null safety as one or more dependencies do not
+// support null safety:
+//
+//  - package:opt_out_package
+//
+// Run 'pub outdated --mode=null-safety' to determine if versions of your
+// dependencies supporting null safety are available.
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "package:opt_in_package/opt_in_lib.dart";
+import "package:opt_in_package/opt_out_lib.dart";
+import "package:opt_out_package/regular_lib1.dart";
+import "package:opt_out_package/regular_lib2.dart";
+
+static method main() → dynamic {}

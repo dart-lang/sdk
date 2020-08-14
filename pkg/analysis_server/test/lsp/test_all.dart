@@ -30,6 +30,7 @@ import 'initialization_test.dart' as initialization;
 import 'mapping_test.dart' as mapping;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
+import 'reanalyze_test.dart' as reanalyze;
 import 'references_test.dart' as references;
 import 'rename_test.dart' as rename;
 import 'server_test.dart' as server;
@@ -66,6 +67,7 @@ void main() {
     mapping.main();
     outline.main();
     priority_files.main();
+    reanalyze.main();
     references.main();
     rename.main();
     server.main();

@@ -26,8 +26,8 @@ for arg in "$@"; do
     PACKAGES="$arg"
     ;;
     --enable-asserts | \
-    --null-safety | \
-    --no-null-safety | \
+    --sound-null-safety | \
+    --no-sound-null-safety | \
     --enable-experiment=*)
     GEN_KERNEL_OPTIONS+=("$arg")
     OPTIONS+=("$arg")

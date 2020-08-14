@@ -98,15 +98,19 @@ class ExtensionMemberContributor extends DartCompletionContributor {
 
   void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
     var typeSystem = containingLibrary.typeSystem;
-    var nameScope = LibraryScope(containingLibrary);
+    var nameScope = containingLibrary.scope;
     for (var extension in nameScope.extensions) {
       var extendedType =
           _resolveExtendedType(containingLibrary, extension, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
         double inheritanceDistance;
         if (memberBuilder.request.useNewRelevance) {
-          inheritanceDistance = memberBuilder.request.featureComputer
-              .inheritanceDistanceFeature(type.element, extendedType.element);
+          if (type is InterfaceType && extendedType is InterfaceType) {
+            inheritanceDistance = memberBuilder.request.featureComputer
+                .inheritanceDistanceFeature(type.element, extendedType.element);
+          } else {
+            inheritanceDistance = -1;
+          }
         }
         // TODO(brianwilkerson) We might want to apply the substitution to the
         //  members of the extension for display purposes.

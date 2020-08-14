@@ -51,49 +51,49 @@ main() {
   // Test that operator calls on class literals go to Type.
   Expect.throwsNoSuchMethodError(() => C = 1);
   //                                   ^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
   // [cfe] Can't assign to a type literal.
   //                                       ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   Expect.throwsNoSuchMethodError(() => C++);
   //                                   ^
-  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
   // [cfe] Can't assign to a type literal.
   //                                    ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   Expect.throwsNoSuchMethodError(() => C + 1);
   //                                     ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '+' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => C[2]);
   //                                    ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => C[2] = 'hest');
   //                                    ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic = 1);
   //                                   ^
   // [cfe] Can't assign to a type literal.
   //                                             ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   Expect.throwsNoSuchMethodError(() => dynamic++);
   //                                   ^
   // [cfe] Can't assign to a type literal.
   //                                          ^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   Expect.throwsNoSuchMethodError(() => dynamic + 1);
   //                                           ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '+' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic[2]);
   //                                          ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]' isn't defined for the class 'Type'.
   Expect.throwsNoSuchMethodError(() => dynamic[2] = 'hest');
   //                                          ^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_OPERATOR
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '[]=' isn't defined for the class 'Type'.
 
   Expect.equals((dynamic).toString(), 'dynamic');

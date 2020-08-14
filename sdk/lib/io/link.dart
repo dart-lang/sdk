@@ -53,7 +53,7 @@ abstract class Link implements FileSystemEntity {
    * On the Windows platform, this call will create a true symbolic link
    * instead of a Junction. In order to create a symbolic link on Windows, Dart
    * must be run in Administrator mode or the system must have Developer Mode
-   * enabled, otherwise a [FileSystemException] will be raised with 
+   * enabled, otherwise a [FileSystemException] will be raised with
    * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
@@ -74,7 +74,7 @@ abstract class Link implements FileSystemEntity {
    * On the Windows platform, this call will create a true symbolic link
    * instead of a Junction. In order to create a symbolic link on Windows, Dart
    * must be run in Administrator mode or the system must have Developer Mode
-   * enabled, otherwise a [FileSystemException] will be raised with 
+   * enabled, otherwise a [FileSystemException] will be raised with
    * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
@@ -172,7 +172,7 @@ class _Link extends FileSystemEntity implements Link {
 
   bool existsSync() => FileSystemEntity._isLinkRawSync(_rawPath);
 
-  Link get absolute => new Link.fromRawPath(_rawAbsolutePath);
+  Link get absolute => isAbsolute ? this : _Link(_absolutePath);
 
   Future<Link> create(String target, {bool recursive: false}) {
     var result =

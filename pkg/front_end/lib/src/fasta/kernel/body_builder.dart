@@ -696,6 +696,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -707,6 +708,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("Fields");
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
+      if (abstractToken != null) {
+        handleRecoverableError(
+            fasta.messageAbstractClassMember, abstractToken, abstractToken);
+      }
       if (externalToken != null) {
         handleRecoverableError(
             fasta.messageExternalField, externalToken, externalToken);
@@ -2394,22 +2399,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     Expression initializer;
-    if (!optional("in", token)) {
+    if (!optional("in", token.next)) {
       // A for-in loop-variable can't have an initializer. So let's remain
       // silent if the next token is `in`. Since a for-in loop can only have
       // one variable it must be followed by `in`.
-      if (isConst) {
-        initializer = buildProblem(
-            fasta.templateConstFieldWithoutInitializer
-                .withArguments(token.lexeme),
-            token.charOffset,
-            token.length);
-      } else if (isFinal && !isLate) {
-        initializer = buildProblem(
-            fasta.templateFinalFieldWithoutInitializer
-                .withArguments(token.lexeme),
-            token.charOffset,
-            token.length);
+      if (!token.isSynthetic) {
+        // If [token] is synthetic it is created from error recovery.
+        if (isConst) {
+          initializer = buildProblem(
+              fasta.templateConstFieldWithoutInitializer
+                  .withArguments(token.lexeme),
+              token.charOffset,
+              token.length);
+        } else if (isFinal && !isLate) {
+          initializer = buildProblem(
+              fasta.templateFinalFieldWithoutInitializer
+                  .withArguments(token.lexeme),
+              token.charOffset,
+              token.length);
+        }
       }
     }
     pushNewLocalVariable(initializer);
@@ -2452,6 +2460,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is FieldBuilder) {
       FieldBuilder fieldBuilder = member;
       inLateFieldInitializer = fieldBuilder.isLate;
+      if (fieldBuilder.isAbstract) {
+        addProblem(
+            fasta.messageAbstractFieldInitializer, token.charOffset, noLength);
+      } else if (fieldBuilder.isExternal) {
+        addProblem(
+            fasta.messageExternalFieldInitializer, token.charOffset, noLength);
+      }
     } else {
       inLateFieldInitializer = false;
     }
@@ -5863,7 +5878,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ];
       }
       initializedFields[name] = assignmentOffset;
-      if (builder.isFinal && builder.hasInitializer) {
+      if (builder.isAbstract) {
+        return <Initializer>[
+          buildInvalidInitializer(
+              buildProblem(fasta.messageAbstractFieldConstructorInitializer,
+                  fieldNameOffset, name.length),
+              fieldNameOffset)
+        ];
+      } else if (builder.isExternal) {
+        return <Initializer>[
+          buildInvalidInitializer(
+              buildProblem(fasta.messageExternalFieldConstructorInitializer,
+                  fieldNameOffset, name.length),
+              fieldNameOffset)
+        ];
+      } else if (builder.isFinal && builder.hasInitializer) {
         addProblem(
             fasta.templateFinalInstanceVariableAlreadyInitialized
                 .withArguments(name),

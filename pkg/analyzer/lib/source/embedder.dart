@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
+import 'package:pub_semver/src/version.dart';
 import 'package:yaml/yaml.dart';
 
 export 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
@@ -38,11 +39,13 @@ class EmbedderSdk extends AbstractDartSdk {
     embedderYamls?.forEach(_processEmbedderYaml);
   }
 
-  // TODO(danrubel) Determine SDK version
   @override
   String get allowedExperimentsJson {
     return null;
   }
+
+  @override
+  Version get languageVersion => throw UnimplementedError();
 
   @override
   String get sdkVersion => '0';

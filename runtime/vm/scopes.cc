@@ -212,6 +212,7 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
   LocalVariable* await_jump_var = nullptr;
   LocalVariable* async_completer = nullptr;
   LocalVariable* controller = nullptr;
+  LocalVariable* chained_future = nullptr;
   for (intptr_t i = 0; i < num_variables(); i++) {
     LocalVariable* variable = VariableAt(i);
     if (variable->owner() == this) {
@@ -222,6 +223,8 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
           async_completer = variable;
         } else if (variable->name().Equals(Symbols::Controller())) {
           controller = variable;
+        } else if (variable->is_chained_future()) {
+          chained_future = variable;
         }
       }
     }
@@ -242,6 +245,12 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     AllocateContextVariable(controller, &context_owner);
     *found_captured_variables = true;
     ASSERT(controller->index().value() == Context::kControllerIndex);
+  }
+  if (chained_future != nullptr) {
+    AllocateContextVariable(chained_future, &context_owner);
+    *found_captured_variables = true;
+    ASSERT(chained_future->index().value() ==
+           chained_future->expected_context_index());
   }
 
   while (pos < num_parameters) {
@@ -271,9 +280,9 @@ VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
     LocalVariable* variable = VariableAt(pos);
     if (variable->owner() == this) {
       if (variable->is_captured()) {
-        // Skip the two variables already pre-allocated above.
+        // Skip the variables already pre-allocated above.
         if (variable != await_jump_var && variable != async_completer &&
-            variable != controller) {
+            variable != controller && variable != chained_future) {
           AllocateContextVariable(variable, &context_owner);
           *found_captured_variables = true;
         }

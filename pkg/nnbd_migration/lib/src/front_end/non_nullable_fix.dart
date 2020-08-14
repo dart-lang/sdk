@@ -183,9 +183,11 @@ class NonNullableFix {
     _server = null;
   }
 
-  Future<void> startPreviewServer(MigrationState state) async {
+  Future<void> startPreviewServer(
+      MigrationState state, void Function() applyHook) async {
     if (_server == null) {
-      _server = HttpPreviewServer(state, rerun, bindAddress, preferredPort);
+      _server = HttpPreviewServer(
+          state, rerun, applyHook, bindAddress, preferredPort);
       _server.serveHttp();
       _allServers.add(_server);
       var serverHostname = await _server.boundHostname;

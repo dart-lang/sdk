@@ -363,6 +363,7 @@ abstract class AstFactory {
   FieldDeclaration fieldDeclaration2(
       {Comment comment,
       List<Annotation> metadata,
+      Token abstractKeyword,
       Token covariantKeyword,
       Token staticKeyword,
       @required VariableDeclarationList fieldList,

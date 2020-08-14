@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,7 +21,7 @@ class CreateLocalVariable extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_LOCAL_VARIABLE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier) {
       return;
     }
@@ -33,7 +33,7 @@ class CreateLocalVariable extends CorrectionProducer {
       if (assignment.leftHandSide == node &&
           assignment.operator.type == TokenType.EQ &&
           assignment.parent is ExpressionStatement) {
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(node.offset, 'var ');
         });
         return;
@@ -51,8 +51,8 @@ class CreateLocalVariable extends CorrectionProducer {
       return;
     }
     // build variable declaration source
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(target.offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(target.offset, (builder) {
         builder.writeLocalVariableDeclaration(_variableName,
             nameGroupName: 'NAME', type: type, typeGroupName: 'TYPE');
         builder.write(eol);

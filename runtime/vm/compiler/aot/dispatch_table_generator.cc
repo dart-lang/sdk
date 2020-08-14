@@ -420,8 +420,12 @@ void DispatchTableGenerator::ReadTableSelectorInfo() {
   const auto& info = KernelProgramInfo::Handle(Z, script.kernel_program_info());
   kernel::TableSelectorMetadata* metadata =
       kernel::TableSelectorMetadataForProgram(info, Z);
-  // This assert will fail if gen_kernel was run in non-AOT mode or without TFA.
-  RELEASE_ASSERT(metadata != nullptr);
+  // Errors out if gen_kernel was run in non-AOT mode or without TFA.
+  if (metadata == nullptr) {
+    FATAL(
+        "Missing table selector metadata!\n"
+        "Probably gen_kernel was run in non-AOT mode or without TFA.\n");
+  }
   for (intptr_t i = 0; i < metadata->selectors.length(); i++) {
     const kernel::TableSelectorInfo* info = &metadata->selectors[i];
     selector_map_.AddSelector(info->call_count, info->called_on_null,

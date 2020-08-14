@@ -13,6 +13,10 @@ class _LibraryPrefix {
 
   bool _isLoaded() native "LibraryPrefix_isLoaded";
   void _setLoaded() native "LibraryPrefix_setLoaded";
+  Object _loadingUnit() native "LibraryPrefix_loadingUnit";
+  static void _issueLoad(Object unit) native "LibraryPrefix_issueLoad";
+
+  static final _loads = new Map<Object, Completer<void>>();
 }
 
 class _DeferredNotLoadedError extends Error implements NoSuchMethodError {
@@ -26,9 +30,39 @@ class _DeferredNotLoadedError extends Error implements NoSuchMethodError {
 }
 
 @pragma("vm:entry-point")
+void _completeLoads(Object unit, String? errorMessage, bool transientError) {
+  Completer<void> load = _LibraryPrefix._loads[unit]!;
+  if (errorMessage == null) {
+    load.complete(null);
+  } else {
+    if (transientError) {
+      _LibraryPrefix._loads.remove(unit);
+    }
+    load.completeError(new DeferredLoadException(errorMessage));
+  }
+}
+
+@pragma("vm:entry-point")
 @pragma("vm:never-inline") // Don't duplicate prefix checking code.
-Future<void> _loadLibrary(_LibraryPrefix prefix) {
-  return new Future<void>(() {
+Future<void> _loadLibrary(_LibraryPrefix prefix) async {
+  if (!prefix._isLoaded()) {
+    Object unit = prefix._loadingUnit();
+    // Don't issue a load request for the root unit. A deferred prefix can
+    // point to a library in the root unit if there is also an immediate import
+    // of that library.
+    if (unit != 1) {
+      Completer<void>? load = _LibraryPrefix._loads[unit];
+      if (load == null) {
+        _LibraryPrefix._loads[unit] = load = new Completer<void>();
+        _LibraryPrefix._issueLoad(unit);
+      }
+      await load.future;
+    }
+  }
+  // Ensure the prefix's future does not complete until the next Turn even
+  // when loading is a no-op or synchronous. Helps applications avoid writing
+  // code that only works when loading isn't really deferred.
+  await new Future<void>(() {
     prefix._setLoaded();
   });
 }

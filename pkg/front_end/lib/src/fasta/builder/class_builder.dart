@@ -62,7 +62,7 @@ import '../loader.dart';
 
 import '../modifier.dart';
 
-import '../names.dart' show noSuchMethodName;
+import '../names.dart' show equalsName, noSuchMethodName;
 
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
@@ -791,27 +791,30 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           "Constructor in override check.", declaredMember.fileOffset, fileUri);
     }
     if (declaredMember is Procedure && interfaceMember is Procedure) {
-      if (declaredMember.kind == ProcedureKind.Method &&
-          interfaceMember.kind == ProcedureKind.Method) {
-        bool seenCovariant = checkMethodOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
-        if (seenCovariant) {
-          handleSeenCovariant(
-              types, declaredMember, interfaceMember, isSetter, callback);
-        }
-      }
-      if (declaredMember.kind == ProcedureKind.Getter &&
-          interfaceMember.kind == ProcedureKind.Getter) {
-        checkGetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
-      }
-      if (declaredMember.kind == ProcedureKind.Setter &&
-          interfaceMember.kind == ProcedureKind.Setter) {
-        bool seenCovariant = checkSetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
-        if (seenCovariant) {
-          handleSeenCovariant(
-              types, declaredMember, interfaceMember, isSetter, callback);
+      if (declaredMember.kind == interfaceMember.kind) {
+        if (declaredMember.kind == ProcedureKind.Method ||
+            declaredMember.kind == ProcedureKind.Operator) {
+          bool seenCovariant = checkMethodOverride(
+              types, declaredMember, interfaceMember, isInterfaceCheck);
+          if (seenCovariant) {
+            handleSeenCovariant(
+                types, declaredMember, interfaceMember, isSetter, callback);
+          }
+        } else if (declaredMember.kind == ProcedureKind.Getter) {
+          checkGetterOverride(
+              types, declaredMember, interfaceMember, isInterfaceCheck);
+        } else if (declaredMember.kind == ProcedureKind.Setter) {
+          bool seenCovariant = checkSetterOverride(
+              types, declaredMember, interfaceMember, isInterfaceCheck);
+          if (seenCovariant) {
+            handleSeenCovariant(
+                types, declaredMember, interfaceMember, isSetter, callback);
+          }
+        } else {
+          assert(
+              false,
+              "Unexpected procedure kind in override check: "
+              "${declaredMember.kind}");
         }
       }
     } else {
@@ -854,10 +857,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
     String prefix =
         procedure.isGetter ? 'get:' : procedure.isSetter ? 'set:' : '';
+    String invocationName = prefix + procedure.name.name;
+    if (procedure.isSetter) invocationName += '=';
     Expression invocation = target.backendTarget.instantiateInvocation(
         target.loader.coreTypes,
         new ThisExpression(),
-        prefix + procedure.name.name,
+        invocationName,
         new Arguments.forwarded(procedure.function, library.library),
         procedure.fileOffset,
         /*isSuper=*/ false);
@@ -1093,8 +1098,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool checkMethodOverride(Types types, Procedure declaredMember,
       Procedure interfaceMember, bool isInterfaceCheck) {
-    assert(declaredMember.kind == ProcedureKind.Method);
-    assert(interfaceMember.kind == ProcedureKind.Method);
+    assert(declaredMember.kind == interfaceMember.kind);
+    assert(declaredMember.kind == ProcedureKind.Method ||
+        declaredMember.kind == ProcedureKind.Operator);
     bool seenCovariant = false;
     FunctionNode declaredFunction = declaredMember.function;
     FunctionNode interfaceFunction = interfaceMember.function;
@@ -1167,6 +1173,17 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           declaredFunction.positionalParameters[i];
       VariableDeclaration interfaceParameter =
           interfaceFunction.positionalParameters[i];
+      if (i == 0 &&
+          declaredMember.name == equalsName &&
+          declaredParameter.type ==
+              types.hierarchy.coreTypes.objectNonNullableRawType &&
+          interfaceParameter.type is DynamicType) {
+        // TODO(johnniwinther): Add check for opt-in overrides of operator ==.
+        // `operator ==` methods in opt-out classes have type
+        // `bool Function(dynamic)`.
+        continue;
+      }
+
       _checkTypes(
           types,
           interfaceSubstitution,
@@ -1174,7 +1191,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           declaredMember,
           interfaceMember,
           declaredParameter.type,
-          interfaceFunction.positionalParameters[i].type,
+          interfaceParameter.type,
           declaredParameter.isCovariant || interfaceParameter.isCovariant,
           declaredParameter,
           isInterfaceCheck);
@@ -1340,6 +1357,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   void reportInvalidOverride(bool isInterfaceCheck, Member declaredMember,
       Message message, int fileOffset, int length,
       {List<LocatedMessage> context}) {
+    if (shouldOverrideProblemBeOverlooked(this)) {
+      return;
+    }
+
     if (declaredMember.enclosingClass == cls) {
       // Ordinary override
       library.addProblem(message, fileOffset, length, declaredMember.fileUri,
@@ -1400,15 +1421,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     InterfaceType supertype = cls.supertype.asInterfaceType;
     Substitution substitution = Substitution.fromSupertype(cls.mixedInType);
     for (Supertype constraint in cls.mixedInClass.superclassConstraints()) {
-      InterfaceType interface =
+      InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
-      if (hierarchy.getTypeAsInstanceOf(
-              supertype, interface.classNode, library.library, coreTypes) !=
-          interface) {
+      InterfaceType implementedInterface = hierarchy.getTypeAsInstanceOf(
+          supertype, requiredInterface.classNode, library.library, coreTypes);
+      if (implementedInterface != requiredInterface) {
         library.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype,
-                interface,
+                requiredInterface,
                 cls.mixedInType.asInterfaceType,
                 library.isNonNullableByDefault),
             cls.fileOffset,
@@ -1768,4 +1789,18 @@ class ConstructorRedirection {
   bool cycleReported;
 
   ConstructorRedirection(this.target) : cycleReported = false;
+}
+
+/// Returns `true` if override problems should be overlooked.
+///
+/// This is needed for the current encoding of some JavaScript implementation
+/// classes that are not valid Dart. For instance `JSInt` in
+/// 'dart:_interceptors' that implements both `int` and `double`, and `JsArray`
+/// in `dart:js` that implement both `ListMixin` and `JsObject`.
+bool shouldOverrideProblemBeOverlooked(ClassBuilder classBuilder) {
+  String uri = '${classBuilder.library.importUri}';
+  return uri == 'dart:js' &&
+          classBuilder.fileUri.pathSegments.last == 'js.dart' ||
+      uri == 'dart:_interceptors' &&
+          classBuilder.fileUri.pathSegments.last == 'js_number.dart';
 }

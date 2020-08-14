@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,11 +20,11 @@ main() {
 
 @reflectiveTest
 class NonConstantListElementFromDeferredLibraryTest
-    extends DriverResolutionTest {
+    extends PubPackageResolutionTest {
   @failingTest
   test_const_ifElement_thenTrue_deferredElse() async {
     // reports wrong error code (which is not crucial to fix)
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -39,7 +39,7 @@ var v = const [ if (cond) 'a' else a.c ];
   }
 
   test_const_ifElement_thenTrue_deferredThen() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const int c = 1;''');
     await assertErrorsInCode(
         r'''
@@ -61,7 +61,7 @@ var v = const [ if (cond) a.c ];
   }
 
   test_const_topLevel_deferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
@@ -75,7 +75,7 @@ var v = const [a.c];
   }
 
   test_const_topLevel_deferred_nested() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+    newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const int c = 1;''');
     await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;

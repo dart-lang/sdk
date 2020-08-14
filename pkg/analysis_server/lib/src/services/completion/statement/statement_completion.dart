@@ -975,7 +975,7 @@ class StatementCompletionProcessor {
       if (catchNode.onKeyword != null) {
         if (catchNode.exceptionType.length == 0 ||
             null !=
-                _findError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+                _findError(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
                     partialMatch: "name 'catch")) {
           var src = utils.getNodeText(catchNode);
           if (src.startsWith(RegExp(r'on[ \t]+'))) {

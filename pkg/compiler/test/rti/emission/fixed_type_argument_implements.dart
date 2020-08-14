@@ -7,11 +7,11 @@
 // Test that we emit the relation between B and A even when B is only live
 // as a type argument through the supertype of D.
 
-/*spec.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
 class A {}
 
-/*spec.class: B:checks=[$isA],typeArgument*/
-/*prod.class: B:checks=[],typeArgument*/
+/*spec.class: B:checks=[$isA],onlyForRti,typeArgument*/
+/*prod.class: B:checks=[],onlyForRti,typeArgument*/
 class B implements A {}
 
 /*spec.class: C:checkedInstance*/

@@ -40,8 +40,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: null,
     );
@@ -66,8 +66,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: MarkupKind.Markdown,
     );
@@ -90,8 +90,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: null,
     );
@@ -116,8 +116,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: MarkupKind.PlainText,
     );
@@ -146,8 +146,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: MarkupKind.Markdown,
     );
@@ -182,9 +182,9 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-        ParameterInformation('bool a', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool a'),
       ],
     );
   }
@@ -209,9 +209,9 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-        ParameterInformation('bool a', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool a'),
       ],
     );
   }
@@ -236,8 +236,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
       ],
     );
   }
@@ -262,8 +262,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
       ],
     );
   }
@@ -287,8 +287,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
     );
   }
@@ -312,8 +312,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
     );
   }
@@ -345,7 +345,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       // Plain string.
       expect(doc.valueEquals(expectedDoc), isTrue);
     } else {
-      final expected = MarkupContent(expectedFormat, expectedDoc);
+      final expected = MarkupContent(kind: expectedFormat, value: expectedDoc);
       expect(doc.valueEquals(expected), isTrue);
     }
   }

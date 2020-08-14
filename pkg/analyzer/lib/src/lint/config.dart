@@ -60,7 +60,7 @@ class _LintConfig implements LintConfig {
   @override
   final ruleConfigs = <RuleConfig>[];
 
-  void addAsListOrString(value, List<String> list) {
+  void addAsListOrString(Object value, List<String> list) {
     if (value is List) {
       value.forEach((v) => list.add(v));
     } else if (value is String) {
@@ -68,7 +68,7 @@ class _LintConfig implements LintConfig {
     }
   }
 
-  bool asBool(scalar) {
+  bool asBool(Object scalar) {
     Object value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is bool) {
       return value;
@@ -84,7 +84,7 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  String asString(scalar) {
+  String asString(Object scalar) {
     Object value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is String) {
       return value;
@@ -92,7 +92,7 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  Map<String, dynamic> parseArgs(args) {
+  Map<String, dynamic> parseArgs(Object args) {
     bool enabled = asBool(args);
     if (enabled != null) {
       return {'enabled': enabled};

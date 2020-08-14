@@ -72,7 +72,7 @@ Future<int> f() async {
   return 1;
 }
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
     });
   }
 
@@ -91,7 +91,7 @@ void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() async => await 1);
 ''', errorFilter: (AnalysisError error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
+      return error.errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
     });
   }
 

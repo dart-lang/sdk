@@ -2,34 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
-    defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsDeclarationWithNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
-    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeWithNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
-    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsExternalReferenceWithNullSafetyTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
-    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNnbdTest);
+    defineReflectiveTests(ExtensionMethodsInternalReferenceWithNullSafetyTest);
   });
 }
 
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationTest extends DriverResolutionTest {
+class ExtensionMethodsDeclarationTest extends PubPackageResolutionTest {
   @override
   List<MockSdkLibrary> get additionalMockSdkLibraries => [
         MockSdkLibrary([
@@ -40,12 +38,14 @@ extension E on Object {
 
 class A {}
 '''),
+        ]),
+        MockSdkLibrary([
           MockSdkLibraryUnit('dart:test2', 'test2/test2.dart', r'''
 extension E on Object {
   int get a => 1;
 }
 '''),
-        ])
+        ]),
       ];
 
   test_constructor() async {
@@ -137,7 +137,7 @@ extension E<T extends Object> on T {
   }
 
   test_visibility_hidden() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int a = 1;
@@ -150,12 +150,12 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
     ]);
   }
 
   test_visibility_notShown() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int a = 1;
@@ -168,12 +168,12 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1),
     ]);
   }
 
   test_visibility_shadowed_byClass() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -194,12 +194,12 @@ f(C c) {
   }
 
   test_visibility_shadowed_byImport() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 extension E on Object {
   int get a => 1;
 }
 ''');
-    newFile('/test/lib/lib2.dart', content: '''
+    newFile('$testPackageLibPath/lib2.dart', content: '''
 class E {}
 class A {}
 ''');
@@ -218,7 +218,7 @@ f(Object o, A a) {
   }
 
   test_visibility_shadowed_byLocal_imported() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -259,7 +259,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_byTopLevelVariable() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -280,7 +280,7 @@ f(C c) {
   }
 
   test_visibility_shadowed_platformByNonPlatform() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 extension E on Object {
   int get a => 1;
 }
@@ -297,7 +297,7 @@ f(Object o, A a, B b) {
   }
 
   test_visibility_withPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 extension E on C {
   int get a => 1;
@@ -316,15 +316,8 @@ f(p.C c) {
 /// Tests that show that extension declarations and the members inside them are
 /// resolved correctly.
 @reflectiveTest
-class ExtensionMethodsDeclarationWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class ExtensionMethodsDeclarationWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_this_type_interface() async {
     await assertNoErrorsInCode('''
 extension E on int {
@@ -362,7 +355,7 @@ extension E<T extends Object> on T {
 /// Tests that show that extension declarations support all of the possible
 /// types in the `on` clause.
 @reflectiveTest
-class ExtensionMethodsExtendedTypeTest extends DriverResolutionTest {
+class ExtensionMethodsExtendedTypeTest extends PubPackageResolutionTest {
   test_named_generic() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -483,21 +476,13 @@ extension on M {}
 }
 
 @reflectiveTest
-class ExtensionMethodsExtendedTypeWithNnbdTest
-    extends ExtensionMethodsExtendedTypeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+class ExtensionMethodsExtendedTypeWithNullSafetyTest
+    extends ExtensionMethodsExtendedTypeTest with WithNullSafetyMixin {}
 
 /// Tests that extension members can be correctly resolved when referenced
 /// by code external to the extension declaration.
 @reflectiveTest
-class ExtensionMethodsExternalReferenceTest extends DriverResolutionTest {
+class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest {
   /// Corresponds to: extension_member_resolution_t07
   test_dynamicInvocation() async {
     await assertNoErrorsInCode(r'''
@@ -964,8 +949,8 @@ f(C c) {
 extension on Object {}
 var a = b + c;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 35, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
     ]);
   }
 
@@ -1241,7 +1226,7 @@ f(C c) => c.a;
   }
 
   test_static_field_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1279,7 +1264,7 @@ f() {
   }
 
   test_static_getter_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1317,7 +1302,7 @@ f() {
   }
 
   test_static_method_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1355,7 +1340,7 @@ f() {
   }
 
   test_static_setter_importedWithPrefix() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension E on C {
@@ -1436,16 +1421,8 @@ extension E on Function {
 }
 
 @reflectiveTest
-class ExtensionMethodsExternalReferenceWithNnbdTest
-    extends ExtensionMethodsExternalReferenceTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class ExtensionMethodsExternalReferenceWithNullSafetyTest
+    extends ExtensionMethodsExternalReferenceTest with WithNullSafetyMixin {
   test_instance_getter_fromInstance_Never() async {
     await assertNoErrorsInCode('''
 extension E on Never {
@@ -1615,10 +1592,10 @@ extension E on int {
 }
 
 f(int? a) {
-  a?.[0];
+  a?[0];
 }
 ''');
-    var index = findNode.index('a?.[0]');
+    var index = findNode.index('a?[0]');
     assertElement(index, findElement.method('[]'));
   }
 
@@ -1705,7 +1682,7 @@ f(int? a) {
 /// Tests that extension members can be correctly resolved when referenced
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
-class ExtensionMethodsInternalReferenceTest extends DriverResolutionTest {
+class ExtensionMethodsInternalReferenceTest extends PubPackageResolutionTest {
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -2242,13 +2219,5 @@ extension E on C {
 }
 
 @reflectiveTest
-class ExtensionMethodsInternalReferenceWithNnbdTest
-    extends ExtensionMethodsInternalReferenceTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-}
+class ExtensionMethodsInternalReferenceWithNullSafetyTest
+    extends ExtensionMethodsInternalReferenceTest with WithNullSafetyMixin {}

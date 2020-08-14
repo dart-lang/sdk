@@ -8,9 +8,9 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -22,7 +22,7 @@ class AddTypeAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_TYPE_ANNOTATION;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
       var parent = node.parent;
@@ -68,7 +68,7 @@ class AddTypeAnnotation extends CorrectionProducer {
   }
 
   Future<void> _forDeclaredIdentifier(
-      DartChangeBuilder builder, DeclaredIdentifier declaredIdentifier) async {
+      ChangeBuilder builder, DeclaredIdentifier declaredIdentifier) async {
     // Ensure that there isn't already a type annotation.
     if (declaredIdentifier.type != null) {
       return;
@@ -79,18 +79,16 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
     _configureTargetLocation(node);
 
-    Future<bool> applyChange(DartChangeBuilder builder) async {
+    Future<bool> applyChange(ChangeBuilder builder) async {
       var validChange = true;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         var keyword = declaredIdentifier.keyword;
         if (keyword.keyword == Keyword.VAR) {
-          builder.addReplacement(range.token(keyword),
-              (DartEditBuilder builder) {
+          builder.addReplacement(range.token(keyword), (builder) {
             validChange = builder.writeType(type);
           });
         } else {
-          builder.addInsertion(declaredIdentifier.identifier.offset,
-              (DartEditBuilder builder) {
+          builder.addInsertion(declaredIdentifier.identifier.offset, (builder) {
             validChange = builder.writeType(type);
             builder.write(' ');
           });
@@ -104,7 +102,7 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
   }
 
-  Future<void> _forSimpleFormalParameter(DartChangeBuilder builder,
+  Future<void> _forSimpleFormalParameter(ChangeBuilder builder,
       SimpleIdentifier name, SimpleFormalParameter parameter) async {
     // Ensure that there isn't already a type annotation.
     if (parameter.type != null) {
@@ -121,10 +119,10 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
     _configureTargetLocation(node);
 
-    Future<bool> applyChange(DartChangeBuilder builder) async {
+    Future<bool> applyChange(ChangeBuilder builder) async {
       var validChange = true;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(name.offset, (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(name.offset, (builder) {
           validChange = builder.writeType(type);
           if (validChange) {
             builder.write(' ');
@@ -139,8 +137,8 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
   }
 
-  Future<void> _forVariableDeclaration(DartChangeBuilder builder,
-      VariableDeclarationList declarationList) async {
+  Future<void> _forVariableDeclaration(
+      ChangeBuilder builder, VariableDeclarationList declarationList) async {
     // Ensure that there isn't already a type annotation.
     if (declarationList.type != null) {
       return;
@@ -168,17 +166,16 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
     _configureTargetLocation(node);
 
-    Future<bool> applyChange(DartChangeBuilder builder) async {
+    Future<bool> applyChange(ChangeBuilder builder) async {
       var validChange = true;
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         var keyword = declarationList.keyword;
         if (keyword?.keyword == Keyword.VAR) {
-          builder.addReplacement(range.token(keyword),
-              (DartEditBuilder builder) {
+          builder.addReplacement(range.token(keyword), (builder) {
             validChange = builder.writeType(type);
           });
         } else {
-          builder.addInsertion(variable.offset, (DartEditBuilder builder) {
+          builder.addInsertion(variable.offset, (builder) {
             validChange = builder.writeType(type);
             builder.write(' ');
           });
@@ -192,9 +189,8 @@ class AddTypeAnnotation extends CorrectionProducer {
     }
   }
 
-  DartChangeBuilder _temporaryBuilder(DartChangeBuilder builder) =>
-      DartChangeBuilderImpl.forWorkspace(
-          (builder as DartChangeBuilderImpl).workspace);
+  ChangeBuilder _temporaryBuilder(ChangeBuilder builder) =>
+      ChangeBuilder(workspace: (builder as ChangeBuilderImpl).workspace);
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
   static AddTypeAnnotation newInstance() => AddTypeAnnotation();

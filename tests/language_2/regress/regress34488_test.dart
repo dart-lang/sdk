@@ -25,27 +25,27 @@ main() {
   var d = new Derived();
   d.f('bad');
   //  ^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   d.g('bad');
   //  ^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   d.h(i: 'bad');
   //  ^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //     ^
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   Object x = d.f(1);
   //           ^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   Object y = d.g(1);
   //           ^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   Object z = d.h(i: 1);
   //           ^
-  // [analyzer] STATIC_WARNING.USE_OF_VOID_RESULT
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
 }

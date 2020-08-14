@@ -4054,7 +4054,7 @@ class HSwitchBlockInformation implements HStatementInformation {
 /// depend on type variables and complex types.
 class HIsTest extends HInstruction {
   final AbstractValueWithPrecision checkedAbstractValue;
-  final DartType dartType;
+  DartType dartType;
 
   HIsTest(this.dartType, this.checkedAbstractValue, HInstruction checked,
       HInstruction rti, AbstractValue type)
@@ -4066,9 +4066,9 @@ class HIsTest extends HInstruction {
   HInstruction get typeInput => inputs[0];
   HInstruction get checkedInput => inputs[1];
 
-  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
-      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
-          useNullSafety);
+  AbstractBool evaluate(JClosedWorld closedWorld, {bool useNullSafety}) =>
+      _typeTest(checkedInput, dartType, checkedAbstractValue, closedWorld,
+          isCast: false, useNullSafety: useNullSafety);
 
   @override
   accept(HVisitor visitor) => visitor.visitIsTest(this);
@@ -4101,9 +4101,9 @@ class HIsTestSimple extends HInstruction {
 
   HInstruction get checkedInput => inputs[0];
 
-  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
-      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
-          useNullSafety);
+  AbstractBool evaluate(JClosedWorld closedWorld, {bool useNullSafety}) =>
+      _typeTest(checkedInput, dartType, checkedAbstractValue, closedWorld,
+          isCast: false, useNullSafety: useNullSafety);
 
   @override
   accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
@@ -4121,35 +4121,36 @@ class HIsTestSimple extends HInstruction {
   String toString() => 'HIsTestSimple()';
 }
 
-AbstractBool _isTestResult(
-    HInstruction expression,
-    DartType dartType,
-    AbstractValueWithPrecision checkedAbstractValue,
-    JClosedWorld closedWorld,
-    bool useNullSafety) {
+AbstractBool _typeTest(HInstruction expression, DartType dartType,
+    AbstractValueWithPrecision checkedAbstractValue, JClosedWorld closedWorld,
+    {bool isCast, bool useNullSafety}) {
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue subsetType = expression.instructionType;
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
+  AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  if (useNullSafety &&
-      expression.isNull(abstractValueDomain).isDefinitelyTrue) {
-    if (dartType.isObject) return AbstractBool.False;
-    if (closedWorld.dartTypes.isTopType(dartType) ||
-        dartType is NullableType ||
-        dartType.isNull) {
-      return AbstractBool.True;
-    }
-    if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
-      return AbstractBool.Maybe;
-    }
-    if (dartType is LegacyType) {
-      DartType baseType = dartType.baseType;
-      if (baseType is NeverType) return AbstractBool.True;
-      if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+  if (!isCast && useNullSafety) {
+    if (expressionIsNull.isDefinitelyTrue) {
+      if (dartType.isObject) return AbstractBool.False;
+      if (closedWorld.dartTypes.isTopType(dartType) ||
+          dartType is NullableType ||
+          dartType.isNull) {
+        return AbstractBool.True;
+      }
+      if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
         return AbstractBool.Maybe;
       }
+      if (dartType is LegacyType) {
+        DartType baseType = dartType.baseType;
+        if (baseType is NeverType) return AbstractBool.True;
+        if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+          return AbstractBool.Maybe;
+        }
+      }
+      return AbstractBool.False;
+    } else if (expressionIsNull.isPotentiallyTrue) {
+      if (dartType.isObject) return AbstractBool.Maybe;
     }
-    return AbstractBool.False;
   }
 
   if (checkedAbstractValue.isPrecise &&
@@ -4230,7 +4231,7 @@ AbstractBool _isTestResult(
 /// Type cast or type check using Rti form of type expression.
 class HAsCheck extends HCheck {
   final AbstractValueWithPrecision checkedType;
-  final DartType checkedTypeExpression;
+  DartType checkedTypeExpression;
   final bool isTypeError;
 
   HAsCheck(
@@ -4265,14 +4266,10 @@ class HAsCheck extends HCheck {
     return isTypeError == other.isTypeError;
   }
 
-  bool isRedundant(JClosedWorld closedWorld) {
-    if (!checkedType.isPrecise) return false;
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, checkedType.abstractValue)
-        .isDefinitelyTrue;
-  }
+  bool isRedundant(JClosedWorld closedWorld, {bool useNullSafety}) =>
+      _typeTest(checkedInput, checkedTypeExpression, checkedType, closedWorld,
+              isCast: true, useNullSafety: useNullSafety)
+          .isDefinitelyTrue;
 
   @override
   String toString() {
@@ -4303,14 +4300,10 @@ class HAsCheckSimple extends HCheck {
   @override
   accept(HVisitor visitor) => visitor.visitAsCheckSimple(this);
 
-  bool isRedundant(JClosedWorld closedWorld) {
-    if (!checkedType.isPrecise) return false;
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, checkedType.abstractValue)
-        .isDefinitelyTrue;
-  }
+  bool isRedundant(JClosedWorld closedWorld, {bool useNullSafety}) =>
+      _typeTest(checkedInput, dartType, checkedType, closedWorld,
+              isCast: true, useNullSafety: useNullSafety)
+          .isDefinitelyTrue;
 
   @override
   int typeCode() => HInstruction.AS_CHECK_SIMPLE_TYPECODE;

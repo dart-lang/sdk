@@ -108,6 +108,25 @@ DART_EXTERN_C Dart_WeakPersistentHandle (*Dart_NewWeakPersistentHandle_DL)(
 DART_EXTERN_C void (*Dart_DeleteWeakPersistentHandle_DL)(
     Dart_WeakPersistentHandle object);
 
+DART_EXTERN_C void (*Dart_UpdateExternalSize_DL)(
+    Dart_WeakPersistentHandle object,
+    intptr_t external_allocation_size);
+
+DART_EXTERN_C Dart_FinalizableHandle (*Dart_NewFinalizableHandle_DL)(
+    Dart_Handle object,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback);
+
+DART_EXTERN_C void (*Dart_DeleteFinalizableHandle_DL)(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object);
+
+DART_EXTERN_C void (*Dart_UpdateFinalizableExternalSize_DL)(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object,
+    intptr_t external_allocation_size);
+
 DART_EXTERN_C bool (*Dart_Post_DL)(Dart_Port_DL port_id, Dart_Handle object);
 
 DART_EXTERN_C Dart_Handle (*Dart_NewSendPort_DL)(Dart_Port_DL port_id);

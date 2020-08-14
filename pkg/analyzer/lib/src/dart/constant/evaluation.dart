@@ -229,10 +229,10 @@ class ConstantEvaluationEngine {
         if (dartObject != null && constant.isConst) {
           if (!runtimeTypeMatch(dartObject, constant.type)) {
             // TODO(brianwilkerson) This should not be reported if
-            //  StaticTypeWarningCode.INVALID_ASSIGNMENT has already been
+            //  CompileTimeErrorCode.INVALID_ASSIGNMENT has already been
             //  reported (that is, if the static types are also wrong).
             errorReporter.reportErrorForNode(
-                CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+                CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
                 constantInitializer,
                 [dartObject.type, constant.type]);
           }
@@ -355,8 +355,7 @@ class ConstantEvaluationEngine {
         if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to
           // manually insert a reference to the implicit superconstructor.
-          InterfaceType superclass =
-              (constant.returnType as InterfaceType).superclass;
+          InterfaceType superclass = constant.returnType.superclass;
           if (superclass != null && !superclass.isDartCoreObject) {
             ConstructorElement unnamedConstructor =
                 superclass.element.unnamedConstructor?.declaration;
@@ -476,7 +475,7 @@ class ConstantEvaluationEngine {
     );
 
     constructor = followConstantRedirectionChain(constructor);
-    InterfaceType definingClass = constructor.returnType as InterfaceType;
+    InterfaceType definingClass = constructor.returnType;
     if (constructor.isFactory) {
       // We couldn't find a non-factory constructor.
       // See if it's because we reached an external const factory constructor
@@ -576,8 +575,7 @@ class ConstantEvaluationEngine {
             FieldMember.from(field, constructor.returnType).type;
         if (fieldValue != null && !runtimeTypeMatch(fieldValue, fieldType)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               node,
               [fieldValue.type, field.name, fieldType]);
         }
@@ -622,8 +620,7 @@ class ConstantEvaluationEngine {
       if (argumentValue != null) {
         if (!runtimeTypeMatch(argumentValue, parameter.type)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode
-                  .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               errorTarget,
               [argumentValue.type, parameter.type]);
         }
@@ -637,8 +634,7 @@ class ConstantEvaluationEngine {
               // the field.
               if (!runtimeTypeMatch(argumentValue, fieldType)) {
                 errorReporter.reportErrorForNode(
-                    CheckedModeCompileTimeErrorCode
-                        .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+                    CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     errorTarget,
                     [argumentValue.type, fieldType]);
               }
@@ -681,8 +677,7 @@ class ConstantEvaluationEngine {
             PropertyInducingElement field = getter.variable;
             if (!runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
-                  CheckedModeCompileTimeErrorCode
-                      .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                  CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                   node,
                   [evaluationResult.type, fieldName, field.type]);
             }
@@ -979,8 +974,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     Substitution substitution,
   })  : _lexicalEnvironment = lexicalEnvironment,
         _substitution = substitution {
-    this._dartObjectComputer =
-        DartObjectComputer(_errorReporter, evaluationEngine);
+    _dartObjectComputer = DartObjectComputer(_errorReporter, evaluationEngine);
   }
 
   /// Return the object representing the state of active experiments.
@@ -2230,13 +2224,13 @@ class EvaluationResultImpl {
   final DartObjectImpl value;
 
   EvaluationResultImpl(this.value, [List<AnalysisError> errors]) {
-    this._errors = errors ?? <AnalysisError>[];
+    _errors = errors ?? <AnalysisError>[];
   }
 
   List<AnalysisError> get errors => _errors;
 
   bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
-    if (this.value != null) {
+    if (value != null) {
       if (result.value == null) {
         return false;
       }

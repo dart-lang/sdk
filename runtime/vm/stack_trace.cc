@@ -104,6 +104,7 @@ class CallerClosureFinder {
   explicit CallerClosureFinder(Zone* zone)
       : receiver_context_(Context::Handle(zone)),
         receiver_function_(Function::Handle(zone)),
+        parent_function_(Function::Handle(zone)),
         context_entry_(Object::Handle(zone)),
         is_sync(Object::Handle(zone)),
         future_(Object::Handle(zone)),
@@ -285,6 +286,20 @@ class CallerClosureFinder {
       return FindCallerInAsyncClosure(receiver_context_);
     } else if (receiver_function_.IsAsyncGenClosure()) {
       return FindCallerInAsyncGenClosure(receiver_context_);
+    } else if (receiver_function_.IsLocalFunction()) {
+      parent_function_ = receiver_function_.parent_function();
+      if (parent_function_.recognized_kind() ==
+          MethodRecognizer::kFutureTimeout) {
+        context_entry_ =
+            receiver_context_.At(Context::kFutureTimeoutFutureIndex);
+        return GetCallerInFutureImpl(context_entry_);
+      } else if (parent_function_.recognized_kind() ==
+                 MethodRecognizer::kFutureWait) {
+        receiver_context_ = receiver_context_.parent();
+        ASSERT(!receiver_context_.IsNull());
+        context_entry_ = receiver_context_.At(Context::kFutureWaitFutureIndex);
+        return GetCallerInFutureImpl(context_entry_);
+      }
     }
 
     return Closure::null();
@@ -318,6 +333,7 @@ class CallerClosureFinder {
  private:
   Context& receiver_context_;
   Function& receiver_function_;
+  Function& parent_function_;
 
   Object& context_entry_;
   Object& is_sync;

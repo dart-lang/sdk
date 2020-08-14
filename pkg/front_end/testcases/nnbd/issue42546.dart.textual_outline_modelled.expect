@@ -1,0 +1,8 @@
+import 'dart:async';
+
+class Divergent<T> implements Future<Divergent<Divergent<T>>> {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+main() {}
+test() async {}

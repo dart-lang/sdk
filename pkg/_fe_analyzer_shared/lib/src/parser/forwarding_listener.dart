@@ -535,6 +535,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -543,8 +544,16 @@ class ForwardingListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    listener?.endClassFields(externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    listener?.endClassFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -648,6 +657,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -656,8 +666,16 @@ class ForwardingListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    listener?.endExtensionFields(externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    listener?.endExtensionFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override
@@ -875,6 +893,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -883,8 +902,16 @@ class ForwardingListener implements Listener {
       int count,
       Token beginToken,
       Token endToken) {
-    listener?.endMixinFields(externalToken, staticToken, covariantToken,
-        lateToken, varFinalOrConst, count, beginToken, endToken);
+    listener?.endMixinFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
   }
 
   @override

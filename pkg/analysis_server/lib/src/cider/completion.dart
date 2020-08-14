@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
@@ -56,27 +57,24 @@ class CiderCompletionComputer {
     @required String path,
     @required int line,
     @required int column,
+    @visibleForTesting void Function(ResolvedUnitResult) testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
-      var fileContext = _logger.run('Get file $path', () {
-        return _fileResolver.getFileContext(
-          path: path,
-          performance: performance,
-        );
-      });
-
-      var file = fileContext.file;
-
-      var lineInfo = file.lineInfo;
-      var offset = lineInfo.getOffsetOfLine(line) + column;
-
       var resolvedUnit = performance.run('resolution', (performance) {
         return _fileResolver.resolve(
-          completionOffset: offset,
+          completionLine: line,
+          completionColumn: column,
           path: path,
           performance: performance,
         );
       });
+
+      if (testResolvedUnit != null) {
+        testResolvedUnit(resolvedUnit);
+      }
+
+      var lineInfo = resolvedUnit.lineInfo;
+      var offset = lineInfo.getOffsetOfLine(line) + column;
 
       var completionRequest = CompletionRequestImpl(
         resolvedUnit,
@@ -105,10 +103,12 @@ class CiderCompletionComputer {
             return await manager.computeSuggestions(
               performance,
               completionRequest,
+              enableOverrideContributor: false,
               enableUriContributor: false,
             );
           });
 
+          performance.getDataInt('count').add(result.length);
           return result;
         },
       );
@@ -139,14 +139,16 @@ class CiderCompletionComputer {
 
       performance.run('filter', (performance) {
         _logger.run('Filter suggestions', () {
+          performance.getDataInt('count').add(suggestions.length);
           suggestions = filter.perform();
+          performance.getDataInt('matchCount').add(suggestions.length);
         });
       });
 
       var result = CiderCompletionResult._(
         suggestions: suggestions,
         performance: CiderCompletionPerformance._(
-          file: performance.getChild('fileContext').elapsed,
+          file: Duration.zero,
           imports: performance.getChild('imports').elapsed,
           resolution: performance.getChild('resolution').elapsed,
           suggestions: performance.getChild('suggestions').elapsed,
@@ -195,6 +197,7 @@ class CiderCompletionComputer {
       );
       suggestions.addAll(importedSuggestions);
     }
+    performance.getDataInt('count').add(suggestions.length);
     return suggestions;
   }
 
@@ -204,6 +207,8 @@ class CiderCompletionComputer {
     @required LibraryElement element,
     @required OperationPerformanceImpl performance,
   }) {
+    performance.getDataInt('libraryCount').increment();
+
     var path = element.source.fullName;
     var signature = _fileResolver.getLibraryLinkedSignature(
       path: path,
@@ -212,6 +217,7 @@ class CiderCompletionComputer {
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {
+      performance.getDataInt('libraryCompute').increment();
       computedImportedLibraries.add(path);
       var suggestions = _librarySuggestions(element);
       cacheEntry = _CiderImportedLibrarySuggestions(
@@ -239,15 +245,19 @@ class CiderCompletionComputer {
 
 class CiderCompletionPerformance {
   /// The elapsed time for file access.
+  @Deprecated('This operation is not performed anymore')
   final Duration file;
 
   /// The elapsed time to compute import suggestions.
+  @Deprecated("Use 'operations' instead")
   final Duration imports;
 
   /// The elapsed time for resolution.
+  @Deprecated("Use 'operations' instead")
   final Duration resolution;
 
   /// The elapsed time to compute suggestions.
+  @Deprecated("Use 'operations' instead")
   final Duration suggestions;
 
   /// The tree of operation performances.

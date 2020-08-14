@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,17 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class NonNullableTest extends DriverResolutionTest {
-  // TODO(danrubel): Implement a more fine grained way to specify non-nullable.
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class NonNullableTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_class_hierarchy() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -72,7 +60,7 @@ class C {
   }
 
   test_library_typeProvider_typeSystem() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await resolveTestCode(r'''
@@ -447,7 +435,7 @@ main() {
 }
 
 @reflectiveTest
-class NullableTest extends DriverResolutionTest {
+class NullableTest extends PubPackageResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 

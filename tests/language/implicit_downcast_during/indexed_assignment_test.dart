@@ -15,9 +15,9 @@ void main() {
   C c = new C();
   c[a] = a;
   //^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }

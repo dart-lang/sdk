@@ -276,7 +276,7 @@ class StdInstrumentation extends NoopInstrumentationService {
   }
 
   @override
-  void logInfo(String message, [exception]) {
+  void logInfo(String message, [Object exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

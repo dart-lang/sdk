@@ -6,16 +6,11 @@ import 'dart:_internal' show VMInternalsForTesting;
 
 import 'package:expect/expect.dart';
 
+import 'unboxed_parameter_helper.dart';
+
 // The VM class finalizer ensures that we only unbox fields which can be
 // represented in the unboxed field bitmap in the target architecture (even when
 // cross-compiling from 64-bit to 32-bit), see `Class::CalculateFieldOffsets()`.
-
-// Make an integer that would look like an object pointer (irrespective of
-// we compile to 32-bit or 64-bit and whether we use little or big endian
-// encoding of the integer).
-int get integerFieldValue =>
-    int.parse('1') == 1 ? constIntegerFieldValue : 0x8000900180009001;
-const int constIntegerFieldValue = 0x8000000180000001;
 
 int i = 0;
 final Object objectFieldValue = Foo('i${i++}');

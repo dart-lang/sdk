@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -159,7 +160,7 @@ class ExtensionMemberResolver {
 
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,

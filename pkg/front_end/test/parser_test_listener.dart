@@ -520,6 +520,7 @@ class ParserTestListener implements Listener {
   }
 
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -529,6 +530,7 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(abstractToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -546,6 +548,7 @@ class ParserTestListener implements Listener {
   }
 
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -555,6 +558,7 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(abstractToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -572,6 +576,7 @@ class ParserTestListener implements Listener {
   }
 
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,

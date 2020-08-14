@@ -23,7 +23,7 @@ class MutexTest {
       Future(() async {
         await mutex.acquire();
         try {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future<void>.delayed(Duration(milliseconds: 10));
           values.add(1);
         } finally {
           mutex.release();
@@ -50,7 +50,7 @@ class MutexTest {
     await Future.wait([
       Future(() async {
         await mutex.guard(() async {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future<void>.delayed(Duration(milliseconds: 10));
           values.add(1);
         });
       }),

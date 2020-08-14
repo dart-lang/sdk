@@ -19,10 +19,10 @@ typedef ImportPrefixGenerator = String Function(Uri);
 /// A [ChangeBuilder] used to build changes in Dart files.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@Deprecated('Use ChangeBuilder')
 abstract class DartChangeBuilder implements ChangeBuilder {
   /// Initialize a newly created change builder.
-  ///
-  /// TODO(scheglov) Replace this constructor with using workspace.
+  @Deprecated('Use ChangeBuilder(session: session)')
   factory DartChangeBuilder(AnalysisSession session) = DartChangeBuilderImpl;
 
   /// Use the [buildFileEdit] function to create a collection of edits to the
@@ -31,6 +31,7 @@ abstract class DartChangeBuilder implements ChangeBuilder {
   ///
   /// If [importPrefixGenerator] is provided, it will be asked to generate an
   /// import prefix for every newly imported library.
+  @Deprecated('Use ChangeBuilder.addDartFileEdit')
   @override
   Future<void> addFileEdit(
       String path, void Function(DartFileEditBuilder builder) buildFileEdit,

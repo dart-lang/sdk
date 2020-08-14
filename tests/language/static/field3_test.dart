@@ -13,19 +13,19 @@ main() {
   if (false) {
     var x = Foo.x;
     //          ^
-    // [analyzer] STATIC_WARNING.STATIC_ACCESS_TO_INSTANCE_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
     // [cfe] Getter not found: 'x'.
     var m = Foo.m;
     //          ^
-    // [analyzer] STATIC_WARNING.STATIC_ACCESS_TO_INSTANCE_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
     // [cfe] Getter not found: 'm'.
     Foo.m = 1;
     //  ^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
     // [cfe] Setter not found: 'm'.
     Foo.x = 1;
     //  ^
-    // [analyzer] STATIC_WARNING.STATIC_ACCESS_TO_INSTANCE_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
     // [cfe] Setter not found: 'x'.
   }
 }

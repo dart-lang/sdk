@@ -680,14 +680,15 @@ class TypeInfoTest {
 
   void test_computeType_gft() {
     expectComplexInfo('Function() m', expectedAfter: 'm', expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType Function',
+      'handleNoTypeVariables (',
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function null',
     ]);
     expectComplexInfo('Function<T>() m', expectedAfter: 'm', expectedCalls: [
+      'beginFunctionType Function',
       'beginTypeVariables <',
       'beginMetadataStar T',
       'endMetadataStar 0',
@@ -697,15 +698,14 @@ class TypeInfoTest {
       'handleNoType T',
       'endTypeVariable > 0 null null',
       'endTypeVariables < >',
-      'beginFunctionType Function',
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function null',
     ]);
     expectComplexInfo('Function(int) m', expectedAfter: 'm', expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType Function',
+      'handleNoTypeVariables (',
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'beginMetadataStar int',
@@ -722,6 +722,7 @@ class TypeInfoTest {
       'endFunctionType Function null',
     ]);
     expectComplexInfo('Function<T>(int) m', expectedAfter: 'm', expectedCalls: [
+      'beginFunctionType Function',
       'beginTypeVariables <',
       'beginMetadataStar T',
       'endMetadataStar 0',
@@ -731,7 +732,6 @@ class TypeInfoTest {
       'handleNoType T',
       'endTypeVariable > 0 null null',
       'endTypeVariables < >',
-      'beginFunctionType Function',
       'handleNoType ',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'beginMetadataStar int',
@@ -774,8 +774,8 @@ class TypeInfoTest {
     expectComplexInfo('C Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments Function',
           'handleType C null',
@@ -787,8 +787,8 @@ class TypeInfoTest {
 
   void test_computeType_identifierComplex_questionMark() {
     expectComplexInfo('C? Function()', required: true, expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType C',
+      'handleNoTypeVariables (',
       'handleIdentifier C typeReference',
       'handleNoTypeArguments ?',
       'handleType C ?',
@@ -800,8 +800,8 @@ class TypeInfoTest {
 
   void test_computeType_identifierComplex_questionMark2() {
     expectComplexInfo('C Function()?', required: true, expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType C',
+      'handleNoTypeVariables (',
       'handleIdentifier C typeReference',
       'handleNoTypeArguments Function',
       'handleType C null',
@@ -813,8 +813,8 @@ class TypeInfoTest {
 
   void test_computeType_identifierComplex_questionMark3() {
     expectComplexInfo('C<T>? Function()', required: true, expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType C',
+      'handleNoTypeVariables (',
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
@@ -830,8 +830,8 @@ class TypeInfoTest {
 
   void test_computeType_identifierComplex_questionMark4() {
     expectComplexInfo('C<S,T>? Function()', required: true, expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType C',
+      'handleNoTypeVariables (',
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -852,10 +852,10 @@ class TypeInfoTest {
     expectComplexInfo('C Function()? Function()',
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
           'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments Function',
           'handleType C null',
@@ -872,10 +872,10 @@ class TypeInfoTest {
     expectComplexInfo('C Function() Function()?',
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
           'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments Function',
           'handleType C null',
@@ -892,10 +892,10 @@ class TypeInfoTest {
     expectComplexInfo('C? Function() Function()?',
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
           'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments ?',
           'handleType C ?',
@@ -912,10 +912,10 @@ class TypeInfoTest {
     expectComplexInfo('C Function()? Function()?',
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
           'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments Function',
           'handleType C null',
@@ -932,10 +932,10 @@ class TypeInfoTest {
     expectComplexInfo('C? Function()? Function()?',
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
           'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments ?',
           'handleType C ?',
@@ -1176,8 +1176,8 @@ class TypeInfoTest {
     expectComplexInfo('C<T> Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C typeReference',
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
@@ -1289,8 +1289,8 @@ class TypeInfoTest {
     expectComplexInfo('C.a Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C prefixedTypeReference',
           'handleIdentifier a typeReferenceContinuation',
           'handleQualified .',
@@ -1310,8 +1310,8 @@ class TypeInfoTest {
     expectComplexInfo('C.a? Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType C',
+          'handleNoTypeVariables (',
           'handleIdentifier C prefixedTypeReference',
           'handleIdentifier a typeReferenceContinuation',
           'handleQualified .',
@@ -1370,15 +1370,6 @@ class TypeInfoTest {
     expectComplexInfo('C.a<T> Function<T>(int x) Function<T>(int x)',
         required: true,
         expectedCalls: [
-          'beginTypeVariables <',
-          'beginMetadataStar T',
-          'endMetadataStar 0',
-          'handleIdentifier T typeVariableDeclaration',
-          'beginTypeVariable T',
-          'handleTypeVariablesDefined T 1',
-          'handleNoType T',
-          'endTypeVariable > 0 null null',
-          'endTypeVariables < >',
           'beginFunctionType C',
           'beginTypeVariables <',
           'beginMetadataStar T',
@@ -1390,6 +1381,15 @@ class TypeInfoTest {
           'endTypeVariable > 0 null null',
           'endTypeVariables < >',
           'beginFunctionType C',
+          'beginTypeVariables <',
+          'beginMetadataStar T',
+          'endMetadataStar 0',
+          'handleIdentifier T typeVariableDeclaration',
+          'beginTypeVariable T',
+          'handleTypeVariablesDefined T 1',
+          'handleNoType T',
+          'endTypeVariable > 0 null null',
+          'endTypeVariables < >',
           'handleIdentifier C prefixedTypeReference',
           'handleIdentifier a typeReferenceContinuation',
           'handleQualified .',
@@ -1432,8 +1432,8 @@ class TypeInfoTest {
     expectComplexInfo('void Function(', // Scanner inserts synthetic ')'.
         required: true,
         expectedCalls: [
-          'handleNoTypeVariables (',
           'beginFunctionType void',
+          'handleNoTypeVariables (',
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1443,8 +1443,8 @@ class TypeInfoTest {
 
   void test_computeType_voidComplex() {
     expectComplexInfo('void Function()', required: true, expectedCalls: [
-      'handleNoTypeVariables (',
       'beginFunctionType void',
+      'handleNoTypeVariables (',
       'handleVoidKeyword void',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1700,8 +1700,8 @@ class TypeParamOrArgInfoTest {
         typeArgumentCount: 1,
         expectedCalls: [
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType S',
+          'handleNoTypeVariables (',
           'handleIdentifier S typeReference',
           'handleNoTypeArguments Function',
           'handleType S null',
@@ -1714,8 +1714,8 @@ class TypeParamOrArgInfoTest {
         typeArgumentCount: 1,
         expectedCalls: [
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType void',
+          'handleNoTypeVariables (',
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1825,8 +1825,8 @@ class TypeParamOrArgInfoTest {
           'beginTypeArguments <',
           'handleIdentifier S typeReference',
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType Function',
+          'handleNoTypeVariables (',
           'handleNoType <',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1842,8 +1842,8 @@ class TypeParamOrArgInfoTest {
           'beginTypeArguments <',
           'handleIdentifier S typeReference',
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType Function',
+          'handleNoTypeVariables (',
           'handleNoType <',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1858,8 +1858,8 @@ class TypeParamOrArgInfoTest {
           'beginTypeArguments <',
           'handleIdentifier S typeReference',
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleNoTypeVariables (',
           'handleVoidKeyword void', // was 'handleNoType <'
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1876,8 +1876,8 @@ class TypeParamOrArgInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleNoTypeVariables (',
           'handleVoidKeyword void', // was 'handleNoType <'
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -1897,8 +1897,8 @@ class TypeParamOrArgInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'beginTypeArguments <',
-          'handleNoTypeVariables (',
           'beginFunctionType void', // was 'beginFunctionType Function'
+          'handleNoTypeVariables (',
           'handleVoidKeyword void', // was 'handleNoType <'
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -2075,8 +2075,8 @@ class TypeParamOrArgInfoTest {
           'handleIdentifier S typeVariableDeclaration',
           'beginTypeVariable S',
           'handleTypeVariablesDefined ) 2',
-          'handleNoTypeVariables (',
           'beginFunctionType void',
+          'handleNoTypeVariables (',
           'handleVoidKeyword void',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
@@ -2329,8 +2329,8 @@ class TypeParamOrArgInfoTest {
           'handleIdentifier T typeVariableDeclaration',
           'beginTypeVariable T',
           'handleTypeVariablesDefined ) 1',
-          'handleNoTypeVariables (',
           'beginFunctionType Function',
+          'handleNoTypeVariables (',
           'handleNoType extends',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'beginMetadataStar T',

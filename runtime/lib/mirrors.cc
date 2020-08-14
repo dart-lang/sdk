@@ -1419,7 +1419,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, explicit_args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
-  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  const Error& error =
+      Error::Handle(zone, klass.EnsureIsAllocateFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -1520,6 +1521,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
+#if defined(DEBUG)
+  // Make sure the receiver is the null value, so that DoArgumentTypesMatch does
+  // not attempt to retrieve the instantiator type arguments from the receiver.
+  explicit_argument = args.At(args_descriptor.FirstArgIndex());
+  ASSERT(explicit_argument.IsNull());
+#endif
   const Object& type_error =
       Object::Handle(redirected_constructor.DoArgumentTypesMatch(
           args, args_descriptor, type_arguments));

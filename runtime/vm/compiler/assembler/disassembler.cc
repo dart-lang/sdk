@@ -191,14 +191,14 @@ void Disassembler::Disassemble(uword start,
       for (intptr_t i = 1; i < inlined_functions.length(); i++) {
         const char* name = inlined_functions[i]->ToQualifiedCString();
         if (first) {
-          f.Print("        ;; Inlined [%s", name);
+          f.Printf("        ;; Inlined [%s", name);
           first = false;
         } else {
-          f.Print(" -> %s", name);
+          f.Printf(" -> %s", name);
         }
       }
       if (!first) {
-        f.Print("]\n");
+        f.AddString("]\n");
         formatter->Print("%s", str);
       }
     }

@@ -68,6 +68,7 @@ Heap::Heap(IsolateGroup* isolate_group,
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
       last_gc_was_old_space_(false),
+      assume_scavenge_will_fail_(false),
       gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
@@ -92,7 +93,7 @@ uword Heap::AllocateNew(intptr_t size) {
   if (LIKELY(addr != 0)) {
     return addr;
   }
-  if (new_space_.GrowthControlState()) {
+  if (!assume_scavenge_will_fail_ && new_space_.GrowthControlState()) {
     // This call to CollectGarbage might end up "reusing" a collection spawned
     // from a different thread and will be racing to allocate the requested
     // memory with other threads being released after the collection.
@@ -400,6 +401,7 @@ void Heap::EndOldSpaceGC() {
   ASSERT(gc_old_space_in_progress_);
   gc_old_space_in_progress_ = false;
   last_gc_was_old_space_ = true;
+  assume_scavenge_will_fail_ = false;
   ml.NotifyAll();
 }
 
@@ -595,7 +597,7 @@ void Heap::CollectAllGarbage(GCReason reason) {
   EvacuateNewSpace(thread, reason);
   if (thread->is_marking()) {
     // If incremental marking is happening, we need to finish the GC cycle
-    // and perform a follow-up GC to pruge any "floating garbage" that may be
+    // and perform a follow-up GC to purge any "floating garbage" that may be
     // retained by the incremental barrier.
     CollectOldSpaceGarbage(thread, kMarkSweep, reason);
   }

@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class IsConstantTypeExpressionTest extends DriverResolutionTest {
+class IsConstantTypeExpressionTest extends PubPackageResolutionTest {
   test_class() async {
     await _assertConst(r'''
 int x;
@@ -30,7 +27,7 @@ int x;
   }
 
   test_class_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await _assertConst(r'''
@@ -40,7 +37,7 @@ p.A x;
   }
 
   test_class_prefix_deferred() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await _assertNeverConst(r'''
@@ -182,7 +179,7 @@ class A<T> {
 }
 
 @reflectiveTest
-class PotentiallyConstantTest extends DriverResolutionTest {
+class PotentiallyConstantTest extends PubPackageResolutionTest {
   test_adjacentStrings() async {
     await _assertConst(r'''
 var x = 'a' 'b';
@@ -491,7 +488,7 @@ var x = a++;
   }
 
   test_prefixedIdentifier_importPrefix_deferred() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
     await _assertNotConst(r'''
@@ -501,7 +498,7 @@ var x = p.a + 1;
   }
 
   test_prefixedIdentifier_importPrefix_function() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void f() {}
 ''');
     await _assertConst(r'''
@@ -511,7 +508,7 @@ var x = p.f;
   }
 
   test_prefixedIdentifier_importPrefix_topVar() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
     await _assertConst(r'''
@@ -654,7 +651,7 @@ var x = 'abc'.length;
   }
 
   test_propertyAccess_staticField_withPrefix_const() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const a = 0;
 }
@@ -666,7 +663,7 @@ var x = p.A.a + 1;
   }
 
   test_propertyAccess_staticField_withPrefix_deferred() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const a = 0;
 }
@@ -678,7 +675,7 @@ var x = p.A.a + 1;
   }
 
   test_propertyAccess_staticField_withPrefix_final() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static final a = 0;
 }
@@ -700,7 +697,7 @@ var x = A().a + 1;
   }
 
   test_propertyAccess_target_variable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final a = 0;
   const A();
@@ -968,15 +965,4 @@ class A<T> {
 }
 ''', () => _xInitializer());
   }
-}
-
-mixin WithNullSafetyMixin on DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
 }

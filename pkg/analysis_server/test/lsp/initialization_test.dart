@@ -45,6 +45,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // static registrations for them.
     // https://github.com/dart-lang/sdk/issues/38490
     InitializeResult initResult = initResponse.result;
+    expect(initResult.serverInfo.name, 'Dart SDK LSP Analysis Server');
+    expect(initResult.serverInfo.version, isNotNull);
     expect(initResult.capabilities, isNotNull);
     expect(initResult.capabilities.textDocumentSync, isNull);
 
@@ -235,8 +237,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
     final registrations = (request.params as RegistrationParams).registrations;
 
-    final documentFilterSql = DocumentFilter(null, 'file', '**/*.sql');
-    final documentFilterDart = DocumentFilter('dart', 'file', null);
+    final documentFilterSql =
+        DocumentFilter(scheme: 'file', pattern: '**/*.sql');
+    final documentFilterDart = DocumentFilter(language: 'dart', scheme: 'file');
     final expectedFoldingRegistration =
         isA<TextDocumentRegistrationOptions>().having(
       (o) => o.documentSelector,
@@ -277,10 +280,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
     final request = RequestMessage(
-      Either2<num, String>.t1(1),
-      Method.initialize,
-      params,
-      jsonRpcVersion,
+      id: Either2<num, String>.t1(1),
+      method: Method.initialize,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     final response = await sendRequestToServer(request);
     expect(response.id, equals(request.id));

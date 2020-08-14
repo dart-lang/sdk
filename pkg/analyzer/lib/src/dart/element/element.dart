@@ -10,21 +10,25 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart'
+    show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -81,7 +85,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
     for (PropertyAccessorElement accessor in accessors) {
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
-    this._accessors = accessors;
+    _accessors = accessors;
   }
 
   @override
@@ -95,7 +99,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
     for (FieldElement field in fields) {
       (field as FieldElementImpl).enclosingElement = this;
     }
-    this._fields = fields;
+    _fields = fields;
   }
 
   @override
@@ -593,7 +597,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     for (ConstructorElement constructor in constructors) {
       (constructor as ConstructorElementImpl).enclosingElement = this;
     }
-    this._constructors = constructors;
+    _constructors = constructors;
   }
 
   @override
@@ -927,7 +931,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -1308,7 +1312,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (PropertyAccessorElement accessor in accessors) {
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
-    this._accessors = accessors;
+    _accessors = accessors;
   }
 
   @override
@@ -1361,7 +1365,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (ClassElement enumDeclaration in enums) {
       (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }
-    this._enums = enums;
+    _enums = enums;
   }
 
   @override
@@ -1398,7 +1402,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (ExtensionElement extension in extensions) {
       (extension as ExtensionElementImpl).enclosingElement = this;
     }
-    this._extensions = extensions;
+    _extensions = extensions;
   }
 
   @override
@@ -1429,7 +1433,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (FunctionElement function in functions) {
       (function as FunctionElementImpl).enclosingElement = this;
     }
-    this._functions = functions;
+    _functions = functions;
   }
 
   @override
@@ -1506,7 +1510,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (MixinElementImpl type in mixins) {
       type.enclosingElement = this;
     }
-    this._mixins = mixins;
+    _mixins = mixins;
   }
 
   @override
@@ -1526,7 +1530,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (TopLevelVariableElement field in variables) {
       (field as TopLevelVariableElementImpl).enclosingElement = this;
     }
-    this._variables = variables;
+    _variables = variables;
   }
 
   /// Set the function type aliases contained in this compilation unit to the
@@ -1535,7 +1539,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     for (FunctionTypeAliasElement typeAlias in typeAliases) {
       (typeAlias as ElementImpl).enclosingElement = this;
     }
-    this._typeAliases = typeAliases;
+    _typeAliases = typeAliases;
   }
 
   @override
@@ -1584,7 +1588,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         type.enclosingElement = this;
       }
     }
-    this._types = types;
+    _types = types;
   }
 
   @override
@@ -2143,7 +2147,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnType =>
+  InterfaceType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
@@ -2152,15 +2156,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnTypeInternal {
-    if (_returnType != null) return _returnType;
-
-    InterfaceTypeImpl classThisType = enclosingElement.thisType;
-    return _returnType = InterfaceTypeImpl(
-      element: classThisType.element,
-      typeArguments: classThisType.typeArguments,
-      nullabilitySuffix: classThisType.nullabilitySuffix,
-    );
+  InterfaceType get returnTypeInternal {
+    return _returnType ??= enclosingElement.thisType;
   }
 
   @override
@@ -2647,8 +2644,8 @@ abstract class ElementImpl implements Element {
   /// [_nameOffset].
   ElementImpl(String name, this._nameOffset, {this.reference})
       : linkedNode = null {
-    this._name = StringUtilities.intern(name);
-    this.reference?.element = this;
+    _name = StringUtilities.intern(name);
+    reference?.element = this;
   }
 
   /// Initialize from linked node.
@@ -2973,7 +2970,7 @@ abstract class ElementImpl implements Element {
 
   /// Changes the name of this element.
   set name(String name) {
-    this._name = name;
+    _name = name;
   }
 
   @override
@@ -3207,17 +3204,17 @@ class ElementLocationImpl implements ElementLocation {
       components.insert(0, (ancestor as ElementImpl).identifier);
       ancestor = ancestor.enclosingElement;
     }
-    this._components = components;
+    _components = components;
   }
 
   /// Initialize a newly created location from the given [encoding].
   ElementLocationImpl.con2(String encoding) {
-    this._components = _decode(encoding);
+    _components = _decode(encoding);
   }
 
   /// Initialize a newly created location from the given [components].
   ElementLocationImpl.con3(List<String> components) {
-    this._components = components;
+    _components = components;
   }
 
   @override
@@ -3534,7 +3531,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
     }
 
     // Build fields for all enum constants.
-    var containerRef = this.reference.getChild('@constant');
+    var containerRef = reference.getChild('@constant');
     var constants = linkedContext.getEnumConstants(linkedNode);
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
@@ -3703,7 +3700,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
-    this._parameters = parameters;
+    _parameters = parameters;
   }
 
   /// Gets the element's parameters, without going through the indirection of
@@ -3785,7 +3782,7 @@ abstract class ExecutableElementImpl extends ElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -4104,7 +4101,7 @@ class ExtensionElementImpl extends ElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -4241,13 +4238,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
     if (!linkedNode.isSynthetic) {
       var enclosingRef = enclosing.reference;
 
-      this.getter = PropertyAccessorElementImpl_ImplicitGetter(
+      getter = PropertyAccessorElementImpl_ImplicitGetter(
         this,
         reference: enclosingRef.getChild('@getter').getChild(name),
       );
 
       if (_hasSetter) {
-        this.setter = PropertyAccessorElementImpl_ImplicitSetter(
+        setter = PropertyAccessorElementImpl_ImplicitSetter(
           this,
           reference: enclosingRef.getChild('@setter').getChild(name),
         );
@@ -4270,6 +4267,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   FieldElement get declaration => this;
+
+  @override
+  bool get isAbstract {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isAbstract(linkedNode);
+    }
+    return hasModifier(Modifier.ABSTRACT);
+  }
 
   @override
   bool get isCovariant {
@@ -4406,7 +4411,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   @override
   String get identifier {
     String identifier = super.identifier;
-    Element enclosing = this.enclosingElement;
+    Element enclosing = enclosingElement;
     if (enclosing is ExecutableElement) {
       identifier += "@$nameOffset";
     }
@@ -4518,7 +4523,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
-    this._parameters = parameters;
+    _parameters = parameters;
   }
 
   @override
@@ -4583,7 +4588,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -4789,7 +4794,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameterElements = typeParameters;
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -5215,6 +5220,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// The cached list of prefixes.
   List<PrefixElement> _prefixes;
 
+  /// The scope of this library, `null` if it has not been created yet.
+  LibraryScope _scope;
+
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
@@ -5268,7 +5276,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   set definingCompilationUnit(CompilationUnitElement unit) {
     assert((unit as CompilationUnitElementImpl).librarySource == unit.source);
     (unit as CompilationUnitElementImpl).enclosingElement = this;
-    this._definingCompilationUnit = unit;
+    _definingCompilationUnit = unit;
   }
 
   @override
@@ -5349,7 +5357,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (ExportElement exportElement in exports) {
       (exportElement as ExportElementImpl).enclosingElement = this;
     }
-    this._exports = exports;
+    _exports = exports;
   }
 
   @override
@@ -5441,8 +5449,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         prefix.enclosingElement = this;
       }
     }
-    this._imports = imports;
-    this._prefixes = null;
+    _imports = imports;
+    _prefixes = null;
   }
 
   @override
@@ -5565,7 +5573,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           source);
       (compilationUnit as CompilationUnitElementImpl).enclosingElement = this;
     }
-    this._parts = parts;
+    _parts = parts;
   }
 
   @override
@@ -5586,6 +5594,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   set publicNamespace(Namespace publicNamespace) {
     _publicNamespace = publicNamespace;
+  }
+
+  @override
+  Scope get scope {
+    return _scope ??= LibraryScope(this);
   }
 
   @override
@@ -6556,7 +6569,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /// Set Dart code of the default value.
   set defaultValueCode(String defaultValueCode) {
-    this._defaultValueCode = StringUtilities.intern(defaultValueCode);
+    _defaultValueCode = StringUtilities.intern(defaultValueCode);
   }
 
   @override
@@ -6675,8 +6688,7 @@ class ParameterElementImpl extends VariableElementImpl
     if (_parameterKind != null) return _parameterKind;
 
     if (linkedNode != null) {
-      FormalParameter linkedNode = this.linkedNode;
-      // ignore: deprecated_member_use_from_same_package
+      var linkedNode = this.linkedNode as FormalParameterImpl;
       return linkedNode.kind;
     }
     return _parameterKind;
@@ -6715,7 +6727,7 @@ class ParameterElementImpl extends VariableElementImpl
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
-    this._parameters = parameters;
+    _parameters = parameters;
   }
 
   @override
@@ -6760,7 +6772,7 @@ class ParameterElementImpl extends VariableElementImpl
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    _typeParameters = typeParameters;
   }
 
   @override
@@ -6898,36 +6910,28 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
 /// [ParameterElement].
 mixin ParameterElementMixin implements ParameterElement {
   @override
-  bool get isNamed =>
-      parameterKind == ParameterKind.NAMED ||
-      parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isNamed => parameterKind.isNamed;
 
   @override
-  bool get isNotOptional =>
-      parameterKind == ParameterKind.REQUIRED ||
-      parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isNotOptional => parameterKind.isRequired;
 
   @override
-  bool get isOptional =>
-      parameterKind == ParameterKind.NAMED ||
-      parameterKind == ParameterKind.POSITIONAL;
+  bool get isOptional => parameterKind.isOptional;
 
   @override
-  bool get isOptionalNamed => parameterKind == ParameterKind.NAMED;
+  bool get isOptionalNamed => parameterKind.isOptionalNamed;
 
   @override
-  bool get isOptionalPositional => parameterKind == ParameterKind.POSITIONAL;
+  bool get isOptionalPositional => parameterKind.isOptionalPositional;
 
   @override
-  bool get isPositional =>
-      parameterKind == ParameterKind.POSITIONAL ||
-      parameterKind == ParameterKind.REQUIRED;
+  bool get isPositional => parameterKind.isPositional;
 
   @override
-  bool get isRequiredNamed => parameterKind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequiredNamed => parameterKind.isRequiredNamed;
 
   @override
-  bool get isRequiredPositional => parameterKind == ParameterKind.REQUIRED;
+  bool get isRequiredPositional => parameterKind.isRequiredPositional;
 
   @override
   // Overridden to remove the 'deprecated' annotation.
@@ -6954,6 +6958,9 @@ mixin ParameterElementMixin implements ParameterElement {
 
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
+  /// The scope of this prefix, `null` if it has not been created yet.
+  PrefixScope _scope;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [nameOffset].
   PrefixElementImpl(String name, int nameOffset) : super(name, nameOffset);
@@ -6989,6 +6996,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   @override
+  Scope get scope => _scope ??= PrefixScope(enclosingElement, this);
+
+  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitPrefixElement(this);
 
   @override
@@ -7018,6 +7028,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       {Reference reference})
       : super(variable.name, variable.nameOffset, reference: reference) {
     this.variable = variable;
+    isAbstract = variable is FieldElementImpl && variable.isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
   }
@@ -7420,13 +7431,13 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     if (!linkedNode.isSynthetic) {
       var enclosingRef = enclosing.reference;
 
-      this.getter = PropertyAccessorElementImpl_ImplicitGetter(
+      getter = PropertyAccessorElementImpl_ImplicitGetter(
         this,
         reference: enclosingRef.getChild('@getter').getChild(name),
       );
 
       if (_hasSetter) {
-        this.setter = PropertyAccessorElementImpl_ImplicitSetter(
+        setter = PropertyAccessorElementImpl_ImplicitSetter(
           this,
           reference: enclosingRef.getChild('@setter').getChild(name),
         );
@@ -7566,7 +7577,7 @@ class TypeParameterElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      TypeParameter node = this.linkedNode;
+      TypeParameter node = linkedNode;
       return node.name.name;
     }
     return super.name;
@@ -7809,7 +7820,7 @@ abstract class VariableElementImpl extends ElementImpl
     if (function != null) {
       (function as FunctionElementImpl).enclosingElement = this;
     }
-    this._initializer = function;
+    _initializer = function;
   }
 
   @override

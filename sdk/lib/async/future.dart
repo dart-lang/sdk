@@ -258,8 +258,9 @@ abstract class Future<T> {
    * Use [Completer] to create a future and complete it later.
    */
   @pragma("vm:entry-point")
+  @pragma("vm:prefer-inline")
   factory Future.value([FutureOr<T>? value]) {
-    return new _Future<T>.immediate(value == null ? value as dynamic : value);
+    return new _Future<T>.immediate(value == null ? value as T : value);
   }
 
   /**
@@ -360,9 +361,12 @@ abstract class Future<T> {
    * The call to [cleanUp] should not throw. If it does, the error will be an
    * uncaught asynchronous error.
    */
+  @pragma("vm:entry-point")
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
       {bool eagerError = false, void cleanUp(T successValue)?}) {
-    final _Future<List<T>> result = new _Future<List<T>>();
+    // This is a VM recognised method, and the _future variable is deliberately
+    // allocated in a specific slot in the closure context for stack unwinding.
+    final _Future<List<T>> _future = _Future<List<T>>();
     List<T?>? values; // Collects the values. Set to null on error.
     int remaining = 0; // How many futures are we waiting for.
     late Object error; // The first error from a future.
@@ -386,13 +390,13 @@ abstract class Future<T> {
         }
         values = null;
         if (remaining == 0 || eagerError) {
-          result._completeError(theError, theStackTrace);
+          _future._completeError(theError, theStackTrace);
         } else {
           error = theError;
           stackTrace = theStackTrace;
         }
       } else if (remaining == 0 && !eagerError) {
-        result._completeError(error, stackTrace);
+        _future._completeError(error, stackTrace);
       }
     }
 
@@ -407,7 +411,7 @@ abstract class Future<T> {
           if (valueList != null) {
             valueList[pos] = value;
             if (remaining == 0) {
-              result._completeWithValue(List<T>.from(valueList));
+              _future._completeWithValue(List<T>.from(valueList));
             }
           } else {
             if (cleanUp != null && value != null) {
@@ -419,7 +423,7 @@ abstract class Future<T> {
             if (remaining == 0 && !eagerError) {
               // If eagerError is false, and valueList is null, then
               // error and stackTrace have been set in handleError above.
-              result._completeError(error, stackTrace);
+              _future._completeError(error, stackTrace);
             }
           }
         }, onError: handleError);
@@ -439,7 +443,7 @@ abstract class Future<T> {
       // gracefully.
       if (remaining == 0 || eagerError) {
         // Throw a new Future.error.
-        // Don't just call `result._completeError` since that would propagate
+        // Don't just call `_future._completeError` since that would propagate
         // the error too eagerly, not giving the callers time to install
         // error handlers.
         // Also, don't use `_asyncCompleteError` since that one doesn't give
@@ -453,7 +457,7 @@ abstract class Future<T> {
         stackTrace = st;
       }
     }
-    return result;
+    return _future;
   }
 
   /**

@@ -513,7 +513,7 @@ part of someOtherLib;
     ResolvedUnitResult libResult = await driver.getResult(lib);
     List<AnalysisError> errors = libResult.errors;
     expect(errors, hasLength(1));
-    expect(errors[0].errorCode, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
+    expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY);
   }
 
   test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri() async {
@@ -532,7 +532,7 @@ part of 'other_lib.dart';
     ResolvedUnitResult libResult = await driver.getResult(lib);
     List<AnalysisError> errors = libResult.errors;
     expect(errors, hasLength(1));
-    expect(errors[0].errorCode, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
+    expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY);
   }
 
   test_analyze_resolveDirectives_error_partOfNonPart() async {
@@ -1666,7 +1666,7 @@ String z = "string";
       ResolvedUnitResult result = await driver.getResult(b);
       List<AnalysisError> errors = result.errors;
       expect(errors, hasLength(1));
-      expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+      expect(errors[0].errorCode, CompileTimeErrorCode.INVALID_ASSIGNMENT);
     }
   }
 

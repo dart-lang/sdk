@@ -26,17 +26,17 @@ class D extends core::Object implements self::C<core::int*> {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  set bar(generic-covariant-impl core::int* value) → void;
 }
 abstract class E extends core::Object {
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  abstract get bar() → core::int*;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4] [@vm.unboxing-info.metadata=()->i]  abstract get bar() → core::int*;
 }
 class F extends core::Object implements self::E {
   synthetic constructor •() → self::F*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  get bar() → core::int*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4] [@vm.unboxing-info.metadata=()->i]  get bar() → core::int*
     return 42;
 }
 class G extends core::Object /*hasConstConstructor*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  final field core::int* bazz;
+[@vm.inferred-type.metadata=dart.core::_Smi] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6] [@vm.unboxing-info.metadata=()->i]  final field core::int* bazz;
 }
 abstract class H extends core::Object {
   synthetic constructor •() → self::H*

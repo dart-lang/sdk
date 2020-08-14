@@ -52,7 +52,7 @@ class C extends B {
     // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     !super?.field;
 //   ^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_NEGATION_EXPRESSION
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_NEGATION_EXPRESSION
 //        ^^
 // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
 // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.

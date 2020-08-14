@@ -47,6 +47,7 @@ declare_args() {
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
+# ........dds.dart.snapshot
 # ........dartdev.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
@@ -123,7 +124,7 @@ _platform_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdoc",
@@ -132,6 +133,10 @@ _platform_sdk_snapshots = [
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "dds",
+    "../utils/dds:dds",
   ],
   [
     "pub",
@@ -168,7 +173,7 @@ _full_sdk_snapshots = [
   ],
   [
     "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
+    "../utils/dartdev:dartdev",
   ],
   [
     "dartdevc",
@@ -181,6 +186,10 @@ _full_sdk_snapshots = [
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "dds",
+    "../utils/dds:dds",
   ],
   [
     "kernel_worker",
@@ -607,12 +616,6 @@ copy("copy_vm_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_abi_dill_files") {
-  visibility = [ ":create_sdk_with_abi_versions" ]
-  sources = [ "../tools/abiversions" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/abiversions" ]
-}
-
 copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
@@ -631,27 +634,32 @@ copy("copy_dart2js_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-# Copies DDC's SDK outline .dill to lib/_internal
-copy("copy_dev_compiler_outline") {
+# Copies DDC's SDK weak outline .dill to lib/_internal
+# TODO(nshahan) Fix the outline to be consistent and merge with below as a
+# breaking change.
+copy("copy_dev_compiler_weak_outline") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_platform",
   ]
   sources = [ "$root_out_dir/ddc_outline.dill" ]
-
-  # TODO(nshahan) Fix the name here to be consistent and merge with below.
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/ddc_sdk.dill" ]
 }
 
-# Copies DDC's SDK outline .dill with sound null safety to lib/_internal
-copy("copy_dev_compiler_outline_sound") {
-  visibility = [ "../utils/dartdevc:dartdevc_test" ]
+# Copies DDC's SDK full and outline .dill files to lib/_internal.
+copy("copy_dev_compiler_dills") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
+    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_platform_sound",
   ]
-  sources = [ "$root_out_dir/ddc_outline_sound.dill" ]
+  sources = [
+    "$root_out_dir/ddc_outline_sound.dill",
+    "$root_out_dir/ddc_platform.dill",
+    "$root_out_dir/ddc_platform_sound.dill",
+  ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
@@ -731,9 +739,10 @@ copy("copy_dev_compiler_tools") {
 group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
+    ":copy_dev_compiler_dills",
     ":copy_dev_compiler_js",
-    ":copy_dev_compiler_outline",
     ":copy_dev_compiler_tools",
+    ":copy_dev_compiler_weak_outline",
   ]
 }
 
@@ -793,7 +802,10 @@ group("copy_libraries") {
 
 # This rule writes the version file.
 action("write_version_file") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [
+    ":create_common_sdk",
+    "../utils/dartanalyzer:generate_summary_strong",
+  ]
   inputs = [
     "../tools/VERSION",
     "$default_git_folder/logs/HEAD",
@@ -949,12 +961,4 @@ group("create_sdk") {
   } else {
     public_deps += [ ":create_full_sdk" ]
   }
-}
-
-# Same as create_sdk, but with abi version files.
-group("create_sdk_with_abi_versions") {
-  public_deps = [
-    ":copy_abi_dill_files",
-    ":create_sdk",
-  ]
 }

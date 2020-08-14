@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class DuplicateHiddenNameTest extends DriverResolutionTest {
+class DuplicateHiddenNameTest extends PubPackageResolutionTest {
   test_hidden() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 class A {}
 class B {}
 ''');

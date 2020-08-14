@@ -12,7 +12,7 @@ class A extends core::Object {
     return "bar";
 }
 class B extends core::Object /*isEnum*/  {
-[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7]  final field core::int* index;
+[@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:7] [@vm.unboxing-info.metadata=()->i]  final field core::int* index;
 [@vm.inferred-type.metadata=dart.core::_OneByteString (value: B.b2)] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  final field core::String* _name;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method toString() → core::String*
     return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: B.b2)] this.{=self::B::_name};
@@ -26,7 +26,7 @@ static method test1([[@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] co
 static method test2({[@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* arg = #C2}) → void {
   core::print(arg);
 }
-static get getD() → dynamic
+[@vm.unboxing-info.metadata=()->d]static get getD() → dynamic
   return 100.0;
 [@vm.unboxing-info.metadata=(d)->b]static method testDouble([@vm.inferred-type.metadata=dart.core::_Double (value: 3.14)] core::double* arg) → void {
   core::print(arg);

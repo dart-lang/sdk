@@ -1612,14 +1612,27 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     grow_heap = 0;
   }
   heap_->RecordData(PageSpace::kPageGrowth, grow_heap);
-
-  // Limit shrinkage: allow growth by at least half the pages freed by GC.
-  const intptr_t freed_pages =
-      (before.CombinedUsedInWords() - after.CombinedUsedInWords()) /
-      kOldPageSizeInWords;
-  grow_heap = Utils::Maximum(grow_heap, freed_pages / 2);
-  heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
   last_usage_ = after;
+
+  intptr_t max_capacity_in_words = heap_->old_space()->max_capacity_in_words_;
+  if (max_capacity_in_words != 0) {
+    ASSERT(grow_heap >= 0);
+    // Fraction of asymptote used.
+    double f = static_cast<double>(after.CombinedUsedInWords() +
+                                   (kOldPageSizeInWords * grow_heap)) /
+               static_cast<double>(max_capacity_in_words);
+    ASSERT(f >= 0.0);
+    // Increase weight at the high end.
+    f = f * f;
+    // Fraction of asymptote available.
+    f = 1.0 - f;
+    ASSERT(f <= 1.0);
+    // Discount growth more the closer we get to the desired asymptote.
+    grow_heap = static_cast<intptr_t>(grow_heap * f);
+    // Minimum growth step after reaching the asymptote.
+    intptr_t min_step = (2 * MB) / kOldPageSize;
+    grow_heap = Utils::Maximum(min_step, grow_heap);
+  }
 
   RecordUpdate(before, after, grow_heap, "gc");
 }

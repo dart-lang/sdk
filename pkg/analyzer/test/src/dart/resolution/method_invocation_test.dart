@@ -2,31 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MethodInvocationResolutionTest);
-    defineReflectiveTests(MethodInvocationResolutionWithNnbdTest);
+    defineReflectiveTests(MethodInvocationResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MethodInvocationResolutionTest extends DriverResolutionTest {
+class MethodInvocationResolutionTest extends PubPackageResolutionTest {
   test_error_ambiguousImport_topFunction() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 void foo(int _) {}
 ''');
 
@@ -38,7 +35,7 @@ main() {
   foo(0);
 }
 ''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 46, 3),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -47,10 +44,10 @@ main() {
   }
 
   test_error_ambiguousImport_topFunction_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}
 ''');
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 void foo(int _) {}
 ''');
 
@@ -62,7 +59,7 @@ main() {
   p.foo(0);
 }
 ''', [
-      error(StaticWarningCode.AMBIGUOUS_IMPORT, 58, 3),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 58, 3),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -80,7 +77,7 @@ main(A a) {
   a.foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 3),
+      error(CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 57, 3),
     ]);
     assertMethodInvocation2(
       findNode.methodInvocation('a.foo(0)'),
@@ -101,7 +98,7 @@ main(C c) {
   c();
 }
 ''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 51, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 51, 1),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('c();');
@@ -121,7 +118,7 @@ main() {
   foo();
 }
 ''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 25, 3),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 25, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -267,7 +264,7 @@ main() {
   C.foo();
 }
 ''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 42, 5),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 42, 5),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -291,7 +288,7 @@ class C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 3),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -316,7 +313,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 68, 9),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 68, 9),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -333,7 +330,7 @@ class B extends A {
   }
 
   test_error_prefixIdentifierNotFollowedByDot() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo() {}
 ''');
 
@@ -403,7 +400,7 @@ main() {
   foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 11, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0)');
   }
@@ -416,7 +413,7 @@ main() {
   math.foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_FUNCTION, 45, 3),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 45, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -427,7 +424,7 @@ main() {
   bar.foo(0);
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 11, 3),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -439,7 +436,7 @@ main() {
   C.foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -453,7 +450,7 @@ main() {
   C.foo(x);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 32, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 32, 3),
     ]);
 
     _assertUnresolvedMethodInvocation('foo(x);');
@@ -472,7 +469,7 @@ main() {
   C.foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 76, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -485,7 +482,7 @@ main() {
   C.foo<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
     ]);
 
     _assertUnresolvedMethodInvocation(
@@ -501,7 +498,7 @@ class C<T> {
   static main() => C.T();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 34, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 34, 1),
     ]);
     _assertUnresolvedMethodInvocation('C.T();');
   }
@@ -512,7 +509,7 @@ main() {
   42.foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 14, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 14, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -524,7 +521,7 @@ main() {
   v.foo(0);
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 30, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 30, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -537,7 +534,7 @@ class C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
   }
@@ -548,7 +545,7 @@ main() {
   null.foo();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 16, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo();');
   }
@@ -559,12 +556,12 @@ main(Object o) {
   o.call();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 21, 4),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 21, 4),
     ]);
   }
 
   test_error_undefinedMethod_private() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo(int _) {}
 }
@@ -578,7 +575,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 53, 4),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 53, 4),
     ]);
     _assertUnresolvedMethodInvocation('_foo(0);');
   }
@@ -593,7 +590,7 @@ main() {
   C..foo();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 50, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
     ]);
   }
 
@@ -606,7 +603,7 @@ main() {
   A?.toString();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 8),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 8),
     ]);
   }
 
@@ -620,7 +617,7 @@ class B extends A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD, 62, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SUPER_METHOD, 62, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo(0);');
     assertSuperExpression(findNode.super_('super.foo'));
@@ -639,8 +636,7 @@ class B extends A {
 }
 ''', [
       error(
-          StaticTypeWarningCode
-              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
           71,
           3),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 74, 3),
@@ -701,7 +697,7 @@ main(C<void> c) {
   c.foo();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 44, 5),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 44, 5),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -722,7 +718,7 @@ main() {
   foo();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -743,7 +739,7 @@ main() {
   foo()();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 26, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo()()'),
@@ -760,7 +756,7 @@ main() {
   foo();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 22, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -780,7 +776,7 @@ main() {
   foo.toString();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -797,7 +793,7 @@ main() {
   foo..toString();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -814,7 +810,7 @@ main() {
   foo?.toString();
 }
 ''', [
-      error(StaticWarningCode.USE_OF_VOID_RESULT, 23, 3),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
     // TODO(scheglov) Resolve fully, or don't resolve at all.
     assertMethodInvocation(
@@ -832,7 +828,7 @@ main() {
   foo<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 29, 5),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
@@ -850,7 +846,7 @@ main() {
   foo<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 58, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 58, 5),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
@@ -990,7 +986,7 @@ main() {
   }
 
   test_hasReceiver_importPrefix_topFunction() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 T foo<T extends num>(T a, T b) => a;
 ''');
 
@@ -1015,7 +1011,7 @@ main() {
   }
 
   test_hasReceiver_importPrefix_topGetter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 T Function<T>(T a, T b) get foo => null;
 ''');
 
@@ -1184,7 +1180,7 @@ class C<T extends A> {
   }
 
   test_hasReceiver_prefixed_class_staticGetter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C {
   static double Function(int) get foo => null;
 }
@@ -1216,7 +1212,7 @@ main() {
   }
 
   test_hasReceiver_prefixed_class_staticMethod() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class C {
   static void foo(int _) => null;
 }
@@ -1656,8 +1652,7 @@ main() {
   foo<int, double>();
 }
 ''', [
-      error(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 32, 13),
     ]);
     var invocation = findNode.methodInvocation('foo<int, double>();');
     assertTypeArgumentTypes(invocation, ['dynamic']);
@@ -1721,18 +1716,10 @@ main() {
 }
 
 @reflectiveTest
-class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class MethodInvocationResolutionWithNullSafetyTest
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
@@ -1779,7 +1766,7 @@ void main(Function? foo) {
   foo.call();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 3),
     ]);
 
     assertMethodInvocation2(
@@ -1830,7 +1817,7 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 1),
     ]);
 
     assertMethodInvocation2(
@@ -1856,7 +1843,7 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 82, 1),
     ]);
 
     assertMethodInvocation2(
@@ -1923,8 +1910,8 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 29, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 29, 3),
     ]);
 
     assertMethodInvocation2(
@@ -1948,8 +1935,8 @@ main(A? a) {
   a.foo();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 67, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 67, 3),
     ]);
 
     assertMethodInvocation2(

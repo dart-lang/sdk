@@ -45,6 +45,7 @@ num1%.3ms
 o
 opt
 opts
+outdated
 part(s)
 patch(es)
 pubspec.yaml

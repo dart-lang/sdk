@@ -44,7 +44,6 @@ String _removePeriod(String value) {
 
 /// Data structure recording command-line options for the migration tool that
 /// have been passed in by the client.
-@visibleForTesting
 class CommandLineOptions {
   static const applyChangesFlag = 'apply-changes';
   static const helpFlag = 'help';
@@ -498,6 +497,10 @@ class MigrationCliRunner {
 
   ResourceProvider get resourceProvider => cli.resourceProvider;
 
+  /// Called after changes have been applied on disk.  Maybe overridden by a
+  /// derived class.
+  void applyHook() {}
+
   /// Blocks until an interrupt signal (control-C) is received.  Tests may
   /// override this method to simulate control-C.
   @visibleForTesting
@@ -699,6 +702,7 @@ Use this interactive web view to review, improve, or apply the results.
         }
       }
     }
+    applyHook();
   }
 
   void _checkDependencies() {
@@ -1022,7 +1026,7 @@ class _FixCodeProcessor extends Object {
     });
     var state = await _task.finish();
     if (_migrationCli.options.webPreview) {
-      await _task.startPreviewServer(state);
+      await _task.startPreviewServer(state, _migrationCli.applyHook);
     }
     _progressBar.complete();
 

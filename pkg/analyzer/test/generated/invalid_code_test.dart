@@ -4,12 +4,10 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -23,7 +21,7 @@ main() {
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeTest extends DriverResolutionTest {
+class InvalidCodeTest extends PubPackageResolutionTest {
   /// This code results in a method with the empty name, and the default
   /// constructor, which also has the empty name. The `Map` in `f` initializer
   /// references the empty name.
@@ -330,6 +328,17 @@ class C {
 ''');
   }
 
+  test_typeBeforeAnnotation() async {
+    await _assertCanBeAnalyzed('''
+class A {
+  const A([x]);
+}
+class B {
+  dynamic @A(const A()) x;
+}
+''');
+  }
+
   Future<void> _assertCanBeAnalyzed(String text) async {
     await resolveTestCode(text);
     assertHasTestErrors();
@@ -337,15 +346,8 @@ class C {
 }
 
 @reflectiveTest
-class InvalidCodeWithNullSafetyTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class InvalidCodeWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_issue_40837() async {
     await _assertCanBeAnalyzed('''
 class A {

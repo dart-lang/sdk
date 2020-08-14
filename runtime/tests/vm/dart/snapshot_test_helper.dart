@@ -63,12 +63,21 @@ Future<Result> runDart(String prefix, List<String> arguments) {
 }
 
 Future<Result> runGenKernel(String prefix, List<String> arguments) {
-  final augmentedArguments = <String>[]
-    ..add(genKernel)
-    ..add("--platform")
-    ..add(platformDill)
-    ..addAll(arguments);
-  return runBinary(prefix, checkedInDartVM, augmentedArguments);
+  final augmentedArguments = <String>[
+    "--platform",
+    platformDill,
+    ...Platform.executableArguments.where((arg) =>
+        arg.startsWith('--enable-experiment=') ||
+        arg == '--sound-null-safety' ||
+        arg == '--no-sound-null-safety'),
+    ...arguments,
+  ];
+  return runGenKernelWithoutStandardOptions(prefix, augmentedArguments);
+}
+
+Future<Result> runGenKernelWithoutStandardOptions(
+    String prefix, List<String> arguments) {
+  return runBinary(prefix, checkedInDartVM, [genKernel, ...arguments]);
 }
 
 Future<Result> runGenSnapshot(String prefix, List<String> arguments) {

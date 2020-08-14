@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         LocatedMessage,
         Message,
         MessageCode,
+        messageAbstractClassMember,
         messageConstConstructorWithBody,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
@@ -20,8 +21,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageTypedefNotFunction,
         messageOperatorWithTypeParameters,
+        messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -132,14 +133,14 @@ class AstBuilder extends StackListener {
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
       this._featureSet,
       [Uri uri])
-      : this.errorReporter = FastaErrorReporter(errorReporter),
-        this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
-        this.enableSpreadCollections =
+      : errorReporter = FastaErrorReporter(errorReporter),
+        enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
+        enableSpreadCollections =
             _featureSet.isEnabled(Feature.spread_collections),
-        this.enableControlFlowCollections =
+        enableControlFlowCollections =
             _featureSet.isEnabled(Feature.control_flow_collections),
-        this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
-        this.enableVariance = _featureSet.isEnabled(Feature.variance),
+        enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
+        enableVariance = _featureSet.isEnabled(Feature.variance),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -836,6 +837,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -847,6 +849,10 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
+    if (!enableNonNullable && abstractToken != null) {
+      handleRecoverableError(
+          messageAbstractClassMember, abstractToken, abstractToken);
+    }
     if (externalToken != null) {
       handleRecoverableError(
           messageExternalField, externalToken, externalToken);
@@ -866,6 +872,7 @@ class AstBuilder extends StackListener {
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
+        abstractKeyword: abstractToken,
         covariantKeyword: covariantKeyword,
         staticKeyword: staticToken,
         fieldList: variableList,
@@ -1204,6 +1211,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1218,8 +1226,8 @@ class AstBuilder extends StackListener {
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
     }
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -1842,6 +1850,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -1850,8 +1859,8 @@ class AstBuilder extends StackListener {
       int count,
       Token beginToken,
       Token endToken) {
-    endClassFields(externalToken, staticToken, covariantToken, lateToken,
-        varFinalOrConst, count, beginToken, endToken);
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override

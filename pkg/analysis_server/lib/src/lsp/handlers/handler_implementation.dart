@@ -82,8 +82,9 @@ class ImplementationHandler
           item.memberElement?.location ?? item.classElement?.location;
       final lineInfo = server.getLineInfo(elementLocation.file);
       return Location(
-        Uri.file(elementLocation.file).toString(),
-        toRange(lineInfo, elementLocation.offset, elementLocation.length),
+        uri: Uri.file(elementLocation.file).toString(),
+        range:
+            toRange(lineInfo, elementLocation.offset, elementLocation.length),
       );
     }).toList();
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
+
 // This file has been automatically generated.  Please do not edit it manually.
 // To regenerate the file, use the SDK script
 // "pkg/analyzer/tool/summary/generate.dart $IDL_FILE_PATH",
@@ -414,13 +414,13 @@ enum LinkedNodeKind : byte {
 
 /// Kinds of [LinkedNodeType]s.
 enum LinkedNodeTypeKind : byte {
-  bottom,
-
   dynamic_,
 
   function,
 
   interface,
+
+  never,
 
   typeParameter,
 
@@ -1274,6 +1274,9 @@ table PackageBundle {
 table PackageBundleSdk {
   /// The content of the `allowed_experiments.json` from SDK.
   allowedExperimentsJson:string (id: 0);
+
+  /// The language version of the SDK.
+  languageVersion:LinkedLanguageVersion (id: 1);
 }
 
 /// Summary information about a top-level type inference error.

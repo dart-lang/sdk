@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -22,7 +22,7 @@ class MakeVariableNotFinal extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.MAKE_VARIABLE_NOT_FINAL;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier &&
         node.staticElement is LocalVariableElement) {
@@ -35,7 +35,7 @@ class MakeVariableNotFinal extends CorrectionProducer {
         var keywordToken = declarationList.keyword;
         if (declarationList.variables.length == 1 &&
             keywordToken.keyword == Keyword.FINAL) {
-          await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+          await builder.addDartFileEdit(file, (builder) {
             if (declarationList.type != null) {
               builder.addDeletion(
                   range.startStart(keywordToken, declarationList.type));

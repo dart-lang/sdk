@@ -96,6 +96,10 @@ class ProgramVisitor : public AllStatic {
   static void WalkProgram(Zone* zone, Isolate* isolate, ClassVisitor* visitor);
 
   static void Dedup(Thread* thread);
+#if defined(DART_PRECOMPILER)
+  static void AssignUnits(Thread* thread);
+  static uint32_t Hash(Thread* thread);
+#endif
 
  private:
 #if !defined(DART_PRECOMPILED_RUNTIME)

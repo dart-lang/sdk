@@ -3,21 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingReturnTest);
+    defineReflectiveTests(MissingReturnWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MissingReturnTest extends DriverResolutionTest with PackageMixin {
+class MissingReturnTest extends PubPackageResolutionTest {
   test_alwaysThrows() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -211,5 +211,25 @@ class B extends A {
 ''', [
       error(HintCode.MISSING_RETURN, 55, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
+  test_returnNever() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+Never foo() {
+  throw 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+int f() {
+  foo();
+}
+''');
   }
 }

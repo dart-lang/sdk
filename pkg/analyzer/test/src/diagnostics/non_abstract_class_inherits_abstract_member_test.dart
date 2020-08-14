@@ -5,16 +5,23 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonAbstractClassInheritsAbstractMemberTest);
+    defineReflectiveTests(
+        NonAbstractClassInheritsAbstractMemberWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class NonAbstractClassInheritsAbstractMemberTest extends DriverResolutionTest {
+class NonAbstractClassInheritsAbstractMemberTest
+    extends PubPackageResolutionTest
+    with NonAbstractClassInheritsAbstractMemberTestCases {}
+
+mixin NonAbstractClassInheritsAbstractMemberTestCases
+    on PubPackageResolutionTest {
   test_abstractsDontOverrideConcretes_getter() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -98,7 +105,7 @@ class C extends A {
 }
 ''', [
       error(
-          StaticWarningCode
+          CompileTimeErrorCode
               .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
           62,
           1),
@@ -116,8 +123,10 @@ abstract class A {
 class C extends A {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
-          55, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+          55,
+          1),
     ]);
   }
 
@@ -215,8 +224,10 @@ abstract class I {
 }
 class B = A with M implements I;
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          74, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          74,
+          1),
     ]);
   }
 
@@ -229,8 +240,10 @@ abstract class M {
 abstract class A {}
 class B = A with M;
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          54, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          54,
+          1),
     ]);
   }
 
@@ -243,8 +256,10 @@ abstract class A {
 }
 class B = A with M;
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          45, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
+          1),
     ]);
   }
 
@@ -256,8 +271,10 @@ class I {
 class C implements I {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          42, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          42,
+          1),
     ]);
   }
 
@@ -269,8 +286,10 @@ abstract class A {
 class C extends A {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          40, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          40,
+          1),
     ]);
   }
 
@@ -282,8 +301,10 @@ class I {
 class C implements I {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          28, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          28,
+          1),
     ]);
   }
 
@@ -296,8 +317,10 @@ class C implements I {
   noSuchMethod(v);
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          28, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          28,
+          1),
     ]);
   }
 
@@ -324,8 +347,10 @@ class I {
 class C implements I {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          55, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          55,
+          1),
     ]);
   }
 
@@ -337,8 +362,10 @@ abstract class A {
 class C extends A {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          35, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          35,
+          1),
     ]);
   }
 
@@ -354,8 +381,10 @@ abstract class B {
 class C implements A, B {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          89, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          89,
+          1),
     ]);
   }
 
@@ -366,8 +395,10 @@ abstract class A { get g1; get g2; }
 abstract class B implements A { get g1 => 1; }
 class C extends Object with B {}
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          90, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          90,
+          1),
     ]);
   }
 
@@ -378,8 +409,10 @@ abstract class A { m1(); m2(); }
 abstract class B implements A { m1() => 1; }
 class C extends Object with B {}
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          84, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          84,
+          1),
     ]);
   }
 
@@ -390,8 +423,10 @@ abstract class A { set s1(v); set s2(v); }
 abstract class B implements A { set s1(v) {} }
 class C extends Object with B {}
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          96, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          96,
+          1),
     ]);
   }
 
@@ -407,8 +442,10 @@ abstract class A {
 class B extends A implements I {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          71, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          71,
+          1),
     ]);
   }
 
@@ -425,8 +462,10 @@ class B extends A implements I {
   get field => 0;
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          77, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          77,
+          1),
     ]);
   }
 
@@ -438,8 +477,10 @@ class I {
 class C implements I {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          36, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          36,
+          1),
     ]);
   }
 
@@ -451,8 +492,10 @@ abstract class A {
 class C extends A {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          43, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          43,
+          1),
     ]);
   }
 
@@ -468,8 +511,10 @@ abstract class B implements A {
 class C extends B {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          84, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          84,
+          1),
     ]);
   }
 
@@ -483,8 +528,10 @@ class C implements I {
   set v(_) {}
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          27, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          27,
+          1),
     ]);
   }
 
@@ -498,8 +545,10 @@ class C implements I {
   get v => 1;
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
-          27, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          27,
+          1),
     ]);
   }
 
@@ -523,8 +572,11 @@ abstract class A {
 class C extends A {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
-          48, 1),
+      error(
+          CompileTimeErrorCode
+              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+          48,
+          1),
     ]);
   }
 
@@ -537,8 +589,10 @@ abstract class A {
 class C extends A {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          41, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          41,
+          1),
     ]);
   }
 
@@ -551,8 +605,98 @@ class I {
 class C implements I {
 }
 ''', [
-      error(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
-          27, 1),
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          27,
+          1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonAbstractClassInheritsAbstractMemberWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, NonAbstractClassInheritsAbstractMemberTestCases {
+  test_abstract_field_final_implement_getter() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''');
+  }
+
+  test_abstract_field_final_implement_none() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          51,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_getter() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  int get x => 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_getter_and_setter() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  int get x => 0;
+  void set x(int value) {}
+}
+''');
+  }
+
+  test_abstract_field_implement_none() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+          45,
+          1),
+    ]);
+  }
+
+  test_abstract_field_implement_setter() async {
+    await assertErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+class B implements A {
+  void set x(int value) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+          45,
+          1),
     ]);
   }
 }

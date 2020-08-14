@@ -16,11 +16,11 @@ $!MEMBERS
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
-    if (this.multiple) {
+    if (this.multiple$NULLASSERT) {
       var options = this.options.where((o) => o.selected).toList();
       return new UnmodifiableListView(options);
     } else {
-      return [this.options[this.selectedIndex]];
+      return [this.options[this.selectedIndex$NULLASSERT]];
     }
   }
 }

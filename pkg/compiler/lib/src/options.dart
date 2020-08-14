@@ -157,6 +157,11 @@ class CompilerOptions implements DiagnosticOptions {
   /// This flag is presented to help developers find and fix the affected code.
   bool reportInvalidInferredDeferredTypes = false;
 
+  /// Whether to defer load class types.
+  bool deferClassTypes = false; // default value.
+  bool _deferClassTypes = false;
+  bool _noDeferClassTypes = false;
+
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
   bool disableInlining = false;
@@ -192,6 +197,12 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to use the trivial abstract value domain.
   bool useTrivialAbstractValueDomain = false;
+
+  /// Whether to use the wrapped abstract value domain (experimental).
+  bool experimentalWrapped = false;
+
+  /// Whether to use the powersets abstract value domain (experimental).
+  bool experimentalPowersets = false;
 
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
@@ -231,6 +242,13 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
+
+  /// Whether to generate code asserting that non-nullable parameters in opt-in
+  /// code are not null. In mixed mode code (some opting into non-nullable, some
+  /// not), null-safety is unsound, allowing `null` values to be assigned to
+  /// variables with non-nullable types. This assertion lets the opt-in code
+  /// operate with a stronger guarantee.
+  bool enableNullAssertions = false;
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
@@ -416,6 +434,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
       ..reportInvalidInferredDeferredTypes =
           _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
+      .._deferClassTypes = _hasOption(options, Flags.deferClassTypes)
+      .._noDeferClassTypes = _hasOption(options, Flags.noDeferClassTypes)
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
@@ -428,6 +448,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
+      ..experimentalWrapped = _hasOption(options, Flags.experimentalWrapped)
+      ..experimentalPowersets = _hasOption(options, Flags.experimentalPowersets)
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
@@ -441,6 +463,8 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
+      ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
+          _hasOption(options, Flags.enableNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
@@ -514,6 +538,10 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
     }
+    if (_deferClassTypes && _noDeferClassTypes) {
+      throw ArgumentError("'${Flags.deferClassTypes}' incompatible with "
+          "'${Flags.noDeferClassTypes}'");
+    }
   }
 
   void deriveOptions() {
@@ -575,6 +603,9 @@ class CompilerOptions implements DiagnosticOptions {
     if (_disableMinification) {
       enableMinification = false;
     }
+
+    if (_deferClassTypes) deferClassTypes = true;
+    if (_noDeferClassTypes) deferClassTypes = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

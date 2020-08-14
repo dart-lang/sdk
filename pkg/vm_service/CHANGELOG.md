@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.2.0
+- Update to version `3.37.0` of the spec.
+- Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
+- Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
+
 ## 4.1.0
 - Update to version `3.35.0` of the spec.
 - Expose more `@required` parameters on the named constructors of VM service objects.

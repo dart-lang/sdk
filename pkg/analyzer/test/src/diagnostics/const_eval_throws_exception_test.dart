@@ -9,8 +9,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,13 +19,22 @@ main() {
   });
 }
 
-/// TODO(paulberry): move other tests from [CompileTimeErrorCodeTestBase] to
-/// this class.
 @reflectiveTest
-class ConstEvalThrowsExceptionTest extends DriverResolutionTest {
+class ConstEvalThrowsExceptionTest extends PubPackageResolutionTest {
+  test_assertInitializerThrows() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int x, int y) : assert(x < y);
+}
+var v = const A(3, 2);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 61, 13),
+    ]);
+  }
+
   test_CastError_intToDouble_constructor_importAnalyzedAfter() async {
     // See dartbug.com/35993
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class Foo {
   final double value;
 
@@ -50,13 +58,13 @@ void main() {
 }
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_CastError_intToDouble_constructor_importAnalyzedBefore() async {
     // See dartbug.com/35993
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class Foo {
   final double value;
 
@@ -80,12 +88,12 @@ void main() {
 }
 ''');
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     expect(otherFileResult.errors, isEmpty);
   }
 
   test_default_constructor_arg_empty_map_import() async {
-    newFile('/test/lib/other.dart', content: '''
+    newFile('$testPackageLibPath/other.dart', content: '''
 class C {
   final Map<String, int> m;
   const C({this.m = const <String, int>{}})
@@ -102,7 +110,7 @@ main() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
     ]);
     var otherFileResult =
-        await resolveFile(convertPath('/test/lib/other.dart'));
+        await resolveFile(convertPath('$testPackageLibPath/other.dart'));
     assertErrorsInList(
       otherFileResult.errors,
       expectedErrorsByNullability(
@@ -126,8 +134,10 @@ class C {
 }
 var x = const C();
 ''', [
-      error(StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-          39, 1),
+      error(
+          CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+          39,
+          1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 56, 9),
     ]);
   }
@@ -145,8 +155,10 @@ class C {
 }
 var x = const C(2);
 ''', [
-      error(StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-          40, 1),
+      error(
+          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          40,
+          1),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 54, 10),
     ]);
   }
@@ -162,6 +174,30 @@ main() {
   print(c);
 }
 ''');
+  }
+
+  test_fromEnvironment_bool_badArgs() async {
+    await assertErrorsInCode(r'''
+var b1 = const bool.fromEnvironment(1);
+var b2 = const bool.fromEnvironment('x', defaultValue: 1);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 29),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 36, 1),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 49, 48),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 15),
+    ]);
+  }
+
+  test_fromEnvironment_bool_badDefault_whenDefined() async {
+    // The type of the defaultValue needs to be correct even when the default
+    // value isn't used (because the variable is defined in the environment).
+    declaredVariables = {'x': 'true'};
+    await assertErrorsInCode('''
+var b = const bool.fromEnvironment('x', defaultValue: 1);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 15),
+    ]);
   }
 
   test_ifElement_false_thenNotEvaluated() async {
@@ -239,7 +275,7 @@ const c = [if (0 < 1) 3 else nil + 1];
   }
 
   test_invalid_constructorFieldInitializer_fromSeparateLibrary() async {
-    newFile('/test/lib/lib.dart', content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 class A<T> {
   final int f;
   const A() : f = T.foo;
@@ -250,6 +286,50 @@ import 'lib.dart';
 const a = const A();
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 29, 9),
+    ]);
+  }
+
+  test_redirectingConstructor_paramTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A.a1(x) : this.a2(x);
+  const A.a2(String x);
+}
+var v = const A.a1(0);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 74, 13),
+    ]);
+  }
+
+  test_superConstructor_paramTypeMismatch() async {
+    await assertErrorsInCode(r'''
+class C {
+  final double d;
+  const C(this.d);
+}
+class D extends C {
+  const D(d) : super(d);
+}
+const f = const D('0.0');
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 106, 14),
+    ]);
+  }
+
+  test_symbolConstructor_badStringArgument() async {
+    await assertErrorsInCode(r'''
+var s1 = const Symbol('3');
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
+    ]);
+  }
+
+  test_symbolConstructor_nonStringArgument() async {
+    await assertErrorsInCode(r'''
+var s2 = const Symbol(3);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 22, 1),
     ]);
   }
 

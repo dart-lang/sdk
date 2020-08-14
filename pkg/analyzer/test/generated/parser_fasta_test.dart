@@ -172,6 +172,16 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(invocation.argumentList.arguments, hasLength(0));
   }
 
+  void test_parseField_abstract() {
+    createParser('abstract int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNotNull);
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -319,6 +329,16 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
+  }
+
+  void test_parseField_non_abstract() {
+    createParser('int i;', featureSet: nonNullable);
+    ClassMember member = parser.parseClassMember('C');
+    expect(member, isNotNull);
+    assertNoErrors();
+    expect(member, isFieldDeclaration);
+    FieldDeclaration field = member;
+    expect(field.abstractKeyword, isNull);
   }
 
   void test_parseField_var_late() {
@@ -1676,7 +1696,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1688,7 +1708,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1700,7 +1720,7 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     var extension = unit.declarations[0] as ExtensionDeclaration;
     expect(extension.name, isNull);
     expect(extension.onKeyword.lexeme, 'on');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments.arguments, hasLength(1));
     expect(extension.members, hasLength(0));
@@ -1799,7 +1819,7 @@ class C {}
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
@@ -1836,7 +1856,7 @@ class C {}
     expect(extension.name, isNull);
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
-    var namedType = (extension.extendedType as NamedType);
+    var namedType = extension.extendedType as NamedType;
     expect(namedType.name.name, 'C');
     expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));

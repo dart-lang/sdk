@@ -197,7 +197,7 @@ class AssignmentExpressionResolver {
     if (operatorType != TokenType.EQ) {
       if (staticType != null && staticType.isVoid) {
         _errorReporter.reportErrorForToken(
-          StaticWarningCode.USE_OF_VOID_RESULT,
+          CompileTimeErrorCode.USE_OF_VOID_RESULT,
           operator,
         );
         return;
@@ -223,7 +223,7 @@ class AssignmentExpressionResolver {
         node.staticElement = result.getter;
         if (_shouldReportInvalidMember(staticType, result)) {
           _errorReporter.reportErrorForToken(
-            StaticTypeWarningCode.UNDEFINED_OPERATOR,
+            CompileTimeErrorCode.UNDEFINED_OPERATOR,
             operator,
             [methodName, staticType],
           );
@@ -281,7 +281,7 @@ class AssignmentExpressionResolver {
       var leftWriteType = _getStaticType2(node.leftHandSide);
       if (!_typeSystem.isAssignableTo2(type, leftWriteType)) {
         _resolver.errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          CompileTimeErrorCode.INVALID_ASSIGNMENT,
           node.rightHandSide,
           [type, leftWriteType],
         );

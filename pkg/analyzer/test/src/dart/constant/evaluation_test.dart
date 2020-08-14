@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -14,8 +13,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_support.dart';
-import '../resolution/driver_resolution.dart';
-import 'potentially_constant_test.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -301,14 +299,15 @@ const b = 3;''');
   }
 }
 
-class ConstantVisitorTestSupport extends DriverResolutionTest {
+class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   DartObjectImpl _evaluateConstant(
     String name, {
     List<ErrorCode> errorCodes,
     Map<String, String> declaredVariables = const {},
     Map<String, DartObjectImpl> lexicalEnvironment,
   }) {
-    var options = driver.analysisOptions as AnalysisOptionsImpl;
+    var analysisContext = contextFor(this.result.path);
+    var options = analysisContext.analysisOptions as AnalysisOptionsImpl;
     var expression = findNode.topVariableDeclarationByName(name).initializer;
 
     var source = this.result.unit.declaredElement.source;
@@ -344,10 +343,14 @@ class ConstantVisitorTestSupport extends DriverResolutionTest {
 class ConstantVisitorWithConstantUpdate2018Test
     extends ConstantVisitorTestSupport {
   @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018, EnableString.triple_shift],
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        experiments: [EnableString.triple_shift],
+      ),
     );
+  }
 
   test_visitAsExpression_instanceOfSameClass() async {
     await resolveTestCode('''

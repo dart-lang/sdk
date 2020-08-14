@@ -198,7 +198,7 @@ String _getBaseNameFromUnwrappedExpression(Expression expression) {
     }
   } else if (expression is IndexExpression) {
     name = _getBaseNameFromExpression(expression.realTarget);
-    if (name.endsWith('s')) {
+    if (name != null && name.endsWith('s')) {
       name = name.substring(0, name.length - 1);
     }
   }

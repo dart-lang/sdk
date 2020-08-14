@@ -581,18 +581,33 @@ class _ClassVerifier {
   /// because the class itself defines an abstract method with this [name],
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
+    bool checkMemberNameCombo(ClassMember member, String memberName) {
+      if (memberName == name) {
+        reporter.reportErrorForNode(
+            CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+            member,
+            [name, classElement.name]);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     for (var member in members) {
       if (member is MethodDeclaration) {
         var name2 = member.name.name;
         if (member.isSetter) {
           name2 += '=';
         }
-        if (name2 == name) {
-          reporter.reportErrorForNode(
-              StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
-              member,
-              [name, classElement.name]);
-          return true;
+        if (checkMemberNameCombo(member, name2)) return true;
+      } else if (member is FieldDeclaration) {
+        for (var variableDeclaration in member.fields.variables) {
+          var name2 = variableDeclaration.name.name;
+          if (checkMemberNameCombo(member, name2)) return true;
+          if (!variableDeclaration.isFinal) {
+            name2 += '=';
+            if (checkMemberNameCombo(member, name2)) return true;
+          }
         }
       }
     }
@@ -668,31 +683,32 @@ class _ClassVerifier {
 
     if (descriptions.length == 1) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
         classNameNode,
         [descriptions[0]],
       );
     } else if (descriptions.length == 2) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
         classNameNode,
         [descriptions[0], descriptions[1]],
       );
     } else if (descriptions.length == 3) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
         classNameNode,
         [descriptions[0], descriptions[1], descriptions[2]],
       );
     } else if (descriptions.length == 4) {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
         classNameNode,
         [descriptions[0], descriptions[1], descriptions[2], descriptions[3]],
       );
     } else {
       reporter.reportErrorForNode(
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+        CompileTimeErrorCode
+            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
         classNameNode,
         [
           descriptions[0],
