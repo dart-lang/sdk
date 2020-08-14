@@ -131,6 +131,9 @@ abstract class Resource {
   /// Return the full path to this resource.
   String get path;
 
+  /// Return the [ResourceProvider] that owns this resource.
+  ResourceProvider get provider;
+
   /// Return a short version of the name that can be displayed to the user to
   /// denote this resource.
   String get shortName;

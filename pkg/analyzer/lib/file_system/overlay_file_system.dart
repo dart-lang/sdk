@@ -144,11 +144,11 @@ class _OverlayFile extends _OverlayResource implements File {
   Stream<WatchEvent> get changes => _file.changes;
 
   @override
-  bool get exists => _provider.hasOverlay(path) || _resource.exists;
+  bool get exists => provider.hasOverlay(path) || _resource.exists;
 
   @override
   int get lengthSync {
-    String content = _provider._getOverlayContent(path);
+    String content = provider._getOverlayContent(path);
     if (content != null) {
       return content.length;
     }
@@ -157,7 +157,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   int get modificationStamp {
-    int stamp = _provider._getOverlayModificationStamp(path);
+    int stamp = provider._getOverlayModificationStamp(path);
     if (stamp != null) {
       return stamp;
     }
@@ -170,25 +170,25 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   File copyTo(Folder parentFolder) {
-    String newPath = _provider.pathContext.join(parentFolder.path, shortName);
-    _provider._copyOverlay(path, newPath);
+    String newPath = provider.pathContext.join(parentFolder.path, shortName);
+    provider._copyOverlay(path, newPath);
     if (_file.exists) {
       if (parentFolder is _OverlayFolder) {
-        return _OverlayFile(_provider, _file.copyTo(parentFolder._folder));
+        return _OverlayFile(provider, _file.copyTo(parentFolder._folder));
       }
-      return _OverlayFile(_provider, _file.copyTo(parentFolder));
+      return _OverlayFile(provider, _file.copyTo(parentFolder));
     } else {
-      return _OverlayFile(_provider, _provider.baseProvider.getFile(newPath));
+      return _OverlayFile(provider, provider.baseProvider.getFile(newPath));
     }
   }
 
   @override
   Source createSource([Uri uri]) =>
-      FileSource(this, uri ?? _provider.pathContext.toUri(path));
+      FileSource(this, uri ?? provider.pathContext.toUri(path));
 
   @override
   void delete() {
-    bool hadOverlay = _provider.removeOverlay(path);
+    bool hadOverlay = provider.removeOverlay(path);
     if (_resource.exists) {
       _resource.delete();
     } else if (!hadOverlay) {
@@ -198,7 +198,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   Uint8List readAsBytesSync() {
-    String content = _provider._getOverlayContent(path);
+    String content = provider._getOverlayContent(path);
     if (content != null) {
       return utf8.encode(content) as Uint8List;
     }
@@ -207,7 +207,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   String readAsStringSync() {
-    String content = _provider._getOverlayContent(path);
+    String content = provider._getOverlayContent(path);
     if (content != null) {
       return content;
     }
@@ -217,13 +217,13 @@ class _OverlayFile extends _OverlayResource implements File {
   @override
   File renameSync(String newPath) {
     File newFile = _file.renameSync(newPath);
-    if (_provider.hasOverlay(path)) {
-      _provider.setOverlay(newPath,
-          content: _provider._getOverlayContent(path),
-          modificationStamp: _provider._getOverlayModificationStamp(path));
-      _provider.removeOverlay(path);
+    if (provider.hasOverlay(path)) {
+      provider.setOverlay(newPath,
+          content: provider._getOverlayContent(path),
+          modificationStamp: provider._getOverlayModificationStamp(path));
+      provider.removeOverlay(path);
     }
-    return _OverlayFile(_provider, newFile);
+    return _OverlayFile(provider, newFile);
   }
 
   @override
@@ -233,7 +233,7 @@ class _OverlayFile extends _OverlayResource implements File {
 
   @override
   void writeAsStringSync(String content) {
-    if (_provider.hasOverlay(path)) {
+    if (provider.hasOverlay(path)) {
       throw FileSystemException(path, 'Cannot write a file with an overlay');
     }
     _file.writeAsStringSync(content);
@@ -252,7 +252,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   Stream<WatchEvent> get changes => _folder.changes;
 
   @override
-  bool get exists => _provider._hasOverlayIn(path) || _resource.exists;
+  bool get exists => provider._hasOverlayIn(path) || _resource.exists;
 
   /// Return the folder from the base resource provider that corresponds to this
   /// folder.
@@ -260,7 +260,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
   @override
   String canonicalizePath(String relPath) {
-    pathos.Context context = _provider.pathContext;
+    pathos.Context context = provider.pathContext;
     relPath = context.normalize(relPath);
     String childPath = context.join(path, relPath);
     childPath = context.normalize(childPath);
@@ -287,37 +287,37 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
   @override
   Resource getChild(String relPath) =>
-      _OverlayResource._from(_provider, _folder.getChild(relPath));
+      _OverlayResource._from(provider, _folder.getChild(relPath));
 
   @override
   File getChildAssumingFile(String relPath) =>
-      _OverlayFile(_provider, _folder.getChildAssumingFile(relPath));
+      _OverlayFile(provider, _folder.getChildAssumingFile(relPath));
 
   @override
   Folder getChildAssumingFolder(String relPath) =>
-      _OverlayFolder(_provider, _folder.getChildAssumingFolder(relPath));
+      _OverlayFolder(provider, _folder.getChildAssumingFolder(relPath));
 
   @override
   List<Resource> getChildren() {
     Map<String, Resource> children = {};
     try {
       for (final child in _folder.getChildren()) {
-        children[child.path] = _OverlayResource._from(_provider, child);
+        children[child.path] = _OverlayResource._from(provider, child);
       }
     } on FileSystemException {
       // We don't want to throw if we're a folder that only exists in the
       // overlay and not on disk.
     }
 
-    for (String overlayPath in _provider._overlaysInFolder(path)) {
-      pathos.Context context = _provider.pathContext;
+    for (String overlayPath in provider._overlaysInFolder(path)) {
+      pathos.Context context = provider.pathContext;
       if (context.dirname(overlayPath) == path) {
-        children.putIfAbsent(overlayPath, () => _provider.getFile(overlayPath));
+        children.putIfAbsent(overlayPath, () => provider.getFile(overlayPath));
       } else {
         String relativePath = context.relative(overlayPath, from: path);
         String folderName = context.split(relativePath)[0];
         String folderPath = context.join(path, folderName);
-        children.putIfAbsent(folderPath, () => _provider.getFolder(folderPath));
+        children.putIfAbsent(folderPath, () => provider.getFolder(folderPath));
       }
     }
     return children.values.toList();
@@ -326,17 +326,17 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
 /// The base class for resources from an [OverlayResourceProvider].
 abstract class _OverlayResource implements Resource {
-  /// The resource provider associated with this resource.
-  final OverlayResourceProvider _provider;
+  @override
+  final OverlayResourceProvider provider;
 
   /// The resource from the provider's base provider that corresponds to this
   /// resource.
   final Resource _resource;
 
   /// Initialize a newly created instance of a resource to have the given
-  /// [_provider] and to represent the [_resource] from the provider's base
+  /// [provider] and to represent the [_resource] from the provider's base
   /// resource provider.
-  _OverlayResource(this._provider, this._resource);
+  _OverlayResource(this.provider, this._resource);
 
   /// Return an instance of the subclass of this class corresponding to the
   /// given [resource] that is associated with the given [provider].
@@ -359,7 +359,7 @@ abstract class _OverlayResource implements Resource {
     if (parent == null) {
       return null;
     }
-    return _OverlayFolder(_provider, parent);
+    return _OverlayFolder(provider, parent);
   }
 
   @override
@@ -388,7 +388,7 @@ abstract class _OverlayResource implements Resource {
 
   @override
   Resource resolveSymbolicLinksSync() =>
-      _OverlayResource._from(_provider, _resource.resolveSymbolicLinksSync());
+      _OverlayResource._from(provider, _resource.resolveSymbolicLinksSync());
 
   @override
   Uri toUri() => _resource.toUri();

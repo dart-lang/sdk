@@ -375,6 +375,9 @@ abstract class _PhysicalResource implements Resource {
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
+  ResourceProvider get provider => PhysicalResourceProvider.INSTANCE;
+
+  @override
   String get shortName => pathContext.basename(path);
 
   @override

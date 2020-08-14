@@ -2,6 +2,11 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   Adds `Abort` method to class `HttpClientRequest`, which allows users
+    to cancel outgoing HTTP requests and stop following IO operations.
+
 #### `dart:typed_data`
 
 *   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
