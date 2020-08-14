@@ -46,7 +46,9 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   }
 
   // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
-  // handled here
+  // handled here.
+  // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
+  // a machine is running dartdev so we return analytics shouldn't be set.
   if (disableAnalytics) {
     instance = DisabledAnalytics(_trackingId, _appName);
     return instance;
@@ -136,12 +138,21 @@ class DartdevAnalytics extends AnalyticsImpl {
 
   @override
   bool get enabled {
-    if (telemetry.isRunningOnBot()) {
+    // Don't enable if the user hasn't been shown the disclosure or if this
+    // machine is bot.
+    if (!disclosureShownOnTerminal || telemetry.isRunningOnBot()) {
       return false;
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
     return (properties['enabled'] as bool) ?? false;
+  }
+
+  bool get disclosureShownOnTerminal =>
+      (properties['disclosureShown'] as bool) ?? false;
+
+  void set disclosureShownOnTerminal(bool value) {
+    properties['disclosureShown'] = value;
   }
 }
 
