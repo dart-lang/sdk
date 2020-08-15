@@ -77,30 +77,16 @@ class FlowAnalysisHelper {
     flow.asExpression_end(expression, typeAnnotation.type);
   }
 
-  VariableElement assignmentExpression(AssignmentExpression node) {
+  void assignmentExpression(AssignmentExpression node) {
     if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       flow.ifNullExpression_rightBegin(node.leftHandSide);
     }
-
-    var left = node.leftHandSide;
-
-    if (left is SimpleIdentifier) {
-      var element = left.staticElement;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-
-    return null;
   }
 
-  void assignmentExpression_afterRight(AssignmentExpression node,
-      VariableElement localElement, DartType writtenType) {
-    if (localElement != null) {
-      flow.write(localElement, writtenType);
-    }
+  void assignmentExpression_afterRight(AssignmentExpression node) {
+    if (flow == null) return null;
 
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       flow.ifNullExpression_end();

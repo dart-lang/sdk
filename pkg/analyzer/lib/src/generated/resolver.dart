@@ -153,6 +153,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
+  final MigrationResolutionHooks migrationResolutionHooks;
+
   /// Helper for checking expression that should have the `bool` type.
   BoolExpressionVerifier boolExpressionVerifier;
 
@@ -290,6 +292,7 @@ class ResolverVisitor extends ScopedVisitor {
       this._migratableAstInfoProvider,
       MigrationResolutionHooks migrationResolutionHooks)
       : _featureSet = featureSet,
+        migrationResolutionHooks = migrationResolutionHooks,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _promoteManager = TypePromotionManager(typeSystem);
@@ -425,6 +428,26 @@ class ResolverVisitor extends ScopedVisitor {
             errorNode,
           );
         }
+      }
+    }
+  }
+
+  void checkReadOfNotAssignedLocalVariable(SimpleIdentifier node) {
+    if (_flowAnalysis != null) {
+      if (_flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          node,
+          [node.name],
+        );
+      }
+      if (_flowAnalysis.isReadOfDefinitelyUnassignedLateLocal(node)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+          node,
+          [node.name],
+        );
       }
     }
   }
@@ -1533,23 +1556,7 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          node,
-          [node.name],
-        );
-      }
-      if (_flowAnalysis.isReadOfDefinitelyUnassignedLateLocal(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
-          node,
-          [node.name],
-        );
-      }
-    }
+    checkReadOfNotAssignedLocalVariable(node);
 
     super.visitSimpleIdentifier(node);
   }
