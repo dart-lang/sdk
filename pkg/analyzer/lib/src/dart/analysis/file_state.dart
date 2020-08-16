@@ -337,9 +337,7 @@ class FileState {
   CompilationUnit parse([AnalysisErrorListener errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return PerformanceStatistics.parse.makeCurrentWhile(() {
-        return _parse(errorListener);
-      });
+      return _parse(errorListener);
     } catch (_) {
       return _createEmptyCompilationUnit();
     }
@@ -566,9 +564,7 @@ class FileState {
           _packageLanguageVersion,
         ),
       );
-    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize(reportScannerErrors: false);
-    });
+    Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;

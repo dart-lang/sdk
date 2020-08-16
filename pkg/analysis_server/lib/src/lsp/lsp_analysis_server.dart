@@ -258,46 +258,44 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
     performance.logRequestTiming(null);
-    runZonedGuarded(() {
-      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
-        try {
-          if (message is ResponseMessage) {
-            handleClientResponse(message);
-          } else if (message is RequestMessage) {
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
-            } else {
-              channel.sendResponse(ResponseMessage(
-                  id: message.id,
-                  result: result.result,
-                  jsonrpc: jsonRpcVersion));
-            }
-          } else if (message is NotificationMessage) {
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
-            }
+    runZonedGuarded(() async {
+      try {
+        if (message is ResponseMessage) {
+          handleClientResponse(message);
+        } else if (message is RequestMessage) {
+          final result = await messageHandler.handleMessage(message);
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
           } else {
-            showErrorMessageToUser('Unknown message type');
+            channel.sendResponse(ResponseMessage(
+                id: message.id,
+                result: result.result,
+                jsonrpc: jsonRpcVersion));
           }
-        } catch (error, stackTrace) {
-          final errorMessage = message is ResponseMessage
-              ? 'An error occurred while handling the response to request ${message.id}'
-              : message is RequestMessage
-                  ? 'An error occurred while handling ${message.method} request'
-                  : message is NotificationMessage
-                      ? 'An error occurred while handling ${message.method} notification'
-                      : 'Unknown message type';
-          sendErrorResponse(
-              message,
-              ResponseError(
-                code: ServerErrorCodes.UnhandledError,
-                message: errorMessage,
-              ));
-          logException(errorMessage, error, stackTrace);
+        } else if (message is NotificationMessage) {
+          final result = await messageHandler.handleMessage(message);
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
+          }
+        } else {
+          showErrorMessageToUser('Unknown message type');
         }
-      });
+      } catch (error, stackTrace) {
+        final errorMessage = message is ResponseMessage
+            ? 'An error occurred while handling the response to request ${message.id}'
+            : message is RequestMessage
+                ? 'An error occurred while handling ${message.method} request'
+                : message is NotificationMessage
+                    ? 'An error occurred while handling ${message.method} notification'
+                    : 'Unknown message type';
+        sendErrorResponse(
+            message,
+            ResponseError(
+              code: ServerErrorCodes.UnhandledError,
+              message: errorMessage,
+            ));
+        logException(errorMessage, error, stackTrace);
+      }
     }, socketError);
   }
 
@@ -623,6 +621,7 @@ class LspInitializationOptions {
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
+
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,

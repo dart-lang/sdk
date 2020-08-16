@@ -34,14 +34,8 @@ import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        AnalysisEngine,
-        AnalysisOptions,
-        AnalysisOptionsImpl,
-        PerformanceStatistics;
+    show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -1259,9 +1253,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      List<int> bytes = DriverPerformance.cache.makeCurrentWhile(() {
-        return _byteStore.get(key);
-      });
+      List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, signature, bytes);
       }
@@ -2038,13 +2030,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       this._index)
       : super(session, path, uri, exists, content, lineInfo, isPart, unit,
             errors);
-}
-
-class DriverPerformance {
-  static final PerformanceTag driver =
-      PerformanceStatistics.analyzer.createChild('driver');
-
-  static final PerformanceTag cache = driver.createChild('cache');
 }
 
 /// An object that watches for the creation and removal of analysis drivers.

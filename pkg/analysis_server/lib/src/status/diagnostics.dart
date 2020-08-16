@@ -29,9 +29,6 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart' as path;
 
@@ -141,10 +138,6 @@ td.pre {
   color: #333;
 }
 ''';
-
-/// TODO(devoncarew): We're not currently tracking the time spent in specific
-/// lints by default (analysisOptions / driverOptions enableTiming)
-final bool _showLints = false;
 
 String get _sdkVersion {
   var version = Platform.version;
@@ -773,7 +766,6 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(EnvironmentVariablesPage(this));
     pages.add(ExceptionsPage(this));
     //pages.add(new InstrumentationPage(this));
-    pages.add(ProfilePage(this));
 
     // Add server-specific pages. Ordering doesn't matter as the items are
     // sorted later.
@@ -1266,106 +1258,6 @@ class PluginsPage extends DiagnosticPageWithNav {
           }
         }
       }
-    }
-  }
-}
-
-class ProfilePage extends DiagnosticPageWithNav {
-  ProfilePage(DiagnosticsSite site)
-      : super(site, 'profile', 'Profiling Info',
-            description: 'Profiling performance tag data.');
-
-  @override
-  Future generateContent(Map<String, String> params) async {
-    h3('Profiling performance tag data');
-
-    // prepare sorted tags
-    var tags = PerformanceTag.all.toList();
-    tags.remove(ServerPerformanceStatistics.idle);
-    tags.remove(PerformanceTag.unknown);
-    tags.removeWhere((tag) => tag.elapsedMs == 0);
-    tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
-
-    // print total time
-    var totalTime =
-        tags.fold<int>(0, (int a, PerformanceTag tag) => a + tag.elapsedMs);
-    p('Total measured time: ${printMilliseconds(totalTime)}');
-
-    // draw a pie chart
-    var rowData =
-        tags.map((tag) => "['${tag.label}', ${tag.elapsedMs}]").join(',');
-    buf.writeln(
-        '<div id="chart-div" style="width: 700px; height: 300px;"></div>');
-    buf.writeln('''
-      <script type="text/javascript">
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawChart);
-
-        function drawChart() {
-          var data = new google.visualization.DataTable();
-          data.addColumn('string', 'Tag');
-          data.addColumn('number', 'Time (ms)');
-          data.addRows([$rowData]);
-          var options = {'title': 'Performance Tag Data', 'width': 700, 'height': 300};
-          var chart = new google.visualization.PieChart(document.getElementById('chart-div'));
-          chart.draw(data, options);
-        }
-      </script>
-''');
-
-    // write out a table
-    void _writeRow(List<String> data, {bool header = false}) {
-      buf.write('<tr>');
-      if (header) {
-        for (var d in data) {
-          buf.write('<th>$d</th>');
-        }
-      } else {
-        buf.write('<td>${data[0]}</td>');
-
-        for (var d in data.sublist(1)) {
-          buf.write('<td class="right">$d</td>');
-        }
-      }
-      buf.writeln('</tr>');
-    }
-
-    buf.write('<table>');
-    _writeRow(['Tag name', 'Time (in ms)', 'Percent'], header: true);
-    void writeRow(PerformanceTag tag) {
-      var percent = tag.elapsedMs / totalTime;
-      _writeRow([
-        tag.label,
-        printMilliseconds(tag.elapsedMs),
-        printPercentage(percent)
-      ]);
-    }
-
-    tags.forEach(writeRow);
-    buf.write('</table>');
-
-    if (_showLints) {
-      h3('Lint rule timings');
-      var rules = Registry.ruleRegistry.rules.toList();
-      var totalLintTime = rules.fold(0,
-          (sum, rule) => sum + lintRegistry.getTimer(rule).elapsedMilliseconds);
-      p('Total time spent in lints: ${printMilliseconds(totalLintTime)}');
-
-      rules.sort((first, second) {
-        var firstTime = lintRegistry.getTimer(first).elapsedMilliseconds;
-        var secondTime = lintRegistry.getTimer(second).elapsedMilliseconds;
-        if (firstTime == secondTime) {
-          return first.name.compareTo(second.name);
-        }
-        return secondTime - firstTime;
-      });
-      buf.write('<table>');
-      _writeRow(['Lint code', 'Time (in ms)'], header: true);
-      for (var rule in rules) {
-        var time = lintRegistry.getTimer(rule).elapsedMilliseconds;
-        _writeRow([rule.name, printMilliseconds(time)]);
-      }
-      buf.write('</table>');
     }
   }
 }

@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
@@ -25,11 +24,6 @@ int get currentTimeMillis => DateTime.now().millisecondsSinceEpoch;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
-  static final PerformanceTag _prepareErrorsTag =
-      PerformanceTag('AnalyzerImpl.prepareErrors');
-  static final PerformanceTag _resolveLibraryTag =
-      PerformanceTag('AnalyzerImpl._resolveLibrary');
-
   final CommandLineOptions options;
   final int startTime;
 
@@ -123,14 +117,9 @@ class AnalyzerImpl {
   Future<void> prepareErrors() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _prepareErrorsTag.makeCurrent();
-    try {
-      for (var path in files) {
-        var errorsResult = await analysisDriver.getErrors(path);
-        errorsResults.add(errorsResult);
-      }
-    } finally {
-      previous.makeCurrent();
+    for (var path in files) {
+      var errorsResult = await analysisDriver.getErrors(path);
+      errorsResults.add(errorsResult);
     }
   }
 
@@ -218,30 +207,17 @@ class AnalyzerImpl {
   void _printColdPerf() {
     // Print cold VM performance numbers.
     var totalTime = currentTimeMillis - startTime;
-    var otherTime = totalTime;
-    for (var tag in PerformanceTag.all) {
-      if (tag != PerformanceTag.unknown) {
-        var tagTime = tag.elapsedMs;
-        outSink.writeln('${tag.label}-cold:$tagTime');
-        otherTime -= tagTime;
-      }
-    }
-    outSink.writeln('other-cold:$otherTime');
     outSink.writeln('total-cold:$totalTime');
   }
 
   Future<LibraryElement> _resolveLibrary() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _resolveLibraryTag.makeCurrent();
-    try {
-      var libraryPath = libraryFile.path;
-      analysisDriver.priorityFiles = [libraryPath];
-      var elementResult = await analysisDriver.getUnitElement(libraryPath);
-      return elementResult.element.library;
-    } finally {
-      previous.makeCurrent();
-    }
+
+    var libraryPath = libraryFile.path;
+    analysisDriver.priorityFiles = [libraryPath];
+    var elementResult = await analysisDriver.getUnitElement(libraryPath);
+    return elementResult.element.library;
   }
 
   /// Return `true` if the given [pathName] is in the Pub cache.

@@ -102,9 +102,7 @@ class LibraryAnalyzer {
 
   /// Compute analysis results for all units of the library.
   Map<FileState, UnitAnalysisResult> analyze() {
-    return PerformanceStatistics.analysis.makeCurrentWhile(() {
-      return analyzeSync();
-    });
+    return analyzeSync();
   }
 
   /// Compute analysis results for all units of the library.
@@ -142,41 +140,35 @@ class LibraryAnalyzer {
     timerLibraryAnalyzerConst.stop();
 
     timerLibraryAnalyzerVerify.start();
-    PerformanceStatistics.errors.makeCurrentWhile(() {
-      units.forEach((file, unit) {
-        _computeVerifyErrors(file, unit);
-      });
+    units.forEach((file, unit) {
+      _computeVerifyErrors(file, unit);
     });
 
     if (_analysisOptions.hint) {
-      PerformanceStatistics.hints.makeCurrentWhile(() {
-        units.forEach((file, unit) {
-          {
-            var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
-            unit.accept(visitor);
-            _usedLocalElementsList.add(visitor.usedElements);
-          }
-          {
-            var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
-            unit.accept(visitor);
-            _usedImportedElementsList.add(visitor.usedElements);
-          }
-        });
-        units.forEach((file, unit) {
-          _computeHints(file, unit);
-        });
+      units.forEach((file, unit) {
+        {
+          var visitor = GatherUsedLocalElementsVisitor(_libraryElement);
+          unit.accept(visitor);
+          _usedLocalElementsList.add(visitor.usedElements);
+        }
+        {
+          var visitor = GatherUsedImportedElementsVisitor(_libraryElement);
+          unit.accept(visitor);
+          _usedImportedElementsList.add(visitor.usedElements);
+        }
+      });
+      units.forEach((file, unit) {
+        _computeHints(file, unit);
       });
     }
 
     if (_analysisOptions.lint) {
-      PerformanceStatistics.lints.makeCurrentWhile(() {
-        var allUnits = _library.libraryFiles
-            .map((file) => LinterContextUnit(file.content, units[file]))
-            .toList();
-        for (int i = 0; i < allUnits.length; i++) {
-          _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
-        }
-      });
+      var allUnits = _library.libraryFiles
+          .map((file) => LinterContextUnit(file.content, units[file]))
+          .toList();
+      for (int i = 0; i < allUnits.length; i++) {
+        _computeLints(_library.libraryFiles[i], allUnits[i], allUnits);
+      }
     }
 
     assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
