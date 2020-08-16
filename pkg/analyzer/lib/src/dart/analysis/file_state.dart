@@ -46,6 +46,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
 var counterUnlinkedLinkedBytes = 0;
+int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
 
 /// [FileContentOverlay] is used to temporary override content of files.
@@ -115,6 +116,9 @@ class FileState {
 
   /// The language version for the package that contains this file.
   final Version _packageLanguageVersion;
+
+  int id = fileObjectId++;
+  int refreshId;
 
   bool _exists;
   String _content;
@@ -351,6 +355,7 @@ class FileState {
   /// Return `true` if the API signature changed since the last refresh.
   bool refresh({bool allowCached = false}) {
     counterFileStateRefresh++;
+    refreshId = fileObjectId++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
@@ -492,7 +497,7 @@ class FileState {
     if (path == null) {
       return '<unresolved>';
     } else {
-      return '$uri = $path';
+      return '[id: $id][rid: $refreshId]$uri = $path';
     }
   }
 
