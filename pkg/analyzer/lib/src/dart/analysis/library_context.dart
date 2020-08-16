@@ -38,6 +38,7 @@ var timerLoad2 = Stopwatch();
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
+  final int id = fileObjectId++;
   final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
@@ -109,12 +110,18 @@ class LibraryContext {
     var bytesGet = 0;
     var bytesPut = 0;
 
-    void loadBundle(LibraryCycle cycle) {
+    var thisLoadLogBuffer = StringBuffer();
+
+    void loadBundle(LibraryCycle cycle, String debugPrefix) {
       if (!loadedBundles.add(cycle)) return;
+
+      thisLoadLogBuffer.writeln('$debugPrefix$cycle');
 
       librariesTotal += cycle.libraries.length;
 
-      cycle.directDependencies.forEach(loadBundle);
+      cycle.directDependencies.forEach(
+        (e) => loadBundle(e, '$debugPrefix  '),
+      );
 
       var key = cycle.transitiveSignature + '.linked_bundle';
       var bytes = byteStore.get(key);
@@ -161,21 +168,34 @@ class LibraryContext {
               if (existingLibraryReference != null) {
                 var existingElement = existingLibraryReference.element;
                 if (existingElement != null) {
+                  var buffer = StringBuffer();
+
+                  buffer.writeln('[The library is already loaded]');
+                  buffer.writeln();
+
                   var existingSource = existingElement?.source;
+                  buffer.writeln('[oldUri: ${existingSource.uri}]');
+                  buffer.writeln('[oldPath: ${existingSource.fullName}]');
+                  buffer.writeln('[newUri: ${libraryFile.uriStr}]');
+                  buffer.writeln('[newPath: ${libraryFile.path}]');
+                  buffer.writeln('[cycle: $cycle]');
+                  buffer.writeln();
+
+                  buffer.writeln('[loadedBundles: ${loadedBundles.toList()}]');
+                  buffer.writeln();
+
+                  buffer.writeln('Bundles loaded in this load2() invocation:');
+                  buffer.writeln(thisLoadLogBuffer);
+                  buffer.writeln();
+
                   var libraryRefs = elementFactory.rootReference.children;
                   var libraryUriList = libraryRefs.map((e) => e.name).toList();
-                  var statusText = '[The library is already loaded]'
-                      '[oldUri: ${existingSource.uri}]'
-                      '[oldPath: ${existingSource.fullName}]'
-                      '[newUri: ${libraryFile.uriStr}]'
-                      '[newPath: ${libraryFile.path}]'
-                      '[cycle: $cycle]'
-                      '[loadedBundles: ${loadedBundles.toList()}]'
-                      '[elementFactory.libraries: $libraryUriList]';
+                  buffer.writeln('[elementFactory.libraries: $libraryUriList]');
+
                   throw CaughtExceptionWithFiles(
                     'Cycle loading state error',
                     StackTrace.current,
-                    {'status': statusText},
+                    {'status': buffer.toString()},
                   );
                 }
               }
@@ -247,7 +267,7 @@ class LibraryContext {
 
     logger.run('Prepare linked bundles', () {
       var libraryCycle = targetLibrary.libraryCycle;
-      loadBundle(libraryCycle);
+      loadBundle(libraryCycle, '');
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
