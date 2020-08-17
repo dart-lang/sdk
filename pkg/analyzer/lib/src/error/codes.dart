@@ -2788,7 +2788,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is the
-  // target of the invocation of a static member. Similar to static members in
+  // receiver of the invocation of a static member. Similar to static members in
   // classes, the static members of an extension should be accessed using the
   // name of the extension, not an extension override.
   //
@@ -2867,8 +2867,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If there's a different extension that's valid for the type of the argument,
-  // then either replace the name of the extension or unwrap the target so that
-  // the correct extension is found.
+  // then either replace the name of the extension or unwrap the argument so
+  // that the correct extension is found.
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -2882,8 +2882,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is used as
-  // the target of a cascade expression. The value of a cascade expression
-  // `e..m` is the value of the target `e`, but extension overrides aren't
+  // the receiver of a cascade expression. The value of a cascade expression
+  // `e..m` is the value of the receiver `e`, but extension overrides aren't
   // expressions and don't have a value.
   //
   // #### Examples
@@ -2919,7 +2919,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_WITH_CASCADE',
           "Extension overrides have no value so they can't be used as the "
-              "target of a cascade expression.",
+              "receiver of a cascade expression.",
           correction: "Try using '.' instead of '..'.",
           hasPublishedDocs: true);
 
@@ -2963,7 +2963,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If you don't want to invoke a member, then unwrap the target:
+  // If you don't want to invoke a member, then unwrap the argument:
   //
   // ```dart
   // extension E on int {
@@ -3544,8 +3544,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
       CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
           "Generic function types can't be used as type parameter bounds",
-          correction: "Try making the free variable in the function type part"
-              " of the larger declaration signature");
+          correction: "Try making the free variable in the function type part "
+              "of the larger declaration signature");
 
   /**
    * It is a compile-time error if a generic function type is used as an actual
@@ -5862,12 +5862,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS =
       CompileTimeErrorCode(
           'NO_GENERATIVE_CONSTRUCTOR_IN_SUPERCLASS',
-          "The class '{0}' cannot extend '{1}' because '{1}' only has factory"
-              " constructors (no generative constructors), and '{0}' has at"
-              ' least one generative constructor.',
-          correction: 'Try implementing the class instead, adding a generative'
-              " (not factory) constructor to the superclass {0}, or a factory"
-              ' constructor to the subclass.');
+          "The class '{0}' cannot extend '{1}' because '{1}' only has factory "
+              "constructors (no generative constructors), and '{0}' has at "
+              "least one generative constructor.",
+          correction: "Try implementing the class instead, adding a generative "
+              "(not factory) constructor to the superclass {0}, or a factory "
+              "constructor to the subclass.");
 
   /**
    * Parameters:
@@ -6608,8 +6608,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_CONSTRUCTOR',
-          "The constructor '{0}' is a factory constructor, but must be a"
-              " generative constructor to be a valid superinitializer.",
+          "The constructor '{0}' is a factory constructor, but must be a "
+              "generative constructor to be a valid superinitializer.",
           correction:
               "Try calling a different constructor of the superclass, or "
               "making the called constructor not be a factory constructor.");
@@ -6627,12 +6627,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-          "The default constructor of superclass '{0}' (called by the implicit"
-              " default constructor of '{1}') must be a generative constructor,"
-              " but factory found.",
-          correction: 'Try adding an explicit constructor that has a different'
-              " superinitializer or changing the superclass constructor '{2}'"
-              " to not be a factory constructor.");
+          "The default constructor of superclass '{0}' (called by the implicit "
+              "default constructor of '{1}') must be a generative constructor, "
+              "but factory found.",
+          correction: "Try adding an explicit constructor that has a different "
+              "superinitializer or changing the superclass constructor '{2}' "
+              "to not be a factory constructor.");
 
   static const CompileTimeErrorCode NON_SYNC_FACTORY = CompileTimeErrorCode(
       'NON_SYNC_FACTORY',
@@ -7483,8 +7483,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
               "part-of directive.",
           correction:
-              "Try changing the part-of directive to a URI, or try including a"
-              " different part.");
+              "Try changing the part-of directive to a URI, or try including a "
+              "different part.");
 
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a
@@ -9493,7 +9493,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If a subclass adds a parameter with the name in question, then cast the
-  // target to the subclass:
+  // receiver to the subclass:
   //
   // ```dart
   // class C {
@@ -10259,8 +10259,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
     "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
     correction: "Try removing the type parameter or change the explicit "
-        "variance modifier declaration for the type parameter to another one of"
-        " 'in', 'out', or 'inout'.",
+        "variance modifier declaration for the type parameter to another one "
+        "of 'in', 'out', or 'inout'.",
   );
 
   /**
@@ -10450,7 +10450,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a null-aware operator (`?.`,
-  // `?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+  // `?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
   // non-nullable.
   //
   // #### Example
@@ -10489,8 +10489,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
       StaticWarningCode(
           'INVALID_NULL_AWARE_OPERATOR',
-          "The target expression can't be null, so the null-aware operator "
-              "'{0}' can't be used.",
+          "The receiver can't be null, so the null-aware operator '{0}' can't "
+              "be used.",
           correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
@@ -10504,8 +10504,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCodeWithUniqueName(
           'INVALID_NULL_AWARE_OPERATOR',
           'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
-          "The target expression can't be null because of short-circuiting, so "
-              "the null-aware operator '{0}' can't be used.",
+          "The receiver can't be null because of short-circuiting, so the "
+              "null-aware operator '{0}' can't be used.",
           correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
@@ -10638,12 +10638,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   static const StaticWarningCode UNNECESSARY_NON_NULL_ASSERTION =
-      StaticWarningCode(
-          'UNNECESSARY_NON_NULL_ASSERTION',
-          "The '!' will have no effect because the target expression can't be"
-              " null.",
-          correction: "Try removing the '!' operator.",
-          hasPublishedDocs: true);
+      StaticWarningCode('UNNECESSARY_NON_NULL_ASSERTION',
+          "The '!' will have no effect because the receiver can't be null.",
+          correction: "Try removing the '!' operator.", hasPublishedDocs: true);
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

@@ -2214,7 +2214,7 @@ extension._
 #### Description
 
 The analyzer produces this diagnostic when an extension override is the
-target of the invocation of a static member. Similar to static members in
+receiver of the invocation of a static member. Similar to static members in
 classes, the static members of an extension should be accessed using the
 name of the extension, not an extension override.
 
@@ -2286,8 +2286,8 @@ void f() {
 {% endprettify %}
 
 If there's a different extension that's valid for the type of the argument,
-then either replace the name of the extension or unwrap the target so that
-the correct extension is found.
+then either replace the name of the extension or unwrap the argument so
+that the correct extension is found.
 
 ### extension_override_without_access
 
@@ -2330,7 +2330,7 @@ void f(int i) {
 }
 {% endprettify %}
 
-If you don't want to invoke a member, then unwrap the target:
+If you don't want to invoke a member, then unwrap the argument:
 
 {% prettify dart tag=pre+code %}
 extension E on int {
@@ -2344,14 +2344,14 @@ void f(int i) {
 
 ### extension_override_with_cascade
 
-_Extension overrides have no value so they can't be used as the target of a
+_Extension overrides have no value so they can't be used as the receiver of a
 cascade expression._
 
 #### Description
 
 The analyzer produces this diagnostic when an extension override is used as
-the target of a cascade expression. The value of a cascade expression
-`e..m` is the value of the target `e`, but extension overrides aren't
+the receiver of a cascade expression. The value of a cascade expression
+`e..m` is the value of the receiver `e`, but extension overrides aren't
 expressions and don't have a value.
 
 #### Examples
@@ -3445,16 +3445,15 @@ var x;
 
 ### invalid_null_aware_operator
 
-_The target expression can't be null because of short-circuiting, so the
-null-aware operator '{0}' can't be used._
+_The receiver can't be null because of short-circuiting, so the null-aware
+operator '{0}' can't be used._
 
-_The target expression can't be null, so the null-aware operator '{0}' can't be
-used._
+_The receiver can't be null, so the null-aware operator '{0}' can't be used._
 
 #### Description
 
 The analyzer produces this diagnostic when a null-aware operator (`?.`,
-`?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+`?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
 non-nullable.
 
 #### Example
@@ -7646,7 +7645,7 @@ void f(C c) {
 {% endprettify %}
 
 If a subclass adds a parameter with the name in question, then cast the
-target to the subclass:
+receiver to the subclass:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -7895,7 +7894,7 @@ void f(num n) {
 
 ### unnecessary_non_null_assertion
 
-_The '!' will have no effect because the target expression can't be null._
+_The '!' will have no effect because the receiver can't be null._
 
 #### Description
 

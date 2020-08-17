@@ -20,7 +20,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
       'CAN_BE_NULL_AFTER_NULL_AWARE',
-      "The target expression uses '?.', so its value can be null.",
+      "The receiver uses '?.', so its value can be null.",
       correction: "Replace the '.' with a '?.' in the invocation.");
 
   /**
@@ -1533,10 +1533,9 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode RECEIVER_OF_TYPE_NEVER = HintCode(
       'RECEIVER_OF_TYPE_NEVER',
-      'The receiver expression is of type Never, and will never complete '
-          'with a value.',
-      correction: 'Try checking for throw expressions or type errors in the'
-          ' target expression');
+      "The receiver is of type 'Never', and will never complete with a value.",
+      correction: "Try checking for throw expressions or type errors in the "
+          "receiver");
 
   /**
    * No parameters.
