@@ -112,7 +112,7 @@ vars = {
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.16.1",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_rev": "413ee9d1d1841c23ebfd2248abc4fc950e0d6946",
+  "json_rpc_2_rev": "995611cf006c927d51cc53cb28f1aa4356d5414f",
   "linter_tag": "0.1.118",
   "logging_rev": "9561ba016ae607747ae69b846c0e10958ca58ed4",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
