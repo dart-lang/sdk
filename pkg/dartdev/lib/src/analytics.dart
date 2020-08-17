@@ -31,6 +31,11 @@ const String _appName = 'dartdev';
 const String _dartDirectoryName = '.dart';
 const String _settingsFileName = 'dartdev.json';
 const String _trackingId = 'UA-26406144-37';
+const String _readmeFileName = 'README.txt';
+const String _readmeFileContents = '''
+The present directory contains user-level settings for the
+Dart programming language (https://dart.dev).
+''';
 
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
@@ -71,6 +76,13 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
       instance = DisabledAnalytics(_trackingId, _appName);
       return instance;
     }
+  }
+
+  var readmeFile =
+      File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
+  if (!readmeFile.existsSync()) {
+    readmeFile.createSync();
+    readmeFile.writeAsStringSync(_readmeFileContents);
   }
 
   var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
