@@ -1243,12 +1243,14 @@ dart_ci_builder(
 )
 
 # external
-dart_infra_builder(
+dart_ci_sandbox_builder(
     "google",
     recipe = "dart/external",
     category = "external|g",
-    enabled = False,
+    channels = [],
+    triggered_by = None,
     fyi = True,
+    notifies = None,
 )
 
 # infra
