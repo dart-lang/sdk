@@ -1161,8 +1161,10 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
     demangled = &String::Handle(
         Function::DemangleDynamicInvocationForwarderName(target_name));
   }
+  const bool is_getter = Field::IsGetterName(*demangled);
   Function& result = Function::Handle();
-  if (!ResolveCallThroughGetter(receiver_class, target_name, *demangled,
+  if (is_getter ||
+      !ResolveCallThroughGetter(receiver_class, target_name, *demangled,
                                 args_descriptor, &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
