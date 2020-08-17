@@ -752,6 +752,8 @@ class Printer extends Visitor<Null> {
       writeFunctionBody(function.body, terminateLine: terminateLine);
     } else if (terminateLine) {
       endLine(';');
+    } else {
+      writeSymbol(';');
     }
   }
 
@@ -1132,7 +1134,18 @@ class Printer extends Visitor<Null> {
     if (features.isNotEmpty) {
       writeWord("/*${features.join(',')}*/");
     }
-    writeFunction(node.function, name: getMemberName(node));
+    if (node.memberSignatureOriginReference != null) {
+      writeFunction(node.function,
+          name: getMemberName(node), terminateLine: false);
+      if (node.function.body is ReturnStatement) {
+        writeSymbol(';');
+      }
+      writeSymbol(' -> ');
+      writeMemberReferenceFromReference(node.memberSignatureOriginReference);
+      endLine();
+    } else {
+      writeFunction(node.function, name: getMemberName(node));
+    }
   }
 
   visitConstructor(Constructor node) {
