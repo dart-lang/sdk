@@ -112,7 +112,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   int codegenShard;
   int codegenShards;
   List<String> bazelPaths;
-  List<String> multiRoots;
+  List<Uri> multiRoots;
   String multiRootScheme = 'org-dartlang-app';
   Uri packageConfig = null;
   List<String> options = new List<String>();
@@ -200,8 +200,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setMultiRoots(String argument) {
     String paths = extractParameter(argument);
-    multiRoots ??= <String>[];
-    multiRoots.addAll(paths.split(','));
+    multiRoots ??= <Uri>[];
+    multiRoots.addAll(paths.split(',').map(fe.nativeToUri));
   }
 
   void setMultiRootScheme(String argument) {
