@@ -13,11 +13,15 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentDriverResolutionTest);
+    defineReflectiveTests(AssignmentDriverResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AssignmentDriverResolutionTest extends PubPackageResolutionTest {
+class AssignmentDriverResolutionTest extends PubPackageResolutionTest
+    with AssignmentDriverResolutionTestCases {}
+
+mixin AssignmentDriverResolutionTestCases on PubPackageResolutionTest {
   test_compound_indexExpression() async {
     await resolveTestCode(r'''
 main() {
@@ -692,8 +696,9 @@ void f() {
   }
 
   test_simpleIdentifier_parameter_compound_ifNull() async {
-    await assertNoErrorsInCode(r'''
-void f(num x) {
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertNoErrorsInCode('''
+void f(num$question x) {
   x ??= 0;
 }
 ''');
@@ -709,19 +714,21 @@ void f(num x) {
       assignment.leftHandSide,
       readElement: findElement.parameter('x'),
       writeElement: findElement.parameter('x'),
-      type: 'num',
+      type: 'num$question',
     );
 
     assertType(assignment.rightHandSide, 'int');
   }
 
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
-    await assertErrorsInCode(r'''
-void f(double a, int b) {
+    var question = typeToStringWithNullability ? '?' : '';
+    var code = '''
+void f(double$question a, int b) {
   a ??= b;
 }
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 34, 1),
+''';
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, code.indexOf('b;'), 1),
     ]);
 
     var assignment = findNode.assignment('a ??=');
@@ -735,7 +742,7 @@ void f(double a, int b) {
       assignment.leftHandSide,
       readElement: findElement.parameter('a'),
       writeElement: findElement.parameter('a'),
-      type: 'double',
+      type: 'double$question',
     );
 
     assertSimpleIdentifier(
@@ -1471,3 +1478,8 @@ class B {}
     assertType(assignment.rightHandSide, 'int');
   }
 }
+
+@reflectiveTest
+class AssignmentDriverResolutionWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, AssignmentDriverResolutionTestCases {}
