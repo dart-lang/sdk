@@ -313,6 +313,7 @@ class AssignmentExpressionResolver {
         operator,
         rightType,
         type,
+        operatorElement,
       );
       _inferenceHelper.recordStaticType(node, type);
 

@@ -363,6 +363,7 @@ class BinaryExpressionResolver {
         node.operator.type,
         node.rightOperand.staticType,
         staticType,
+        node.staticElement,
       );
     }
     _inferenceHelper.recordStaticType(node, staticType);

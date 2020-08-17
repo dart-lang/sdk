@@ -313,7 +313,7 @@ abstract class TypeSystem implements public.TypeSystem {
   /// left operand has the type [leftType] and whose right operand has the type
   /// [rightType], given that resolution has so far produced the [currentType].
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType);
+      DartType rightType, DartType currentType, MethodElement operatorElement);
 
   @override
   DartType resolveToBound(DartType type) {
@@ -1346,7 +1346,7 @@ class TypeSystemImpl extends TypeSystem {
 
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
+      DartType rightType, DartType currentType, MethodElement operatorElement) {
     if (isNonNullableByDefault) {
       return _refineBinaryExpressionTypeNullSafe(
           leftType, operator, rightType, currentType);
