@@ -39,6 +39,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
+import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
@@ -193,6 +194,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
   ExtensionElement _enclosingExtension;
+
+  /// The helper for tracking if the current location has access to `this`.
+  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
 
   /// The context of the method or function that we are currently visiting, or
   /// `null` if we are not inside a method or function.
@@ -363,6 +367,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
     });
+  }
+
+  @override
+  void visitBlockFunctionBody(BlockFunctionBody node) {
+    _thisAccessTracker.enterFunctionBody(node);
+    try {
+      super.visitBlockFunctionBody(node);
+    } finally {
+      _thisAccessTracker.exitFunctionBody(node);
+    }
   }
 
   @override
@@ -546,8 +560,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _returnTypeVerifier.verifyExpressionFunctionBody(node);
-    super.visitExpressionFunctionBody(node);
+    _thisAccessTracker.enterFunctionBody(node);
+    try {
+      _returnTypeVerifier.verifyExpressionFunctionBody(node);
+      super.visitExpressionFunctionBody(node);
+    } finally {
+      _thisAccessTracker.exitFunctionBody(node);
+    }
   }
 
   @override
@@ -574,6 +593,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     var fields = node.fields;
+    _thisAccessTracker.enterFieldDeclaration(node);
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceNotLateVariableDeclaration =
         !node.isStatic && !node.fields.isLate;
@@ -591,6 +611,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _isInStaticVariableDeclaration = false;
       _isInInstanceNotLateVariableDeclaration = false;
+      _thisAccessTracker.exitFieldDeclaration(node);
     }
   }
 
@@ -2976,7 +2997,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   ///
   /// See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
-    if (!_isThisInValidContext(expression)) {
+    if (!_thisAccessTracker.hasAccess) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, expression);
     }
@@ -5157,29 +5178,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       MethodElement callMethod =
           type.lookUpMethod2(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       return callMethod != null;
-    }
-    return false;
-  }
-
-  /// Return `true` if the given 'this' [expression] is in a valid context.
-  bool _isThisInValidContext(ThisExpression expression) {
-    for (AstNode node = expression.parent; node != null; node = node.parent) {
-      if (node is CompilationUnit) {
-        return false;
-      } else if (node is ConstructorDeclaration) {
-        return node.factoryKeyword == null;
-      } else if (node is ConstructorInitializer) {
-        return false;
-      } else if (node is MethodDeclaration) {
-        return !node.isStatic;
-      } else if (node is FieldDeclaration) {
-        if (node.fields.isLate &&
-            (node.parent is ClassDeclaration ||
-                node.parent is MixinDeclaration)) {
-          return true;
-        }
-        // Continue; a non-late variable may still occur in a valid context.
-      }
     }
     return false;
   }
