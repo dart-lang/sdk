@@ -1966,7 +1966,9 @@ class Parser {
       token = parseClassExtendsSeenExtendsClause(next, token);
     } else {
       listener.handleNoType(token);
-      listener.handleClassExtends(null, 1);
+      listener.handleClassExtends(
+          /* extendsKeyword = */ null,
+          /* typeCount = */ 1);
     }
     return token;
   }
@@ -5273,10 +5275,8 @@ class Parser {
     Token next = token.next;
     if (optional('{', next)) {
       if (typeParamOrArg.typeArgumentCount > 2) {
-        listener.handleRecoverableError(
-            codes.messageSetOrMapLiteralTooManyTypeArguments,
-            start.next,
-            token);
+        reportRecoverableErrorWithEnd(start.next, token,
+            codes.messageSetOrMapLiteralTooManyTypeArguments);
       }
       return parseLiteralSetOrMapSuffix(token, constKeyword);
     }
@@ -7145,6 +7145,11 @@ class Parser {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
     listener.handleRecoverableError(message, token, token);
+  }
+
+  void reportRecoverableErrorWithEnd(
+      Token startToken, Token endToken, codes.Message message) {
+    listener.handleRecoverableError(message, startToken, endToken);
   }
 
   void reportRecoverableErrorWithToken(

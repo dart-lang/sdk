@@ -32,7 +32,7 @@ class A<E> {}
 class C {
   m() => new A<@annotation C>();
 }
-''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+''', [ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT], '''
 const annotation = null;
 class A<E> {}
 class C {

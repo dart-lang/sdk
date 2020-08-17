@@ -118,6 +118,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _ABSTRACT_LATE_FIELD,
   _EXTERNAL_LATE_FIELD,
   _ABSTRACT_EXTERNAL_FIELD,
+  _ANNOTATION_ON_TYPE_ARGUMENT,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -138,6 +139,10 @@ const ParserErrorCode _ABSTRACT_LATE_FIELD = ParserErrorCode(
 const ParserErrorCode _ABSTRACT_STATIC_FIELD = ParserErrorCode(
     'ABSTRACT_STATIC_FIELD', r"Static fields can't be declared 'abstract'.",
     correction: "Try removing the 'abstract' or 'static' keyword.");
+
+const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
+    'ANNOTATION_ON_TYPE_ARGUMENT',
+    r"Type arguments can't have annotations because they aren't declarations.");
 
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',

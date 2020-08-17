@@ -581,6 +581,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,
   ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
   ParserErrorCode.ABSTRACT_TYPEDEF,
+  ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,

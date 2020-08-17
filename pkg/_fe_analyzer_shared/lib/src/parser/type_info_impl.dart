@@ -980,9 +980,10 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (typeInfo == noType) {
         // Recovery
         while (typeInfo == noType && optional('@', next.next)) {
-          parser.reportRecoverableErrorWithToken(
-              next.next, codes.templateUnexpectedToken);
+          Token atToken = next.next;
           next = skipMetadata(next);
+          parser.reportRecoverableErrorWithEnd(
+              atToken, next, codes.messageAnnotationOnTypeArgument);
           typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
         // Fall through to process type (if any) and consume `,`

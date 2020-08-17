@@ -181,6 +181,16 @@ const MessageCode messageAnnotationOnFunctionTypeTypeVariable =
             r"""A type variable on a function type can't have annotations.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAnnotationOnTypeArgument = messageAnnotationOnTypeArgument;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAnnotationOnTypeArgument = const MessageCode(
+    "AnnotationOnTypeArgument",
+    index: 111,
+    message:
+        r"""Type arguments can't have annotations because they aren't declarations.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAnonymousBreakTargetOutsideFunction =
     messageAnonymousBreakTargetOutsideFunction;
 

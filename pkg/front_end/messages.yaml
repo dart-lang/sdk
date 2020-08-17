@@ -2221,6 +2221,13 @@ TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
 
+AnnotationOnTypeArgument:
+  template: "Type arguments can't have annotations because they aren't declarations."
+  analyzerCode: ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT
+  index: 111
+  script:
+    - "class A<E> {} class C { m() => new A<@Object() C>(); }"
+
 AnnotationOnFunctionTypeTypeVariable:
   template: "A type variable on a function type can't have annotations."
   script:
