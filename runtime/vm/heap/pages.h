@@ -538,10 +538,10 @@ class PageSpace {
   void FreeLargePage(OldPage* page, OldPage* previous_page);
   void FreePages(OldPage* pages);
 
-  void CollectGarbageAtSafepoint(bool compact,
-                                 bool finalize,
-                                 int64_t pre_wait_for_sweepers,
-                                 int64_t pre_safe_point);
+  void CollectGarbageHelper(bool compact,
+                            bool finalize,
+                            int64_t pre_wait_for_sweepers,
+                            int64_t pre_safe_point);
   void SweepLarge();
   void Sweep();
   void ConcurrentSweep(IsolateGroup* isolate_group);

@@ -1030,9 +1030,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 
   Thread* thread = Thread::Current();
+  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+  SafepointOperationScope safepoint_scope(thread);
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
-
   // Wait for pending tasks to complete and then account for the driver task.
   Phase waited_for;
   {
@@ -1045,15 +1046,15 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
     }
 
     while (tasks() > 0) {
-      locker.WaitWithSafepointCheck(thread);
+      locker.Wait();
     }
     ASSERT(phase() == kAwaitingFinalization || phase() == kDone);
     set_tasks(1);
   }
 
-  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
   if (FLAG_verbose_gc) {
-    const int64_t wait = pre_safe_point - pre_wait_for_sweepers;
+    const int64_t wait =
+        OS::GetCurrentMonotonicMicros() - pre_wait_for_sweepers;
     if (waited_for == kMarking) {
       THR_Print("Waited %" Pd64 " us for concurrent marking to finish.\n",
                 wait);
@@ -1068,9 +1069,8 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   // to ensure that if two threads are racing to collect at the same time the
   // loser skips collection and goes straight to allocation.
   {
-    SafepointOperationScope safepoint_scope(thread);
-    CollectGarbageAtSafepoint(compact, finalize, pre_wait_for_sweepers,
-                              pre_safe_point);
+    CollectGarbageHelper(compact, finalize, pre_wait_for_sweepers,
+                         pre_safe_point);
   }
 
   // Done, reset the task count.
@@ -1081,10 +1081,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 }
 
-void PageSpace::CollectGarbageAtSafepoint(bool compact,
-                                          bool finalize,
-                                          int64_t pre_wait_for_sweepers,
-                                          int64_t pre_safe_point) {
+void PageSpace::CollectGarbageHelper(bool compact,
+                                     bool finalize,
+                                     int64_t pre_wait_for_sweepers,
+                                     int64_t pre_safe_point) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsAtSafepoint());
   auto isolate_group = heap_->isolate_group();
