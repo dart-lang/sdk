@@ -19,8 +19,6 @@ import '../../fasta/source/directive_listener.dart' show DirectiveListener;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-// TODO: Sort imports.
-
 class _TextualOutlineState {
   bool prevTokenKnown = false;
   Token currentElementEnd;
@@ -31,6 +29,11 @@ class _TextualOutlineState {
   String indent = "";
   _TextualOutlineState(this.performModelling);
 }
+
+// TODO(jensj): Better support for
+// * library names
+// * parts
+// * show/hide on imports/exports
 
 String textualOutline(List<int> rawBytes,
     {bool throwOnUnexpected: false, bool performModelling: false}) {
@@ -100,6 +103,31 @@ String textualOutline(List<int> rawBytes,
       state.currentChunk.add(classContent);
       token = currentClassEnd.next;
       state.prevTokenKnown = true;
+      assert(tokenPrinter.isEmpty);
+      continue;
+    }
+
+    if (listener.importExportsStartToFinish.containsKey(token)) {
+      // We know about imports/exports, and internally they can be sorted,
+      // but the import/export block should be thought of as unknown, i.e.
+      // it should not moved around.
+      if (state.prevTokenKnown) {
+        // TODO: Assert this instead.
+        if (!tokenPrinter.isEmpty) {
+          throw new StateError("Expected empty, was '${tokenPrinter.content}'");
+        }
+        flush(state, isSortable: true);
+      } else {
+        tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+        flush(state, isSortable: false);
+      }
+      TextualizedImportExport importResult =
+          _textualizeImportsAndExports(listener, token, state);
+      if (importResult == null) return null;
+      state.currentChunk.add(importResult.text);
+      token = importResult.token;
+      state.prevTokenKnown = true;
+      flush(state, isSortable: false);
       assert(tokenPrinter.isEmpty);
       continue;
     }
@@ -357,6 +385,39 @@ String _textualizeClass(TextualOutlineListener listener, Token beginToken,
   return state.outputLines.join("\n");
 }
 
+class TextualizedImportExport {
+  final String text;
+  final Token token;
+
+  TextualizedImportExport(this.text, this.token);
+}
+
+TextualizedImportExport _textualizeImportsAndExports(
+    TextualOutlineListener listener,
+    Token beginToken,
+    _TextualOutlineState originalState) {
+  TokenPrinter tokenPrinter = new TokenPrinter();
+  Token token = beginToken;
+  Token thisImportEnd = listener.importExportsStartToFinish[token];
+  _TextualOutlineState state =
+      new _TextualOutlineState(originalState.performModelling);
+  // TODO(jensj): Sort show and hide entries.
+  while (thisImportEnd != null) {
+    while (token != thisImportEnd) {
+      tokenPrinter.print(token);
+      token = token.next;
+    }
+    tokenPrinter.print(thisImportEnd);
+    token = token.next;
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    thisImportEnd = listener.importExportsStartToFinish[token];
+  }
+
+  // End of imports. Sort them and return the sorted text.
+  flush(state, isSortable: true);
+  return new TextualizedImportExport(state.outputLines.join("\n"), token);
+}
+
 main(List<String> args) {
   File f = new File(args[0]);
   String outline = textualOutline(f.readAsBytesSync(),
@@ -373,6 +434,7 @@ class TextualOutlineListener extends DirectiveListener {
   Map<Token, Token> classStartToFinish = {};
   Map<Token, Token> elementStartToFinish = {};
   Map<Token, Token> metadataStartToFinish = {};
+  Map<Token, Token> importExportsStartToFinish = {};
 
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
@@ -466,5 +528,15 @@ class TextualOutlineListener extends DirectiveListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     classStartToFinish[beginToken] = endToken;
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
+    importExportsStartToFinish[importKeyword] = semicolon;
+  }
+
+  @override
+  void endExport(Token exportKeyword, Token semicolon) {
+    importExportsStartToFinish[exportKeyword] = semicolon;
   }
 }

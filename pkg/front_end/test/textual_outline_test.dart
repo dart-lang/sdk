@@ -110,4 +110,81 @@ class B<T> = Object with A<Function(T)>;
 class C<T> = Object with A<Function(T)>;""") {
     throw "Unexpected result: $result";
   }
+
+  // Knows about and can sort imports, but doesn't mix them with the other
+  // content.
+  result = textualOutline(utf8.encode("""
+import "foo.dart" show B,
+  A,
+  C;
+import "bar.dart";
+
+main() {}
+
+import "baz.dart";
+"""), throwOnUnexpected: true, performModelling: true);
+  if (result !=
+      """
+import "bar.dart";
+import "foo.dart" show B, A, C;
+
+main() {}
+
+import "baz.dart";""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Knows about and can sort exports, but doesn't mix them with the other
+  // content.
+  result = textualOutline(utf8.encode("""
+export "foo.dart" show B,
+  A,
+  C;
+export "bar.dart";
+
+main() {}
+
+export "baz.dart";
+"""), throwOnUnexpected: true, performModelling: true);
+  if (result !=
+      """
+export "bar.dart";
+export "foo.dart" show B, A, C;
+
+main() {}
+
+export "baz.dart";""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Knows about and can sort imports and exports,
+  // but doesn't mix them with the other content.
+  result = textualOutline(utf8.encode("""
+export "foo.dart" show B,
+  A,
+  C;
+import "foo.dart" show B,
+  A,
+  C;
+export "bar.dart";
+import "bar.dart";
+
+main() {}
+
+export "baz.dart";
+import "baz.dart";
+"""), throwOnUnexpected: true, performModelling: true);
+  if (result !=
+      """
+export "bar.dart";
+export "foo.dart" show B, A, C;
+import "bar.dart";
+import "foo.dart" show B, A, C;
+
+main() {}
+
+export "baz.dart";
+import "baz.dart";""") {
+    throw "Unexpected result: $result";
+  }
 }

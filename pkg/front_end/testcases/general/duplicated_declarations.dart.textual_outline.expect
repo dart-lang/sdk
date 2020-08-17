@@ -1,4 +1,6 @@
-part "duplicated_declarations_part.dart"; import 'duplicated_declarations_lib.dart' as Typedef; import 'duplicated_declarations_lib.dart' as Typedef;
+part "duplicated_declarations_part.dart";
+import 'duplicated_declarations_lib.dart' as Typedef;
+import 'duplicated_declarations_lib.dart' as Typedef;
 typedef Typedef = void Function();
 typedef Typedef = Object Function();
 import 'duplicated_declarations_lib.dart' as Typedef;
