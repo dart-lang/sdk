@@ -2665,6 +2665,21 @@ void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   *range = result;
 }
 
+static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
+  switch (r) {
+    case kTagged:
+      return RangeBoundary::kRangeBoundarySmi;
+    case kUnboxedInt32:
+      return RangeBoundary::kRangeBoundaryInt32;
+    case kUnboxedInt64:
+    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
+      return RangeBoundary::kRangeBoundaryInt64;
+    default:
+      UNREACHABLE();
+      return RangeBoundary::kRangeBoundarySmi;
+  }
+}
+
 void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   switch (slot().kind()) {
     case Slot::Kind::kArray_length:
@@ -2701,6 +2716,9 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kClosure_function:
     case Slot::Kind::kClosure_function_type_arguments:
     case Slot::Kind::kClosure_instantiator_type_arguments:
+    case Slot::Kind::kFunction_parameter_names:
+    case Slot::Kind::kFunction_parameter_types:
+    case Slot::Kind::kFunction_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kTypedDataView_data:
     case Slot::Kind::kType_arguments:
@@ -2709,6 +2727,10 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
     case Slot::Kind::kUnhandledException_stacktrace:
       // Not an integer valued field.
       UNREACHABLE();
+      break;
+
+    case Slot::Kind::kFunction_packed_fields:
+      *range = Range::Full(RepresentationToRangeSize(slot().representation()));
       break;
 
     case Slot::Kind::kClosure_hash:
@@ -2800,21 +2822,6 @@ void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const intptr_t max = Utils::Maximum(if_true_, if_false_);
   *range =
       Range(RangeBoundary::FromConstant(min), RangeBoundary::FromConstant(max));
-}
-
-static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
-  switch (r) {
-    case kTagged:
-      return RangeBoundary::kRangeBoundarySmi;
-    case kUnboxedInt32:
-      return RangeBoundary::kRangeBoundaryInt32;
-    case kUnboxedInt64:
-    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
-      return RangeBoundary::kRangeBoundaryInt64;
-    default:
-      UNREACHABLE();
-      return RangeBoundary::kRangeBoundarySmi;
-  }
 }
 
 void BinaryIntegerOpInstr::InferRangeHelper(const Range* left_range,

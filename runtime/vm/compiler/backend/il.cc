@@ -876,18 +876,20 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   return mask;
 }
 
-bool LoadFieldInstr::IsUnboxedLoad() const {
-  return slot().IsDartField() &&
+bool LoadFieldInstr::IsUnboxedDartFieldLoad() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
-bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return slot().IsDartField() &&
+bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation LoadFieldInstr::representation() const {
-  if (IsUnboxedLoad()) {
+  if (slot().representation() != kTagged) {
+    return slot().representation();
+  } else if (IsUnboxedDartFieldLoad()) {
     const Field& field = slot().field();
     const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
@@ -898,11 +900,8 @@ Representation LoadFieldInstr::representation() const {
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        if (field.is_non_nullable_integer()) {
-          return kUnboxedInt64;
-        } else {
-          UNREACHABLE();
-        }
+        UNREACHABLE();
+        break;
     }
   }
   return kTagged;
@@ -2215,28 +2214,42 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     Value* left,
     Value* right,
     intptr_t deopt_id,
-    bool can_overflow,
-    bool is_truncating,
-    Range* range,
     SpeculativeMode speculative_mode) {
-  BinaryIntegerOpInstr* op = NULL;
+  BinaryIntegerOpInstr* op = nullptr;
+  Range* right_range = nullptr;
+  switch (op_kind) {
+    case Token::kMOD:
+    case Token::kTRUNCDIV:
+      if (representation != kTagged) break;
+      FALL_THROUGH;
+    case Token::kSHR:
+    case Token::kSHL:
+      if (auto const const_def = right->definition()->AsConstant()) {
+        right_range = new Range();
+        const_def->InferRange(nullptr, right_range);
+      }
+      break;
+    default:
+      break;
+  }
   switch (representation) {
     case kTagged:
-      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id);
+      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id, right_range);
       break;
     case kUnboxedInt32:
       if (!BinaryInt32OpInstr::IsSupported(op_kind, left, right)) {
-        return NULL;
+        return nullptr;
       }
       op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedUint32:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
         if (speculative_mode == kNotSpeculative) {
-          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
+                                      right_range);
         } else {
-          op =
-              new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
+          op = new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id,
+                                                 right_range);
         }
       } else {
         op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
@@ -2245,9 +2258,11 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case kUnboxedInt64:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
         if (speculative_mode == kNotSpeculative) {
-          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id);
+          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
+                                     right_range);
         } else {
-          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id);
+          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id,
+                                                right_range);
         }
       } else {
         op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
@@ -2255,9 +2270,28 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       break;
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 
+  ASSERT(op->representation() == representation);
+  return op;
+}
+
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
+    Representation representation,
+    Token::Kind op_kind,
+    Value* left,
+    Value* right,
+    intptr_t deopt_id,
+    bool can_overflow,
+    bool is_truncating,
+    Range* range,
+    SpeculativeMode speculative_mode) {
+  BinaryIntegerOpInstr* op = BinaryIntegerOpInstr::Make(
+      representation, op_kind, left, right, deopt_id, speculative_mode);
+  if (op == nullptr) {
+    return nullptr;
+  }
   if (!Range::IsUnknown(range)) {
     op->set_range(*range);
   }
@@ -2267,7 +2301,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     op->mark_truncating();
   }
 
-  ASSERT(op->representation() == representation);
   return op;
 }
 
@@ -2601,6 +2634,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kFunction_packed_fields:
+    case Slot::Kind::kFunction_parameter_names:
+    case Slot::Kind::kFunction_parameter_types:
+    case Slot::Kind::kFunction_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:

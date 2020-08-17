@@ -30,7 +30,12 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   //
   // Though for some kinds of methods (e.g. ffi trampolines called from native
   // code) we do have to perform type checks for all parameters.
-  return !method.CanReceiveDynamicInvocation();
+  //
+  // TODO(dartbug.com/40813): Remove the closure case when argument checks have
+  // been fully moved out of closures.
+  return !method.CanReceiveDynamicInvocation() &&
+         !(method.IsClosureFunction() &&
+           Function::ClosureBodiesContainNonCovariantChecks());
 }
 
 ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
@@ -118,10 +123,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     scope_->AddVariable(parsed_function_->arg_desc_var());
   }
 
-  if (parsed_function_->function().IsFfiTrampoline()) {
-    needs_expr_temp_ = true;
-  }
-
   LocalVariable* context_var = parsed_function_->current_context_var();
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
@@ -136,8 +137,20 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           function.kernel_offset());
 
   switch (function.kind()) {
+    case FunctionLayout::kImplicitClosureFunction: {
+      const auto& parent = Function::Handle(Z, function.parent_function());
+      const auto& target =
+          Function::Handle(Z, function.ImplicitClosureTarget(Z));
+
+      // For BuildGraphOfNoSuchMethodForwarder, since closures no longer
+      // require arg_desc_var in all cases.
+      if (target.IsNull() ||
+          (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
+        needs_expr_temp_ = true;
+      }
+      FALL_THROUGH;
+    }
     case FunctionLayout::kClosureFunction:
-    case FunctionLayout::kImplicitClosureFunction:
     case FunctionLayout::kRegularFunction:
     case FunctionLayout::kGetterFunction:
     case FunctionLayout::kSetterFunction:
@@ -405,21 +418,10 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       parsed_function_->set_receiver_var(variable);
       break;
     }
-    case FunctionLayout::kNoSuchMethodDispatcher:
-    case FunctionLayout::kInvokeFieldDispatcher:
     case FunctionLayout::kFfiTrampoline: {
-      for (intptr_t i = 0; i < function.NumParameters(); ++i) {
-        LocalVariable* variable = MakeVariable(
-            TokenPosition::kNoSource, TokenPosition::kNoSource,
-            String::ZoneHandle(Z, function.ParameterNameAt(i)),
-            AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
-                                            ? function.ParameterTypeAt(i)
-                                            : Object::dynamic_type().raw()));
-        scope_->InsertParameterAt(i, variable);
-      }
+      needs_expr_temp_ = true;
       // Callbacks and calls with handles need try/catch variables.
-      if (function.IsFfiTrampoline() &&
-          (function.FfiCallbackTarget() != Function::null() ||
+      if ((function.FfiCallbackTarget() != Function::null() ||
            function.FfiCSignatureContainsHandles())) {
         current_function_async_marker_ = FunctionNodeHelper::kSync;
         ++depth_.try_;
@@ -429,6 +431,29 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         AddCatchVariables();
         FinalizeCatchVariables();
         --depth_.catch_;
+      }
+      FALL_THROUGH;
+    }
+    case FunctionLayout::kInvokeFieldDispatcher: {
+      if (function.IsDynamicClosureCallDispatcher()) {
+        auto const vars = parsed_function_->EnsureDynamicClosureCallVars();
+        ASSERT(vars != nullptr);
+#define ADD_VAR(Name, _, __) scope_->AddVariable(vars->Name);
+        FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(ADD_VAR);
+#undef ADD_VAR
+        needs_expr_temp_ = true;
+      }
+      FALL_THROUGH;
+    }
+    case FunctionLayout::kNoSuchMethodDispatcher: {
+      for (intptr_t i = 0; i < function.NumParameters(); ++i) {
+        LocalVariable* variable = MakeVariable(
+            TokenPosition::kNoSource, TokenPosition::kNoSource,
+            String::ZoneHandle(Z, function.ParameterNameAt(i)),
+            AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
+                                            ? function.ParameterTypeAt(i)
+                                            : Object::dynamic_type().raw()));
+        scope_->InsertParameterAt(i, variable);
       }
       break;
     }

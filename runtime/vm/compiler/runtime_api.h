@@ -268,20 +268,19 @@ namespace target {
 #if defined(TARGET_ARCH_IS_32_BIT)
 typedef int32_t word;
 typedef uint32_t uword;
-static constexpr int kWordSize = 4;
 static constexpr int kWordSizeLog2 = 2;
 #elif defined(TARGET_ARCH_IS_64_BIT)
 typedef int64_t word;
 typedef uint64_t uword;
-static constexpr int kWordSize = 8;
 static constexpr int kWordSizeLog2 = 3;
 #else
 #error "Unsupported architecture"
 #endif
+static constexpr int kWordSize = 1 << kWordSizeLog2;
+static_assert(kWordSize == sizeof(word), "kWordSize should match sizeof(word)");
 
-static constexpr word kBitsPerWord = 8 * kWordSize;
-static_assert((1 << kWordSizeLog2) == kWordSize,
-              "kWordSizeLog2 should match kWordSize");
+static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
+static constexpr word kBitsPerWord = 1 << kBitsPerWordLog2;
 
 using ObjectAlignment = dart::ObjectAlignment<kWordSize, kWordSizeLog2>;
 
@@ -289,6 +288,7 @@ constexpr word kWordMax = (static_cast<uword>(1) << (kBitsPerWord - 1)) - 1;
 constexpr word kWordMin = -(static_cast<uword>(1) << (kBitsPerWord - 1));
 constexpr uword kUwordMax = static_cast<word>(-1);
 
+// The number of bits in the _magnitude_ of a Smi, not counting the sign bit.
 constexpr int kSmiBits = kBitsPerWord - 2;
 constexpr word kSmiMax = (static_cast<uword>(1) << kSmiBits) - 1;
 constexpr word kSmiMin = -(static_cast<uword>(1) << kSmiBits);
@@ -299,9 +299,19 @@ extern const word kOldPageSizeInWords;
 extern const word kOldPageMask;
 
 static constexpr intptr_t kObjectAlignment = ObjectAlignment::kObjectAlignment;
-static constexpr intptr_t kNumParameterFlagsPerElement = kBitsPerWord / 2;
+// Parameter flags are stored in Smis. In particular, there is one flag (the
+// required flag), but we want ensure that the number of bits stored per Smi is
+// a power of two so we can simply uses shift to convert the parameter index to
+// calculate both the parameter flag index in the parameter names array to get
+// the packed flags and which bit in the packed flags to check.
+static constexpr intptr_t kNumParameterFlagsPerElementLog2 =
+    kBitsPerWordLog2 - 1;
+static constexpr intptr_t kNumParameterFlagsPerElement =
+    1 << kNumParameterFlagsPerElementLog2;
+// Thus, in the untagged Smi value, only the lowest kNumParameterFlagsPerElement
+// bits are used for flags, with the other bits currently unused.
 static_assert(kNumParameterFlagsPerElement <= kSmiBits,
-              "kNumParameterFlagsPerElement should fit inside a Smi");
+              "kNumParameterFlagsPerElement should fit in a Smi");
 
 inline intptr_t RoundedAllocationSize(intptr_t size) {
   return Utils::RoundUp(size, kObjectAlignment);
@@ -466,6 +476,10 @@ class Function : public AllStatic {
  public:
   static word code_offset();
   static word entry_point_offset(CodeEntryKind kind = CodeEntryKind::kNormal);
+  static word packed_fields_offset();
+  static word parameter_names_offset();
+  static word parameter_types_offset();
+  static word type_parameters_offset();
   static word usage_counter_offset();
   static word InstanceSize();
   static word NextFieldOffset();

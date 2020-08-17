@@ -7438,6 +7438,7 @@ intptr_t Function::NameArrayLengthIncludingFlags(intptr_t num_parameters) {
 
 intptr_t Function::GetRequiredFlagIndex(intptr_t index,
                                         intptr_t* flag_mask) const {
+  ASSERT(flag_mask != nullptr);
   ASSERT(index >= num_fixed_parameters());
   index -= num_fixed_parameters();
   *flag_mask = 1 << (static_cast<uintptr_t>(index) %
@@ -8036,10 +8037,16 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
     if (function_type_args.raw() == Object::empty_type_arguments().raw()) {
       // There are no delayed type arguments, so set back to null.
       function_type_args = TypeArguments::null();
+    } else {
+      // We should never end up here when the receiver is a closure with delayed
+      // type arguments unless this dynamically called closure function was
+      // retrieved directly from the closure instead of going through
+      // DartEntry::ResolveCallable, which appropriately checks for this case.
+      ASSERT(args_desc.TypeArgsLen() == 0);
     }
   }
 
-  if (function_type_args.IsNull() && args_desc.TypeArgsLen() > 0) {
+  if (args_desc.TypeArgsLen() > 0) {
     function_type_args ^= args.At(0);
   }
 
@@ -8796,6 +8803,15 @@ bool Function::SafeToClosurize() const {
 #endif
 }
 
+bool Function::IsDynamicClosureCallDispatcher(Thread* thread) const {
+  if (!IsInvokeFieldDispatcher()) return false;
+  if (thread->isolate()->object_store()->closure_class() != Owner()) {
+    return false;
+  }
+  const auto& handle = String::Handle(thread->zone(), name());
+  return handle.Equals(Symbols::DynamicCall());
+}
+
 FunctionPtr Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
   if (implicit_closure_function() != Function::null()) {
@@ -9011,6 +9027,23 @@ InstancePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(HasInstantiatedSignature(kFunctions));  // No generic parent function.
   return Closure::New(instantiator_type_arguments,
                       Object::null_type_arguments(), *this, context);
+}
+
+FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
+  const auto& parent = Function::Handle(zone, parent_function());
+  const auto& func_name = String::Handle(zone, parent.name());
+  const auto& owner = Class::Handle(zone, parent.Owner());
+  auto& target = Function::Handle(zone, owner.LookupFunction(func_name));
+
+  if (!target.IsNull() && (target.raw() != parent.raw())) {
+    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    if ((target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      target = Function::null();
+    }
+  }
+
+  return target.raw();
 }
 
 intptr_t Function::ComputeClosureHash() const {
@@ -24159,8 +24192,9 @@ const char* TransferableTypedData::ToCString() const {
 }
 
 intptr_t Closure::NumTypeParameters(Thread* thread) const {
-  if (delayed_type_arguments() != Object::null_type_arguments().raw() &&
-      delayed_type_arguments() != Object::empty_type_arguments().raw()) {
+  // Only check for empty here, as the null TAV is used to mean that the
+  // closed-over delayed type parameters were all of dynamic type.
+  if (delayed_type_arguments() != Object::empty_type_arguments().raw()) {
     return 0;
   } else {
     const auto& closure_function = Function::Handle(thread->zone(), function());

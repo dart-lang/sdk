@@ -337,11 +337,10 @@ ConstantPool {
 }
 Closure #lib::testTryCatch3::'foo' () -> void
 ClosureCode {
-  EntryFixed           1, 6
+  Entry                6
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   PopLocal             r2
@@ -374,11 +373,10 @@ L1:
 
 Closure #lib::testTryCatch3::'bar' () -> void
 ClosureCode {
-  EntryFixed           1, 6
+  Entry                6
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   PopLocal             r2
@@ -721,11 +719,10 @@ ConstantPool {
 }
 Closure #lib::testTryFinally2::'foo' () -> void
 ClosureCode {
-  EntryFixed           1, 2
+  Entry                2
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
@@ -830,11 +827,10 @@ ConstantPool {
 }
 Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int*
 ClosureCode {
-  EntryFixed           1, 6
+  Entry                6
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0

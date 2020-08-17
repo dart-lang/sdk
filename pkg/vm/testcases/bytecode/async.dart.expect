@@ -69,11 +69,10 @@ ConstantPool {
 }
 Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int* >* x) -> dart:async::Future < dart:core::Null? >*
 ClosureCode {
-  EntryFixed           2, 4
+  Entry                4
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   AllocateContext      0, 9
   PopLocal             r0
@@ -1551,11 +1550,10 @@ ConstantPool {
 }
 Closure #lib::closure::'nested' async () -> dart:async::Future < dart:core::int* >*
 ClosureCode {
-  EntryFixed           1, 4
+  Entry                4
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   AllocateContext      1, 9
   StoreLocal           r1

@@ -2595,6 +2595,9 @@ class Function : public Object {
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
   ArrayPtr parameter_types() const { return raw_ptr()->parameter_types_; }
   void set_parameter_types(const Array& value) const;
+  static intptr_t parameter_types_offset() {
+    return OFFSET_OF(FunctionLayout, parameter_types_);
+  }
 
   // Parameter names are valid for all valid parameter indices, and are not
   // limited to named optional parameters. If there are parameter flags (eg
@@ -2605,6 +2608,9 @@ class Function : public Object {
   void SetParameterNameAt(intptr_t index, const String& value) const;
   ArrayPtr parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
+  static intptr_t parameter_names_offset() {
+    return OFFSET_OF(FunctionLayout, parameter_names_);
+  }
 
   // The required flags are stored at the end of the parameter_names. The flags
   // are packed into SMIs, but omitted if they're 0.
@@ -2626,6 +2632,9 @@ class Function : public Object {
     return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
+  static intptr_t type_parameters_offset() {
+    return OFFSET_OF(FunctionLayout, type_parameters_);
+  }
   intptr_t NumTypeParameters(Thread* thread) const;
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
@@ -2779,6 +2788,20 @@ class Function : public Object {
     return kind() == FunctionLayout::kInvokeFieldDispatcher;
   }
 
+  bool IsDynamicInvokeFieldDispatcher() const {
+    return IsInvokeFieldDispatcher() &&
+           IsDynamicInvocationForwarderName(name());
+  }
+
+  // Performs all the checks that don't require the current thread first, to
+  // avoid retrieving it unless they all pass. If you have a handle on the
+  // current thread, call the version that takes one instead.
+  bool IsDynamicClosureCallDispatcher() const {
+    if (!IsDynamicInvokeFieldDispatcher()) return false;
+    return IsDynamicClosureCallDispatcher(Thread::Current());
+  }
+  bool IsDynamicClosureCallDispatcher(Thread* thread) const;
+
   bool IsDynamicInvocationForwarder() const {
     return kind() == FunctionLayout::kDynamicInvocationForwarder;
   }
@@ -2806,6 +2829,10 @@ class Function : public Object {
   InstancePtr ImplicitStaticClosure() const;
 
   InstancePtr ImplicitInstanceClosure(const Instance& receiver) const;
+
+  // Returns the target of the implicit closure or null if the target is now
+  // invalid (e.g., mismatched argument shapes after a reload).
+  FunctionPtr ImplicitClosureTarget(Zone* zone) const;
 
   intptr_t ComputeClosureHash() const;
 
@@ -2849,8 +2876,7 @@ class Function : public Object {
   // Whether this function can receive an invocation where the number and names
   // of arguments have not been checked.
   bool CanReceiveDynamicInvocation() const {
-    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
-           IsFfiTrampoline();
+    return IsFfiTrampoline() || IsDynamicClosureCallDispatcher();
   }
 
   bool HasThisParameter() const {
@@ -2959,22 +2985,28 @@ class Function : public Object {
 
   uint32_t packed_fields() const { return raw_ptr()->packed_fields_; }
   void set_packed_fields(uint32_t packed_fields) const;
+  static intptr_t packed_fields_offset() {
+    return OFFSET_OF(FunctionLayout, packed_fields_);
+  }
+  // Reexported so they can be used by the flow graph builders.
+  using PackedHasNamedOptionalParameters =
+      FunctionLayout::PackedHasNamedOptionalParameters;
+  using PackedNumFixedParameters = FunctionLayout::PackedNumFixedParameters;
+  using PackedNumOptionalParameters =
+      FunctionLayout::PackedNumOptionalParameters;
 
   bool HasOptionalParameters() const {
-    return FunctionLayout::PackedNumOptionalParameters::decode(
-               raw_ptr()->packed_fields_) > 0;
+    return PackedNumOptionalParameters::decode(raw_ptr()->packed_fields_) > 0;
   }
   bool HasOptionalNamedParameters() const {
     return HasOptionalParameters() &&
-           FunctionLayout::PackedHasNamedOptionalParameters::decode(
-               raw_ptr()->packed_fields_);
+           PackedHasNamedOptionalParameters::decode(raw_ptr()->packed_fields_);
   }
   bool HasOptionalPositionalParameters() const {
     return HasOptionalParameters() && !HasOptionalNamedParameters();
   }
   intptr_t NumOptionalParameters() const {
-    return FunctionLayout::PackedNumOptionalParameters::decode(
-        raw_ptr()->packed_fields_);
+    return PackedNumOptionalParameters::decode(raw_ptr()->packed_fields_);
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;

@@ -16,6 +16,7 @@ namespace dart {
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
   V(GetFieldForDispatch)                                                       \
+  V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(FixCallersTargetMonomorphic)                                               \
