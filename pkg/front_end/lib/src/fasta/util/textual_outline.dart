@@ -19,8 +19,6 @@ import '../../fasta/source/directive_listener.dart' show DirectiveListener;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
-// TODO: Sort imports.
-
 class _TextualOutlineState {
   bool prevTokenKnown = false;
   Token currentElementEnd;
@@ -28,12 +26,17 @@ class _TextualOutlineState {
   List<String> outputLines = new List<String>();
 
   final bool performModelling;
+  final bool addMarkerForUnknownForTest;
   String indent = "";
-  _TextualOutlineState(this.performModelling);
+  _TextualOutlineState(this.performModelling, this.addMarkerForUnknownForTest);
 }
 
+// TODO(jensj): Better support for show/hide on imports/exports.
+
 String textualOutline(List<int> rawBytes,
-    {bool throwOnUnexpected: false, bool performModelling: false}) {
+    {bool throwOnUnexpected: false,
+    bool performModelling: false,
+    bool addMarkerForUnknownForTest: false}) {
   // TODO(jensj): We need to specify the scanner settings to match that of the
   // compiler!
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
@@ -50,14 +53,15 @@ String textualOutline(List<int> rawBytes,
   //   one we don't know, we can sort the 3 chunks we do know and output them.
   //   But when we go from unknown to known, we don't sort before outputting.
 
-  _TextualOutlineState state = new _TextualOutlineState(performModelling);
+  _TextualOutlineState state =
+      new _TextualOutlineState(performModelling, addMarkerForUnknownForTest);
 
   TokenPrinter tokenPrinter = new TokenPrinter();
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(bytes, includeComments: false,
       languageVersionChanged:
           (Scanner scanner, LanguageVersionToken languageVersion) {
-    flush(state, isSortable: false);
+    flush(state, isSortable: false, isKnown: false);
     state.prevTokenKnown = false;
     state.outputLines
         .add("// @dart = ${languageVersion.major}.${languageVersion.minor}");
@@ -89,7 +93,7 @@ String textualOutline(List<int> rawBytes,
         // We're ending a streak of unknown: Output, and flush,
         // but it's not sortable.
         tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-        flush(state, isSortable: false);
+        flush(state, isSortable: false, isKnown: false);
       }
 
       Token currentClassEnd = listener.classStartToFinish[token];
@@ -100,6 +104,49 @@ String textualOutline(List<int> rawBytes,
       state.currentChunk.add(classContent);
       token = currentClassEnd.next;
       state.prevTokenKnown = true;
+      assert(tokenPrinter.isEmpty);
+      continue;
+    }
+
+    bool isImportExport =
+        listener.importExportsStartToFinish.containsKey(token);
+    bool isKnownUnsortable = isImportExport ||
+        listener.unsortableElementStartToFinish.containsKey(token);
+
+    if (isKnownUnsortable) {
+      // We know about imports/exports, and internally they can be sorted,
+      // but the import/export block should be thought of as unknown, i.e.
+      // it should not moved around.
+      // We also know about other (e.g. library and parts) - those cannot be
+      // sorted though.
+      if (state.prevTokenKnown) {
+        // TODO: Assert this instead.
+        if (!tokenPrinter.isEmpty) {
+          throw new StateError("Expected empty, was '${tokenPrinter.content}'");
+        }
+        flush(state, isSortable: true, isKnown: true);
+      } else {
+        tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+        flush(state, isSortable: false, isKnown: false);
+      }
+      if (isImportExport) {
+        TextualizedImportExport importResult =
+            _textualizeImportsAndExports(listener, token, state);
+        if (importResult == null) return null;
+        state.currentChunk.add(importResult.text);
+        token = importResult.token;
+      } else {
+        Token endToken = listener.unsortableElementStartToFinish[token];
+        while (token != endToken) {
+          tokenPrinter.print(token);
+          token = token.next;
+        }
+        tokenPrinter.print(endToken);
+        token = token.next;
+        tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+      }
+      state.prevTokenKnown = true;
+      flush(state, isSortable: false, isKnown: true);
       assert(tokenPrinter.isEmpty);
       continue;
     }
@@ -131,7 +178,7 @@ Token _textualizeNonClassEntriesInsideLoop(
       // We're ending a streak of unknown: Output, and flush,
       // but it's not sortable.
       tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-      flush(state, isSortable: false);
+      flush(state, isSortable: false, isKnown: false);
     }
     state.currentElementEnd = listener.elementStartToFinish[token];
     state.prevTokenKnown = true;
@@ -145,7 +192,7 @@ Token _textualizeNonClassEntriesInsideLoop(
       // We're ending a streak of unknown: Output, and flush,
       // but it's not sortable.
       tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-      flush(state, isSortable: false);
+      flush(state, isSortable: false, isKnown: false);
     }
     state.currentElementEnd = listener.metadataStartToFinish[token];
     state.prevTokenKnown = true;
@@ -156,7 +203,7 @@ Token _textualizeNonClassEntriesInsideLoop(
     if (!tokenPrinter.isEmpty) {
       throw new StateError("Expected empty, was '${tokenPrinter.content}'");
     }
-    flush(state, isSortable: true);
+    flush(state, isSortable: true, isKnown: true);
     state.prevTokenKnown = false;
   } else {
     if (state.currentElementEnd == null) {
@@ -203,22 +250,26 @@ void _textualizeAfterLoop(
     if (!tokenPrinter.isEmpty) {
       throw new StateError("Expected empty, was '${tokenPrinter.content}'");
     }
-    flush(state, isSortable: true);
+    flush(state, isSortable: true, isKnown: true);
     state.prevTokenKnown = false;
   } else {
     // Streak of unknown.
     tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-    flush(state, isSortable: false);
+    flush(state, isSortable: false, isKnown: false);
     state.prevTokenKnown = false;
   }
 }
 
-void flush(_TextualOutlineState state, {bool isSortable}) {
+void flush(_TextualOutlineState state, {bool isSortable, bool isKnown}) {
   assert(isSortable != null);
+  assert(isKnown != null);
   if (state.currentChunk.isEmpty) return;
   if (isSortable) {
     state.currentChunk = mergeAndSort(state.currentChunk, state.indent,
         isModelling: state.performModelling);
+  }
+  if (state.addMarkerForUnknownForTest && !isKnown) {
+    state.outputLines.add("---- unknown chunk starts ----");
   }
   if (state.indent == "") {
     state.outputLines.addAll(state.currentChunk);
@@ -226,6 +277,9 @@ void flush(_TextualOutlineState state, {bool isSortable}) {
     for (int i = 0; i < state.currentChunk.length; i++) {
       state.outputLines.add("${state.indent}${state.currentChunk[i]}");
     }
+  }
+  if (state.addMarkerForUnknownForTest && !isKnown) {
+    state.outputLines.add("---- unknown chunk ends ----");
   }
   state.currentChunk.clear();
 }
@@ -295,7 +349,7 @@ class TokenPrinter {
   }
 
   void print(Token token) {
-    if (_sb.isNotEmpty && (token.offset > _endOfLast || nextTokenIsEndGroup)) {
+    if (_sb.isNotEmpty && token.offset > _endOfLast && !nextTokenIsEndGroup) {
       _sb.write(" ");
     }
 
@@ -323,25 +377,70 @@ String _textualizeClass(TextualOutlineListener listener, Token beginToken,
     }
     token = token.next;
   }
-  _TextualOutlineState state =
-      new _TextualOutlineState(originalState.performModelling);
-  tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  flush(state, isSortable: false);
+  _TextualOutlineState state = new _TextualOutlineState(
+      originalState.performModelling, originalState.addMarkerForUnknownForTest);
+  if (token == endToken) {
+    // This for instance happens on named mixins, e.g.
+    // class C<T> = Object with A<Function(T)>;
+    // or when the class has no content, e.g.
+    // class C { }
+    // either way, output the end token right away to avoid a weird line break.
+    tokenPrinter.nextTokenIsEndGroup = true;
+    tokenPrinter.print(token);
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    flush(state, isSortable: false, isKnown: true);
+  } else {
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    flush(state, isSortable: false, isKnown: true);
 
-  state.indent = "  ";
-  while (token != endToken) {
-    token = _textualizeNonClassEntriesInsideLoop(
-        listener, token, state, throwOnUnexpected, tokenPrinter);
-    if (token == null) return null;
+    state.indent = "  ";
+    while (token != endToken) {
+      token = _textualizeNonClassEntriesInsideLoop(
+          listener, token, state, throwOnUnexpected, tokenPrinter);
+      if (token == null) return null;
+    }
+    _textualizeAfterLoop(state, tokenPrinter);
+
+    state.indent = "";
+    tokenPrinter.nextTokenIsEndGroup = true;
+    tokenPrinter.print(token);
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    flush(state, isSortable: false, isKnown: true);
   }
-  _textualizeAfterLoop(state, tokenPrinter);
-
-  state.indent = "";
-  tokenPrinter.nextTokenIsEndGroup = true;
-  tokenPrinter.print(token);
-  tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  flush(state, isSortable: false);
   return state.outputLines.join("\n");
+}
+
+class TextualizedImportExport {
+  final String text;
+  final Token token;
+
+  TextualizedImportExport(this.text, this.token);
+}
+
+TextualizedImportExport _textualizeImportsAndExports(
+    TextualOutlineListener listener,
+    Token beginToken,
+    _TextualOutlineState originalState) {
+  TokenPrinter tokenPrinter = new TokenPrinter();
+  Token token = beginToken;
+  Token thisImportEnd = listener.importExportsStartToFinish[token];
+  _TextualOutlineState state = new _TextualOutlineState(
+      originalState.performModelling, originalState.addMarkerForUnknownForTest);
+  // TODO(jensj): Sort show and hide entries.
+  while (thisImportEnd != null) {
+    while (token != thisImportEnd) {
+      tokenPrinter.print(token);
+      token = token.next;
+    }
+    tokenPrinter.print(thisImportEnd);
+    token = token.next;
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    thisImportEnd = listener.importExportsStartToFinish[token];
+  }
+
+  // End of imports. Sort them and return the sorted text.
+  flush(state, isSortable: true, isKnown: true);
+  return new TextualizedImportExport(state.outputLines.join("\n"), token);
 }
 
 main(List<String> args) {
@@ -360,6 +459,8 @@ class TextualOutlineListener extends DirectiveListener {
   Map<Token, Token> classStartToFinish = {};
   Map<Token, Token> elementStartToFinish = {};
   Map<Token, Token> metadataStartToFinish = {};
+  Map<Token, Token> importExportsStartToFinish = {};
+  Map<Token, Token> unsortableElementStartToFinish = {};
 
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
@@ -422,10 +523,21 @@ class TextualOutlineListener extends DirectiveListener {
     elementStartToFinish[enumKeyword] = leftBrace.endGroup;
   }
 
-  // @override
-  // void endLibraryName(Token libraryKeyword, Token semicolon) {
-  //   elementStartToFinish[libraryKeyword] = semicolon;
-  // }
+  @override
+  void endLibraryName(Token libraryKeyword, Token semicolon) {
+    unsortableElementStartToFinish[libraryKeyword] = semicolon;
+  }
+
+  @override
+  void endPart(Token partKeyword, Token semicolon) {
+    unsortableElementStartToFinish[partKeyword] = semicolon;
+  }
+
+  @override
+  void endPartOf(
+      Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
+    unsortableElementStartToFinish[partKeyword] = semicolon;
+  }
 
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
@@ -447,5 +559,21 @@ class TextualOutlineListener extends DirectiveListener {
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token endToken) {
     classStartToFinish[extensionKeyword] = endToken;
+  }
+
+  @override
+  void endNamedMixinApplication(Token beginToken, Token classKeyword,
+      Token equals, Token implementsKeyword, Token endToken) {
+    classStartToFinish[beginToken] = endToken;
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
+    importExportsStartToFinish[importKeyword] = semicolon;
+  }
+
+  @override
+  void endExport(Token exportKeyword, Token semicolon) {
+    importExportsStartToFinish[exportKeyword] = semicolon;
   }
 }

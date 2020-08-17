@@ -47,7 +47,8 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
         is_inlining_(is_inlining) {}
 
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* entry,
-                                 PrologueInfo* prologue_info);
+                                 PrologueInfo* prologue_info,
+                                 JoinEntryInstr* nsm = nullptr);
 
   Fragment BuildOptionalParameterHandling(JoinEntryInstr* nsm,
                                           LocalVariable* temp_var);

@@ -97,6 +97,7 @@ general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
 general/duplicated_declarations: FormatterCrash
+general/error_recovery/annotations: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_general.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_get.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_return_type.crash: FormatterCrash

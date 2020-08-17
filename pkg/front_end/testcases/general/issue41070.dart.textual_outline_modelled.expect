@@ -1,10 +1,11 @@
 abstract class Mixin {}
 
+class Application = Base with Mixin;
+
 class Base {
   const Base(this.x);
   final int x;
 }
 
-class Application = Base with Mixin;
 expect(expected, actual) {}
 main() {}

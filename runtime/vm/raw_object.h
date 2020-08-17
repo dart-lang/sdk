@@ -988,8 +988,8 @@ class FunctionLayout : public ObjectLayout {
     uint64_t bitmap_;
   };
 
-  static constexpr intptr_t kMaxFixedParametersBits = 15;
-  static constexpr intptr_t kMaxOptionalParametersBits = 14;
+  static constexpr intptr_t kMaxFixedParametersBits = 14;
+  static constexpr intptr_t kMaxOptionalParametersBits = 13;
 
  private:
   friend class Class;
@@ -1063,6 +1063,10 @@ class FunctionLayout : public ObjectLayout {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerWord * sizeof(decltype(packed_fields_)),
                 "FunctionLayout::packed_fields_ bitfields don't align.");
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    compiler::target::kSmiBits,
+                "In-place mask for number of optional parameters cannot fit in "
+                "a Smi on the target architecture");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \

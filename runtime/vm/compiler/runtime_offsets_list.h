@@ -94,6 +94,10 @@
   FIELD(Function, code_offset)                                                 \
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
+  FIELD(Function, packed_fields_offset)                                        \
+  FIELD(Function, parameter_names_offset)                                      \
+  FIELD(Function, parameter_types_offset)                                      \
+  FIELD(Function, type_parameters_offset)                                      \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \

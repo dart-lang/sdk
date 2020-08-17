@@ -8,11 +8,12 @@ class B {
   void f(int x) {}
 }
 
+class C = B with M implements I<int>;
+
 class M {
   void f(int x) {}
 }
 
-class C = B with M implements I<int>;
 void g1(C c) {}
 void g2(I<num> i) {}
 void main() {}

@@ -1,7 +1,6 @@
-abstract class A {
-}
+abstract class A {}
 class B extends A {
-  B(): super().foo() { }
+  B(): super().foo() {}
 }
-bad() { }
-main() { }
+bad() {}
+main() {}

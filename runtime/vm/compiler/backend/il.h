@@ -3492,8 +3492,10 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
+  // Returns whether the constant fits in an unboxed 64-bit signed integer.
   bool IsUnboxedSignedIntegerConstant() const {
-    return representation() == kUnboxedInt32 ||
+    return representation() == kUnboxedUint32 ||
+           representation() == kUnboxedInt32 ||
            representation() == kUnboxedInt64;
   }
 
@@ -6401,8 +6403,14 @@ class LoadFieldInstr : public TemplateDefinition<1, Throws> {
 
   virtual Representation representation() const;
 
-  bool IsUnboxedLoad() const;
-  bool IsPotentialUnboxedLoad() const;
+  // Returns whether this instruction is an unboxed load from a _boxed_ Dart
+  // field. Unboxed Dart fields are handled similar to unboxed native fields.
+  bool IsUnboxedDartFieldLoad() const;
+
+  // Returns whether this instruction is an potential unboxed load from a
+  // _boxed_ Dart field. Unboxed Dart fields are handled similar to unboxed
+  // native fields.
+  bool IsPotentialUnboxedDartFieldLoad() const;
 
   DECLARE_INSTRUCTION(LoadField)
   virtual CompileType ComputeType() const;
@@ -6673,6 +6681,23 @@ class Boxing : public AllStatic {
     }
   }
 
+  static bool RequiresAllocation(Representation rep) {
+    switch (rep) {
+      case kUnboxedDouble:
+      case kUnboxedFloat32x4:
+      case kUnboxedFloat64x2:
+      case kUnboxedInt32x4:
+      case kUnboxedInt64:
+        return true;
+      case kUnboxedInt32:
+      case kUnboxedUint32:
+        return kBitsPerInt32 > compiler::target::kSmiBits;
+      default:
+        UNREACHABLE();
+        return true;
+    }
+  }
+
   static intptr_t ValueOffset(Representation rep) {
     switch (rep) {
       case kUnboxedFloat:
@@ -6691,6 +6716,14 @@ class Boxing : public AllStatic {
       case kUnboxedInt64:
         return Mint::value_offset();
 
+      case kUnboxedInt32:
+      case kUnboxedUint32:
+        if (RequiresAllocation(rep)) {
+          return Mint::value_offset();
+        }
+        UNREACHABLE();
+        return 0;
+
       default:
         UNREACHABLE();
         return 0;
@@ -6699,6 +6732,13 @@ class Boxing : public AllStatic {
 
   static intptr_t BoxCid(Representation rep) {
     switch (rep) {
+      case kUnboxedInt32:
+      case kUnboxedUint32:
+        if (RequiresAllocation(rep)) {
+          return kMintCid;
+        }
+        UNREACHABLE();
+        return kIllegalCid;
       case kUnboxedInt64:
         return kMintCid;
       case kUnboxedDouble:
@@ -7538,6 +7578,14 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
       Value* left,
       Value* right,
       intptr_t deopt_id,
+      SpeculativeMode speculative_mode = kGuardInputs);
+
+  static BinaryIntegerOpInstr* Make(
+      Representation representation,
+      Token::Kind op_kind,
+      Value* left,
+      Value* right,
+      intptr_t deopt_id,
       bool can_overflow,
       bool is_truncating,
       Range* range,
@@ -7597,9 +7645,11 @@ class BinarySmiOpInstr : public BinaryIntegerOpInstr {
   BinarySmiOpInstr(Token::Kind op_kind,
                    Value* left,
                    Value* right,
-                   intptr_t deopt_id)
+                   intptr_t deopt_id,
+                   // Provided by BinaryIntegerOpInstr::Make for constant RHS.
+                   Range* right_range = nullptr)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
-        right_range_(NULL) {}
+        right_range_(right_range) {}
 
   virtual bool ComputeCanDeoptimize() const;
 
@@ -7765,9 +7815,11 @@ class ShiftIntegerOpInstr : public BinaryIntegerOpInstr {
   ShiftIntegerOpInstr(Token::Kind op_kind,
                       Value* left,
                       Value* right,
-                      intptr_t deopt_id)
+                      intptr_t deopt_id,
+                      // Provided by BinaryIntegerOpInstr::Make for constant RHS
+                      Range* right_range = nullptr)
       : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
-        shift_range_(NULL) {
+        shift_range_(right_range) {
     ASSERT((op_kind == Token::kSHR) || (op_kind == Token::kSHL));
     mark_truncating();
   }
@@ -7801,8 +7853,9 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
   ShiftInt64OpInstr(Token::Kind op_kind,
                     Value* left,
                     Value* right,
-                    intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                    intptr_t deopt_id,
+                    Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return kNotSpeculative;
@@ -7832,8 +7885,9 @@ class SpeculativeShiftInt64OpInstr : public ShiftIntegerOpInstr {
   SpeculativeShiftInt64OpInstr(Token::Kind op_kind,
                                Value* left,
                                Value* right,
-                               intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                               intptr_t deopt_id,
+                               Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual bool ComputeCanDeoptimize() const {
     ASSERT(!can_overflow());
@@ -7862,8 +7916,9 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
   ShiftUint32OpInstr(Token::Kind op_kind,
                      Value* left,
                      Value* right,
-                     intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                     intptr_t deopt_id,
+                     Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return kNotSpeculative;
@@ -7895,8 +7950,9 @@ class SpeculativeShiftUint32OpInstr : public ShiftIntegerOpInstr {
   SpeculativeShiftUint32OpInstr(Token::Kind op_kind,
                                 Value* left,
                                 Value* right,
-                                intptr_t deopt_id)
-      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
+                                intptr_t deopt_id,
+                                Range* right_range = nullptr)
+      : ShiftIntegerOpInstr(op_kind, left, right, deopt_id, right_range) {}
 
   virtual bool ComputeCanDeoptimize() const { return !IsShiftCountInRange(); }
 

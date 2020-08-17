@@ -14,6 +14,8 @@ class B {
   void set y(int value) {}
 }
 
+class C = B with M implements I<int>;
+
 class M {
   int x;
   int y;
@@ -21,6 +23,5 @@ class M {
 
 void expect(Object value, Object expected) {}
 void expectTypeError(void callback()) {}
-class C = B with M implements I<int>;
 void main() {}
 void test(I<Object> i) {}

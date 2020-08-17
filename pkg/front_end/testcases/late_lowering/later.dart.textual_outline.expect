@@ -3,12 +3,12 @@ class A {
   int a = 42;
   late int ;
   b = (this.a * 2) >> 1;
-  foo(late int x) { }
+  foo(late int x) {}
 }
-bar(late int x) { }
-baz() { }
-hest() async { }
-fisk() async { }
+bar(late int x) {}
+baz() {}
+hest() async {}
+fisk() async {}
 class B {
   late ;
   final int x = 42;
@@ -17,6 +17,6 @@ class B {
 class C {
   late ;
   final int x;
-  initVars() { }
+  initVars() {}
 }
-main() { }
+main() {}

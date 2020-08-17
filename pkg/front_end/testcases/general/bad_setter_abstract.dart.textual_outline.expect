@@ -8,4 +8,4 @@ abstract class B {
   set a();
   set d(x, y);
 }
-main() { }
+main() {}

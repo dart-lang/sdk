@@ -1,14 +1,12 @@
-class A {
-}
-class B {
-}
+class A {}
+class B {}
 class Foo extends A, B {
-  Foo() { }
+  Foo() {}
 }
 class Bar extend A, B {
-  Bar() { }
+  Bar() {}
 }
 class Baz on A, B {
-  Baz() { }
+  Baz() {}
 }
-main() { }
+main() {}

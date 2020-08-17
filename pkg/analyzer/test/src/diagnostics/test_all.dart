@@ -17,6 +17,7 @@ import 'ambiguous_extension_member_access_test.dart'
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
+import 'annotation_syntax_test.dart' as annotation_syntax;
 import 'annotation_with_non_class_test.dart' as annotation_with_non_class;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
@@ -646,6 +647,7 @@ main() {
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     annotation_on_pointer_field.main();
+    annotation_syntax.main();
     annotation_with_non_class.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();

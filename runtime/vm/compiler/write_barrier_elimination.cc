@@ -335,7 +335,8 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
            std::is_base_of<ContextLayout, underlying_type>::value ||           \
            std::is_base_of<UnhandledExceptionLayout, underlying_type>::value;
 
-      NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
+      BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
+      UNBOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 #undef FOR_EACH_NATIVE_SLOT
 
     default:

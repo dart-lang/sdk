@@ -1,14 +1,11 @@
 part 'check_bounds_lib.dart';
-class A {
-}
-class B extends A {
-}
-class Class<T extends A> {
-}
-extension Extension<T extends B> ( ){ }
-on Class<T> (){ }
-main() { }
-test() { }
+class A {}
+class B extends A {}
+class Class<T extends A> {}
+extension Extension<T extends B> (){}
+on Class<T> (){}
+main() {}
+test() {}
 final A a = new A();
 final Class<A> classA = new Class<A>();
 final field1 = classA.method();

@@ -14535,9 +14535,10 @@ mixin StatementParserTestMixin implements AbstractParserTestCase {
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit('main() { C<@Foo T> v; }',
         errors: usingFastaParser
-            // TODO(danrubel): Improve this error to indicate that annotations
-            // are not valid in this context.
-            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]
+            ? [
+                expectedError(
+                    ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 4)
+              ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1)
@@ -14547,9 +14548,10 @@ mixin StatementParserTestMixin implements AbstractParserTestCase {
   void test_invalid_typeParamAnnotation2() {
     parseCompilationUnit('main() { C<@Foo.bar(1) T> v; }',
         errors: usingFastaParser
-            // TODO(danrubel): Improve this error to indicate that annotations
-            // are not valid in this context.
-            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]
+            ? [
+                expectedError(
+                    ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 11)
+              ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1)
@@ -14567,9 +14569,7 @@ main() {
     W<X<Y<Z>>>
   > v;
 }''', errors: [
-        // TODO(danrubel): Improve this error to indicate that annotations
-        // are not valid in this context.
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 13, 1)
+        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 13, 63)
       ]);
     }
   }

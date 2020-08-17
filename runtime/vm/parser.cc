@@ -59,6 +59,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       expression_temp_var_(NULL),
       entry_points_temp_var_(NULL),
       finally_return_temp_var_(NULL),
+      dynamic_closure_call_vars_(nullptr),
       guarded_fields_(new ZoneGrowableArray<const Field*>()),
       default_parameter_values_(NULL),
       raw_type_arguments_var_(NULL),
@@ -78,8 +79,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
 
   const bool load_optional_arguments = function.HasOptionalParameters();
 
-  const bool check_arguments =
-      function_.IsClosureFunction() || function.IsFfiTrampoline();
+  const bool check_arguments = function.CanReceiveDynamicInvocation();
 
   const bool need_argument_descriptor =
       load_optional_arguments || check_arguments || reify_generic_argument;
@@ -337,6 +337,25 @@ bool ParsedFunction::IsGenericCovariantImplParameter(intptr_t i) const {
   ASSERT(generic_covariant_impl_parameters_ != nullptr);
   ASSERT((i >= 0) && (i < function_.NumParameters()));
   return generic_covariant_impl_parameters_->Contains(i);
+}
+
+ParsedFunction::DynamicClosureCallVars*
+ParsedFunction::EnsureDynamicClosureCallVars() {
+  ASSERT(function().IsDynamicClosureCallDispatcher(thread()));
+  if (dynamic_closure_call_vars_ != nullptr) return dynamic_closure_call_vars_;
+  dynamic_closure_call_vars_ = new (zone()) DynamicClosureCallVars();
+
+  const auto& type_Array = Type::ZoneHandle(zone(), Type::ArrayType());
+  const auto& type_Bool = Type::ZoneHandle(zone(), Type::BoolType());
+  const auto& type_Smi = Type::ZoneHandle(zone(), Type::SmiType());
+#define INIT_FIELD(Name, TypeName, Symbol)                                     \
+  dynamic_closure_call_vars_->Name = new (zone())                              \
+      LocalVariable(function().token_pos(), function().token_pos(),            \
+                    Symbols::DynamicCall##Symbol##Var(), type_##TypeName);
+  FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(INIT_FIELD);
+#undef INIT_FIELD
+
+  return dynamic_closure_call_vars_;
 }
 
 }  // namespace dart

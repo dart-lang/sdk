@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
+#include "vm/compiler/backend/range_analysis.h"  // For Range.
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
@@ -243,6 +244,15 @@ Fragment BaseFlowGraphBuilder::Goto(JoinEntryInstr* destination) {
 Fragment BaseFlowGraphBuilder::IntConstant(int64_t value) {
   return Fragment(
       Constant(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld))));
+}
+
+Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
+    int64_t value,
+    Representation representation) {
+  const auto& obj = Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  auto const constant = new (Z) UnboxedConstantInstr(obj, representation);
+  Push(constant);
+  return Fragment(constant);
 }
 
 Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
@@ -793,38 +803,19 @@ Fragment BaseFlowGraphBuilder::SmiRelationalOp(Token::Kind kind) {
 
 Fragment BaseFlowGraphBuilder::SmiBinaryOp(Token::Kind kind,
                                            bool is_truncating) {
-  Value* right = Pop();
-  Value* left = Pop();
-  BinarySmiOpInstr* instr =
-      new (Z) BinarySmiOpInstr(kind, left, right, GetNextDeoptId());
-  if (is_truncating) {
-    instr->mark_truncating();
-  }
-  Push(instr);
-  return Fragment(instr);
+  return BinaryIntegerOp(kind, kTagged, is_truncating);
 }
 
 Fragment BaseFlowGraphBuilder::BinaryIntegerOp(Token::Kind kind,
                                                Representation representation,
                                                bool is_truncating) {
   ASSERT(representation == kUnboxedInt32 || representation == kUnboxedUint32 ||
-         representation == kUnboxedInt64);
+         representation == kUnboxedInt64 || representation == kTagged);
   Value* right = Pop();
   Value* left = Pop();
-  BinaryIntegerOpInstr* instr;
-  switch (representation) {
-    case kUnboxedInt32:
-      instr = new (Z) BinaryInt32OpInstr(kind, left, right, GetNextDeoptId());
-      break;
-    case kUnboxedUint32:
-      instr = new (Z) BinaryUint32OpInstr(kind, left, right, GetNextDeoptId());
-      break;
-    case kUnboxedInt64:
-      instr = new (Z) BinaryInt64OpInstr(kind, left, right, GetNextDeoptId());
-      break;
-    default:
-      UNREACHABLE();
-  }
+  BinaryIntegerOpInstr* instr = BinaryIntegerOpInstr::Make(
+      representation, kind, left, right, GetNextDeoptId());
+  ASSERT(instr != nullptr);
   if (is_truncating) {
     instr->mark_truncating();
   }

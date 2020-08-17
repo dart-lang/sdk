@@ -672,11 +672,18 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
                                        Register tmp) {
+  const bool is_unboxed_int =
+      representation() == kUnboxedUint32 || representation() == kUnboxedInt32;
   if (destination.IsRegister()) {
-    if (representation() == kUnboxedInt32) {
+    if (is_unboxed_int) {
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
+      if (value_.IsSmi() && representation() == kUnboxedUint32) {
+        // If the value is negative, then the sign bit was preserved during
+        // Smi untagging, which means the resulting value may be unexpected.
+        ASSERT(v >= 0);
+      }
       __ LoadImmediate(destination.reg(), v);
     } else {
       ASSERT(representation() == kTagged);
@@ -706,7 +713,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
-    if (representation() == kUnboxedInt32) {
+    if (is_unboxed_int) {
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
@@ -720,11 +727,13 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
 
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
+  const bool is_unboxed_int =
+      representation() == kUnboxedUint32 || representation() == kUnboxedInt32;
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = (representation_ == kUnboxedInt32) ? 0 : 1;
+  const intptr_t kNumTemps = is_unboxed_int ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  if (representation_ == kUnboxedInt32) {
+  if (is_unboxed_int) {
     locs->set_out(0, Location::RequiresRegister());
   } else {
     ASSERT(representation_ == kUnboxedDouble);
@@ -3222,17 +3231,23 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = (IsUnboxedLoad() && opt)
-                                 ? (FLAG_precompiled_mode ? 0 : 1)
-                                 : (IsPotentialUnboxedLoad() ? 3 : 0);
+
+  const intptr_t kNumTemps =
+      (slot().representation() != kTagged)
+          ? 0
+          : ((IsUnboxedDartFieldLoad() && opt)
+                 ? (FLAG_precompiled_mode ? 0 : 1)
+                 : (IsPotentialUnboxedDartFieldLoad() ? 3 : 0));
 
   const auto contains_call =
-      (IsUnboxedLoad() && opt)
+      (slot().representation() != kTagged)
           ? LocationSummary::kNoCall
-          : (IsPotentialUnboxedLoad()
-                 ? LocationSummary::kCallOnSlowPath
-                 : (calls_initializer() ? LocationSummary::kCall
-                                        : LocationSummary::kNoCall));
+          : ((IsUnboxedDartFieldLoad() && opt)
+                 ? LocationSummary::kNoCall
+                 : (IsPotentialUnboxedDartFieldLoad()
+                        ? LocationSummary::kCallOnSlowPath
+                        : (calls_initializer() ? LocationSummary::kCall
+                                               : LocationSummary::kNoCall)));
 
   LocationSummary* locs =
       new (zone) LocationSummary(zone, kNumInputs, kNumTemps, contains_call);
@@ -3241,19 +3256,27 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                             InitInstanceFieldABI::kInstanceReg)
                                       : Location::RequiresRegister());
 
-  if (IsUnboxedLoad() && opt) {
+  if (slot().representation() != kTagged) {
+    switch (slot().representation()) {
+      case kUnboxedInt64:
+        ASSERT(FLAG_precompiled_mode);
+        locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+        break;
+      case kUnboxedUint32:
+        locs->set_out(0, Location::RequiresRegister());
+        break;
+      default:
+        UNIMPLEMENTED();
+        break;
+    }
+  } else if (IsUnboxedDartFieldLoad() && opt) {
     ASSERT(!calls_initializer());
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
-    if (slot().field().is_non_nullable_integer()) {
-      ASSERT(FLAG_precompiled_mode);
-      locs->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                      Location::RequiresRegister()));
-    } else {
-      locs->set_out(0, Location::RequiresFpuRegister());
-    }
-  } else if (IsPotentialUnboxedLoad()) {
+    locs->set_out(0, Location::RequiresFpuRegister());
+  } else if (IsPotentialUnboxedDartFieldLoad()) {
     ASSERT(!calls_initializer());
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(Q1));
@@ -3275,21 +3298,38 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
   const Register instance_reg = locs()->in(0).reg();
-  if (IsUnboxedLoad() && compiler->is_optimizing()) {
+  if (slot().representation() != kTagged) {
     ASSERT(!calls_initializer());
-    if (slot().field().is_non_nullable_integer()) {
-      const PairLocation* out_pair = locs()->out(0).AsPairLocation();
-      const Register out_lo = out_pair->At(0).reg();
-      const Register out_hi = out_pair->At(1).reg();
-      __ Comment("UnboxedIntegerLoadFieldInstr");
-      __ LoadFromOffset(kWord, out_lo, instance_reg,
-                        OffsetInBytes() - kHeapObjectTag);
-      __ LoadFromOffset(
-          kWord, out_hi, instance_reg,
-          OffsetInBytes() - kHeapObjectTag + compiler::target::kWordSize);
-      return;
+    switch (slot().representation()) {
+      case kUnboxedInt64: {
+        const PairLocation* out_pair = locs()->out(0).AsPairLocation();
+        const Register out_lo = out_pair->At(0).reg();
+        const Register out_hi = out_pair->At(1).reg();
+        __ Comment("UnboxedInt64LoadFieldInstr");
+        __ LoadFromOffset(kWord, out_lo, instance_reg,
+                          OffsetInBytes() - kHeapObjectTag);
+        __ LoadFromOffset(
+            kWord, out_hi, instance_reg,
+            OffsetInBytes() - kHeapObjectTag + compiler::target::kWordSize);
+        break;
+      }
+      case kUnboxedUint32: {
+        Register result = locs()->out(0).reg();
+        __ Comment("UnboxedUint32LoadFieldInstr");
+        __ LoadFieldFromOffset(kWord, result, instance_reg, OffsetInBytes());
+        break;
+      }
+      default:
+        UNIMPLEMENTED();
+        break;
     }
+    return;
+  }
 
+  if (IsUnboxedDartFieldLoad() && compiler->is_optimizing()) {
+    ASSERT_EQUAL(slot().representation(), kTagged);
+    ASSERT(!calls_initializer());
+    ASSERT(!slot().field().is_non_nullable_integer());
     const intptr_t cid = slot().field().UnboxedFieldCid();
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
 
@@ -3344,7 +3384,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label done;
   const Register result_reg = locs()->out(0).reg();
-  if (IsPotentialUnboxedLoad()) {
+  if (IsPotentialUnboxedDartFieldLoad()) {
+    ASSERT_EQUAL(slot().representation(), kTagged);
     ASSERT(!calls_initializer());
     const DRegister value = EvenDRegisterOf(locs()->temp(0).fpu_reg());
     const Register temp = locs()->temp(1).reg();

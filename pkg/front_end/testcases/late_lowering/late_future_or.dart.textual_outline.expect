@@ -21,15 +21,15 @@ class C<T> {
   late FutureOr ;
   field1;
   late FutureOr;
-  operator? ( ){ }
+  operator? (){}
   field2;
-  late FutureOr<T> ( ){ }
+  late FutureOr<T> (){}
   field3;
-  late FutureOr<T?> ( ){ }
+  late FutureOr<T?> (){}
   field4;
-  late FutureOr<T?>( ){ }
-  operator? ( ){ }
+  late FutureOr<T?>(){}
+  operator? (){}
   field5;
-  method() { }
+  method() {}
 }
-main() { }
+main() {}

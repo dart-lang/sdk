@@ -55,6 +55,9 @@ class ParserErrorCode extends ErrorCode {
       'ABSTRACT_TYPEDEF', "Typedefs can't be declared to be 'abstract'.",
       correction: "Try removing the keyword 'abstract'.");
 
+  static const ParserErrorCode ANNOTATION_ON_TYPE_ARGUMENT =
+      _ANNOTATION_ON_TYPE_ARGUMENT;
+
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       _ANNOTATION_WITH_TYPE_ARGUMENTS;
 

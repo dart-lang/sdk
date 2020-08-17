@@ -2470,16 +2470,24 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat64x2) ||
       (rep == kUnboxedFloat32x4)) {
-    // LoadField instruction lies about its representation in the unoptimized
-    // code because Definition::representation() can't depend on the type of
-    // compilation but MakeLocationSummary and EmitNativeCode can.
-    ASSERT(defn->IsLoadField() && defn->AsLoadField()->IsUnboxedLoad());
+    // The LoadField instruction may lie about its representation in unoptimized
+    // code for Dart fields because Definition::representation() can't depend on
+    // the type of compilation but MakeLocationSummary and EmitNativeCode can.
+    ASSERT(defn->IsLoadField() &&
+           defn->AsLoadField()->IsUnboxedDartFieldLoad());
     ASSERT(defn->locs()->out(0).IsRegister());
     rep = kTagged;
   }
   ASSERT(!is_optimizing());
-  ASSERT((rep == kTagged) || (rep == kUntagged));
+  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
+  const auto& function = flow_graph_.parsed_function().function();
+  // Currently, we only allow unboxed uint32 on the stack in unoptimized code
+  // when building a dynamic closure call dispatcher, where any unboxed values
+  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
+  // See FlowGraphBuilder::BuildDynamicCallVarsInit().
+  ASSERT(rep != kUnboxedUint32 ||
+         function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }
 

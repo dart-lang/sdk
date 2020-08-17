@@ -551,6 +551,28 @@ DEFINE_RUNTIME_ENTRY(GetFieldForDispatch, 2) {
   arguments.SetReturn(result);
 }
 
+// Check that arguments are valid for the given closure.
+// Arg0: function
+// Arg1: arguments descriptor
+// Return value: whether the arguments are valid
+DEFINE_RUNTIME_ENTRY(ClosureArgumentsValid, 2) {
+  ASSERT(FLAG_enable_interpreter);
+  const auto& closure = Closure::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+
+  const auto& function = Function::Handle(zone, closure.function());
+  const ArgumentsDescriptor args_desc(descriptor);
+  if (!function.AreValidArguments(args_desc, nullptr)) {
+    arguments.SetReturn(Bool::False());
+  } else if (!closure.IsGeneric(thread) && args_desc.TypeArgsLen() > 0) {
+    // The arguments may be valid for the closure function itself, but if the
+    // closure has delayed type arguments, no type arguments should be provided.
+    arguments.SetReturn(Bool::False());
+  } else {
+    arguments.SetReturn(Bool::True());
+  }
+}
+
 // Resolve 'call' function of receiver.
 // Arg0: receiver (not a closure).
 // Arg1: arguments descriptor

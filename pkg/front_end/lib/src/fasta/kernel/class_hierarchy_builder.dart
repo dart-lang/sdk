@@ -83,8 +83,6 @@ import 'forwarding_node.dart' show ForwardingNode;
 
 import 'kernel_builder.dart' show ImplicitFieldType;
 
-const bool useConsolidated = true;
-
 const DebugLogger debug =
     const bool.fromEnvironment("debug.hierarchy") ? const DebugLogger() : null;
 
@@ -670,7 +668,6 @@ class ClassHierarchyNodeBuilder {
 
       for (ClassMember classMember
           in toSet(declaredMember.classBuilder, overriddenMembers)) {
-        assert(useConsolidated || !classMember.hasDeclarations);
         Member overriddenMember = classMember.getMember(hierarchy);
         Substitution classSubstitution;
         if (classBuilder.cls != overriddenMember.enclosingClass) {
@@ -882,7 +879,6 @@ class ClassHierarchyNodeBuilder {
     List<VariableDeclaration> declaredNamed = declaredFunction.namedParameters;
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
-      assert(useConsolidated || !overriddenMember.hasDeclarations);
       Member bMember = overriddenMember.getMember(hierarchy);
       if (bMember is! Procedure) {
         debug?.log("Giving up 1");
@@ -1207,7 +1203,6 @@ class ClassHierarchyNodeBuilder {
       void inferFrom(ClassMember classMember) {
         if (inferredType is InvalidType) return;
 
-        assert(useConsolidated || !classMember.hasDeclarations);
         Member overriddenMember = classMember.getMember(hierarchy);
         DartType inheritedType;
         if (overriddenMember is Procedure) {
@@ -1286,7 +1281,6 @@ class ClassHierarchyNodeBuilder {
     Field declaredField = declaredMember.getMember(hierarchy);
     for (ClassMember overriddenMember
         in toSet(declaredMember.classBuilder, overriddenMembers)) {
-      assert(useConsolidated || !overriddenMember.hasDeclarations);
       Member bTarget = overriddenMember.getMember(hierarchy);
       if (bTarget is Procedure) {
         if (bTarget.isSetter) {
@@ -1421,8 +1415,7 @@ class ClassHierarchyNodeBuilder {
 
   void recordAbstractMember(ClassMember member) {
     abstractMembers ??= <ClassMember>[];
-    if (member.hasDeclarations &&
-        (!useConsolidated || classBuilder == member.classBuilder)) {
+    if (member.hasDeclarations && classBuilder == member.classBuilder) {
       abstractMembers.addAll(member.declarations);
     } else {
       abstractMembers.add(member);
@@ -1723,7 +1716,7 @@ class ClassHierarchyNodeBuilder {
     void registerOverrideCheck(
         ClassMember member, ClassMember overriddenMember) {
       if (overriddenMember.hasDeclarations &&
-          (!useConsolidated || classBuilder == overriddenMember.classBuilder)) {
+          classBuilder == overriddenMember.classBuilder) {
         for (int i = 0; i < overriddenMember.declarations.length; i++) {
           hierarchy.registerOverrideCheck(
               classBuilder, member, overriddenMember.declarations[i]);
@@ -1901,8 +1894,7 @@ class ClassHierarchyNodeBuilder {
                 }
                 if (classMember.hasDeclarations) {
                   if (interfaceMember.hasDeclarations &&
-                      (!useConsolidated ||
-                          interfaceMember.classBuilder == classBuilder)) {
+                      interfaceMember.classBuilder == classBuilder) {
                     addAllDeclarationsTo(
                         interfaceMember, classMember.declarations);
                   } else {
@@ -3389,8 +3381,7 @@ Set<ClassMember> toSet(
 void _toSet(ClassBuilder classBuilder, Iterable<ClassMember> members,
     Set<ClassMember> result) {
   for (ClassMember member in members) {
-    if (member.hasDeclarations &&
-        (!useConsolidated || classBuilder == member.classBuilder)) {
+    if (member.hasDeclarations && classBuilder == member.classBuilder) {
       _toSet(classBuilder, member.declarations, result);
     } else {
       result.add(member);

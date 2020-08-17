@@ -1937,7 +1937,7 @@ class TypeParamOrArgInfoTest {
           'endTypeArguments 1 < >',
         ]);
     expectComplexTypeArg('<@A S,T>', typeArgumentCount: 2, expectedErrors: [
-      error(codeUnexpectedToken, 1, 1)
+      error(codeAnnotationOnTypeArgument, 1, 2)
     ], expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -1949,7 +1949,7 @@ class TypeParamOrArgInfoTest {
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<@A() S,T>', typeArgumentCount: 2, expectedErrors: [
-      error(codeUnexpectedToken, 1, 1)
+      error(codeAnnotationOnTypeArgument, 1, 4)
     ], expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -1963,8 +1963,8 @@ class TypeParamOrArgInfoTest {
     expectComplexTypeArg('<@A() @B S,T>',
         typeArgumentCount: 2,
         expectedErrors: [
-          error(codeUnexpectedToken, 1, 1),
-          error(codeUnexpectedToken, 6, 1),
+          error(codeAnnotationOnTypeArgument, 1, 4),
+          error(codeAnnotationOnTypeArgument, 6, 2),
         ],
         expectedCalls: [
           'beginTypeArguments <',
@@ -1988,7 +1988,7 @@ class TypeParamOrArgInfoTest {
         inDeclaration: true,
         typeArgumentCount: 1,
         expectedErrors: [
-          error(codeUnexpectedToken, 1, 1),
+          error(codeAnnotationOnTypeArgument, 1, 4),
           error(codeExpectedAfterButGot, 6, 1)
         ]);
     expectComplexTypeArg('<S<T',

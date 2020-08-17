@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/slot.h"
 
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/hash_map.h"
 #include "vm/parser.h"
@@ -52,7 +54,8 @@ const char* Slot::KindToCString(Kind k) {
 #define NATIVE_CASE(C, U, F, id, M)                                            \
   case NATIVE_SLOT_NAME(C, F, id, M):                                          \
     return NATIVE_TO_STR(C, F, id, M);
-    NATIVE_SLOTS_LIST(NATIVE_CASE)
+    BOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
+    UNBOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
 #undef NATIVE_CASE
     case Kind::kTypeArguments:
       return "TypeArguments";
@@ -73,7 +76,8 @@ bool Slot::ParseKind(const char* str, Kind* out) {
     *out = NATIVE_SLOT_NAME(C, F, id, M);                                      \
     return true;                                                               \
   }
-  NATIVE_SLOTS_LIST(NATIVE_CASE)
+  BOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
+  UNBOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
 #undef NATIVE_CASE
   if (strcmp(str, "TypeArguments") == 0) {
     *out = Kind::kTypeArguments;
@@ -93,21 +97,61 @@ bool Slot::ParseKind(const char* str, Kind* out) {
 #undef NATIVE_TO_STR
 #undef NATIVE_SLOT_NAME
 
+static Representation CheckFit(Representation rep) {
+  ASSERT(Boxing::Supports(rep));
+  switch (rep) {
+    case kUnboxedInt64:
+    case kUnboxedInt32:
+    case kUnboxedUint32:
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  return rep;
+}
+
+static classid_t GetUnboxedNativeSlotCid(Representation rep) {
+  ASSERT(Boxing::Supports(rep));
+  if (Boxing::RequiresAllocation(rep)) {
+    return Boxing::BoxCid(rep);
+  }
+#if defined(TARGET_ARCH_IS_64_BIT)
+  // On 64-bit platforms, these always fit in Smis.
+  if (rep == kUnboxedInt32 || rep == kUnboxedUint32) {
+    return kSmiCid;
+  }
+#endif
+  UNREACHABLE();
+  return kIllegalCid;
+}
+
 const Slot& Slot::GetNativeSlot(Kind kind) {
   // There is a fixed statically known number of native slots so we cache
   // them statically.
   static const Slot fields[] = {
 #define FIELD_FINAL (IsImmutableBit::encode(true))
 #define FIELD_VAR (0)
-#define DEFINE_NATIVE_FIELD(ClassName, UnderlyingType, FieldName, cid,         \
-                            mutability)                                        \
+#define DEFINE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName, cid,   \
+                                  mutability)                                  \
   Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability, k##cid##Cid,      \
        compiler::target::ClassName::FieldName##_offset(),                      \
-       #ClassName "." #FieldName, nullptr),
+       #ClassName "." #FieldName, nullptr, kTagged),
 
-      NATIVE_SLOTS_LIST(DEFINE_NATIVE_FIELD)
+      BOXED_NATIVE_SLOTS_LIST(DEFINE_BOXED_NATIVE_FIELD)
 
-#undef DEFINE_FIELD
+#undef DEFINE_BOXED_NATIVE_FIELD
+#define DEFINE_UNBOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName,      \
+                                    representation, mutability)                \
+  Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability,                   \
+       GetUnboxedNativeSlotCid(kUnboxed##representation),                      \
+       compiler::target::ClassName::FieldName##_offset(),                      \
+       #ClassName "." #FieldName, nullptr,                                     \
+       CheckFit(kUnboxed##representation)),
+
+          UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
+
+#undef DEFINE_UNBOXED_NATIVE_FIELD
 #undef FIELD_VAR
 #undef FIELD_FINAL
   };
@@ -146,7 +190,7 @@ const Slot& Slot::GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset) {
   ASSERT(offset != Class::kNoTypeArguments);
   return SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kTypeArguments, IsImmutableBit::encode(true), kTypeArgumentsCid,
-      offset, ":type_arguments", /*static_type=*/nullptr));
+      offset, ":type_arguments", /*static_type=*/nullptr, kTagged));
 }
 
 const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
@@ -163,7 +207,7 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                IsNullableBit::encode(true),
            kDynamicCid,
            compiler::target::Context::variable_offset(variable.index().value()),
-           &variable.name(), &variable.type()));
+           &variable.name(), &variable.type(), kTagged));
 }
 
 const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
@@ -171,7 +215,7 @@ const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
       compiler::target::TypeArguments::type_at_offset(index);
   const Slot& slot =
       Slot(Kind::kTypeArgumentsIndex, IsImmutableBit::encode(true), kDynamicCid,
-           offset, ":argument", /*static_type=*/nullptr);
+           offset, ":argument", /*static_type=*/nullptr, kTagged);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
 
@@ -179,6 +223,7 @@ const Slot& Slot::Get(const Field& field,
                       const ParsedFunction* parsed_function) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  Representation rep = kTagged;
   intptr_t nullable_cid = kDynamicCid;
   bool is_nullable = true;
 
@@ -221,16 +266,21 @@ const Slot& Slot::Get(const Field& field,
   }
 
   if (field.is_non_nullable_integer()) {
+    ASSERT(FLAG_precompiled_mode);
     is_nullable = false;
+    if (FlowGraphCompiler::IsUnboxedField(field)) {
+      rep = kUnboxedInt64;
+    }
   }
 
-  const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
-      Kind::kDartField,
-      IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
-                             field.is_const()) |
-          IsNullableBit::encode(is_nullable) |
-          IsGuardedBit::encode(used_guarded_state),
-      nullable_cid, compiler::target::Field::OffsetOf(field), &field, &type));
+  const Slot& slot = SlotCache::Instance(thread).Canonicalize(
+      Slot(Kind::kDartField,
+           IsImmutableBit::encode((field.is_final() && !field.is_late()) ||
+                                  field.is_const()) |
+               IsNullableBit::encode(is_nullable) |
+               IsGuardedBit::encode(used_guarded_state),
+           nullable_cid, compiler::target::Field::OffsetOf(field), &field,
+           &type, rep));
 
   // If properties of this slot were based on the guarded state make sure
   // to add the field to the list of guarded fields. Note that during background

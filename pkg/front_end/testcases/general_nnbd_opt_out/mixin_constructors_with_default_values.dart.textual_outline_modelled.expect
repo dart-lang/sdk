@@ -6,12 +6,12 @@ class C<T> {
   String trace;
 }
 
-class M {}
-
 class D = C<String> with M;
 
 class E extends D {}
 
 class F extends C<int> with M {}
+
+class M {}
 
 main() {}
