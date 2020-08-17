@@ -1,9 +1,7 @@
 typedef ContraFunction<T> = void Function(T);
 typedef InvFunction<T> = T Function(T);
-class Contravariant<in T> {
-}
-class Invariant<inout T> {
-}
+class Contravariant<in T> {}
+class Invariant<inout T> {}
 class A<in T, out U, V> {
   final void Function(T) field = null;
   void method(T t, void Function(U) u, V v) {}

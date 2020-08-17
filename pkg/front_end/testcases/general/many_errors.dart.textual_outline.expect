@@ -4,8 +4,7 @@ class A {
   const A.named2() : x = new Object();
 }
 external foo(String x) {}
-class B {
-}
+class B {}
 class C {
   B b;
 }

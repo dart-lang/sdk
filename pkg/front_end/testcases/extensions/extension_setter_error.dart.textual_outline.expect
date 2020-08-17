@@ -1,5 +1,4 @@
-class GenericClass<T> {
-}
+class GenericClass<T> {}
 extension GenericExtension<T> (){}
 on GenericClass<T> (){}
 error() {}

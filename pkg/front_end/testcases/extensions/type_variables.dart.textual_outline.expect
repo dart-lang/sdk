@@ -1,5 +1,4 @@
-class A1<T> {
-}
+class A1<T> {}
 extension A2<T> (){}
 on A1<T> (){}
 extension A3<T extends A1<T>> (){}

@@ -1,5 +1,4 @@
-class Class {
-}
+class Class {}
 extension Extension ;
 on Class (){}
 var c = new Class();

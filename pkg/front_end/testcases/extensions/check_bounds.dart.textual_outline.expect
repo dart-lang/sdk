@@ -1,10 +1,7 @@
 part 'check_bounds_lib.dart';
-class A {
-}
-class B extends A {
-}
-class Class<T extends A> {
-}
+class A {}
+class B extends A {}
+class Class<T extends A> {}
 extension Extension<T extends B> (){}
 on Class<T> (){}
 main() {}

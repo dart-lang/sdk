@@ -57,8 +57,7 @@ class A {}
 """), throwOnUnexpected: true, performModelling: true);
   if (result !=
       """
-class A {
-}""") {
+class A {}""") {
     throw "Unexpected result: $result";
   }
 
@@ -70,8 +69,7 @@ class A {
 """), throwOnUnexpected: true, performModelling: true);
   if (result !=
       """
-class A {
-}""") {
+class A {}""") {
     throw "Unexpected result: $result";
   }
 

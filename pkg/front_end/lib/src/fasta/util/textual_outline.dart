@@ -323,24 +323,37 @@ String _textualizeClass(TextualOutlineListener listener, Token beginToken,
     }
     token = token.next;
   }
+
   _TextualOutlineState state =
       new _TextualOutlineState(originalState.performModelling);
-  tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  flush(state, isSortable: false);
+  if (token == endToken) {
+    // This for instance happens on named mixins, e.g.
+    // class C<T> = Object with A<Function(T)>;
+    // or when the class has no content, e.g.
+    // class C { }
+    // either way, output the end token right away to avoid a weird line break.
+    tokenPrinter.nextTokenIsEndGroup = true;
+    tokenPrinter.print(token);
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    flush(state, isSortable: false);
+  } else {
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    flush(state, isSortable: false);
 
-  state.indent = "  ";
-  while (token != endToken) {
-    token = _textualizeNonClassEntriesInsideLoop(
-        listener, token, state, throwOnUnexpected, tokenPrinter);
-    if (token == null) return null;
+    state.indent = "  ";
+    while (token != endToken) {
+      token = _textualizeNonClassEntriesInsideLoop(
+          listener, token, state, throwOnUnexpected, tokenPrinter);
+      if (token == null) return null;
+    }
+    _textualizeAfterLoop(state, tokenPrinter);
+
+    state.indent = "";
+    tokenPrinter.nextTokenIsEndGroup = true;
+    tokenPrinter.print(token);
+    tokenPrinter.addAndClearIfHasContent(state.currentChunk);
+    flush(state, isSortable: false);
   }
-  _textualizeAfterLoop(state, tokenPrinter);
-
-  state.indent = "";
-  tokenPrinter.nextTokenIsEndGroup = true;
-  tokenPrinter.print(token);
-  tokenPrinter.addAndClearIfHasContent(state.currentChunk);
-  flush(state, isSortable: false);
   return state.outputLines.join("\n");
 }
 

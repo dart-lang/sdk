@@ -1,5 +1,4 @@
-abstract class A {
-}
+abstract class A {}
 class B extends A {
   B(): super().foo() {}
 }

@@ -3,8 +3,7 @@ class A<T> {
   late int ;
   field = 42;
 }
-class B extends A<String?> {
-}
+class B extends A<String?> {}
 typedef F = void Function()?;
 List<String?> l = [];
 String? s = null;

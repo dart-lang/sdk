@@ -2,7 +2,6 @@ extension A ;
 on C (){}
 extension B ;
 on C (){}
-class C {
-}
+class C {}
 errors(C c) {}
 main() {}

@@ -1,5 +1,4 @@
-class Foo {
-}
+class Foo {}
 int topLevelField;
 class A {
   static int staticFieldOfA;

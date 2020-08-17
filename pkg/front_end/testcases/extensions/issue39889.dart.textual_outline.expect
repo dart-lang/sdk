@@ -1,5 +1,4 @@
-class C {
-}
+class C {}
 extension E ;
 on C (){}
 void main() {}
