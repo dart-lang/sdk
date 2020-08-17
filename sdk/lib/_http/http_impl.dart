@@ -301,8 +301,10 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
   // The compression state of this response.
   final HttpClientResponseCompressionState compressionState;
 
-  _HttpClientResponse(
-      _HttpIncoming _incoming, this._httpRequest, this._httpClient)
+  final TimelineTask? _timeline;
+
+  _HttpClientResponse(_HttpIncoming _incoming, this._httpRequest,
+      this._httpClient, this._timeline)
       : compressionState = _getCompressionState(_httpClient, _incoming.headers),
         super(_incoming) {
     // Set uri for potential exceptions.
@@ -390,9 +392,16 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
     });
   }
 
+  void _timelineFinishWithError(String error) {
+    _timeline?.finish(arguments: {
+      'error': error,
+    });
+  }
+
   StreamSubscription<Uint8List> listen(void onData(Uint8List event)?,
       {Function? onError, void onDone()?, bool? cancelOnError}) {
     if (_incoming.upgraded) {
+      _timelineFinishWithError('Connection was upgraded');
       // If upgraded, the connection is already 'removed' form the client.
       // Since listening to upgraded data is 'bogus', simply close and
       // return empty stream subscription.
@@ -406,11 +415,38 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           .transform(gzip.decoder)
           .transform(const _ToUint8List());
     }
-    return stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    if (_timeline != null) {
+      // If _timeline is not set up, don't add unnecessary map() to the stream.
+      stream = stream.map((data) {
+        _timeline?.instant('Response body', arguments: {
+          'data': data,
+        });
+        return data;
+      });
+    }
+    return stream.listen(onData, onError: (e, st) {
+      _timeline?.instant('Error response', arguments: {
+        'error': e.toString(),
+      });
+      if (onError == null) {
+        return;
+      }
+      if (onError is void Function(Object)) {
+        onError(e);
+      } else {
+        assert(onError is void Function(Object, StackTrace));
+        onError(e, st);
+      }
+    }, onDone: () {
+      _timeline?.finish();
+      if (onDone != null) {
+        onDone();
+      }
+    }, cancelOnError: cancelOnError);
   }
 
   Future<Socket> detachSocket() {
+    _timelineFinishWithError('Socket has been detached');
     _httpClient._connectionClosed(_httpRequest._httpClientConnection);
     return _httpRequest._httpClientConnection.detachSocket();
   }
@@ -714,7 +750,9 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   Encoding _encoding;
   bool _encodingMutable = true;
 
-  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding) : super(target);
+  final TimelineTask? _timeline;
+  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding, this._timeline)
+      : super(target);
 
   Encoding get encoding => _encoding;
 
@@ -728,7 +766,10 @@ class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
   void write(Object? obj) {
     String string = '$obj';
     if (string.isEmpty) return;
-    add(_encoding.encode(string));
+    _timeline?.instant('Request body', arguments: {
+      'data': string,
+    });
+    super.add(_encoding.encode(string));
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
@@ -770,6 +811,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   final _HttpHeaders headers;
 
   _HttpOutboundMessage(Uri uri, String protocolVersion, _HttpOutgoing outgoing,
+      TimelineTask? timeline,
       {_HttpHeaders? initialHeaders})
       : _uri = uri,
         headers = new _HttpHeaders(protocolVersion,
@@ -778,7 +820,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
                 : HttpClient.defaultHttpPort,
             initialHeaders: initialHeaders),
         _outgoing = outgoing,
-        super(outgoing, latin1) {
+        super(outgoing, latin1, timeline) {
     _outgoing.outbound = this;
     _encodingMutable = false;
   }
@@ -815,7 +857,22 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
 
   void add(List<int> data) {
     if (data.length == 0) return;
+    _timeline?.instant('Request body', arguments: {
+      'encodedData': data,
+    });
     super.add(data);
+  }
+
+  Future addStream(Stream<List<int>> s) {
+    if (_timeline == null) {
+      return super.addStream(s);
+    }
+    return super.addStream(s.map((data) {
+      _timeline?.instant('Request body', arguments: {
+        'encodedData': data,
+      });
+      return data;
+    }));
   }
 
   void write(Object? obj) {
@@ -842,7 +899,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 
   _HttpResponse(Uri uri, String protocolVersion, _HttpOutgoing outgoing,
       HttpHeaders defaultHeaders, String? serverHeader)
-      : super(uri, protocolVersion, outgoing,
+      : super(uri, protocolVersion, outgoing, null,
             initialHeaders: defaultHeaders as _HttpHeaders) {
     if (serverHeader != null) {
       headers.set(HttpHeaders.serverHeader, serverHeader);
@@ -1083,7 +1140,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
       this._httpClient, this._httpClientConnection, this._timeline)
       : uri = uri,
-        super(uri, "1.1", outgoing) {
+        super(uri, "1.1", outgoing, _timeline) {
     _timeline?.instant('Request initiated');
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
@@ -1135,6 +1192,14 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         'redirects': formatRedirectInfo(),
         'statusCode': response.statusCode,
       });
+
+      // Start the timeline for response.
+      _timeline?.start('HTTP CLIENT response of ${method.toUpperCase()}',
+          arguments: {
+            'requestUri': uri.toString(),
+            'statusCode': response.statusCode,
+            'reasonPhrase': response.reasonPhrase,
+          });
     }, onError: (e) {});
   }
 
@@ -1169,7 +1234,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     if (_aborted) {
       return;
     }
-    var response = new _HttpClientResponse(incoming, this, _httpClient);
+    final response =
+        _HttpClientResponse(incoming, this, _httpClient, _timeline);
     Future<HttpClientResponse> future;
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
