@@ -107,6 +107,13 @@ def windows():
 CI_ACCOUNT = "dart-luci-ci-builder@dart-ci.iam.gserviceaccount.com"
 TRY_ACCOUNT = "dart-luci-try-builder@dart-ci.iam.gserviceaccount.com"
 CI_TRIGGERERS = ["luci-scheduler@appspot.gserviceaccount.com", CI_ACCOUNT]
+ROLL_TRIGGERERS = {
+    "users": [
+        "luci-scheduler@appspot.gserviceaccount.com",
+        CI_ACCOUNT,
+    ],
+    "groups": ["project-dart-roller-owners"],
+}
 CI_SANDBOX_TRIGGERERS = CI_TRIGGERERS + [TRY_ACCOUNT]
 
 lucicfg.config(
@@ -232,6 +239,12 @@ luci.bucket(
     name = "ci",
     acls = [
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users = CI_TRIGGERERS),
+    ],
+)
+luci.bucket(
+    name = "ci.roll",
+    acls = [
+        acl.entry(acl.BUILDBUCKET_TRIGGERER, **ROLL_TRIGGERERS),
     ],
 )
 luci.bucket(
@@ -619,11 +632,11 @@ def dart_builder(
         if enabled:
             builder(channel, triggered_by = triggered_by)
 
-def dart_ci_builder(name, dimensions = {}, **kwargs):
+def dart_ci_builder(name, bucket = "ci", dimensions = {}, **kwargs):
     dimensions.setdefault("pool", "luci.dart.ci")
     dart_builder(
         name,
-        bucket = "ci",
+        bucket = bucket,
         dimensions = dimensions,
         service_account = CI_ACCOUNT,
         **kwargs
@@ -1273,6 +1286,7 @@ dart_infra_builder(
 )
 dart_infra_builder(
     "roll-to-dev",
+    bucket = "ci.roll",
     execution_timeout = 15 * time.minute,
     notifies = "infra",
     properties = {"from_ref": "refs/heads/lkgr"},
