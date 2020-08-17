@@ -14,17 +14,17 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding extends fou::B
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding*
     : super fou::BindingBase::•()
     ;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void;
-  abstract member-signature get /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _identityHashCode() → core::int*;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ ==(dynamic other) → core::bool*;
-  abstract member-signature get /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ hashCode() → core::int*;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ toString() → core::String*;
-  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ runtimeType() → core::Type*;
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature get /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ toString() → core::String*; -> core::Object::toString
+  abstract member-signature method /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get /* from org-dartlang-testcase:///scheduler_binding_lib.dart */ runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding extends self::_TestSchedulerBinding&BindingBase&SchedulerBinding implements ser::ServicesBinding /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding*
@@ -79,17 +79,17 @@ import "dart:async" as asy;
 import "org-dartlang-testcase:///foundation_lib.dart";
 
 abstract class SchedulerBinding extends fou::BindingBase /*isMixinDeclaration*/  {
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 
 library;
@@ -114,17 +114,17 @@ abstract class _ServicesBinding&BindingBase&SchedulerBinding extends core::Objec
   synthetic constructor •() → ser::_ServicesBinding&BindingBase&SchedulerBinding*
     : super core::Object::•()
     ;
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method toString() → core::String*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
-  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature method registerSignalServiceExtension({core::String* name = #C1, () →* asy::Future<core::Null?>* callback = #C1}) → void; -> fou::BindingBase::registerSignalServiceExtension
 }
 abstract class ServicesBinding extends ser::_ServicesBinding&BindingBase&SchedulerBinding /*isMixinDeclaration*/  {
 }
