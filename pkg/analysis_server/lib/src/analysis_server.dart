@@ -55,7 +55,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
@@ -234,34 +233,32 @@ class AnalysisServer extends AbstractAnalysisServer {
   void handleRequest(Request request) {
     performance.logRequestTiming(request.clientRequestTime);
     runZonedGuarded(() {
-      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() {
-        var count = handlers.length;
-        for (var i = 0; i < count; i++) {
-          try {
-            var response = handlers[i].handleRequest(request);
-            if (response == Response.DELAYED_RESPONSE) {
-              return;
-            }
-            if (response != null) {
-              channel.sendResponse(response);
-              return;
-            }
-          } on RequestFailure catch (exception) {
-            channel.sendResponse(exception.response);
+      var count = handlers.length;
+      for (var i = 0; i < count; i++) {
+        try {
+          var response = handlers[i].handleRequest(request);
+          if (response == Response.DELAYED_RESPONSE) {
             return;
-          } catch (exception, stackTrace) {
-            var error = RequestError(
-                RequestErrorCode.SERVER_ERROR, exception.toString());
-            if (stackTrace != null) {
-              error.stackTrace = stackTrace.toString();
-            }
-            var response = Response(request.id, error: error);
+          }
+          if (response != null) {
             channel.sendResponse(response);
             return;
           }
+        } on RequestFailure catch (exception) {
+          channel.sendResponse(exception.response);
+          return;
+        } catch (exception, stackTrace) {
+          var error =
+              RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
+          if (stackTrace != null) {
+            error.stackTrace = stackTrace.toString();
+          }
+          var response = Response(request.id, error: error);
+          channel.sendResponse(response);
+          return;
         }
-        channel.sendResponse(Response.unknownRequest(request));
-      });
+      }
+      channel.sendResponse(Response.unknownRequest(request));
     }, (exception, stackTrace) {
       AnalysisEngine.instance.instrumentationService.logException(
         FatalException(
@@ -930,24 +927,4 @@ class ServerPerformance {
       }
     }
   }
-}
-
-/// Container with global [AnalysisServer] performance statistics.
-class ServerPerformanceStatistics {
-  /// The [PerformanceTag] for `package:analysis_server`.
-  static final PerformanceTag server = PerformanceTag('server');
-
-  /// The [PerformanceTag] for time spent between calls to
-  /// AnalysisServer.performOperation when the server is idle.
-  static final PerformanceTag idle = PerformanceTag('idle');
-
-  /// The [PerformanceTag] for time spent in
-  /// PerformAnalysisOperation._sendNotices.
-  static final PerformanceTag notices = server.createChild('notices');
-
-  /// The [PerformanceTag] for time spent in server communication channels.
-  static final PerformanceTag serverChannel = server.createChild('channel');
-
-  /// The [PerformanceTag] for time spent in server request handlers.
-  static final PerformanceTag serverRequests = server.createChild('requests');
 }

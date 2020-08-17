@@ -52,9 +52,7 @@ class FileSource extends Source {
 
   @override
   TimestampedData<String> get contents {
-    return PerformanceStatistics.io.makeCurrentWhile(() {
-      return contentsFromFile;
-    });
+    return contentsFromFile;
   }
 
   /// Get and return the contents and timestamp of the underlying file.

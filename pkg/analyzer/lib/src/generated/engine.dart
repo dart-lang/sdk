@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:path/path.dart' as pathos;
@@ -861,40 +860,4 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// [analyzeFunctionBodies] is set to `false`.
   @deprecated
   static bool _analyzeNoFunctionBodies(Source _) => false;
-}
-
-/// Container with global [AnalysisContext] performance statistics.
-class PerformanceStatistics {
-  /// The [PerformanceTag] for `package:analyzer`.
-  static PerformanceTag analyzer = PerformanceTag('analyzer');
-
-  /// The [PerformanceTag] for time spent in reading files.
-  static PerformanceTag io = analyzer.createChild('io');
-
-  /// The [PerformanceTag] for general phases of analysis.
-  static PerformanceTag analysis = analyzer.createChild('analysis');
-
-  /// The [PerformanceTag] for time spent in scanning.
-  static PerformanceTag scan = analyzer.createChild('scan');
-
-  /// The [PerformanceTag] for time spent in parsing.
-  static PerformanceTag parse = analyzer.createChild('parse');
-
-  /// The [PerformanceTag] for time spent in resolving.
-  static PerformanceTag resolve = PerformanceTag('resolve');
-
-  /// The [PerformanceTag] for time spent in error verifier.
-  static PerformanceTag errors = analysis.createChild('errors');
-
-  /// The [PerformanceTag] for time spent in hints generator.
-  static PerformanceTag hints = analysis.createChild('hints');
-
-  /// The [PerformanceTag] for time spent in linting.
-  static PerformanceTag lints = analysis.createChild('lints');
-
-  /// The [PerformanceTag] for time spent computing cycles.
-  static PerformanceTag cycles = PerformanceTag('cycles');
-
-  /// The [PerformanceTag] for time spent in summaries support.
-  static PerformanceTag summary = analyzer.createChild('summary');
 }
