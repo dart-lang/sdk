@@ -19,7 +19,10 @@ a() {}""") {
   result = textualOutline(utf8.encode("""
 b() { print("hello"); }
 a() { print("hello"); }
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 a() {}
@@ -32,7 +35,10 @@ b() {}""") {
   // Procedure without content.
   result = textualOutline(utf8.encode("""
 a() {}
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 a() {}""") {
@@ -44,7 +50,10 @@ a() {}""") {
 a() {
   // Whatever
 }
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 a() {}""") {
@@ -53,11 +62,17 @@ a() {}""") {
 
   // Class without content.
   result = textualOutline(utf8.encode("""
+class B {}
 class A {}
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
-class A {}""") {
+class A {}
+
+class B {}""") {
     throw "Unexpected result: $result";
   }
 
@@ -66,7 +81,10 @@ class A {}""") {
 class A {
   // Whatever
 }
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 class A {}""") {
@@ -82,7 +100,34 @@ typedef void F1();
 @a
 @A(3)
 int f1, f2;
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+@a
+@A(2)
+typedef void F1();
+
+@a
+@A(3)
+int f1, f2;""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Has space between entries.
+  result = textualOutline(utf8.encode("""
+@a
+@A(2)
+typedef void F1();
+@a
+@A(3)
+int f1, f2;
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 @a
@@ -100,7 +145,10 @@ int f1, f2;""") {
 class C<T> = Object with A<Function(T)>;
 class B<T> = Object with A<Function(T)>;
 class A<T> {}
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 class A<T> {}
@@ -122,7 +170,10 @@ import "bar.dart";
 main() {}
 
 import "baz.dart";
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 import "bar.dart";
@@ -145,7 +196,10 @@ export "bar.dart";
 main() {}
 
 export "baz.dart";
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 export "bar.dart";
@@ -173,7 +227,10 @@ main() {}
 
 export "baz.dart";
 import "baz.dart";
-"""), throwOnUnexpected: true, performModelling: true);
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
   if (result !=
       """
 export "bar.dart";
@@ -185,6 +242,31 @@ main() {}
 
 export "baz.dart";
 import "baz.dart";""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Knows about library, part and part of but they cannot be sorted.
+  result = textualOutline(utf8.encode("""
+part "foo.dart";
+part of "foo.dart";
+library foo;
+
+bar() {
+  // whatever
+}
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+part "foo.dart";
+
+part of "foo.dart";
+
+library foo;
+
+bar() {}""") {
     throw "Unexpected result: $result";
   }
 }
