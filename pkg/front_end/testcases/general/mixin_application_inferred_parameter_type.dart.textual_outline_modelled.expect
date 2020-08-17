@@ -1,3 +1,5 @@
+class Class = Super with Mixin;
+
 class Mixin {}
 
 class Super {
@@ -5,6 +7,5 @@ class Super {
   var field = 42;
 }
 
-class Class = Super with Mixin;
 error() {}
 main() {}

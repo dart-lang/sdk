@@ -10,7 +10,17 @@ class Im1<Z> extends Object with Am1<Function([int x]), Z> {}
 class Jm1<Z> extends Object with Am1<Function, Z> {}
 class Km1<Z> extends Object with Am1<Function(Function Function), Z> {}
 class Lm1<Z> extends Object with Am1<Function(Function Function() Function) Function(), Z> {}
-class Mm1<Z> = Object with Am1<Function(int), Z>; class Nm1<Z> = Object with Am1<Function(int x), Z>; class Om1<Z> = Object with Am1<int Function(), Z>; class Pm1<Z> = Object with Am1<Function(), Z>; class Qm1<Z> = Object with Am1<Function({int}), Z>; class Rm1<Z> = Object with Am1<Function({int x}), Z>; class Sm1<Z> = Object with Am1<Function([int]), Z>; class Tm1<Z> = Object with Am1<Function([int x]), Z>; class Um1<Z> = Object with Am1<Function, Z>; class Vm1<Z> = Object with Am1<Function(Function Function), Z>; class Wm1<Z> = Object with Am1<Function(Function Function() Function) Function(), Z>;
+class Mm1<Z> = Object with Am1<Function(int), Z>;
+class Nm1<Z> = Object with Am1<Function(int x), Z>;
+class Om1<Z> = Object with Am1<int Function(), Z>;
+class Pm1<Z> = Object with Am1<Function(), Z>;
+class Qm1<Z> = Object with Am1<Function({int}), Z>;
+class Rm1<Z> = Object with Am1<Function({int x}), Z>;
+class Sm1<Z> = Object with Am1<Function([int]), Z>;
+class Tm1<Z> = Object with Am1<Function([int x]), Z>;
+class Um1<Z> = Object with Am1<Function, Z>;
+class Vm1<Z> = Object with Am1<Function(Function Function), Z>;
+class Wm1<Z> = Object with Am1<Function(Function Function() Function) Function(), Z>;
 class Am2<X extends Function(), Y> {}
 class Bm2<Z> extends Object with Am2<Function(int), Z> {}
 class Cm2<Z> extends Object with Am2<Function(int x), Z> {}
@@ -23,7 +33,17 @@ class Im2<Z> extends Object with Am2<Function([int x]), Z> {}
 class Jm2<Z> extends Object with Am2<Function, Z> {}
 class Km2<Z> extends Object with Am2<Function(Function Function), Z> {}
 class Lm2<Z> extends Object with Am2<Function(Function Function() Function) Function(), Z> {}
-class Mm2<Z> = Object with Am2<Function(int), Z>; class Nm2<Z> = Object with Am2<Function(int x), Z>; class Om2<Z> = Object with Am2<int Function(), Z>; class Pm2<Z> = Object with Am2<Function(), Z>; class Qm2<Z> = Object with Am2<Function({int}), Z>; class Rm2<Z> = Object with Am2<Function({int x}), Z>; class Sm2<Z> = Object with Am2<Function([int]), Z>; class Tm2<Z> = Object with Am2<Function([int x]), Z>; class Um2<Z> = Object with Am2<Function, Z>; class Vm2<Z> = Object with Am2<Function(Function Function), Z>; class Wm2<Z> = Object with Am2<Function(Function Function() Function) Function(), Z>;
+class Mm2<Z> = Object with Am2<Function(int), Z>;
+class Nm2<Z> = Object with Am2<Function(int x), Z>;
+class Om2<Z> = Object with Am2<int Function(), Z>;
+class Pm2<Z> = Object with Am2<Function(), Z>;
+class Qm2<Z> = Object with Am2<Function({int}), Z>;
+class Rm2<Z> = Object with Am2<Function({int x}), Z>;
+class Sm2<Z> = Object with Am2<Function([int]), Z>;
+class Tm2<Z> = Object with Am2<Function([int x]), Z>;
+class Um2<Z> = Object with Am2<Function, Z>;
+class Vm2<Z> = Object with Am2<Function(Function Function), Z>;
+class Wm2<Z> = Object with Am2<Function(Function Function() Function) Function(), Z>;
 typedef TdB = Function(int);
 typedef TdC = Function(int x);
 typedef TdD = int Function();

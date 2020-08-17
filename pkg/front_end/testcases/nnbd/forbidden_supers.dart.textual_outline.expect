@@ -18,5 +18,8 @@ mixin Moo5 on Aoo, Never {}
 mixin Moo6 on Never {}
 mixin Moo7 implements Aoo, Never {}
 mixin Moo8 implements Never {}
-class Noo = Never with Aoo; class NooDynamic = dynamic with Aoo; class NooVoid = void with Aoo; class Ooo = Aoo with Never;
+class Noo = Never with Aoo;
+class NooDynamic = dynamic with Aoo;
+class NooVoid = void with Aoo;
+class Ooo = Aoo with Never;
 main() {}

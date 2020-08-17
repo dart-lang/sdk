@@ -94,4 +94,20 @@ typedef void F1();
 int f1, f2;""") {
     throw "Unexpected result: $result";
   }
+
+  // Knows about and can sort named mixin applications.
+  result = textualOutline(utf8.encode("""
+class C<T> = Object with A<Function(T)>;
+class B<T> = Object with A<Function(T)>;
+class A<T> {}
+"""), throwOnUnexpected: true, performModelling: true);
+  if (result !=
+      """
+class A<T> {}
+
+class B<T> = Object with A<Function(T)>;
+
+class C<T> = Object with A<Function(T)>;""") {
+    throw "Unexpected result: $result";
+  }
 }

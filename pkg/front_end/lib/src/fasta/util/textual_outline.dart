@@ -461,4 +461,10 @@ class TextualOutlineListener extends DirectiveListener {
       Token extensionKeyword, Token onKeyword, Token endToken) {
     classStartToFinish[extensionKeyword] = endToken;
   }
+
+  @override
+  void endNamedMixinApplication(Token beginToken, Token classKeyword,
+      Token equals, Token implementsKeyword, Token endToken) {
+    classStartToFinish[beginToken] = endToken;
+  }
 }
