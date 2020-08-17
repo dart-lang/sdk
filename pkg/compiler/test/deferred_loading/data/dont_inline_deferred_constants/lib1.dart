@@ -15,7 +15,7 @@ const C2 = 1010;
 
 const C2b = const C(1010);
 
-/*class: D:null*/
+/*class: D:none, type=none*/
 class D {
   static const C3 = "string2";
 

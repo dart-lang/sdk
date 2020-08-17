@@ -7,8 +7,8 @@
 // Test instantiations with the same type argument count used only in two
 // deferred libraries.
 
-/*class: global#Instantiation:OutputUnit(1, {b, c})*/
-/*class: global#Instantiation1:OutputUnit(1, {b, c})*/
+/*class: global#Instantiation:OutputUnit(1, {b, c}), type=OutputUnit(1, {b, c})*/
+/*class: global#Instantiation1:OutputUnit(1, {b, c}), type=OutputUnit(1, {b, c})*/
 
 import 'lib1.dart' deferred as b;
 import 'lib2.dart' deferred as c;

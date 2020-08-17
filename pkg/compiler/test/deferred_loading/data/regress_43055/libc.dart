@@ -4,9 +4,9 @@
 
 // @dart = 2.7
 
-/*class: C2:OutputUnit(main, {})*/
+/*class: C2:OutputUnit(1, {libb}), type=OutputUnit(main, {})*/
 /*member: C2.:OutputUnit(1, {libb})*/
 class C2 {}
 
-/*class: C3:OutputUnit(main, {})*/
+/*class: C3:none, type=OutputUnit(main, {})*/
 class C3 {}

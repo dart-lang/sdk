@@ -6,16 +6,16 @@
 
 import 'package:expect/expect.dart';
 
-/*class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*class: A:checkedTypeArgument,typeArgument*/
 class A {}
 
-/*class: B:checks=[$isA],onlyForRti,typeArgument*/
+/*class: B:typeArgument*/
 class B implements A {}
 
 /*class: C:checkedInstance,checks=[],instance*/
 class C<T> {}
 
-/*class: D:checks=[],onlyForRti,typeArgument*/
+/*class: D:typeArgument*/
 class D {}
 
 @pragma('dart2js:noInline')
