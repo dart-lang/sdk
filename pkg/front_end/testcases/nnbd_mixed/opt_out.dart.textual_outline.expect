@@ -11,6 +11,6 @@ String? s = null;
 var t = s!;
 late int ;
 field = 42;
-void method(void f()?, {required int a}) { }
-main() { }
-noErrors() { }
+void method(void f()?, {required int a}) {}
+main() {}
+noErrors() {}

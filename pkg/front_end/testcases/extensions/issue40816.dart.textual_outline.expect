@@ -3,5 +3,5 @@ class A {
 class B {
 }
 extension on ;
-A (){ }
-void main() { }
+A (){}
+void main() {}

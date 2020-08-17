@@ -6,6 +6,6 @@ class C extends B {
 }
 class GenericClass<T> {
 }
-extension GenericExtension<T> ( ){ }
-on GenericClass<T> (){ }
-main() { }
+extension GenericExtension<T> (){}
+on GenericClass<T> (){}
+main() {}

@@ -144,4 +144,4 @@ class Jf2<X extends TdJ> {
 class Kf2<X extends TdK> {
   factory Kf2.foo() => null;
 }
-main() { }
+main() {}

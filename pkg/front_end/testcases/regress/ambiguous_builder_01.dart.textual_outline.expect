@@ -1,8 +1,8 @@
-x( ){ }
+x(){}
 .
 y = 42;
-x( ){ }
+x(){}
 .
 z = true;
-void foo() { }
-main() { }
+void foo() {}
+main() {}

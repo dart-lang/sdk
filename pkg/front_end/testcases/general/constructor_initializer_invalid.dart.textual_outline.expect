@@ -10,4 +10,4 @@ class C3 {
   int f;
   C3() : =f++;
 }
-main() { }
+main() {}

@@ -27,5 +27,5 @@ mixin B {
   external abstract covariant num externalCovariantInstanceField;
 }
 extension Extension ;
-on A (){ }
-main() { }
+on A (){}
+main() {}

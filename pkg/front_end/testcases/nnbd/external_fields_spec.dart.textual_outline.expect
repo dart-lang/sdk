@@ -6,4 +6,4 @@ class A {
   external static int s1;
   external static final fx;
 }
-main() { }
+main() {}

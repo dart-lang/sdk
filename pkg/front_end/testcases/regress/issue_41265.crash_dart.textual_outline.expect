@@ -10,4 +10,4 @@ class DND3 extends M<dynamic> Function() {
 }
 class DND4 implements M<dynamic> Function() {
 }
-main() { }
+main() {}

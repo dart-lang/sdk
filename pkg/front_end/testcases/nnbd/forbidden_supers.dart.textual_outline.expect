@@ -37,4 +37,4 @@ mixin Moo7 implements Aoo, Never {
 mixin Moo8 implements Never {
 }
 class Noo = Never with Aoo; class NooDynamic = dynamic with Aoo; class NooVoid = void with Aoo; class Ooo = Aoo with Never;
-main() { }
+main() {}

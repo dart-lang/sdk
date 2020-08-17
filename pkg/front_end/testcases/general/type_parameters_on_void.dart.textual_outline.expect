@@ -1,2 +1,2 @@
-void<int> f() { }
-main() { }
+void<int> f() {}
+main() {}

@@ -9,10 +9,10 @@ class Class2 {
   String toString() => 'Class2($field)';
 }
 extension on ;
-Class1 (){ }
+Class1 (){}
 extension on ;
-Class2 (){ }
-main() { }
-testExtension1() { }
-testExtension2() { }
-expect(expected, actual) { }
+Class2 (){}
+main() {}
+testExtension1() {}
+testExtension2() {}
+expect(expected, actual) {}

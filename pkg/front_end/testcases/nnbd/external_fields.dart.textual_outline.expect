@@ -42,7 +42,7 @@ mixin B {
   external static final untypedFinalStaticField;
 }
 extension Extension ;
-on A (){ }
+on A (){}
 class C implements A {
   external var instanceField;
   external final finalInstanceField;
@@ -51,4 +51,4 @@ class C implements A {
   external final untypedFinalInstanceField;
   external var untypedCovariantInstanceField;
 }
-main() { }
+main() {}

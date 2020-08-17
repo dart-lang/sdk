@@ -1,6 +1,6 @@
 class Class {
 }
 extension Extension ;
-on Class (){ }
-errors(Class c) { }
-main() { }
+on Class (){}
+errors(Class c) {}
+main() {}

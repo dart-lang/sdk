@@ -10,7 +10,7 @@ class A<T extends Object?> {
   int lx;
   int? ly;
   late int;
-  operator? ( ){ }
+  operator? (){}
   lz;
   int lv;
   int lu;
@@ -22,4 +22,4 @@ class A<T extends Object?> {
   T lq;
   A(this.lv, this.lp, T t) : this.lu = 42, this.lq = t;
 }
-main() { }
+main() {}

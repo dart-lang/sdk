@@ -1,4 +1,4 @@
 class C {
-  C() { }
+  C() {}
   operator/ (): super();
 }

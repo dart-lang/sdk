@@ -1,2 +1,2 @@
 void Function({obj: Object}) x;
-main() { }
+main() {}

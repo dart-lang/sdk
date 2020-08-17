@@ -1,6 +1,6 @@
 class C {
 }
 extension E ;
-on C (){ }
-errors() { }
-main() { }
+on C (){}
+errors() {}
+main() {}

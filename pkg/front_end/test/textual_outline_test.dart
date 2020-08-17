@@ -9,9 +9,9 @@ a() { print("hello"); }
 """), throwOnUnexpected: true, performModelling: false);
   if (result !=
       """
-b() { }
+b() {}
 
-a() { }""") {
+a() {}""") {
     throw "Unexpected result: $result";
   }
 
@@ -22,9 +22,9 @@ a() { print("hello"); }
 """), throwOnUnexpected: true, performModelling: true);
   if (result !=
       """
-a() { }
+a() {}
 
-b() { }""") {
+b() {}""") {
     throw "Unexpected result: $result";
   }
 
@@ -35,7 +35,7 @@ a() {}
 """), throwOnUnexpected: true, performModelling: true);
   if (result !=
       """
-a() { }""") {
+a() {}""") {
     throw "Unexpected result: $result";
   }
 
@@ -47,7 +47,7 @@ a() {
 """), throwOnUnexpected: true, performModelling: true);
   if (result !=
       """
-a() { }""") {
+a() {}""") {
     throw "Unexpected result: $result";
   }
 

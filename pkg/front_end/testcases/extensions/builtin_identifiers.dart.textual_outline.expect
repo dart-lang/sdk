@@ -2,7 +2,7 @@ extension ;
 mixin on int {
 }
 extension extension ;
-on int (){ }
+on int (){}
 extension as ;
-on int (){ }
-void main() { }
+on int (){}
+void main() {}

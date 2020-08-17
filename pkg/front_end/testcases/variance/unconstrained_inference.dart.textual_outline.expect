@@ -4,7 +4,7 @@ class Contravariant<in T> {
 }
 class Invariant<inout T> {
 }
-void covariantListInfer<T>(Covariant<List<T>> x) { }
-void contravariantListInfer<T>(Contravariant<List<T>> x) { }
-void invariantListInfer<T>(Invariant<List<T>> x) { }
-main() { }
+void covariantListInfer<T>(Covariant<List<T>> x) {}
+void contravariantListInfer<T>(Contravariant<List<T>> x) {}
+void invariantListInfer<T>(Invariant<List<T>> x) {}
+main() {}

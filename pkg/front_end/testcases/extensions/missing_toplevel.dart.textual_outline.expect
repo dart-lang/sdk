@@ -1,7 +1,7 @@
 class Class {
 }
 extension Extension ;
-on Class (){ }
+on Class (){}
 var c = new Class();
 var missingGetter = c.setter += 42;
-main() { }
+main() {}

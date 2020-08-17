@@ -1,5 +1,5 @@
 class C {
 }
 extension E ;
-on C (){ }
-void main() { }
+on C (){}
+void main() {}

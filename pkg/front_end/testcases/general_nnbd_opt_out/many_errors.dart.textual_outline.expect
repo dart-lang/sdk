@@ -1,10 +1,10 @@
 // @dart = 2.6
 class A {
   final x = null;
-  const A.named1() sync* { }
+  const A.named1() sync* {}
   const A.named2() : x = new Object();
 }
-external foo(String x) { }
+external foo(String x) {}
 class B {
 }
 class C {
@@ -13,5 +13,5 @@ class C {
 abstract class AbstractClass {
   const AbstractClass.id();
 }
-m() { }
-main() { }
+m() {}
+main() {}

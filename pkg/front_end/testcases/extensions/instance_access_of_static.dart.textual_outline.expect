@@ -1,5 +1,5 @@
 class Class1 {
 }
 extension Extension1 ;
-on Class1 (){ }
-main() { }
+on Class1 (){}
+main() {}

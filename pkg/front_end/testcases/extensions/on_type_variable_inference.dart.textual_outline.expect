@@ -6,7 +6,7 @@ class StructB extends Struct {
 }
 class NonStruct {
 }
-extension Extension<T extends Struct> ( ){ }
-on T (){ }
-main() { }
-testNonStruct() { }
+extension Extension<T extends Struct> (){}
+on T (){}
+main() {}
+testNonStruct() {}

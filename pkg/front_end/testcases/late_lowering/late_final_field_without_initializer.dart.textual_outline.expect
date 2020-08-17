@@ -5,13 +5,13 @@ class Class {
   final int lateStaticField1;
   static late ;
   final int lateStaticField2;
-  static staticMethod() { }
+  static staticMethod() {}
   late ;
   final int lateInstanceField;
-  instanceMethod() { }
+  instanceMethod() {}
 }
 extension Extension ;
-on Class (){ }
-main() { }
-expect(expected, actual) { }
-throws(f(), String message) { }
+on Class (){}
+main() {}
+expect(expected, actual) {}
+throws(f(), String message) {}

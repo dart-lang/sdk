@@ -22,7 +22,7 @@ mixin N<X extends Object?, Y extends Object> {
   Y fieldOfN2;
 }
 extension P ;
-on Foo (){ }
+on Foo (){}
 int? nullableTopLevelField;
 late int ;
 lateTopLevelField;
@@ -67,5 +67,5 @@ mixin L<X extends Object?, Y extends Object> {
   fieldOfM9;
 }
 extension Q ;
-on Foo (){ }
-main() { }
+on Foo (){}
+main() {}

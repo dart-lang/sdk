@@ -12,4 +12,4 @@ class C2 extend C1 with M2 {
 }
 class C3 on C1 with M3 {
 }
-main() { }
+main() {}

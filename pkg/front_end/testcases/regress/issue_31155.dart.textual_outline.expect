@@ -4,7 +4,7 @@ class B {
 }
 class C {
   var f = Map<A, B;
-  operator> (){ }
+  operator> (){}
   ;
 }
-void main() { }
+void main() {}

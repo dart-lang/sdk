@@ -295,7 +295,7 @@ class TokenPrinter {
   }
 
   void print(Token token) {
-    if (_sb.isNotEmpty && (token.offset > _endOfLast || nextTokenIsEndGroup)) {
+    if (_sb.isNotEmpty && token.offset > _endOfLast && !nextTokenIsEndGroup) {
       _sb.write(" ");
     }
 

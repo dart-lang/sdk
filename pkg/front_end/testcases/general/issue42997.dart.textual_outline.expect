@@ -1,5 +1,5 @@
-main() { }
+main() {}
 PropertyState();
 class PropertyState<I, O> {
-  void dispose() { }
+  void dispose() {}
 }
