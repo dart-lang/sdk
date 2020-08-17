@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_constr
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_method_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
@@ -98,6 +99,8 @@ class BulkFixProcessor {
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
     LintNames.type_init_formals: RemoveTypeAnnotation.newInstance,
     LintNames.unawaited_futures: AddAwait.newInstance,
+    LintNames.unnecessary_brace_in_string_interps:
+        RemoveInterpolationBraces.newInstance,
     LintNames.unnecessary_const: RemoveUnnecessaryConst.newInstance,
     LintNames.unnecessary_lambdas: ReplaceWithTearOff.newInstance,
     LintNames.unnecessary_new: RemoveUnnecessaryNew.newInstance,

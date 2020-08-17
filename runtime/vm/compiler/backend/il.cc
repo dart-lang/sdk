@@ -453,6 +453,12 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
   ASSERT(CompilerState::Current().is_aot());
+  if (type.IsNullable()) {
+    // 'is' test for nullable types should accept null cid in addition to the
+    // class range. In most cases it is not possible to extend class range to
+    // include kNullCid.
+    return false;
+  }
   if (CanUseSubtypeRangeCheckFor(type)) {
     const Class& type_class =
         Class::Handle(thread()->zone(), type.type_class());

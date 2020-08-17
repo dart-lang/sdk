@@ -17,16 +17,13 @@ void defineTest() {
 
   test('--help', () {
     p = project();
-
-    var result = p.runSync('pub', ['get', '--offline']);
+    var result = p.runSync('test', ['--help']);
     expect(result.exitCode, 0);
-
-    result = p.runSync('test', ['--help']);
-
-    expect(result.exitCode, 0);
-    expect(result.stdout, contains('Runs tests in this package'));
     expect(result.stderr, isEmpty);
-  }, skip: 'https://github.com/dart-lang/sdk/issues/40854');
+    expect(result.stdout, contains('Runs tests in this project.'));
+    expect(result.stdout, contains('Usage: dart test [arguments]'));
+    expect(result.stdout, contains('======== Selecting Tests'));
+  });
 
   test('no dependency', () {
     p = project(mainSrc: 'int get foo => 1;\n');
