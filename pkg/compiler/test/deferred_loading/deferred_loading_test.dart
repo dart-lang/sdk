@@ -49,7 +49,7 @@ Map<String, Uri> importPrefixes = <String, Uri>{};
 /// Create a consistent string representation of [OutputUnit]s for both
 /// KImportEntities and ImportElements.
 String outputUnitString(OutputUnit unit) {
-  if (unit == null) return 'null';
+  if (unit == null) return 'none';
   StringBuffer sb = new StringBuffer();
   bool first = true;
   for (ImportEntity import in unit.importsForTesting) {
@@ -139,8 +139,12 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
 
   @override
   String computeClassValue(Id id, ir.Class node) {
-    return outputUnitString(
-        _data.outputUnitForClassForTesting(_elementMap.getClass(node)));
+    var cls = _elementMap.getClass(node);
+    StringBuffer sb = new StringBuffer();
+    sb.write(outputUnitString(_data.outputUnitForClassForTesting(cls)));
+    sb.write(', type=');
+    sb.write(outputUnitString(_data.outputUnitForClassTypeForTesting(cls)));
+    return sb.toString();
   }
 
   @override

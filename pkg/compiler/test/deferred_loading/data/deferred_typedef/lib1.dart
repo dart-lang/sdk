@@ -6,7 +6,7 @@
 
 library deferred_typedef_lib1;
 
-/*class: C:OutputUnit(1, {lib1})*/
+/*class: C:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
 class C {
   /*member: C.a:OutputUnit(1, {lib1})*/
   final a;

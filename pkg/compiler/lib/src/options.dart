@@ -158,7 +158,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool reportInvalidInferredDeferredTypes = false;
 
   /// Whether to defer load class types.
-  bool deferClassTypes = false; // default value.
+  bool deferClassTypes = true; // default value.
   bool _deferClassTypes = false;
   bool _noDeferClassTypes = false;
 

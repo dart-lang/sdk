@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: M:OutputUnit(1, {lib})*/
+/*class: M:none, type=OutputUnit(1, {lib})*/
 class M {}
 
 typedef dynamic FF({M b});

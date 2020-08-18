@@ -7,25 +7,25 @@
 // All of these types are considered instantiated because we create an instance
 // of [C].
 
-/*class: A:OutputUnit(1, {lib})*/
+/*class: A:OutputUnit(1, {lib}), type=OutputUnit(1, {lib})*/
 /*member: A.:OutputUnit(1, {lib})*/
 class A {}
 
-/*class: Box:OutputUnit(1, {lib})*/
+/*class: Box:OutputUnit(1, {lib}), type=OutputUnit(1, {lib})*/
 /*member: Box.:OutputUnit(1, {lib})*/
 class Box<T> {
   /*member: Box.value:OutputUnit(1, {lib})*/
   int value;
 }
 
-/*class: B:OutputUnit(1, {lib})*/
+/*class: B:OutputUnit(1, {lib}), type=OutputUnit(1, {lib})*/
 /*member: B.:OutputUnit(1, {lib})*/
 class B<T> extends A {
   /*member: B.box:OutputUnit(1, {lib})*/
   final box = new Box<T>();
 }
 
-/*class: C:OutputUnit(1, {lib})*/
+/*class: C:OutputUnit(1, {lib}), type=OutputUnit(1, {lib})*/
 /*member: C.:OutputUnit(1, {lib})*/
 class C extends B<N> {}
 
@@ -35,5 +35,5 @@ class C extends B<N> {}
 // to the main output unit. However, A is in the output unit of C so we fail
 // when trying to finalize the declaration of N while loading the main output
 // unit.
-/*class: N:OutputUnit(1, {lib})*/
+/*class: N:none, type=OutputUnit(1, {lib})*/
 class N extends A {}

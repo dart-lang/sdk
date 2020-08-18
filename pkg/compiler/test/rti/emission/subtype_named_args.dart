@@ -8,32 +8,32 @@
 
 import 'package:expect/expect.dart';
 
-/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
-/*prod.class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A:checkedTypeArgument,typeArgument*/
 class A {}
 
-/*spec.class: A1:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
-/*prod.class: A1:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*spec.class: A1:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A1:checkedTypeArgument,typeArgument*/
 class A1 {}
 
-/*spec.class: A2:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
-/*prod.class: A2:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*spec.class: A2:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A2:checkedTypeArgument,typeArgument*/
 class A2 {}
 
-/*spec.class: B:checkedInstance,checkedTypeArgument,checks=[$isA,$isA1,$isA2],onlyForRti,typeArgument*/
-/*prod.class: B:checkedTypeArgument,checks=[$isA,$isA1,$isA2],onlyForRti,typeArgument*/
+/*spec.class: B:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: B:checkedTypeArgument,typeArgument*/
 class B implements A, A1, A2 {}
 
-/*spec.class: C:checkedInstance,checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB],onlyForRti,typeArgument*/
-/*prod.class: C:checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB],onlyForRti,typeArgument*/
+/*spec.class: C:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: C:checkedTypeArgument,typeArgument*/
 class C implements B {}
 
-/*spec.class: D:checkedInstance,checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB,$isC],onlyForRti,typeArgument*/
-/*prod.class: D:checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB,$isC],onlyForRti,typeArgument*/
+/*spec.class: D:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: D:checkedTypeArgument,typeArgument*/
 class D implements C {}
 
-/*spec.class: G:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
-/*prod.class: G:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*spec.class: G:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: G:checkedTypeArgument,typeArgument*/
 class G<T, S, U, W> {}
 
 typedef classesFunc({A a, B b, C c, D d});

@@ -6,7 +6,7 @@
 
 library deferred_constants2_lib;
 
-/*class: Constant:OutputUnit(1, {lib})*/
+/*class: Constant:OutputUnit(1, {lib}), type=OutputUnit(1, {lib})*/
 class Constant {
   /*member: Constant.value:OutputUnit(1, {lib})*/
   final value;

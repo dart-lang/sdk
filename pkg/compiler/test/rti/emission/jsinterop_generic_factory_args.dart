@@ -7,15 +7,15 @@
 @JS()
 library foo;
 
-/*class: global#JavaScriptObject:checks=[$isA],onlyForRti*/
+/*class: global#JavaScriptObject:*/
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
 @JS()
 @anonymous
-/*spec.class: A:checkedInstance,checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
-/*prod.class: A:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A:checkedTypeArgument,typeArgument*/
 class A<T> {
   external factory A();
 }

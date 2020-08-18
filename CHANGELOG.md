@@ -19,7 +19,19 @@
 *   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
     referred object cannot be accessed through them.
 
+### Dart2JS
+
+*   Adds support for deferred loading of types seperately from classes. This
+    enables dart2js to make better optimization choices when deferred loading.
+    This work is necessary to address unsoundness in the deferred loading
+    algorithm. Currently, fixing this unsoundness would result in code bloat,
+    but loading types seperately from classes will allow us to fix the
+    unsoundness with only a minimal regression. To explicitly disable
+    deferred loading of types, pass `--no-defer-class-types`. See the original
+    post on the [unsoundness in the deferred loading algorithm][].
+
 [#42982]: https://github.com/dart-lang/sdk/issues/42982
+[unsoundness in the deferred loading algorithm]: https://github.com/dart-lang/sdk/blob/302ad7ab2cd2de936254850550aad128ae76bbb7/CHANGELOG.md#dart2js-3
 
 ### Tools
 

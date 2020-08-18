@@ -24,10 +24,10 @@ class Removed {} // allocated but optimized out of program
 /*class: DeferredAndRemoved:checks=[],onlyForConstructor*/
 class DeferredAndRemoved {} // allocated after first check and removed
 
-/*class: UsedAsTypeParameter:checks=[],onlyForRti,typeArgument*/
+/*class: UsedAsTypeParameter:typeArgument*/
 class UsedAsTypeParameter {} // only used as a type parameter
 
-/*class: UsedAsTestedTypeParameter:checks=[],onlyForRti,typeArgument*/
+/*class: UsedAsTestedTypeParameter:typeArgument*/
 class UsedAsTestedTypeParameter {} // only used as a type parameter
 
 /*class: Check:checks=[],instance*/
