@@ -36,7 +36,7 @@ main(List<String> args) async {
       var uris = <String>[];
       for (var uri in unit['libraries']) {
         if (uri.startsWith("dart:")) continue;
-        uris.add(Uri.file(uri).pathSegments.last);
+        uris.add(Uri.parse(uri).pathSegments.last);
       }
       uris.sort((a, b) => a.compareTo(b));
       units.add(uris);
