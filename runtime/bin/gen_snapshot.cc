@@ -603,11 +603,26 @@ static void WriteLoadingUnitManifest(File* manifest_file,
                                      const char* path) {
   TextBuffer line(128);
   if (id != 1) {
-    line.Printf(",");
+    line.AddString(",\n");
   }
   line.Printf("{ \"id\": %" Pd ", \"path\": \"", id);
   line.AddEscapedString(path);
-  line.Printf("\" }");
+  line.AddString("\", \"libraries\": [\n");
+  Dart_Handle uris = Dart_LoadingUnitLibraryUris(id);
+  CHECK_RESULT(uris);
+  intptr_t length;
+  CHECK_RESULT(Dart_ListLength(uris, &length));
+  for (intptr_t i = 0; i < length; i++) {
+    const char* uri;
+    CHECK_RESULT(Dart_StringToCString(Dart_ListGetAt(uris, i), &uri));
+    if (i != 0) {
+      line.AddString(",\n");
+    }
+    line.AddString("\"");
+    line.AddEscapedString(uri);
+    line.AddString("\"");
+  }
+  line.AddString("]}");
   if (!manifest_file->Print("%s\n", line.buffer())) {
     PrintErrAndExit("Error: Unable to write file: %s\n\n",
                     loading_unit_manifest_filename);

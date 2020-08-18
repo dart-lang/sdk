@@ -3685,6 +3685,8 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             intptr_t size);
 typedef void (*Dart_StreamingCloseCallback)(void* callback_data);
 
+DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
+
 // On Darwin systems, 'dlsym' adds an '_' to the beginning of the symbol name.
 // Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
 // symbol names in the objects are given by the '...AsmSymbol' definitions.

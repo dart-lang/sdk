@@ -27,6 +27,25 @@ main(List<String> args) async {
     throw "Cannot run test as $genSnapshot not available";
   }
 
+  sanitizedPartitioning(manifest) {
+    // Filter core libraries, relativize URIs, and sort to make the results less
+    // sensitive to compiler or test harness changes.
+    print(manifest);
+    var units = <List<String>>[];
+    for (var unit in manifest['loadingUnits']) {
+      var uris = <String>[];
+      for (var uri in unit['libraries']) {
+        if (uri.startsWith("dart:")) continue;
+        uris.add(Uri.file(uri).pathSegments.last);
+      }
+      uris.sort((a, b) => a.compareTo(b));
+      units.add(uris);
+    }
+    units.sort((a, b) => a.first.compareTo(b.first));
+    print(units);
+    return units;
+  }
+
   await withTempDir("incompatible-loading-unit-test", (String tempDir) async {
     final source1 = path.join(
         sdkDir, "runtime/tests/vm/dart_2/incompatible_loading_unit_1.dart");
@@ -67,6 +86,11 @@ main(List<String> args) async {
     ]);
     var manifest = jsonDecode(await new File(manifest1).readAsString());
     Expect.equals(2, manifest["loadingUnits"].length);
+    // Note package:expect doesn't do deep equals on collections.
+    Expect.equals(
+        "[[incompatible_loading_unit_1.dart],"
+        " [incompatible_loading_unit_1_deferred.dart]]",
+        sanitizedPartitioning(manifest).toString());
     Expect.isTrue(await new File(deferredSnapshot1).exists());
 
     await run(genSnapshot, <String>[
@@ -76,8 +100,12 @@ main(List<String> args) async {
       "--loading-unit-manifest=$manifest2",
       dill2,
     ]);
-    manifest = jsonDecode(await new File(manifest1).readAsString());
+    manifest = jsonDecode(await new File(manifest2).readAsString());
     Expect.equals(2, manifest["loadingUnits"].length);
+    Expect.equals(
+        "[[incompatible_loading_unit_2.dart],"
+        " [incompatible_loading_unit_2_deferred.dart]]",
+        sanitizedPartitioning(manifest).toString());
     Expect.isTrue(await new File(deferredSnapshot2).exists());
 
     // Works when used normally.

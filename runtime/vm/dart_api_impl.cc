@@ -6745,14 +6745,20 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
   for (intptr_t id = 1; id < loading_units.Length(); id++) {
     void* write_callback_data = nullptr;
     void* write_debug_callback_data = nullptr;
-    next_callback(next_callback_data, id, &write_callback_data,
-                  &write_debug_callback_data);
+    {
+      TransitionVMToNative transition(T);
+      next_callback(next_callback_data, id, &write_callback_data,
+                    &write_debug_callback_data);
+    }
     CreateAppAOTSnapshot(write_callback, write_callback_data, strip, as_elf,
                          write_debug_callback_data, &data, data[id],
                          program_hash);
-    close_callback(write_callback_data);
-    if (write_debug_callback_data != nullptr) {
-      close_callback(write_debug_callback_data);
+    {
+      TransitionVMToNative transition(T);
+      close_callback(write_callback_data);
+      if (write_debug_callback_data != nullptr) {
+        close_callback(write_debug_callback_data);
+      }
     }
   }
 }
@@ -6896,6 +6902,37 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
         write_callback, close_callback);
 
   return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+
+  const GrowableObjectArray& result =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(Z, T->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(Z);
+  LoadingUnit& unit = LoadingUnit::Handle(Z);
+  String& uri = String::Handle(Z);
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    unit = lib.loading_unit();
+    if (unit.IsNull() || (unit.id() != loading_unit_id)) {
+      continue;
+    }
+    uri = lib.url();
+    result.Add(uri);
+  }
+
+  return Api::NewHandle(T, Array::MakeFixedLength(result));
 #endif
 }
 
