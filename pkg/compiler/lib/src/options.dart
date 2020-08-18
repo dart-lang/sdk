@@ -250,6 +250,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// operate with a stronger guarantee.
   bool enableNullAssertions = false;
 
+  /// Whether to generate code asserting that non-nullable return values of
+  /// `@Native` methods are checked for being non-null.
+  bool enableNativeReturnNullAssertions = false;
+
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -616,6 +620,11 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_deferClassTypes) deferClassTypes = true;
     if (_noDeferClassTypes) deferClassTypes = false;
+
+    if (enableNullAssertions) {
+      // TODO(sra): Add a command-line flag to control this independently.
+      enableNativeReturnNullAssertions = true;
+    }
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

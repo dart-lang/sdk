@@ -629,6 +629,7 @@ class CodeChecker extends RecursiveAstVisitor {
         op,
         rhsType,
         functionType.returnType,
+        methodElement,
       );
 
       // Check the argument for an implicit cast.
@@ -749,6 +750,7 @@ class CodeChecker extends RecursiveAstVisitor {
           TokenType.PLUS,
           rhsType,
           functionType.returnType,
+          element,
         );
 
         // Skip the argument check - `int` cannot be downcast.

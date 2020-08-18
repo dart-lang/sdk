@@ -22,8 +22,8 @@ import 'dart:_internal' as internal;
 /// print(extractIterableTypeArgument(iterable, <T>() => new Set<T>());
 /// // Prints "Instance of 'Set<int>'".
 /// ```
-Object extractIterableTypeArgument(
-        Iterable iterable, Object Function<T>() extract) =>
+Object? extractIterableTypeArgument(
+        Iterable iterable, Object? Function<T>() extract) =>
     internal.extractTypeArguments<Iterable>(iterable, extract);
 
 /// Given a [Map], invokes [extract], passing the [map]'s key and value type
@@ -40,5 +40,5 @@ Object extractIterableTypeArgument(
 ///   // Prints "Instance of 'Two<String, int>'".
 /// }
 /// ```
-Object extractMapTypeArguments(Map map, Object Function<K, V>() extract) =>
+Object? extractMapTypeArguments(Map map, Object? Function<K, V>() extract) =>
     internal.extractTypeArguments<Map>(map, extract);

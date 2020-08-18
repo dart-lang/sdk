@@ -752,6 +752,7 @@ abstract class _AssignmentLikeExpressionHandler {
         combinerType,
         rhsType,
         combiner.returnType,
+        combiner,
       );
       if (!fixBuilder._typeSystem.isSubtypeOf(combinerReturnType, writeType)) {
         (fixBuilder._getChange(node) as NodeChangeForAssignmentLike)
