@@ -167,7 +167,7 @@ class DartdevAnalytics extends AnalyticsImpl {
   bool get disclosureShownOnTerminal =>
       (properties['disclosureShown'] as bool) ?? false;
 
-  void set disclosureShownOnTerminal(bool value) {
+  set disclosureShownOnTerminal(bool value) {
     properties['disclosureShown'] = value;
   }
 }
