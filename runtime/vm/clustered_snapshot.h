@@ -704,7 +704,7 @@ class Deserializer : public ThreadStackResource {
 
   DeserializationCluster* ReadCluster();
 
-  void ReadDispatchTable();
+  void ReadDispatchTable(ReadStream* stream);
 
   intptr_t next_index() const { return next_ref_index_; }
   Heap* heap() const { return heap_; }

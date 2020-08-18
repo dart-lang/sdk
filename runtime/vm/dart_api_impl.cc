@@ -6805,11 +6805,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
-  if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
-    return Api::NewError(
-        "Splitting is not compatible with --use_table_dispatch.");
-  }
-
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   CHECK_NULL(next_callback);
@@ -6887,11 +6882,6 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
-  if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
-    return Api::NewError(
-        "Splitting is not compatible with --use_table_dispatch.");
-  }
-
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   CHECK_NULL(next_callback);

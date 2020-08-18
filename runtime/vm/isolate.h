@@ -380,6 +380,18 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_dispatch_table(DispatchTable* table) {
     dispatch_table_.reset(table);
   }
+  const uint8_t* dispatch_table_snapshot() const {
+    return dispatch_table_snapshot_;
+  }
+  void set_dispatch_table_snapshot(const uint8_t* snapshot) {
+    dispatch_table_snapshot_ = snapshot;
+  }
+  intptr_t dispatch_table_snapshot_size() const {
+    return dispatch_table_snapshot_size_;
+  }
+  void set_dispatch_table_snapshot_size(intptr_t size) {
+    dispatch_table_snapshot_size_ = size;
+  }
 
   SharedClassTable* shared_class_table() const {
     return shared_class_table_.get();
@@ -672,6 +684,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::unique_ptr<StoreBuffer> store_buffer_;
   std::unique_ptr<Heap> heap_;
   std::unique_ptr<DispatchTable> dispatch_table_;
+  const uint8_t* dispatch_table_snapshot_ = nullptr;
+  intptr_t dispatch_table_snapshot_size_ = 0;
   ArrayPtr saved_unlinked_calls_;
   std::shared_ptr<FieldTable> saved_initial_field_table_;
   uint32_t isolate_group_flags_ = 0;
