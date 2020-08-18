@@ -1353,16 +1353,6 @@ abstract class Configuration implements AstNode {
   /// Set the token for the left parenthesis to the given [token].
   set leftParenthesis(Token token);
 
-  /// Return the URI of the implementation library to be used if the condition
-  /// is true.
-  @deprecated
-  StringLiteral get libraryUri;
-
-  /// Set the URI of the implementation library to be used if the condition is
-  /// true to the given [uri].
-  @deprecated
-  set libraryUri(StringLiteral uri);
-
   /// Return the name of the declared variable whose value is being used in the
   /// condition.
   DottedName get name;
@@ -1438,9 +1428,6 @@ abstract class ConstructorDeclaration implements ClassMember {
 
   @override
   ConstructorElement get declaredElement;
-
-  /// Set the element associated with this constructor to the given [element].
-  set element(ConstructorElement element);
 
   /// Return the token for the 'external' keyword to the given [token].
   Token get externalKeyword;
@@ -2388,10 +2375,6 @@ abstract class FormalParameter implements AstNode {
   /// parameter.
   bool get isRequiredPositional;
 
-  /// Return the kind of this parameter.
-  @deprecated
-  ParameterKind get kind;
-
   /// Return the annotations associated with this parameter.
   NodeList<Annotation> get metadata;
 
@@ -2681,9 +2664,6 @@ abstract class FunctionExpression implements Expression {
   /// Return the element associated with the function, or `null` if the AST
   /// structure has not been resolved.
   ExecutableElement get declaredElement;
-
-  /// Set the element associated with the function to the given [element].
-  set element(ExecutableElement element);
 
   /// Return the parameters associated with the function, or `null` if the
   /// function is part of a top-level getter.
@@ -3288,8 +3268,7 @@ abstract class IndexExpression
 ///        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class InstanceCreationExpression
-    implements Expression, ConstructorReferenceNode {
+abstract class InstanceCreationExpression implements Expression {
   /// Return the list of arguments to the constructor.
   ArgumentList get argumentList;
 
@@ -3315,14 +3294,6 @@ abstract class InstanceCreationExpression
   /// Set the 'new' or 'const' keyword used to indicate how an object should be
   /// created to the given [token].
   set keyword(Token token);
-
-  @Deprecated('Use constructorName.staticElement')
-  @override
-  ConstructorElement get staticElement;
-
-  @Deprecated('Use constructorName.staticElement')
-  @override
-  set staticElement(ConstructorElement staticElement);
 }
 
 /// An integer literal expression.
@@ -4031,11 +4002,6 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 
   /// Return the node that is the parent of each of the elements in the list.
   AstNode get owner;
-
-  /// Set the node that is the parent of each of the elements in the list to the
-  /// given [node].
-  @deprecated // Never intended for public use.
-  set owner(AstNode node);
 
   /// Return the node at the given [index] in the list or throw a [RangeError]
   /// if [index] is out of bounds.
@@ -5186,14 +5152,6 @@ abstract class TypeParameterList implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class UriBasedDirective implements Directive {
-  /// Return the source to which the URI was resolved.
-  @deprecated
-  Source get source;
-
-  /// Set the source to which the URI was resolved to the given [source].
-  @deprecated
-  set source(Source source);
-
   /// Return the URI referenced by this directive.
   StringLiteral get uri;
 

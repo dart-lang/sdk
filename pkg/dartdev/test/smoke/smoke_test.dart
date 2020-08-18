@@ -52,8 +52,8 @@ void main() {
       });
 
       test(
-          'dart --sound-null-safety --enable-experiment=non-nullable run smoke.dart',
-          () async {
+          'dart --sound-null-safety --enable-experiment=non-nullable '
+          'run smoke.dart', () async {
         final result = await Process.run(
           Platform.executable,
           [

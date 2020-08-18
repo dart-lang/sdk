@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 
 /// The interface `TypeProvider` defines the behavior of objects that provide
 /// access to types defined by the language.
@@ -50,14 +49,6 @@ abstract class TypeProvider {
   /// Return the type representing 'FutureOr<Null>'.
   InterfaceType get futureOrNullType;
 
-  /// Return the type representing the built-in type 'FutureOr'.
-  @Deprecated('Use futureOrType2() instead.')
-  InterfaceType get futureOrType;
-
-  /// Return the type representing the built-in type 'Future'.
-  @Deprecated('Use futureType2() instead.')
-  InterfaceType get futureType;
-
   /// Return the element representing the built-in class 'int'.
   ClassElement get intElement;
 
@@ -73,26 +64,14 @@ abstract class TypeProvider {
   /// Return the type representing the type 'Iterable<Object>'.
   InterfaceType get iterableObjectType;
 
-  /// Return the type representing the built-in type 'Iterable'.
-  @Deprecated('Use iterableType2() instead.')
-  InterfaceType get iterableType;
-
   /// Return the element representing the built-in class 'List'.
   ClassElement get listElement;
-
-  /// Return the type representing the built-in type 'List'.
-  @Deprecated('Use listType2() instead.')
-  InterfaceType get listType;
 
   /// Return the element representing the built-in class 'Map'.
   ClassElement get mapElement;
 
   /// Return the type representing 'Map<Object, Object>'.
   InterfaceType get mapObjectObjectType;
-
-  /// Return the type representing the built-in type 'Map'.
-  @Deprecated('Use mapType2() instead.')
-  InterfaceType get mapType;
 
   /// Return the type representing the built-in type 'Never'.
   DartType get neverType;
@@ -101,17 +80,8 @@ abstract class TypeProvider {
   /// or implemented.
   Set<ClassElement> get nonSubtypableClasses;
 
-  /// Return a list containing all of the types that cannot be either extended
-  /// or implemented.
-  @Deprecated('Use nonSubtypableClasses instead.')
-  List<InterfaceType> get nonSubtypableTypes;
-
   /// Return the element representing the built-in class 'null'.
   ClassElement get nullElement;
-
-  /// Return a [DartObjectImpl] representing the `null` object.
-  @deprecated
-  DartObjectImpl get nullObject;
 
   /// Return the type representing the built-in type 'Null'.
   InterfaceType get nullType;
@@ -128,10 +98,6 @@ abstract class TypeProvider {
   /// Return the element representing the built-in class 'Set'.
   ClassElement get setElement;
 
-  /// Return the type representing the built-in type 'Set'.
-  @Deprecated('Use setType2() instead.')
-  InterfaceType get setType;
-
   /// Return the type representing the built-in type 'StackTrace'.
   InterfaceType get stackTraceType;
 
@@ -140,10 +106,6 @@ abstract class TypeProvider {
 
   /// Return the element representing the built-in class 'Stream'.
   ClassElement get streamElement;
-
-  /// Return the type representing the built-in type 'Stream'.
-  @Deprecated('Use streamType2() instead.')
-  InterfaceType get streamType;
 
   /// Return the element representing the built-in class 'String'.
   ClassElement get stringElement;

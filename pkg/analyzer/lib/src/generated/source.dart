@@ -2,14 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -53,12 +49,12 @@ abstract class BasicSource extends Source {
 class ContentCache {
   /// A table mapping the full path of sources to the contents of those sources.
   /// This is used to override the default contents of a source.
-  final Map<String, String> _contentMap = HashMap<String, String>();
+  final Map<String, String> _contentMap = {};
 
   /// A table mapping the full path of sources to the modification stamps of
   /// those sources. This is used when the default contents of a source has been
   /// overridden.
-  final Map<String, int> _stampMap = HashMap<String, int>();
+  final Map<String, int> _stampMap = {};
 
   int _nextStamp = 0;
 
@@ -70,8 +66,8 @@ class ContentCache {
     });
   }
 
-  /// Return the contents of the given [source], or `null` if this cache does
-  /// not override the contents of the source.
+  /// Return the contents of the given [source], or `null` if this cache does not
+  /// override the contents of the source.
   ///
   /// <b>Note:</b> This method is not intended to be used except by
   /// [AnalysisContext.getContents].
@@ -116,25 +112,6 @@ class ContentCache {
       _contentMap[fullName] = contents;
       return oldContent;
     }
-  }
-}
-
-@deprecated
-class CustomUriResolver extends UriResolver {
-  final Map<String, String> _urlMappings;
-
-  CustomUriResolver(this._urlMappings);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    String mapping = _urlMappings[uri.toString()];
-    if (mapping == null) return null;
-
-    Uri fileUri = Uri.file(mapping);
-    if (!fileUri.isAbsolute) return null;
-
-    JavaFile javaFile = JavaFile.fromUri(fileUri);
-    return FileBasedSource(javaFile, actualUri ?? uri);
   }
 }
 

@@ -1,5 +1,44 @@
-## 0.39.18-dev
+## 0.40.0
 * Added `LibraryElement.featureSet`.
+* Removed deprecated `EmbedderSdk` and related classes.
+* `FunctionType` returned from `ExecutableElement.type` return `null`
+   as its `element`. Use `ExecutableElement`s directly if necessary.
+* `FunctionTypeAliasElement` does not implement `FunctionTypedElement`
+   anymore, implements `TypeParameterizedElement` instead.
+* Removed deprecated `CustomUriResolver`.
+* Removed deprecated `ExplicitSourceResolver`, `FileUriResolver`,
+  `LocalSourcePredicate`, `PackageUriResolver`, `RelativeFileUriResolver`.
+* Removed deprecated `ErrorCode` instances.
+* The `withNullability` flag in `DartType.getDisplayString()` is now required.
+* Removed deprecated `DartType.substitute2`, and `FunctionType.substitute3`,
+  use `ClassElement.instantiate`, `FunctionTypeAliasElement.instantiate()`,
+  or `FunctionType.instantiate()`.
+* Removed deprecated `FunctionType.boundTypeParameters`, use `typeFormals`
+  for now. Later, it will be deprecated, and replaced with `typeParameters`.
+* Removed `InterfaceType.instantiate()`, `InterfaceType.substitute4`,
+  use `ClassElement.instantiate()`.
+* Removed `typeParameters` and `instantiate()` from `ParameterizedType`.
+  Use `typeParameters` and `instantiate()` from `ClassElement`.
+* Removed deprecated methods from `DeclaredVariables`.
+* Removed deprecated `typeProvider` and `typeSystem` getters.
+  Use corresponding `LibraryElement` getters instead.
+* Removed deprecated options from `AnalysisOptions`.
+* Removed deprecated `ClassElement.hasReferenceToSuper`.
+* Removed deprecated `DartType.isObject`.
+  Use `DartType.isDartCoreObject` instead.
+* Removed deprecated declarations in `AnalysisContext` and `ContextLocator`.
+* Removed deprecated libraries.
+* Removed deprecated declarations from TypeProvider.
+* Removed deprecated `ParseResult` and `ResolveResult`.
+* Removed deprecated `AnalysisContext.typeProvider` and `typeSystem`.
+  Use the corresponding getters of `LibraryElement`.
+* Removed deprecated methods of `AnalysisSession`.
+* Removed deprecated declarations from `dart/ast/ast.dart`.
+* Removed deprecated methods from `AstFactory`.
+* Removed deprecated `parseFile2`..
+* Removed deprecated `TypeDefiningElement.type`.
+* Features in `Feature` are not constants anymore.
+* Replaced `Feature.firstSupportedVersion` with `releaseVersion`.
 
 ## 0.39.17
 * Depend on cli_util 0.2.0.

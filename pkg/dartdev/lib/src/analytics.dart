@@ -138,6 +138,10 @@ Directory getDartStorageDirectory() {
   return Directory(path.join(homeDir.path, _dartDirectoryName));
 }
 
+/// The method used by dartdev to determine if this machine is a bot such as a
+/// CI machine.
+bool isBot() => telemetry.isRunningOnBot();
+
 class DartdevAnalytics extends AnalyticsImpl {
   DartdevAnalytics(String trackingId, File settingsFile, String appName)
       : super(
@@ -152,7 +156,7 @@ class DartdevAnalytics extends AnalyticsImpl {
   bool get enabled {
     // Don't enable if the user hasn't been shown the disclosure or if this
     // machine is bot.
-    if (!disclosureShownOnTerminal || telemetry.isRunningOnBot()) {
+    if (!disclosureShownOnTerminal || isBot()) {
       return false;
     }
 
@@ -163,7 +167,7 @@ class DartdevAnalytics extends AnalyticsImpl {
   bool get disclosureShownOnTerminal =>
       (properties['disclosureShown'] as bool) ?? false;
 
-  void set disclosureShownOnTerminal(bool value) {
+  set disclosureShownOnTerminal(bool value) {
     properties['disclosureShown'] = value;
   }
 }

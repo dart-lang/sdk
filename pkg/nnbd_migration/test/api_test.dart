@@ -44,10 +44,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool removeViaComments = false,
       bool warnOnWeakCode = false}) async {
     for (var path in migratedInput.keys) {
-      driver.getFileSync(newFile(path, content: migratedInput[path]).path);
+      newFile(path, content: migratedInput[path]);
     }
     for (var path in input.keys) {
-      driver.getFileSync(newFile(path, content: input[path]).path);
+      newFile(path, content: input[path]);
     }
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,

@@ -81,13 +81,6 @@ abstract class ClassElement
   /// instance field.
   bool get hasNonFinalField;
 
-  /// Return `true` if this class has at least one reference to `super` (and
-  /// hence cannot be used as a mixin), or `false` if this element represents a
-  /// mixin, even if the mixin has a reference to `super`, because it is allowed
-  /// to be used as a mixin.
-  @Deprecated('It was used internally, should not be part of API')
-  bool get hasReferenceToSuper;
-
   /// Return `true` if this class declares a static member.
   bool get hasStaticMember;
 
@@ -120,19 +113,6 @@ abstract class ClassElement
   /// Return `true` if this class is a mixin application.  A class is a mixin
   /// application if it was declared using the syntax "class A = B with C;".
   bool get isMixinApplication;
-
-  /// Return `true` if this class [isProxy], or if it inherits the proxy
-  /// annotation from a supertype.
-  @Deprecated(
-    'The @proxy annotation is deprecated in the langauge, and will be removed',
-  )
-  bool get isOrInheritsProxy;
-
-  /// Return `true` if this element has an annotation of the form '@proxy'.
-  @Deprecated(
-    'The @proxy annotation is deprecated in the langauge, and will be removed',
-  )
-  bool get isProxy;
 
   /// Return `true` if this class can validly be used as a mixin when defining
   /// another class. For classes defined by a mixin declaration, the result is
@@ -195,10 +175,6 @@ abstract class ClassElement
   /// nullability status of the declaring library.
   InterfaceType get thisType;
 
-  @override
-  @deprecated
-  InterfaceType get type;
-
   /// Return the unnamed constructor declared in this class, or `null` if either
   /// this class does not declare an unnamed constructor but does declare named
   /// constructors or if this class represents a mixin declaration. The returned
@@ -236,14 +212,6 @@ abstract class ClassElement
   /// and [nullabilitySuffix].
   InterfaceType instantiate({
     @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Create the [InterfaceType] for this class with type arguments that
-  /// correspond to the bounds of the type parameters, and the given
-  /// [nullabilitySuffix].
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  InterfaceType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 
@@ -663,12 +631,6 @@ abstract class Element implements AnalysisTarget {
   /// Use the given [visitor] to visit this element. Return the value returned
   /// by the visitor as a result of visiting this element.
   T accept<T>(ElementVisitor<T> visitor);
-
-  /// Return the most immediate ancestor of this element for which the
-  /// [predicate] returns `true`, or `null` if there is no such ancestor. Note
-  /// that this element will never be returned.
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  E getAncestor<E extends Element>(Predicate<Element> predicate);
 
   /// Return the presentation of this element as it should appear when
   /// presented to users.
@@ -1170,7 +1132,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAliasElement
-    implements FunctionTypedElement, TypeDefiningElement {
+    implements TypeParameterizedElement, TypeDefiningElement {
   @override
   CompilationUnitElement get enclosingElement;
 
@@ -1188,34 +1150,6 @@ abstract class FunctionTypeAliasElement
   /// then `F<int>` will produce `void Function<U>(int, U)`.
   FunctionType instantiate({
     @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Produces the function type resulting from instantiating this typedef with
-  /// the given [typeArguments] and [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
-  /// generic function, with type formals. For example, if the typedef is:
-  ///     typedef F<T> = void Function<U>(T, U);
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
-  @Deprecated('Use instantiate() instead')
-  FunctionType instantiate2({
-    @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Produces the function type resulting from instantiating this typedef with
-  /// type arguments that correspond to the bounds of the type parameters, and
-  /// the given [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
-  /// generic function, with type formals. For example, if the typedef is:
-  ///     typedef F<T> = void Function<U>(T, U);
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  FunctionType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 }
@@ -1364,14 +1298,6 @@ abstract class LibraryElement implements Element {
   /// The language version for this library.
   LibraryLanguageVersion get languageVersion;
 
-  /// The major component of the language version for this library.
-  @Deprecated("Use 'languageVersion'")
-  int get languageVersionMajor;
-
-  /// The minor component of the language version for this library.
-  @Deprecated("Use 'languageVersion'")
-  int get languageVersionMinor;
-
   /// Return the element representing the synthetic function `loadLibrary` that
   /// is implicitly defined for this library if the library is imported using a
   /// deferred import.
@@ -1479,10 +1405,6 @@ abstract class MultiplyDefinedElement implements Element {
   /// Return a list containing all of the elements that were defined within the
   /// scope to have the same name.
   List<Element> get conflictingElements;
-
-  /// Return the type of this element as the dynamic type.
-  @deprecated
-  DartType get type;
 }
 
 /// An [ExecutableElement], with the additional information of a list of
@@ -1710,11 +1632,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningElement implements Element {
-  /// Return the type defined by this element.
-  @deprecated
-  DartType get type;
-}
+abstract class TypeDefiningElement implements Element {}
 
 /// A type parameter.
 ///
@@ -1728,10 +1646,6 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 
   @override
   TypeParameterElement get declaration;
-
-  @override
-  @deprecated
-  TypeParameterType get type;
 
   /// Create the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.

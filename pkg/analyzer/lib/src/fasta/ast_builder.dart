@@ -3410,7 +3410,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         spreadToken,
         spreadToken,
@@ -3633,7 +3633,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         forToken,
         forToken,
@@ -3666,7 +3666,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         ifToken,
         ifToken,

@@ -215,20 +215,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
     );
   }
 
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  @override
-  InterfaceType instantiateToBounds({
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    var typeArguments = typeParameters.map((typeParameter) {
-      return (typeParameter as TypeParameterElementImpl).defaultType;
-    }).toList();
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
@@ -470,9 +456,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// The superclass of the class, or `null` for [Object].
   InterfaceType _supertype;
 
-  /// The type defined by the class.
-  InterfaceType _type;
-
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
   List<InterfaceType> _mixins;
@@ -688,16 +671,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
-  @Deprecated('It was used internally, should not be part of API')
-  @override
-  bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
-
-  /// Set whether this class references 'super'.
-  /// TODO(scheglov) Remove it.
-  set hasReferenceToSuper(bool isReferencedSuper) {
-    setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
-  }
-
   @override
   bool get hasStaticMember {
     for (MethodElement method in methods) {
@@ -770,12 +743,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   set isMixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
-
-  @override
-  bool get isOrInheritsProxy => false;
-
-  @override
-  bool get isProxy => false;
 
   @override
   bool get isSimplyBounded {
@@ -908,22 +875,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   set supertype(InterfaceType supertype) {
     _supertype = supertype;
-  }
-
-  @override
-  @deprecated
-  InterfaceType get type {
-    if (_type == null) {
-      var typeArguments = typeParameters
-          .map((e) => e.instantiate(nullabilitySuffix: _noneOrStarSuffix))
-          .toList();
-      _type = InterfaceTypeImpl(
-        element: this,
-        typeArguments: typeArguments,
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-    }
-    return _type;
   }
 
   /// Set the type parameters defined for this class to the given
@@ -2177,7 +2128,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 
@@ -2316,9 +2266,6 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
-
-  @override
-  DartType get type => DynamicTypeImpl.instance;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => null;
@@ -3039,16 +2986,6 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    var ancestor = _enclosingElement;
-    while (ancestor != null && !predicate(ancestor)) {
-      ancestor = ancestor.enclosingElement;
-    }
-    return ancestor as E;
-  }
-
   /// Return the child of this element that is uniquely identified by the given
   /// [identifier], or `null` if there is no such child.
   ElementImpl getChild(String identifier) => null;
@@ -3311,9 +3248,6 @@ class ElementLocationImpl implements ElementLocation {
 
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
-  /// The type defined by the enum.
-  InterfaceType _type;
-
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(String name, int offset) : super(name, offset);
@@ -3397,10 +3331,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   bool get hasNonFinalField => false;
 
-  @Deprecated('It was used internally, should not be part of API')
-  @override
-  bool get hasReferenceToSuper => false;
-
   @override
   bool get hasStaticMember => true;
 
@@ -3415,12 +3345,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get isMixinApplication => false;
-
-  @override
-  bool get isOrInheritsProxy => false;
-
-  @override
-  bool get isProxy => false;
 
   @override
   bool get isSimplyBounded => true;
@@ -3463,20 +3387,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   InterfaceType get supertype => library.typeProvider.objectType;
-
-  @override
-  @deprecated
-  InterfaceType get type {
-    if (_type == null) {
-      var typeArguments = const <DartType>[];
-      _type = InterfaceTypeImpl(
-        element: this,
-        typeArguments: typeArguments,
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-    }
-    return _type;
-  }
 
   @override
   List<TypeParameterElement> get typeParameters =>
@@ -3767,7 +3677,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
@@ -4570,7 +4479,6 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
@@ -4625,12 +4533,9 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 /// Clients may not extend, implement or mix-in this class.
 class GenericTypeAliasElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements GenericTypeAliasElement, ElementImplWithFunctionType {
+    implements GenericTypeAliasElement {
   /// The element representing the generic function type.
   GenericFunctionTypeElementImpl _function;
-
-  /// The type of function defined by this type alias.
-  FunctionType _type;
 
   /// Initialize a newly created type alias element to have the given [name].
   GenericTypeAliasElementImpl(String name, int offset) : super(name, offset);
@@ -4755,48 +4660,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
     return super.nameOffset;
   }
 
-  @override
-  List<ParameterElement> get parameters =>
-      function?.parameters ?? const <ParameterElement>[];
-
-  @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
-
-  @override
-  DartType get returnTypeInternal {
-    if (function == null) {
-      return DynamicTypeImpl.instance;
-    }
-    return function?.returnType;
-  }
-
-  @override
-  @deprecated
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  set type(FunctionType type) {
-    _type = type;
-  }
-
-  @override
-  @deprecated
-  FunctionType get typeInternal {
-    _type ??= FunctionTypeImpl.synthetic(
-      function.returnType,
-      typeParameters,
-      function.parameters,
-      element: this,
-      typeArguments: typeParameters.map((e) {
-        return e.instantiate(
-          nullabilitySuffix: NullabilitySuffix.star,
-        );
-      }).toList(),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    return _type;
-  }
-
   /// Set the type parameters defined for this type to the given
   /// [typeParameters].
   set typeParameters(List<TypeParameterElement> typeParameters) {
@@ -4854,32 +4717,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
       nullabilitySuffix: resultNullability,
       element: this,
       typeArguments: typeArguments,
-    );
-  }
-
-  @override
-  @deprecated
-  FunctionType instantiate2({
-    @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  @override
-  FunctionType instantiateToBounds({
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    var typeArguments = typeParameters.map((typeParameter) {
-      return (typeParameter as TypeParameterElementImpl).defaultType;
-    }).toList();
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -5536,18 +5373,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return _languageVersion;
   }
 
-  @Deprecated("Use 'languageVersion'")
-  @override
-  int get languageVersionMajor {
-    return languageVersion.effective.major;
-  }
-
-  @Deprecated("Use 'languageVersion'")
-  @override
-  int get languageVersionMinor {
-    return languageVersion.effective.minor;
-  }
-
   @override
   LibraryElement get library => this;
 
@@ -6038,20 +5863,17 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that a class is a mixin application.
   static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 14);
 
-  /// Indicates that a class contains an explicit reference to 'super'.
-  static const Modifier REFERENCES_SUPER = Modifier('REFERENCES_SUPER', 15);
-
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 16);
+  static const Modifier SETTER = Modifier('SETTER', 15);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 17);
+  static const Modifier STATIC = Modifier('STATIC', 16);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 17);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -6069,7 +5891,6 @@ class Modifier implements Comparable<Modifier> {
     IMPLICIT_TYPE,
     LATE,
     MIXIN_APPLICATION,
-    REFERENCES_SUPER,
     SETTER,
     STATIC,
     SYNTHETIC
@@ -6220,15 +6041,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Source get source => null;
 
   @override
-  DartType get type => DynamicTypeImpl.instance;
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
-
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) => null;
 
   @override
   String getDisplayString({@required bool withNullability}) {
@@ -6310,11 +6124,6 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
 
   @override
   ElementKind get kind => ElementKind.NEVER;
-
-  @override
-  DartType get type {
-    throw StateError('Should not be accessed.');
-  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => null;
@@ -7177,7 +6986,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     var type = FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
@@ -7247,7 +7055,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     var type = FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
@@ -7473,9 +7280,6 @@ class TypeParameterElementImpl extends ElementImpl
   /// fall-back type value in type inference.
   DartType _defaultType;
 
-  /// The type defined by this type parameter.
-  TypeParameterType _type;
-
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound.
   DartType _bound;
@@ -7580,23 +7384,6 @@ class TypeParameterElementImpl extends ElementImpl
     }
 
     return super.nameOffset;
-  }
-
-  @override
-  @deprecated
-  TypeParameterType get type {
-    // Note: TypeParameterElement.type has nullability suffix `star` regardless
-    // of whether it appears in a migrated library.  This is because for type
-    // parameters of synthetic function types, the ancestor chain is broken and
-    // we can't find the enclosing library to tell whether it is migrated.
-    return _type ??= TypeParameterTypeImpl(
-      element: this,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  set type(TypeParameterType type) {
-    _type = type;
   }
 
   Variance get variance {

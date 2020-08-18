@@ -6206,15 +6206,16 @@ DeserializationCluster* Deserializer::ReadCluster() {
   return NULL;
 }
 
-void Deserializer::ReadDispatchTable() {
+void Deserializer::ReadDispatchTable(ReadStream* stream) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  const intptr_t length = ReadUnsigned();
+  const uint8_t* table_snapshot_start = stream->AddressOfCurrentPosition();
+  const intptr_t length = stream->ReadUnsigned();
   if (length == 0) return;
 
   // Not all Code objects may be in the code_order_table when instructions can
   // be deduplicated. Thus, we serialize the reference ID of the first code
   // object, from which we can get the reference ID for any code object.
-  const intptr_t first_code_id = ReadUnsigned();
+  const intptr_t first_code_id = stream->ReadUnsigned();
 
   auto const I = isolate();
   auto code = I->object_store()->dispatch_table_null_error_stub();
@@ -6233,7 +6234,7 @@ void Deserializer::ReadDispatchTable() {
       repeat_count--;
       continue;
     }
-    auto const encoded = Read<intptr_t>();
+    auto const encoded = stream->Read<intptr_t>();
     if (encoded == 0) {
       value = null_entry;
     } else if (encoded < 0) {
@@ -6254,6 +6255,10 @@ void Deserializer::ReadDispatchTable() {
   ASSERT(repeat_count == 0);
 
   I->group()->set_dispatch_table(table);
+  intptr_t table_snapshot_size =
+      stream->AddressOfCurrentPosition() - table_snapshot_start;
+  I->group()->set_dispatch_table_snapshot(table_snapshot_start);
+  I->group()->set_dispatch_table_snapshot_size(table_snapshot_size);
 #endif
 }
 
@@ -6674,7 +6679,7 @@ void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
     }
 
     // Deserialize dispatch table (when applicable)
-    ReadDispatchTable();
+    ReadDispatchTable(&stream_);
 
 #if defined(DEBUG)
     int32_t section_marker = Read<int32_t>();
@@ -6756,6 +6761,15 @@ ApiErrorPtr Deserializer::ReadUnitSnapshot(const LoadingUnit& unit) {
       code->ptr()->compressed_stackmaps_ =
           static_cast<CompressedStackMapsPtr>(ReadRef());
       code->ptr()->code_source_map_ = static_cast<CodeSourceMapPtr>(ReadRef());
+    }
+
+    // Reinitialize the dispatch table by rereading the table's serialization
+    // in the root snapshot.
+    IsolateGroup* group = thread()->isolate()->group();
+    if (group->dispatch_table_snapshot() != nullptr) {
+      ReadStream stream(group->dispatch_table_snapshot(),
+                        group->dispatch_table_snapshot_size());
+      ReadDispatchTable(&stream);
     }
 
 #if defined(DEBUG)

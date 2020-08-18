@@ -203,8 +203,7 @@ class MessageTemplate {
       MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
           MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
           "Member '#{member}' in js-interop class '#{cls}' is not external.",
-          howToFix: "Try adding 'external' to '#{member}'. If #{member} is a "
-              "`late` field, use an `external` getter/setter instead.",
+          howToFix: "Try adding 'external' to '#{member}'.",
           examples: const [
             """
               import 'package:js/js.dart';

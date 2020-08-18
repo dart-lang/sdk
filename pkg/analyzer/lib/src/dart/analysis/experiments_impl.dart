@@ -127,8 +127,8 @@ List<bool> restrictEnableFlagsToVersion(List<bool> flags, Version version) {
 
   flags = List.from(flags);
   for (var feature in _knownFeatures.values) {
-    var firstSupportedVersion = feature.firstSupportedVersion;
-    if (firstSupportedVersion == null || firstSupportedVersion > version) {
+    var releaseVersion = feature.releaseVersion;
+    if (releaseVersion == null || releaseVersion > version) {
       flags[feature.index] = false;
     }
   }
@@ -299,20 +299,25 @@ class ExperimentalFeature implements Feature {
   /// Documentation for the feature, if known.  `null` for expired flags.
   final String documentation;
 
-  final String _firstSupportedVersion;
+  /// The first language version in which this feature can be enabled using
+  /// the [enableString] experimental flag.
+  final Version experimentalReleaseVersion;
 
-  const ExperimentalFeature({
+  @override
+  final Version releaseVersion;
+
+  ExperimentalFeature({
     @required this.index,
     @required this.enableString,
     @required this.isEnabledByDefault,
     @required this.isExpired,
     @required this.documentation,
-    @required String firstSupportedVersion,
-  })  : _firstSupportedVersion = firstSupportedVersion,
-        assert(index != null),
+    @required this.experimentalReleaseVersion,
+    @required this.releaseVersion,
+  })  : assert(index != null),
         assert(isEnabledByDefault
-            ? firstSupportedVersion != null
-            : firstSupportedVersion == null),
+            ? releaseVersion != null
+            : releaseVersion == null),
         assert(enableString != null);
 
   /// The string to disable the feature.
@@ -320,15 +325,6 @@ class ExperimentalFeature implements Feature {
 
   @override
   String get experimentalFlag => isExpired ? null : enableString;
-
-  @override
-  Version get firstSupportedVersion {
-    if (_firstSupportedVersion == null) {
-      return null;
-    } else {
-      return Version.parse(_firstSupportedVersion);
-    }
-  }
 
   @override
   FeatureStatus get status {

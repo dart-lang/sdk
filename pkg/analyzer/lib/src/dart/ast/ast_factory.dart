@@ -387,16 +387,6 @@ class AstFactoryImpl extends AstFactory {
       ExtensionOverrideImpl(extensionName, typeArguments, argumentList);
 
   @override
-  FieldDeclaration fieldDeclaration(
-          Comment comment,
-          List<Annotation> metadata,
-          Token staticKeyword,
-          VariableDeclarationList fieldList,
-          Token semicolon) =>
-      FieldDeclarationImpl(comment, metadata, null, null, null, staticKeyword,
-          fieldList, semicolon);
-
-  @override
   FieldDeclaration fieldDeclaration2(
           {Comment comment,
           List<Annotation> metadata,
@@ -408,20 +398,6 @@ class AstFactoryImpl extends AstFactory {
           @required Token semicolon}) =>
       FieldDeclarationImpl(comment, metadata, abstractKeyword, covariantKeyword,
           externalKeyword, staticKeyword, fieldList, semicolon);
-
-  @override
-  FieldFormalParameter fieldFormalParameter(
-          Comment comment,
-          List<Annotation> metadata,
-          Token keyword,
-          TypeAnnotation type,
-          Token thisKeyword,
-          Token period,
-          SimpleIdentifier identifier,
-          TypeParameterList typeParameters,
-          FormalParameterList parameters) =>
-      FieldFormalParameterImpl(comment, metadata, null, null, keyword, type,
-          thisKeyword, period, identifier, typeParameters, parameters, null);
 
   @override
   FieldFormalParameter fieldFormalParameter2(
@@ -559,17 +535,6 @@ class AstFactoryImpl extends AstFactory {
           typeParameters, parameters, semicolon);
 
   @override
-  FunctionTypedFormalParameter functionTypedFormalParameter(
-          Comment comment,
-          List<Annotation> metadata,
-          TypeAnnotation returnType,
-          SimpleIdentifier identifier,
-          TypeParameterList typeParameters,
-          FormalParameterList parameters) =>
-      FunctionTypedFormalParameterImpl(comment, metadata, null, null,
-          returnType, identifier, typeParameters, parameters, null);
-
-  @override
   FunctionTypedFormalParameter functionTypedFormalParameter2(
           {Comment comment,
           List<Annotation> metadata,
@@ -674,13 +639,6 @@ class AstFactoryImpl extends AstFactory {
           semicolon);
 
   @override
-  @Deprecated('Use indexExpressionForCascade2')
-  IndexExpression indexExpressionForCascade(Token period, Token leftBracket,
-          Expression index, Token rightBracket) =>
-      IndexExpressionImpl.forCascade(
-          period, null, leftBracket, index, rightBracket);
-
-  @override
   IndexExpression indexExpressionForCascade2(
           {@required Token period,
           Token question,
@@ -689,13 +647,6 @@ class AstFactoryImpl extends AstFactory {
           @required Token rightBracket}) =>
       IndexExpressionImpl.forCascade(
           period, question, leftBracket, index, rightBracket);
-
-  @override
-  @Deprecated('Use indexExpressionForTarget2')
-  IndexExpression indexExpressionForTarget(Expression target, Token leftBracket,
-          Expression index, Token rightBracket) =>
-      IndexExpressionImpl.forTarget(
-          target, null, leftBracket, index, rightBracket);
 
   @override
   IndexExpression indexExpressionForTarget2(
@@ -924,16 +875,6 @@ class AstFactoryImpl extends AstFactory {
   ShowCombinator showCombinator(
           Token keyword, List<SimpleIdentifier> shownNames) =>
       ShowCombinatorImpl(keyword, shownNames);
-
-  @override
-  SimpleFormalParameter simpleFormalParameter(
-          Comment comment,
-          List<Annotation> metadata,
-          Token keyword,
-          TypeAnnotation type,
-          SimpleIdentifier identifier) =>
-      SimpleFormalParameterImpl(
-          comment, metadata, null, null, keyword, type, identifier);
 
   @override
   SimpleFormalParameter simpleFormalParameter2(

@@ -79,7 +79,6 @@ main(List<String> args) async {
     // Compile kernel to ELF.
     await run(genSnapshot, <String>[
       "--snapshot-kind=app-aot-elf",
-      "--use-table-dispatch=false",
       "--elf=$snapshot1",
       "--loading-unit-manifest=$manifest1",
       dill1,
@@ -95,7 +94,6 @@ main(List<String> args) async {
 
     await run(genSnapshot, <String>[
       "--snapshot-kind=app-aot-elf",
-      "--use-table-dispatch=false",
       "--elf=$snapshot2",
       "--loading-unit-manifest=$manifest2",
       dill2,

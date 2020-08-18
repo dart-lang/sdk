@@ -54,7 +54,7 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
   }
 }
 
-/// Use the command-line [args] to create a context builder.
+/// Use the command-line [args] to create a context builder options.
 ContextBuilderOptions createContextBuilderOptions(
   ResourceProvider resourceProvider,
   ArgResults args,

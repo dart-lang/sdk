@@ -3512,7 +3512,7 @@ class HPrimitiveCheck extends HCheck {
   //
   final Selector receiverTypeCheckSelector;
 
-  AbstractValue checkedType; // Not final because we refine it.
+  final AbstractValue checkedType;
 
   HPrimitiveCheck(this.typeExpression, this.kind, AbstractValue type,
       HInstruction input, SourceInformation sourceInformation,

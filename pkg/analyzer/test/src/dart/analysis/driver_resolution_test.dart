@@ -949,8 +949,6 @@ main() {
       itemElement1 = itemElement;
 
       expect(closureElement.returnType, typeProvider.nullType);
-      // TODO(scheglov) Make this null.
-//      expect(closureElement.type.element, same(closureElement));
       assertType(closureElement.type, closureTypeStr);
       expect(closure.staticType, same(closureElement.type));
 
@@ -991,7 +989,6 @@ main() {
       expect(itemElement, isNot(same(itemElement1)));
 
       expect(closureElement.returnType, typeProvider.nullType);
-      expect(closureElement.type.element, same(closureElement));
       assertType(closureElement.type, closureTypeStr);
       expect(closure.staticType, same(closureElement.type));
 

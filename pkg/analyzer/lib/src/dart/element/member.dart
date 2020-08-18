@@ -540,11 +540,6 @@ abstract class Member implements Element {
   /// Append a textual representation of this element to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
 
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) =>
-      declaration.getAncestor(predicate);
-
   @override
   String getDisplayString({@required bool withNullability}) {
     var builder = ElementDisplayStringBuilder(
@@ -817,16 +812,6 @@ class ParameterMember extends VariableMember
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameter(this);
-  }
-
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    Element element = declaration.getAncestor(predicate);
-    if (element is ExecutableElement) {
-      return ExecutableMember.from2(element, _substitution) as E;
-    }
-    return element as E;
   }
 
   @override

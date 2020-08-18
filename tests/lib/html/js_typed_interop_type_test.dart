@@ -26,7 +26,7 @@ class B {
 @JS()
 @anonymous
 class C {
-  external get foo;
+  external final foo;
 
   external factory C({foo});
 }
@@ -34,7 +34,7 @@ class C {
 @JS()
 @anonymous
 class D {
-  external get foo;
+  external final foo;
 
   external factory D({foo});
 }

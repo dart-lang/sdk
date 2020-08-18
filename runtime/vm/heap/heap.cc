@@ -65,6 +65,8 @@ Heap::Heap(IsolateGroup* isolate_group,
       barrier_(),
       barrier_done_(),
       read_only_(false),
+      gc_new_space_in_progress_(false),
+      gc_old_space_in_progress_(false),
       last_gc_was_old_space_(false),
       assume_scavenge_will_fail_(false),
       gc_on_nth_allocation_(kNoForcedGarbageCollection) {
@@ -235,8 +237,6 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
       heap_(isolate()->heap()),
       old_space_(heap_->old_space()),
       writable_(writable) {
-  isolate()->safepoint_handler()->SafepointThreads(thread);
-
   {
     // It's not safe to iterate over old space when concurrent marking or
     // sweeping is in progress, or another thread is iterating the heap, so wait
@@ -255,7 +255,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
         ml.Enter();
       }
       while (old_space_->tasks() > 0) {
-        ml.Wait();
+        ml.WaitWithSafepointCheck(thread);
       }
     }
 #if defined(DEBUG)
@@ -264,6 +264,8 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
 #endif
     old_space_->set_tasks(1);
   }
+
+  isolate()->safepoint_handler()->SafepointThreads(thread);
 
   if (writable_) {
     heap_->WriteProtectCode(false);
@@ -275,18 +277,16 @@ HeapIterationScope::~HeapIterationScope() {
     heap_->WriteProtectCode(true);
   }
 
-  {
-    MonitorLocker ml(old_space_->tasks_lock());
-#if defined(DEBUG)
-    ASSERT(old_space_->iterating_thread_ == thread());
-    old_space_->iterating_thread_ = NULL;
-#endif
-    ASSERT(old_space_->tasks() == 1);
-    old_space_->set_tasks(0);
-    ml.NotifyAll();
-  }
-
   isolate()->safepoint_handler()->ResumeThreads(thread());
+
+  MonitorLocker ml(old_space_->tasks_lock());
+#if defined(DEBUG)
+  ASSERT(old_space_->iterating_thread_ == thread());
+  old_space_->iterating_thread_ = NULL;
+#endif
+  ASSERT(old_space_->tasks() == 1);
+  old_space_->set_tasks(0);
+  ml.NotifyAll();
 }
 
 void HeapIterationScope::IterateObjects(ObjectVisitor* visitor) const {
@@ -360,14 +360,57 @@ ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
   return raw_obj;
 }
 
+bool Heap::BeginNewSpaceGC(Thread* thread) {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  bool start_gc_on_thread = true;
+  while (gc_new_space_in_progress_ || gc_old_space_in_progress_) {
+    start_gc_on_thread = !gc_new_space_in_progress_;
+    ml.WaitWithSafepointCheck(thread);
+  }
+  if (start_gc_on_thread) {
+    gc_new_space_in_progress_ = true;
+    return true;
+  }
+  return false;
+}
+
+void Heap::EndNewSpaceGC() {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  ASSERT(gc_new_space_in_progress_);
+  gc_new_space_in_progress_ = false;
+  last_gc_was_old_space_ = false;
+  ml.NotifyAll();
+}
+
+bool Heap::BeginOldSpaceGC(Thread* thread) {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  bool start_gc_on_thread = true;
+  while (gc_new_space_in_progress_ || gc_old_space_in_progress_) {
+    start_gc_on_thread = !gc_old_space_in_progress_;
+    ml.WaitWithSafepointCheck(thread);
+  }
+  if (start_gc_on_thread) {
+    gc_old_space_in_progress_ = true;
+    return true;
+  }
+  return false;
+}
+
+void Heap::EndOldSpaceGC() {
+  MonitorLocker ml(&gc_in_progress_monitor_);
+  ASSERT(gc_old_space_in_progress_);
+  gc_old_space_in_progress_ = false;
+  last_gc_was_old_space_ = true;
+  assume_scavenge_will_fail_ = false;
+  ml.NotifyAll();
+}
+
 void Heap::HintFreed(intptr_t size) {
   old_space_.HintFreed(size);
 }
 
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
-  SafepointOperationScope safepoint_operation(thread);
-
   // Check if we want to collect new-space first, because if we want to collect
   // both new-space and old-space, the new-space collection should run first
   // to shrink the root set (make old-space GC faster) and avoid
@@ -432,8 +475,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     // visiting pointers.
     return;
   }
-  {
-    SafepointOperationScope safepoint_operation(thread);
+  if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
                                                 : VMTag::kGCNewSpaceTagId);
@@ -442,7 +484,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     RecordAfterGC(kScavenge);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
-    last_gc_was_old_space_ = false;
+    EndNewSpaceGC();
   }
 }
 
@@ -456,8 +498,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
     // visiting pointers.
     return;
   }
-  {
-    SafepointOperationScope safepoint_operation(thread);
+  if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     {
       VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -467,7 +508,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
       RecordAfterGC(kScavenge);
       PrintStats();
       NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
-      last_gc_was_old_space_ = false;
+      EndNewSpaceGC();
     }
     if (reason == kNewSpace) {
       if (old_space_.ReachedHardThreshold()) {
@@ -496,14 +537,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     // visiting pointers.
     return;
   }
-  {
-    SafepointOperationScope safepoint_operation(thread);
-    thread->isolate_group()->ForEachIsolate(
-        [&](Isolate* isolate) {
-          // Discard regexp backtracking stacks to further reduce memory usage.
-          isolate->CacheRegexpBacktrackStack(nullptr);
-        },
-        /*at_safepoint=*/true);
+  if (BeginOldSpaceGC(thread)) {
+    thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+      // Discard regexp backtracking stacks to further reduce memory usage.
+      isolate->CacheRegexpBacktrackStack(nullptr);
+    });
 
     RecordBeforeGC(type, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -515,14 +553,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tbes, reason));
 
     // Some Code objects may have been collected so invalidate handler cache.
-    thread->isolate_group()->ForEachIsolate(
-        [&](Isolate* isolate) {
-          isolate->handler_info_cache()->Clear();
-          isolate->catch_entry_moves_cache()->Clear();
-        },
-        /*at_safepoint=*/true);
-    last_gc_was_old_space_ = true;
-    assume_scavenge_will_fail_ = false;
+    thread->isolate_group()->ForEachIsolate([&](Isolate* isolate) {
+      isolate->handler_info_cache()->Clear();
+      isolate->catch_entry_moves_cache()->Clear();
+    });
+    EndOldSpaceGC();
   }
 }
 
@@ -602,8 +637,11 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
 }
 
 void Heap::StartConcurrentMarking(Thread* thread) {
-  TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
-  old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
+  if (BeginOldSpaceGC(thread)) {
+    TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
+    old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
+    EndOldSpaceGC();
+  }
 }
 
 void Heap::CheckFinishConcurrentMarking(Thread* thread) {
@@ -713,6 +751,8 @@ void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
 }
 
 void Heap::MergeFrom(Heap* donor) {
+  ASSERT(!donor->gc_new_space_in_progress_);
+  ASSERT(!donor->gc_old_space_in_progress_);
   ASSERT(!donor->read_only_);
   ASSERT(donor->old_space()->tasks() == 0);
 
@@ -981,6 +1021,9 @@ void Heap::PrintMemoryUsageJSON(JSONObject* jsobj) const {
 #endif  // PRODUCT
 
 void Heap::RecordBeforeGC(GCType type, GCReason reason) {
+  ASSERT((type == kScavenge && gc_new_space_in_progress_) ||
+         (type == kMarkSweep && gc_old_space_in_progress_) ||
+         (type == kMarkCompact && gc_old_space_in_progress_));
   stats_.num_++;
   stats_.type_ = type;
   stats_.reason_ = reason;
@@ -1005,6 +1048,9 @@ void Heap::RecordAfterGC(GCType type) {
   }
   stats_.after_.new_ = new_space_.GetCurrentUsage();
   stats_.after_.old_ = old_space_.GetCurrentUsage();
+  ASSERT((type == kScavenge && gc_new_space_in_progress_) ||
+         (type == kMarkSweep && gc_old_space_in_progress_) ||
+         (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {

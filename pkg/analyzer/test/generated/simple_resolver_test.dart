@@ -652,20 +652,6 @@ void main() {
     );
   }
 
-  @Deprecated('It was used internally, should not be part of API')
-  test_hasReferenceToSuper() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {toString() => super.toString();}''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.hasReferenceToSuper, isFalse);
-
-    var b = findElement.class_('B');
-    expect(b.hasReferenceToSuper, isTrue);
-  }
-
   test_import_hide() async {
     newFile('$testPackageLibPath/lib1.dart', content: r'''
 set foo(value) {}

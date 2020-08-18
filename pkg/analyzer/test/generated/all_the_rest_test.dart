@@ -21,8 +21,6 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ContentCacheTest);
-    // ignore: deprecated_member_use_from_same_package
-    defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(FileBasedSourceTest);
@@ -47,33 +45,6 @@ class ContentCacheTest {
     expect(cache.getContents(source), isNull);
     expect(cache.getModificationStamp(source), isNull);
     expect(cache.setContents(source, null), isNull);
-  }
-}
-
-@deprecated
-@reflectiveTest
-class CustomUriResolverTest {
-  void test_creation() {
-    expect(CustomUriResolver({}), isNotNull);
-  }
-
-  void test_resolve_unknown_uri() {
-    UriResolver resolver = CustomUriResolver({
-      'custom:library': '/path/to/library.dart',
-    });
-    Source result = resolver.resolveAbsolute(Uri.parse("custom:non_library"));
-    expect(result, isNull);
-  }
-
-  void test_resolve_uri() {
-    String filePath =
-        FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
-    UriResolver resolver = CustomUriResolver({
-      'custom:library': filePath,
-    });
-    Source result = resolver.resolveAbsolute(Uri.parse("custom:library"));
-    expect(result, isNotNull);
-    expect(result.fullName, filePath);
   }
 }
 

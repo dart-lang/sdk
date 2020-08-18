@@ -336,6 +336,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('ConstructorName');
     _withIndent(() {
       _writeNode('name', node.name);
+      _writeElement('staticElement', node.staticElement);
       _writeNode('type', node.type);
     });
   }
@@ -792,7 +793,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       properties.addNode('constructorName', node.constructorName);
       properties.addToken('keyword', node.keyword);
       _addExpression(properties, node);
-      _addConstructorReferenceNode(properties, node);
       _writeProperties(properties);
     });
   }
@@ -1474,14 +1474,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _Properties properties,
     ConstructorInitializer node,
   ) {
-    _addAstNode(properties, node);
-  }
-
-  void _addConstructorReferenceNode(
-    _Properties properties,
-    ConstructorReferenceNode node,
-  ) {
-    properties.addElement('staticElement', node.staticElement);
     _addAstNode(properties, node);
   }
 

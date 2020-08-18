@@ -39,29 +39,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   @override
   AnalysisSession get currentSession => driver.currentSession;
 
-  @deprecated
-  @override
-  List<String> get excludedPaths => contextRoot.excludedPaths.toList();
-
-  @deprecated
-  @override
-  List<String> get includedPaths => contextRoot.includedPaths.toList();
-
   @override
   Workspace get workspace {
     return _workspace ??= _buildWorkspace();
-  }
-
-  @deprecated
-  @override
-  Iterable<String> analyzedFiles() {
-    return contextRoot.analyzedFiles();
-  }
-
-  @deprecated
-  @override
-  bool isAnalyzed(String path) {
-    return contextRoot.isAnalyzed(path);
   }
 
   Workspace _buildWorkspace() {

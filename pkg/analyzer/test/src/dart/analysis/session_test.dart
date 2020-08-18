@@ -493,20 +493,4 @@ class B {}
   test_resourceProvider() async {
     expect(session.resourceProvider, resourceProvider);
   }
-
-  @deprecated
-  test_typeProvider() async {
-    var typeProvider = await session.typeProvider;
-    expect(typeProvider.intType.element.name, 'int');
-  }
-
-  @deprecated
-  test_typeSystem() async {
-    var typeSystem = await session.typeSystem;
-    var typeProvider = typeSystem.typeProvider;
-    expect(
-      typeSystem.isSubtypeOf(typeProvider.intType, typeProvider.numType),
-      isTrue,
-    );
-  }
 }
