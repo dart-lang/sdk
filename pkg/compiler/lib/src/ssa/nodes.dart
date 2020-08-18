@@ -1548,18 +1548,20 @@ abstract class HLateInstruction extends HInstruction {
       : super(inputs, type);
 }
 
-/// A [HCheck] instruction is an instruction that might do a dynamic
-/// check at runtime on another instruction. To have proper instruction
-/// dependencies in the graph, instructions that depend on the check
-/// being done reference the [HCheck] instruction instead of the
-/// instruction itself.
+/// A [HCheck] instruction is an instruction that might do a dynamic check at
+/// runtime on an input instruction. To have proper instruction dependencies in
+/// the graph, instructions that depend on the check being done reference the
+/// [HCheck] instruction instead of the input instruction.
 abstract class HCheck extends HInstruction {
   HCheck(inputs, type) : super(inputs, type) {
     setUseGvn();
   }
+
   HInstruction get checkedInput => inputs[0];
+
   @override
   bool isJsStatement() => true;
+
   @override
   bool canThrow(AbstractValueDomain domain) => true;
 
@@ -3607,10 +3609,12 @@ class HBoolConversion extends HCheck {
 /// field getter or setter when the receiver might be null. In these cases, the
 /// [selector] and [field] members are assigned.
 class HNullCheck extends HCheck {
+  // A sticky check is not optimized away on the basis of the input type.
+  final bool sticky;
   Selector selector;
   FieldEntity field;
 
-  HNullCheck(HInstruction input, AbstractValue type)
+  HNullCheck(HInstruction input, AbstractValue type, {this.sticky = false})
       : super(<HInstruction>[input], type);
 
   @override
@@ -3632,6 +3636,7 @@ class HNullCheck extends HCheck {
   bool dataEquals(HNullCheck other) => true;
 
   bool isRedundant(JClosedWorld closedWorld) {
+    if (sticky) return false;
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     AbstractValue inputType = checkedInput.instructionType;
     return abstractValueDomain.isNull(inputType).isDefinitelyFalse;

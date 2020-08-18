@@ -908,7 +908,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = node.inputs.last; // Drop interceptor.
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
@@ -919,7 +919,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
     result.sideEffects.setDependsOnSomething();
     result.sideEffects.clearAllSideEffects();
     result.setUseGvn();
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
+  }
+
+  HInstruction maybeAddNativeReturnNullCheck(
+      HInstruction node, HInstruction replacement, FunctionEntity method) {
+    if (_options.enableNativeReturnNullAssertions) {
+      if (method.library.isNonNullableByDefault) {
+        FunctionType type =
+            _closedWorld.elementEnvironment.getFunctionType(method);
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+          node.block.addBefore(node, replacement);
+          replacement = HNullCheck(replacement,
+              _abstractValueDomain.excludeNull(replacement.instructionType),
+              sticky: true);
+        }
+      }
+    }
+    return replacement;
   }
 
   // Try to 'inline' an instance setter call to a known native or js-interop
@@ -1025,14 +1043,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = inputs[1];
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method,
         [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
         nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
   }
 
   @override

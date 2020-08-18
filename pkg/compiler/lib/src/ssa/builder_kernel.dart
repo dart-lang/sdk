@@ -1540,8 +1540,18 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       push(HInvokeExternal(targetElement, inputs, returnType, nativeBehavior,
           sourceInformation: null));
-      // TODO(johnniwinther): Provide source information.
       HInstruction value = pop();
+      // TODO(johnniwinther): Provide source information.
+      if (options.enableNativeReturnNullAssertions) {
+        if (_isNonNullableByDefault(functionNode)) {
+          DartType type = _getDartTypeIfValid(functionNode.returnType);
+          if (dartTypes.isNonNullableIfSound(type)) {
+            push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
+                sticky: true));
+            value = pop();
+          }
+        }
+      }
       if (targetElement.isSetter) {
         _closeAndGotoExit(HGoto(_abstractValueDomain));
       } else {
