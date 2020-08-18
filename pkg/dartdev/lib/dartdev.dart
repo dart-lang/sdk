@@ -48,11 +48,12 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       createAnalyticsInstance(args.contains('--disable-dartdev-analytics'));
 
   // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
-  // and the user is on a terminal, then print the disclosure and set
-  // analytics.disclosureShownOnTerminal.
+  // the user is on a terminal, and the machine is not a bot, then print the
+  // disclosure and set analytics.disclosureShownOnTerminal to true.
   if (analytics is DartdevAnalytics &&
       !analytics.disclosureShownOnTerminal &&
-      io.stdout.hasTerminal) {
+      io.stdout.hasTerminal &&
+      !isBot()) {
     print(analyticsNoticeOnFirstRunMessage);
     analytics.disclosureShownOnTerminal = true;
   }
