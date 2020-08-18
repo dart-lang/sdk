@@ -53,12 +53,6 @@ import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:meta/meta.dart';
 
-export 'package:analyzer/dart/element/type_provider.dart';
-export 'package:analyzer/src/dart/constant/constant_verifier.dart';
-export 'package:analyzer/src/dart/element/type_system.dart';
-export 'package:analyzer/src/dart/resolver/exit_detector.dart';
-export 'package:analyzer/src/dart/resolver/scope.dart';
-
 /// Maintains and manages contextual type information used for
 /// inferring types.
 class InferenceContext {
@@ -2013,7 +2007,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      TypeSystem typeSystem,
+      TypeSystemImpl typeSystem,
       FeatureSet featureSet,
       MigrationResolutionHooks migrationResolutionHooks)
       : _migrationResolutionHooks = migrationResolutionHooks,
@@ -2427,7 +2421,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     } else if (parent is FunctionTypeAlias) {
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement.parameters,
+        parent.declaredElement.function.parameters,
       );
     } else if (parent is MethodDeclaration) {
       nameScope = FormalParameterScope(

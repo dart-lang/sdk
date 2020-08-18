@@ -2304,16 +2304,6 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   Token get endToken => _uri.endToken;
 
-  @deprecated
-  @override
-  StringLiteral get libraryUri => _uri;
-
-  @deprecated
-  @override
-  set libraryUri(StringLiteral libraryUri) {
-    _uri = _becomeParentOf(libraryUri as StringLiteralImpl);
-  }
-
   @override
   DottedName get name => _name;
 
@@ -2484,12 +2474,6 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addAll(initializers)
     ..add(_redirectedConstructor)
     ..add(_body);
-
-  @deprecated
-  @override
-  set element(ConstructorElement element) {
-    declaredElement = element;
-  }
 
   @override
   Token get endToken {
@@ -4346,7 +4330,7 @@ abstract class FormalParameterImpl extends AstNodeImpl
   @override
   bool get isRequiredPositional => kind.isRequiredPositional;
 
-  @override
+  /// Return the kind of this parameter.
   ParameterKind get kind;
 }
 
@@ -4929,12 +4913,6 @@ class FunctionExpressionImpl extends ExpressionImpl
   @override
   Iterable<SyntacticEntity> get childEntities =>
       ChildEntities()..add(_parameters)..add(_body);
-
-  @deprecated
-  @override
-  set element(ExecutableElement element) {
-    declaredElement = element;
-  }
 
   @override
   Token get endToken {
@@ -6050,14 +6028,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.primary;
-
-  @Deprecated('Use constructorName.staticElement')
-  @override
-  ConstructorElement get staticElement => constructorName.staticElement;
-
-  @Deprecated('Use constructorName.staticElement')
-  @override
-  set staticElement(ConstructorElement staticElement) {}
 
   /// Return the type arguments associated with the constructor, rather than
   /// with the class in which the constructor is defined. It is always an error
@@ -7384,16 +7354,6 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
 
-  @deprecated
-  @override
-  Source get source => selectedSource;
-
-  @deprecated
-  @override
-  set source(Source source) {
-    selectedSource = source;
-  }
-
   @override
   LibraryElement get uriElement;
 }
@@ -7498,7 +7458,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /// A list of AST nodes that have a common parent.
 class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /// The node that is the parent of each of the elements in the list.
-  AstNodeImpl _owner;
+  final AstNodeImpl _owner;
 
   /// The elements contained in the list.
   List<E> _elements = <E>[];
@@ -7530,7 +7490,6 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   @override
   int get length => _elements.length;
 
-  @deprecated // Never intended for public use.
   @override
   set length(int newLength) {
     throw UnsupportedError("Cannot resize NodeList.");
@@ -7538,11 +7497,6 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   AstNode get owner => _owner;
-
-  @override
-  set owner(AstNode value) {
-    _owner = value as AstNodeImpl;
-  }
 
   @override
   E operator [](int index) {
@@ -10396,16 +10350,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
       CommentImpl comment, List<Annotation> metadata, StringLiteralImpl uri)
       : super(comment, metadata) {
     _uri = _becomeParentOf(uri);
-  }
-
-  @deprecated
-  @override
-  Source get source => uriSource;
-
-  @deprecated
-  @override
-  set source(Source source) {
-    uriSource = source;
   }
 
   @override

@@ -84,10 +84,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
-  /// The flag specifying if currently visited class references 'super'
-  /// expression.
-  bool _hasReferenceToSuper = false;
-
   factory ResolutionVisitor({
     @required CompilationUnitElementImpl unitElement,
     @required AnalysisErrorListener errorListener,
@@ -241,13 +237,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _resolveWithClause(withClause);
         _resolveImplementsClause(node.implementsClause);
 
-        _hasReferenceToSuper = false;
-
         _defineElements(element.accessors);
         _defineElements(element.methods);
         node.members.accept(this);
-
-        element.hasReferenceToSuper = _hasReferenceToSuper;
       });
     });
 
@@ -902,12 +894,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
-  }
-
-  @override
-  void visitSuperExpression(SuperExpression node) {
-    _hasReferenceToSuper = true;
-    super.visitSuperExpression(node);
   }
 
   @override

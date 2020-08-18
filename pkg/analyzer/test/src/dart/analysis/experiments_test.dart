@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,7 +55,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getFlags(fromStrings(['no-a', 'a'])), [true]);
   }
@@ -67,7 +69,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getFlags(fromStrings(['a', 'no-a'])), [false]);
   }
@@ -79,7 +82,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -87,7 +91,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getFlags(fromStrings([])), [false, true]);
   }
@@ -99,7 +104,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getFlags(fromStrings(['no-a'])), [false]);
   }
@@ -111,7 +117,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getFlags(fromStrings(['no-a'])), [false]);
   }
@@ -123,7 +130,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getFlags(fromStrings(['a'])), [true]);
   }
@@ -135,7 +143,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getFlags(fromStrings(['a'])), [true]);
   }
@@ -148,7 +157,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getFlags(fromStrings(['no-a'])), [true]);
   }
@@ -161,7 +171,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getFlags(fromStrings(['a'])), [false]);
   }
@@ -174,7 +185,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getFlags(fromStrings(['no-a'])), [false]);
   }
@@ -187,7 +199,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getFlags(fromStrings(['a'])), [true]);
   }
@@ -204,7 +217,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -212,7 +226,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['c'] = ExperimentalFeature(
       index: 2,
@@ -220,7 +235,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'c',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult =
         getValidateCombinationResult(['a', 'no-c'], ['no-b', 'c']);
@@ -237,7 +253,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -245,7 +262,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['c'] = ExperimentalFeature(
       index: 2,
@@ -253,7 +271,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'c',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult =
         getValidateCombinationResult(['a', 'c'], ['no-b', 'no-c']);
@@ -270,7 +289,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -278,7 +298,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['c'] = ExperimentalFeature(
       index: 2,
@@ -286,7 +307,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'c',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getValidateCombinationResult(['a', 'c'], ['no-b', 'c']), isEmpty);
   }
@@ -298,7 +320,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['no-a', 'a']);
     expect(validationResult, hasLength(1));
@@ -318,7 +341,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['a', 'no-a']);
     expect(validationResult, hasLength(1));
@@ -338,7 +362,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getValidationResult(['no-a', 'no-a']), isEmpty);
   }
@@ -350,7 +375,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getValidationResult(['a', 'a']), isEmpty);
   }
@@ -362,7 +388,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     var validationResult = getValidationResult(['no-a']);
     expect(validationResult, hasLength(1));
@@ -380,7 +407,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['a']);
     expect(validationResult, hasLength(1));
@@ -398,7 +426,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['no-a']);
     expect(validationResult, hasLength(1));
@@ -416,7 +445,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     var validationResult = getValidationResult(['a']);
     expect(validationResult, hasLength(1));

@@ -60,7 +60,6 @@ class ArgumentsTest with ResourceProviderMixin {
 
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.strongMode, true);
     expect(defaultOptions.implicitCasts, false);
     expect(defaultOptions.implicitDynamic, false);
   }
@@ -79,7 +78,6 @@ class ArgumentsTest with ResourceProviderMixin {
     expect(options.defaultPackageFilePath, isNull);
     AnalysisOptionsImpl defaultOptions = options.defaultOptions;
     expect(defaultOptions, isNotNull);
-    expect(defaultOptions.strongMode, true);
     expect(defaultOptions.implicitCasts, true);
     expect(defaultOptions.implicitDynamic, true);
   }

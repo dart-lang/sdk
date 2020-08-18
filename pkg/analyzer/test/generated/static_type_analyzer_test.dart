@@ -709,7 +709,10 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void _assertType(
       InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
-    expect(actualType.getDisplayString(), expectedType.getDisplayString());
+    expect(
+      actualType.getDisplayString(withNullability: false),
+      expectedType.getDisplayString(withNullability: false),
+    );
     expect(actualType.element, expectedType.element);
     List<DartType> expectedArguments = expectedType.typeArguments;
     int length = expectedArguments.length;

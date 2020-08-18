@@ -560,8 +560,10 @@ f() {
 }
 ''');
     var invocation = findNode.functionExpressionInvocation('1(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'E')));
+    expect(
+      invocation.staticElement,
+      same(findElement.method('call', of: 'E')),
+    );
     assertInvokeType(invocation, 'int Function(int)');
   }
 

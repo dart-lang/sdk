@@ -1191,71 +1191,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(type.resolveToBound(null), same(type));
   }
 
-  @deprecated
-  void test_substitute2_equal() {
-    ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
-    TypeParameterType parameterType =
-        typeParameterTypeStar(definingClass.typeParameters[0]);
-    MethodElementImpl functionElement = MethodElementImpl('m', -1);
-    String namedParameterName = "c";
-    functionElement.parameters = <ParameterElement>[
-      ElementFactory.requiredParameter2("a", parameterType),
-      ElementFactory.positionalParameter2("b", parameterType),
-      ElementFactory.namedParameter2(namedParameterName, parameterType)
-    ];
-    functionElement.returnType = parameterType;
-    definingClass.methods = <MethodElement>[functionElement];
-    FunctionTypeImpl functionType = functionElement.type;
-    InterfaceTypeImpl argumentType =
-        interfaceTypeStar(ClassElementImpl('D', -1));
-    FunctionType result = functionType
-        .substitute2(<DartType>[argumentType], <DartType>[parameterType]);
-    expect(result.returnType, argumentType);
-    List<DartType> normalParameters = result.normalParameterTypes;
-    expect(normalParameters, hasLength(1));
-    expect(normalParameters[0], argumentType);
-    List<DartType> optionalParameters = result.optionalParameterTypes;
-    expect(optionalParameters, hasLength(1));
-    expect(optionalParameters[0], argumentType);
-    Map<String, DartType> namedParameters = result.namedParameterTypes;
-    expect(namedParameters, hasLength(1));
-    expect(namedParameters[namedParameterName], argumentType);
-  }
-
-  @deprecated
-  void test_substitute2_notEqual() {
-    DartType returnType = interfaceTypeStar(ClassElementImpl('R', -1));
-    DartType normalParameterType = interfaceTypeStar(ClassElementImpl('A', -1));
-    DartType optionalParameterType =
-        interfaceTypeStar(ClassElementImpl('B', -1));
-    DartType namedParameterType = interfaceTypeStar(ClassElementImpl('C', -1));
-    FunctionElementImpl functionElement = FunctionElementImpl('f', -1);
-    String namedParameterName = "c";
-    functionElement.parameters = <ParameterElement>[
-      ElementFactory.requiredParameter2("a", normalParameterType),
-      ElementFactory.positionalParameter2("b", optionalParameterType),
-      ElementFactory.namedParameter2(namedParameterName, namedParameterType)
-    ];
-    functionElement.returnType = returnType;
-    FunctionTypeImpl functionType = functionElement.type;
-    InterfaceTypeImpl argumentType =
-        interfaceTypeStar(ClassElementImpl('D', -1));
-    TypeParameterTypeImpl parameterType =
-        typeParameterTypeStar(TypeParameterElementImpl('E', -1));
-    FunctionType result = functionType
-        .substitute2(<DartType>[argumentType], <DartType>[parameterType]);
-    expect(result.returnType, returnType);
-    List<DartType> normalParameters = result.normalParameterTypes;
-    expect(normalParameters, hasLength(1));
-    expect(normalParameters[0], normalParameterType);
-    List<DartType> optionalParameters = result.optionalParameterTypes;
-    expect(optionalParameters, hasLength(1));
-    expect(optionalParameters[0], optionalParameterType);
-    Map<String, DartType> namedParameters = result.namedParameterTypes;
-    expect(namedParameters, hasLength(1));
-    expect(namedParameters[namedParameterName], namedParameterType);
-  }
-
   void test_toString_recursive() {
     var t = ElementFactory.genericTypeAliasElement("t");
     var s = ElementFactory.genericTypeAliasElement("s");
@@ -2096,44 +2031,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     // Returns this.
     expect(type.resolveToBound(null), same(type));
   }
-
-  @deprecated
-  void test_substitute_exception() {
-    try {
-      var classA = class_(name: 'A');
-      InterfaceTypeImpl type = interfaceTypeStar(classA);
-      InterfaceType argumentType = interfaceTypeStar(class_(name: 'B'));
-      type.substitute2(<DartType>[argumentType], <DartType>[]);
-      fail(
-          "Expected to encounter exception, argument and parameter type array lengths not equal.");
-    } catch (e) {
-      // Expected result
-    }
-  }
-
-  @deprecated
-  void test_substitute_notEqual() {
-    // The [test_substitute_equals] above has a slightly higher level
-    // implementation.
-    var classA = class_(name: 'A');
-    TypeParameterElementImpl parameterElement =
-        TypeParameterElementImpl('E', -1);
-    TypeParameterTypeImpl parameter = typeParameterTypeStar(parameterElement);
-    InterfaceTypeImpl type = InterfaceTypeImpl(
-      element: classA,
-      typeArguments: <DartType>[parameter],
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    InterfaceType argumentType = interfaceTypeStar(class_(name: 'B'));
-    TypeParameterTypeImpl parameterType =
-        typeParameterTypeStar(TypeParameterElementImpl('F', -1));
-    InterfaceType result =
-        type.substitute2(<DartType>[argumentType], <DartType>[parameterType]);
-    expect(result.element, classA);
-    List<DartType> resultArguments = result.typeArguments;
-    expect(resultArguments, hasLength(1));
-    expect(resultArguments[0], parameter);
-  }
 }
 
 @reflectiveTest
@@ -2384,27 +2281,6 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
     // Returns whatever type is passed to resolveToBound().
     expect(type.resolveToBound(VoidTypeImpl.instance),
         same(VoidTypeImpl.instance));
-  }
-
-  @deprecated
-  void test_substitute_equal() {
-    TypeParameterElementImpl element = TypeParameterElementImpl('E', -1);
-    TypeParameterTypeImpl type = typeParameterTypeStar(element);
-    InterfaceTypeImpl argument = interfaceTypeStar(ClassElementImpl('A', -1));
-    TypeParameterTypeImpl parameter = typeParameterTypeStar(element);
-    expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
-        same(argument));
-  }
-
-  @deprecated
-  void test_substitute_notEqual() {
-    TypeParameterTypeImpl type =
-        typeParameterTypeStar(TypeParameterElementImpl('E', -1));
-    InterfaceTypeImpl argument = interfaceTypeStar(ClassElementImpl('A', -1));
-    TypeParameterTypeImpl parameter =
-        typeParameterTypeStar(TypeParameterElementImpl('F', -1));
-    expect(type.substitute2(<DartType>[argument], <DartType>[parameter]),
-        same(type));
   }
 
   void _assert_asInstanceOf(

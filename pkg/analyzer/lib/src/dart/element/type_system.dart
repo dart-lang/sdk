@@ -35,12 +35,12 @@ import 'package:meta/meta.dart';
 /// way for a possible future where we may wish to make the type system
 /// pluggable.
 // TODO(brianwilkerson) Rename this class to TypeSystemImpl.
-abstract class TypeSystem implements public.TypeSystem {
+abstract class TypeSystem2 implements public.TypeSystem {
   /// If `true`, then NNBD type rules should be used.
   /// If `false`, then legacy type rules should be used.
   final bool isNonNullableByDefault;
 
-  TypeSystem({@required this.isNonNullableByDefault});
+  TypeSystem2({@required this.isNonNullableByDefault});
 
   /// The provider of types for the system
   TypeProvider get typeProvider;
@@ -394,7 +394,7 @@ abstract class TypeSystem implements public.TypeSystem {
 }
 
 /// The [public.TypeSystem] implementation.
-class TypeSystemImpl extends TypeSystem {
+class TypeSystemImpl extends TypeSystem2 {
   /// False if implicit casts should always be disallowed.
   ///
   /// This affects the behavior of [isAssignableTo].
