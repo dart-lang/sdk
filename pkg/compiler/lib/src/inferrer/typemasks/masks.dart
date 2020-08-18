@@ -310,7 +310,7 @@ class CommonMasks implements AbstractValueDomain {
 
     AbstractValueWithPrecision finish(TypeMask value, bool isPrecise) {
       return AbstractValueWithPrecision(
-          nullable ? value : value.nonNullable(), isPrecise);
+          nullable ? value.nullable() : value, isPrecise);
     }
 
     bool isPrecise = true;
@@ -363,25 +363,27 @@ class CommonMasks implements AbstractValueDomain {
       }
       switch (classRelation) {
         case ClassRelation.exact:
-          return finish(TypeMask.exact(cls, _closedWorld), isPrecise);
+          return finish(TypeMask.nonNullExact(cls, _closedWorld), isPrecise);
         case ClassRelation.thisExpression:
           if (!_closedWorld.isUsedAsMixin(cls)) {
-            return finish(TypeMask.subclass(cls, _closedWorld), isPrecise);
+            return finish(
+                TypeMask.nonNullSubclass(cls, _closedWorld), isPrecise);
           }
           break;
         case ClassRelation.subtype:
           break;
       }
-      return finish(TypeMask.subtype(cls, _closedWorld), isPrecise);
+      return finish(TypeMask.nonNullSubtype(cls, _closedWorld), isPrecise);
     }
 
     if (type is FunctionType) {
       return finish(
-          TypeMask.subtype(commonElements.functionClass, _closedWorld), false);
+          TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld),
+          false);
     }
 
     if (type is NeverType) {
-      return finish(nullType, isPrecise);
+      return finish(emptyType, isPrecise);
     }
 
     return AbstractValueWithPrecision(dynamicType, false);
