@@ -1871,7 +1871,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       node.checkedTypeExpression = recipe.type;
     }
 
-    if (node.isRedundant(_closedWorld, useNullSafety: _options.useNullSafety)) {
+    if (node.isRedundant(_closedWorld, _options)) {
       return node.checkedInput;
     }
 
@@ -1896,7 +1896,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
-    if (node.isRedundant(_closedWorld, useNullSafety: _options.useNullSafety)) {
+    if (node.isRedundant(_closedWorld, _options)) {
       return node.checkedInput;
     }
     return node;
@@ -1910,8 +1910,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       node.dartType = recipe.type;
     }
 
-    AbstractBool result =
-        node.evaluate(_closedWorld, useNullSafety: _options.useNullSafety);
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -1947,8 +1946,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result =
-        node.evaluate(_closedWorld, useNullSafety: _options.useNullSafety);
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }

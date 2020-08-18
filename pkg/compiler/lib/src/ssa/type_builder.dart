@@ -83,7 +83,8 @@ abstract class TypeBuilder {
     // `buildAsCheck` in `SsaBuilder.visitAs` should also be followed by a
     // similar operation on `registry`; otherwise, this one might not be needed.
     builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
-    if (other is HAsCheck && other.isRedundant(builder.closedWorld)) {
+    if (other is HAsCheck &&
+        other.isRedundant(builder.closedWorld, builder.options)) {
       return original;
     }
     return other;

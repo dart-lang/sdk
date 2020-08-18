@@ -33,7 +33,7 @@ class C implements B<int> {
   external factory C();
 }
 
-/*class: D:checkedInstance*/
+/*class: D:*/
 class D<T> {}
 
 /*class: E:checks=[],instance,onlyForRti*/

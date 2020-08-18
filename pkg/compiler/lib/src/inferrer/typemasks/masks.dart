@@ -428,7 +428,7 @@ class CommonMasks implements AbstractValueDomain {
   AbstractBool isInstanceOf(
       covariant TypeMask expressionMask, ClassEntity cls) {
     AbstractValue typeMask = (cls == commonElements.nullClass)
-        ? createNullableSubtype(cls)
+        ? nullType
         : createNonNullSubtype(cls);
     if (expressionMask.union(typeMask, this) == typeMask) {
       return AbstractBool.True;
