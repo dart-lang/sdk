@@ -83,3 +83,12 @@ class _Foo {
   Future<void> get asyncProperty => doAsync();
   List<Future<void>> get futures => [doAsync()];
 }
+
+/// https://github.com/dart-lang/linter/issues/2211
+class Future2 extends Future {}
+
+Future2 fut2() => null;
+
+f2() async {
+  fut2(); //LINT
+}

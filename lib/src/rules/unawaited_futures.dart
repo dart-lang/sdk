@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../util/dart_type_utilities.dart';
 
 const _desc = r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `package:pedantic`.';
@@ -81,7 +82,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expr is AssignmentExpression) return;
 
     var type = expr?.staticType;
-    if (type?.isDartAsyncFuture == true) {
+    if (type == null) {
+      return;
+    }
+    if (DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async')) {
       // Ignore a couple of special known cases.
       if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
           _isMapPutIfAbsentInvocation(expr)) {
