@@ -7,4 +7,5 @@ component("wasmer") {
 
 rust_library("wasmer_lib") {
   lib_name = "wasmer"
+  shared = true
 }
