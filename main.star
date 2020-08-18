@@ -693,10 +693,10 @@ def dart_vm_low_priority_builder(name, **kwargs):
 
 nightly_builders = []
 
-def dart_vm_nightly_builder(name, **kwargs):
+def dart_vm_nightly_builder(name, notifies = None, **kwargs):
     dart_ci_sandbox_builder(
         name,
-        notifies = None,
+        notifies = notifies,
         on_cq = False,
         priority = LOW,
         schedule = "triggered",  # triggered by nightly cron builder
@@ -704,6 +704,20 @@ def dart_vm_nightly_builder(name, **kwargs):
         **kwargs
     )
     nightly_builders.append(name)
+
+weekly_builders = []
+
+def weekly_ci_sandbox_builder(name, notifies = None, **kwargs):
+    dart_ci_sandbox_builder(
+        name,
+        notifies = notifies,
+        on_cq = False,
+        priority = LOW,
+        schedule = "triggered",  # triggered by weekly cron builder
+        triggered_by = None,
+        **kwargs
+    )
+    weekly_builders.append(name)
 
 # cfe
 dart_ci_sandbox_builder(
@@ -731,6 +745,12 @@ dart_ci_sandbox_builder(
     category = "cfe|fl",
     channels = ["try"],
     notifies = "frontend-team",
+)
+weekly_ci_sandbox_builder(
+    "frontend-weekly",
+    notifies = "frontend-team",
+    channels = [],
+    execution_timeout = 12 * time.hour,
 )
 
 # flutter
@@ -1300,6 +1320,13 @@ dart_infra_builder(
     properties = {"builders": nightly_builders},
     recipe = "cron/cron",
     schedule = "0 5 * * *",  # daily, at 05:00 UTC
+)
+dart_infra_builder(
+    "weekly",
+    notifies = "infra",
+    properties = {"builders": weekly_builders},
+    recipe = "cron/cron",
+    schedule = "0 0 * * SUN",  # weekly, midnight Saturday to Sunday
 )
 
 dart_ci_sandbox_builder(
