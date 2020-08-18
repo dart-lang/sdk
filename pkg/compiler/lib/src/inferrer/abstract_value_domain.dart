@@ -46,6 +46,26 @@ class AbstractBool {
 
   static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
 
+  AbstractBool operator &(AbstractBool other) {
+    if (isDefinitelyTrue) return other;
+    if (other.isDefinitelyTrue) return this;
+    if (isDefinitelyFalse || other.isDefinitelyFalse) return False;
+    return Maybe;
+  }
+
+  AbstractBool operator |(AbstractBool other) {
+    if (isDefinitelyFalse) return other;
+    if (other.isDefinitelyFalse) return this;
+    if (isDefinitelyTrue || other.isDefinitelyTrue) return True;
+    return Maybe;
+  }
+
+  AbstractBool operator ~() {
+    if (isDefinitelyTrue) return AbstractBool.False;
+    if (isDefinitelyFalse) return AbstractBool.True;
+    return AbstractBool.Maybe;
+  }
+
   @override
   String toString() =>
       'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';

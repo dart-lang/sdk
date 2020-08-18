@@ -212,15 +212,6 @@ abstract class CommonElements {
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType streamType([DartType elementType]);
 
-  /// Returns `true` if [element] is a superclass of `String` or `num`.
-  bool isNumberOrStringSupertype(ClassEntity element);
-
-  /// Returns `true` if [element] is a superclass of `String`.
-  bool isStringOnlySupertype(ClassEntity element);
-
-  /// Returns `true` if [element] is a superclass of `List`.
-  bool isListSupertype(ClassEntity element);
-
   InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
@@ -981,19 +972,6 @@ class CommonElementsImpl
     }
     return _createInterfaceType(streamClass, [elementType]);
   }
-
-  @override
-  bool isNumberOrStringSupertype(ClassEntity element) {
-    return element == _findClass(coreLibrary, 'Comparable', required: false);
-  }
-
-  @override
-  bool isStringOnlySupertype(ClassEntity element) {
-    return element == _findClass(coreLibrary, 'Pattern', required: false);
-  }
-
-  @override
-  bool isListSupertype(ClassEntity element) => element == iterableClass;
 
   ClassEntity _findClass(LibraryEntity library, String name,
       {bool required: true}) {
