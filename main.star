@@ -1266,10 +1266,10 @@ dart_ci_builder(
 dart_ci_sandbox_builder(
     "google",
     recipe = "dart/external",
-    category = "external|g",
+    category = "flutter|g3",
     channels = [],
+    lkgr = True,
     triggered_by = None,
-    fyi = True,
     notifies = None,
 )
 
