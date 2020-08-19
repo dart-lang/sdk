@@ -891,7 +891,7 @@ dart_ci_sandbox_builder(
 dart_vm_extra_builder(
     "cross-vm-linux-release-arm64",
     category = "vm|kernel|cra",
-    channels = RELEASE_CHANNELS,
+    channels = [],
     properties = {"shard_timeout": (90 * time.minute) // time.second},
 )
 
