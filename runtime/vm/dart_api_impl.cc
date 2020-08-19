@@ -1426,20 +1426,18 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       group->RunWithLockedGroup([&]() {
         // Ensure no other old space GC tasks are running and "occupy" the old
         // space.
+        SafepointOperationScope safepoint_scope(thread);
         {
           auto old_space = group->heap()->old_space();
           MonitorLocker ml(old_space->tasks_lock());
           while (old_space->tasks() > 0) {
-            ml.WaitWithSafepointCheck(thread);
+            ml.Wait();
           }
           old_space->set_tasks(1);
         }
 
         // Merge the heap from [spawning_group] to [group].
-        {
-          SafepointOperationScope safepoint_scope(thread);
-          group->heap()->MergeFrom(isolate->group()->heap());
-        }
+        group->heap()->MergeFrom(isolate->group()->heap());
 
         spawning_group->UnregisterIsolate(isolate);
         const bool shutdown_group =

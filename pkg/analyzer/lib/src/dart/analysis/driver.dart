@@ -587,7 +587,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [path] must be absolute and normalized.
   FileResult getFileSync(String path) {
     _throwIfNotAbsolutePath(path);
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fileTracker.getFile(path);
     return FileResultImpl(
         _currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
@@ -819,7 +819,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<SourceKind> getSourceKind(String path) async {
     _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fileTracker.verifyApiSignature(path);
+      FileState file = _fileTracker.getFile(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;
@@ -907,7 +907,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// resolved unit).
   ParsedUnitResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fileTracker.getFile(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return ParsedUnitResultImpl(currentSession, file.path, file.uri,
