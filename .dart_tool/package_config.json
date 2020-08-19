@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-08-18T11:26:08.472483",
+  "generated": "2020-08-17T14:05:33.104579",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -515,7 +515,7 @@
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.1"
+      "languageVersion": "2.0"
     },
     {
       "name": "shelf_packages_handler",
@@ -714,12 +714,6 @@
       "rootUri": "../pkg/vm_snapshot_analysis",
       "packageUri": "lib/",
       "languageVersion": "2.8"
-    },
-    {
-      "name": "wasm",
-      "rootUri": "../pkg/wasm",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
     },
     {
       "name": "watcher",

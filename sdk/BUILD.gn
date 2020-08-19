@@ -582,22 +582,6 @@ copy("copy_analysis_summaries") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_wasmer") {
-  visibility = [ ":create_common_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../third_party/wasmer:wasmer_lib",
-  ]
-  outputs = [ "$root_out_dir/dart-sdk/bin/third_party/wasmer/{{source_file_part}}" ]
-  if (is_win) {
-    sources = [ "$root_out_dir/obj/third_party/wasmer/wasmer.dll" ]
-  } else if (is_mac) {
-    sources = [ "$root_out_dir/obj/third_party/wasmer/libwasmer.dylib" ]
-  } else {
-    sources = [ "$root_out_dir/obj/third_party/wasmer/libwasmer.so" ]
-  }
-}
-
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -917,11 +901,6 @@ group("create_common_sdk") {
   }
   if (target_cpu == "x64") {
     public_deps += [ ":copy_libtensorflowlite_c" ]
-  }
-
-  # CIPD only has versions of the Rust compiler for linux and mac x64.
-  if (host_cpu == "x64" && (host_os == "linux" || host_os == "mac")) {
-    public_deps += [ ":copy_wasmer" ]
   }
 }
 

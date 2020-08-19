@@ -4,7 +4,7 @@ version = "0.17.1"
 
 [lib]
 name = "wasmer"
-crate-type = ["dylib"]
+crate-type = ["staticlib"]
 path = "wasmer.rs"
 
 [dependencies]

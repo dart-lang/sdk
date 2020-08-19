@@ -133,7 +133,7 @@ vars = {
   "quiver-dart_tag": "246e754fe45cecb6aa5f3f13b4ed61037ff0d784",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
-  "rust_revision": "cbe7c5ce705896d4e22bf6096590bc1f17993b78",
+  "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "2.0.0",
   "shelf_proxy_tag": "0.1.0+7",
