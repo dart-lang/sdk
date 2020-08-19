@@ -85,8 +85,8 @@ front_end/test/fasta/strong4_test: Pass, ExtraSlow
 front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
 front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
-front_end/test/incremental_compiler_leak_test.dart: Pass, Slow
-front_end/test/incremental_dart2js_test.dart: Pass, Slow
+front_end/test/incremental_compiler_leak_test: Pass, Slow
+front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
 front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.

@@ -1587,6 +1587,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'CONST_EVAL_TYPE_TYPE',
       "In constant expressions, operands of this operator must be of type "
           "'Type'.");
+
   /**
    * Parameters:
    * 0: the name of the type of the initializer expression
@@ -2534,7 +2535,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
       'EXPORT_LEGACY_SYMBOL',
       "The symbol '{0}' is defined in a legacy library, and can't be "
-          "re-exported from a non-nullable by default library.",
+          "re-exported from a library with null safety enabled.",
       correction: "Try removing the export or migrating the legacy library.",
       hasPublishedDocs: true);
 
