@@ -18,7 +18,10 @@ main() {
 }
 
 @reflectiveTest
-class MethodInvocationResolutionTest extends PubPackageResolutionTest {
+class MethodInvocationResolutionTest extends PubPackageResolutionTest
+    with MethodInvocationResolutionTestCases {}
+
+mixin MethodInvocationResolutionTestCases on PubPackageResolutionTest {
   test_error_ambiguousImport_topFunction() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}
@@ -91,14 +94,14 @@ main(A a) {
   test_error_invocationOfNonFunction_interface_hasCall_field() async {
     await assertErrorsInCode(r'''
 class C {
-  void Function() call;
+  void Function() call = throw Error();
 }
 
 main(C c) {
   c();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 51, 1),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 67, 1),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('c();');
@@ -237,6 +240,7 @@ typedef MyFunction = double Function(int _);
 
 class C<T extends MyFunction> {
   T foo;
+  C(this.foo);
   
   main() {
     foo(0);
@@ -257,14 +261,14 @@ class C<T extends MyFunction> {
   test_error_invocationOfNonFunction_static_hasTarget() async {
     await assertErrorsInCode(r'''
 class C {
-  static int foo;
+  static int foo = 0;
 }
 
 main() {
   C.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 42, 5),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 5),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -281,14 +285,14 @@ main() {
   test_error_invocationOfNonFunction_static_noTarget() async {
     await assertErrorsInCode(r'''
 class C {
-  static int foo;
+  static int foo = 0;
   
   main() {
     foo();
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 46, 3),
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 50, 3),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -356,6 +360,7 @@ main() {
   }
 
   test_error_prefixIdentifierNotFollowedByDot_deferred() async {
+    var question = typeToStringWithNullability ? '?' : '';
     await assertErrorsInCode(r'''
 import 'dart:math' deferred as math;
 
@@ -373,6 +378,7 @@ main() {
       invocation,
       import.importedLibrary.loadLibraryFunction,
       'Future<dynamic> Function()',
+      expectedType: 'Future<dynamic>$question',
     );
     assertImportPrefix(invocation.target, import.prefix);
   }
@@ -445,12 +451,12 @@ main() {
     await assertErrorsInCode(r'''
 class C {}
 
-int x;
+int x = 0;
 main() {
   C.foo(x);
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 32, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 36, 3),
     ]);
 
     _assertUnresolvedMethodInvocation('foo(x);');
@@ -545,6 +551,8 @@ main() {
   null.foo();
 }
 ''', [
+      if (typeToStringWithNullability)
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 11, 4),
       error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo();');
@@ -688,16 +696,19 @@ main() {
   }
 
   test_error_useOfVoidResult_name_getter() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode('''
 class C<T>{
   T foo;
+  C(this.foo);
 }
 
 main(C<void> c) {
   c.foo();
 }
 ''', [
-      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 44, 5),
+      if (typeToStringWithNullability)
+        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 59, 5),
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 59, 5),
     ]);
 
     var invocation = findNode.functionExpressionInvocation('foo();');
@@ -718,6 +729,8 @@ main() {
   foo();
 }
 ''', [
+      if (typeToStringWithNullability)
+        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
 
@@ -739,6 +752,8 @@ main() {
   foo()();
 }
 ''', [
+      if (typeToStringWithNullability)
+        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 5),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 26, 3),
     ]);
     assertMethodInvocation(
@@ -756,6 +771,8 @@ main() {
   foo();
 }
 ''', [
+      if (typeToStringWithNullability)
+        error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 3),
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 22, 3),
     ]);
 
@@ -804,6 +821,7 @@ main() {
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
+    var question = typeToStringWithNullability ? '?' : '';
     await assertErrorsInCode(r'''
 main() {
   void foo;
@@ -817,6 +835,7 @@ main() {
       findNode.methodInvocation('toString()'),
       null,
       'String Function()',
+      expectedType: 'String$question',
     );
   }
 
@@ -840,13 +859,13 @@ main() {
 
   test_error_wrongNumberOfTypeArgumentsMethod_21() async {
     await assertErrorsInCode(r'''
-Map<T, U> foo<T extends num, U>() => null;
+Map<T, U> foo<T extends num, U>() => throw Error();
 
 main() {
   foo<int>();
 }
 ''', [
-      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 58, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD, 67, 5),
     ]);
     assertMethodInvocation(
       findNode.methodInvocation('foo<int>()'),
@@ -860,7 +879,7 @@ main() {
   test_hasReceiver_class_staticGetter() async {
     await assertNoErrorsInCode(r'''
 class C {
-  static double Function(int) get foo => null;
+  static double Function(int) get foo => throw Error();
 }
 
 main() {
@@ -1040,8 +1059,8 @@ main() {
 
   test_hasReceiver_instance_Function_call_localVariable() async {
     await assertNoErrorsInCode(r'''
-void main() {
-  Function foo;
+void main(Function getFunction()) {
+  Function foo = getFunction();
 
   foo.call(0);
 }
@@ -1051,7 +1070,7 @@ void main() {
 
   test_hasReceiver_instance_Function_call_topVariable() async {
     await assertNoErrorsInCode(r'''
-Function foo;
+Function foo = throw Error();
 
 void main() {
   foo.call(0);
@@ -1063,7 +1082,7 @@ void main() {
   test_hasReceiver_instance_getter() async {
     await assertNoErrorsInCode(r'''
 class C {
-  double Function(int) get foo => null;
+  double Function(int) get foo => throw Error();
 }
 
 main(C c) {
@@ -1164,6 +1183,7 @@ class A {
 
 class C<T extends A> {
   T a;
+  C(this.a);
   
   main() {
     a.foo(0);
@@ -1243,7 +1263,7 @@ main() {
   test_hasReceiver_super_getter() async {
     await assertNoErrorsInCode(r'''
 class A {
-  double Function(int) get foo => null;
+  double Function(int) get foo => throw Error();
 }
 
 class B extends A {
@@ -1289,8 +1309,9 @@ class B extends A {
   }
 
   test_namedArgument() async {
-    await assertNoErrorsInCode(r'''
-void foo({int a, bool b}) {}
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertNoErrorsInCode('''
+void foo({int$question a, bool$question b}) {}
 
 main() {
   foo(b: false, a: 0);
@@ -1301,7 +1322,7 @@ main() {
     assertMethodInvocation(
       invocation,
       findElement.topFunction('foo'),
-      'void Function({int a, bool b})',
+      'void Function({int$question a, bool$question b})',
     );
     assertNamedParameterRef('b: false', 'b');
     assertNamedParameterRef('a: 0', 'a');
@@ -1310,7 +1331,7 @@ main() {
   test_noReceiver_getter_superClass() async {
     await assertNoErrorsInCode(r'''
 class A {
-  double Function(int) get foo => null;
+  double Function(int) get foo => throw Error();
 }
 
 class B extends A {
@@ -1333,7 +1354,7 @@ class B extends A {
   test_noReceiver_getter_thisClass() async {
     await assertNoErrorsInCode(r'''
 class C {
-  double Function(int) get foo => null;
+  double Function(int) get foo => throw Error();
 
   void bar() {
     foo(0);
@@ -1482,8 +1503,9 @@ class C {
   }
 
   test_noReceiver_parameter_call_nullAware() async {
-    await assertNoErrorsInCode(r'''
-double Function(int) foo;
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertNoErrorsInCode('''
+double Function(int)$question foo;
 
 main() {
   foo?.call(1);
@@ -1491,7 +1513,11 @@ main() {
     ''');
 
     var invocation = findNode.methodInvocation('call(1)');
-    assertTypeLegacy(invocation.target);
+    if (typeToStringWithNullability) {
+      assertType(invocation.target, 'double Function(int)?');
+    } else {
+      assertTypeLegacy(invocation.target);
+    }
   }
 
   test_noReceiver_topFunction() async {
@@ -1514,7 +1540,7 @@ main() {
 
   test_noReceiver_topGetter() async {
     await assertNoErrorsInCode(r'''
-double Function(int) get foo => null;
+double Function(int) get foo => throw Error();
 
 main() {
   foo(0);
@@ -1533,7 +1559,7 @@ main() {
 
   test_noReceiver_topVariable() async {
     await assertNoErrorsInCode(r'''
-void Function(int) foo;
+void Function(int) foo = throw Error();
 
 main() {
   foo(0);
@@ -1604,13 +1630,13 @@ class A {
 
   test_typeArgumentTypes_generic_inferred() async {
     await assertErrorsInCode(r'''
-U foo<T, U>(T a) => null;
+U foo<T, U>(T a) => throw Error();
 
 main() {
   bool v = foo(0);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
     ]);
 
     var invocation = findNode.methodInvocation('foo(0)');
@@ -1717,7 +1743,8 @@ main() {
 
 @reflectiveTest
 class MethodInvocationResolutionWithNullSafetyTest
-    extends PubPackageResolutionTest with WithNullSafetyMixin {
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, MethodInvocationResolutionTestCases {
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
