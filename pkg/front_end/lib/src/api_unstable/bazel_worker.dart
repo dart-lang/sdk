@@ -25,6 +25,8 @@ import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../api_prototype/front_end.dart' show CompilerResult;
 
+import '../base/nnbd_mode.dart' show NnbdMode;
+
 import '../base/processed_options.dart' show ProcessedOptions;
 
 import '../kernel_generator_impl.dart' show generateKernel;
@@ -50,6 +52,8 @@ export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 
+export '../base/nnbd_mode.dart' show NnbdMode;
+
 export '../fasta/kernel/utils.dart' show serializeComponent;
 
 export 'compiler_state.dart' show InitializedCompilerState;
@@ -72,7 +76,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     bool outlineOnly,
     Map<String, String> environmentDefines,
     {bool trackNeededDillLibraries: false,
-    bool verbose: false}) async {
+    bool verbose: false,
+    NnbdMode nnbdMode: NnbdMode.Weak}) async {
   List<Component> outputLoadedAdditionalDills =
       new List<Component>(additionalDills.length);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
@@ -94,7 +99,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       omitPlatform: true,
       trackNeededDillLibraries: trackNeededDillLibraries,
       environmentDefines: environmentDefines,
-      verbose: verbose);
+      verbose: verbose,
+      nnbdMode: nnbdMode);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -108,6 +114,7 @@ Future<InitializedCompilerState> initializeCompiler(
   Iterable<String> experiments,
   Map<String, String> environmentDefines, {
   bool verbose: false,
+  NnbdMode nnbdMode: NnbdMode.Weak,
 }) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
@@ -125,7 +132,8 @@ Future<InitializedCompilerState> initializeCompiler(
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e)
-    ..verbose = verbose;
+    ..verbose = verbose
+    ..nnbdMode = nnbdMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
