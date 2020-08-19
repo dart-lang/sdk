@@ -31,7 +31,6 @@ dependencies:
 
 dev_dependencies:
   analysis_tool: any
-  html: any
   http: any
   logging: any
   matcher: any
