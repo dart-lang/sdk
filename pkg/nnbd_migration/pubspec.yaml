@@ -21,5 +21,4 @@ dependencies:
 dev_dependencies:
   http: '>=0.11.3+17 <0.13.0'
   test: ^1.6.4
-  test_core: '>=0.2.6 <0.4.0'
   test_reflective_loader: ^0.1.8
