@@ -8078,7 +8078,8 @@ class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  bool _extendsNullShorting(Expression child) => identical(child, operand);
+  bool _extendsNullShorting(Expression child) =>
+      operator.type != TokenType.BANG && identical(child, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
