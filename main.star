@@ -311,6 +311,7 @@ luci.notifier(
         "athom@google.com",
         "sortie@google.com",
         "whesse@google.com",
+        "karlklose@google.com",
     ],
 )
 
