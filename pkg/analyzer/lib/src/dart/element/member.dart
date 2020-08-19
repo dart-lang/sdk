@@ -451,6 +451,9 @@ abstract class Member implements Element {
   bool get hasDeprecated => _declaration.hasDeprecated;
 
   @override
+  bool get hasDoNotStore => _declaration.hasDoNotStore;
+
+  @override
   bool get hasFactory => _declaration.hasFactory;
 
   @override

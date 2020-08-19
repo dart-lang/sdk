@@ -2284,6 +2284,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// deprecated.
   static const String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
+  /// The name of the top-level variable used to mark an element as not to be
+  /// stored.
+  static const String _DO_NOT_STORE_VARIABLE_NAME = "doNotStore";
+
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
   static const String _FACTORY_VARIABLE_NAME = "factory";
@@ -2410,6 +2414,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isDoNotStore =>
+      element is PropertyAccessorElement &&
+      element.name == _DO_NOT_STORE_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isFactory =>
@@ -2668,6 +2678,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDeprecated) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasDoNotStore {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDoNotStore) {
         return true;
       }
     }
@@ -5956,6 +5978,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasDeprecated => false;
+
+  @override
+  bool get hasDoNotStore => false;
 
   @override
   bool get hasFactory => false;

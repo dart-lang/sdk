@@ -528,6 +528,9 @@ abstract class Element implements AnalysisTarget {
   /// or `@Deprecated('..')`.
   bool get hasDeprecated;
 
+  /// Return `true` if this element has an annotation of the form `@doNotStore`.
+  bool get hasDoNotStore;
+
   /// Return `true` if this element has an annotation of the form `@factory`.
   bool get hasFactory;
 
@@ -701,6 +704,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated element as being
   /// deprecated.
   bool get isDeprecated;
+
+  /// Return `true` if this annotation marks the associated element as not to be
+  /// stored.
+  bool get isDoNotStore;
 
   /// Return `true` if this annotation marks the associated member as a factory.
   bool get isFactory;
