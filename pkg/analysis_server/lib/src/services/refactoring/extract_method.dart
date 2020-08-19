@@ -718,7 +718,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      TypeSystem typeSystem = await resolveResult.typeSystem;
+      var typeSystem = resolveResult.typeSystem;
       var returnTypeComputer = _ReturnTypeComputer(typeSystem);
       _selectionStatements.forEach((statement) {
         statement.accept(returnTypeComputer);
