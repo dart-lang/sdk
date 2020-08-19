@@ -83,7 +83,9 @@ function setFunctionNamesIfNecessary(holders) {
 // Older IEs use `Object.create` and copy over the properties.
 function inherit(cls, sup) {
   // Note that RTI needs cls.name, but we don't need to set it anymore.
-  cls.prototype.constructor = cls;
+  if (#legacyJavaScript) {
+    cls.prototype.constructor = cls;
+  }
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
 
   // The superclass is only null for the Dart Object.
@@ -730,6 +732,7 @@ class FragmentEmitter {
       'call0selector': js.quoteName(call0Name),
       'call1selector': js.quoteName(call1Name),
       'call2selector': js.quoteName(call2Name),
+      'legacyJavaScript': _options.legacyJavaScript
     });
     if (program.hasSoftDeferredClasses) {
       mainCode = js.Block([
@@ -1129,9 +1132,12 @@ class FragmentEmitter {
     List<js.Property> properties = [];
 
     if (cls.superclass == null) {
-      // TODO(sra): What is this doing? Document or remove.
-      properties
-          .add(js.Property(js.string("constructor"), classReference(cls)));
+      // ie11 might require us to set 'constructor' but we aren't 100% sure.
+      if (_options.legacyJavaScript) {
+        properties
+            .add(js.Property(js.string("constructor"), classReference(cls)));
+      }
+
       properties.add(js.Property(_namer.operatorIs(cls.element), js.number(1)));
     }
 
