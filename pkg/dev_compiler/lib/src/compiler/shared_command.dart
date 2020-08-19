@@ -61,13 +61,6 @@ class SharedCompilerOptions {
   /// runtime can enable synchronous stack trace deobsfuscation.
   final bool inlineSourceMap;
 
-  /// Whether to emit the debug metadata
-  ///
-  /// Debugger uses this information about to construct mapping between
-  /// modules and libraries that otherwise requires expensive communication with
-  /// the browser.
-  final bool emitDebugMetadata;
-
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -82,9 +75,29 @@ class SharedCompilerOptions {
   /// This should only set `true` by our REPL compiler.
   bool replCompile;
 
+  /// Whether to emit the debug metadata
+  ///
+  /// Debugger uses this information about to construct mapping between
+  /// modules and libraries that otherwise requires expensive communication with
+  /// the browser.
+  final bool emitDebugMetadata;
+
   final Map<String, String> summaryModules;
 
   final List<ModuleFormat> moduleFormats;
+
+  /// The name of the module.
+  ///
+  /// This is used to support file concatenation. The JS module will contain its
+  /// module name inside itself, allowing it to declare the module name
+  /// independently of the file.
+  final String moduleName;
+
+  /// Custom scheme to indicate a multi-root uri.
+  final String multiRootScheme;
+
+  /// Path to set multi-root files relative to when generating source-maps.
+  final String multiRootOutputPath;
 
   /// Experimental language features that are enabled/disabled, see
   /// [the spec](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md)
@@ -92,13 +105,6 @@ class SharedCompilerOptions {
   final Map<String, bool> experiments;
 
   final bool soundNullSafety;
-
-  /// The name of the module.
-  ///
-  /// This used when to support file concatenation. The JS module will contain
-  /// its module name inside itself, allowing it to declare the module name
-  /// independently of the file.
-  String moduleName;
 
   SharedCompilerOptions(
       {this.sourceMap = true,
@@ -109,39 +115,52 @@ class SharedCompilerOptions {
       this.emitDebugMetadata = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
-      this.experiments = const {},
       this.moduleName,
+      this.multiRootScheme,
+      this.multiRootOutputPath,
+      this.experiments = const {},
       this.soundNullSafety = false});
 
-  SharedCompilerOptions.fromArguments(ArgResults args,
-      [String moduleRoot, String summaryExtension])
+  SharedCompilerOptions.fromArguments(ArgResults args)
       : this(
             sourceMap: args['source-map'] as bool,
             inlineSourceMap: args['inline-source-map'] as bool,
             summarizeApi: args['summarize'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
+            replCompile: args['repl-compile'] as bool,
+            emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
+            summaryModules:
+                _parseCustomSummaryModules(args['summary'] as List<String>),
+            moduleFormats: parseModuleFormatOption(args),
+            moduleName: _getModuleName(args),
+            multiRootScheme: args['multi-root-scheme'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String,
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
-            summaryModules: _parseCustomSummaryModules(
-                args['summary'] as List<String>, moduleRoot, summaryExtension),
+            soundNullSafety: args['sound-null-safety'] as bool);
+
+  SharedCompilerOptions.fromSdkRequiredArguments(ArgResults args)
+      : this(
+            summarizeApi: false,
             moduleFormats: parseModuleFormatOption(args),
-            moduleName: _getModuleName(args, moduleRoot),
-            replCompile: args['repl-compile'] as bool,
-            soundNullSafety: args['sound-null-safety'] as bool,
-            emitDebugMetadata:
-                args['experimental-emit-debug-metadata'] as bool);
+            // When compiling the SDK use dart_sdk as the default. This is the
+            // assumed name in various places around the build systems.
+            moduleName:
+                args['module-name'] != null ? _getModuleName(args) : 'dart_sdk',
+            multiRootScheme: args['multi-root-scheme'] as String,
+            multiRootOutputPath: args['multi-root-output-path'] as String,
+            experiments: parseExperimentalArguments(
+                args['enable-experiment'] as List<String>),
+            soundNullSafety: args['sound-null-safety'] as bool);
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
-    addModuleFormatOptions(parser, hide: hide);
+    addSdkRequiredArguments(parser, hide: hide);
 
     parser
-      ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
       ..addMultiOption('summary',
           abbr: 's',
           help: 'API summary file(s) of imported libraries, optionally\n'
               'with module import path: -s path.dill=js/import/path')
-      ..addMultiOption('enable-experiment',
-          help: 'Enable/disable experimental language features.', hide: hide)
       ..addFlag('summarize',
           help: 'Emit an API summary file.', defaultsTo: true, hide: hide)
       ..addFlag('source-map',
@@ -150,26 +169,12 @@ class SharedCompilerOptions {
           help: 'Emit source mapping inline.', defaultsTo: false, hide: hide)
       ..addFlag('enable-asserts',
           help: 'Enable assertions.', defaultsTo: true, hide: hide)
-      ..addOption('module-name',
-          help: 'The output module name, used in some JS module formats.\n'
-              'Defaults to the output file name (without .js).')
       ..addFlag('repl-compile',
           help: 'Compile in a more permissive REPL mode, allowing access'
               ' to private members across library boundaries. This should'
               ' only be used by debugging tools.',
           defaultsTo: false,
           hide: hide)
-      ..addFlag('sound-null-safety',
-          help: 'Compile for sound null safety at runtime.',
-          negatable: true,
-          defaultsTo: false)
-      ..addOption('multi-root-scheme',
-          help: 'The custom scheme to indicate a multi-root uri.',
-          defaultsTo: 'org-dartlang-app')
-      ..addOption('multi-root-output-path',
-          help: 'Path to set multi-root files relative to when generating'
-              ' source-maps.',
-          hide: true)
       // TODO(41852) Define a process for breaking changes before graduating from
       // experimental.
       ..addFlag('experimental-emit-debug-metadata',
@@ -179,7 +184,34 @@ class SharedCompilerOptions {
           hide: true);
   }
 
-  static String _getModuleName(ArgResults args, String moduleRoot) {
+  /// Adds only the arguments used to compile the SDK from a full dill file.
+  ///
+  /// NOTE: The 'module-name' option will have a special default value of
+  /// 'dart_sdk' when compiling the SDK.
+  /// See [SharedCompilerOptions.fromSdkRequiredArguments].
+  static void addSdkRequiredArguments(ArgParser parser, {bool hide = true}) {
+    addModuleFormatOptions(parser, hide: hide);
+    parser
+      ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
+      ..addOption('module-name',
+          help: 'The output module name, used in some JS module formats.\n'
+              'Defaults to the output file name (without .js).')
+      ..addOption('multi-root-scheme',
+          help: 'The custom scheme to indicate a multi-root uri.',
+          defaultsTo: 'org-dartlang-app')
+      ..addOption('multi-root-output-path',
+          help: 'Path to set multi-root files relative to when generating'
+              ' source-maps.',
+          hide: true)
+      ..addMultiOption('enable-experiment',
+          help: 'Enable/disable experimental language features.', hide: hide)
+      ..addFlag('sound-null-safety',
+          help: 'Compile for sound null safety at runtime.',
+          negatable: true,
+          defaultsTo: false);
+  }
+
+  static String _getModuleName(ArgResults args) {
     var moduleName = args['module-name'] as String;
     if (moduleName == null) {
       var outPaths = args['out'];
@@ -191,13 +223,8 @@ class SharedCompilerOptions {
       // TODO(jmesserly): fix the debugger console so it's not passing invalid
       // options.
       if (outPath == null) return null;
-      if (moduleRoot != null) {
-        // TODO(jmesserly): remove this legacy support after a deprecation
-        // period. (Mainly this is to give time for migrating build rules.)
-        moduleName = p.withoutExtension(p.relative(outPath, from: moduleRoot));
-      } else {
-        moduleName = p.basenameWithoutExtension(outPath);
-      }
+
+      moduleName = p.basenameWithoutExtension(outPath);
     }
     // TODO(jmesserly): this should probably use sourcePathToUri.
     //
