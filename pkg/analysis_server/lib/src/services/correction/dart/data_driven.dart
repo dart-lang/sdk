@@ -58,6 +58,13 @@ class DataDriven extends MultiCorrectionProducer {
       } else if (parent is ExtensionOverride) {
         return parent.extensionName.name;
       }
+    } else if (node is ArgumentList) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.methodName.name;
+      } else if (parent is ExtensionOverride) {
+        return parent.extensionName.name;
+      }
     }
     return null;
   }

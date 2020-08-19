@@ -15,6 +15,8 @@ import 'data_driven_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ModifyParameters_DeprecatedMemberUseTest);
+    defineReflectiveTests(ModifyParameters_NotEnoughPositionalArgumentsTest);
+    defineReflectiveTests(ModifyParameters_UndefinedMethodTest);
   });
 }
 
@@ -28,7 +30,7 @@ void main() {
 /// applied to top-level functions, but are not intended to be exhaustive.
 @reflectiveTest
 class ModifyParameters_DeprecatedMemberUseTest extends _ModifyParameters {
-  Future<void> test_add_function_first_optionalNamed() async {
+  Future<void> test_add_function_first_requiredNamed() async {
     setPackageContent('''
 @deprecated
 void f(int b) {}
@@ -64,7 +66,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(1, 'a', false, false, null, null)],
+        ['C', 'm'], [AddParameter(0, 'a', false, false, null, null)],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -830,6 +832,65 @@ import '$importUri';
 
 void f(C c) {
   c.m2();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ModifyParameters_NotEnoughPositionalArgumentsTest
+    extends _ModifyParameters {
+  Future<void> test_method_sameName() async {
+    setPackageContent('''
+class C {
+  void m(int a, int b) {}
+}
+''');
+    setPackageData(_modify(['C', 'm'],
+        [AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))]));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0, 1);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ModifyParameters_UndefinedMethodTest extends _ModifyParameters {
+  Future<void> test_method_renamed() async {
+    setPackageContent('''
+class C {
+  void m2(int a, int b) {}
+}
+''');
+    setPackageData(_modify([
+      'C',
+      'm'
+    ], [
+      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
+    ], newName: 'm2'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m2(0, 1);
 }
 ''');
   }
