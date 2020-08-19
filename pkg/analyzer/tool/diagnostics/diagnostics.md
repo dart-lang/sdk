@@ -1907,7 +1907,7 @@ values are returned by an iterator.
 ### export_legacy_symbol
 
 _The symbol '{0}' is defined in a legacy library, and can't be re-exported from
-a non-nullable by default library._
+a library with null safety enabled._
 
 #### Description
 
