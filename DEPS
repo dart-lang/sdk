@@ -118,7 +118,7 @@ vars = {
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_rev": "dbeafd47759e7dd0a167602153bb9c49fb5e5fe7",
   "matcher_rev": "9cae8faa7868bf3a88a7ba45eb0bd128e66ac515",
-  "mime_rev": "179b5e6a88f4b63f36dc1b8fcbc1e83e5e0cd3a7",
+  "mime_tag": "0.9.7",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_rev": "664737ecad027e6b96d0d1e627257efa0e46fcb1",
   "oauth2_tag": "1.6.0",
@@ -363,7 +363,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/matcher":
       Var("dart_git") + "matcher.git" + "@" + Var("matcher_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
-      Var("dart_git") + "mime.git" + "@" + Var("mime_rev"),
+      Var("dart_git") + "mime.git" + "@" + Var("mime_tag"),
   Var("dart_root") + "/third_party/pkg/mockito":
       Var("dart_git") + "mockito.git" + "@" + Var("mockito_rev"),
   Var("dart_root") + "/third_party/pkg/mustache":
