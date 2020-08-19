@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/rename_change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -844,6 +844,6 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
               libraryUris: [importUri], components: originalComponents),
           changes: [
             ModifyParameters(modifications: modifications),
-            if (newName != null) RenameChange(newName: newName),
+            if (newName != null) Rename(newName: newName),
           ]);
 }
