@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'recovery_test_support.dart';
@@ -57,7 +58,10 @@ f() => [a, if (x) b else y, c];
 /// Test how well the parser recovers when tokens are missing in a map literal.
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
-  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
+  final beforeUiAsCode = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.2.0'),
+    flags: [],
+  );
 
   void test_extraComma() {
     testRecovery('''

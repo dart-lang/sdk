@@ -2096,7 +2096,7 @@ class LibraryElementImplTest {
   void test_setImports() {
     AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = LibraryElementImpl(
-        context, null, 'l1', -1, 0, FeatureSet.fromEnableFlags([]));
+        context, null, 'l1', -1, 0, FeatureSet.latestLanguageVersion());
     List<ImportElementImpl> expectedImports = [
       ElementFactory.importFor(ElementFactory.library(context, "l2"), null),
       ElementFactory.importFor(ElementFactory.library(context, "l3"), null)

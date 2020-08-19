@@ -824,12 +824,27 @@ class FileSystemState {
   /// Return the [FileState] instance that correspond to an unresolved URI.
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      var featureSet = FeatureSet.fromEnableFlags([]);
+      var featureSet = FeatureSet.latestLanguageVersion();
       _unresolvedFile = FileState._(this, null, null, null, null, featureSet,
           ExperimentStatus.currentVersion);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
+  }
+
+  FeatureSet contextFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri);
   }
 
   /// Return the canonical [FileState] for the given absolute [path]. The
@@ -853,9 +868,7 @@ class FileSystemState {
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet workspacePackageFeatureSet = workspacePackage?.featureSet;
-      FeatureSet featureSet = workspacePackageFeatureSet ??
-          featureSetProvider.getFeatureSet(path, uri);
+      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
       file = FileState._(this, path, uri, uriSource, workspacePackage,
@@ -899,9 +912,7 @@ class FileSystemState {
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet workspacePackageFeatureSet = workspacePackage?.featureSet;
-      FeatureSet featureSet = workspacePackageFeatureSet ??
-          featureSetProvider.getFeatureSet(path, uri);
+      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,

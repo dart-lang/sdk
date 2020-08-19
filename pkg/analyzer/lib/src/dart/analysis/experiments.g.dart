@@ -26,19 +26,6 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.variance: ExperimentalFeatures.variance,
 };
 
-List<bool> _buildExperimentalFlagsArray() => <bool>[
-      true, // constant-update-2018
-      true, // control-flow-collections
-      true, // extension-methods
-      IsEnabledByDefault.non_nullable,
-      IsEnabledByDefault.nonfunction_type_aliases,
-      true, // set-literals
-      true, // spread-collections
-      IsEnabledByDefault.triple_shift,
-      IsEnabledByDefault.value_class,
-      IsEnabledByDefault.variance,
-    ];
-
 /// Constant strings for enabling each of the currently known experimental
 /// flags.
 class EnableString {

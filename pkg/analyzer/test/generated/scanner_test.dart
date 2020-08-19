@@ -202,7 +202,7 @@ class ScannerTest with ResourceProviderMixin {
     var scanner = _createScanner(r'''
 // @dart = 2.0
 ''');
-    var defaultFeatureSet = FeatureSet.fromEnableFlags([]);
+    var defaultFeatureSet = FeatureSet.latestLanguageVersion();
     expect(defaultFeatureSet.isEnabled(Feature.extension_methods), isTrue);
 
     scanner.configureFeatures(

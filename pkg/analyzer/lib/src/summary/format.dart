@@ -4462,6 +4462,7 @@ class LinkedNodeBuilder extends Object
   List<String> _variantField_33;
   idl.LinkedNodeCommentType _variantField_29;
   List<LinkedNodeBuilder> _variantField_3;
+  List<int> _variantField_41;
   LinkedLibraryLanguageVersionBuilder _variantField_40;
   LinkedNodeBuilder _variantField_10;
   idl.LinkedNodeFormalParameterKind _variantField_26;
@@ -7028,19 +7029,8 @@ class LinkedNodeBuilder extends Object
     return _variantField_33 ??= <String>[];
   }
 
-  @override
-  List<String> get compilationUnit_featureSetStrings {
-    assert(kind == idl.LinkedNodeKind.compilationUnit);
-    return _variantField_33 ??= <String>[];
-  }
-
   set comment_tokens(List<String> value) {
     assert(kind == idl.LinkedNodeKind.comment);
-    _variantField_33 = value;
-  }
-
-  set compilationUnit_featureSetStrings(List<String> value) {
-    assert(kind == idl.LinkedNodeKind.compilationUnit);
     _variantField_33 = value;
   }
 
@@ -7112,6 +7102,18 @@ class LinkedNodeBuilder extends Object
     assert(kind == idl.LinkedNodeKind.switchCase ||
         kind == idl.LinkedNodeKind.switchDefault);
     _variantField_3 = value;
+  }
+
+  @override
+  List<int> get compilationUnit_featureSet {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    return _variantField_41 ??= <int>[];
+  }
+
+  set compilationUnit_featureSet(List<int> value) {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    assert(value == null || value.every((e) => e >= 0));
+    _variantField_41 = value;
   }
 
   @override
@@ -7760,15 +7762,15 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder.compilationUnit({
     List<LinkedNodeBuilder> compilationUnit_declarations,
     LinkedNodeBuilder compilationUnit_scriptTag,
-    List<String> compilationUnit_featureSetStrings,
     List<LinkedNodeBuilder> compilationUnit_directives,
+    List<int> compilationUnit_featureSet,
     LinkedLibraryLanguageVersionBuilder compilationUnit_languageVersion,
     int informativeId,
   })  : _kind = idl.LinkedNodeKind.compilationUnit,
         _variantField_2 = compilationUnit_declarations,
         _variantField_6 = compilationUnit_scriptTag,
-        _variantField_33 = compilationUnit_featureSetStrings,
         _variantField_3 = compilationUnit_directives,
+        _variantField_41 = compilationUnit_featureSet,
         _variantField_40 = compilationUnit_languageVersion,
         _variantField_36 = informativeId;
 
@@ -9391,17 +9393,17 @@ class LinkedNodeBuilder extends Object
       signature.addBool(this.compilationUnit_scriptTag != null);
       this.compilationUnit_scriptTag?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
-      if (this.compilationUnit_featureSetStrings == null) {
-        signature.addInt(0);
-      } else {
-        signature.addInt(this.compilationUnit_featureSetStrings.length);
-        for (var x in this.compilationUnit_featureSetStrings) {
-          signature.addString(x);
-        }
-      }
       signature.addString(this.name ?? '');
       signature.addBool(this.compilationUnit_languageVersion != null);
       this.compilationUnit_languageVersion?.collectApiSignature(signature);
+      if (this.compilationUnit_featureSet == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.compilationUnit_featureSet.length);
+        for (var x in this.compilationUnit_featureSet) {
+          signature.addInt(x);
+        }
+      }
     } else if (kind == idl.LinkedNodeKind.conditionalExpression) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addBool(this.conditionalExpression_condition != null);
@@ -10777,6 +10779,7 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_13;
     fb.Offset offset_variantField_33;
     fb.Offset offset_variantField_3;
+    fb.Offset offset_variantField_41;
     fb.Offset offset_variantField_40;
     fb.Offset offset_variantField_10;
     fb.Offset offset_variantField_25;
@@ -10834,6 +10837,9 @@ class LinkedNodeBuilder extends Object
     if (!(_variantField_3 == null || _variantField_3.isEmpty)) {
       offset_variantField_3 = fbBuilder
           .writeList(_variantField_3.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_variantField_41 == null || _variantField_41.isEmpty)) {
+      offset_variantField_41 = fbBuilder.writeListUint32(_variantField_41);
     }
     if (_variantField_40 != null) {
       offset_variantField_40 = _variantField_40.finish(fbBuilder);
@@ -10935,6 +10941,9 @@ class LinkedNodeBuilder extends Object
     }
     if (offset_variantField_3 != null) {
       fbBuilder.addOffset(3, offset_variantField_3);
+    }
+    if (offset_variantField_41 != null) {
+      fbBuilder.addOffset(41, offset_variantField_41);
     }
     if (offset_variantField_40 != null) {
       fbBuilder.addOffset(40, offset_variantField_40);
@@ -11046,6 +11055,7 @@ class _LinkedNodeImpl extends Object
   List<String> _variantField_33;
   idl.LinkedNodeCommentType _variantField_29;
   List<idl.LinkedNode> _variantField_3;
+  List<int> _variantField_41;
   idl.LinkedLibraryLanguageVersion _variantField_40;
   idl.LinkedNode _variantField_10;
   idl.LinkedNodeFormalParameterKind _variantField_26;
@@ -12887,14 +12897,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  List<String> get compilationUnit_featureSetStrings {
-    assert(kind == idl.LinkedNodeKind.compilationUnit);
-    _variantField_33 ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 33, const <String>[]);
-    return _variantField_33;
-  }
-
-  @override
   idl.LinkedNodeCommentType get comment_type {
     assert(kind == idl.LinkedNodeKind.comment);
     _variantField_29 ??= const _LinkedNodeCommentTypeReader()
@@ -12942,6 +12944,14 @@ class _LinkedNodeImpl extends Object
     _variantField_3 ??= const fb.ListReader<idl.LinkedNode>(_LinkedNodeReader())
         .vTableGet(_bc, _bcOffset, 3, const <idl.LinkedNode>[]);
     return _variantField_3;
+  }
+
+  @override
+  List<int> get compilationUnit_featureSet {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    _variantField_41 ??= const fb.Uint32ListReader()
+        .vTableGet(_bc, _bcOffset, 41, const <int>[]);
+    return _variantField_41;
   }
 
   @override
@@ -13540,14 +13550,13 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["compilationUnit_scriptTag"] =
             compilationUnit_scriptTag.toJson();
       }
-      if (compilationUnit_featureSetStrings.isNotEmpty) {
-        _result["compilationUnit_featureSetStrings"] =
-            compilationUnit_featureSetStrings;
-      }
       if (compilationUnit_directives.isNotEmpty) {
         _result["compilationUnit_directives"] = compilationUnit_directives
             .map((_value) => _value.toJson())
             .toList();
+      }
+      if (compilationUnit_featureSet.isNotEmpty) {
+        _result["compilationUnit_featureSet"] = compilationUnit_featureSet;
       }
       if (compilationUnit_languageVersion != null) {
         _result["compilationUnit_languageVersion"] =
@@ -15083,8 +15092,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "compilationUnit_declarations": compilationUnit_declarations,
         "compilationUnit_scriptTag": compilationUnit_scriptTag,
-        "compilationUnit_featureSetStrings": compilationUnit_featureSetStrings,
         "compilationUnit_directives": compilationUnit_directives,
+        "compilationUnit_featureSet": compilationUnit_featureSet,
         "compilationUnit_languageVersion": compilationUnit_languageVersion,
         "flags": flags,
         "informativeId": informativeId,

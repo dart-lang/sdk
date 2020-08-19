@@ -446,8 +446,9 @@ class ElementFactory {
       libraryName,
       0,
       libraryName.length,
-      FeatureSet.fromEnableFlags(
-        isNonNullableByDefault ? [EnableString.non_nullable] : [],
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: isNonNullableByDefault ? [EnableString.non_nullable] : [],
       ),
     );
     library.definingCompilationUnit = unit;

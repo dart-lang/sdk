@@ -202,7 +202,7 @@ class Parser {
   /// and to report any errors that are found to the given [_errorListener].
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta, @required FeatureSet featureSet}) {
-    featureSet ??= FeatureSet.fromEnableFlags([]);
+    featureSet ??= FeatureSet.latestLanguageVersion();
     if (useFasta ?? Parser.useFasta) {
       return _Parser2(source, errorListener, featureSet,
           allowNativeClause: true);

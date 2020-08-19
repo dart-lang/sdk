@@ -1386,7 +1386,10 @@ main() { // missing async
 @reflectiveTest
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
-  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
+  final beforeUiAsCode = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.2.0'),
+    flags: [],
+  );
 
   void test_binaryExpression_allOperators() {
     // https://github.com/dart-lang/sdk/issues/36255
@@ -1979,12 +1982,17 @@ class C {}
   }
 
   void test_simple_not_enabled() {
-    parseCompilationUnit('extension E on C { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
-          expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.3.0'));
+    parseCompilationUnit(
+      'extension E on C { }',
+      errors: [
+        expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 0, 9),
+        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 15, 1)
+      ],
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.3.0'),
+        flags: [],
+      ),
+    );
   }
 
   void test_simple_with() {

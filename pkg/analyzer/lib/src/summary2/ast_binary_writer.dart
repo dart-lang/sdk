@@ -287,8 +287,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
-      compilationUnit_featureSetStrings:
-          (node.featureSet as ExperimentStatus).toStringList(),
+      compilationUnit_featureSet:
+          (node.featureSet as ExperimentStatus).toStorage(),
       compilationUnit_languageVersion: LinkedLibraryLanguageVersionBuilder(
         package: LinkedLanguageVersionBuilder(
           major: nodeImpl.languageVersion.package.major,

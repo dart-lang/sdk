@@ -82,8 +82,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: packages,
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     _assertNonNullableForPath('/packages/aaa/lib/a.dart', true);
@@ -129,8 +129,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: packages,
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     _assertNonNullableForPath('/packages/aaa/a.dart', false);
@@ -176,8 +176,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: packages,
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     void check({
@@ -244,8 +244,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: packages,
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags(['non-nullable']),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: ExperimentStatus.latestWithNullSafety,
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     _assertNonNullableForPath('/packages/aaa/a.dart', true);
@@ -274,8 +274,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     var featureSet = _getSdkFeatureSet('dart:math');
@@ -306,8 +306,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     var core_featureSet = _getSdkFeatureSet('dart:core');
@@ -322,8 +322,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
       packages: findPackagesFrom(resourceProvider, getFolder('/test')),
-      packageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
-      nonPackageDefaultFeatureSet: FeatureSet.fromEnableFlags([]),
+      packageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
+      nonPackageDefaultFeatureSet: FeatureSet.latestLanguageVersion(),
     );
 
     var featureSet = _getSdkFeatureSet('dart:math');

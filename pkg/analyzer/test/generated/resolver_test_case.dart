@@ -16,6 +16,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -528,7 +529,10 @@ class ResolverTestCase with ResourceProviderMixin {
     List<String> experiments = enabledExperiments;
     if (experiments != null) {
       (options as AnalysisOptionsImpl).contextFeatures =
-          FeatureSet.fromEnableFlags(experiments);
+          FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: experiments,
+      );
     }
     DartSdk sdk = MockSdk(
       resourceProvider: resourceProvider,
