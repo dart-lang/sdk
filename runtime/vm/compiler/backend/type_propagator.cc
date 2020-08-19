@@ -1340,10 +1340,36 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   return is_nullable ? type : type.CopyNonNullable();
 }
 
+static CompileType ComputeListFactoryType(CompileType* inferred_type,
+                                          Value* type_args_value) {
+  ASSERT(inferred_type != nullptr);
+  const intptr_t cid = inferred_type->ToNullableCid();
+  ASSERT(cid != kDynamicCid);
+  if ((cid == kGrowableObjectArrayCid || cid == kArrayCid ||
+       cid == kImmutableArrayCid) &&
+      type_args_value->BindsToConstant()) {
+    const auto& type_args =
+        type_args_value->BoundConstant().IsNull()
+            ? TypeArguments::null_type_arguments()
+            : TypeArguments::Cast(type_args_value->BoundConstant());
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(cid));
+    Type& type = Type::ZoneHandle(Type::New(
+        cls, type_args, TokenPosition::kNoSource, Nullability::kNonNullable));
+    ASSERT(type.IsInstantiated());
+    type.SetIsFinalized();
+    return CompileType(CompileType::kNonNullable, cid, &type);
+  }
+  return *inferred_type;
+}
+
 CompileType StaticCallInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of StaticCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
-  CompileType* inferred_type = result_type();
+  CompileType* const inferred_type = result_type();
+  if (is_known_list_constructor()) {
+    return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
+  }
   if ((inferred_type != NULL) &&
       (inferred_type->ToNullableCid() != kDynamicCid)) {
     return *inferred_type;
