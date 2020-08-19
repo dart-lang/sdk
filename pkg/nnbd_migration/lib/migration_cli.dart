@@ -183,9 +183,8 @@ class MigrateCommand extends Command<dynamic> {
   @override
   String get description =>
       'Perform a null safety migration on a project or package.'
-      '\n\nThe migrate feature is in preview and not yet complete; we welcome '
-      'feedback.\n\n'
-      'https://github.com/dart-lang/sdk/tree/master/pkg/nnbd_migration#providing-feedback';
+      '\n\nThe migration tool is in preview; see '
+      'https://dart.dev/go/null-safety-migration for a migration guide.';
 
   @override
   String get invocation {
@@ -396,23 +395,22 @@ class MigrationCli {
         help:
             'Attempt to perform null safety analysis even if exceptions occur.',
         hide: hide);
-    parser.addOption(CommandLineOptions.previewHostnameOption,
-        defaultsTo: 'localhost',
-        help: 'Run the preview server on the specified hostname.  If not '
-            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
-            'IPv4.any.');
-    parser.addOption(CommandLineOptions.previewPortOption,
-        help:
-            'Run the preview server on the specified port.  If not specified, '
-            'dynamically allocate a port.');
-    parser.addOption(CommandLineOptions.sdkPathOption,
-        help: 'The path to the Dart SDK.', hide: hide);
     parser.addFlag(
       CommandLineOptions.skipPubOutdatedFlag,
       defaultsTo: false,
       negatable: false,
       help: 'Skip the `pub outdated --mode=null-safety` check.',
     );
+    parser.addFlag(CommandLineOptions.webPreviewFlag,
+        defaultsTo: true,
+        negatable: true,
+        help: 'Show an interactive preview of the proposed null safety changes '
+            'in a browser window.\n'
+            'With --no-web-preview, the proposed changes are instead printed to '
+            'the console.');
+
+    parser.addOption(CommandLineOptions.sdkPathOption,
+        help: 'The path to the Dart SDK.', hide: hide);
     parser.addOption(CommandLineOptions.summaryOption,
         help:
             'Output path for a machine-readable summary of migration changes');
@@ -421,13 +419,14 @@ class MigrationCli {
         defaultsTo: false,
         help: 'Verbose output.',
         negatable: false);
-    parser.addFlag(CommandLineOptions.webPreviewFlag,
-        defaultsTo: true,
-        negatable: true,
-        help: 'Show an interactive preview of the proposed null safety changes '
-            'in a browser window.\n'
-            'With --no-web-preview, the proposed changes are instead printed to '
-            'the console.');
+    parser.addOption(CommandLineOptions.previewHostnameOption,
+        defaultsTo: 'localhost',
+        help: 'Run the preview server on the specified hostname.\nIf not '
+            'specified, "localhost" is used. Use "any" to specify IPv6.any or '
+            'IPv4.any.');
+    parser.addOption(CommandLineOptions.previewPortOption,
+        help: 'Run the preview server on the specified port. If not specified, '
+            'dynamically allocate a port.');
   }
 }
 
