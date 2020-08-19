@@ -840,6 +840,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
     body += B->NativeFunctionBody(dart_function, first_parameter);
   } else if (has_body) {
     body += BuildStatement();
+  } else if (dart_function.is_external()) {
+    body += ThrowNoSuchMethodError(dart_function);
   }
 
   if (body.is_open()) {
