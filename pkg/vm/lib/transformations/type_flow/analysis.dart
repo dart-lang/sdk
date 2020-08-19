@@ -108,6 +108,36 @@ abstract class _Invocation extends _DependencyTracker
   /// Used for recursive calls while this invocation is being processed.
   Type get resultForRecursiveInvocation => result;
 
+  /// Use [type] as a current computed result of this invocation.
+  /// If this invocation was invalidated, and the invalidated result is
+  /// different, then invalidate all dependent invocations as well.
+  /// Result type may be saturated if this invocation was invalidated
+  /// too many times.
+  void setResult(TypeFlowAnalysis typeFlowAnalysis, Type type) {
+    assertx(type != null);
+    result = type;
+
+    if (invalidatedResult != null) {
+      if (invalidatedResult != result) {
+        invalidateDependentInvocations(typeFlowAnalysis.workList);
+
+        invalidationCounter++;
+        Statistics.maxInvalidationsPerInvocation =
+            max(Statistics.maxInvalidationsPerInvocation, invalidationCounter);
+        // In rare cases, loops in dependencies and approximation of
+        // recursive invocations may cause infinite bouncing of result
+        // types. To prevent infinite looping and guarantee convergence of
+        // the analysis, result is saturated after invocation is invalidated
+        // at least [_Invocation.invalidationLimit] times.
+        if (invalidationCounter > _Invocation.invalidationLimit) {
+          result =
+              result.union(invalidatedResult, typeFlowAnalysis.hierarchyCache);
+        }
+      }
+      invalidatedResult = null;
+    }
+  }
+
   // Only take selector and args into account as _Invocation objects
   // are cached in _InvocationsCache using selector and args as a key.
   @override
@@ -261,7 +291,7 @@ class _DirectInvocation extends _Invocation {
         if (summaryResult is Type &&
             !typeFlowAnalysis.workList._isPending(this)) {
           assertx(result == null || result == summaryResult);
-          result = summaryResult;
+          setResult(typeFlowAnalysis, summaryResult);
         }
         return summary.apply(
             args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
@@ -1220,6 +1250,7 @@ class _WorkList {
   void invalidateInvocation(_Invocation invocation) {
     Statistics.invocationsInvalidated++;
     if (invocation.result != null) {
+      assertx(invocation.invalidatedResult == null);
       invocation.invalidatedResult = invocation.result;
       invocation.result = null;
     }
@@ -1269,45 +1300,62 @@ class _WorkList {
 
     // Test if tracing is enabled to avoid expensive message formatting.
     if (kPrintTrace) {
-      tracePrint('PROCESSING $invocation', 1);
+      tracePrint(
+          'PROCESSING $invocation, invalidatedResult ${invocation.invalidatedResult}',
+          1);
     }
 
     if (processing.add(invocation)) {
+      // Do not process too many calls in the call stack as
+      // it may cause stack overflow in the analysis.
+      const int kMaxCallsInCallStack = 500;
+      if (callStack.length > kMaxCallsInCallStack) {
+        Statistics.deepInvocationsDeferred++;
+        // If there is invalidatedResult, then use it.
+        // When actual result is inferred it will be compared against
+        // invalidatedResult and all dependent invocations will be invalidated
+        // accordingly.
+        //
+        // Otherwise, if invocation is not invalidated yet, use empty type
+        // as a result but immediately invalidate it in order to recompute.
+        // Static type would be too inaccurate.
+        if (invocation.invalidatedResult == null) {
+          invocation.result = const EmptyType();
+        }
+        // Conservatively assume that this invocation may trigger
+        // parameter type checks. This is needed because caller may not be
+        // invalidated and recomputed if this invocation yields the
+        // same result.
+        invocation.typeChecksNeeded = true;
+        invalidateInvocation(invocation);
+        assertx(invocation.result == null);
+        assertx(invocation.invalidatedResult != null);
+        assertx(_isPending(invocation));
+        if (kPrintTrace) {
+          tracePrint("Processing deferred due to deep call stack.");
+          tracePrint(
+              'END PROCESSING $invocation, RESULT ${invocation.invalidatedResult}',
+              -1);
+        }
+        processing.remove(invocation);
+        return invocation.invalidatedResult;
+      }
+
       callStack.add(invocation);
       pending.remove(invocation);
 
       Type result = invocation.process(_typeFlowAnalysis);
 
-      assertx(result != null);
-      invocation.result = result;
+      invocation.setResult(_typeFlowAnalysis, result);
 
-      if (invocation.invalidatedResult != null) {
-        if (invocation.invalidatedResult != result) {
-          invocation.invalidateDependentInvocations(this);
-
-          invocation.invalidationCounter++;
-          Statistics.maxInvalidationsPerInvocation = max(
-              Statistics.maxInvalidationsPerInvocation,
-              invocation.invalidationCounter);
-          // In rare cases, loops in dependencies and approximation of
-          // recursive invocations may cause infinite bouncing of result
-          // types. To prevent infinite looping and guarantee convergence of
-          // the analysis, result is saturated after invocation is invalidated
-          // at least [_Invocation.invalidationLimit] times.
-          if (invocation.invalidationCounter > _Invocation.invalidationLimit) {
-            result = result.union(
-                invocation.invalidatedResult, _typeFlowAnalysis.hierarchyCache);
-            invocation.result = result;
-          }
-        }
-        invocation.invalidatedResult = null;
-      }
+      // setResult may saturate result to ensure convergence.
+      result = invocation.result;
 
       // Invocation is still pending - it was invalidated while being processed.
       // Move result to invalidatedResult.
       if (_isPending(invocation)) {
         Statistics.invocationsInvalidatedDuringProcessing++;
-        invocation.invalidatedResult = result;
+        invocation.invalidatedResult = invocation.result;
         invocation.result = null;
       }
 
