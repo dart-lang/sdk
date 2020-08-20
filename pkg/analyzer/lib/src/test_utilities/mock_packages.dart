@@ -25,6 +25,7 @@ class JS {
 library meta;
 
 const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+const _DoNotStore doNotStore = _DoNotStore();
 const _Factory factory = const _Factory();
 const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
@@ -36,15 +37,18 @@ const Required required = const Required();
 const _Sealed sealed = const _Sealed();
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
 
-class Immutable {
-  final String reason;
-  const Immutable([this.reason]);
-}
 class _AlwaysThrows {
   const _AlwaysThrows();
 }
+class _DoNotStore {
+  const _DoNotStore();
+}
 class _Factory {
   const _Factory();
+}
+class Immutable {
+  final String reason;
+  const Immutable([this.reason]);
 }
 class _Literal {
   const _Literal();
