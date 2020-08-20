@@ -508,7 +508,9 @@ class InferrerEngine {
       // it is in the graph.
       types.withMember(member, () => analyze(member));
     });
+    metrics.elementsInGraph.add(_addedInGraph);
     _reporter.log('Added $_addedInGraph elements in inferencing graph.');
+    metrics.allTypesCount.add(types.allTypes.length);
   }
 
   /// Returns the body node for [member].
@@ -1201,6 +1203,8 @@ class _InferrerEngineMetrics extends MetricsBase {
   final analyze = DurationMetric('time.analyze');
   final refine1 = DurationMetric('time.refine1');
   final refine2 = DurationMetric('time.refine2');
+  final elementsInGraph = CountMetric('count.elementsInGraph');
+  final allTypesCount = CountMetric('count.allTypes');
   final exceededMaxChangeCount = CountMetric('count.exceededMaxChange');
   final overallRefineCount = CountMetric('count.overallRefines');
 
@@ -1210,6 +1214,8 @@ class _InferrerEngineMetrics extends MetricsBase {
       analyze,
       refine1,
       refine2,
+      elementsInGraph,
+      allTypesCount,
       exceededMaxChangeCount,
       overallRefineCount
     ];

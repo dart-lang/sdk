@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 import '../common.dart';
+import '../constants/values.dart' show BoolConstantValue;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../world.dart';
@@ -81,6 +82,9 @@ class TypeSystem {
   final Map<AbstractValue, TypeInformation> concreteTypes =
       new Map<AbstractValue, TypeInformation>();
 
+  /// Cache of some primitive constant types.
+  final Map<Object, TypeInformation> primitiveConstantTypes = {};
+
   /// List of [TypeInformation]s for calls inside method bodies.
   final List<CallSiteTypeInformation> allocatedCalls =
       <CallSiteTypeInformation>[];
@@ -102,8 +106,9 @@ class TypeSystem {
         allocatedMaps.values,
         allocatedClosures,
         concreteTypes.values,
+        primitiveConstantTypes.values,
         allocatedCalls,
-        allocatedTypes
+        allocatedTypes,
       ].expand((x) => x);
 
   TypeSystem(this._closedWorld, this.strategy) {
@@ -283,8 +288,22 @@ class TypeSystem {
   }
 
   TypeInformation boolLiteralType(bool value) {
-    return new BoolLiteralTypeInformation(
-        _abstractValueDomain, value, _abstractValueDomain.boolType);
+    return primitiveConstantTypes[value] ??= _boolLiteralType(value);
+  }
+
+  TypeInformation _boolLiteralType(bool value) {
+    AbstractValue abstractValue = _abstractValueDomain
+        .computeAbstractValueForConstant(BoolConstantValue(value));
+    return BoolLiteralTypeInformation(
+        _abstractValueDomain, value, abstractValue);
+  }
+
+  bool isLiteralTrue(TypeInformation info) {
+    return info is BoolLiteralTypeInformation && info.value == true;
+  }
+
+  bool isLiteralFalse(TypeInformation info) {
+    return info is BoolLiteralTypeInformation && info.value == false;
   }
 
   /// Returns the least upper bound between [firstType] and

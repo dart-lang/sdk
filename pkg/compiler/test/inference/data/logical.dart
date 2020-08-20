@@ -154,14 +154,14 @@ returnLogicalAnd() {
 /// Return logical and of `true` && `true`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: returnLogicalAndTrueTrue:[exact=JSBool]*/
+/*member: returnLogicalAndTrueTrue:Value([exact=JSBool], value: true)*/
 returnLogicalAndTrueTrue() => true && true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return logical and of `false` && `true`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: returnLogicalAndFalseTrue:[exact=JSBool]*/
+/*member: returnLogicalAndFalseTrue:Value([exact=JSBool], value: false)*/
 /// ignore: dead_code
 returnLogicalAndFalseTrue() => false && true;
 
@@ -275,14 +275,14 @@ returnLogicalOr() {
 /// Return logical or of `false` || `true`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: returnLogicalOrFalseTrue:[exact=JSBool]*/
+/*member: returnLogicalOrFalseTrue:Value([exact=JSBool], value: true)*/
 returnLogicalOrFalseTrue() => false || true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return logical or of `false` || `false`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*member: returnLogicalOrFalseFalse:[exact=JSBool]*/
+/*member: returnLogicalOrFalseFalse:Value([exact=JSBool], value: false)*/
 returnLogicalOrFalseFalse() => false || false;
 
 ////////////////////////////////////////////////////////////////////////////////
