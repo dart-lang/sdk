@@ -5122,7 +5122,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode LATE_FINAL_LOCAL_ALREADY_ASSIGNED =
       CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
           "The late final local variable is already definitely assigned.",
-          correction: "Try removing the 'late' modifier, or don't reassign "
+          correction: "Try removing the 'final' modifier, or don't reassign "
               "the value.");
 
   /**
