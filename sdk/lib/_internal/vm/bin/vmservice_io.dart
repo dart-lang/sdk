@@ -37,6 +37,8 @@ var _signalWatch = null;
 var _signalSubscription;
 @pragma("vm:entry-point")
 bool _enableServicePortFallback = false;
+@pragma("vm:entry-point")
+bool _waitForDdsToAdvertiseService = false;
 
 // HTTP server.
 Server? server;
@@ -76,6 +78,12 @@ Future cleanupCallback() async {
   }
   // Call out to embedder's shutdown callback.
   _shutdown();
+}
+
+Future<void> ddsConnectedCallback() async {
+  if (_waitForDdsToAdvertiseService) {
+    await server!.outputConnectionInformation();
+  }
 }
 
 Future<Uri> createTempDirCallback(String base) async {
@@ -245,6 +253,7 @@ main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
   VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
+  VMServiceEmbedderHooks.ddsConnected = ddsConnectedCallback;
   VMServiceEmbedderHooks.deleteDir = deleteDirCallback;
   VMServiceEmbedderHooks.writeFile = writeFileCallback;
   VMServiceEmbedderHooks.writeStreamFile = writeStreamFileCallback;

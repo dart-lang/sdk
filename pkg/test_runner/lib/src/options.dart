@@ -155,7 +155,7 @@ simarm, simarmv6, simarm64, arm_x64''',
         hide: true),
     _Option('system', 'The operating system to run tests on.',
         abbr: 's',
-        values: System.names,
+        values: ['all', ...System.names],
         defaultsTo: Platform.operatingSystem,
         hide: true),
     _Option('sanitizer', 'Sanitizer in which to run the tests.',
@@ -228,6 +228,7 @@ compact, color, line, verbose, silent, status, buildbot''',
     _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
         hide: true),
     _Option.bool('list', 'List tests only, do not run them.'),
+    _Option.bool('find-configurations', 'Find matching configurations.'),
     _Option.bool('list-configurations', 'Output list of configurations.'),
     _Option.bool('list_status_files',
         'List status files for test-suites. Do not run any test suites.',
@@ -406,21 +407,8 @@ compiler.''',
       return null;
     }
 
-    if (arguments.contains("--list-configurations")) {
-      var testMatrixFile = "tools/bots/test_matrix.json";
-      var testMatrix = TestMatrix.fromPath(testMatrixFile);
-      for (var configuration in testMatrix.configurations
-          .map((configuration) => configuration.name)
-          .toList()
-            ..sort()) {
-        print(configuration);
-      }
-      return null;
-    }
-
-    var configuration = <String, dynamic>{};
-
-    // Fill in configuration with arguments passed to the test script.
+    // Parse the command line arguments to a map.
+    var options = <String, dynamic>{};
     for (var i = 0; i < arguments.length; i++) {
       var arg = arguments[i];
 
@@ -458,7 +446,7 @@ compiler.''',
       } else {
         // The argument does not start with "-" or "--" and is therefore not an
         // option. Use it as a test selector pattern.
-        var patterns = configuration.putIfAbsent("selectors", () => <String>[]);
+        var patterns = options.putIfAbsent("selectors", () => <String>[]);
 
         // Allow passing in the full relative path to a test or directory and
         // infer the selector from it. This lets users use tab completion on
@@ -492,7 +480,7 @@ compiler.''',
 
       // Multiple uses of a flag are an error, because there is no naturally
       // correct way to handle conflicting options.
-      if (configuration.containsKey(option.name)) {
+      if (options.containsKey(option.name)) {
         _fail('Already have value for command line option "$command".');
       }
 
@@ -503,12 +491,12 @@ compiler.''',
             _fail('Boolean flag "$command" does not take a value.');
           }
 
-          configuration[option.name] = true;
+          options[option.name] = true;
           break;
 
         case _OptionValueType.int:
           try {
-            configuration[option.name] = int.parse(value);
+            options[option.name] = int.parse(value);
           } on FormatException {
             _fail('Integer value expected for option "$command".');
           }
@@ -535,17 +523,27 @@ compiler.''',
 
           // TODO(rnystrom): Store as a list instead of a comma-delimited
           // string.
-          configuration[option.name] = value;
+          options[option.name] = value;
           break;
       }
     }
 
+    if (options.containsKey('find-configurations')) {
+      findConfigurations(options);
+      return null;
+    }
+
+    if (options.containsKey('list-configurations')) {
+      listConfigurations(options);
+      return null;
+    }
+
     // If a named configuration was specified ensure no other options, which are
     // implied by the named configuration, were specified.
-    if (configuration['named_configuration'] is String) {
+    if (options['named_configuration'] is String) {
       for (var optionName in _namedConfigurationOptions) {
-        if (configuration.containsKey(optionName)) {
-          var namedConfig = configuration['named_configuration'];
+        if (options.containsKey(optionName)) {
+          var namedConfig = options['named_configuration'];
           _fail("The named configuration '$namedConfig' implies "
               "'$optionName'. Try removing '$optionName'.");
         }
@@ -554,26 +552,26 @@ compiler.''',
 
     // Apply default values for unspecified options.
     for (var option in _options) {
-      if (!configuration.containsKey(option.name)) {
-        configuration[option.name] = option.defaultValue;
+      if (!options.containsKey(option.name)) {
+        options[option.name] = option.defaultValue;
       }
     }
 
     // Fetch list of tests to run, if option is present.
-    var testList = configuration['test_list'];
+    var testList = options['test_list'];
     if (testList is String) {
-      configuration['test_list_contents'] = File(testList).readAsLinesSync();
+      options['test_list_contents'] = File(testList).readAsLinesSync();
     }
 
-    var tests = configuration['tests'];
+    var tests = options['tests'];
     if (tests is String) {
-      if (configuration.containsKey('test_list_contents')) {
+      if (options.containsKey('test_list_contents')) {
         _fail('--tests and --test-list cannot be used together');
       }
-      configuration['test_list_contents'] = LineSplitter.split(tests).toList();
+      options['test_list_contents'] = LineSplitter.split(tests).toList();
     }
 
-    return _createConfigurations(configuration);
+    return _createConfigurations(options);
   }
 
   /// Given a set of parsed option values, returns the list of command line
@@ -681,6 +679,12 @@ compiler.''',
         (data['progress'] as String) != 'buildbot') {
       data['progress'] = 'verbose';
     }
+
+    var systemName = data["system"] as String;
+    if (systemName == "all") {
+      _fail("Can only use '--system=all' with '--find-configurations'.");
+    }
+    var system = System.find(systemName);
 
     var runtimeNames = data["runtime"] as String;
     var runtimes = [
@@ -813,7 +817,6 @@ compiler.''',
             }
             for (var sanitizerName in sanitizers.split(",")) {
               var sanitizer = Sanitizer.find(sanitizerName);
-              var system = System.find(data["system"] as String);
               var configuration = Configuration("custom configuration",
                   architecture, compiler, mode, runtime, system,
                   nnbdMode: nnbdMode,
@@ -994,6 +997,101 @@ class OptionParseException implements Exception {
   final String message;
 
   OptionParseException(this.message);
+}
+
+/// Prints the names of the configurations in the test matrix that match the
+/// given filter options.
+///
+/// If any of the options `--system`, `--arch`, `--mode`, `--compiler`,
+/// `--nnbd`, or `--runtime` (or their abbreviations) are passed, then only
+/// configurations matching those are shown.
+void findConfigurations(Map<String, dynamic> options) {
+  var testMatrix = TestMatrix.fromPath('tools/bots/test_matrix.json');
+
+  // Default to only showing configurations for the current machine.
+  var systemOption = options['system'] as String;
+  var system = System.host;
+  if (systemOption == 'all') {
+    system = null;
+  } else if (systemOption != null) {
+    system = System.find(systemOption);
+  }
+
+  var architectureOption = options['arch'] as String;
+  var architectures = const [Architecture.x64];
+  if (architectureOption == 'all') {
+    architectures = null;
+  } else if (architectureOption != null) {
+    architectures =
+        architectureOption.split(',').map(Architecture.find).toList();
+  }
+
+  var mode = Mode.release;
+  if (options.containsKey('mode')) {
+    mode = Mode.find(options['mode'] as String);
+  }
+
+  Compiler compiler;
+  if (options.containsKey('compiler')) {
+    compiler = Compiler.find(options['compiler'] as String);
+  }
+
+  Runtime runtime;
+  if (options.containsKey('runtime')) {
+    runtime = Runtime.find(options['runtime'] as String);
+  }
+
+  NnbdMode nnbdMode;
+  if (options.containsKey('nnbd')) {
+    nnbdMode = NnbdMode.find(options['nnbd'] as String);
+  }
+
+  var names = <String>[];
+  for (var configuration in testMatrix.configurations) {
+    if (system != null && configuration.system != system) continue;
+    if (architectures != null &&
+        !architectures.contains(configuration.architecture)) {
+      continue;
+    }
+    if (mode != null && configuration.mode != mode) continue;
+    if (compiler != null && configuration.compiler != compiler) continue;
+    if (runtime != null && configuration.runtime != runtime) continue;
+    if (nnbdMode != null && configuration.nnbdMode != nnbdMode) continue;
+
+    names.add(configuration.name);
+  }
+
+  names.sort();
+
+  var filters = [
+    if (system != null) "system=$system",
+    if (architectures != null) "arch=${architectures.join(',')}",
+    if (mode != null) "mode=$mode",
+    if (compiler != null) "compiler=$compiler",
+    if (runtime != null) "runtime=$runtime",
+    if (nnbdMode != null) "nnbd=$nnbdMode",
+  ];
+
+  if (filters.isEmpty) {
+    print("All configurations:");
+  } else {
+    print("Configurations where ${filters.join(', ')}:");
+  }
+
+  for (var name in names) {
+    print("- $name");
+  }
+}
+
+/// Prints the names of the configurations in the test matrix.
+void listConfigurations(Map<String, dynamic> options) {
+  var testMatrix = TestMatrix.fromPath('tools/bots/test_matrix.json');
+
+  var names = testMatrix.configurations
+      .map((configuration) => configuration.name)
+      .toList();
+  names.sort();
+  names.forEach(print);
 }
 
 /// Throws an [OptionParseException] with [message].

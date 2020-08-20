@@ -477,11 +477,21 @@ class Server {
     }
     final server = _server!;
     server.listen(_requestHandler, cancelOnError: true);
+    if (!_waitForDdsToAdvertiseService) {
+      await outputConnectionInformation();
+    }
+    // Server is up and running.
+    _notifyServerState(serverAddress.toString());
+    onServerAddressChange('$serverAddress');
+    return this;
+  }
+
+  Future<void> outputConnectionInformation() async {
     serverPrint('Observatory listening on $serverAddress');
     if (Platform.isFuchsia) {
       // Create a file with the port number.
       final tmp = Directory.systemTemp.path;
-      final path = '$tmp/dart.services/${server.port}';
+      final path = '$tmp/dart.services/${_server!.port}';
       serverPrint('Creating $path');
       File(path)..createSync(recursive: true);
     }
@@ -490,10 +500,6 @@ class Server {
         serviceInfoFilenameLocal.isNotEmpty) {
       await _dumpServiceInfoToFile(serviceInfoFilenameLocal);
     }
-    // Server is up and running.
-    _notifyServerState(serverAddress.toString());
-    onServerAddressChange('$serverAddress');
-    return this;
   }
 
   Future<void> cleanup(bool force) {

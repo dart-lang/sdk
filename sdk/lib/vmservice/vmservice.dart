@@ -139,6 +139,9 @@ typedef Future ServerStartCallback();
 /// Called when the server should be stopped.
 typedef Future ServerStopCallback();
 
+/// Called when DDS has connected.
+typedef Future<void> DdsConnectedCallback();
+
 /// Called when the service is exiting.
 typedef Future CleanupCallback();
 
@@ -177,6 +180,7 @@ typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 class VMServiceEmbedderHooks {
   static ServerStartCallback? serverStart;
   static ServerStopCallback? serverStop;
+  static DdsConnectedCallback? ddsConnected;
   static CleanupCallback? cleanup;
   static CreateTempDirCallback? createTempDir;
   static DeleteDirCallback? deleteDir;
@@ -245,6 +249,7 @@ class VMService extends MessageRouter {
     }
     acceptNewWebSocketConnections(false);
     _ddsUri = Uri.parse(uri);
+    await VMServiceEmbedderHooks?.ddsConnected!();
     return encodeSuccess(message);
   }
 
