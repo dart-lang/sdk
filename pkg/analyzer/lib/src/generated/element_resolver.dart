@@ -147,12 +147,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -251,7 +251,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           }
         }
       }
-      resolveMetadata(node);
+      _resolveAnnotations(node.metadata);
     }
   }
 
@@ -303,17 +303,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -324,8 +324,18 @@ class ElementResolver extends SimpleAstVisitor<void> {
       // TODO(brianwilkerson) Figure out whether the element can ever be
       // something other than an ExportElement
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
-      resolveMetadata(node);
+      _resolveAnnotations(node.metadata);
     }
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -336,12 +346,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -351,8 +361,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    resolveMetadata(node);
-    return null;
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -377,7 +386,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
-      resolveMetadata(node);
+      _resolveAnnotations(node.metadata);
     }
   }
 
@@ -452,12 +461,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -467,12 +476,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
@@ -822,13 +831,18 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  @override
   void visitTypeParameter(TypeParameter node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    resolveMetadata(node);
+    _resolveAnnotations(node.metadata);
   }
 
   /// If the [element] is not static, report the error on the [identifier].
@@ -1614,24 +1628,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
     }
     return null;
-  }
-
-  /// Given a [node] that can have annotations associated with it, resolve the
-  /// annotations in the element model representing the annotations on the node.
-  static void resolveMetadata(AnnotatedNode node) {
-    _resolveAnnotations(node.metadata);
-    if (node is VariableDeclaration) {
-      AstNode parent = node.parent;
-      if (parent is VariableDeclarationList) {
-        _resolveAnnotations(parent.metadata);
-        AstNode grandParent = parent.parent;
-        if (grandParent is FieldDeclaration) {
-          _resolveAnnotations(grandParent.metadata);
-        } else if (grandParent is TopLevelVariableDeclaration) {
-          _resolveAnnotations(grandParent.metadata);
-        }
-      }
-    }
   }
 
   /// Return `true` if the given [identifier] is the return type of a

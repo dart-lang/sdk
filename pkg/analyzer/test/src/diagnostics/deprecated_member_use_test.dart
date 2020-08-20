@@ -750,6 +750,19 @@ class B extends A {
       error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 63, 7),
     ]);
   }
+
+  test_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+@deprecated
+int x = 1;
+
+int f() {
+  return x;
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 43, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
