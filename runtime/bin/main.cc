@@ -549,7 +549,10 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
           Options::vm_service_server_ip(), Options::vm_service_server_port(),
           Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
-          Options::deterministic(), Options::enable_service_port_fallback())) {
+          Options::deterministic(), Options::enable_service_port_fallback(),
+          // TODO(bkonyi): uncomment when DDS is re-enabled.
+          // See https://github.com/flutter/flutter/issues/62507
+          /*!Options::disable_dart_dev()*/ false)) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }
