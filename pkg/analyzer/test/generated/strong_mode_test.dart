@@ -4,15 +4,12 @@
 
 import 'dart:async';
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,7 +28,7 @@ main() {
 
 /// Strong mode static analyzer local type inference tests
 @reflectiveTest
-class StrongModeLocalInferenceTest extends ResolverTestCase {
+class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   TypeAssertions _assertions;
 
   Asserter<DartType> _isDynamic;
@@ -58,23 +55,12 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
 
   AsserterBuilder<Element, DartType> _hasElement;
 
-  void assertInvokeType(InvocationExpression expression, String expected) {
-    DartType actual = expression.staticInvokeType;
-    assertType(actual, expected);
-  }
-
-  void assertType(DartType type, String expected) {
-    if (expected == null) {
-      expect(type, isNull);
-    } else {
-      var typeStr = type.getDisplayString(withNullability: false);
-      expect(typeStr, expected);
-    }
-  }
+  CompilationUnit get unit => result.unit;
 
   @override
-  Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
-    TestAnalysisResult result = await super.computeAnalysisResult(source);
+  Future<void> resolveTestFile() async {
+    var result = await super.resolveTestFile();
+
     if (_assertions == null) {
       _assertions = TypeAssertions(typeProvider);
       _isType = _assertions.isType;
@@ -97,14 +83,8 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isFutureOfNull = _isFutureOf([_isNull]);
       _isFutureOrOfInt = _isFutureOrOf([_isInt]);
     }
-    return result;
-  }
 
-  @override
-  void setUp() {
-    super.setUp();
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-    resetWith(options: options);
+    return result;
   }
 
   test_async_method_propagation() async {
@@ -128,7 +108,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         Future<int> g5() async { return await new Future.value(3); }
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await resolveTestCode(code);
 
     void check(String name, Asserter<InterfaceType> typeTest) {
       MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
@@ -184,7 +164,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       Future<int> g4() async { return new Future.value(3); }
       Future<int> g5() async { return await new Future.value(3); }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await resolveTestCode(code);
 
     void check(String name, Asserter<InterfaceType> typeTest) {
       FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
@@ -230,7 +210,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         A<int> a = new A()..map(0, (x) => [x]);
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await resolveTestCode(code);
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     CascadeExpression fetch(int i) {
@@ -259,11 +239,10 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     T f<S, T extends S>(S x) => null;
     void test() { var x = f(3); }
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclarationStatement stmt = statements[0];
@@ -280,11 +259,10 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     T f<T extends S, S>(S x) => null;
     void test() { var x = f(3); }
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclarationStatement stmt = statements[0];
@@ -294,14 +272,14 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   }
 
   test_constrainedByBounds3() async {
-    Source source = addSource(r'''
+    var code = r'''
       T f<T extends S, S extends int>(S x) => null;
       void test() { var x = f(3); }
-   ''');
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+   ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclarationStatement stmt = statements[0];
@@ -320,11 +298,10 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     T f<S, T extends Func1<S, S>>(S x) => null;
     void test() { var x = f(3)(4); }
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclarationStatement stmt = statements[0];
@@ -344,11 +321,11 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     T f<T extends Func1<S, S>, S>(S x) => null;
     void test() { var x = f(3)(null); }
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.COULD_NOT_INFER]);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 114, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclarationStatement stmt = statements[0];
@@ -364,7 +341,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         A() : this.x = [];
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertNoErrorsInCode(code);
     ConstructorDeclaration constructor =
         AstFinder.getConstructorInClass(unit, "A", null);
     ConstructorFieldInitializer assignment = constructor.initializers[0];
@@ -379,7 +356,10 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       }
       class B<S> extends A<S> {}
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(
+          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS, 92, 4),
+    ]);
 
     ConstructorDeclaration constructor =
         AstFinder.getConstructorInClass(unit, "A", null);
@@ -401,7 +381,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         List<String> f0 = ["hello"];
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertNoErrorsInCode(code);
 
     VariableDeclaration field = AstFinder.getFieldInClass(unit, "A", "f0");
 
@@ -421,7 +401,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         return (x) => x;
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_ELEMENT, 144, 5),
+    ]);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
 
@@ -459,7 +441,17 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         Function2<int, String> l4 = (int x) {return 3;};
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 91, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 144, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 200, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 205, 21),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 259, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 275, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 330, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -488,7 +480,16 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         Function2<int, String> l4 = (x) {return 3;};
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 91, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 140, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 244, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 256, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 290, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 307, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -516,7 +517,16 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         Function2<int, List<String>> l3 = (int x) {return [3];};
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 161, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 166, 23),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 228, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 245, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 286, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 308, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     Expression functionReturnValue(int i) {
@@ -553,7 +563,12 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         (new Mapper<int, String>().map)((int x) {return 3;});
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 262, 21),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 337, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 397, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -584,7 +599,11 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         (new Mapper<int, String>().map)((x) {return 3;});
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 318, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 374, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -613,7 +632,12 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         map((int x) {return 3;});
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 153, 21),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 200, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 232, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -642,7 +666,11 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         map((x) {return 3;});
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 181, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 209, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -673,7 +701,12 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         new Mapper<int, String>().map((int x) {return 3;});
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 256, 21),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 329, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 387, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -704,7 +737,11 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         new Mapper<int, String>().map((x) {return 3;});
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 310, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 364, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -733,7 +770,16 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
         Function2<String, String> l4 = (x) => x.toLowerCase();
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 131, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 179, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 191, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 225, 2),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 239, 11),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 288, 2),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     Expression functionReturnValue(int i) {
@@ -912,7 +958,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr does not have the constituent type methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
-    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
+    ''', expectedErrors: [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 3),
+    ]);
     _isDynamic(invoke.staticType);
   }
 
@@ -920,7 +968,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr does not have the Future type methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
-    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
+    ''', expectedErrors: [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 4),
+    ]);
     _isDynamic(invoke.staticType);
   }
 
@@ -928,7 +978,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     // Test that FutureOr<dynamic> does not have all methods
     MethodInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
-    ''', errors: [CompileTimeErrorCode.UNDEFINED_METHOD]);
+    ''', expectedErrors: [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 65, 3),
+    ]);
     _isDynamic(invoke.staticType);
   }
 
@@ -981,7 +1033,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
     MethodInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T extends Future<Object>>(FutureOr<T> x) => null;
     dynamic test() => mk(new Future<int>.value(42));
-    ''', errors: [CompileTimeErrorCode.COULD_NOT_INFER]);
+    ''', expectedErrors: [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 111, 2),
+    ]);
     _isFutureOfInt(invoke.staticType);
   }
 
@@ -1045,7 +1099,14 @@ void test() {
     var a4 = new A.fromB(new B(3));
 }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 205, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 241, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 284, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 318, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 347, 2),
+    ]);
+
     Element elementA = AstFinder.getClass(unit, "A").declaredElement;
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "test");
@@ -1062,7 +1123,7 @@ void test() {
   }
 
   test_inferConstructor_unknownTypeLowerBound() async {
-    Source source = addSource(r'''
+    var code = r'''
         class C<T> {
           C(void callback(List<T> a));
         }
@@ -1071,10 +1132,11 @@ void test() {
           // becomes inferred as List<Null>.
           var c = new C((items) {});
         }
-        ''');
-    CompilationUnit unit = (await computeAnalysisResult(source)).unit;
-    assertNoErrors(source);
-    verify([source]);
+        ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 225, 1),
+    ]);
+
     DartType cType = findLocalVariable(unit, 'c').type;
     Element elementC = AstFinder.getClass(unit, "C").declaredElement;
 
@@ -1082,7 +1144,7 @@ void test() {
   }
 
   test_inference_error_arguments() async {
-    Source source = addSource(r'''
+    var code = r'''
 typedef R F<T, R>(T t);
 
 F<T, T> g<T>(F<T, T> f) => (x) => f(f(x));
@@ -1090,12 +1152,13 @@ F<T, T> g<T>(F<T, T> f) => (x) => f(f(x));
 test() {
   var h = g((int x) => 42.0);
 }
- ''');
-    await computeAnalysisResult(source);
-    _expectInferenceError(source, [
-      CompileTimeErrorCode.COULD_NOT_INFER,
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ], r'''
+ ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 88, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 90, 15),
+    ]);
+    _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'double' for 'T' which doesn't work:
@@ -1108,7 +1171,7 @@ Consider passing explicit type argument(s) to the generic.
   }
 
   test_inference_error_arguments2() async {
-    Source source = addSource(r'''
+    var code = r'''
 typedef R F<T, R>(T t);
 
 F<T, T> g<T>(F<T, T> a, F<T, T> b) => (x) => a(b(x));
@@ -1116,13 +1179,14 @@ F<T, T> g<T>(F<T, T> a, F<T, T> b) => (x) => a(b(x));
 test() {
   var h = g((int x) => 42.0, (double x) => 42);
 }
- ''');
-    await computeAnalysisResult(source);
-    _expectInferenceError(source, [
-      CompileTimeErrorCode.COULD_NOT_INFER,
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ], r'''
+ ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 99, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 101, 15),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 118, 16),
+    ]);
+    _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1138,19 +1202,19 @@ Consider passing explicit type argument(s) to the generic.
 
   test_inference_error_extendsFromReturn() async {
     // This is not an inference error because we successfully infer Null.
-    Source source = addSource(r'''
+    var code = r'''
 T max<T extends num>(T x, T y) => x;
 
 test() {
   String hello = max(1, 2);
 }
- ''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.INVALID_CAST_LITERAL,
-      CompileTimeErrorCode.INVALID_CAST_LITERAL
+ ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 56, 5),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 68, 1),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 71, 1),
     ]);
-    var unit = analysisResult.unit;
+
     var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
             as VariableDeclarationStatement)
         .variables
@@ -1160,18 +1224,20 @@ test() {
   }
 
   test_inference_error_extendsFromReturn2() async {
-    Source source = addSource(r'''
+    var code = r'''
 typedef R F<T, R>(T t);
 F<T, T> g<T extends num>() => (y) => y;
 
 test() {
   F<String, String> hello = g();
 }
- ''');
-    await computeAnalysisResult(source);
-    _expectInferenceError(source, [
-      CompileTimeErrorCode.COULD_NOT_INFER,
-    ], r'''
+ ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 5),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 102, 1),
+    ]);
+
+    _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'String' for 'T' which doesn't work:
@@ -1186,7 +1252,7 @@ Consider passing explicit type argument(s) to the generic.
   }
 
   test_inference_error_genericFunction() async {
-    Source source = addSource(r'''
+    var code = r'''
 T max<T extends num>(T x, T y) => x < y ? y : x;
 abstract class Iterable<T> {
   T get first;
@@ -1195,12 +1261,13 @@ abstract class Iterable<T> {
 test(Iterable values) {
   num n = values.fold(values.first as num, max);
 }
- ''');
-    await computeAnalysisResult(source);
-    _expectInferenceError(source, [
-      CompileTimeErrorCode.COULD_NOT_INFER,
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    ], r'''
+ ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 158, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 195, 3),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 195, 3),
+    ]);
+    _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'dynamic' for 'T' which doesn't work:
@@ -1213,7 +1280,7 @@ Consider passing explicit type argument(s) to the generic.
   }
 
   test_inference_error_returnContext() async {
-    Source source = addSource(r'''
+    var code = r'''
 typedef R F<T, R>(T t);
 
 F<T, T> g<T>(T t) => (x) => t;
@@ -1221,9 +1288,12 @@ F<T, T> g<T>(T t) => (x) => t;
 test() {
   F<num, int> h = g(42);
 }
- ''');
-    await computeAnalysisResult(source);
-    _expectInferenceError(source, [CompileTimeErrorCode.COULD_NOT_INFER], r'''
+ ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 80, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 84, 1),
+    ]);
+    _expectInferenceError(r'''
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
@@ -1236,33 +1306,34 @@ Consider passing explicit type argument(s) to the generic.
   }
 
   test_inference_hints() async {
-    Source source = addSource(r'''
+    var code = r'''
       void main () {
         var x = 3;
         List<int> l0 = [];
      }
-   ''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
+   ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 2),
+    ]);
   }
 
   test_inference_simplePolymorphicRecursion_function() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with a function type
-    var source = addSource(r'''
+    var code = r'''
 void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) target) {
   _mergeSort(list, compare, target);
   _mergeSort(list, compare, list);
   _mergeSort(target, compare, target);
   _mergeSort(target, compare, list);
 }
-    ''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    var unit = analysisResult.unit;
+    ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_ELEMENT, 5, 10),
+    ]);
+
     var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
         .body as BlockFunctionBody;
@@ -1278,18 +1349,18 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with an interface type
-    var source = addSource(r'''
+    var code = r'''
 void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
   _mergeSort(list, compare, target);
   _mergeSort(list, compare, list);
   _mergeSort(target, compare, target);
   _mergeSort(target, compare, list);
 }
-    ''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    var unit = analysisResult.unit;
+    ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_ELEMENT, 5, 10),
+    ]);
+
     var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
         .body as BlockFunctionBody;
@@ -1305,18 +1376,18 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     // Regression test for https://github.com/dart-lang/sdk/issues/30980
     // Check that inference works properly when inferring the type argument
     // for a self-recursive call with a simple type parameter
-    var source = addSource(r'''
+    var code = r'''
 void _mergeSort<T>(T list, int compare(T a, T b), T target) {
   _mergeSort(list, compare, target);
   _mergeSort(list, compare, list);
   _mergeSort(target, compare, target);
   _mergeSort(target, compare, list);
 }
-    ''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    var unit = analysisResult.unit;
+    ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_ELEMENT, 5, 10),
+    ]);
+
     var body = AstFinder.getTopLevelFunction(unit, '_mergeSort')
         .functionExpression
         .body as BlockFunctionBody;
@@ -1329,17 +1400,17 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
 
   test_inferGenericInstantiation() async {
     // Verify that we don't infer '?` when we instantiate a generic function.
-    var source = addSource(r'''
+    var code = r'''
 T f<T>(T x(T t)) => x(null);
 S g<S>(S s) => s;
 test() {
  var h = f(g);
 }
-    ''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    var unit = analysisResult.unit;
+    ''';
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
+
     var h = (AstFinder.getStatementsInTopLevelFunction(unit, "test")[0]
             as VariableDeclarationStatement)
         .variables
@@ -1354,21 +1425,19 @@ test() {
   test_inferGenericInstantiation2() async {
     // Verify the behavior when we cannot infer an instantiation due to invalid
     // constraints from an outer generic method.
-    var source = addSource(r'''
+    var code = r'''
 T max<T extends num>(T x, T y) => x < y ? y : x;
 abstract class Iterable<T> {
   T get first;
   S fold<S>(S s, S f(S s, T t));
 }
 num test(Iterable values) => values.fold(values.first as num, max);
-    ''');
-    var analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.COULD_NOT_INFER,
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    ''';
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 190, 3),
     ]);
-    verify([source]);
-    var unit = analysisResult.unit;
+
     var fold = (AstFinder.getTopLevelFunction(unit, 'test')
             .functionExpression
             .body as ExpressionFunctionBody)
@@ -1392,7 +1461,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
         get map => { 43: [] };
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertNoErrorsInCode(code);
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
     Asserter<InterfaceType> assertMapOfIntToListOfInt =
@@ -1509,7 +1578,72 @@ num test(Iterable values) => values.fold(values.first as num, max);
         A<int, String> a4 = new F.named(3, "hello", "hello", 3);
         A<int, String> a5 = new F.named(3, "hello", "hello");
       }''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 769, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 816, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 869, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 929, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 995, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, 1000, 31),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1056, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_NEW_EXPR, 1061, 41),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1157, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1168, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1177, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1204, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1221, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1230, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1286, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1333, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1386, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1446, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1512, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1517, 34),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1576, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1581, 41),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1676, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1687, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1690, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1723, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1740, 1),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 1743, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1802, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1837, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1878, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1918, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 1964, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 1969, 17),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2008, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2013, 23),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2087, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2098, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2128, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2145, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2208, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2252, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2302, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2359, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2425, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2430, 28),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2483, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 2488, 38),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2580, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2591, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2618, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 2635, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2694, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2805, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2874, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2901, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 2914, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 2942, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3007, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3060, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 3089, 7),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 3098, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 3125, 2),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 3154, 7),
+    ]);
 
     Expression rhs(VariableDeclarationStatement stmt) {
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -1644,7 +1778,14 @@ num test(Iterable values) => values.fold(values.first as num, max);
         List<List<int>> l3 = [["hello", 3], []];
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 165, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 172, 7),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     ListLiteral literal(int i) {
@@ -1677,7 +1818,15 @@ num test(Iterable values) => values.fold(values.first as num, max);
         List<int> l3 = ["hello", 3];
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 100, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 128, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 134, 7),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -1704,7 +1853,15 @@ num test(Iterable values) => values.fold(values.first as num, max);
         const List<int> c3 = const ["hello", 3];
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 136, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 170, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 182, 7),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -1731,7 +1888,17 @@ num test(Iterable values) => values.fold(values.first as num, max);
         List<int> l3 = <dynamic>["hello", 3];
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 44, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 76, 8),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 104, 2),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 109, 17),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 146, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 151, 21),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -1756,7 +1923,15 @@ num test(Iterable values) => values.fold(values.first as num, max);
         Iterable<int> l3 = ["hello", 3];
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 74, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 106, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 112, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 144, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 150, 7),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -1784,7 +1959,18 @@ num test(Iterable values) => values.fold(values.first as num, max);
         Map<int, List<String>> l4 = {3:["hello"], "hello": [3]};
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 144, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 150, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 202, 2),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 212, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 248, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 267, 7),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 277, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     SetOrMapLiteral literal(int i) {
@@ -1824,7 +2010,18 @@ num test(Iterable values) => values.fold(values.first as num, max);
         Map<int, String> l4 = {3:"hello", "hello": 3};
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 80, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 124, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 130, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 174, 2),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 183, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 212, 2),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 229, 7),
+      error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 238, 1),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -1852,7 +2049,18 @@ num test(Iterable values) => values.fold(values.first as num, max);
         Map<int, String> l3 = <int, dynamic>{3: 3};
      }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 51, 16),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 94, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 99, 26),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 152, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 157, 32),
+      error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 172, 7),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 216, 2),
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 221, 20),
+    ]);
+
     List<Statement> statements =
         AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
@@ -1878,7 +2086,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
         List<String> m1(int x) {return [3];}
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 101, 1),
+    ]);
+
     Expression methodReturnValue(String methodName) {
       MethodDeclaration method =
           AstFinder.getMethodInClass(unit, "A", methodName);
@@ -1905,11 +2116,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     S f<S, T>(Func1<S, T> g) => null;
     String test() => f((l) => l.length);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     _isString(body.expression.staticType);
@@ -1932,11 +2140,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> { B(S s); }
     A<int, String> test() => new B(3);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_CAST_LITERAL]);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 1),
+    ]);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
@@ -1957,11 +2164,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> { B(S s); }
     A<num, num> test() => new B(3);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
@@ -1983,13 +2187,10 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> { B(S s); }
     A<int, double> test() => new B(3);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.INVALID_CAST_LITERAL,
+    await assertErrorsInCode(code, [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL, 126, 1),
     ]);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
@@ -2011,11 +2212,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     class B<S> extends A<S, S> {}
     A<int, num> test() => new B();
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     DartType type = body.expression.staticType;
@@ -2039,11 +2237,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, String>> test() => mkA();
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     FunctionType functionType = body.expression.staticType;
@@ -2067,11 +2262,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<num, num>> test() => mkA();
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     FunctionType functionType = body.expression.staticType;
@@ -2096,11 +2288,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, double>> test() => mkA();
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     FunctionType functionType = body.expression.staticType;
@@ -2125,11 +2314,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
     Contra1<A<S, S>> mkA<S>() => (A<S, S> x) {};
     Contra1<A<int, num>> test() => mkA();
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     FunctionType functionType = body.expression.staticType;
@@ -2141,7 +2327,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
   }
 
   test_redirectedConstructor_named() async {
-    Source source = addSource(r'''
+    var code = r'''
 class A<T, U> implements B<T, U> {
   A.named();
 }
@@ -2149,11 +2335,10 @@ class A<T, U> implements B<T, U> {
 class B<T2, U2> {
   factory B() = A.named;
 }
-   ''');
-    TestAnalysisResult result = await computeAnalysisResult(source);
-    assertNoErrors(source);
+   ''';
+    await assertNoErrorsInCode(code);
 
-    ClassDeclaration b = result.unit.declarations[1];
+    ClassDeclaration b = unit.declarations[1];
     ConstructorDeclaration bConstructor = b.members[0];
     ConstructorName redirected = bConstructor.redirectedConstructor;
 
@@ -2170,18 +2355,16 @@ class B<T2, U2> {
   }
 
   test_redirectedConstructor_self() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class A<T> {
   A();
   factory A.redirected() = A;
 }
-   ''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+''');
   }
 
   test_redirectedConstructor_unnamed() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class A<T, U> implements B<T, U> {
   A();
 }
@@ -2189,9 +2372,7 @@ class A<T, U> implements B<T, U> {
 class B<T2, U2> {
   factory B() = A;
 }
-   ''');
-    TestAnalysisResult result = await computeAnalysisResult(source);
-    assertNoErrors(source);
+''');
 
     ClassDeclaration b = result.unit.declarations[1];
     ConstructorDeclaration bConstructor = b.members[0];
@@ -2215,7 +2396,7 @@ class B<T2, U2> {
         A.named(List<String> x);
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertNoErrorsInCode(code);
 
     ConstructorDeclaration constructor =
         AstFinder.getConstructorInClass(unit, "A", null);
@@ -2232,11 +2413,8 @@ class B<T2, U2> {
     Func1<T, String> f<T>(T x) => null;
     Func1<num, String> test() => f(42);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     MethodInvocation invoke = body.expression;
@@ -2252,11 +2430,8 @@ class B<T2, U2> {
     Func1<String, T> f<T>(T x) => null;
     Func1<String, num> test() => f(42);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     MethodInvocation invoke = body.expression;
@@ -2273,11 +2448,8 @@ class B<T2, U2> {
     Func1<T, String> f<T>(T x, g(T x)) => null;
     dynamic test() => f(42, (num x) => x);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     FunctionType functionType = body.expression.staticType;
@@ -2294,11 +2466,8 @@ class B<T2, U2> {
     Func1<String, T> f<T>(T x, g(T x)) => null;
     dynamic test() => f(42, (num x) => x);
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     FunctionType functionType = body.expression.staticType;
@@ -2315,11 +2484,8 @@ class B<T2, U2> {
     T g<T, S>(Func1<T, S> f) => null;
     num test() => g(f(3));
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     MethodInvocation call = body.expression;
@@ -2337,11 +2503,8 @@ class B<T2, U2> {
     T g<T, S>(Func1<S, T> f) => null;
     num test() => g(f(3));
    ''';
-    Source source = addSource(code);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = analysisResult.unit;
+    await assertNoErrorsInCode(code);
+
     FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     MethodInvocation call = body.expression;
@@ -2359,7 +2522,7 @@ class B<T2, U2> {
         A() : super([]);
       }
    ''';
-    CompilationUnit unit = await resolveSource(code);
+    await assertNoErrorsInCode(code);
 
     ConstructorDeclaration constructor =
         AstFinder.getConstructorInClass(unit, "A", null);
@@ -2368,13 +2531,10 @@ class B<T2, U2> {
     _isListOf(_isString)(exp.staticType);
   }
 
-  /// Verifies the source has the expected [errorCodes] as well as the
-  /// expected [errorMessage].
-  void _expectInferenceError(
-      Source source, List<ErrorCode> errorCodes, String errorMessage) {
-    assertErrors(source, errorCodes);
-    var errors = analysisResults[source]
-        .errors
+  /// Verifies the result has [CompileTimeErrorCode.COULD_NOT_INFER] with
+  /// the expected [errorMessage].
+  void _expectInferenceError(String errorMessage) {
+    var errors = result.errors
         .where((e) => e.errorCode == CompileTimeErrorCode.COULD_NOT_INFER)
         .map((e) => e.message)
         .toList();
@@ -2391,20 +2551,15 @@ class B<T2, U2> {
   /// "test", whose body is an expression that invokes a method. Returns that
   /// invocation.
   Future<MethodInvocation> _testFutureOr(String code,
-      {List<ErrorCode> errors}) async {
-    Source source = addSource("""
-    import "dart:async";
-    $code""");
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+      {List<ExpectedError> expectedErrors = const []}) async {
+    var fullCode = """
+import "dart:async";
 
-    if (errors == null) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, errors);
-    }
-    verify([source]);
-    FunctionDeclaration test =
-        AstFinder.getTopLevelFunction(analysisResult.unit, "test");
+$code
+""";
+    await assertErrorsInCode(fullCode, expectedErrors);
+
+    FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, "test");
     ExpressionFunctionBody body = test.functionExpression.body;
     return body.expression;
   }

@@ -78,7 +78,7 @@ ParseStringResult parseString(
     FeatureSet featureSet,
     String path,
     bool throwIfDiagnostics = true}) {
-  featureSet ??= FeatureSet.fromEnableFlags([]);
+  featureSet ??= FeatureSet.latestLanguageVersion();
   var source = StringSource(content, path);
   var reader = CharSequenceReader(content);
   var errorCollector = RecordingErrorListener();

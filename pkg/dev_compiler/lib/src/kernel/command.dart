@@ -146,16 +146,17 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(0);
   }
 
+  var options = SharedCompilerOptions.fromArguments(argResults);
+
   // To make the output .dill agnostic of the current working directory,
   // we use a custom-uri scheme for all app URIs (these are files outside the
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  var multiRootScheme = argResults['multi-root-scheme'] as String;
   var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
       .map(Uri.base.resolve)
       .toList();
-  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
+  var multiRootOutputPath = options.multiRootOutputPath;
   if (multiRootOutputPath == null) {
     if (outPaths.length > 1) {
       print(
@@ -168,11 +169,11 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var fileSystem = MultiRootFileSystem(
-      multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
+      options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
-      return Uri(scheme: multiRootScheme, path: '/' + uri.path);
+      return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
     }
     return uri;
   }
@@ -185,7 +186,6 @@ Future<CompilerResult> _compile(List<String> args,
     return toCustomUri(sourcePathToRelativeUri(source));
   }
 
-  var options = SharedCompilerOptions.fromArguments(argResults);
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
@@ -420,7 +420,7 @@ Future<CompilerResult> _compile(List<String> args,
         emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
-        customScheme: multiRootScheme,
+        customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
 
@@ -469,7 +469,7 @@ Future<CompilerResult> _compile(List<String> args,
 // TODO(sigmund): refactor the underlying pieces to reduce the code duplication.
 Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var argParser = ArgParser(allowTrailingOptions: true);
-  SharedCompilerOptions.addArguments(argParser);
+  SharedCompilerOptions.addSdkRequiredArguments(argParser);
 
   ArgResults argResults;
   try {
@@ -519,9 +519,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   }
   var coreTypes = CoreTypes(component);
   var hierarchy = ClassHierarchy(component, coreTypes);
-  var multiRootScheme = argResults['multi-root-scheme'] as String;
-  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
-  var options = SharedCompilerOptions.fromArguments(argResults);
+  var options = SharedCompilerOptions.fromSdkRequiredArguments(argResults);
 
   var compiler = ProgramCompiler(
       component, hierarchy, options, const {}, const {},
@@ -542,8 +540,8 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
-        customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath,
+        customScheme: options.multiRootScheme,
+        multiRootOutputPath: options.multiRootOutputPath,
         component: component);
 
     outFiles.add(file.writeAsString(jsCode.code));
@@ -552,6 +550,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
           File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
   }
+  await Future.wait(outFiles);
   return CompilerResult(0);
 }
 

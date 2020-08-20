@@ -60,31 +60,6 @@ class ModifyParameters extends Change<_Data> {
 
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
-    if (data is _InvocationSiteData) {
-      _applyToInvocationSite(builder, fix, data);
-    } else if (data is _OverrideData) {
-      _applyToOverride(builder, fix, data);
-    } else {
-      throw StateError('Unsupported class of data: ${data.runtimeType}');
-    }
-  }
-
-  @override
-  _Data validate(DataDrivenFix fix) {
-    var node = fix.node;
-    var parent = node.parent;
-    if (parent is InvocationExpression) {
-      var argumentList = parent.argumentList;
-      return _InvocationSiteData(argumentList);
-    }
-    // TODO(brianwilkerson) Recognize cases where a method that used to be an
-    //  override of a removed method needs to be migrated and return an
-    //  [_OverrideData] to represent that case.
-    return null;
-  }
-
-  void _applyToInvocationSite(DartFileEditBuilder builder, DataDrivenFix fix,
-      _InvocationSiteData data) {
     var argumentList = data.argumentList;
     var arguments = argumentList.arguments;
     var argumentCount = arguments.length;
@@ -248,10 +223,15 @@ class ModifyParameters extends Change<_Data> {
     }
   }
 
-  void _applyToOverride(
-      DartFileEditBuilder builder, DataDrivenFix fix, _OverrideData data) {
-    // TODO(brianwilkerson) Implement this.
-    throw UnsupportedError('Updating override sites is not yet supported.');
+  @override
+  _Data validate(DataDrivenFix fix) {
+    var node = fix.node;
+    var parent = node.parent;
+    if (parent is InvocationExpression) {
+      var argumentList = parent.argumentList;
+      return _Data(argumentList);
+    }
+    return null;
   }
 
   /// Return the range from the list of [ranges] that contains the given
@@ -285,8 +265,15 @@ class RemoveParameter extends ParameterModification {
   RemoveParameter(this.parameter) : assert(parameter != null);
 }
 
-/// The data returned when modifying a parameter list.
-class _Data {}
+/// The data returned when updating an invocation site.
+class _Data {
+  /// The argument list to be updated.
+  final ArgumentList argumentList;
+
+  /// Initialize a newly created data object with the data needed to update an
+  /// invocation site.
+  _Data(this.argumentList);
+}
 
 /// A range of indexes within a list.
 class _IndexRange {
@@ -305,26 +292,6 @@ class _IndexRange {
 
   @override
   String toString() => '[$lower..$upper]';
-}
-
-/// The data returned when updating an invocation site.
-class _InvocationSiteData extends _Data {
-  /// The argument list to be updated.
-  final ArgumentList argumentList;
-
-  /// Initialize a newly created data object with the data needed to update an
-  /// invocation site.
-  _InvocationSiteData(this.argumentList);
-}
-
-/// The data returned when updating an override of the modified method.
-class _OverrideData extends _Data {
-  /// The parameter list to be updated.
-  final FormalParameterList parameter;
-
-  /// Initialize a newly created data object with the data needed to update an
-  /// override of the modified method.
-  _OverrideData(this.parameter);
 }
 
 extension on List<int> {

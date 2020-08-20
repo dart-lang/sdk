@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/rename_change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -15,6 +15,8 @@ import 'data_driven_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ModifyParameters_DeprecatedMemberUseTest);
+    defineReflectiveTests(ModifyParameters_NotEnoughPositionalArgumentsTest);
+    defineReflectiveTests(ModifyParameters_UndefinedMethodTest);
   });
 }
 
@@ -28,7 +30,7 @@ void main() {
 /// applied to top-level functions, but are not intended to be exhaustive.
 @reflectiveTest
 class ModifyParameters_DeprecatedMemberUseTest extends _ModifyParameters {
-  Future<void> test_add_function_first_optionalNamed() async {
+  Future<void> test_add_function_first_requiredNamed() async {
     setPackageContent('''
 @deprecated
 void f(int b) {}
@@ -64,7 +66,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(1, 'a', false, false, null, null)],
+        ['C', 'm'], [AddParameter(0, 'a', false, false, null, null)],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -835,6 +837,65 @@ void f(C c) {
   }
 }
 
+@reflectiveTest
+class ModifyParameters_NotEnoughPositionalArgumentsTest
+    extends _ModifyParameters {
+  Future<void> test_method_sameName() async {
+    setPackageContent('''
+class C {
+  void m(int a, int b) {}
+}
+''');
+    setPackageData(_modify(['C', 'm'],
+        [AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))]));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0, 1);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ModifyParameters_UndefinedMethodTest extends _ModifyParameters {
+  Future<void> test_method_renamed() async {
+    setPackageContent('''
+class C {
+  void m2(int a, int b) {}
+}
+''');
+    setPackageData(_modify([
+      'C',
+      'm'
+    ], [
+      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
+    ], newName: 'm2'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m2(0, 1);
+}
+''');
+  }
+}
+
 abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
   Transform _modify(List<String> originalComponents,
           List<ParameterModification> modifications, {String newName}) =>
@@ -844,6 +905,6 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
               libraryUris: [importUri], components: originalComponents),
           changes: [
             ModifyParameters(modifications: modifications),
-            if (newName != null) RenameChange(newName: newName),
+            if (newName != null) Rename(newName: newName),
           ]);
 }

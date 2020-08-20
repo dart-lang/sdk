@@ -24,12 +24,18 @@ class FlowAnalysisDataForTesting {
   /// there is a `return` statement at the end of the function body block.
   final List<FunctionBody> functionBodiesThatDontComplete = [];
 
-  /// The list of [Expression]s representing variable accesses that occur before
-  /// the corresponding variable has been definitely assigned.
-  final List<AstNode> potentiallyUnassignedNodes = [];
+  /// The list of [SimpleIdentifier]s that were checked if they are definitely
+  /// assigned, but were not.
+  final List<AstNode> notDefinitelyAssignedNodes = [];
 
-  /// The list of [SimpleIdentifier]s representing variable accesses that occur
-  /// when the corresponding variable has been definitely unassigned.
+  /// The list of [SimpleIdentifier]s representing variable references (reads,
+  /// writes, or both) that occur when the corresponding variable has been
+  /// definitely assigned.
+  final List<AstNode> definitelyAssignedNodes = [];
+
+  /// The list of [SimpleIdentifier]s representing variable references (reads,
+  /// writes, or both) that occur when the corresponding variable has been
+  /// definitely unassigned.
   final List<AstNode> definitelyUnassignedNodes = [];
 
   /// For each top level or class level declaration, the assigned variables
@@ -144,6 +150,36 @@ class FlowAnalysisHelper {
     flow.for_conditionBegin(node);
   }
 
+  bool isDefinitelyAssigned(
+    SimpleIdentifier node,
+    PromotableElement element,
+  ) {
+    var isAssigned = flow.isAssigned(element);
+
+    if (dataForTesting != null) {
+      if (isAssigned) {
+        dataForTesting.definitelyAssignedNodes.add(node);
+      } else {
+        dataForTesting.notDefinitelyAssignedNodes.add(node);
+      }
+    }
+
+    return isAssigned;
+  }
+
+  bool isDefinitelyUnassigned(
+    SimpleIdentifier node,
+    PromotableElement element,
+  ) {
+    var isUnassigned = flow.isUnassigned(element);
+
+    if (dataForTesting != null && isUnassigned) {
+      dataForTesting.definitelyUnassignedNodes.add(node);
+    }
+
+    return isUnassigned;
+  }
+
   void isExpression(IsExpression node) {
     if (flow == null) return;
 
@@ -156,52 +192,6 @@ class FlowAnalysisHelper {
       node.notOperator != null,
       typeAnnotation.type,
     );
-  }
-
-  bool isPotentiallyNonNullableLocalReadBeforeWrite(SimpleIdentifier node) {
-    if (flow == null) return false;
-
-    if (node.inDeclarationContext()) return false;
-    if (!node.inGetterContext()) return false;
-
-    var element = node.staticElement;
-    if (element is LocalVariableElement) {
-      var typeSystem = _typeOperations.typeSystem;
-      var isUnassigned = !flow.isAssigned(element);
-      if (isUnassigned) {
-        dataForTesting?.potentiallyUnassignedNodes?.add(node);
-      }
-      if (typeSystem.isPotentiallyNonNullable(element.type)) {
-        // Note: in principle we could make this slightly more performant by
-        // checking element.isLate earlier, but we would lose the ability to
-        // test the flow analysis mechanism using late variables.  And it seems
-        // unlikely that the `late` modifier will be used often enough for it to
-        // make a significant difference.
-        if (element.isLate) return false;
-        return isUnassigned;
-      }
-    }
-
-    return false;
-  }
-
-  bool isReadOfDefinitelyUnassignedLateLocal(SimpleIdentifier node) {
-    if (flow == null) return false;
-
-    if (node.inDeclarationContext()) return false;
-    if (!node.inGetterContext()) return false;
-
-    var element = node.staticElement;
-    if (element is LocalVariableElement) {
-      if (flow.isUnassigned(element)) {
-        dataForTesting?.definitelyUnassignedNodes?.add(node);
-        if (element.isLate) {
-          return true;
-        }
-      }
-    }
-
-    return false;
   }
 
   void labeledStatement_enter(LabeledStatement node) {

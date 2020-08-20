@@ -840,6 +840,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
     body += B->NativeFunctionBody(dart_function, first_parameter);
   } else if (has_body) {
     body += BuildStatement();
+  } else if (dart_function.is_external()) {
+    body += ThrowNoSuchMethodError(dart_function);
   }
 
   if (body.is_open()) {
@@ -3780,24 +3782,30 @@ Fragment StreamingFlowGraphBuilder::BuildListLiteral(TokenPosition* p) {
 
   // The type argument for the factory call.
   Fragment instructions = TranslateInstantiatedTypeArguments(type_arguments);
-  LocalVariable* type = MakeTemporary();
 
-  instructions += LoadLocal(type);
   if (length == 0) {
-    instructions += Constant(Object::empty_array());
-  } else {
-    // The type arguments for CreateArray.
-    instructions += LoadLocal(type);
-    instructions += IntConstant(length);
-    instructions += CreateArray();
+    instructions += IntConstant(0);
+    instructions += StaticCall(
+        position,
+        Function::ZoneHandle(Z, I->object_store()->growable_list_factory()), 2,
+        ICData::kStatic);
+    return instructions;
+  }
 
-    LocalVariable* array = MakeTemporary();
-    for (intptr_t i = 0; i < length; ++i) {
-      instructions += LoadLocal(array);
-      instructions += IntConstant(i);
-      instructions += BuildExpression();  // read ith expression.
-      instructions += StoreIndexed(kArrayCid);
-    }
+  LocalVariable* type = MakeTemporary();
+  instructions += LoadLocal(type);
+
+  // The type arguments for CreateArray.
+  instructions += LoadLocal(type);
+  instructions += IntConstant(length);
+  instructions += CreateArray();
+
+  LocalVariable* array = MakeTemporary();
+  for (intptr_t i = 0; i < length; ++i) {
+    instructions += LoadLocal(array);
+    instructions += IntConstant(i);
+    instructions += BuildExpression();  // read ith expression.
+    instructions += StoreIndexed(kArrayCid);
   }
 
   const Class& factory_class =

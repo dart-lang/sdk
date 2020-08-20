@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -104,7 +105,10 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..useFastaParser = analyzer.Parser.useFasta
-    ..contextFeatures = FeatureSet.fromEnableFlags(enabledExperiments);
+    ..contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+      flags: enabledExperiments,
+    );
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

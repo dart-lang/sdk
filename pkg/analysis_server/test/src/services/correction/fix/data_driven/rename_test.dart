@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/rename_change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,12 +11,12 @@ import 'data_driven_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RenameChange_DeprecatedMemberUseTest);
+    defineReflectiveTests(Rename_DeprecatedMemberUseTest);
   });
 }
 
 @reflectiveTest
-class RenameChange_DeprecatedMemberUseTest extends DataDrivenFixProcessorTest {
+class Rename_DeprecatedMemberUseTest extends DataDrivenFixProcessorTest {
   Future<void> test_class() async {
     addMetaPackage();
     setPackageContent('''
@@ -240,6 +240,6 @@ void f() {
           element: ElementDescriptor(
               libraryUris: [importUri], components: components),
           changes: [
-            RenameChange(newName: newName),
+            Rename(newName: newName),
           ]);
 }

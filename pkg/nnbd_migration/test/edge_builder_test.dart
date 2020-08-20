@@ -25,6 +25,7 @@ import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -463,8 +464,17 @@ class AssignmentCheckerTest extends Object
 
     var uriStr = 'package:test/test.dart';
 
-    _myLibrary = LibraryElementImpl(analysisContext, analysisSession, uriStr,
-        -1, 0, FeatureSet.fromEnableFlags([EnableString.non_nullable]));
+    _myLibrary = LibraryElementImpl(
+      analysisContext,
+      analysisSession,
+      uriStr,
+      -1,
+      0,
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.10.0'),
+        flags: [EnableString.non_nullable],
+      ),
+    );
     _myLibrary.typeSystem = typeSystem;
     _myLibrary.typeProvider = coreLibrary.typeProvider;
 

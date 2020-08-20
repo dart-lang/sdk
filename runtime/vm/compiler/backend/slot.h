@@ -38,8 +38,8 @@ class LocalScope;
 class LocalVariable;
 class ParsedFunction;
 
-// List of slots that correspond to fields of native objects in the following
-// format:
+// The list of slots that correspond to nullable boxed fields of native objects
+// in the following format:
 //
 //     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
 //
@@ -51,20 +51,34 @@ class ParsedFunction;
 // - the last component specifies whether field behaves like a final field
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
-//
-// Note: native slots are expected to be non-nullable.
-#define BOXED_NATIVE_SLOTS_LIST(V)                                             \
-  V(Array, ArrayLayout, length, Smi, FINAL)                                    \
+#define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Context, ContextLayout, parent, Context, FINAL)                            \
   V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
   V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
   V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
+  V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
+  V(Type, TypeLayout, arguments, TypeArguments, FINAL)
+
+// The list of slots that correspond to non-nullable boxed fields of native
+// objects in the following format:
+//
+//     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - underlying_type: the Raw class which holds the field;
+// - exact_type specifies exact type of the field (any load from this field
+//   would only yield instances of this type);
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+#define NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                 \
+  V(Array, ArrayLayout, length, Smi, FINAL)                                    \
   V(Closure, ClosureLayout, function, Function, FINAL)                         \
   V(Closure, ClosureLayout, context, Context, FINAL)                           \
   V(Closure, ClosureLayout, hash, Context, VAR)                                \
   V(Function, FunctionLayout, parameter_names, Array, FINAL)                   \
   V(Function, FunctionLayout, parameter_types, Array, FINAL)                   \
-  V(Function, FunctionLayout, type_parameters, Array, FINAL)                   \
   V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
   V(GrowableObjectArray, GrowableObjectArrayLayout, data, Array, VAR)          \
   V(TypedDataBase, TypedDataBaseLayout, length, Smi, FINAL)                    \
@@ -81,7 +95,6 @@ class ParsedFunction;
   V(ArgumentsDescriptor, ArrayLayout, count, Smi, FINAL)                       \
   V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
   V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
-  V(Type, TypeLayout, arguments, TypeArguments, FINAL)                         \
   V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
   V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
 
@@ -99,9 +112,17 @@ class ParsedFunction;
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
 //
-// Note: As the underlying field is not boxed, these slots cannot be nullable.
+// Note: As the underlying field is unboxed, these slots cannot be nullable.
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
   V(Function, FunctionLayout, packed_fields, Uint32, FINAL)
+
+// For uses that do not need the exact_type (boxed) or representation (unboxed)
+// or whether a boxed native slot is nullable. (Generally, such users only need
+// the class name, the underlying type, and/or the field name.)
+#define NATIVE_SLOTS_LIST(V)                                                   \
+  NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                          \
+  NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                       \
+  UNBOXED_NATIVE_SLOTS_LIST(V)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.
@@ -115,10 +136,9 @@ class Slot : public ZoneAllocated {
   // clang-format off
   enum class Kind : uint8_t {
     // Native slots are identified by their kind - each native slot has its own.
-#define DECLARE_KIND(ClassName, UnderlyingType, FieldName, cid, mutability)    \
+#define DECLARE_KIND(ClassName, __, FieldName, ___, ____)                      \
   k##ClassName##_##FieldName,
-    BOXED_NATIVE_SLOTS_LIST(DECLARE_KIND)
-    UNBOXED_NATIVE_SLOTS_LIST(DECLARE_KIND)
+    NATIVE_SLOTS_LIST(DECLARE_KIND)
 #undef DECLARE_KIND
 
     // A slot used to store type arguments.
@@ -164,13 +184,12 @@ class Slot : public ZoneAllocated {
                          const ParsedFunction* parsed_function);
 
   // Convenience getters for native slots.
-#define DEFINE_GETTER(ClassName, UnderlyingType, FieldName, cid, mutability)   \
+#define DEFINE_GETTER(ClassName, UnderlyingType, FieldName, __, ___)           \
   static const Slot& ClassName##_##FieldName() {                               \
     return GetNativeSlot(Kind::k##ClassName##_##FieldName);                    \
   }
 
-  BOXED_NATIVE_SLOTS_LIST(DEFINE_GETTER)
-  UNBOXED_NATIVE_SLOTS_LIST(DEFINE_GETTER)
+  NATIVE_SLOTS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
   Kind kind() const { return kind_; }

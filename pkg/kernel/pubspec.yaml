@@ -12,6 +12,5 @@ dependencies:
   meta: ^1.0.0
 dev_dependencies:
   expect: any
-  front_end: any
   test: any
   testing: any

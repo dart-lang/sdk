@@ -6,17 +6,36 @@ environment:
   sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
-  analyzer: any
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  _js_interop_checks:
+    path: ../_js_interop_checks
+  args: any
   bazel_worker: any
   build_integration:
     path: ../build_integration
   cli_util: any
+  front_end:
+    path: ../front_end
+  kernel:
+    path: ../kernel
+  meta: any
+  path: any
   source_maps: any
+  source_span: any
 
 dev_dependencies:
+  analyzer: any
+  expect:
+    path: ../expect
+  js: any
+  modular_test:
+    path: ../modular_test
+  package_config: any
+  pedantic: ^1.8.0
   sourcemap_testing:
     path: ../sourcemap_testing
-  pedantic: ^1.8.0
+  stack_trace: any
   test: any
   testing:
     path: ../testing

@@ -5,7 +5,7 @@ import "dart:core" as core;
 import "dart:math" as math;
 
 import "dart:async";
-import "dart:math";
+import "dart:math" show Random;
 
 static method test() → dynamic {
   () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* /* originally async */ {

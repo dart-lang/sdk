@@ -408,8 +408,11 @@ mixin ElementsTypesMixin {
       uriStr,
       -1,
       0,
-      FeatureSet.fromEnableFlags(
-        typeSystem.isNonNullableByDefault ? [EnableString.non_nullable] : [],
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: typeSystem.isNonNullableByDefault
+            ? [EnableString.non_nullable]
+            : [],
       ),
     );
     library.typeSystem = typeSystem;

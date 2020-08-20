@@ -83,6 +83,9 @@ class ContextBuilder {
   /// interface.
   PerformanceLog performanceLog;
 
+  /// If `true`, additional analysis data useful for testing is stored.
+  bool retainDataForTesting = false;
+
   /// The byte store used by any analysis drivers created through this interface.
   ByteStore byteStore;
 
@@ -114,17 +117,19 @@ class ContextBuilder {
     final sf = createSourceFactory(path, options, summaryData: summaryData);
 
     AnalysisDriver driver = AnalysisDriver(
-        analysisDriverScheduler,
-        performanceLog,
-        resourceProvider,
-        byteStore,
-        fileContentOverlay,
-        contextRoot,
-        sf,
-        options,
-        packages: createPackageMap(path),
-        enableIndex: enableIndex,
-        externalSummaries: summaryData);
+      analysisDriverScheduler,
+      performanceLog,
+      resourceProvider,
+      byteStore,
+      fileContentOverlay,
+      contextRoot,
+      sf,
+      options,
+      packages: createPackageMap(path),
+      enableIndex: enableIndex,
+      externalSummaries: summaryData,
+      retainDataForTesting: retainDataForTesting,
+    );
 
     // Set API AnalysisContext for the driver.
     var apiContextRoots = api.ContextLocator(

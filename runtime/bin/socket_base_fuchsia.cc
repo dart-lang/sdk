@@ -8,9 +8,7 @@
 #include "bin/socket_base.h"
 
 #include <errno.h>
-#include <fuchsia/netstack/cpp/fidl.h>
 #include <ifaddrs.h>
-#include <lib/sys/cpp/service_directory.h>
 #include <net/if.h>
 #include <netinet/tcp.h>
 #include <stdio.h>
@@ -68,21 +66,10 @@ SocketAddress::SocketAddress(struct sockaddr* sa, bool unnamed_unix_socket) {
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
-static fidl::SynchronousInterfacePtr<fuchsia::netstack::Netstack> netstack;
-static std::once_flag once;
 
 bool SocketBase::Initialize() {
-  static zx_status_t status;
-  std::call_once(once, [&]() {
-    auto directory = sys::ServiceDirectory::CreateFromNamespace();
-    status = directory->Connect(netstack.NewRequest());
-    if (status != ZX_OK) {
-      Syslog::PrintErr(
-          "Initialize: connecting to fuchsia.netstack failed: %s\n",
-          zx_status_get_string(status));
-    }
-  });
-  return status == ZX_OK;
+  // Nothing to do on Fuchsia.
+  return true;
 }
 
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
@@ -294,6 +281,17 @@ bool SocketBase::RawAddrToString(RawAddr* addr, char* str) {
   }
 }
 
+static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
+  if (ifa->ifa_addr == NULL) {
+    // OpenVPN's virtual device tun0.
+    return false;
+  }
+  int family = ifa->ifa_addr->sa_family;
+  return ((lookup_family == family) ||
+          (((lookup_family == AF_UNSPEC) &&
+            ((family == AF_INET) || (family == AF_INET6)))));
+}
+
 bool SocketBase::ListInterfacesSupported() {
   return true;
 }
@@ -301,59 +299,38 @@ bool SocketBase::ListInterfacesSupported() {
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
-  std::vector<fuchsia::netstack::NetInterface2> interfaces;
-  zx_status_t status = netstack->GetInterfaces2(&interfaces);
-  if (status != ZX_OK) {
-    LOG_ERR("ListInterfaces: fuchsia.netstack.GetInterfaces2 failed: %s\n",
-            zx_status_get_string(status));
-    errno = EIO;
+  struct ifaddrs* ifaddr;
+
+  int status = NO_RETRY_EXPECTED(getifaddrs(&ifaddr));
+  if (status != 0) {
+    ASSERT(*os_error == NULL);
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
     return NULL;
   }
 
-  // Process the results.
-  const int lookup_family = SocketAddress::FromType(type);
+  int lookup_family = SocketAddress::FromType(type);
 
-  std::remove_if(
-      interfaces.begin(), interfaces.end(),
-      [lookup_family](const auto& interface) {
-        switch (interface.addr.Which()) {
-          case fuchsia::net::IpAddress::Tag::kIpv4:
-            return !(lookup_family == AF_UNSPEC || lookup_family == AF_INET);
-          case fuchsia::net::IpAddress::Tag::kIpv6:
-            return !(lookup_family == AF_UNSPEC || lookup_family == AF_INET6);
-          case fuchsia::net::IpAddress::Tag::Invalid:
-            return true;
-        }
-      });
-
-  auto addresses = new AddressList<InterfaceSocketAddress>(interfaces.size());
-  int addresses_idx = 0;
-  for (const auto& interface : interfaces) {
-    struct sockaddr_storage addr = {};
-    auto addr_in = reinterpret_cast<struct sockaddr_in*>(&addr);
-    auto addr_in6 = reinterpret_cast<struct sockaddr_in6*>(&addr);
-    switch (interface.addr.Which()) {
-      case fuchsia::net::IpAddress::Tag::kIpv4:
-        addr_in->sin_family = AF_INET;
-        memmove(&addr_in->sin_addr, interface.addr.ipv4().addr.data(),
-                sizeof(addr_in->sin_addr));
-        break;
-      case fuchsia::net::IpAddress::Tag::kIpv6:
-        addr_in6->sin6_family = AF_INET6;
-        memmove(&addr_in6->sin6_addr, interface.addr.ipv6().addr.data(),
-                sizeof(addr_in6->sin6_addr));
-        break;
-      case fuchsia::net::IpAddress::Tag::Invalid:
-        // Should have been filtered out above.
-        UNREACHABLE();
+  intptr_t count = 0;
+  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      count++;
     }
-    addresses->SetAt(addresses_idx,
-                     new InterfaceSocketAddress(
-                         reinterpret_cast<sockaddr*>(&addr),
-                         DartUtils::ScopedCopyCString(interface.name.c_str()),
-                         if_nametoindex(interface.name.c_str())));
-    addresses_idx++;
   }
+
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  int i = 0;
+  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
+      addresses->SetAt(
+          i, new InterfaceSocketAddress(ifa->ifa_addr, ifa_name,
+                                        if_nametoindex(ifa->ifa_name)));
+      i++;
+    }
+  }
+  freeifaddrs(ifaddr);
   return addresses;
 }
 

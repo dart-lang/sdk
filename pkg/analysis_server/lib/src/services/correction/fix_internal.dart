@@ -540,6 +540,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NOT_A_TYPE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ImportLibrary.forType,
     ],
@@ -569,6 +572,7 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
+      DataDriven.newInstance,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],

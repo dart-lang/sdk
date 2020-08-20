@@ -864,8 +864,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
 
-  @VariantId(33, variant: LinkedNodeKind.compilationUnit)
-  List<String> get compilationUnit_featureSetStrings;
+  @VariantId(41, variant: LinkedNodeKind.compilationUnit)
+  List<int> get compilationUnit_featureSet;
 
   /// The language version information.
   @VariantId(40, variant: LinkedNodeKind.compilationUnit)

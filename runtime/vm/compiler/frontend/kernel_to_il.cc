@@ -680,6 +680,11 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& owner = Class::Handle(Z, target.Owner());
   AbstractType& receiver = AbstractType::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
+  if (target.IsImplicitGetterFunction() || target.IsGetterFunction()) {
+    kind = InvocationMirror::kGetter;
+  } else if (target.IsImplicitSetterFunction() || target.IsSetterFunction()) {
+    kind = InvocationMirror::kSetter;
+  }
   InvocationMirror::Level level;
   if (owner.IsTopLevel()) {
     level = InvocationMirror::Level::kTopLevel;

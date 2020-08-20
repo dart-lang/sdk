@@ -364,8 +364,8 @@ class AstBinaryReader {
       directives: _readNodeList(data.compilationUnit_directives),
       declarations: _readNodeList(data.compilationUnit_declarations),
       endToken: null,
-      featureSet: ExperimentStatus.fromStrings(
-        data.compilationUnit_featureSetStrings,
+      featureSet: ExperimentStatus.fromStorage(
+        data.compilationUnit_featureSet,
       ),
     );
     LazyCompilationUnit(node, data);

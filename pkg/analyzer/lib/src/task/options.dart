@@ -604,8 +604,9 @@ class _OptionsProcessor {
             enabledExperiments.add(experimentName);
           }
         }
-        options.contextFeatures = FeatureSet.fromEnableFlags(
-          enabledExperiments,
+        options.contextFeatures = FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: enabledExperiments,
         );
       }
 

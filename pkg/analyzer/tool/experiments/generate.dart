@@ -83,33 +83,11 @@ part of 'experiments.dart';
     keysSorted = features.keys.toList()..sort();
     generateSection_CurrentVersion();
     generateSection_KnownFeatures();
-    generateSection_BuildExperimentalFlagsArray();
     generateSection_EnableString();
     generateSection_ExperimentalFeature();
     generateSection_IsEnabledByDefault();
     generateSection_IsExpired();
     generateSection_CurrentState();
-  }
-
-  void generateSection_BuildExperimentalFlagsArray() {
-    out.write('''
-
-List<bool> _buildExperimentalFlagsArray() => <bool>[
-''');
-    for (var key in keysSorted) {
-      var id = keyToIdentifier(key);
-      var entry = features[key] as YamlMap;
-      bool shipped = entry['enabledIn'] != null;
-      bool expired = entry['expired'];
-      if (shipped || expired == true) {
-        out.writeln('true, // $key');
-      } else {
-        out.writeln('IsEnabledByDefault.$id,');
-      }
-    }
-    out.write('''
-    ];
-''');
   }
 
   void generateSection_CurrentState() {
@@ -166,6 +144,8 @@ class ExperimentalFeatures {
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
       var help = (features[key] as YamlMap)['help'] ?? '';
+      var experimentalReleaseVersion =
+          (features[key] as YamlMap)['experimentalReleaseVersion'];
       var enabledIn = (features[key] as YamlMap)['enabledIn'];
       out.write('''
 
@@ -176,7 +156,16 @@ class ExperimentalFeatures {
         isExpired: IsExpired.$id,
         documentation: '$help',
     ''');
-      out.write("experimentalReleaseVersion: null,");
+
+      if (experimentalReleaseVersion != null) {
+        experimentalReleaseVersion =
+            _versionNumberAsString(experimentalReleaseVersion);
+        out.write("experimentalReleaseVersion: ");
+        out.write("Version.parse('$experimentalReleaseVersion'),");
+      } else {
+        out.write("experimentalReleaseVersion: null,");
+      }
+
       if (enabledIn != null) {
         enabledIn = _versionNumberAsString(enabledIn);
         out.write("releaseVersion: Version.parse('$enabledIn'),");

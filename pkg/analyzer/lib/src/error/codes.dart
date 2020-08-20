@@ -5122,7 +5122,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode LATE_FINAL_LOCAL_ALREADY_ASSIGNED =
       CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
           "The late final local variable is already definitely assigned.",
-          correction: "Try removing the 'late' modifier, or don't reassign "
+          correction: "Try removing the 'final' modifier, or don't reassign "
               "the value.");
 
   /**
@@ -7589,6 +7589,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "The setter '{0}' is private and can't be accessed outside of the "
           "library that declares it.",
       correction: "Try making it public.");
+
+  static const CompileTimeErrorCode READ_POTENTIALLY_UNASSIGNED_FINAL =
+      CompileTimeErrorCode(
+    'READ_POTENTIALLY_UNASSIGNED_FINAL',
+    "The final variable '{0}' can't be read because it is potentially "
+        "unassigned at this point.",
+    correction: "Ensure that it is assigned on necessary execution paths.",
+  );
 
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time

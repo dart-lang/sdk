@@ -41,4 +41,4 @@ import self as self2;
 import "export_twice_lib1.dart" as exp;
 additionalExports = (exp::Extension)
 
-export "org-dartlang-testcase:///export_twice_lib1.dart";
+export "org-dartlang-testcase:///export_twice_lib1.dart" show Extension;

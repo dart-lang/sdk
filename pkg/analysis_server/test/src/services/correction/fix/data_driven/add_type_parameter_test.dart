@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter_change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
@@ -12,16 +12,14 @@ import 'data_driven_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddTypeParameterChange_DeprecatedMemberUseTest);
-    defineReflectiveTests(AddTypeParameterChange_InvalidOverrideTest);
-    defineReflectiveTests(
-        AddTypeParameterChange_WrongNumberOfTypeArgumentsTest);
+    defineReflectiveTests(AddTypeParameter_DeprecatedMemberUseTest);
+    defineReflectiveTests(AddTypeParameter_InvalidOverrideTest);
+    defineReflectiveTests(AddTypeParameter_WrongNumberOfTypeArgumentsTest);
   });
 }
 
 @reflectiveTest
-class AddTypeParameterChange_DeprecatedMemberUseTest
-    extends _AddTypeParameterChange {
+class AddTypeParameter_DeprecatedMemberUseTest extends _AddTypeParameterChange {
   Future<void> test_method_first() async {
     setPackageContent('''
 class C {
@@ -120,8 +118,7 @@ void f(C c) {
 }
 
 @reflectiveTest
-class AddTypeParameterChange_InvalidOverrideTest
-    extends _AddTypeParameterChange {
+class AddTypeParameter_InvalidOverrideTest extends _AddTypeParameterChange {
   Future<void> test_method_bound() async {
     setPackageContent('''
 class C {
@@ -174,7 +171,7 @@ class D extends C {
 }
 
 @reflectiveTest
-class AddTypeParameterChange_WrongNumberOfTypeArgumentsTest
+class AddTypeParameter_WrongNumberOfTypeArgumentsTest
     extends _AddTypeParameterChange {
   Future<void> test_class() async {
     setPackageContent('''
@@ -271,7 +268,7 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
           element: ElementDescriptor(
               libraryUris: [importUri], components: components ?? ['C', 'm']),
           changes: [
-            AddTypeParameterChange(
+            AddTypeParameter(
                 extendedType: extendedType,
                 index: index,
                 name: 'T',

@@ -109,6 +109,7 @@
   FIELD(ICData, entries_offset)                                                \
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
+  FIELD(Int32x4, value_offset)                                                 \
   FIELD(Isolate, shared_class_table_offset)                                    \
   FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \

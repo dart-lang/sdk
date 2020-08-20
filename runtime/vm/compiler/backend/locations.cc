@@ -11,9 +11,57 @@
 
 namespace dart {
 
+#define REP_IN_SET_CLAUSE(name, __, ___)                                       \
+  case k##name:                                                                \
+    return true;
+#define REP_SIZEOF_CLAUSE(name, __, type)                                      \
+  case k##name:                                                                \
+    return sizeof(type);
+#define REP_IS_UNSIGNED_CLAUSE(name, unsigned, ___)                            \
+  case k##name:                                                                \
+    return unsigned;
+
+bool RepresentationUtils::IsUnboxedInteger(Representation rep) {
+  switch (rep) {
+    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
+    default:
+      return false;
+  }
+}
+
+bool RepresentationUtils::IsUnboxed(Representation rep) {
+  switch (rep) {
+    FOR_EACH_UNBOXED_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
+    default:
+      return false;
+  }
+}
+
+size_t RepresentationUtils::ValueSize(Representation rep) {
+  switch (rep) {
+    FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_SIZEOF_CLAUSE)
+    default:
+      UNREACHABLE();
+      return compiler::target::kWordSize;
+  }
+}
+
+bool RepresentationUtils::IsUnsigned(Representation rep) {
+  switch (rep) {
+    FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_IS_UNSIGNED_CLAUSE)
+    default:
+      UNREACHABLE();
+      return false;
+  }
+}
+
+#undef REP_IS_UNSIGNED_CLAUSE
+#undef REP_SIZEOF_CLAUSE
+#undef REP_IN_SET_CLAUSE
+
 const char* Location::RepresentationToCString(Representation repr) {
   switch (repr) {
-#define REPR_CASE(Name)                                                        \
+#define REPR_CASE(Name, __, ___)                                               \
   case k##Name:                                                                \
     return #Name;
     FOR_EACH_REPRESENTATION_KIND(REPR_CASE)
@@ -26,7 +74,7 @@ const char* Location::RepresentationToCString(Representation repr) {
 
 bool Location::ParseRepresentation(const char* str, Representation* out) {
   ASSERT(str != nullptr && out != nullptr);
-#define KIND_CASE(Name)                                                        \
+#define KIND_CASE(Name, __, ___)                                               \
   if (strcmp(str, #Name) == 0) {                                               \
     *out = k##Name;                                                            \
     return true;                                                               \

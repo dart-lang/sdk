@@ -714,6 +714,7 @@ class ExternalTwoByteString : public AllStatic {
 
 class Int32x4 : public AllStatic {
  public:
+  static word value_offset();
   static word InstanceSize();
   static word NextFieldOffset();
 };

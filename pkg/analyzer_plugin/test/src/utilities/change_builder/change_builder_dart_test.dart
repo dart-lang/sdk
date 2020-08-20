@@ -830,6 +830,94 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('a'));
   }
 
+  Future<void> test_writeParameter_covariant() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isCovariant: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('covariant a'));
+  }
+
+  Future<void> test_writeParameter_covariantAndRequired() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace('covariant @required a'));
+    expect(edits[1].replacement,
+        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
+  }
+
+  Future<void> test_writeParameter_required_addImport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('@required a'));
+    expect(edits[1].replacement,
+        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
+  }
+
+  Future<void> test_writeParameter_required_existingImport() async {
+    addMetaPackage();
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+import 'package:meta/meta.dart';
+
+class A {}
+''';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('@required a'));
+  }
+
+  Future<void> test_writeParameter_required_keyword() async {
+    createAnalysisOptionsFile(experiments: ['non-nullable']);
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('required a'));
+  }
+
   Future<void> test_writeParameter_type() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'class A {}';

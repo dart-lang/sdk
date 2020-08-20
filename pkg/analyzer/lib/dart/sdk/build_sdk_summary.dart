@@ -158,7 +158,10 @@ class _Builder {
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = allowedExperiments.forSdkLibrary(libraryName);
-        return FeatureSet.fromEnableFlags(experiments);
+        return FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: languageVersion,
+          flags: experiments,
+        );
       }
     }
     throw StateError('Expected a valid dart: URI: $uri');

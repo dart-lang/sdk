@@ -708,7 +708,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
     LibraryElement element = LibraryElementImpl(
-        null, null, 'lib', -1, 0, FeatureSet.fromEnableFlags([]));
+        null, null, 'lib', -1, 0, FeatureSet.latestLanguageVersion());
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -719,7 +719,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = LibraryElementImpl(
-        null, null, 'lib', -1, 0, FeatureSet.fromEnableFlags([]));
+        null, null, 'lib', -1, 0, FeatureSet.latestLanguageVersion());
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));

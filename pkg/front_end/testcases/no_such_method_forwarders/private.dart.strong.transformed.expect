@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "private_module.dart" as pri;
 
-import "org-dartlang-testcase:///private_module.dart";
+import "org-dartlang-testcase:///private_module.dart" show Fisk;
 
 abstract class Foo extends core::Object {
   synthetic constructor •() → self::Foo*

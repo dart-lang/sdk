@@ -64,8 +64,25 @@ abstract class FeatureSet {
 
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
+  @Deprecated("Use 'fromEnableFlags2' instead")
   factory FeatureSet.fromEnableFlags(List<String> flags) =
       ExperimentStatus.fromStrings;
+
+  /// Computes the set of features implied by the given set of experimental
+  /// enable flags.
+  factory FeatureSet.fromEnableFlags2({
+    @required Version sdkLanguageVersion,
+    @required List<String> flags,
+  }) = ExperimentStatus.fromStrings2;
+
+  /// Computes the set of features for the latest language version known
+  /// to the analyzer, without any experiments.  Use it only if you really
+  /// don't care which language version you want to use, and sure that the
+  /// code that you process is valid for the latest language version.
+  ///
+  /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
+  factory FeatureSet.latestLanguageVersion() =
+      ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.
   bool isEnabled(Feature feature);

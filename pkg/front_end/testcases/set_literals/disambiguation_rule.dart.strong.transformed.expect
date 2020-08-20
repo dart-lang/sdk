@@ -50,8 +50,8 @@ import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:_internal" as _in;
 
-import "dart:async";
-import "dart:collection";
+import "dart:async" show FutureOr;
+import "dart:collection" show LinkedHashMap, LinkedHashSet;
 
 static method main() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();

@@ -11,7 +11,7 @@ import 'package:meta/meta.dart';
 
 /// The data related to a type parameter that was added to either a function or
 /// a type.
-class AddTypeParameterChange extends Change<_Data> {
+class AddTypeParameter extends Change<_Data> {
   /// The index of the type parameter that was added.
   final int index;
 
@@ -28,7 +28,7 @@ class AddTypeParameterChange extends Change<_Data> {
   /// Initialize a newly created change to describe adding a type parameter to a
   /// type or a function.
   // TODO(brianwilkerson) Support adding multiple type parameters.
-  AddTypeParameterChange(
+  AddTypeParameter(
       {@required this.index,
       @required this.name,
       @required this.value,

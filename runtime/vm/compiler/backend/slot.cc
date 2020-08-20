@@ -46,16 +46,15 @@ class SlotCache : public ZoneAllocated {
   DirectChainedHashMap<PointerKeyValueTrait<const Slot> > fields_;
 };
 
-#define NATIVE_SLOT_NAME(C, F, id, M) Kind::k##C##_##F
-#define NATIVE_TO_STR(C, F, id, M) #C "_" #F
+#define NATIVE_SLOT_NAME(C, F) Kind::k##C##_##F
+#define NATIVE_TO_STR(C, F) #C "_" #F
 
 const char* Slot::KindToCString(Kind k) {
   switch (k) {
-#define NATIVE_CASE(C, U, F, id, M)                                            \
-  case NATIVE_SLOT_NAME(C, F, id, M):                                          \
-    return NATIVE_TO_STR(C, F, id, M);
-    BOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
-    UNBOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
+#define NATIVE_CASE(C, __, F, ___, ____)                                       \
+  case NATIVE_SLOT_NAME(C, F):                                                 \
+    return NATIVE_TO_STR(C, F);
+    NATIVE_SLOTS_LIST(NATIVE_CASE)
 #undef NATIVE_CASE
     case Kind::kTypeArguments:
       return "TypeArguments";
@@ -71,13 +70,12 @@ const char* Slot::KindToCString(Kind k) {
 
 bool Slot::ParseKind(const char* str, Kind* out) {
   ASSERT(str != nullptr && out != nullptr);
-#define NATIVE_CASE(C, U, F, id, M)                                            \
-  if (strcmp(str, NATIVE_TO_STR(C, F, id, M)) == 0) {                          \
-    *out = NATIVE_SLOT_NAME(C, F, id, M);                                      \
+#define NATIVE_CASE(C, __, F, ___, ____)                                       \
+  if (strcmp(str, NATIVE_TO_STR(C, F)) == 0) {                                 \
+    *out = NATIVE_SLOT_NAME(C, F);                                             \
     return true;                                                               \
   }
-  BOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
-  UNBOXED_NATIVE_SLOTS_LIST(NATIVE_CASE)
+  NATIVE_SLOTS_LIST(NATIVE_CASE)
 #undef NATIVE_CASE
   if (strcmp(str, "TypeArguments") == 0) {
     *out = Kind::kTypeArguments;
@@ -97,31 +95,11 @@ bool Slot::ParseKind(const char* str, Kind* out) {
 #undef NATIVE_TO_STR
 #undef NATIVE_SLOT_NAME
 
-static Representation CheckFit(Representation rep) {
-  ASSERT(Boxing::Supports(rep));
-  switch (rep) {
-    case kUnboxedInt64:
-    case kUnboxedInt32:
-    case kUnboxedUint32:
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-  return rep;
-}
-
 static classid_t GetUnboxedNativeSlotCid(Representation rep) {
-  ASSERT(Boxing::Supports(rep));
-  if (Boxing::RequiresAllocation(rep)) {
+  // Currently we only support integer unboxed fields.
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
     return Boxing::BoxCid(rep);
   }
-#if defined(TARGET_ARCH_IS_64_BIT)
-  // On 64-bit platforms, these always fit in Smis.
-  if (rep == kUnboxedInt32 || rep == kUnboxedUint32) {
-    return kSmiCid;
-  }
-#endif
   UNREACHABLE();
   return kIllegalCid;
 }
@@ -130,30 +108,45 @@ const Slot& Slot::GetNativeSlot(Kind kind) {
   // There is a fixed statically known number of native slots so we cache
   // them statically.
   static const Slot fields[] = {
-#define FIELD_FINAL (IsImmutableBit::encode(true))
-#define FIELD_VAR (0)
-#define DEFINE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName, cid,   \
-                                  mutability)                                  \
-  Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability, k##cid##Cid,      \
-       compiler::target::ClassName::FieldName##_offset(),                      \
+#define NULLABLE_FIELD_FINAL                                                   \
+  (IsNullableBit::encode(true) | IsImmutableBit::encode(true))
+#define NULLABLE_FIELD_VAR (IsNullableBit::encode(true))
+#define DEFINE_NULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,          \
+                                           FieldName, cid, mutability)         \
+  Slot(Kind::k##ClassName##_##FieldName, NULLABLE_FIELD_##mutability,          \
+       k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
        #ClassName "." #FieldName, nullptr, kTagged),
 
-      BOXED_NATIVE_SLOTS_LIST(DEFINE_BOXED_NATIVE_FIELD)
+      NULLABLE_BOXED_NATIVE_SLOTS_LIST(DEFINE_NULLABLE_BOXED_NATIVE_FIELD)
 
-#undef DEFINE_BOXED_NATIVE_FIELD
+#undef DEFINE_NULLABLE_BOXED_NATIVE_FIELD
+#undef NULLABLE_FIELD_FINAL
+#undef NULLABLE_FIELD_VAR
+
+#define NONNULLABLE_FIELD_FINAL (Slot::IsImmutableBit::encode(true))
+#define NONNULLABLE_FIELD_VAR (0)
+#define DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD(ClassName, UnderlyingType,       \
+                                              FieldName, cid, mutability)      \
+  Slot(Kind::k##ClassName##_##FieldName, NONNULLABLE_FIELD_##mutability,       \
+       k##cid##Cid, compiler::target::ClassName::FieldName##_offset(),         \
+       #ClassName "." #FieldName, nullptr, kTagged),
+
+          NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(
+              DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD)
+
+#undef DEFINE_NONNULLABLE_BOXED_NATIVE_FIELD
 #define DEFINE_UNBOXED_NATIVE_FIELD(ClassName, UnderlyingType, FieldName,      \
                                     representation, mutability)                \
-  Slot(Kind::k##ClassName##_##FieldName, FIELD_##mutability,                   \
+  Slot(Kind::k##ClassName##_##FieldName, NONNULLABLE_FIELD_##mutability,       \
        GetUnboxedNativeSlotCid(kUnboxed##representation),                      \
        compiler::target::ClassName::FieldName##_offset(),                      \
-       #ClassName "." #FieldName, nullptr,                                     \
-       CheckFit(kUnboxed##representation)),
+       #ClassName "." #FieldName, nullptr, kUnboxed##representation),
 
-          UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
+              UNBOXED_NATIVE_SLOTS_LIST(DEFINE_UNBOXED_NATIVE_FIELD)
 
 #undef DEFINE_UNBOXED_NATIVE_FIELD
-#undef FIELD_VAR
-#undef FIELD_FINAL
+#undef NONNULLABLE_FIELD_VAR
+#undef NONNULLABLE_FIELD_FINAL
   };
 
   ASSERT(static_cast<uint8_t>(kind) < ARRAY_SIZE(fields));

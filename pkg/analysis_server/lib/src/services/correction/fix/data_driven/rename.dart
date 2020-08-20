@@ -10,13 +10,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
 /// The data related to an element that has been renamed.
-class RenameChange extends Change<SimpleIdentifier> {
+class Rename extends Change<SimpleIdentifier> {
   /// The new name of the element.
   final String newName;
 
   /// Initialize a newly created transform to describe a renaming of an element
   /// to the [newName].
-  RenameChange({@required this.newName});
+  Rename({@required this.newName});
 
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix,

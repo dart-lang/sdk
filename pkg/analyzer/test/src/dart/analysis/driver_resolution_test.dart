@@ -8610,8 +8610,9 @@ main() {
 class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.triple_shift],
+    ..contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+      flags: [EnableString.triple_shift],
     );
 
   test_binaryExpression_gtGtGt() async {

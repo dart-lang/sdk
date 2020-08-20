@@ -43,6 +43,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_declaredVariables() {
+    MockSdk(resourceProvider: resourceProvider);
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'foo': 'true'});
     DriverBasedAnalysisContext context = contextBuilder.createContext(
@@ -71,6 +72,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   }
 
   test_createContext_defaults() {
+    MockSdk(resourceProvider: resourceProvider);
     AnalysisContext context = contextBuilder.createContext(
       contextRoot: contextRoot,
       sdkPath: resourceProvider.convertPath(sdkRoot),

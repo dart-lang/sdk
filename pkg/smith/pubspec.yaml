@@ -4,8 +4,6 @@ description: Shared code for working with the Dart SDK's tests and test runner.
 publish_to: none
 environment:
   sdk: "^2.3.0"
-dependencies:
-  args: any
 dev_dependencies:
   expect:
     path: ../expect

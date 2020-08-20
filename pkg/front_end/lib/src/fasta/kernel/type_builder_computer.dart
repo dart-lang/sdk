@@ -21,8 +21,10 @@ import 'package:kernel/ast.dart'
         Library,
         NamedType,
         NeverType,
+        TreeNode,
         TypeParameter,
         TypeParameterType,
+        Typedef,
         TypedefType,
         VoidType;
 
@@ -143,8 +145,13 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
-    Class kernelClass = parameter.parent;
-    Library kernelLibrary = kernelClass.enclosingLibrary;
+    TreeNode kernelClassOrTypeDef = parameter.parent;
+    Library kernelLibrary;
+    if (kernelClassOrTypeDef is Class) {
+      kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
+    } else if (kernelClassOrTypeDef is Typedef) {
+      kernelLibrary = kernelClassOrTypeDef.enclosingLibrary;
+    }
     LibraryBuilder library = loader.builders[kernelLibrary.importUri];
     return new NamedTypeBuilder(parameter.name,
         new NullabilityBuilder.fromNullability(node.nullability), null)

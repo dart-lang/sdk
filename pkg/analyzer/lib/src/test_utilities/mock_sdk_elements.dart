@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -825,7 +824,7 @@ class _MockSdkElementsBuilder {
       'dart.async',
       0,
       0,
-      FeatureSet.fromEnableFlags([EnableString.non_nullable]),
+      ExperimentStatus.latestWithNullSafety,
     );
 
     var asyncUnit = CompilationUnitElementImpl();
@@ -918,7 +917,7 @@ class _MockSdkElementsBuilder {
       'dart.core',
       0,
       0,
-      FeatureSet.fromEnableFlags([EnableString.non_nullable]),
+      ExperimentStatus.latestWithNullSafety,
     );
     coreLibrary.definingCompilationUnit = coreUnit;
 
