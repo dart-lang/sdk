@@ -4,9 +4,9 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart' show DartType, Typedef, InterfaceType;
+import 'package:kernel/ast.dart'
+    show DartType, InterfaceType, InvalidType, Typedef;
 
-import '../builder/function_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -15,9 +15,13 @@ import '../builder/type_variable_builder.dart';
 
 import '../problems.dart' show unimplemented;
 
+import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillTypeAliasBuilder extends TypeAliasBuilder {
+  List<TypeVariableBuilder> _typeVariables;
+  TypeBuilder _type;
+
   DillTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
       : super(null, typedef.name, null, null, parent, typedef.fileOffset,
             typedef: typedef);
@@ -27,7 +31,11 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
   }
 
   List<TypeVariableBuilder> get typeVariables {
-    return unimplemented("typeVariables", -1, null);
+    if (_typeVariables == null && typedef.typeParameters.isNotEmpty) {
+      _typeVariables =
+          computeTypeVariableBuilders(library, typedef.typeParameters);
+    }
+    return _typeVariables;
   }
 
   int varianceAt(int index) {
@@ -40,8 +48,11 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
   int get typeVariablesCount => typedef.typeParameters.length;
 
   @override
-  FunctionTypeBuilder get type {
-    return unimplemented("type", -1, null);
+  TypeBuilder get type {
+    if (_type == null && typedef.type is! InvalidType) {
+      _type = library.loader.computeTypeBuilder(typedef.type);
+    }
+    return _type;
   }
 
   @override
