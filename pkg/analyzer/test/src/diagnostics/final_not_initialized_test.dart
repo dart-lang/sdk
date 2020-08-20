@@ -135,6 +135,16 @@ class C {
 ''');
   }
 
+  test_field_ofClass() async {
+    await assertErrorsInCode('''
+abstract class A {
+  final int x;
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 31, 1),
+    ]);
+  }
+
   test_field_unnamedConstructor_constructorInitializer() async {
     await assertNoErrorsInCode('''
 class C {

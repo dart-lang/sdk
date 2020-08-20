@@ -228,7 +228,7 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    _assignmentShared.checkLateFinalAlreadyAssigned(leftHandSide);
+    _assignmentShared.checkFinalAlreadyAssigned(leftHandSide);
 
     // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.
@@ -404,18 +404,31 @@ class AssignmentExpressionShared {
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
-  void checkLateFinalAlreadyAssigned(Expression left) {
+  void checkFinalAlreadyAssigned(Expression left) {
     var flow = _flowAnalysis?.flow;
     if (flow != null && left is SimpleIdentifier) {
       var element = left.staticElement;
-      if (element is LocalVariableElement &&
-          element.isLate &&
-          element.isFinal) {
-        if (flow.isAssigned(element)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
-            left,
-          );
+      if (element is VariableElement) {
+        var assigned = _flowAnalysis.isDefinitelyAssigned(left, element);
+        var unassigned = _flowAnalysis.isDefinitelyUnassigned(left, element);
+
+        if (element.isFinal) {
+          if (element.isLate) {
+            if (assigned) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+                left,
+              );
+            }
+          } else {
+            if (!unassigned) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+                left,
+                [element.name],
+              );
+            }
+          }
         }
       }
     }

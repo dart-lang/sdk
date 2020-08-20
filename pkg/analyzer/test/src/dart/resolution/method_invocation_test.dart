@@ -114,44 +114,6 @@ main(C c) {
     assertType(cRef, 'C');
   }
 
-  test_error_invocationOfNonFunction_localVariable() async {
-    await assertErrorsInCode(r'''
-main() {
-  Object foo;
-  foo();
-}
-''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 25, 3),
-    ]);
-
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.localVar('foo'));
-    assertType(foo, 'Object');
-  }
-
-  test_error_invocationOfNonFunction_OK_dynamic_localVariable() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  var foo;
-  foo();
-}
-''');
-
-    var invocation = findNode.functionExpressionInvocation('foo();');
-    assertElementNull(invocation);
-    assertInvokeTypeDynamic(invocation);
-    assertTypeDynamic(invocation);
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.localVar('foo'));
-    assertTypeDynamic(foo);
-  }
-
   test_error_invocationOfNonFunction_OK_dynamicGetter_instance() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -256,6 +218,42 @@ class C<T extends MyFunction> {
     var foo = invocation.function as SimpleIdentifier;
     assertElement(foo, findElement.getter('foo'));
     assertType(foo, 'double Function(int)');
+  }
+
+  test_error_invocationOfNonFunction_parameter() async {
+    await assertErrorsInCode(r'''
+main(Object foo) {
+  foo();
+}
+''', [
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 21, 3),
+    ]);
+
+    var invocation = findNode.functionExpressionInvocation('foo();');
+    assertElementNull(invocation);
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
+
+    var foo = invocation.function as SimpleIdentifier;
+    assertElement(foo, findElement.parameter('foo'));
+    assertType(foo, 'Object');
+  }
+
+  test_error_invocationOfNonFunction_parameter_dynamic() async {
+    await assertNoErrorsInCode(r'''
+main(var foo) {
+  foo();
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo();');
+    assertElementNull(invocation);
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
+
+    var foo = invocation.function as SimpleIdentifier;
+    assertElement(foo, findElement.parameter('foo'));
+    assertTypeDynamic(foo);
   }
 
   test_error_invocationOfNonFunction_static_hasTarget() async {
@@ -1402,25 +1400,6 @@ main() {
     );
   }
 
-  test_noReceiver_localVariable() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  void Function(int) foo;
-
-  foo(0);
-}
-''');
-
-    var invocation = findNode.functionExpressionInvocation('foo(0);');
-    assertElementNull(invocation);
-    assertInvokeType(invocation, 'void Function(int)');
-    assertType(invocation, 'void');
-
-    var foo = invocation.function as SimpleIdentifier;
-    assertElement(foo, findElement.localVar('foo'));
-    assertType(foo, 'void Function(int)');
-  }
-
   test_noReceiver_localVariable_call() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -1500,6 +1479,23 @@ class C {
       findElement.method('foo'),
       'void Function(int)',
     );
+  }
+
+  test_noReceiver_parameter() async {
+    await assertNoErrorsInCode(r'''
+main(void Function(int) foo) {
+  foo(0);
+}
+''');
+
+    var invocation = findNode.functionExpressionInvocation('foo(0);');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'void Function(int)');
+    assertType(invocation, 'void');
+
+    var foo = invocation.function as SimpleIdentifier;
+    assertElement(foo, findElement.parameter('foo'));
+    assertType(foo, 'void Function(int)');
   }
 
   test_noReceiver_parameter_call_nullAware() async {

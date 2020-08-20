@@ -58,7 +58,9 @@ class PrefixExpressionResolver {
 
     node.operand.accept(_resolver);
 
-    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
+    if (operator.isIncrementOperator) {
+      _assignmentShared.checkFinalAlreadyAssigned(node.operand);
+    }
 
     _resolve1(node);
     _resolve2(node);

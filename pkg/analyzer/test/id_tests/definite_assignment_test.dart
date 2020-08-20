@@ -73,7 +73,7 @@ class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
-        if (_flowResult.potentiallyUnassignedNodes.contains(node)) {
+        if (_flowResult.notDefinitelyAssignedNodes.contains(node)) {
           return 'unassigned';
         }
       }

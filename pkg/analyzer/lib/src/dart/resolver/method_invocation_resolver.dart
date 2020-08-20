@@ -483,6 +483,8 @@ class MethodInvocationResolver {
 
   void _resolveReceiverNull(
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
+    _resolver.checkReadOfNotAssignedLocalVariable(nameNode);
+
     var element = nameScope.lookup2(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);

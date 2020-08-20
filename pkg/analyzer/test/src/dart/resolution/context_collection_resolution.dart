@@ -146,6 +146,8 @@ abstract class ContextResolutionTest
     _declaredVariables = map;
   }
 
+  bool get retainDataForTesting => false;
+
   void assertBasicWorkspaceFor(String path) {
     var workspace = contextFor(path).workspace;
     expect(workspace, TypeMatcher<BasicWorkspace>());
@@ -232,6 +234,7 @@ abstract class ContextResolutionTest
       enableIndex: true,
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
+      retainDataForTesting: retainDataForTesting,
       sdkPath: convertPath('/sdk'),
     );
 

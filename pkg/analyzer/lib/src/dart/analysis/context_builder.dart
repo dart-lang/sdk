@@ -45,6 +45,7 @@ class ContextBuilderImpl implements ContextBuilder {
       bool enableIndex = false,
       List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
+        bool retainDataForTesting = false,
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath,
       String sdkSummaryPath}) {
@@ -85,6 +86,7 @@ class ContextBuilderImpl implements ContextBuilder {
     builder.fileContentOverlay = fileContentOverlay;
     builder.enableIndex = enableIndex;
     builder.performanceLog = performanceLog;
+    builder.retainDataForTesting = retainDataForTesting;
 
     old.ContextRoot oldContextRoot = old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),

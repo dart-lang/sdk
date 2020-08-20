@@ -1669,10 +1669,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           }
           return;
         }
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-            highlightedNode,
-            [element.name]);
+        if (_isNonNullableByDefault && element is PromotableElement) {
+          // Handled during resolution, with flow analysis.
+        } else {
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+              highlightedNode,
+              [element.name]);
+        }
       }
     } else if (element is FunctionElement) {
       _errorReporter.reportErrorForNode(
@@ -2607,6 +2611,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_isInNativeClass || list.isSynthetic) {
       return;
     }
+
+    // Handled during resolution, with flow analysis.
+    if (_isNonNullableByDefault &&
+        list.isFinal &&
+        list.parent is VariableDeclarationStatement) {
+      return;
+    }
+
     bool isConst = list.isConst;
     if (!(isConst || list.isFinal)) {
       return;

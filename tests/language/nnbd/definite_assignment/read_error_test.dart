@@ -1022,12 +1022,16 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     x++;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   }
 
   {
     final dynamic x;
     x = 3;
     ++x;
+//    ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   }
 
   {
@@ -1040,12 +1044,16 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     x += 3;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   }
 
   {
     final dynamic x;
     x = 3;
     x ??= 3;
+//  ^
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
   }
 
   {
@@ -1058,6 +1066,8 @@ void testDefinitelyAssignedReadForms() {
     final dynamic x;
     x = 3;
     3 ?? x;
+    //   ^
+    // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   }
 }
 

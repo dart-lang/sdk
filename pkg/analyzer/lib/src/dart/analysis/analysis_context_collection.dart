@@ -30,6 +30,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     @required List<String> includedPaths,
     List<String> excludedPaths,
     ResourceProvider resourceProvider,
+    bool retainDataForTesting = false,
     String sdkPath,
   }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
@@ -56,6 +57,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         contextRoot: root,
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         enableIndex: enableIndex,
+        retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
       );
       contexts.add(context);

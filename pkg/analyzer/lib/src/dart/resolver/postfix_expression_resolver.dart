@@ -58,7 +58,7 @@ class PostfixExpressionResolver {
       node.operand,
     );
 
-    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
+    _assignmentShared.checkFinalAlreadyAssigned(node.operand);
 
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);

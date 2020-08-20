@@ -427,21 +427,49 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void checkReadOfNotAssignedLocalVariable(SimpleIdentifier node) {
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          node,
-          [node.name],
-        );
+    if (_flowAnalysis?.flow == null) {
+      return;
+    }
+
+    if (!node.inGetterContext()) {
+      return;
+    }
+
+    var element = node.staticElement;
+    if (element is VariableElement) {
+      var assigned = _flowAnalysis.isDefinitelyAssigned(node, element);
+      var unassigned = _flowAnalysis.isDefinitelyUnassigned(node, element);
+
+      if (element.isLate) {
+        if (unassigned) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+            node,
+            [node.name],
+          );
+        }
+        return;
       }
-      if (_flowAnalysis.isReadOfDefinitelyUnassignedLateLocal(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
-          node,
-          [node.name],
-        );
+
+      if (!assigned) {
+        if (element.isFinal) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL,
+            node,
+            [node.name],
+          );
+          return;
+        }
+
+        if (typeSystem.isPotentiallyNonNullable(element.type)) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+            node,
+            [node.name],
+          );
+          return;
+        }
       }
     }
   }
