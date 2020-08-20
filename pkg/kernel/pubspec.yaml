@@ -11,6 +11,8 @@ dependencies:
   args: '>=0.13.4 <2.0.0'
   meta: ^1.0.0
 dev_dependencies:
-  expect: any
+  expect:
+    path: ../expect
+  front_end:
+    path: ../front_end
   test: any
-  testing: any
