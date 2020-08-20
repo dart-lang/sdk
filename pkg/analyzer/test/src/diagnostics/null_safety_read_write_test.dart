@@ -438,15 +438,16 @@ void f(bool b) {
     var unitData = testingData.uriToFlowAnalysisData[result.uri];
 
     if (assigned) {
-      expect(unitData.definitelyAssignedNodes, contains(node));
+      expect(unitData.definitelyAssigned, contains(node));
     } else {
-      expect(unitData.definitelyAssignedNodes, isNot(contains(node)));
+      expect(unitData.notDefinitelyAssigned, contains(node));
+      expect(unitData.definitelyAssigned, isNot(contains(node)));
     }
 
     if (unassigned) {
-      expect(unitData.definitelyUnassignedNodes, contains(node));
+      expect(unitData.definitelyUnassigned, contains(node));
     } else {
-      expect(unitData.definitelyUnassignedNodes, isNot(contains(node)));
+      expect(unitData.definitelyUnassigned, isNot(contains(node)));
     }
   }
 }

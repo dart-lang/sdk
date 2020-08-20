@@ -24,19 +24,17 @@ class FlowAnalysisDataForTesting {
   /// there is a `return` statement at the end of the function body block.
   final List<FunctionBody> functionBodiesThatDontComplete = [];
 
-  /// The list of [SimpleIdentifier]s that were checked if they are definitely
-  /// assigned, but were not.
-  final List<AstNode> notDefinitelyAssignedNodes = [];
+  /// The list of references to variables, where a variable is read, and
+  /// is not definitely assigned.
+  final List<SimpleIdentifier> notDefinitelyAssigned = [];
 
-  /// The list of [SimpleIdentifier]s representing variable references (reads,
-  /// writes, or both) that occur when the corresponding variable has been
-  /// definitely assigned.
-  final List<AstNode> definitelyAssignedNodes = [];
+  /// The list of references to variables, where a variable is read, and
+  /// is definitely assigned.
+  final List<SimpleIdentifier> definitelyAssigned = [];
 
-  /// The list of [SimpleIdentifier]s representing variable references (reads,
-  /// writes, or both) that occur when the corresponding variable has been
-  /// definitely unassigned.
-  final List<AstNode> definitelyUnassignedNodes = [];
+  /// The list of references to variables, where a variable is written, and
+  /// is definitely unassigned.
+  final List<SimpleIdentifier> definitelyUnassigned = [];
 
   /// For each top level or class level declaration, the assigned variables
   /// information that was computed for it.
@@ -158,9 +156,9 @@ class FlowAnalysisHelper {
 
     if (dataForTesting != null) {
       if (isAssigned) {
-        dataForTesting.definitelyAssignedNodes.add(node);
+        dataForTesting.definitelyAssigned.add(node);
       } else {
-        dataForTesting.notDefinitelyAssignedNodes.add(node);
+        dataForTesting.notDefinitelyAssigned.add(node);
       }
     }
 
@@ -174,7 +172,7 @@ class FlowAnalysisHelper {
     var isUnassigned = flow.isUnassigned(element);
 
     if (dataForTesting != null && isUnassigned) {
-      dataForTesting.definitelyUnassignedNodes.add(node);
+      dataForTesting.definitelyUnassigned.add(node);
     }
 
     return isUnassigned;
