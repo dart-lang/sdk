@@ -672,14 +672,12 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
                                        Register tmp) {
-  const bool is_unboxed_int =
-      representation() == kUnboxedUint32 || representation() == kUnboxedInt32;
   if (destination.IsRegister()) {
-    if (is_unboxed_int) {
+    if (RepresentationUtils::IsUnboxedInteger(representation())) {
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
-      if (value_.IsSmi() && representation() == kUnboxedUint32) {
+      if (value_.IsSmi() && RepresentationUtils::IsUnsigned(representation())) {
         // If the value is negative, then the sign bit was preserved during
         // Smi untagging, which means the resulting value may be unexpected.
         ASSERT(v >= 0);
@@ -713,7 +711,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     ASSERT(destination.IsStackSlot());
     ASSERT(tmp != kNoRegister);
     const intptr_t dest_offset = destination.ToStackSlotOffset();
-    if (is_unboxed_int) {
+    if (RepresentationUtils::IsUnboxedInteger(representation())) {
       int64_t v;
       const bool ok = compiler::HasIntegerValue(value_, &v);
       RELEASE_ASSERT(ok);
@@ -728,7 +726,9 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   const bool is_unboxed_int =
-      representation() == kUnboxedUint32 || representation() == kUnboxedInt32;
+      RepresentationUtils::IsUnboxedInteger(representation());
+  ASSERT(!is_unboxed_int || RepresentationUtils::ValueSize(representation()) <=
+                                compiler::target::kWordSize);
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = is_unboxed_int ? 0 : 1;
   LocationSummary* locs = new (zone)
@@ -4826,6 +4826,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  ASSERT(BoxCid() != kSmiCid);
   const bool needs_temp = CanDeoptimize();
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = needs_temp ? 1 : 0;

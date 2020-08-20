@@ -619,23 +619,26 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
 
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
+  const bool is_unboxed_int =
+      RepresentationUtils::IsUnboxedInteger(representation());
+  ASSERT(!is_unboxed_int || RepresentationUtils::ValueSize(representation()) <=
+                                compiler::target::kWordSize);
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = IsUnboxedSignedIntegerConstant() ? 0 : 1;
+  const intptr_t kNumTemps = is_unboxed_int ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  switch (representation()) {
-    case kUnboxedDouble:
-      locs->set_out(0, Location::RequiresFpuRegister());
-      locs->set_temp(0, Location::RequiresRegister());
-      break;
-    case kUnboxedInt32:
-    case kUnboxedUint32:
-    case kUnboxedInt64:
-      locs->set_out(0, Location::RequiresRegister());
-      break;
-    default:
-      UNREACHABLE();
-      break;
+  if (is_unboxed_int) {
+    locs->set_out(0, Location::RequiresRegister());
+  } else {
+    switch (representation()) {
+      case kUnboxedDouble:
+        locs->set_out(0, Location::RequiresFpuRegister());
+        locs->set_temp(0, Location::RequiresRegister());
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
   }
   return locs;
 }
@@ -643,7 +646,9 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!locs()->out(0).IsInvalid()) {
     const Register scratch =
-        IsUnboxedSignedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
+        RepresentationUtils::IsUnboxedInteger(representation())
+            ? kNoRegister
+            : locs()->temp(0).reg();
     EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
@@ -835,29 +840,29 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
   Condition true_condition = TokenKindToSmiCondition(kind);
   if (left.IsConstant() || right.IsConstant()) {
     // Ensure constant is on the right.
-    ConstantInstr* right_constant = NULL;
+    ConstantInstr* constant = nullptr;
     if (left.IsConstant()) {
-      right_constant = left.constant_instruction();
+      constant = left.constant_instruction();
       Location tmp = right;
       right = left;
       left = tmp;
       true_condition = FlipCondition(true_condition);
     } else {
-      right_constant = right.constant_instruction();
+      constant = right.constant_instruction();
     }
 
-    if (right_constant->IsUnboxedSignedIntegerConstant()) {
-      const int64_t constant =
-          right_constant->GetUnboxedSignedIntegerConstantValue();
-      if (constant == 0 && CanUseCbzTbzForComparison(compiler, left.reg(),
-                                                     true_condition, labels)) {
+    if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
+      int64_t value;
+      const bool ok = compiler::HasIntegerValue(constant->value(), &value);
+      RELEASE_ASSERT(ok);
+      if (value == 0 && CanUseCbzTbzForComparison(compiler, left.reg(),
+                                                  true_condition, labels)) {
         EmitCbzTbz(left.reg(), compiler, true_condition, labels);
         return kInvalidCondition;
       }
-      __ CompareImmediate(
-          left.reg(), right_constant->GetUnboxedSignedIntegerConstantValue());
+      __ CompareImmediate(left.reg(), value);
     } else {
-      ASSERT(right_constant->representation() == kTagged);
+      ASSERT(constant->representation() == kTagged);
       __ CompareObject(left.reg(), right.constant());
     }
   } else {
@@ -4050,10 +4055,11 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  ASSERT(!RepresentationUtils::IsUnsigned(representation()));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   const bool is_floating_point =
-      representation() != kUnboxedInt64 && representation() != kUnboxedInt32;
+      !RepresentationUtils::IsUnboxedInteger(representation());
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
@@ -4103,6 +4109,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
+    case kUnboxedInt32:
     case kUnboxedInt64: {
       const Register result = locs()->out(0).reg();
       __ SmiUntag(result, box);
@@ -5855,9 +5862,9 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else if (op_kind() == Token::kMUL) {
     Register r = TMP;
     if (right.IsConstant()) {
-      ConstantInstr* constant_instr = right.constant_instruction();
-      const int64_t value =
-          constant_instr->GetUnboxedSignedIntegerConstantValue();
+      int64_t value;
+      const bool ok = compiler::HasIntegerValue(right.constant(), &value);
+      RELEASE_ASSERT(ok);
       __ LoadImmediate(r, value);
     } else {
       r = right.reg();
@@ -5867,9 +5874,9 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (right.IsConstant()) {
-    ConstantInstr* constant_instr = right.constant_instruction();
-    const int64_t value =
-        constant_instr->GetUnboxedSignedIntegerConstantValue();
+    int64_t value;
+    const bool ok = compiler::HasIntegerValue(right.constant(), &value);
+    RELEASE_ASSERT(ok);
     switch (op_kind()) {
       case Token::kADD:
         __ AddImmediate(out, left, value);

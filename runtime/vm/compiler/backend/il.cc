@@ -478,6 +478,80 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
   return false;
 }
 
+// The set of supported non-integer unboxed representations.
+// Format: (unboxed representations suffix, boxed class type)
+#define FOR_EACH_NON_INT_BOXED_REPRESENTATION(M)                               \
+  M(Double, Double)                                                            \
+  M(Float, Double)                                                             \
+  M(Float32x4, Float32x4)                                                      \
+  M(Float64x2, Float64x2)                                                      \
+  M(Int32x4, Int32x4)
+
+#define BOXING_IN_SET_CASE(unboxed, boxed)                                     \
+  case kUnboxed##unboxed:                                                      \
+    return true;
+#define BOXING_VALUE_OFFSET_CASE(unboxed, boxed)                               \
+  case kUnboxed##unboxed:                                                      \
+    return compiler::target::boxed::value_offset();
+#define BOXING_CID_CASE(unboxed, boxed)                                        \
+  case kUnboxed##unboxed:                                                      \
+    return k##boxed##Cid;
+
+bool Boxing::Supports(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    return true;
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_IN_SET_CASE)
+    default:
+      return false;
+  }
+}
+
+bool Boxing::RequiresAllocation(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    return (kBitsPerByte * RepresentationUtils::ValueSize(rep)) >
+           compiler::target::kSmiBits;
+  }
+  return true;
+}
+
+intptr_t Boxing::ValueOffset(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep) &&
+      Boxing::RequiresAllocation(rep) &&
+      RepresentationUtils::ValueSize(rep) <= sizeof(int64_t)) {
+    return compiler::target::Mint::value_offset();
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_VALUE_OFFSET_CASE)
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+// Note that not all boxes require allocation (e.g., Smis).
+intptr_t Boxing::BoxCid(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    if (!Boxing::RequiresAllocation(rep)) {
+      return kSmiCid;
+    } else if (RepresentationUtils::ValueSize(rep) <= sizeof(int64_t)) {
+      return kMintCid;
+    }
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_CID_CASE)
+    default:
+      UNREACHABLE();
+      return kIllegalCid;
+  }
+}
+
+#undef BOXING_CID_CASE
+#undef BOXING_VALUE_OFFSET_CASE
+#undef BOXING_IN_SET_CASE
+#undef FOR_EACH_NON_INT_BOXED_REPRESENTATION
+
 #if defined(DEBUG)
 void Instruction::CheckField(const Field& field) const {
   ASSERT(field.IsZoneHandle());
@@ -5255,6 +5329,7 @@ void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
+  ASSERT(box_cid != kSmiCid);  // Should never reach here with Smi-able ints.
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
@@ -5285,6 +5360,11 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (SpeculativeModeOfInputs() == kNotSpeculative) {
+    if (BoxCid() == kSmiCid) {
+      // Since the representation fits in a Smi, we can extract it directly.
+      ASSERT_EQUAL(value()->Type()->ToCid(), kSmiCid);
+      return EmitSmiConversion(compiler);
+    }
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
@@ -5317,14 +5397,15 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const intptr_t value_cid = value()->Type()->ToCid();
     const intptr_t box_cid = BoxCid();
 
-    if (value_cid == box_cid) {
-      EmitLoadFromBox(compiler);
-    } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+    if (box_cid == kSmiCid || (CanConvertSmi() && (value_cid == kSmiCid))) {
+      ASSERT_EQUAL(value_cid, kSmiCid);
       EmitSmiConversion(compiler);
     } else if (representation() == kUnboxedInt32 && value()->Type()->IsInt()) {
       EmitLoadInt32FromBoxOrSmi(compiler);
     } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
       EmitLoadInt64FromBoxOrSmi(compiler);
+    } else if (value_cid == box_cid) {
+      EmitLoadFromBox(compiler);
     } else {
       ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);

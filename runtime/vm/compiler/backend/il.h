@@ -3492,19 +3492,6 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  // Returns whether the constant fits in an unboxed 64-bit signed integer.
-  bool IsUnboxedSignedIntegerConstant() const {
-    return representation() == kUnboxedUint32 ||
-           representation() == kUnboxedInt32 ||
-           representation() == kUnboxedInt64;
-  }
-
-  int64_t GetUnboxedSignedIntegerConstantValue() const {
-    ASSERT(IsUnboxedSignedIntegerConstant());
-    return value_.IsSmi() ? Smi::Cast(value_).Value()
-                          : Mint::Cast(value_).value();
-  }
-
   void EmitMoveToLocation(FlowGraphCompiler* compiler,
                           const Location& destination,
                           Register tmp = kNoRegister);
@@ -6664,97 +6651,21 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2, NoThrow, Pure> {
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
 
-class Boxing : public AllStatic {
- public:
-  static bool Supports(Representation rep) {
-    switch (rep) {
-      case kUnboxedDouble:
-      case kUnboxedFloat32x4:
-      case kUnboxedFloat64x2:
-      case kUnboxedInt32x4:
-      case kUnboxedInt64:
-      case kUnboxedInt32:
-      case kUnboxedUint32:
-        return true;
-      default:
-        return false;
-    }
-  }
+struct Boxing : public AllStatic {
+  // Whether the given representation can be boxed or unboxed.
+  static bool Supports(Representation rep);
 
-  static bool RequiresAllocation(Representation rep) {
-    switch (rep) {
-      case kUnboxedDouble:
-      case kUnboxedFloat32x4:
-      case kUnboxedFloat64x2:
-      case kUnboxedInt32x4:
-      case kUnboxedInt64:
-        return true;
-      case kUnboxedInt32:
-      case kUnboxedUint32:
-        return kBitsPerInt32 > compiler::target::kSmiBits;
-      default:
-        UNREACHABLE();
-        return true;
-    }
-  }
+  // Whether boxing this value requires allocating a new object.
+  static bool RequiresAllocation(Representation rep);
 
-  static intptr_t ValueOffset(Representation rep) {
-    switch (rep) {
-      case kUnboxedFloat:
-      case kUnboxedDouble:
-        return Double::value_offset();
+  // The offset into the Layout object for the boxed value that can store
+  // the full range of values in the representation.
+  // Only defined for allocated boxes (i.e., RequiresAllocation must be true).
+  static intptr_t ValueOffset(Representation rep);
 
-      case kUnboxedFloat32x4:
-        return Float32x4::value_offset();
-
-      case kUnboxedFloat64x2:
-        return Float64x2::value_offset();
-
-      case kUnboxedInt32x4:
-        return Int32x4::value_offset();
-
-      case kUnboxedInt64:
-        return Mint::value_offset();
-
-      case kUnboxedInt32:
-      case kUnboxedUint32:
-        if (RequiresAllocation(rep)) {
-          return Mint::value_offset();
-        }
-        UNREACHABLE();
-        return 0;
-
-      default:
-        UNREACHABLE();
-        return 0;
-    }
-  }
-
-  static intptr_t BoxCid(Representation rep) {
-    switch (rep) {
-      case kUnboxedInt32:
-      case kUnboxedUint32:
-        if (RequiresAllocation(rep)) {
-          return kMintCid;
-        }
-        UNREACHABLE();
-        return kIllegalCid;
-      case kUnboxedInt64:
-        return kMintCid;
-      case kUnboxedDouble:
-      case kUnboxedFloat:
-        return kDoubleCid;
-      case kUnboxedFloat32x4:
-        return kFloat32x4Cid;
-      case kUnboxedFloat64x2:
-        return kFloat64x2Cid;
-      case kUnboxedInt32x4:
-        return kInt32x4Cid;
-      default:
-        UNREACHABLE();
-        return kIllegalCid;
-    }
-  }
+  // The class ID for the boxed value that can store the full range
+  // of values in the representation.
+  static intptr_t BoxCid(Representation rep);
 };
 
 class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
