@@ -97,7 +97,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
     documentation: 'Non Nullable by default',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('2.10.0'),
     releaseVersion: null,
   );
 

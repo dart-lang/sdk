@@ -144,6 +144,8 @@ class ExperimentalFeatures {
     for (var key in keysSorted) {
       var id = keyToIdentifier(key);
       var help = (features[key] as YamlMap)['help'] ?? '';
+      var experimentalReleaseVersion =
+          (features[key] as YamlMap)['experimentalReleaseVersion'];
       var enabledIn = (features[key] as YamlMap)['enabledIn'];
       out.write('''
 
@@ -154,7 +156,16 @@ class ExperimentalFeatures {
         isExpired: IsExpired.$id,
         documentation: '$help',
     ''');
-      out.write("experimentalReleaseVersion: null,");
+
+      if (experimentalReleaseVersion != null) {
+        experimentalReleaseVersion =
+            _versionNumberAsString(experimentalReleaseVersion);
+        out.write("experimentalReleaseVersion: ");
+        out.write("Version.parse('$experimentalReleaseVersion'),");
+      } else {
+        out.write("experimentalReleaseVersion: null,");
+      }
+
       if (enabledIn != null) {
         enabledIn = _versionNumberAsString(enabledIn);
         out.write("releaseVersion: Version.parse('$enabledIn'),");

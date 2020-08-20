@@ -475,7 +475,7 @@ class _StringEdit implements Comparable<_StringEdit> {
 
 ParseStringResult _parseString(String source, {bool useNnbd}) {
   var features = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.9.0'),
+    sdkLanguageVersion: Version.parse('2.10.0'),
     flags: [if (useNnbd) 'non-nullable'],
   );
   return parseString(content: source, featureSet: features);
