@@ -6673,7 +6673,7 @@ class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
       json == null ? null : Timeline._fromJson(json);
 
-  /// A list of timeline events. No order is guarenteed for these events; in
+  /// A list of timeline events. No order is guaranteed for these events; in
   /// particular, these events may be unordered with respect to their
   /// timestamps.
   List<TimelineEvent> traceEvents;
