@@ -193,8 +193,8 @@ static int CertificateVerificationCallback(X509_STORE_CTX* ctx, void* arg) {
       _IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_12_0))
   // SecTrustEvaluateWithError available as of OSX 10.14 and iOS 12.
   // The result is ignored as we get more information from the following call to
-  // SecTrustGetTrustResult which also happens to match the information we get from calling
-  // SecTrustEvaluate.
+  // SecTrustGetTrustResult which also happens to match the information we get
+  // from calling SecTrustEvaluate.
   bool res = SecTrustEvaluateWithError(trust.get(), NULL);
   USE(res);
   status = SecTrustGetTrustResult(trust.get(), &trust_result);
