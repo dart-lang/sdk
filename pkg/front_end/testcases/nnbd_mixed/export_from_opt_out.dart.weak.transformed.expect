@@ -42,13 +42,13 @@ additionalExports = (exp::LegacyClass1,
   exp4::NnbdClass2)
 
 export "org-dartlang-testcase:///export_from_opt_out_lib1.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib2.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
-export "org-dartlang-testcase:///export_from_opt_out_lib3.dart";
+export "org-dartlang-testcase:///export_from_opt_out_lib2.dart" hide legacyMethod2;
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart" show LegacyClass2;
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart" show legacyMethod1;
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart" show LegacyExtension;
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart" show LegacyTypedef;
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart" show NnbdClass1;
+export "org-dartlang-testcase:///export_from_opt_out_lib3.dart" hide LegacyClass2, LegacyExtension, LegacyTypedef, legacyMethod1;
 export "org-dartlang-testcase:///export_from_opt_out_lib4.dart";
 export "org-dartlang-testcase:///export_from_opt_out_lib5.dart";
 

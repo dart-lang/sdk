@@ -1681,6 +1681,27 @@ class Printer extends Visitor<Null> {
       writeWord('as');
       writeWord(node.name);
     }
+    String last;
+    final String show = 'show';
+    final String hide = 'hide';
+    if (node.combinators.isNotEmpty) {
+      for (Combinator combinator in node.combinators) {
+        if (combinator.isShow && last != show) {
+          last = show;
+          writeWord(show);
+        } else if (combinator.isHide && last != hide) {
+          last = hide;
+          writeWord(hide);
+        }
+
+        bool first = true;
+        for (String name in combinator.names) {
+          if (!first) writeComma();
+          writeWord(name);
+          first = false;
+        }
+      }
+    }
     endLine(';');
   }
 

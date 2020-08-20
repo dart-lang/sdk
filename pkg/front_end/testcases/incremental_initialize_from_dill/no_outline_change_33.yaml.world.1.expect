@@ -45,8 +45,8 @@ library from "org-dartlang-test:///lib2.dart" as lib2 {
 }
 library from "org-dartlang-test:///main.dart" as main {
 
-  import "org-dartlang-test:///lib2.dart";
-  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart" show getter, setter, method, Bar;
+  import "org-dartlang-test:///lib1.dart" show getter, setter, method, Bar;
 
   static method main() → dynamic {
     lib2::Bar* bar = new lib2::Bar::•();

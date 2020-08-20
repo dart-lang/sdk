@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix;
+import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix hide Extension;
 
 static method main() → dynamic async 
   ;

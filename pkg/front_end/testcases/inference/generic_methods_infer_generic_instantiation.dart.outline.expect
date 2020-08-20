@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 import "dart:math" as math;
-import "dart:math";
+import "dart:math" show min;
 
 class C extends core::Object {
   synthetic constructor •() → self::C*

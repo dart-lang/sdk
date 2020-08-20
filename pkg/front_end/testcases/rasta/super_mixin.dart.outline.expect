@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "mixin_library.dart" as mix;
 
-import "org-dartlang-testcase:///mixin_library.dart";
+import "org-dartlang-testcase:///mixin_library.dart" show Mixin;
 
 class Super<S extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Super<self::Super::S*>*

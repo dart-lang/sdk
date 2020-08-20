@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "infer_statics_transitively3_a.dart" as inf;
 
-import "org-dartlang-testcase:///infer_statics_transitively3_a.dart";
-import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" as p;
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" show a1, A;
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" as p show a2, A;
 
 static const field core::int* t1 = 1;
 static const field core::int* t2 = self::t1;

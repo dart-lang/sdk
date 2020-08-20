@@ -10,7 +10,7 @@ library from "package:moduleB/b.dart" as b {
 additionalExports = (c::baz)
 
   import "package:moduleC/c.dart";
-  export "package:moduleC/c.dart";
+  export "package:moduleC/c.dart" show baz;
 
   class A2 extends c::A3 {
     field dart.core::int* bar = 42;

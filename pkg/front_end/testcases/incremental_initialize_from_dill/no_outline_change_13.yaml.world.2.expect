@@ -2,7 +2,7 @@ main = <No Member>;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
 additionalExports = (lib2::Foo)
 
-  export "org-dartlang-test:///lib2.dart";
+  export "org-dartlang-test:///lib2.dart" show Foo;
   import "org-dartlang-test:///main.dart";
 
 }
