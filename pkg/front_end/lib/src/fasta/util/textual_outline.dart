@@ -445,10 +445,28 @@ TextualizedImportExport _textualizeImportsAndExports(
 
 main(List<String> args) {
   File f = new File(args[0]);
-  String outline = textualOutline(f.readAsBytesSync(),
-      throwOnUnexpected: true, performModelling: true);
+  Uint8List data = f.readAsBytesSync();
+  String outline =
+      textualOutline(data, throwOnUnexpected: true, performModelling: true);
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
+  } else if (args.length > 1 && args[1] == "--benchmark") {
+    Stopwatch stopwatch = new Stopwatch()..start();
+    for (int i = 0; i < 100; i++) {
+      String outline2 =
+          textualOutline(data, throwOnUnexpected: true, performModelling: true);
+      if (outline2 != outline) throw "Not the same result every time";
+    }
+    stopwatch.stop();
+    print("First 100 took ${stopwatch.elapsedMilliseconds} ms");
+    stopwatch = new Stopwatch()..start();
+    for (int i = 0; i < 10000; i++) {
+      String outline2 =
+          textualOutline(data, throwOnUnexpected: true, performModelling: true);
+      if (outline2 != outline) throw "Not the same result every time";
+    }
+    stopwatch.stop();
+    print("Next 10,000 took ${stopwatch.elapsedMilliseconds} ms");
   } else {
     print(outline);
   }

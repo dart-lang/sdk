@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 import 'package:front_end/src/fasta/util/textual_outline.dart';
+import 'package:front_end/src/fasta/util/textual_outline_v2.dart' as v2;
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -75,6 +76,22 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           throwOnUnexpected: true,
           performModelling: modelled,
           addMarkerForUnknownForTest: modelled);
+      String result2 = v2.textualOutline(bytes,
+          throwOnUnexpected: true,
+          performModelling: modelled,
+          addMarkerForUnknownForTest: modelled);
+      if (result != result2) {
+        String result1Prime = result.replaceAll(new RegExp("\n+"), "\n");
+        String result2Prime = result2.replaceAll(new RegExp("\n+"), "\n");
+        if (result1Prime != result2Prime) {
+          throw "V2 is different"
+              "\n\n-----\n\n"
+              "$result1Prime"
+              "\n\n-----\n\n"
+              "$result2Prime"
+              "\n\n-----\n\n";
+        }
+      }
       if (result == null) {
         return new Result(null, context.expectationSet["EmptyOutput"],
             description.uri, StackTrace.current);

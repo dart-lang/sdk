@@ -124,6 +124,7 @@ bones
 boolean
 bother
 boundness
+boxed
 breadcrumbs
 brianwilkerson
 bs
@@ -425,6 +426,7 @@ fn
 fo
 foo
 foobar
+footer
 foreign
 formed
 former
@@ -508,6 +510,7 @@ idn
 ids
 iff
 il
+imitate
 immutability
 impl
 implementers
@@ -538,6 +541,7 @@ inst
 instanceof
 instantiator
 intentionally
+interim
 interior
 interleaved
 intermediate
@@ -751,6 +755,7 @@ org
 orphans
 ors
 os
+outputs
 outputting
 overlap
 overloader
