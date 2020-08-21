@@ -1003,10 +1003,6 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement;
 
-    if (element.initializer != null && node.defaultValue != null) {
-      (element.initializer as FunctionElementImpl).returnType =
-          node.defaultValue.staticType;
-    }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
     if (element is ConstVariableElement &&

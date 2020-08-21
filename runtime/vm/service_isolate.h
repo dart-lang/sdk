@@ -8,6 +8,7 @@
 #include "include/dart_api.h"
 
 #include "vm/allocation.h"
+#include "vm/object.h"
 #include "vm/os_thread.h"
 
 namespace dart {
@@ -50,7 +51,9 @@ class ServiceIsolate : public AllStatic {
   static void BootVmServiceLibrary();
 
   static void RequestServerInfo(const SendPort& sp);
-  static void ControlWebServer(const SendPort& sp, bool enable);
+  static void ControlWebServer(const SendPort& sp,
+                               bool enable,
+                               const Bool& silenceOutput);
 
   static void SetServerAddress(const char* address);
 

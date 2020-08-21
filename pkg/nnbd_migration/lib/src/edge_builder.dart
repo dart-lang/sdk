@@ -838,6 +838,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis = null;
         _assignedVariables = null;
       }
+      var declaredElement = node.declaredElement;
+      if (declaredElement is PropertyAccessorElement) {
+        if (declaredElement.isGetter) {
+          var setter = declaredElement.correspondingSetter;
+          if (setter != null) {
+            _handleGetterSetterCorrespondence(
+                node, null, declaredElement, setter.declaration);
+          }
+        } else {
+          assert(declaredElement.isSetter);
+          var getter = declaredElement.correspondingGetter;
+          if (getter != null) {
+            _handleGetterSetterCorrespondence(
+                node, null, getter.declaration, declaredElement);
+          }
+        }
+      }
     }
     return null;
   }
@@ -2341,6 +2358,63 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             _handleExecutableOverriddenDeclaration(node, returnType, parameters,
                 enclosingElement, overriddenElement);
           }
+          if (declaredElement is PropertyAccessorElement) {
+            if (declaredElement.isGetter) {
+              var setters = [declaredElement.correspondingSetter];
+              if (setters[0] == null && !declaredElement.isStatic) {
+                // No corresponding setter in this class; look for inherited
+                // setters.
+                var getterName = declaredElement.name;
+                var setterName = '$getterName=';
+                var inheritedMembers = _inheritanceManager.getOverridden2(
+                    enclosingElement,
+                    Name(enclosingElement.library.source.uri, setterName));
+                if (inheritedMembers != null) {
+                  setters = [
+                    for (var setter in inheritedMembers)
+                      if (setter is PropertyAccessorElement) setter
+                  ];
+                }
+              }
+              for (var setter in setters) {
+                if (setter != null) {
+                  _handleGetterSetterCorrespondence(
+                      node,
+                      declaredElement.isStatic ? null : enclosingElement,
+                      declaredElement,
+                      setter.declaration);
+                }
+              }
+            } else {
+              assert(declaredElement.isSetter);
+              assert(declaredElement.name.endsWith('='));
+              var getters = [declaredElement.correspondingGetter];
+              if (getters[0] == null && !declaredElement.isStatic) {
+                // No corresponding getter in this class; look for inherited
+                // getters.
+                var setterName = declaredElement.name;
+                var getterName = setterName.substring(0, setterName.length - 1);
+                var inheritedMembers = _inheritanceManager.getOverridden2(
+                    enclosingElement,
+                    Name(enclosingElement.library.source.uri, getterName));
+                if (inheritedMembers != null) {
+                  getters = [
+                    for (var getter in inheritedMembers)
+                      if (getter is PropertyAccessorElement) getter
+                  ];
+                }
+              }
+              for (var getter in getters) {
+                if (getter != null) {
+                  _handleGetterSetterCorrespondence(
+                      node,
+                      declaredElement.isStatic ? null : enclosingElement,
+                      getter.declaration,
+                      declaredElement);
+                }
+              }
+            }
+          }
         }
       }
       _flowAnalysis.finish();
@@ -2564,6 +2638,48 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.forEach_end();
       }
     });
+  }
+
+  void _handleGetterSetterCorrespondence(Declaration node, ClassElement class_,
+      PropertyAccessorElement getter, PropertyAccessorElement setter) {
+    DecoratedType getType;
+    if (getter.isSynthetic) {
+      var field = getter.variable;
+      if (field == null || field.isSynthetic) return;
+      getType = _variables.decoratedElementType(field);
+    } else {
+      getType = _variables.decoratedElementType(getter).returnType;
+    }
+    DecoratedType setType;
+    if (setter.isSynthetic) {
+      var field = setter.variable;
+      if (field == null || field.isSynthetic) return;
+      setType = _variables.decoratedElementType(field);
+    } else {
+      setType =
+          _variables.decoratedElementType(setter).positionalParameters.single;
+    }
+    Map<TypeParameterElement, DecoratedType> getterSubstitution = const {};
+    Map<TypeParameterElement, DecoratedType> setterSubstitution = const {};
+    if (class_ != null) {
+      var getterClass = getter.enclosingElement as ClassElement;
+      if (!identical(class_, getterClass)) {
+        getterSubstitution = _decoratedClassHierarchy
+            .getDecoratedSupertype(class_, getterClass)
+            .asSubstitution;
+      }
+      var setterClass = setter.enclosingElement as ClassElement;
+      if (!identical(class_, setterClass)) {
+        setterSubstitution = _decoratedClassHierarchy
+            .getDecoratedSupertype(class_, setterClass)
+            .asSubstitution;
+      }
+    }
+    _checkAssignment(
+        GetterSetterCorrespondenceOrigin(source, node), FixReasonTarget.root,
+        source: getType.substitute(getterSubstitution),
+        destination: setType.substitute(setterSubstitution),
+        hard: true);
   }
 
   /// Instantiate [type] with [argumentTypes], assigning [argumentTypes] to

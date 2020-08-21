@@ -292,15 +292,7 @@ class InstanceMemberInferrer {
 
       // Otherwise, declarations of static variables and fields that omit a
       // type will be inferred from their initializer if present.
-      var initializer = field.initializer;
-      if (initializer != null) {
-        var initializerType = initializer.returnType;
-        if (initializerType == null || initializerType.isDartCoreNull) {
-          initializerType = _dynamicType;
-        }
-        field.type = initializerType;
-        return;
-      }
+      field.typeInference?.perform();
 
       return;
     }

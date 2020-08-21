@@ -1,9 +1,8 @@
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
-
-// TODO(devoncarew): Use bold ansi chars for emphasis.
 
 // TODO(devoncarew): Validate that publishable packages don't use relative sdk
 // paths in their pubspecs.
@@ -12,16 +11,16 @@ import 'package:yaml/yaml.dart' as yaml;
 const validateDEPS = false;
 
 void main(List<String> arguments) {
+  Logger logger = Logger.standard();
+
   // validate the cwd
   if (!FileSystemEntity.isFileSync('DEPS') ||
       !FileSystemEntity.isDirectorySync('pkg')) {
-    print('Please run this tool from the root of the Dart repo.');
+    logger.stderr('Please run this tool from the root of the Dart repo.');
     exit(1);
   }
 
-  // TODO(devoncarew): Support manually added directories (outside of pkg/).
-
-  // locate all packages
+  // locate all pkg/ packages
   final packages = <Package>[];
   for (var entity in Directory('pkg').listSync()) {
     if (entity is Directory) {
@@ -30,6 +29,15 @@ void main(List<String> arguments) {
         packages.add(package);
       }
     }
+  }
+
+  // Manually added directories (outside of pkg/).
+  List<String> alsoValidate = [
+    'tools/package_deps',
+  ];
+
+  for (String p in alsoValidate) {
+    packages.add(Package(p));
   }
 
   packages.sort();
@@ -41,7 +49,7 @@ void main(List<String> arguments) {
     print('validating ${package.dir}'
         '${package.publishable ? ' [publishable]' : ''}');
 
-    if (!package.validate()) {
+    if (!package.validate(logger)) {
       validateFailure = true;
     }
 
@@ -101,13 +109,11 @@ class Package implements Comparable<Package> {
       FileSystemEntity.isFileSync(path.join(dir, 'pubspec.yaml'));
 
   @override
-  int compareTo(Package other) {
-    return dirName.compareTo(other.dirName);
-  }
+  int compareTo(Package other) => dir.compareTo(other.dir);
 
-  bool validate() {
+  bool validate(Logger logger) {
     _parseImports();
-    return _validatePubspecDeps();
+    return _validatePubspecDeps(logger);
   }
 
   void _parseImports() {
@@ -163,7 +169,7 @@ class Package implements Comparable<Package> {
     }
   }
 
-  bool _validatePubspecDeps() {
+  bool _validatePubspecDeps(Logger logger) {
     var fail = false;
 
     if (dirName != packageName) {
@@ -184,10 +190,14 @@ class Package implements Comparable<Package> {
     //   print('  dev deps: ${devdeps}');
     // }
 
+    var out = (String message) {
+      logger.stdout(logger.ansi.emphasized(message));
+    };
+
     var undeclaredRegularUses = Set<String>.from(deps)
       ..removeAll(_declaredDependencies);
     if (undeclaredRegularUses.isNotEmpty) {
-      print('  ${_printSet(undeclaredRegularUses)} used in lib/ but not '
+      out('  ${_printSet(undeclaredRegularUses)} used in lib/ but not '
           "declared in 'dependencies:'.");
       fail = true;
     }
@@ -196,7 +206,7 @@ class Package implements Comparable<Package> {
       ..removeAll(_declaredDependencies)
       ..removeAll(_declaredDevDependencies);
     if (undeclaredDevUses.isNotEmpty) {
-      print('  ${_printSet(undeclaredDevUses)} used in dev dirs but not '
+      out('  ${_printSet(undeclaredDevUses)} used in dev dirs but not '
           "declared in 'dev_dependencies:'.");
       fail = true;
     }
@@ -204,7 +214,7 @@ class Package implements Comparable<Package> {
     var extraRegularDeclarations = Set<String>.from(_declaredDependencies)
       ..removeAll(deps);
     if (extraRegularDeclarations.isNotEmpty) {
-      print('  ${_printSet(extraRegularDeclarations)} declared in '
+      out('  ${_printSet(extraRegularDeclarations)} declared in '
           "'dependencies:' but not used in lib/.");
       fail = true;
     }
@@ -215,7 +225,7 @@ class Package implements Comparable<Package> {
     // order to bring in its analysis_options.yaml file.
     extraDevDeclarations.remove('pedantic');
     if (extraDevDeclarations.isNotEmpty) {
-      print('  ${_printSet(extraDevDeclarations)} declared in '
+      out('  ${_printSet(extraDevDeclarations)} declared in '
           "'dev_dependencies:' but not used in dev dirs.");
       fail = true;
     }
@@ -225,7 +235,7 @@ class Package implements Comparable<Package> {
     var misplacedDeps =
         extraRegularDeclarations.intersection(Set.from(devdeps));
     if (misplacedDeps.isNotEmpty) {
-      print("  ${_printSet(misplacedDeps)} declared in 'dependencies:' but "
+      out("  ${_printSet(misplacedDeps)} declared in 'dependencies:' but "
           'only used in dev dirs.');
       fail = true;
     }

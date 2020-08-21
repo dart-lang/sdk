@@ -1751,6 +1751,16 @@ static AbstractTypePtr ExtractElementTypeFromArrayType(
 }
 
 static AbstractTypePtr GetElementTypeFromArray(Value* array) {
+  // Sometimes type of definition may contain a static type
+  // which is useful to extract element type, but reaching type
+  // only has a cid. So try out type of definition, if any.
+  if (array->definition()->HasType()) {
+    auto& elem_type = AbstractType::Handle(ExtractElementTypeFromArrayType(
+        *(array->definition()->Type()->ToAbstractType())));
+    if (!elem_type.IsDynamicType()) {
+      return elem_type.raw();
+    }
+  }
   return ExtractElementTypeFromArrayType(*(array->Type()->ToAbstractType()));
 }
 

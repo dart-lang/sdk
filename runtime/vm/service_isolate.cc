@@ -65,12 +65,14 @@ static ArrayPtr MakeServiceControlMessage(Dart_Port port_id,
 
 static ArrayPtr MakeServerControlMessage(const SendPort& sp,
                                          intptr_t code,
-                                         bool enable = false) {
-  const Array& list = Array::Handle(Array::New(3));
+                                         bool enable,
+                                         const Bool& silenceOutput) {
+  const Array& list = Array::Handle(Array::New(4));
   ASSERT(!list.IsNull());
   list.SetAt(0, Integer::Handle(Integer::New(code)));
   list.SetAt(1, sp);
   list.SetAt(2, Bool::Get(enable));
+  list.SetAt(3, silenceOutput);
   return list.raw();
 }
 
@@ -86,16 +88,19 @@ char* ServiceIsolate::startup_failure_reason_ = nullptr;
 
 void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
   const Array& message = Array::Handle(MakeServerControlMessage(
-      sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */));
+      sp, VM_SERVICE_SERVER_INFO_MESSAGE_ID, false /* ignored */,
+      Bool::Handle() /* ignored */));
   ASSERT(!message.IsNull());
   MessageWriter writer(false);
   PortMap::PostMessage(
       writer.WriteMessage(message, port_, Message::kNormalPriority));
 }
 
-void ServiceIsolate::ControlWebServer(const SendPort& sp, bool enable) {
+void ServiceIsolate::ControlWebServer(const SendPort& sp,
+                                      bool enable,
+                                      const Bool& silenceOutput) {
   const Array& message = Array::Handle(MakeServerControlMessage(
-      sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable));
+      sp, VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID, enable, silenceOutput));
   ASSERT(!message.IsNull());
   MessageWriter writer(false);
   PortMap::PostMessage(

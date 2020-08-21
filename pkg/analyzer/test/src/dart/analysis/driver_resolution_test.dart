@@ -1056,12 +1056,11 @@ class C {
     ClassDeclaration c = unit.declarations[0];
     FieldDeclaration declaration = c.members[0];
     VariableDeclaration field = declaration.fields.variables[0];
-    FunctionElement fieldInitializer = field.declaredElement.initializer;
 
     FunctionExpressionInvocation invocation = field.initializer;
     FunctionExpression closure = invocation.function.unParenthesized;
     FunctionElementImpl closureElement = closure.declaredElement;
-    expect(closureElement.enclosingElement, same(fieldInitializer));
+    expect(closureElement, isNotNull);
   }
 
   test_closure_inTopLevelVariable() async {
@@ -1073,13 +1072,11 @@ var v = (() => 42)();
 
     TopLevelVariableDeclaration declaration = unit.declarations[0];
     VariableDeclaration variable = declaration.variables.variables[0];
-    TopLevelVariableElement variableElement = variable.declaredElement;
-    FunctionElement variableInitializer = variableElement.initializer;
 
     FunctionExpressionInvocation invocation = variable.initializer;
     FunctionExpression closure = invocation.function.unParenthesized;
     FunctionElementImpl closureElement = closure.declaredElement;
-    expect(closureElement.enclosingElement, same(variableInitializer));
+    expect(closureElement, isNotNull);
   }
 
   test_conditionalExpression() async {

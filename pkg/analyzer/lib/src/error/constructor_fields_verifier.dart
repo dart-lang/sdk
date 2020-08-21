@@ -98,9 +98,9 @@ class ConstructorFieldsVerifier {
     _initialFieldMap = <FieldElement, _InitState>{};
     for (var field in element.fields) {
       if (!field.isSynthetic) {
-        _initialFieldMap[field] = field.initializer == null
-            ? _InitState.notInit
-            : _InitState.initInDeclaration;
+        _initialFieldMap[field] = field.hasInitializer
+            ? _InitState.initInDeclaration
+            : _InitState.notInit;
       }
     }
   }

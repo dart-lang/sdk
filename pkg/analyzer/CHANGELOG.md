@@ -1,3 +1,7 @@
+## 0.40.1-dev
+* Added `LocalVariableElement.hasInitializer`,
+  `PropertyInducingElement.hasInitializer`, `ParameterElement.hasDefaultValue`.
+
 ## 0.40.0
 * Added `LibraryElement.featureSet`.
 * Removed deprecated `EmbedderSdk` and related classes.

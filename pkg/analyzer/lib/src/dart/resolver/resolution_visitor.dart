@@ -369,14 +369,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
       _withElementWalker(null, () {
-        var offset = defaultValue.offset;
-        var initializer = FunctionElementImpl.forOffset(offset);
-        element.initializer = initializer;
-
-        initializer.hasImplicitReturnType = true;
-        initializer.isSynthetic = true;
-
-        _withElementHolder(ElementHolder(initializer), () {
+        _withElementHolder(ElementHolder(element), () {
           defaultValue.accept(this);
         });
       });
@@ -962,19 +955,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       VariableDeclarationList varList = node.parent;
       localElement.hasImplicitType = varList.type == null;
+      localElement.hasInitializer = initializerNode != null;
       localElement.type = varList.type?.type ?? _dynamicType;
     }
 
     if (initializerNode != null) {
       _withElementWalker(null, () {
-        var offset = initializerNode.offset;
-        var initializer = FunctionElementImpl.forOffset(offset);
-        element.initializer = initializer;
-
-        initializer.hasImplicitReturnType = true;
-        initializer.isSynthetic = true;
-
-        _withElementHolder(ElementHolder(initializer), () {
+        _withElementHolder(ElementHolder(element), () {
           initializerNode.accept(this);
         });
       });
