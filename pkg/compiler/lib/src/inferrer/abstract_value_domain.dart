@@ -46,6 +46,11 @@ class AbstractBool {
 
   static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
 
+  static AbstractBool strengthen(AbstractBool a, AbstractBool b) {
+    //TODO(coam): Assert arguments a and b are consistent
+    return a.isDefinitelyTrue ? True : (a.isDefinitelyFalse ? False : b);
+  }
+
   AbstractBool operator &(AbstractBool other) {
     if (isDefinitelyTrue) return other;
     if (other.isDefinitelyTrue) return this;
