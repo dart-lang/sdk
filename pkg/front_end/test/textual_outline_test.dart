@@ -107,12 +107,12 @@ int f1, f2;
   if (result !=
       """
 @a
-@A(2)
-typedef void F1();
+@A(3)
+int f1, f2;
 
 @a
-@A(3)
-int f1, f2;""") {
+@A(2)
+typedef void F1();""") {
     throw "Unexpected result: $result";
   }
 
@@ -131,12 +131,12 @@ int f1, f2;
   if (result !=
       """
 @a
-@A(2)
-typedef void F1();
+@A(3)
+int f1, f2;
 
 @a
-@A(3)
-int f1, f2;""") {
+@A(2)
+typedef void F1();""") {
     throw "Unexpected result: $result";
   }
 
@@ -308,10 +308,10 @@ class Class1 {
   if (result !=
       """
 class Class1 {
-  Class1 get nonNullable1 => property1;
   Class1? get nullable1 => property1;
-  Class2 get property1 => new Class1();
+  Class1 get nonNullable1 => property1;
   Class2? get property => null;
+  Class2 get property1 => new Class1();
 }""") {
     throw "Unexpected result: $result";
   }
@@ -328,9 +328,9 @@ class D2 = Super with Mixin;
       addMarkerForUnknownForTest: true);
   if (result !=
       """
-class C2<V> = Super<V> with Mixin<V>;
-
 class C<V> extends Super<V> with Mixin<V> {}
+
+class C2<V> = Super<V> with Mixin<V>;
 
 class D extends Super with Mixin {}
 

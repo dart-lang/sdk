@@ -110,8 +110,6 @@ abstract class _SortableChunk extends _TokenChunk {
   _SortableChunk(int originalPosition, Token startToken, Token endToken)
       : super(originalPosition, startToken, endToken);
 
-  String _cachedPrint;
-
   @override
   int compareTo(_Chunk o) {
     if (o is! _SortableChunk) return super.compareTo(o);
@@ -124,30 +122,16 @@ abstract class _SortableChunk extends _TokenChunk {
     // say "C" < "C2" where a text-sort would say "C<" > "C2". This doesn't
     // really matter as long as the sorting is consistent (i.e. the textual
     // outline always sorts like this).
-    // Token thisToken = startToken;
-    // Token otherToken = other.startToken;
-    // int steps = 0;
-    // while (thisToken.lexeme == otherToken.lexeme) {
-    //   if (steps++ > 10) break;
-    //   thisToken = thisToken.next;
-    //   otherToken = otherToken.next;
-    // }
-    // if (thisToken.lexeme == otherToken.lexeme) return super.compareTo(o);
-    // return thisToken.lexeme.compareTo(otherToken.lexeme);
-
-    // Hack to make sorting similar to v1.
-    if (_cachedPrint == null) {
-      StringBuffer sb = new StringBuffer();
-      printOn(sb, "");
-      _cachedPrint = sb.toString();
+    Token thisToken = startToken;
+    Token otherToken = other.startToken;
+    int steps = 0;
+    while (thisToken.lexeme == otherToken.lexeme) {
+      if (steps++ > 10) break;
+      thisToken = thisToken.next;
+      otherToken = otherToken.next;
     }
-    if (other._cachedPrint == null) {
-      StringBuffer sb = new StringBuffer();
-      other.printOn(sb, "");
-      other._cachedPrint = sb.toString();
-    }
-
-    return _cachedPrint.compareTo(other._cachedPrint);
+    if (thisToken.lexeme == otherToken.lexeme) return super.compareTo(o);
+    return thisToken.lexeme.compareTo(otherToken.lexeme);
   }
 }
 

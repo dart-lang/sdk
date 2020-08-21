@@ -1,14 +1,13 @@
 @valueClass
 class A {}
 
-@valueClass
-class F = B with C;
-
 class B {}
 
 class C {}
 
 class D = A with B;
 class E = B with A;
+@valueClass
+class F = B with C;
 const String valueClass = "valueClass";
 main() {}

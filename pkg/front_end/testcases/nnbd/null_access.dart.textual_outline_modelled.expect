@@ -2,9 +2,9 @@ class Class {
   Class call() => this;
   Class get nonNullableClass => this;
   NullableIndexClass get nonNullableNullableIndexClass => NullableIndexClass();
+  int? nullableField;
   int nonNullableField = 0;
   int operator [](int key) => key;
-  int? nullableField;
   void operator []=(int key, int value) {}
 }
 

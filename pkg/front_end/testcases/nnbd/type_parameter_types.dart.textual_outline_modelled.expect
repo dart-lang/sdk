@@ -1,8 +1,8 @@
 Never never() => throw "Never";
 
 class A<X extends Object, Y extends Object?> {
-  X foo() => never();
   X? bar() => null;
+  X foo() => never();
   Y baz() => never();
 }
 

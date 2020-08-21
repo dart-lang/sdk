@@ -6,5 +6,5 @@ class A<T> {
 }
 
 main() {}
-wrap2<R>(A<R> Function() f) {}
 wrap<R>(R Function() f) {}
+wrap2<R>(A<R> Function() f) {}
