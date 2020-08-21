@@ -192,6 +192,27 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemNullSafetyTest {
     );
   }
 
+  void test_fromLegacy_nonNullableBound() {
+    typeSystem = analysisContext.typeSystemLegacy;
+
+    // void Function<T extends Object>(T)
+    var T = typeParameter('T', bound: objectNone);
+    var rawType = functionTypeNone(
+      typeFormals: [T],
+      parameters: [
+        requiredParameter(
+          type: typeParameterTypeNone(T),
+        ),
+      ],
+      returnType: voidNone,
+    );
+
+    _assertTypes(
+      _inferCall(rawType, [dynamicNone]),
+      [dynamicNone],
+    );
+  }
+
   void test_genericCastFunction() {
     // <TFrom, TTo>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
