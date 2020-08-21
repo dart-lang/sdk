@@ -17,6 +17,7 @@ import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
+import 'src/commands/fix.dart';
 import 'src/commands/pub.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
@@ -205,8 +206,7 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(AnalyzeCommand());
     addCommand(CreateCommand(verbose: verbose));
     addCommand(CompileCommand());
-// Enable experimental `fix` command
-//    addCommand(FixCommand());
+    addCommand(FixCommand());
     addCommand(FormatCommand());
     addCommand(MigrateCommand(verbose: verbose));
     addCommand(PubCommand());
