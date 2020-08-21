@@ -1080,112 +1080,129 @@ class FunctionTypeImplTest extends AbstractTypeTest {
   }
 
   void test_getNamedParameterTypes_namedParameters() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    FunctionElement element = ElementFactory.functionElementWithParameters(
-        'f', VoidTypeImpl.instance, [
-      ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
-      ElementFactory.namedParameter2('c', typeProvider.stringType),
-      ElementFactory.namedParameter2('d', typeProvider.dynamicType)
-    ]);
-    FunctionTypeImpl type = element.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [
+        requiredParameter(name: 'a', type: intNone),
+        namedParameter(name: 'b', type: doubleNone),
+        namedParameter(name: 'c', type: stringNone),
+      ],
+      returnType: voidNone,
+    );
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(2));
-    expect(types['c'], typeProvider.stringType);
-    expect(types['d'], DynamicTypeImpl.instance);
+    expect(types['b'], doubleNone);
+    expect(types['c'], stringNone);
   }
 
   void test_getNamedParameterTypes_noNamedParameters() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    FunctionElement element = ElementFactory.functionElementWithParameters(
-        'f', VoidTypeImpl.instance, [
-      ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
-      ElementFactory.positionalParameter2('c', typeProvider.stringType)
-    ]);
-    FunctionTypeImpl type = element.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [
+        requiredParameter(type: intNone),
+        requiredParameter(type: doubleNone),
+        positionalParameter(type: stringNone),
+      ],
+      returnType: voidNone,
+    );
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNamedParameterTypes_noParameters() {
-    FunctionTypeImpl type = ElementFactory.functionElement('f').type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [],
+      returnType: voidNone,
+    );
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes_noNormalParameters() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    FunctionElement element = ElementFactory.functionElementWithParameters(
-        'f', VoidTypeImpl.instance, [
-      ElementFactory.positionalParameter2('c', typeProvider.stringType),
-      ElementFactory.positionalParameter2('d', typeProvider.dynamicType)
-    ]);
-    FunctionTypeImpl type = element.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [
+        positionalParameter(type: intNone),
+        positionalParameter(type: doubleNone),
+      ],
+      returnType: voidNone,
+    );
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes_noParameters() {
-    FunctionTypeImpl type = ElementFactory.functionElement('f').type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [],
+      returnType: voidNone,
+    );
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getNormalParameterTypes_normalParameters() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    FunctionElement element = ElementFactory.functionElementWithParameters(
-        'f', VoidTypeImpl.instance, [
-      ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
-      ElementFactory.positionalParameter2('c', typeProvider.stringType)
-    ]);
-    FunctionTypeImpl type = element.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [
+        requiredParameter(type: intNone),
+        requiredParameter(type: doubleNone),
+        positionalParameter(type: stringNone),
+      ],
+      returnType: voidNone,
+    );
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(2));
-    expect(types[0], typeProvider.intType);
-    expect(types[1], DynamicTypeImpl.instance);
+    expect(types[0], intNone);
+    expect(types[1], doubleNone);
   }
 
   void test_getOptionalParameterTypes_noOptionalParameters() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    FunctionElement element = ElementFactory.functionElementWithParameters(
-        'f', VoidTypeImpl.instance, [
-      ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
-      ElementFactory.namedParameter2('c', typeProvider.stringType),
-      ElementFactory.namedParameter2('d', typeProvider.dynamicType)
-    ]);
-    FunctionTypeImpl type = element.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [
+        requiredParameter(name: 'a', type: intNone),
+        namedParameter(name: 'b', type: doubleNone),
+      ],
+      returnType: voidNone,
+    );
     List<DartType> types = type.optionalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getOptionalParameterTypes_noParameters() {
-    FunctionTypeImpl type = ElementFactory.functionElement('f').type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [],
+      returnType: voidNone,
+    );
     List<DartType> types = type.optionalParameterTypes;
     expect(types, hasLength(0));
   }
 
   void test_getOptionalParameterTypes_optionalParameters() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    FunctionElement element = ElementFactory.functionElementWithParameters(
-        'f', VoidTypeImpl.instance, [
-      ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
-      ElementFactory.positionalParameter2('c', typeProvider.stringType),
-      ElementFactory.positionalParameter2('d', typeProvider.dynamicType)
-    ]);
-    FunctionTypeImpl type = element.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [
+        requiredParameter(type: intNone),
+        positionalParameter(type: doubleNone),
+        positionalParameter(type: stringNone),
+      ],
+      returnType: voidNone,
+    );
     List<DartType> types = type.optionalParameterTypes;
     expect(types, hasLength(2));
-    expect(types[0], typeProvider.stringType);
-    expect(types[1], DynamicTypeImpl.instance);
+    expect(types[0], doubleNone);
+    expect(types[1], stringNone);
   }
 
   void test_resolveToBound() {
-    FunctionElementImpl f = ElementFactory.functionElement('f');
-    FunctionTypeImpl type = f.type;
+    var type = functionTypeNone(
+      typeFormals: [],
+      parameters: [],
+      returnType: voidNone,
+    );
 
     // Returns this.
     expect(type.resolveToBound(null), same(type));
