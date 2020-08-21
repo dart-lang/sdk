@@ -217,6 +217,18 @@ class ForEachVariableOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.forEachVariable;
 }
 
+/// Edge origin resulting from the relationship between a getter and a setter.
+class GetterSetterCorrespondenceOrigin extends EdgeOrigin {
+  GetterSetterCorrespondenceOrigin(Source source, AstNode node)
+      : super(source, node);
+
+  @override
+  String get description => 'getter/setter correspondence';
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.getterSetterCorrespondence;
+}
+
 /// Edge origin resulting from the use of greatest lower bound.
 ///
 /// For example, in the following code snippet:
