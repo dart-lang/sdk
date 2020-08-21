@@ -191,6 +191,8 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
   const Class& cls = Class::Handle(object_class());
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const Function& result = Function::Handle(cls.LookupDynamicFunction(mangled));
   ASSERT(!result.IsNull());
   return result.raw();

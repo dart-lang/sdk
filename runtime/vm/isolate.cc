@@ -3991,8 +3991,11 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
                   (library_url() != nullptr ? library_url() : script_url())));
     return LanguageError::New(msg);
   }
-  const Function& func =
-      Function::Handle(zone, cls.LookupStaticFunctionAllowPrivate(func_name));
+  Function& func = Function::Handle(zone);
+  const auto& error = cls.EnsureIsFinalized(thread);
+  if (error == Error::null()) {
+    func = cls.LookupStaticFunctionAllowPrivate(func_name);
+  }
   if (func.IsNull()) {
     const String& msg = String::Handle(
         zone, String::NewFormatted(

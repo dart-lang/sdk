@@ -444,6 +444,8 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
       Z, Library::LookupCoreClass(Symbols::LateInitializationError()));
   ASSERT(!klass.IsNull());
 
+  const auto& error = klass.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   const Function& throw_new =
       Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
                                   H.DartSymbolObfuscate("_throwNew")));
@@ -671,6 +673,8 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& throw_function = Function::ZoneHandle(
       Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
   ASSERT(!throw_function.IsNull());
@@ -1552,6 +1556,8 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& target = Function::ZoneHandle(
       Z, klass.LookupStaticFunctionAllowPrivate(Symbols::EvaluateAssertion()));
   ASSERT(!target.IsNull());
@@ -1904,6 +1910,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
+  const auto& error = mirror_class.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& allocation_function = Function::ZoneHandle(
       Z, mirror_class.LookupStaticFunction(
              Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
@@ -2637,6 +2645,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
+  const auto& error = mirror_class.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& allocation_function = Function::ZoneHandle(
       Z, mirror_class.LookupStaticFunction(Library::PrivateCoreLibName(
              Symbols::AllocateInvocationMirrorForClosure())));
@@ -2648,6 +2658,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     const Class& klass = Class::ZoneHandle(
         Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
     ASSERT(!klass.IsNull());
+    const auto& error = klass.EnsureIsFinalized(H.thread());
+    ASSERT(error == Error::null());
     const Function& throw_function = Function::ZoneHandle(
         Z,
         klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNewInvocation()));
@@ -3566,6 +3578,8 @@ Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
     const Class& klass = Class::ZoneHandle(
         Z, Library::LookupCoreClass(Symbols::AssertionError()));
     ASSERT(!klass.IsNull());
+    const auto& error = klass.EnsureIsFinalized(H.thread());
+    ASSERT(error == Error::null());
     throw_new_null_assertion_ =
         &Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
                                      Symbols::ThrowNewNullAssertion()));

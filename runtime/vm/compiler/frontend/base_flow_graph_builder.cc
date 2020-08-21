@@ -1058,7 +1058,9 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
     const auto& parent = Function::Handle(Z, function.parent_function());
     const auto& func_name = String::Handle(Z, parent.name());
     const auto& owner = Class::Handle(Z, parent.Owner());
-    function = owner.LookupFunction(func_name);
+    if (owner.EnsureIsFinalized(thread_) == Error::null()) {
+      function = owner.LookupFunction(func_name);
+    }
   }
 
   Object& options = Object::Handle(Z);
