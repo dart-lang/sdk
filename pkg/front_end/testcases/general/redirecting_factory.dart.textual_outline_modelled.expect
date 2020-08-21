@@ -26,10 +26,10 @@ class SimpleCase<A, B> {
   factory SimpleCase() = SimpleCaseImpl<A, B>;
 }
 
-class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
-
 class SimpleCaseImpl<Ai, Bi> implements SimpleCase<Ai, Bi> {
   factory SimpleCaseImpl() = SimpleCaseImpl2<Ai, Bi>;
 }
+
+class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
 
 main() {}

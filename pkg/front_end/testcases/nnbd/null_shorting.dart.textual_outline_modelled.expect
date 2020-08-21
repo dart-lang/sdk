@@ -1,12 +1,12 @@
 class Class1 {
-  Class1 get nonNullable1 => property1;
-  Class1 get property1 => new Class1();
-  Class1 nonNullable1Method() => nonNullable1;
   Class1? get nullable1 => property1;
   Class1? get property => null;
   Class1? operator +(int value) => nullable1;
   Class1? operator -() => nullable1;
   Class1? operator [](Class1? key) => nullable1;
+  Class1 get nonNullable1 => property1;
+  Class1 get property1 => new Class1();
+  Class1 nonNullable1Method() => nonNullable1;
   Class2 get nonNullable2 => property2;
   Class2 get property2 => new Class2();
   void operator []=(Class1? key, Class1? value) {}

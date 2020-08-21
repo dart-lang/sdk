@@ -1,5 +1,5 @@
 import "dart:convert";
-import "package:front_end/src/fasta/util/textual_outline.dart";
+import "package:front_end/src/fasta/util/textual_outline_v2.dart";
 
 main() {
   // Doesn't sort if not asked to perform modelling.
@@ -107,12 +107,12 @@ int f1, f2;
   if (result !=
       """
 @a
-@A(2)
-typedef void F1();
+@A(3)
+int f1, f2;
 
 @a
-@A(3)
-int f1, f2;""") {
+@A(2)
+typedef void F1();""") {
     throw "Unexpected result: $result";
   }
 
@@ -131,12 +131,12 @@ int f1, f2;
   if (result !=
       """
 @a
-@A(2)
-typedef void F1();
+@A(3)
+int f1, f2;
 
 @a
-@A(3)
-int f1, f2;""") {
+@A(2)
+typedef void F1();""") {
     throw "Unexpected result: $result";
   }
 
@@ -267,6 +267,74 @@ part of "foo.dart";
 library foo;
 
 bar() {}""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Ending metadata (not associated with anything) is still present.
+  // TODO: The extra metadata should actually stay at the bottom as it's not
+  // associated with anything and it will now basically be associated with foo.
+  result = textualOutline(utf8.encode("""
+@Object2()
+foo() {
+  // hello
+}
+
+@Object1()
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+@Object2()
+foo() {}
+
+@Object1()""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Sorting of question mark types.
+  result = textualOutline(utf8.encode("""
+class Class1 {
+  Class1? get nullable1 => property1;
+  Class2? get property => null;
+  Class1 get nonNullable1 => property1;
+  Class2 get property1 => new Class1();
+}
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+class Class1 {
+  Class1? get nullable1 => property1;
+  Class1 get nonNullable1 => property1;
+  Class2? get property => null;
+  Class2 get property1 => new Class1();
+}""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Sorting of various classes with numbers and less than.
+  result = textualOutline(utf8.encode("""
+class C2<V> = Super<V> with Mixin<V>;
+class C<V> extends Super<V> with Mixin<V> {}
+class D extends Super with Mixin {}
+class D2 = Super with Mixin;
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+class C<V> extends Super<V> with Mixin<V> {}
+
+class C2<V> = Super<V> with Mixin<V>;
+
+class D extends Super with Mixin {}
+
+class D2 = Super with Mixin;""") {
     throw "Unexpected result: $result";
   }
 }

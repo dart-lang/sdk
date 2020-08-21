@@ -1,24 +1,24 @@
 import 'messages_with_types_opt_out.dart';
 
 class SubInIn extends SuperIn {
-  String nonNullableSame() => "bar";
   String? nullableSame() => "foo";
-  T nonNullableBad<T>(T t) => t;
+  String nonNullableSame() => "bar";
   T? nullableBad<T>(T t) => null;
+  T nonNullableBad<T>(T t) => t;
 }
 
 class SubOutIn extends SuperOut {
-  String nonNullableSame() => "bar";
   String? nullableSame() => "foo";
-  T nonNullableBad<T>(T t) => t;
+  String nonNullableSame() => "bar";
   T? nullableBad<T>(T t) => null;
+  T nonNullableBad<T>(T t) => t;
 }
 
 class SuperIn {
-  String nonNullableSame() => "bar";
   String? nullableSame() => "foo";
-  int nonNullableBad<T>(T t) => 2;
+  String nonNullableSame() => "bar";
   int? nullableBad<T>(T t) => 1;
+  int nonNullableBad<T>(T t) => 2;
 }
 
 double nonNullableVar = 4.0;
