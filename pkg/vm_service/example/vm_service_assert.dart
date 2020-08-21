@@ -656,6 +656,7 @@ vms.IsolateRef assertIsolateRef(vms.IsolateRef obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolate);
   return obj;
 }
 
@@ -672,6 +673,7 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolate);
   assertInt(obj.startTime);
   assertBool(obj.runnable);
   assertInt(obj.livePorts);
@@ -689,6 +691,7 @@ vms.IsolateGroupRef assertIsolateGroupRef(vms.IsolateGroupRef obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolateGroup);
   return obj;
 }
 
@@ -706,6 +709,7 @@ vms.IsolateGroup assertIsolateGroup(vms.IsolateGroup obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolateGroup);
   assertListOfIsolateRef(obj.isolates);
   return obj;
 }
@@ -1193,6 +1197,8 @@ vms.VM assertVM(vms.VM obj) {
   assertInt(obj.startTime);
   assertListOfIsolateRef(obj.isolates);
   assertListOfIsolateGroupRef(obj.isolateGroups);
+  assertListOfIsolateRef(obj.systemIsolates);
+  assertListOfIsolateGroupRef(obj.systemIsolateGroups);
   return obj;
 }
 

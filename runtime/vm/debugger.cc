@@ -317,12 +317,12 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return !Isolate::IsVMInternalIsolate(isolate_) &&
+  return !Isolate::IsSystemIsolate(isolate_) &&
          Service::isolate_stream.enabled();
 }
 
 bool Debugger::NeedsDebugEvents() {
-  ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
+  ASSERT(!Isolate::IsSystemIsolate(isolate_));
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
 
@@ -1856,7 +1856,7 @@ Debugger::~Debugger() {
 void Debugger::Shutdown() {
   // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
   // them. Then, assert here that isolate_ is not one of those isolates.
-  if (Isolate::IsVMInternalIsolate(isolate_)) {
+  if (Isolate::IsSystemIsolate(isolate_)) {
     return;
   }
   while (breakpoint_locations_ != NULL) {

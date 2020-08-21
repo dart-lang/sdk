@@ -2461,7 +2461,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       isolate->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (FLAG_gc_every > 0) || (isolate_reload_every > 0)) {
-    if (!Isolate::IsVMInternalIsolate(isolate)) {
+    if (!Isolate::IsSystemIsolate(isolate)) {
       // TODO(turnidge): To make --deoptimize_every and
       // --stacktrace-every faster we could move this increment/test to
       // the generated code.

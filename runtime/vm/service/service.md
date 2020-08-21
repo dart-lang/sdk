@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.37
+# Dart VM Service Protocol 3.38
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.37_ of the Dart VM Service Protocol. This
+This document describes of _version 3.38_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2858,6 +2858,10 @@ class @Isolate extends Response {
 
   // A name identifying this isolate. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
 }
 ```
 
@@ -2874,6 +2878,10 @@ class Isolate extends Response {
 
   // A name identifying this isolate. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
 
   // The time that the VM started in milliseconds since the epoch.
   //
@@ -2932,6 +2940,10 @@ class @IsolateGroup extends Response {
 
   // A name identifying this isolate group. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate group was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;  
 }
 ```
 
@@ -2948,6 +2960,10 @@ class IsolateGroup extends Response {
 
   // A name identifying this isolate. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate group was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;  
 
   // A list of all isolates in this isolate group.
   @Isolate[] isolates;
@@ -3862,6 +3878,12 @@ class VM extends Response {
 
   // A list of isolate groups running in the VM.
   @IsolateGroup[] isolateGroups;
+
+  // A list of system isolates running in the VM.
+  @Isolate[] systemIsolates;
+
+  // A list of isolate groups which contain system isolates running in the VM.
+  @IsolateGroup[] systemIsolateGroups;
 }
 ```
 
@@ -3921,5 +3943,7 @@ the VM service.
 3.35 | Added `getSupportedProtocols` RPC and `ProtocolList`, `Protocol` objects.
 3.36 | Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
 3.37 | Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
+3.38 | Added `isSystemIsolate` property to `@Isolate` and `Isolate`, `isSystemIsolateGroup` property to `@IsolateGroup` and `IsolateGroup`,
+and properties `systemIsolates` and `systemIsolateGroups` to `VM`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

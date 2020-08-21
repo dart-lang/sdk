@@ -197,8 +197,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
-  R(show_invisible_isolates, false, bool, false,                               \
-    "Show invisible isolates in the vm-service.")                              \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \

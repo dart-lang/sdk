@@ -50,6 +50,8 @@ class ServiceIsolate : public AllStatic {
 
   static void BootVmServiceLibrary();
 
+  static void RegisterRunningIsolate(Isolate* isolate);
+
   static void RequestServerInfo(const SendPort& sp);
   static void ControlWebServer(const SendPort& sp,
                                bool enable,
@@ -106,6 +108,7 @@ class ServiceIsolate : public AllStatic {
   static bool SendIsolateShutdownMessage() { return false; }
   static void SendServiceExitMessage() {}
   static void Shutdown() {}
+  static void RegisterRunningIsolate(Isolate* isolate) {}
   static void VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
  protected:

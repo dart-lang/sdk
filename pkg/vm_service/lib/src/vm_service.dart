@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.37.0';
+const String vmServiceVersion = '3.38.0';
 
 /// @optional
 const String optional = 'optional';
@@ -4804,16 +4804,22 @@ class IsolateRef extends Response {
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
 
+  /// Specifies whether the isolate was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
+
   IsolateRef({
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolate,
   });
 
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolate = json['isSystemIsolate'];
   }
 
   @override
@@ -4824,6 +4830,7 @@ class IsolateRef extends Response {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolate': isSystemIsolate,
     });
     return json;
   }
@@ -4832,8 +4839,9 @@ class IsolateRef extends Response {
 
   operator ==(other) => other is IsolateRef && id == other.id;
 
-  String toString() =>
-      '[IsolateRef type: ${type}, id: ${id}, number: ${number}, name: ${name}]';
+  String toString() => '[IsolateRef ' //
+      'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
+      'isSystemIsolate: ${isSystemIsolate}]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -4849,6 +4857,10 @@ class Isolate extends Response implements IsolateRef {
 
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
+
+  /// Specifies whether the isolate was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
 
   /// The time that the VM started in milliseconds since the epoch.
   ///
@@ -4898,6 +4910,7 @@ class Isolate extends Response implements IsolateRef {
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolate,
     @required this.startTime,
     @required this.runnable,
     @required this.livePorts,
@@ -4915,6 +4928,7 @@ class Isolate extends Response implements IsolateRef {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolate = json['isSystemIsolate'];
     startTime = json['startTime'];
     runnable = json['runnable'];
     livePorts = json['livePorts'];
@@ -4940,6 +4954,7 @@ class Isolate extends Response implements IsolateRef {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolate': isSystemIsolate,
       'startTime': startTime,
       'runnable': runnable,
       'livePorts': livePorts,
@@ -4978,16 +4993,22 @@ class IsolateGroupRef extends Response {
   /// A name identifying this isolate group. Not guaranteed to be unique.
   String name;
 
+  /// Specifies whether the isolate group was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;
+
   IsolateGroupRef({
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolateGroup,
   });
 
   IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolateGroup = json['isSystemIsolateGroup'];
   }
 
   @override
@@ -4998,6 +5019,7 @@ class IsolateGroupRef extends Response {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolateGroup': isSystemIsolateGroup,
     });
     return json;
   }
@@ -5006,8 +5028,9 @@ class IsolateGroupRef extends Response {
 
   operator ==(other) => other is IsolateGroupRef && id == other.id;
 
-  String toString() =>
-      '[IsolateGroupRef type: ${type}, id: ${id}, number: ${number}, name: ${name}]';
+  String toString() => '[IsolateGroupRef ' //
+      'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
+      'isSystemIsolateGroup: ${isSystemIsolateGroup}]';
 }
 
 /// An `Isolate` object provides information about one isolate in the VM.
@@ -5024,6 +5047,10 @@ class IsolateGroup extends Response implements IsolateGroupRef {
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
 
+  /// Specifies whether the isolate group was spawned by the VM or embedder for
+  /// internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;
+
   /// A list of all isolates in this isolate group.
   List<IsolateRef> isolates;
 
@@ -5031,6 +5058,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     @required this.id,
     @required this.number,
     @required this.name,
+    @required this.isSystemIsolateGroup,
     @required this.isolates,
   });
 
@@ -5038,6 +5066,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     id = json['id'];
     number = json['number'];
     name = json['name'];
+    isSystemIsolateGroup = json['isSystemIsolateGroup'];
     isolates = List<IsolateRef>.from(
         createServiceObject(json['isolates'], const ['IsolateRef']) ?? []);
   }
@@ -5050,6 +5079,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
       'id': id,
       'number': number,
       'name': name,
+      'isSystemIsolateGroup': isSystemIsolateGroup,
       'isolates': isolates.map((f) => f.toJson()).toList(),
     });
     return json;
@@ -5061,7 +5091,7 @@ class IsolateGroup extends Response implements IsolateGroupRef {
 
   String toString() => '[IsolateGroup ' //
       'type: ${type}, id: ${id}, number: ${number}, name: ${name}, ' //
-      'isolates: ${isolates}]';
+      'isSystemIsolateGroup: ${isSystemIsolateGroup}, isolates: ${isolates}]';
 }
 
 /// See [getInboundReferences].
@@ -7063,6 +7093,12 @@ class VM extends Response implements VMRef {
   /// A list of isolate groups running in the VM.
   List<IsolateGroupRef> isolateGroups;
 
+  /// A list of system isolates running in the VM.
+  List<IsolateRef> systemIsolates;
+
+  /// A list of isolate groups which contain system isolates running in the VM.
+  List<IsolateGroupRef> systemIsolateGroups;
+
   VM({
     @required this.name,
     @required this.architectureBits,
@@ -7074,6 +7110,8 @@ class VM extends Response implements VMRef {
     @required this.startTime,
     @required this.isolates,
     @required this.isolateGroups,
+    @required this.systemIsolates,
+    @required this.systemIsolateGroups,
   });
 
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7090,6 +7128,12 @@ class VM extends Response implements VMRef {
     isolateGroups = List<IsolateGroupRef>.from(
         createServiceObject(json['isolateGroups'], const ['IsolateGroupRef']) ??
             []);
+    systemIsolates = List<IsolateRef>.from(
+        createServiceObject(json['systemIsolates'], const ['IsolateRef']) ??
+            []);
+    systemIsolateGroups = List<IsolateGroupRef>.from(createServiceObject(
+            json['systemIsolateGroups'], const ['IsolateGroupRef']) ??
+        []);
   }
 
   @override
@@ -7107,6 +7151,9 @@ class VM extends Response implements VMRef {
       'startTime': startTime,
       'isolates': isolates.map((f) => f.toJson()).toList(),
       'isolateGroups': isolateGroups.map((f) => f.toJson()).toList(),
+      'systemIsolates': systemIsolates.map((f) => f.toJson()).toList(),
+      'systemIsolateGroups':
+          systemIsolateGroups.map((f) => f.toJson()).toList(),
     });
     return json;
   }

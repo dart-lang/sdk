@@ -51,7 +51,9 @@ abstract class VM implements VMRef {
 
   // A list of isolates running in the VM.
   Iterable<IsolateRef> get isolates;
+  Iterable<IsolateRef> get systemIsolates;
   Iterable<IsolateGroupRef> get isolateGroups;
+  Iterable<IsolateGroupRef> get systemIsolateGroups;
 
   /// Enable the sampling profiler.
   Future enableProfiler();

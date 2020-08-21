@@ -668,8 +668,10 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
 
   // The list of live isolates, ordered by isolate start time.
   final List<Isolate> isolates = <Isolate>[];
+  final List<Isolate> systemIsolates = <Isolate>[];
 
   final List<IsolateGroup> isolateGroups = <IsolateGroup>[];
+  final List<IsolateGroup> systemIsolateGroups = <IsolateGroup>[];
 
   final List<Service> services = <Service>[];
 
@@ -755,10 +757,17 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   }
 
   void _buildIsolateList() {
-    var isolateList = _isolateCache.values.toList();
+    var isolateList =
+        _isolateCache.values.where((i) => !i.isSystemIsolate).toList();
     isolateList.sort(_compareIsolates);
     isolates.clear();
     isolates.addAll(isolateList);
+
+    var systemIsolateList =
+        _isolateCache.values.where((i) => i.isSystemIsolate).toList();
+    systemIsolateList.sort(_compareIsolates);
+    systemIsolates.clear();
+    systemIsolates.addAll(systemIsolateList);
   }
 
   void _removeDeadIsolates(List newIsolates) {
@@ -851,10 +860,18 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   }
 
   void _buildIsolateGroupList() {
-    final isolateGroupList = _isolateGroupCache.values.toList();
+    final isolateGroupList = _isolateGroupCache.values
+        .where((g) => !g.isSystemIsolateGroup)
+        .toList();
     isolateGroupList.sort(_compareIsolateGroups);
     isolateGroups.clear();
     isolateGroups.addAll(isolateGroupList);
+
+    final systemIsolateGroupList =
+        _isolateGroupCache.values.where((g) => g.isSystemIsolateGroup).toList();
+    systemIsolateGroupList.sort(_compareIsolateGroups);
+    systemIsolateGroups.clear();
+    systemIsolateGroups.addAll(systemIsolateGroupList);
   }
 
   void _removeDeadIsolateGroups(List newIsolateGroups) {
@@ -1039,8 +1056,14 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     profileVM = map['_profilerMode'] == 'VM';
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
-    _removeDeadIsolates(map['isolates']);
-    _removeDeadIsolateGroups(map['isolateGroups']);
+    _removeDeadIsolates([
+      ...map['isolates'],
+      ...map['systemIsolates'],
+    ]);
+    _removeDeadIsolateGroups([
+      ...map['isolateGroups'],
+      ...map['systemIsolateGroups'],
+    ]);
   }
 
   // Reload all isolates.
@@ -1297,6 +1320,7 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
     name = map['name'];
     vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.tryParse(map['number']);
+    isSystemIsolateGroup = map['isSystemIsolateGroup'];
     if (mapIsRef) {
       return;
     }
@@ -1356,6 +1380,8 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
 
   @override
   int number;
+
+  bool isSystemIsolateGroup;
 
   final Map<String, ServiceObject> _cache = Map<String, ServiceObject>();
 }
@@ -1614,6 +1640,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   int get numScopedHandles => _numScopedHandles;
   int _numScopedHandles;
 
+  bool isSystemIsolate;
+
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null) {
       // No outstanding snapshot request. Presumably another client asked for a
@@ -1648,6 +1676,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     name = map['name'];
     vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.tryParse(map['number']);
+    isSystemIsolate = map['isSystemIsolate'];
     if (mapIsRef) {
       return;
     }

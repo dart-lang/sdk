@@ -1009,7 +1009,7 @@ void Heap::RecordAfterGC(GCType type) {
   // For now we'll emit the same GC events on all isolates.
   if (Service::gc_stream.enabled()) {
     isolate_group_->ForEachIsolate([&](Isolate* isolate) {
-      if (!Isolate::IsVMInternalIsolate(isolate)) {
+      if (!Isolate::IsSystemIsolate(isolate)) {
         ServiceEvent event(isolate, ServiceEvent::kGC);
         event.set_gc_stats(&stats_);
         Service::HandleEvent(&event);
