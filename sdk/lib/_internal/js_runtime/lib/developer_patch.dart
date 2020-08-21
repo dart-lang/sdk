@@ -103,7 +103,7 @@ void _getServerInfo(SendPort sendPort) {
 }
 
 @patch
-void _webServerControl(SendPort sendPort, bool enable) {
+void _webServerControl(SendPort sendPort, bool enable, bool? silenceOutput) {
   sendPort.send(null);
 }
 

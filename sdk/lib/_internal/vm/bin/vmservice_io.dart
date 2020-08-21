@@ -192,7 +192,10 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
 
 Uri? serverInformationCallback() => _lazyServerBoot().serverAddress;
 
-Future<Uri?> webServerControlCallback(bool enable) async {
+Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
+  if (silenceOutput != null) {
+    silentObservatory = silenceOutput;
+  }
   final _server = _lazyServerBoot();
   if (_server.running != enable) {
     if (enable) {

@@ -169,8 +169,9 @@ typedef Future<Uri> ServerInformamessage_routertionCallback();
 /// Called when we need information about the server.
 typedef Uri? ServerInformationCallback();
 
-/// Called when we want to [enable] or disable the web server.
-typedef Future<Uri?> WebServerControlCallback(bool enable);
+/// Called when we want to [enable] or disable the web server or silence VM
+/// service console messages.
+typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
 
 /// Called when we want to [enable] or disable new websocket connections to the
 /// server.
@@ -436,7 +437,8 @@ class VMService extends MessageRouter {
     }
   }
 
-  Future<void> _serverMessageHandler(int code, SendPort sp, bool enable) async {
+  Future<void> _serverMessageHandler(
+      int code, SendPort sp, bool enable, bool? silenceOutput) async {
     switch (code) {
       case Constants.WEB_SERVER_CONTROL_MESSAGE_ID:
         final webServerControl = VMServiceEmbedderHooks.webServerControl;
@@ -444,7 +446,7 @@ class VMService extends MessageRouter {
           sp.send(null);
           return;
         }
-        final uri = await webServerControl(enable);
+        final uri = await webServerControl(enable, silenceOutput);
         sp.send(uri);
         break;
       case Constants.SERVER_INFO_MESSAGE_ID:
@@ -532,27 +534,27 @@ class VMService extends MessageRouter {
         _exit();
         return;
       }
-      if (message.length == 3) {
-        final opcode = message[0];
-        if (opcode == Constants.METHOD_CALL_FROM_NATIVE) {
-          _handleNativeRpcCall(message[1], message[2]);
+      final opcode = message[0];
+      if (message.length == 3 && opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+        _handleNativeRpcCall(message[1], message[2]);
+        return;
+      }
+      if (message.length == 4) {
+        if ((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
+            (opcode == Constants.SERVER_INFO_MESSAGE_ID)) {
+          // This is a message interacting with the web server.
+          _serverMessageHandler(message[0], message[1], message[2], message[3]);
           return;
         } else {
-          // This is a message interacting with the web server.
-          assert((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-              (opcode == Constants.SERVER_INFO_MESSAGE_ID));
-          _serverMessageHandler(message[0], message[1], message[2]);
+          // This is a message informing us of the birth or death of an
+          // isolate.
+          _controlMessageHandler(
+              message[0], message[1], message[2], message[3]);
           return;
         }
       }
-      if (message.length == 4) {
-        // This is a message informing us of the birth or death of an
-        // isolate.
-        _controlMessageHandler(message[0], message[1], message[2], message[3]);
-        return;
-      }
+      print('Internal vm-service error: ignoring illegal message: $message');
     }
-    print('Internal vm-service error: ignoring illegal message: $message');
   }
 
   VMService._internal() : eventPort = isolateControlPort {
