@@ -344,7 +344,7 @@ class TypeSystemTypeOperations
   bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
     return variable is LocalVariableElement &&
         variable.hasImplicitType &&
-        variable.initializer == null;
+        !variable.hasInitializer;
   }
 
   @override

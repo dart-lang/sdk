@@ -1388,7 +1388,10 @@ abstract class LocalElement implements Element {}
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement implements PromotableElement {}
+abstract class LocalVariableElement implements PromotableElement {
+  /// Return `true` if this variable has an initializer at declaration.
+  bool get hasInitializer;
+}
 
 /// An element that represents a method defined within a class.
 ///
@@ -1439,6 +1442,9 @@ abstract class ParameterElement
 
   /// Return the Dart code of the default value, or `null` if no default value.
   String get defaultValueCode;
+
+  /// Return `true` if this parameter has a default value.
+  bool get hasDefaultValue;
 
   /// Return `true` if this parameter is covariant, meaning it is allowed to
   /// have a narrower type in an override.
@@ -1598,6 +1604,9 @@ abstract class PropertyInducingElement implements VariableElement {
   /// will be synthetic.
   PropertyAccessorElement get getter;
 
+  /// Return `true` if this variable has an initializer at declaration.
+  bool get hasInitializer;
+
   /// Return the setter associated with this variable, or `null` if the variable
   /// is effectively `final` and therefore does not have a setter associated
   /// with it. (This can happen either because the variable is explicitly
@@ -1728,6 +1737,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// `null` if this variable does not have an initializer. The function will
   /// have no parameters. The return type of the function will be the
   /// compile-time type of the initialization expression.
+  @deprecated
   FunctionElement get initializer;
 
   /// Return `true` if this variable was declared with the 'const' modifier.

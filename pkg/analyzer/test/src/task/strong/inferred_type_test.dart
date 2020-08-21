@@ -354,26 +354,19 @@ main() {
   }
 
   test_bottom() async {
-    // When a type is inferred from the expression `null`, the inferred type is
-    // `dynamic`, but the inferred type of the initializer is `bottom`.
-    // TODO(paulberry): Is this intentional/desirable?
     await assertNoErrorsInCode('''
 var v = null;
 ''');
     var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'dynamic');
-    _assertTypeStr(v.initializer.type, 'Null Function()');
   }
 
   test_bottom_inClosure() async {
-    // When a closure's return type is inferred from the expression `null`, the
-    // inferred type is `dynamic`.
     await assertNoErrorsInCode('''
 var v = () => null;
 ''');
     var v = _resultUnitElement.topLevelVariables[0];
     _assertTypeStr(v.type, 'Null Function()');
-    _assertTypeStr(v.initializer.type, 'Null Function() Function()');
   }
 
   test_circularReference_viaClosures() async {
@@ -406,8 +399,8 @@ var y = () => x;
     var y = _resultUnitElement.topLevelVariables[1];
     expect(x.name, 'x');
     expect(y.name, 'y');
-    _assertTypeStr(x.initializer.returnType, 'dynamic Function()');
-    _assertTypeStr(y.initializer.returnType, 'dynamic Function()');
+    _assertTypeStr(x.type, 'dynamic');
+    _assertTypeStr(y.type, 'dynamic');
   }
 
   test_conflictsCanHappen2() async {
@@ -4117,7 +4110,7 @@ main() {
     ]);
 
     var y = findLocalVariable(_resultUnit, 'y');
-    _assertTypeStr(y.initializer.returnType, 'List<num>');
+    _assertTypeStr(y.type, 'List<num>');
   }
 
   test_nullLiteralShouldNotInferAsBottom() async {

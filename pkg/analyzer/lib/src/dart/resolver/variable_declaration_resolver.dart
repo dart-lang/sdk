@@ -61,11 +61,6 @@ class VariableDeclarationResolver {
       _setInferredType(element, initializer.staticType);
     }
 
-    if (element.initializer != null) {
-      var initializerFunction = element.initializer as FunctionElementImpl;
-      initializerFunction.returnType = initializer.staticType;
-    }
-
     if (isTopLevel) {
       _flowAnalysis?.topLevelDeclaration_exit();
     }

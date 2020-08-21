@@ -211,8 +211,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    // TODO(brianwilkerson) We need to finish implementing the accessors used
-    // below so that we can safely invoke them.
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
   }
@@ -296,6 +294,9 @@ class FieldFormalParameterMember extends ParameterMember
   }
 
   @override
+  bool get hasDefaultValue => declaration.hasDefaultValue;
+
+  @override
   bool get isCovariant => declaration.isCovariant;
 
   @override
@@ -332,6 +333,9 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return PropertyAccessorMember(baseGetter, _substitution, isLegacy);
   }
+
+  @override
+  bool get hasInitializer => declaration.hasInitializer;
 
   @override
   bool get isAbstract => declaration.isAbstract;
@@ -772,6 +776,9 @@ class ParameterMember extends VariableMember
   Element get enclosingElement => declaration.enclosingElement;
 
   @override
+  bool get hasDefaultValue => declaration.hasDefaultValue;
+
+  @override
   int get hashCode => declaration.hashCode;
 
   @override
@@ -951,6 +958,9 @@ class TopLevelVariableMember extends VariableMember
   }
 
   @override
+  bool get hasInitializer => declaration.hasInitializer;
+
+  @override
   bool get isExternal => declaration.isExternal;
 
   @override
@@ -1039,9 +1049,8 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   void visitChildren(ElementVisitor visitor) {
-    // TODO(brianwilkerson) We need to finish implementing the accessors used
-    // below so that we can safely invoke them.
     super.visitChildren(visitor);
+    // ignore: deprecated_member_use_from_same_package
     declaration.initializer?.accept(visitor);
   }
 }

@@ -1784,6 +1784,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   }
 
   @override
+  bool get hasInitializer => false;
+
+  @override
   String get name {
     if (linkedNode != null) {
       return reference.name;
@@ -5615,6 +5618,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
 /// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
+  @override
+  bool hasInitializer;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   LocalVariableElementImpl(String name, int offset) : super(name, offset);
@@ -6218,24 +6224,26 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     super.hasImplicitType = hasImplicitType;
   }
 
+  bool get hasInitializer {
+    return linkedNode != null && linkedContext.hasInitializer(linkedNode);
+  }
+
+  @deprecated
   @override
   FunctionElement get initializer {
-    if (_initializer == null) {
-      if (linkedNode != null) {
-        if (linkedContext.hasInitializer(linkedNode)) {
-          _initializer = FunctionElementImpl('', -1)
-            ..isSynthetic = true
-            .._type = FunctionTypeImpl(
-              typeFormals: const [],
-              parameters: const [],
-              returnType: type,
-              nullabilitySuffix: NullabilitySuffix.star,
-            )
-            ..enclosingElement = this;
-        }
-      }
+    if (hasInitializer) {
+      return FunctionElementImpl('', -1)
+        ..enclosingElement = this
+        ..isSynthetic = true
+        ..returnType = type
+        .._type = FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: type,
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
     }
-    return super.initializer;
+    return null;
   }
 
   @override
@@ -6278,19 +6286,16 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     return null;
   }
 
-  bool get _hasInitializer {
-    return linkedNode != null && linkedContext.hasInitializer(linkedNode);
-  }
-
   /// Return `true` if this variable needs the setter.
   bool get _hasSetter {
     if (isConst) {
       return false;
     }
 
+    // TODO(scheglov) is this right?
     if (isLate) {
       if (isFinal) {
-        return !_hasInitializer;
+        return !hasInitializer;
       }
       return true;
     }
@@ -6389,6 +6394,11 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  bool get hasDefaultValue {
+    return defaultValueCode != null;
+  }
+
+  @override
   bool get hasImplicitType {
     if (linkedNode != null) {
       return linkedContext.hasImplicitType(linkedNode);
@@ -6418,28 +6428,6 @@ class ParameterElementImpl extends VariableElementImpl
       return;
     }
     _inheritsCovariant = value;
-  }
-
-  @override
-  FunctionElement get initializer {
-    if (_initializer != null) return _initializer;
-
-    if (linkedNode != null) {
-      if (linkedContext.hasDefaultValue(linkedNode)) {
-        _initializer = FunctionElementImpl('', -1)
-          ..enclosingElement = this
-          ..isSynthetic = true;
-      }
-    }
-
-    return super.initializer;
-  }
-
-  /// Set the function representing this variable's initializer to the given
-  /// [function].
-  @override
-  set initializer(FunctionElement function) {
-    super.initializer = function;
   }
 
   @override
@@ -7112,6 +7100,10 @@ abstract class PropertyInducingElementImpl
   @override
   PropertyAccessorElement setter;
 
+  /// This field is set during linking, and performs type inference for
+  /// this property. After linking this field is always `null`.
+  PropertyInducingElementTypeInference typeInference;
+
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
   PropertyInducingElementImpl(String name, int offset) : super(name, offset);
@@ -7154,6 +7146,12 @@ abstract class PropertyInducingElementImpl
     }
     return super.typeInternal;
   }
+}
+
+/// Instances of this class are set for fields and top-level variables
+/// to perform top-level type inference during linking.
+abstract class PropertyInducingElementTypeInference {
+  void perform();
 }
 
 /// A concrete implementation of a [ShowElementCombinator].
@@ -7557,10 +7555,6 @@ abstract class VariableElementImpl extends ElementImpl
   /// The type of this variable.
   DartType _type;
 
-  /// A synthetic function representing this variable's initializer, or `null
-  ///` if this variable does not have an initializer.
-  FunctionElement _initializer;
-
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   VariableElementImpl(String name, int offset) : super(name, offset);
@@ -7613,17 +7607,9 @@ abstract class VariableElementImpl extends ElementImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
   }
 
+  @deprecated
   @override
-  FunctionElement get initializer => _initializer;
-
-  /// Set the function representing this variable's initializer to the given
-  /// [function].
-  set initializer(FunctionElement function) {
-    if (function != null) {
-      (function as FunctionElementImpl).enclosingElement = this;
-    }
-    _initializer = function;
-  }
+  FunctionElement get initializer => null;
 
   @override
   bool get isConst {
@@ -7684,6 +7670,7 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    _initializer?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    initializer?.accept(visitor);
   }
 }

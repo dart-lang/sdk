@@ -422,13 +422,13 @@ class _ClassVerifier {
         var derivedElement = derivedOptionalElements[i];
         if (_isNonNullableByDefault &&
             derivedIsAbstract &&
-            derivedElement.initializer == null) {
+            !derivedElement.hasDefaultValue) {
           continue;
         }
         var name = derivedElement.name;
         for (var j = 0; j < baseOptionalElements.length; j++) {
           var baseParameter = baseOptionalElements[j];
-          if (name == baseParameter.name && baseParameter.initializer != null) {
+          if (name == baseParameter.name && baseParameter.hasDefaultValue) {
             var baseValue = baseParameter.computeConstantValue();
             var derivedResult = derivedElement.evaluationResult;
             if (!_constantValuesEqual(derivedResult.value, baseValue)) {
@@ -453,11 +453,11 @@ class _ClassVerifier {
         var derivedElement = derivedOptionalElements[i];
         if (_isNonNullableByDefault &&
             derivedIsAbstract &&
-            derivedElement.initializer == null) {
+            !derivedElement.hasDefaultValue) {
           continue;
         }
         var baseElement = baseOptionalElements[i];
-        if (baseElement.initializer != null) {
+        if (baseElement.hasDefaultValue) {
           var baseValue = baseElement.computeConstantValue();
           var derivedResult = derivedElement.evaluationResult;
           if (!_constantValuesEqual(derivedResult.value, baseValue)) {

@@ -369,7 +369,7 @@ class ConstantEvaluationEngine {
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) &&
               !field.isStatic &&
-              field.initializer != null) {
+              field.hasInitializer) {
             callback(field);
           }
         }
