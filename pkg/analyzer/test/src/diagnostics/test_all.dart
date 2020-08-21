@@ -22,6 +22,7 @@ import 'annotation_with_non_class_test.dart' as annotation_with_non_class;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
+import 'assignment_of_do_not_store_test.dart' as assignment_of_do_not_store;
 import 'assignment_to_const_test.dart' as assignment_to_const;
 import 'assignment_to_final_local_test.dart' as assignment_to_final_local;
 import 'assignment_to_final_no_setter_test.dart'
@@ -652,6 +653,7 @@ main() {
     annotation_with_non_class.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();
+    assignment_of_do_not_store.main();
     assignment_to_const.main();
     assignment_to_final_local.main();
     assignment_to_final_no_setter.main();
