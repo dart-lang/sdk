@@ -93,7 +93,7 @@ import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
 import 'util/experiment_environment_getter.dart' show getExperimentEnvironment;
 
-import 'util/textual_outline.dart' show textualOutline;
+import 'util/textual_outline_v2.dart' show textualOutline;
 
 import 'fasta_codes.dart'
     show

@@ -1,29 +1,5 @@
 import "dart:convert";
-import "package:front_end/src/fasta/util/textual_outline.dart" as v1;
-import "package:front_end/src/fasta/util/textual_outline_v2.dart" as v2;
-
-String textualOutline(List<int> rawBytes,
-    {bool throwOnUnexpected: false,
-    bool performModelling: false,
-    bool addMarkerForUnknownForTest: false}) {
-  String v1Result = v1.textualOutline(rawBytes,
-      throwOnUnexpected: throwOnUnexpected,
-      performModelling: performModelling,
-      addMarkerForUnknownForTest: addMarkerForUnknownForTest);
-
-  String v2Result = v2.textualOutline(rawBytes,
-      throwOnUnexpected: throwOnUnexpected,
-      performModelling: performModelling,
-      addMarkerForUnknownForTest: addMarkerForUnknownForTest);
-
-  if (v1Result != v2Result) {
-    print("Warning: v1 and v2 give different results "
-        "(performModelling = $performModelling); "
-        "v2 gave\n$v2Result\n---\nv1 gave\n$v1Result\n---");
-  }
-
-  return v1Result;
-}
+import "package:front_end/src/fasta/util/textual_outline_v2.dart";
 
 main() {
   // Doesn't sort if not asked to perform modelling.
@@ -310,11 +286,10 @@ foo() {
       addMarkerForUnknownForTest: true);
   if (result !=
       """
-@Object1()
-
-
 @Object2()
-foo() {}""") {
+foo() {}
+
+@Object1()""") {
     throw "Unexpected result: $result";
   }
 
