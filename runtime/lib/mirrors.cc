@@ -64,10 +64,12 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   args.SetAt(6, argument_names);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
-  const Class& NoSuchMethodError =
+  const Class& cls =
       Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
-  const Function& throwNew = Function::Handle(
-      NoSuchMethodError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(throwNew, args));
   ASSERT(result.IsError());

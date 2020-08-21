@@ -301,10 +301,14 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
     // Nothing to do if type is already non-nullable.
     return;
   }
+  Thread* thread = Thread::Current();
   const Class& null_class =
-      Class::Handle(Isolate::Current()->object_store()->null_class());
-  const Function& target = Function::Handle(Resolver::ResolveDynamicAnyArgs(
-      Thread::Current()->zone(), null_class, function_name));
+      Class::Handle(thread->isolate()->object_store()->null_class());
+  Function& target = Function::Handle();
+  if (Error::Handle(null_class.EnsureIsFinalized(thread)).IsNull()) {
+    target = Resolver::ResolveDynamicAnyArgs(thread->zone(), null_class,
+                                             function_name);
+  }
   if (target.IsNull()) {
     // If the selector is not defined on Null, we can propagate non-nullness.
     CompileType* type = TypeOf(receiver);

@@ -2454,11 +2454,16 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   return instructions;
 }
 
-static Function& GetNoSuchMethodOrDie(Zone* zone, const Class& klass) {
+static Function& GetNoSuchMethodOrDie(Thread* thread,
+                                      Zone* zone,
+                                      const Class& klass) {
   Function& nsm_function = Function::Handle(zone);
   Class& iterate_klass = Class::Handle(zone, klass.raw());
   while (!iterate_klass.IsNull()) {
-    nsm_function = iterate_klass.LookupDynamicFunction(Symbols::NoSuchMethod());
+    if (iterate_klass.EnsureIsFinalized(thread) == Error::null()) {
+      nsm_function =
+          iterate_klass.LookupDynamicFunction(Symbols::NoSuchMethod());
+    }
     if (!nsm_function.IsNull() && nsm_function.NumParameters() == 2 &&
         nsm_function.NumTypeParameters() == 0) {
       break;
@@ -2511,6 +2516,8 @@ Fragment StreamingFlowGraphBuilder::BuildAllocateInvocationMirrorCall(
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
+  const auto& error = mirror_class.EnsureIsFinalized(thread());
+  ASSERT(error == Error::null());
   const Function& allocation_function = Function::ZoneHandle(
       Z, mirror_class.LookupStaticFunction(
              Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
@@ -2544,17 +2551,19 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
   // method.
   Function& function = Function::Handle(Z);
   while (!klass.IsNull()) {
-    function = klass.LookupDynamicFunction(method_name);
-    if (!function.IsNull()) {
-      Function& target =
-          Function::ZoneHandle(Z, function.ImplicitClosureFunction());
-      ASSERT(!target.IsNull());
-      // Generate inline code for allocation closure object with context
-      // which captures `this`.
-      return BuildImplicitClosureCreation(target);
+    if (klass.EnsureIsFinalized(thread()) == Error::null()) {
+      function = klass.LookupDynamicFunction(method_name);
+      if (!function.IsNull()) {
+        Function& target =
+            Function::ZoneHandle(Z, function.ImplicitClosureFunction());
+        ASSERT(!target.IsNull());
+        // Generate inline code for allocation closure object with context
+        // which captures `this`.
+        return BuildImplicitClosureCreation(target);
+      }
+      function = klass.LookupDynamicFunction(getter_name);
+      if (!function.IsNull()) break;
     }
-    function = klass.LookupDynamicFunction(getter_name);
-    if (!function.IsNull()) break;
     klass = klass.SuperClass();
   }
 
@@ -2575,7 +2584,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
         /* argument_names = */ Object::empty_array(), actuals_array,
         /* build_rest_of_actuals = */ Fragment());
 
-    Function& nsm_function = GetNoSuchMethodOrDie(Z, parent_klass);
+    Function& nsm_function = GetNoSuchMethodOrDie(thread(), Z, parent_klass);
     instructions +=
         StaticCall(position, Function::ZoneHandle(Z, nsm_function.raw()),
                    /* argument_count = */ 2, ICData::kNSMDispatch);
@@ -2603,8 +2612,10 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
   const String& setter_name = ReadNameAsSetterName();  // read name.
 
-  Function& function =
-      Function::Handle(Z, H.LookupDynamicFunction(klass, setter_name));
+  Function& function = Function::Handle(Z);
+  if (klass.EnsureIsFinalized(thread()) == Error::null()) {
+    function = H.LookupDynamicFunction(klass, setter_name);
+  }
 
   Fragment instructions(MakeTemp());
   LocalVariable* value = MakeTemporary();  // this holds RHS value
@@ -2631,7 +2642,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
 
     SkipInterfaceMemberNameReference();  // skip target_reference.
 
-    Function& nsm_function = GetNoSuchMethodOrDie(Z, klass);
+    Function& nsm_function = GetNoSuchMethodOrDie(thread(), Z, klass);
     instructions +=
         StaticCall(position, Function::ZoneHandle(Z, nsm_function.raw()),
                    /* argument_count = */ 2, ICData::kNSMDispatch);
@@ -3219,7 +3230,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     SkipInterfaceMemberNameReference();  //  skip target_reference.
 
-    Function& nsm_function = GetNoSuchMethodOrDie(Z, klass);
+    Function& nsm_function = GetNoSuchMethodOrDie(thread(), Z, klass);
     instructions += StaticCall(TokenPosition::kNoSource,
                                Function::ZoneHandle(Z, nsm_function.raw()),
                                /* argument_count = */ 2, ICData::kNSMDispatch);
@@ -3858,9 +3869,11 @@ Fragment StreamingFlowGraphBuilder::BuildMapLiteral(TokenPosition* p) {
 
   const Class& map_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::Map()));
-  const Function& factory_method = Function::ZoneHandle(
-      Z, map_class.LookupFactory(
-             Library::PrivateCoreLibName(Symbols::MapLiteralFactory())));
+  Function& factory_method = Function::ZoneHandle(Z);
+  if (map_class.EnsureIsFinalized(H.thread()) == Error::null()) {
+    factory_method = map_class.LookupFactory(
+        Library::PrivateCoreLibName(Symbols::MapLiteralFactory()));
+  }
 
   return instructions +
          StaticCall(position, factory_method, 2, ICData::kStatic);
@@ -3964,6 +3977,8 @@ Fragment StreamingFlowGraphBuilder::BuildFutureNullValue(
   if (position != NULL) *position = TokenPosition::kNoSource;
   const Class& future = Class::Handle(Z, I->object_store()->future_class());
   ASSERT(!future.IsNull());
+  const auto& error = future.EnsureIsFinalized(thread());
+  ASSERT(error == Error::null());
   const Function& constructor =
       Function::ZoneHandle(Z, future.LookupFunction(Symbols::FutureValue()));
   ASSERT(!constructor.IsNull());
@@ -4500,6 +4515,8 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
       const Class& klass = Class::ZoneHandle(
           Z, Library::LookupCoreClass(Symbols::FallThroughError()));
       ASSERT(!klass.IsNull());
+      const auto& error = klass.EnsureIsFinalized(thread());
+      ASSERT(error == Error::null());
 
       GrowableHandlePtrArray<const String> pieces(Z, 3);
       pieces.Add(Symbols::FallThroughError());

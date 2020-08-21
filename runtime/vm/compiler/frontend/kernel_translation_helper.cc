@@ -623,6 +623,8 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
+    const auto& error = klass.EnsureIsFinalized(thread_);
+    ASSERT(error == Error::null());
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
@@ -646,6 +648,8 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   Function& function = Function::Handle(
       Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
   CheckStaticLookup(function);
@@ -663,6 +667,8 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
 
   String& new_name =
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
   ASSERT(function != Object::null());
   return function;
@@ -672,9 +678,10 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
                                                     const String& method_name) {
   NameIndex kernel_class = EnclosingName(target);
   Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
-
-  Function& function =
-      Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
+  Function& function = Function::Handle(Z);
+  if (klass.EnsureIsFinalized(thread_) == Error::null()) {
+    function = klass.LookupFunctionAllowPrivate(method_name);
+  }
 #ifdef DEBUG
   if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),

@@ -1452,7 +1452,10 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             cls.raw() == scoped_function_class_.raw()) {
           return scoped_function_.raw();
         }
-        FunctionPtr function = cls.LookupFunction(name);
+        FunctionPtr function = Function::null();
+        if (cls.EnsureIsFinalized(thread_) == Error::null()) {
+          function = cls.LookupFunction(name);
+        }
         if (function == Function::null()) {
           // When requesting a getter, also return method extractors.
           if (Field::IsGetterName(name)) {

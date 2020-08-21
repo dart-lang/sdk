@@ -3598,6 +3598,9 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
   const Function& closure_function =
       Function::Handle(ImplicitClosureFunction());
   const Class& owner = Class::Handle(closure_function.Owner());
+  if (owner.EnsureIsFinalized(Thread::Current()) != Error::null()) {
+    return Function::null();
+  }
   Function& result = Function::Handle(owner.LookupDynamicFunction(getter_name));
   if (result.IsNull()) {
     result = CreateMethodExtractor(getter_name);
@@ -3947,10 +3950,13 @@ static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
   args.SetAt(6, argument_names);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
-  const Class& NoSuchMethodError =
+  const Class& cls =
       Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
-  const Function& throwNew = Function::Handle(
-      NoSuchMethodError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   return DartEntry::InvokeFunction(throwNew, args);
 }
 
@@ -3966,10 +3972,12 @@ static ObjectPtr ThrowTypeError(const TokenPosition token_pos,
   args.SetAt(3, dst_name);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
-  const Class& TypeError =
+  const Class& cls =
       Class::Handle(libcore.LookupClassAllowPrivate(Symbols::TypeError()));
-  const Function& throwNew = Function::Handle(
-      TypeError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   return DartEntry::InvokeFunction(throwNew, args);
 }
 
@@ -5337,9 +5345,7 @@ FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
 FunctionPtr Class::LookupFunction(const String& name, MemberKind kind) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
+  RELEASE_ASSERT(is_finalized());
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
@@ -5389,9 +5395,7 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
                                               MemberKind kind) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
+  RELEASE_ASSERT(is_finalized());
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
@@ -9033,6 +9037,8 @@ FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
   const auto& parent = Function::Handle(zone, parent_function());
   const auto& func_name = String::Handle(zone, parent.name());
   const auto& owner = Class::Handle(zone, parent.Owner());
+  const auto& error = owner.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   auto& target = Function::Handle(zone, owner.LookupFunction(func_name));
 
   if (!target.IsNull() && (target.raw() != parent.raw())) {
@@ -13974,11 +13980,13 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
       class_str = String::New(class_name);
       cls = lib.LookupClassAllowPrivate(class_str);
       if (!cls.IsNull()) {
-        func_str = String::New(function_name);
-        if (function_name[0] == '.') {
-          func_str = String::Concat(class_str, func_str);
+        if (cls.EnsureIsFinalized(thread) == Error::null()) {
+          func_str = String::New(function_name);
+          if (function_name[0] == '.') {
+            func_str = String::Concat(class_str, func_str);
+          }
+          func = cls.LookupFunctionAllowPrivate(func_str);
         }
-        func = cls.LookupFunctionAllowPrivate(func_str);
       }
     }
     if (!func.IsNull()) {

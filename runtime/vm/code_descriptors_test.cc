@@ -71,6 +71,8 @@ TEST_CASE(StackMapGC) {
 
   // Now compile the two functions 'A.foo' and 'A.moo'
   String& function_moo_name = String::Handle(String::New("moo"));
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
   Function& function_moo =
       Function::Handle(cls.LookupStaticFunction(function_moo_name));
   EXPECT(CompilerTest::TestCompileFunction(function_moo));

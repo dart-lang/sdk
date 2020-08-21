@@ -335,6 +335,9 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   Class& invocation_mirror_class = Class::Handle(core_lib.LookupClass(
       String::Handle(core_lib.PrivateName(Symbols::InvocationMirror()))));
   ASSERT(!invocation_mirror_class.IsNull());
+  Thread* thread = Thread::Current();
+  const auto& error = invocation_mirror_class.EnsureIsFinalized(thread);
+  ASSERT(error == Error::null());
   const String& function_name =
       String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
   const Function& allocation_function = Function::Handle(
@@ -363,7 +366,6 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
-    Thread* thread = Thread::Current();
     function = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(thread->zone(),
                       thread->isolate()->object_store()->object_class()),
@@ -643,6 +645,9 @@ ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
   const int kNumArguments = 1;  // Receiver.
   ArgumentsDescriptor args_desc(Array::Handle(
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
+  const Class& receiver_class = Class::Handle(receiver.clazz());
+  const auto& error = receiver_class.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver, Symbols::toString(), args_desc));
   ASSERT(!function.IsNull());

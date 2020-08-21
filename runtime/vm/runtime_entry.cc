@@ -1373,9 +1373,11 @@ static FunctionPtr InlineCacheMissHandler(
   ASSERT(function_name.IsSymbol());
 
   const Class& receiver_class = Class::Handle(zone, receiver.clazz());
-  Function& target_function = Function::Handle(
-      zone, Resolver::ResolveDynamicForReceiverClass(
-                receiver_class, function_name, arguments_descriptor));
+  Function& target_function = Function::Handle(zone);
+  if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
+    target_function = Resolver::ResolveDynamicForReceiverClass(
+        receiver_class, function_name, arguments_descriptor);
+  }
 
   ObjectStore* store = thread->isolate()->object_store();
   if (target_function.raw() == store->simple_instance_of_function()) {
@@ -1742,16 +1744,19 @@ static ICDataPtr FindICDataForInstanceCall(Zone* zone,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-static FunctionPtr Resolve(Zone* zone,
+static FunctionPtr Resolve(Thread* thread,
+                           Zone* zone,
                            const Class& receiver_class,
                            const String& name,
                            const Array& descriptor) {
   ASSERT(name.IsSymbol());
 
   ArgumentsDescriptor args_desc(descriptor);
-  Function& target_function =
-      Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
-                                 receiver_class, name, args_desc));
+  Function& target_function = Function::Handle(zone);
+  if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
+    target_function = Resolver::ResolveDynamicForReceiverClass(receiver_class,
+                                                               name, args_desc);
+  }
 
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver_class, descriptor, name);
@@ -1777,7 +1782,8 @@ void SwitchableCallHandler::DoMonomorphicMiss(const Object& data,
   const auto& old_receiver_class =
       Class::Handle(zone_, isolate_->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
-      zone_, Resolve(zone_, old_receiver_class, name_, args_descriptor_));
+      zone_,
+      Resolve(thread_, zone_, old_receiver_class, name_, args_descriptor_));
 
   const ICData& ic_data = ICData::Handle(
       zone_, ICData::New(caller_function_, name_, args_descriptor_,
@@ -2052,7 +2058,7 @@ FunctionPtr SwitchableCallHandler::ResolveTargetFunction(const Object& data) {
       UNREACHABLE();
   }
   const Class& cls = Class::Handle(zone_, receiver_.clazz());
-  return Resolve(zone_, cls, name_, args_descriptor_);
+  return Resolve(thread_, zone_, cls, name_, args_descriptor_);
 }
 
 void SwitchableCallHandler::HandleMiss(const Object& old_data,
@@ -2169,15 +2175,17 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
   const Array& arg_desc = Array::CheckedHandle(zone, arguments.ArgAt(2));
 
   ArgumentsDescriptor arguments_descriptor(arg_desc);
-  Function& target_function = Function::Handle(
-      zone,
-      Resolver::ResolveDynamic(receiver, target_name, arguments_descriptor));
+  const Class& receiver_class = Class::Handle(zone, receiver.clazz());
+  Function& target_function = Function::Handle(zone);
+  if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
+    target_function =
+        Resolver::ResolveDynamic(receiver, target_name, arguments_descriptor);
+  }
 
   // TODO(regis): In order to substitute 'simple_instance_of_function', the 2nd
   // arg to the call, the type, is needed.
 
   if (target_function.IsNull()) {
-    const Class& receiver_class = Class::Handle(zone, receiver.clazz());
     target_function =
         InlineCacheMissHelper(receiver_class, arg_desc, target_name);
   }
@@ -2190,6 +2198,7 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 // invoking noSuchMethod when lazy dispatchers are disabled. Returns the
 // result of the invocation or an Error.
 static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
+    Thread* thread,
     Zone* zone,
     const Instance& receiver,
     const String& target_name,
@@ -2222,7 +2231,9 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
       // We don't generate dyn:* forwarders for method extractors so there is no
       // need to try to find a dyn:get:foo first (see assertion below)
       if (function.IsNull()) {
-        function = cls.LookupDynamicFunction(function_name);
+        if (cls.EnsureIsFinalized(thread) == Error::null()) {
+          function = cls.LookupDynamicFunction(function_name);
+        }
       }
       if (!function.IsNull()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2280,7 +2291,9 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     while (!cls.IsNull()) {
       // If there is a function with the target name but mismatched arguments
       // we need to call `receiver.noSuchMethod()`.
-      function = cls.LookupDynamicFunction(target_name);
+      if (cls.EnsureIsFinalized(thread) == Error::null()) {
+        function = cls.LookupDynamicFunction(target_name);
+      }
       if (!function.IsNull()) {
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
@@ -2359,10 +2372,10 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
     target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
   }
 
-  const auto& result = Object::Handle(
-      zone,
-      InvokeCallThroughGetterOrNoSuchMethod(
-          zone, receiver, target_name, orig_arguments, orig_arguments_desc));
+  const auto& result =
+      Object::Handle(zone, InvokeCallThroughGetterOrNoSuchMethod(
+                               thread, zone, receiver, target_name,
+                               orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
   arguments.SetReturn(result);
 }
@@ -2417,7 +2430,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethod, 4) {
     // Failing to find the method could be due to the lack of lazy invoke field
     // dispatchers, so attempt a deeper search before calling noSuchMethod.
     result = InvokeCallThroughGetterOrNoSuchMethod(
-        zone, receiver, original_function_name, orig_arguments,
+        thread, zone, receiver, original_function_name, orig_arguments,
         orig_arguments_desc);
   } else {
     result = DartEntry::InvokeNoSuchMethod(receiver, original_function_name,

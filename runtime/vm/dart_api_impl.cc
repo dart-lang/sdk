@@ -2828,6 +2828,11 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
         "cls_type must be a Type object which represents a Class");
   }
 
+  const auto& error = klass.EnsureIsFinalized(Thread::Current());
+  if (error != Error::null()) {
+    return Api::NewHandle(T, error);
+  }
+
   const String& func_name = Api::UnwrapStringHandle(Z, function_name);
   if (func_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, function_name, String);
@@ -4330,8 +4335,10 @@ static ObjectPtr ResolveConstructor(const char* current_func,
                                     const String& constr_name,
                                     int num_args) {
   // The constructor must be present in the interface.
-  const Function& constructor =
-      Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
+  Function& constructor = Function::Handle();
+  if (cls.EnsureIsFinalized(Thread::Current()) == Error::null()) {
+    constructor = cls.LookupFunctionAllowPrivate(constr_name);
+  }
   if (constructor.IsNull() ||
       (!constructor.IsGenerativeConstructor() && !constructor.IsFactory())) {
     const String& lookup_class_name = String::Handle(cls.Name());
