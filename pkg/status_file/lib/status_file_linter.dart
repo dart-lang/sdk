@@ -98,7 +98,7 @@ Iterable<LintingError> lintDisjunctionsInHeader(StatusSection section) {
 Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
   var entries = section.entries
       .whereType<StatusEntry>()
-      .map((entry) => (entry as StatusEntry).path)
+      .map((entry) => entry.path)
       .toList();
   var sortedList = entries.toList()..sort((a, b) => a.compareTo(b));
   var witness = _findNotEqualWitness<String>(sortedList, entries);
@@ -132,9 +132,8 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
 /// Checks for duplicate section entries in the body of a section.
 Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
   var errors = <LintingError>[];
-  List<StatusEntry> statusEntries = section.entries
-      .whereType<StatusEntry>()
-      .toList();
+  List<StatusEntry> statusEntries =
+      section.entries.whereType<StatusEntry>().toList();
   for (var i = 0; i < statusEntries.length; i++) {
     var entry = statusEntries[i];
     for (var j = i + 1; j < statusEntries.length; j++) {
