@@ -38,6 +38,7 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -45,6 +46,7 @@ import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -171,6 +173,7 @@ class ResolverVisitor extends ScopedVisitor {
   ForResolver _forResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
+  VariableDeclarationResolver _variableDeclarationResolver;
   YieldStatementResolver _yieldStatementResolver;
 
   NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
@@ -290,6 +293,10 @@ class ResolverVisitor extends ScopedVisitor {
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _promoteManager = TypePromotionManager(typeSystem);
+
+    var analysisOptions =
+        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
+
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -340,6 +347,11 @@ class ResolverVisitor extends ScopedVisitor {
     _prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
+    );
+    _variableDeclarationResolver = VariableDeclarationResolver(
+      resolver: this,
+      flowAnalysis: _flowAnalysis,
+      strictInference: analysisOptions.strictInference,
     );
     _yieldStatementResolver = YieldStatementResolver(
       resolver: this,
@@ -1720,29 +1732,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var grandParent = node.parent.parent;
-    bool isTopLevel = grandParent is FieldDeclaration ||
-        grandParent is TopLevelVariableDeclaration;
-    InferenceContext.setTypeFromNode(node.initializer, node);
-    if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
-    }
-    super.visitVariableDeclaration(node);
-    if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_exit();
-    }
-    VariableElement element = node.declaredElement;
-    if (element.initializer != null && node.initializer != null) {
-      var initializer = element.initializer as FunctionElementImpl;
-      initializer.returnType = node.initializer.staticType;
-    }
-    // Note: in addition to cloning the initializers for const variables, we
-    // have to clone the initializers for non-static final fields (because if
-    // they occur in a class with a const constructor, they will be needed to
-    // evaluate the const constructor).
-    if (element is ConstVariableElement) {
-      (element as ConstVariableElement).constantInitializer =
-          _createCloner().cloneNode(node.initializer);
+    _variableDeclarationResolver.resolve(node);
+
+    if (node.parent.parent is ForParts) {
+      _define(node.declaredElement);
     }
   }
 

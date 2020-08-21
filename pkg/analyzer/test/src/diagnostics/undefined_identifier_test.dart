@@ -57,6 +57,18 @@ f() {
     ]);
   }
 
+  test_forStatement_ForPartsWithDeclarations_initializer() async {
+    await assertErrorsInCode('''
+void f() {
+  for (var x = x;;) {
+    x;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
+    ]);
+  }
+
   test_forStatement_inBody() async {
     await assertNoErrorsInCode('''
 f() {
