@@ -6273,35 +6273,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     }
     _type = type;
   }
-
-  /// Return the error reported during type inference for this variable, or
-  /// `null` if this variable is not a subject of type inference, or there was
-  /// no error.
-  TopLevelInferenceError get typeInferenceError {
-    if (linkedNode != null) {
-      return linkedContext.getTypeInferenceError(linkedNode);
-    }
-
-    // We don't support type inference errors without linking.
-    return null;
-  }
-
-  /// Return `true` if this variable needs the setter.
-  bool get _hasSetter {
-    if (isConst) {
-      return false;
-    }
-
-    // TODO(scheglov) is this right?
-    if (isLate) {
-      if (isFinal) {
-        return !hasInitializer;
-      }
-      return true;
-    }
-
-    return !isFinal;
-  }
 }
 
 /// A concrete implementation of a [ParameterElement].
@@ -7126,6 +7097,18 @@ abstract class PropertyInducingElementImpl
   @override
   DartType get type => ElementTypeProvider.current.getFieldType(this);
 
+  /// Return the error reported during type inference for this variable, or
+  /// `null` if this variable is not a subject of type inference, or there was
+  /// no error.
+  TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
+    // We don't support type inference errors without linking.
+    return null;
+  }
+
   @override
   DartType get typeInternal {
     if (linkedNode != null) {
@@ -7145,6 +7128,19 @@ abstract class PropertyInducingElementImpl
       }
     }
     return super.typeInternal;
+  }
+
+  /// Return `true` if this variable needs the setter.
+  bool get _hasSetter {
+    if (isConst) {
+      return false;
+    }
+
+    if (isLate) {
+      return !isFinal || !hasInitializer;
+    }
+
+    return !isFinal;
   }
 }
 
