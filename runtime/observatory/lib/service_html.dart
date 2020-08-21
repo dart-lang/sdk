@@ -22,7 +22,11 @@ class _HtmlWebSocket implements CommonWebSocket {
     // The VM service will attempt to redirect our websocket connection request
     // to DDS, but the dart:html WebSocket doesn't follow redirects. Instead of
     // relying on a redirect, we'll request the websocket URI from the service.
-    Uri getWebSocketUriRequest = Uri.parse(target.networkAddress);
+
+    // TODO(bkonyi): re-enable when DDS is enabled. Currently causing Observatory
+    // failures when running with Flutter (see
+    // https://github.com/flutter/flutter/issues/64333)
+    /*Uri getWebSocketUriRequest = Uri.parse(target.networkAddress);
     getWebSocketUriRequest =
         getWebSocketUriRequest.replace(scheme: 'http', pathSegments: [
       ...getWebSocketUriRequest.pathSegments.where((e) => e != 'ws'),
@@ -36,10 +40,9 @@ class _HtmlWebSocket implements CommonWebSocket {
       onError();
       return;
     }
-    _webSocket = new WebSocket(
-      response['result']['uri'],
-    );
-    target.networkAddress = _webSocket.url;
+    target.networkAddress = response['result']['uri'];
+    */
+    _webSocket = new WebSocket(target.networkAddress);
     _webSocket.onClose.listen((CloseEvent) => onClose());
     _webSocket.onError.listen((Event) => onError());
     _webSocket.onOpen.listen((Event) => onOpen());
