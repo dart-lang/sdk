@@ -1268,6 +1268,7 @@ dart_ci_sandbox_builder(
     recipe = "dart/external",
     category = "flutter|g3",
     channels = [],
+    lkgr = True,
     triggered_by = None,
     notifies = None,
 )
