@@ -1029,7 +1029,7 @@ class _ElementWriter {
     TopLevelInferenceError inferenceError;
     if (e is MethodElementImpl) {
       inferenceError = e.typeInferenceError;
-    } else if (e is NonParameterVariableElementImpl) {
+    } else if (e is PropertyInducingElementImpl) {
       inferenceError = e.typeInferenceError;
     }
 

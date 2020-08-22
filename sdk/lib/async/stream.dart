@@ -2345,7 +2345,7 @@ abstract class MultiStreamController<T> implements StreamController<T> {
    * still pending delivery, if the subscription is paused,
    * or if the subscription isn't listening yet.
    * If it's necessary to know whether the "done" event has been delievered,
-   * [done] future will complete when that has happend.
+   * [done] future will complete when that has happened.
    */
   void closeSync();
 }

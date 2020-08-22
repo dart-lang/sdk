@@ -15,6 +15,9 @@ abstract class IsolateRef {
   /// A name identifying this isolate. Not guaranteed to be unique.
   String get name;
 
+  /// True if the isolate is a system isolate which is not running user code.
+  bool get isSystemIsolate;
+
   /// Trigger a full GC, collecting all unreachable or weakly reachable objects.
   Future collectAllGarbage();
 }

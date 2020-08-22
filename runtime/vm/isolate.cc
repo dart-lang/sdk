@@ -345,6 +345,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      is_system_isolate_group_(source->flags.is_system_isolate),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
 #endif
@@ -730,6 +731,7 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
 
   jsobj->AddProperty("name", source()->script_uri);
   jsobj->AddPropertyF("number", "%" Pu64 "", id());
+  jsobj->AddProperty("isSystemIsolateGroup", is_system_isolate_group());
   if (ref) {
     return;
   }
@@ -801,7 +803,7 @@ void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
 bool IsolateGroup::HasApplicationIsolateGroups() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
-    if (!IsolateGroup::IsVMInternalIsolateGroup(group)) {
+    if (!IsolateGroup::IsSystemIsolateGroup(group)) {
       return true;
     }
   }
@@ -836,8 +838,8 @@ void IsolateGroup::Cleanup() {
   isolate_groups_ = nullptr;
 }
 
-bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
-  return Isolate::IsVMInternalIsolate(isolate);
+bool IsolateVisitor::IsSystemIsolate(Isolate* isolate) const {
+  return Isolate::IsSystemIsolate(isolate);
 }
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
@@ -1356,7 +1358,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     }
   } else {
 #ifndef PRODUCT
-    if (!Isolate::IsVMInternalIsolate(I)) {
+    if (!Isolate::IsSystemIsolate(I)) {
       // Mark all the user isolates as using a simplified timeline page of
       // Observatory. The internal isolates will be filtered out from
       // the Timeline due to absence of this argument. We still send them in
@@ -1379,7 +1381,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
 #ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Isolate::IsVMInternalIsolate(I)) {
+  if (Isolate::IsSystemIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1395,7 +1397,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 }
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Isolate::IsVMInternalIsolate(I)) {
+  if (Isolate::IsSystemIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1514,6 +1516,7 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->load_vmservice_library = false;
   api_flags->copy_parent_code = false;
   api_flags->null_safety = false;
+  api_flags->is_system_isolate = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1526,6 +1529,7 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->load_vmservice_library = should_load_vmservice();
   api_flags->copy_parent_code = false;
   api_flags->null_safety = null_safety();
+  api_flags->is_system_isolate = is_system_isolate();
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1556,7 +1560,7 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 
   set_should_load_vmservice(api_flags.load_vmservice_library);
   set_null_safety(api_flags.null_safety);
-
+  set_is_system_isolate(api_flags.is_system_isolate);
   // Copy entry points list.
   ASSERT(embedder_entry_points_ == NULL);
   if (api_flags.entry_points != NULL) {
@@ -1960,7 +1964,7 @@ void Isolate::BuildName(const char* name_prefix) {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
-  return !Isolate::IsVMInternalIsolate(this) && is_runnable() &&
+  return !Isolate::IsSystemIsolate(this) && is_runnable() &&
          !group()->IsReloading() && (no_reload_scope_depth_ == 0) &&
          IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
@@ -2059,7 +2063,7 @@ const char* Isolate::MakeRunnable() {
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
-  if (!Isolate::IsVMInternalIsolate(this)) {
+  if (!Isolate::IsSystemIsolate(this)) {
     debugger()->OnIsolateRunnable();
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
@@ -2081,8 +2085,7 @@ const char* Isolate::MakeRunnable() {
   }
 #endif
 #ifndef PRODUCT
-  if (!Isolate::IsVMInternalIsolate(this) &&
-      Service::isolate_stream.enabled()) {
+  if (!Isolate::IsSystemIsolate(this) && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
@@ -2604,8 +2607,7 @@ void Isolate::Shutdown() {
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_check_reloaded && is_runnable() &&
-      !Isolate::IsVMInternalIsolate(this)) {
+  if (FLAG_check_reloaded && is_runnable() && !Isolate::IsSystemIsolate(this)) {
     if (!HasAttemptedReload()) {
       FATAL(
           "Isolate did not reload before exiting and "
@@ -3068,6 +3070,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
+  jsobj.AddProperty("isSystemIsolate", is_system_isolate());
   if (ref) {
     return;
   }
@@ -3435,7 +3438,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
 // done atomically.
 void Isolate::RegisterServiceExtensionHandler(const String& name,
                                               const Instance& closure) {
-  if (Isolate::IsVMInternalIsolate(this)) {
+  if (Isolate::IsSystemIsolate(this)) {
     return;
   }
   GrowableObjectArray& handlers =
@@ -3631,15 +3634,8 @@ bool Isolate::IsolateCreationEnabled() {
   return creation_enabled_;
 }
 
-bool IsolateGroup::IsVMInternalIsolateGroup(const IsolateGroup* group) {
-  // We use a name comparison here because this method can be called during
-  // shutdown, where the actual isolate pointers might've already been cleared.
-  const char* name = group->source()->name;
-  return Dart::VmIsolateNameEquals(name) ||
-#if !defined(DART_PRECOMPILED_RUNTIME)
-         KernelIsolate::NameEquals(name) ||
-#endif
-         ServiceIsolate::NameEquals(name);
+bool IsolateGroup::IsSystemIsolateGroup(const IsolateGroup* group) {
+  return group->source()->flags.is_system_isolate;
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {
@@ -3708,7 +3704,7 @@ class IsolateKillerVisitor : public IsolateVisitor {
     // If a target_ is specified, then only kill the target_.
     // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != nullptr) && (isolate == target_)) ||
-            ((target_ == nullptr) && !IsVMInternalIsolate(isolate)));
+            ((target_ == nullptr) && !IsSystemIsolate(isolate)));
   }
 
   Isolate* target_;

@@ -262,7 +262,7 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
       (FLAG_gc_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    if (!Isolate::IsVMInternalIsolate(isolate())) {
+    if (!Isolate::IsSystemIsolate(isolate())) {
       return true;
     }
   }

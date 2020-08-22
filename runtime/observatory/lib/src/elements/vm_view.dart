@@ -94,6 +94,9 @@ class VMViewElement extends CustomElement implements Renderable {
     for (var group in _vm.isolateGroups) {
       await _isolateGroups.get(group);
     }
+    for (var group in _vm.systemIsolateGroups) {
+      await _isolateGroups.get(group);
+    }
     _r.dirty();
   }
 
@@ -115,6 +118,7 @@ class VMViewElement extends CustomElement implements Renderable {
       describeProcess(),
       describeVM(),
       describeIsolateGroups(),
+      describeSystemIsolateGroups(),
       new ViewFooterElement(queue: _r.queue).element
     ];
   }
@@ -325,14 +329,22 @@ class VMViewElement extends CustomElement implements Renderable {
       ..children = isolateGroups.map(describeIsolateGroup).toList();
   }
 
+  Element describeSystemIsolateGroups() {
+    final isolateGroups = _vm.systemIsolateGroups.toList();
+    return new DivElement()
+      ..children = isolateGroups.map(describeIsolateGroup).toList();
+  }
+
   Element describeIsolateGroup(M.IsolateGroupRef group) {
+    final isolateType =
+        group.isSystemIsolateGroup ? 'System Isolate' : 'Isolate';
     final isolates = (group as M.IsolateGroup).isolates;
     return new DivElement()
       ..classes = ['content-centered-big']
       ..children = <Element>[
         new HRElement(),
         new HeadingElement.h1()
-          ..text = "Isolate Group ${group.number} (${group.name})",
+          ..text = "$isolateType Group ${group.number} (${group.name})",
         new LIElement()
           ..classes = ['list-group-item']
           ..children = <Element>[

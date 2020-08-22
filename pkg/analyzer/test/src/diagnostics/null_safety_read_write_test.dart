@@ -23,52 +23,75 @@ class ReadWriteWithNullSafetyTest extends PubPackageResolutionTest
 
   test_final_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
-void f() {
-  final x;
-  x = 0;
-  x; // 0
+void f(final x) {
+  x;
 }
 ''');
-    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+    _assertAssigned('x;', assigned: true, unassigned: false);
   }
 
   test_final_definitelyAssigned_read_prefixNegate() async {
     await assertNoErrorsInCode(r'''
-void f() {
-  // ignore:unused_local_variable
-  final x;
-  x = 0;
-  -x; // 0
+void f(final x) {
+  -x;
 }
 ''');
-    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+    _assertAssigned('x;', assigned: true, unassigned: false);
   }
 
-  test_final_definitelyAssigned_write_assignment_simple() async {
+  test_final_definitelyAssigned_readWrite_compoundAssignment() async {
     await assertErrorsInCode(r'''
-void f() {
-  // ignore:unused_local_variable
-  final x;
-  x = 0;
-  x = 1;
+void f(final x) {
+  x += 1;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 67, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 20, 1),
     ]);
-    _assertAssigned('x = 0', assigned: false, unassigned: true);
-    _assertAssigned('x = 1', assigned: true, unassigned: false);
+    _assertAssigned('x +=', assigned: true, unassigned: false);
+  }
+
+  test_final_definitelyAssigned_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f(final x) {
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 20, 1),
+    ]);
+    _assertAssigned('x++', assigned: true, unassigned: false);
+  }
+
+  test_final_definitelyAssigned_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f(final x) {
+  ++x;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 22, 1),
+    ]);
+    _assertAssigned('x;', assigned: true, unassigned: false);
+  }
+
+  test_final_definitelyAssigned_write() async {
+    await assertErrorsInCode(r'''
+void f(final x) {
+  x = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 20, 1),
+    ]);
+    _assertAssigned('x =', assigned: true, unassigned: false);
   }
 
   test_final_definitelyAssigned_write_forEachLoop_identifier() async {
     await assertErrorsInCode(r'''
-void f() {
-  final x = 0;
+void f(final x) {
   for (x in [0, 1, 2]) {
     x;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 33, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 25, 1),
     ]);
     _assertAssigned('x in', assigned: true, unassigned: false);
   }
@@ -88,6 +111,56 @@ void f() {
     _assertAssigned('x()', assigned: false, unassigned: true);
   }
 
+  test_final_definitelyUnassigned_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final x;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL, 58, 1),
+    ]);
+    _assertAssigned('x +=', assigned: false, unassigned: true);
+  }
+
+  test_final_definitelyUnassigned_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL, 58, 1),
+    ]);
+    _assertAssigned('x++', assigned: false, unassigned: true);
+  }
+
+  test_final_definitelyUnassigned_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final x;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL, 60, 1),
+    ]);
+    _assertAssigned('x; // 0', assigned: false, unassigned: true);
+  }
+
+  test_final_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final x;
+  x = 0;
+}
+''');
+    _assertAssigned('x = 0', assigned: false, unassigned: true);
+  }
+
   test_final_neither_read() async {
     await assertErrorsInCode(r'''
 void f(bool b) {
@@ -101,6 +174,65 @@ void f(bool b) {
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
+  test_final_neither_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  final x;
+  if (b) x = 0;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 80, 1),
+      error(CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL, 80, 1),
+    ]);
+    _assertAssigned('x +=', assigned: false, unassigned: false);
+  }
+
+  test_final_neither_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  final x;
+  if (b) x = 0;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 80, 1),
+      error(CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL, 80, 1),
+    ]);
+    _assertAssigned('x++', assigned: false, unassigned: false);
+  }
+
+  test_final_neither_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  final x;
+  if (b) x = 0;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 82, 1),
+      error(CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL, 82, 1),
+    ]);
+    _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_final_neither_write() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  final x;
+  if (b) x = 0;
+  x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 80, 1),
+    ]);
+    _assertAssigned('x = 1', assigned: false, unassigned: false);
+  }
+
   test_lateFinal_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
 void f() {
@@ -110,6 +242,62 @@ void f() {
 }
 ''');
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_lateFinal_definitelyAssigned_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x = 0;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 72, 1),
+    ]);
+    _assertAssigned('x +=', assigned: true, unassigned: false);
+  }
+
+  test_lateFinal_definitelyAssigned_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x = 0;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 72, 1),
+    ]);
+    _assertAssigned('x++', assigned: true, unassigned: false);
+  }
+
+  test_lateFinal_definitelyAssigned_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x = 0;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 74, 1),
+    ]);
+    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_lateFinal_definitelyAssigned_write() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x = 0;
+  x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 72, 1),
+    ]);
+    _assertAssigned('x = 1', assigned: true, unassigned: false);
   }
 
   test_lateFinal_definitelyUnassigned_read() async {
@@ -125,15 +313,116 @@ void f() {
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
+  test_lateFinal_definitelyUnassigned_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 63,
+          1),
+    ]);
+    _assertAssigned('x +=', assigned: false, unassigned: true);
+  }
+
+  test_lateFinal_definitelyUnassigned_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 63,
+          1),
+    ]);
+    _assertAssigned('x++', assigned: false, unassigned: true);
+  }
+
+  test_lateFinal_definitelyUnassigned_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 65,
+          1),
+    ]);
+    _assertAssigned('x; // 0', assigned: false, unassigned: true);
+  }
+
+  test_lateFinal_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final x;
+  x = 0;
+}
+''');
+    _assertAssigned('x =', assigned: false, unassigned: true);
+  }
+
   test_lateFinal_neither_read() async {
     await assertNoErrorsInCode(r'''
 void f(bool b) {
-  late var x;
+  late final x;
   if (b) x = 0;
   x; // 0
 }
 ''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_lateFinal_neither_readWrite_compoundAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final x;
+  if (b) x = 0;
+  x += 1;
+}
+''');
+    _assertAssigned('x +=', assigned: false, unassigned: false);
+  }
+
+  test_lateFinal_neither_readWrite_postfixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final x;
+  if (b) x = 0;
+  x++;
+}
+''');
+    _assertAssigned('x++', assigned: false, unassigned: false);
+  }
+
+  test_lateFinal_neither_readWrite_prefixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final x;
+  if (b) x = 0;
+  ++x; // 0
+}
+''');
+    _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_lateFinal_neither_write() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final x;
+  if (b) x = 0;
+  x = 1;
+}
+''');
+    _assertAssigned('x = 1', assigned: false, unassigned: false);
   }
 
   test_lateFinalNullable_definitelyAssigned_read() async {
@@ -145,6 +434,62 @@ void f() {
 }
 ''');
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_lateFinalNullable_definitelyAssigned_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x = 0;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 77, 1),
+    ]);
+    _assertAssigned('x +=', assigned: true, unassigned: false);
+  }
+
+  test_lateFinalNullable_definitelyAssigned_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x = 0;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 77, 1),
+    ]);
+    _assertAssigned('x++', assigned: true, unassigned: false);
+  }
+
+  test_lateFinalNullable_definitelyAssigned_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x = 0;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 79, 1),
+    ]);
+    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_lateFinalNullable_definitelyAssigned_write() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x = 0;
+  x = 1;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 77, 1),
+    ]);
+    _assertAssigned('x = 1', assigned: true, unassigned: false);
   }
 
   test_lateFinalNullable_definitelyUnassigned_read() async {
@@ -160,6 +505,62 @@ void f() {
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
+  test_lateFinalNullable_definitelyUnassigned_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
+          1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 1),
+    ]);
+    _assertAssigned('x +=', assigned: false, unassigned: true);
+  }
+
+  test_lateFinalNullable_definitelyUnassigned_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 68,
+          1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 68, 1),
+    ]);
+    _assertAssigned('x++', assigned: false, unassigned: true);
+  }
+
+  test_lateFinalNullable_definitelyUnassigned_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE, 70,
+          1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 70, 1),
+    ]);
+    _assertAssigned('x; // 0', assigned: false, unassigned: true);
+  }
+
+  test_lateFinalNullable_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late final int? x;
+  x = 0;
+}
+''');
+    _assertAssigned('x = 0', assigned: false, unassigned: true);
+  }
+
   test_lateFinalNullable_neither_read() async {
     await assertNoErrorsInCode(r'''
 void f(bool b) {
@@ -171,6 +572,60 @@ void f(bool b) {
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
+  test_lateFinalNullable_neither_readWrite_compoundAssignment() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final int? x;
+  if (b) x = 0;
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 90, 1),
+    ]);
+    _assertAssigned('x +=', assigned: false, unassigned: false);
+  }
+
+  test_lateFinalNullable_neither_readWrite_postfixIncrement() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final int? x;
+  if (b) x = 0;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 90, 1),
+    ]);
+    _assertAssigned('x++', assigned: false, unassigned: false);
+  }
+
+  test_lateFinalNullable_neither_readWrite_prefixIncrement() async {
+    await assertErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final int? x;
+  if (b) x = 0;
+  ++x; // 0
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 92, 1),
+    ]);
+    _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_lateFinalNullable_neither_write() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late final int? x;
+  if (b) x = 0;
+  x = 1;
+}
+''');
+    _assertAssigned('x = 1', assigned: false, unassigned: false);
+  }
+
   test_lateFinalPotentiallyNonNullable_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T t) {
@@ -180,6 +635,20 @@ void f<T>(T t) {
 }
 ''');
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_lateFinalPotentiallyNonNullable_definitelyAssigned_write() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t, T t2) {
+  // ignore:unused_local_variable
+  late final T x;
+  x = t;
+  x = t2;
+}
+''', [
+      error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 86, 1),
+    ]);
+    _assertAssigned('x = t2', assigned: true, unassigned: false);
   }
 
   test_lateFinalPotentiallyNonNullable_definitelyUnassigned_read() async {
@@ -195,6 +664,17 @@ void f<T>() {
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
+  test_lateFinalPotentiallyNonNullable_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T t) {
+  // ignore:unused_local_variable
+  late final T x;
+  x = t;
+}
+''');
+    _assertAssigned('x = t', assigned: false, unassigned: true);
+  }
+
   test_lateFinalPotentiallyNonNullable_neither_read() async {
     await assertNoErrorsInCode(r'''
 void f<T>(bool b, T t) {
@@ -204,6 +684,18 @@ void f<T>(bool b, T t) {
 }
 ''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_lateFinalPotentiallyNonNullable_neither_write() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(bool b, T t, T t2) {
+  // ignore:unused_local_variable
+  late final T x;
+  if (b) x = t;
+  x = t2;
+}
+''');
+    _assertAssigned('x = t2', assigned: false, unassigned: false);
   }
 
   test_lateNullable_definitelyAssigned_read() async {
@@ -287,6 +779,54 @@ void f() {
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
   }
 
+  test_lateVar_definitelyAssigned_readWrite_compoundAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late var x;
+  x = 0;
+  x += 1;
+}
+''');
+    _assertAssigned('x +=', assigned: true, unassigned: false);
+  }
+
+  test_lateVar_definitelyAssigned_readWrite_postfixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late var x;
+  x = 0;
+  x++;
+}
+''');
+    _assertAssigned('x++', assigned: true, unassigned: false);
+  }
+
+  test_lateVar_definitelyAssigned_readWrite_prefixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late var x;
+  x = 0;
+  ++x; // 0
+}
+''');
+    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_lateVar_definitelyAssigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  late var x;
+  x = 0;
+  x = 1;
+}
+''');
+    _assertAssigned('x = 1', assigned: true, unassigned: false);
+  }
+
   test_lateVar_definitelyUnassigned_read() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -311,6 +851,54 @@ void f(bool b) {
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
+  test_lateVar_neither_readWrite_compoundAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late var x;
+  if (b) x = 0;
+  x += 1;
+}
+''');
+    _assertAssigned('x +=', assigned: false, unassigned: false);
+  }
+
+  test_lateVar_neither_readWrite_postfixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late var x;
+  if (b) x = 0;
+  x++;
+}
+''');
+    _assertAssigned('x++', assigned: false, unassigned: false);
+  }
+
+  test_lateVar_neither_readWrite_prefixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late var x;
+  if (b) x = 0;
+  ++x; // 0
+}
+''');
+    _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_lateVar_neither_write() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  late var x;
+  if (b) x = 0;
+  x = 1;
+}
+''');
+    _assertAssigned('x = 1', assigned: false, unassigned: false);
+  }
+
   test_notNullable_write_forEachLoop_identifier() async {
     await assertNoErrorsInCode(r'''
 void f() {
@@ -320,16 +908,26 @@ void f() {
   }
 }
 ''');
+    _assertAssigned('x in', assigned: false, unassigned: true);
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
   }
 
   test_nullable_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
 void f(int? x) {
-  x; // 0
+  x;
 }
 ''');
-    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+    _assertAssigned('x;', assigned: true, unassigned: false);
+  }
+
+  test_nullable_definitelyAssigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x) {
+  x = 0;
+}
+''');
+    _assertAssigned('x = 0', assigned: true, unassigned: false);
   }
 
   test_nullable_definitelyUnassigned_read() async {
@@ -340,6 +938,17 @@ void f() {
 }
 ''');
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
+  }
+
+  test_nullable_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  int? x;
+  x = 0;
+}
+''');
+    _assertAssigned('x = 0', assigned: false, unassigned: true);
   }
 
   test_nullable_neither_read() async {
@@ -353,6 +962,18 @@ void f(bool b) {
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
+  test_nullable_neither_write() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  int? x;
+  if (b) x = 0;
+  x = 1;
+}
+''');
+    _assertAssigned('x = 1', assigned: false, unassigned: false);
+  }
+
   test_potentiallyNonNullable_definitelyAssigned_read() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T x) {
@@ -360,6 +981,15 @@ void f<T>(T x) {
 }
 ''');
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
+  }
+
+  test_potentiallyNonNullable_definitelyAssigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T x, T t) {
+  x = t;
+}
+''');
+    _assertAssigned('x = t', assigned: true, unassigned: false);
   }
 
   test_potentiallyNonNullable_definitelyUnassigned_read() async {
@@ -376,6 +1006,17 @@ void f<T>() {
           1),
     ]);
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
+  }
+
+  test_potentiallyNonNullable_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f<T>(T t) {
+  // ignore:unused_local_variable
+  T x;
+  x = t;
+}
+''');
+    _assertAssigned('x = t', assigned: false, unassigned: true);
   }
 
   test_potentiallyNonNullable_neither_read() async {
@@ -395,15 +1036,61 @@ void f<T>(bool b, T t) {
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
 
-  test_var_definitelyAssigned_read() async {
+  test_potentiallyNonNullable_neither_write() async {
     await assertNoErrorsInCode(r'''
-void f() {
-  var x;
-  x = 0;
-  x; // 0
+void f<T>(bool b, T t, T t2) {
+  // ignore:unused_local_variable
+  T x;
+  if (b) x = t;
+  x = t2;
 }
 ''');
-    _assertAssigned('x; // 0', assigned: true, unassigned: false);
+    _assertAssigned('x = t2', assigned: false, unassigned: false);
+  }
+
+  test_var_definitelyAssigned_read() async {
+    await assertNoErrorsInCode(r'''
+void f(var x) {
+  x;
+}
+''');
+    _assertAssigned('x;', assigned: true, unassigned: false);
+  }
+
+  test_var_definitelyAssigned_readWrite_compoundAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f(var x) {
+  x += 1;
+}
+''');
+    _assertAssigned('x +=', assigned: true, unassigned: false);
+  }
+
+  test_var_definitelyAssigned_readWrite_postfixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(var x) {
+  x++;
+}
+''');
+    _assertAssigned('x++', assigned: true, unassigned: false);
+  }
+
+  test_var_definitelyAssigned_readWrite_prefixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(var x) {
+  ++x;
+}
+''');
+    _assertAssigned('x;', assigned: true, unassigned: false);
+  }
+
+  test_var_definitelyAssigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f(var x) {
+  x = 0;
+}
+''');
+    _assertAssigned('x =', assigned: true, unassigned: false);
   }
 
   test_var_definitelyUnassigned_read() async {
@@ -416,6 +1103,50 @@ void f() {
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
 
+  test_var_definitelyUnassigned_readWrite_compoundAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  var x;
+  x += 0;
+}
+''');
+    _assertAssigned('x +=', assigned: false, unassigned: true);
+  }
+
+  test_var_definitelyUnassigned_readWrite_postfixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  var x;
+  x++;
+}
+''');
+    _assertAssigned('x++', assigned: false, unassigned: true);
+  }
+
+  test_var_definitelyUnassigned_readWrite_prefixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  var x;
+  ++x; // 0
+}
+''');
+    _assertAssigned('x; // 0', assigned: false, unassigned: true);
+  }
+
+  test_var_definitelyUnassigned_write() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  var x;
+  x = 0;
+}
+''');
+    _assertAssigned('x = 0', assigned: false, unassigned: true);
+  }
+
   test_var_neither_read() async {
     await assertNoErrorsInCode(r'''
 void f(bool b) {
@@ -425,6 +1156,54 @@ void f(bool b) {
 }
 ''');
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_var_neither_readWrite_compoundAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  var x;
+  if (b) x = 0;
+  x += 1;
+}
+''');
+    _assertAssigned('x += 1', assigned: false, unassigned: false);
+  }
+
+  test_var_neither_readWrite_postfixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  var x;
+  if (b) x = 0;
+  ++x; // 0
+}
+''');
+    _assertAssigned('x; // 0', assigned: false, unassigned: false);
+  }
+
+  test_var_neither_readWrite_prefixIncrement() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  var x;
+  if (b) x = 0;
+  x++;
+}
+''');
+    _assertAssigned('x++', assigned: false, unassigned: false);
+  }
+
+  test_var_neither_write() async {
+    await assertNoErrorsInCode(r'''
+void f(bool b) {
+  // ignore:unused_local_variable
+  var x;
+  if (b) x = 0;
+  x = 1;
+}
+''');
+    _assertAssigned('x = 1', assigned: false, unassigned: false);
   }
 
   void _assertAssigned(

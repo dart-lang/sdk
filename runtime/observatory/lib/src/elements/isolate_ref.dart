@@ -56,9 +56,10 @@ class IsolateRefElement extends CustomElement implements Renderable {
   }
 
   void render() {
+    final isolateType = isolate.isSystemIsolate ? 'System Isolate' : 'Isolate';
     children = <Element>[
       new AnchorElement(href: Uris.inspect(isolate))
-        ..text = 'Isolate ${isolate.number} (${isolate.name})'
+        ..text = '$isolateType ${isolate.number} (${isolate.name})'
         ..classes = ['isolate-ref']
     ];
   }

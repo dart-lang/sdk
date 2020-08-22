@@ -121,7 +121,7 @@ class IsolateVisitor {
 
  protected:
   // Returns true if |isolate| is the VM or service isolate.
-  bool IsVMInternalIsolate(Isolate* isolate) const;
+  bool IsSystemIsolate(Isolate* isolate) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
@@ -396,6 +396,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   SharedClassTable* shared_class_table() const {
     return shared_class_table_.get();
   }
+
+  bool is_system_isolate_group() const { return is_system_isolate_group_; }
+
   StoreBuffer* store_buffer() const { return store_buffer_.get(); }
   ClassTable* class_table() const { return class_table_.get(); }
   ObjectStore* object_store() const { return object_store_.get(); }
@@ -562,7 +565,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   static bool HasApplicationIsolateGroups();
   static bool HasOnlyVMIsolateGroup();
-  static bool IsVMInternalIsolateGroup(const IsolateGroup* group);
+  static bool IsSystemIsolateGroup(const IsolateGroup* group);
 
   int64_t UptimeMicros() const;
 
@@ -647,6 +650,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
   int64_t start_time_micros_;
+  bool is_system_isolate_group_;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
@@ -934,9 +938,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
-  Debugger* debugger() const {
-    return debugger_;
-  }
+  Debugger* debugger() const { return debugger_; }
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -1321,8 +1323,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
-  static bool IsVMInternalIsolate(const Isolate* isolate) {
-    return IsolateGroup::IsVMInternalIsolateGroup(isolate->group());
+  static bool IsSystemIsolate(const Isolate* isolate) {
+    return IsolateGroup::IsSystemIsolateGroup(isolate->group());
   }
 
 #if !defined(PRODUCT)
@@ -1399,6 +1401,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_user_tag(uword tag) { user_tag_ = tag; }
 
+  void set_is_system_isolate(bool is_system_isolate) {
+    is_system_isolate_ = is_system_isolate;
+  }
+  bool is_system_isolate() const { return is_system_isolate_; }
+
 #if !defined(PRODUCT)
   GrowableObjectArrayPtr GetAndClearPendingServiceExtensionCalls();
   GrowableObjectArrayPtr pending_service_extension_calls() const {
@@ -1441,6 +1448,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ClassPtr* cached_class_table_table_ = nullptr;
   FieldTable* field_table_ = nullptr;
   bool single_step_ = false;
+  bool is_system_isolate_ = false;
   // End accessed from generated code.
 
   IsolateGroup* isolate_group_;
@@ -1544,7 +1552,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Dart_EnvironmentCallback environment_callback_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;
-  Mutex mutex_;          // Protects compiler stats.
+  Mutex mutex_;                            // Protects compiler stats.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
   Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
                              // their entries.
