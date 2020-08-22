@@ -6,6 +6,8 @@
 
 *   Adds `Abort` method to class `HttpClientRequest`, which allows users
     to cancel outgoing HTTP requests and stop following IO operations.
+*   A validtion check is added to `path` of class `Cookie`. Having characters
+    ranging from 0x00 to 0x1f and 0x3b (";") will lead to a `FormatException`.
 
 #### `dart:typed_data`
 
