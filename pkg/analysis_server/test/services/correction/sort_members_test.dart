@@ -511,6 +511,24 @@ import 'package:product2.client/entity.dart';
 ''');
   }
 
+  Future<void> test_directives_invalidUri_interpolation() async {
+    await _parseTestUnit(r'''
+library lib;
+
+import 'dart:$bbb';
+import 'dart:ccc';
+import 'dart:aaa';
+''');
+    _assertSort(r'''
+library lib;
+
+import 'dart:aaa';
+import 'dart:ccc';
+
+import 'dart:$bbb';
+''');
+  }
+
   Future<void> test_mixinMembers_method() async {
     await _parseTestUnit(r'''
 mixin A {

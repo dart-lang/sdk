@@ -1413,7 +1413,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var isLastExistingDart = false;
         var isLastExistingPackage = false;
         for (var existingImport in importDirectives) {
-          var existingUri = existingImport.uriContent;
+          var existingUri = existingImport.uriContent ?? '';
 
           var isExistingDart = existingUri.startsWith('dart:');
           var isExistingPackage = existingUri.startsWith('package:');
