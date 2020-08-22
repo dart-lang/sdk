@@ -153,7 +153,7 @@ class MemberSorter {
         continue;
       }
       var uriDirective = directive as UriBasedDirective;
-      var uriContent = uriDirective.uri.stringValue;
+      var uriContent = uriDirective.uri.stringValue ?? '';
       _DirectivePriority kind;
       if (directive is ImportDirective) {
         if (uriContent.startsWith('dart:')) {
