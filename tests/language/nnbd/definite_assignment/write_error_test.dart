@@ -17,7 +17,7 @@ void use(Object? x) {}
 
 /// Test that it is never an error to write to a definitely unassigned local
 /// variable.
-void testDefinitelyUnassignedWrites<T>() {
+void testDefinitelyUnassignedWrites<T>(T t) {
   {
     var x;
     x = 3;
