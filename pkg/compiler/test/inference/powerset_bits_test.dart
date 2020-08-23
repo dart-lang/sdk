@@ -20,6 +20,7 @@ var b = true;
 var c = true;
 var d = true;
 var e = func();
+var sink;
 
 bool func() {
   return false;
@@ -30,6 +31,8 @@ main() {
   c = b && a;
   d = a || b;
   e = false;
+  sink = e;
+  print(sink);
 }
 """;
 

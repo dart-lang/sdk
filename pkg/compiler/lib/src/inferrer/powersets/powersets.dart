@@ -338,7 +338,8 @@ class PowersetDomain implements AbstractValueDomain {
   // that can tell us information about the bits given a ConstantValue
   @override
   AbstractValue computeAbstractValueForConstant(covariant ConstantValue value) {
-    int powersetBits = _powersetBitsDomain.powersetTop;
+    int powersetBits =
+        _powersetBitsDomain.computeAbstractValueForConstant(value);
     AbstractValue abstractValue =
         _abstractValueDomain.computeAbstractValueForConstant(value);
     return PowersetValue(abstractValue, powersetBits);
