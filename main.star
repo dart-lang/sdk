@@ -1268,9 +1268,11 @@ dart_ci_sandbox_builder(
     recipe = "dart/external",
     category = "flutter|g3",
     channels = [],
+    execution_timeout = 5 * time.minute,
     lkgr = True,
-    triggered_by = None,
     notifies = None,
+    priority = HIGH,
+    triggered_by = None,
 )
 
 # infra
@@ -1310,7 +1312,7 @@ dart_infra_builder(
     notifies = "infra",
     properties = {"builders": lkgr_builders, "ref": "refs/heads/lkgr"},
     recipe = "roller/lkgr",
-    schedule = "with 1h interval",
+    schedule = "with 15m interval",
 )
 dart_infra_builder(
     "roll-to-dev",
