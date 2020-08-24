@@ -2040,6 +2040,34 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       declaration = classBuilder.origin
           .findStaticBuilder(name, charOffset, uri, libraryBuilder);
     }
+    if (declaration == null && inFieldInitializer && inLateFieldInitializer) {
+      TypeBuilder superClassType = classBuilder.supertypeBuilder;
+      while (superClassType != null) {
+        ClassBuilder superClass;
+        if (superClassType is NamedTypeBuilder) {
+          TypeDeclarationBuilder decl = superClassType.declaration;
+          TypeAliasBuilder aliasBuilder; // Non-null if a type alias is use.
+          if (decl is TypeAliasBuilder) {
+            aliasBuilder = decl;
+            decl = aliasBuilder.unaliasDeclaration(superClassType.arguments);
+          }
+          if (decl is ClassBuilder) {
+            superClass = decl;
+          }
+        }
+
+        declaration = superClass?.scope?.lookup(
+          name,
+          superClass?.charOffset,
+          superClass?.fileUri,
+        );
+
+        superClassType = superClass?.supertypeBuilder;
+        if (declaration != null) {
+          break;
+        }
+      }
+    }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
         (inFieldInitializer && !inLateFieldInitializer) &&

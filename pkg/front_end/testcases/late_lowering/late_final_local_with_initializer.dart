@@ -2,6 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class B {
+  final int x;
+
+  B(this.x);
+}
+
+class C extends B {
+  late final y = x + 1;
+
+  C(int x) : super(x);
+}
+
 main() {
   int? lateLocalInit;
   int initLateLocal(int value) {
@@ -30,6 +42,7 @@ main() {
   local<int?>(null);
   local<int?>(42);
   local<int>(42);
+  expect(2, C(1).y);
 }
 
 expect(expected, actual) {

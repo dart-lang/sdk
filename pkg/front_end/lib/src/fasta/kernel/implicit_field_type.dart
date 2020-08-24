@@ -4,7 +4,7 @@
 
 library fasta.implicit_type;
 
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token, TokenClass;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 
@@ -140,6 +140,7 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       bodyBuilder.constantContext = fieldBuilder.isConst
           ? ConstantContext.inferred
           : ConstantContext.none;
+      bodyBuilder.beginFieldInitializer(initializerToken);
       Expression initializer =
           bodyBuilder.parseFieldInitializer(initializerToken);
       initializerToken = null;
