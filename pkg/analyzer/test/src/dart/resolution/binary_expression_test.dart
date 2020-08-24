@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -115,6 +117,91 @@ f(bool a, bool b) {
     );
   }
 
+  test_minus_int_double() async {
+    await assertNoErrorsInCode(r'''
+f(int a, double b) {
+  a - b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a - b'),
+      element: elementMatcher(
+        numElement.getMethod('-'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_minus_int_int() async {
+    await assertNoErrorsInCode(r'''
+f(int a, int b) {
+  a - b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a - b'),
+      element: elementMatcher(
+        numElement.getMethod('-'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  test_mod_int_double() async {
+    await assertNoErrorsInCode(r'''
+f(int a, double b) {
+  a % b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a % b'),
+      element: elementMatcher(
+        numElement.getMethod('%'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_mod_int_int() async {
+    await assertNoErrorsInCode(r'''
+f(int a, int b) {
+  a % b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a % b'),
+      element: elementMatcher(
+        numElement.getMethod('%'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  test_plus_double_dynamic() async {
+    await assertNoErrorsInCode(r'''
+f(double a, dynamic b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        doubleElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
   test_plus_int_double() async {
     await assertNoErrorsInCode(r'''
 f(int a, double b) {
@@ -132,6 +219,23 @@ f(int a, double b) {
     );
   }
 
+  test_plus_int_dynamic() async {
+    await assertNoErrorsInCode(r'''
+f(int a, dynamic b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'num',
+    );
+  }
+
   test_plus_int_int() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -146,6 +250,124 @@ f(int a, int b) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
+    );
+  }
+
+  test_plus_int_int_target_rewritten() async {
+    await assertNoErrorsInCode('''
+f(int Function() a, int b) {
+  a() + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a() + b'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_int_int_via_extension_explicit() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  String operator+(int other) => '';
+}
+f(int a, int b) {
+  E(a) + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('E(a) + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'E'),
+        isLegacy: false,
+      ),
+      type: 'String',
+    );
+  }
+
+  test_plus_int_num() async {
+    await assertNoErrorsInCode(r'''
+f(int a, num b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'num',
+    );
+  }
+
+  test_plus_other_double() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  String operator+(double other);
+}
+f(A a, double b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'A'),
+        isLegacy: false,
+      ),
+      type: 'String',
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_other_int_via_extension_explicit() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(int other) => '';
+}
+f(A a, int b) {
+  E(a) + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('E(a) + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'E'),
+        isLegacy: false,
+      ),
+      type: 'String',
+    );
+  }
+
+  test_plus_other_int_via_extension_implicit() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(int other) => '';
+}
+f(A a, int b) {
+  a + b;
+}
+''');
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: elementMatcher(
+        findElement.method('+', of: 'E'),
+        isLegacy: false,
+      ),
+      type: 'String',
     );
   }
 
@@ -297,6 +519,34 @@ main(int? x) {
       findNode.binary('x ?? x'),
       element: null,
       type: 'int?',
+    );
+  }
+
+  test_plus_int_never() async {
+    await assertErrorsInCode('''
+f(int a, Never b) {
+  a + b;
+}
+''', []);
+
+    assertBinaryExpression(findNode.binary('a + b'),
+        element: numElement.getMethod('+'), type: 'num');
+  }
+
+  test_plus_never_int() async {
+    await assertErrorsInCode(r'''
+f(Never a, int b) {
+  a + b;
+}
+''', [
+      error(HintCode.RECEIVER_OF_TYPE_NEVER, 22, 1),
+      error(HintCode.DEAD_CODE, 26, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('a + b'),
+      element: isNull,
+      type: 'Never',
     );
   }
 }

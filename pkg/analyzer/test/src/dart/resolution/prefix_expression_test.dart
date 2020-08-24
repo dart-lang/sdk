@@ -90,6 +90,23 @@ f(int x) {
     );
   }
 
+  test_plusPlus_double() async {
+    await assertNoErrorsInCode(r'''
+f(double x) {
+  ++x;
+}
+''');
+
+    assertPrefixExpression(
+      findNode.prefix('++x'),
+      element: elementMatcher(
+        doubleElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
   test_plusPlus_extensionOverride() async {
     await assertErrorsInCode(r'''
 class C {}
@@ -149,6 +166,23 @@ class M1 {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
+    );
+  }
+
+  test_plusPlus_num() async {
+    await assertNoErrorsInCode(r'''
+f(num x) {
+  ++x;
+}
+''');
+
+    assertPrefixExpression(
+      findNode.prefix('++x'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'num',
     );
   }
 
