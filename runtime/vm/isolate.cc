@@ -414,6 +414,7 @@ void IsolateGroup::RegisterIsolate(Isolate* isolate) {
 }
 
 void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
+  ASSERT(isolates_lock_->IsCurrentThreadWriter());
   isolates_.Append(isolate);
   isolate_count_++;
 }

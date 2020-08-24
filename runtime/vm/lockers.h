@@ -6,6 +6,7 @@
 #define RUNTIME_VM_LOCKERS_H_
 
 #include "platform/assert.h"
+#include "platform/growable_array.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
@@ -319,6 +320,31 @@ class SafepointRwLock {
   SafepointRwLock() {}
   ~SafepointRwLock() {}
 
+  bool IsCurrentThreadReader() {
+#if defined(DEBUG)
+    ThreadId id = OSThread::GetCurrentThreadId();
+    if (IsCurrentThreadWriter()) {
+      return true;
+    }
+    for (intptr_t i = readers_ids_.length() - 1; i >= 0; i--) {
+      if (readers_ids_.At(i) == id) {
+        return true;
+      }
+    }
+    return false;
+#else
+    UNREACHABLE();
+#endif
+  }
+
+  bool IsCurrentThreadWriter() {
+#if defined(DEBUG)
+    return writer_id_ == OSThread::GetCurrentThreadId();
+#else
+    UNREACHABLE();
+#endif
+  }
+
  private:
   friend class SafepointReadRwLocker;
   friend class SafepointWriteRwLocker;
@@ -328,11 +354,26 @@ class SafepointRwLock {
     while (state_ == -1) {
       ml.Wait();
     }
+#if defined(DEBUG)
+    readers_ids_.Add(OSThread::GetCurrentThreadId());
+#endif
     ++state_;
   }
   void LeaveRead() {
     SafepointMonitorLocker ml(&monitor_);
     ASSERT(state_ > 0);
+#if defined(DEBUG)
+    intptr_t i = readers_ids_.length() - 1;
+    ThreadId id = OSThread::GetCurrentThreadId();
+    while (i >= 0) {
+      if (readers_ids_.At(i) == id) {
+        readers_ids_.RemoveAt(i);
+        break;
+      }
+      i--;
+    }
+    ASSERT(i >= 0);
+#endif
     if (--state_ == 0) {
       ml.NotifyAll();
     }
@@ -343,12 +384,18 @@ class SafepointRwLock {
     while (state_ != 0) {
       ml.Wait();
     }
+#if defined(DEBUG)
+    writer_id_ = OSThread::GetCurrentThreadId();
+#endif
     state_ = -1;
   }
   void LeaveWrite() {
     SafepointMonitorLocker ml(&monitor_);
     ASSERT(state_ == -1);
     state_ = 0;
+#if defined(DEBUG)
+    writer_id_ = OSThread::kInvalidThreadId;
+#endif
     ml.NotifyAll();
   }
 
@@ -357,6 +404,11 @@ class SafepointRwLock {
   // [state_] == 0 : The lock is free (no readers/writers).
   // [state_] == -1: The lock is held by a single writer.
   intptr_t state_ = 0;
+
+#if defined(DEBUG)
+  MallocGrowableArray<ThreadId> readers_ids_;
+  ThreadId writer_id_ = OSThread::kInvalidThreadId;
+#endif
 };
 
 /*

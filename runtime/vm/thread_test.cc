@@ -963,4 +963,26 @@ ISOLATE_UNIT_TEST_CASE(ExerciseTLABs) {
   }
 }
 
+#if defined(DEBUG)
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWithReadLock) {
+  SafepointRwLock lock;
+  SafepointReadRwLocker locker(Thread::Current(), &lock);
+  EXPECT(lock.IsCurrentThreadReader());
+  EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWithWriteLock) {
+  SafepointRwLock lock;
+  SafepointWriteRwLocker locker(Thread::Current(), &lock);
+  EXPECT(lock.IsCurrentThreadReader());
+  EXPECT(lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWithoutAnyLocks) {
+  SafepointRwLock lock;
+  EXPECT(!lock.IsCurrentThreadReader());
+  EXPECT(!lock.IsCurrentThreadWriter());
+}
+#endif
+
 }  // namespace dart
