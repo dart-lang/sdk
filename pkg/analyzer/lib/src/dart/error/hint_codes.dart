@@ -15,14 +15,6 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
  */
 class HintCode extends AnalyzerErrorCode {
   /**
-   * Users should not assign values marked `@doNotStore`.
-   */
-  static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
-      'ASSIGNMENT_OF_DO_NOT_STORE',
-      "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field.",
-      correction: "Try removing the assignment.");
-
-  /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
    */
