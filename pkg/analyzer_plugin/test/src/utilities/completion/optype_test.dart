@@ -2156,9 +2156,35 @@ void f(int a, {int b}) {}
         voidReturn: true);
   }
 
-  Future<void> test_returnStatement_empty() async {
-    // ReturnStatement  Block
-    addTestSource('f() { var vvv = 42; return ^ }');
+  Future<void> test_returnStatement_empty_noSemicolon() async {
+    addTestSource('f() { return ^ }');
+    await assertOpType(
+        completionLocation: 'ReturnStatement_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
+  Future<void> test_returnStatement_empty_semicolon() async {
+    addTestSource('f() { return ^; }');
+    await assertOpType(
+        completionLocation: 'ReturnStatement_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
+  Future<void> test_returnStatement_nonEmpty_noSemicolon() async {
+    addTestSource('f() { return a^ }');
+    await assertOpType(
+        completionLocation: 'ReturnStatement_expression',
+        constructors: true,
+        returnValue: true,
+        typeNames: true);
+  }
+
+  Future<void> test_returnStatement_nonEmpty_semicolon() async {
+    addTestSource('f() { return a^; }');
     await assertOpType(
         completionLocation: 'ReturnStatement_expression',
         constructors: true,
