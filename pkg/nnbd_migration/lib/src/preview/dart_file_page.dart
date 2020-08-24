@@ -31,7 +31,8 @@ class DartFilePage extends PreviewPage {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    var renderer = UnitRenderer(unitInfo, site.migrationInfo, site.pathMapper);
+    var renderer = UnitRenderer(
+        unitInfo, site.migrationInfo, site.pathMapper, site.serviceAuthToken);
     buf.write(jsonEncode(renderer.render().toJson()));
   }
 }

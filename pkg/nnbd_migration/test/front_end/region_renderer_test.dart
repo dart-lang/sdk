@@ -31,7 +31,9 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     var unitInfo = infos.single;
     var region = unitInfo.regionAt(offset);
     pathMapper = PathMapper(resourceProvider);
-    return RegionRenderer(region, unitInfo, migrationInfo, pathMapper).render();
+    return RegionRenderer(
+            region, unitInfo, migrationInfo, pathMapper, 'AUTH_TOKEN')
+        .render();
   }
 
   Future<void> test_modifiedOutput_containsExplanation() async {
