@@ -116,34 +116,33 @@ class PowersetBitsDomain {
     return a | b;
   }
 
-  AbstractBool isPrimitiveOrNull(int value) =>
-      isPrimitive(value) | isNull(value);
+  AbstractBool isPrimitiveOrNull(int value) => isPrimitive(excludeNull(value));
 
-  AbstractBool isStringOrNull(int value) => isString(value) | isNull(value);
+  AbstractBool isStringOrNull(int value) => isString(excludeNull(value));
 
   AbstractBool isString(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
 
-  AbstractBool isBooleanOrNull(int value) => isBoolean(value) | isNull(value);
+  AbstractBool isBooleanOrNull(int value) => isBoolean(excludeNull(value));
 
   AbstractBool isBoolean(int value) => isPotentiallyBoolean(value)
       ? AbstractBool.trueOrMaybe(!isPotentiallyNullOrOther(value))
       : AbstractBool.False;
 
-  AbstractBool isDoubleOrNull(int value) => isDouble(value) | isNull(value);
+  AbstractBool isDoubleOrNull(int value) => isDouble(excludeNull(value));
 
   AbstractBool isDouble(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
 
-  AbstractBool isNumberOrNull(int value) => isNumber(value) | isNull(value);
+  AbstractBool isNumberOrNull(int value) => isNumber(excludeNull(value));
 
   AbstractBool isNumber(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
 
-  AbstractBool isIntegerOrNull(int value) => isDouble(value) | isNull(value);
+  AbstractBool isIntegerOrNull(int value) => isInteger(excludeNull(value));
 
   AbstractBool isPositiveIntegerOrNull(int value) =>
-      isPositiveInteger(value) | isNull(value);
+      isPositiveInteger(excludeNull(value));
 
   AbstractBool isPositiveInteger(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
