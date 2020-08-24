@@ -309,6 +309,9 @@ void handleError(String header, Object exception, Object stackTrace) {
   logError('$header: $exception', stackTrace);
 }
 
+String _stripQuery(String path) =>
+    path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+
 void handleNavLinkClick(
   MouseEvent event,
   bool clearEditDetails, {
@@ -318,10 +321,7 @@ void handleNavLinkClick(
   event.preventDefault();
 
   var location = target.getAttribute('href');
-  var path = location;
-  if (path.contains('?')) {
-    path = path.substring(0, path.indexOf('?'));
-  }
+  var path = _stripQuery(location);
 
   var offset = getOffset(location);
   var lineNumber = getLine(location);
@@ -383,8 +383,7 @@ void loadFile(
         queryParameters: {'inline': 'true'});
     writeCodeAndRegions(path, FileDetails.fromJson(response), clearEditDetails);
     maybeScrollToAndHighlight(offset, line);
-    var filePathPart =
-        path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+    var filePathPart = _stripQuery(path);
     updatePage(filePathPart, offset);
     if (callback != null) {
       callback();
@@ -770,7 +769,8 @@ void _populateEditTraces(
               try {
                 await doPost(pathWithQueryParameters('/apply-hint', {}),
                     hintAction.toJson());
-                loadFile(link.path, null, link.line, false);
+                var path = _stripQuery(link.href);
+                loadFile(path, null, link.line, false);
                 document.body.classes.add('needs-rerun');
               } catch (e, st) {
                 handleError("Could not apply hint", e, st);
