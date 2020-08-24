@@ -86,20 +86,24 @@ class PowersetBitsDomain {
   }
 
   int createPrimitiveValue(PrimitiveConstantValue value) {
-    if (value is TrueConstantValue) {
-      return trueMask;
-    }
-    if (value is FalseConstantValue) {
-      return falseMask;
-    }
-    if (value is NullConstantValue) {
-      return nullMask;
-    }
-    return otherMask;
+    return computeAbstractValueForConstant(value);
   }
 
   // TODO(coam): Same as getPrimitiveValue above.
   bool isPrimitiveValue(int value) => isSingleton(value);
+
+  int computeAbstractValueForConstant(ConstantValue value) {
+    if (value.isTrue) {
+      return trueMask;
+    }
+    if (value.isFalse) {
+      return falseMask;
+    }
+    if (value.isNull) {
+      return nullMask;
+    }
+    return otherMask;
+  }
 
   AbstractBool areDisjoint(int a, int b) =>
       AbstractBool.trueOrMaybe(a & b == powersetBottom);
