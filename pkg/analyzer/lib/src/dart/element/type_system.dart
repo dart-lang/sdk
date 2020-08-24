@@ -1348,8 +1348,9 @@ class TypeSystemImpl extends TypeSystem2 {
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType, MethodElement operatorElement) {
     if (isNonNullableByDefault) {
-      return _refineBinaryExpressionTypeNullSafe(
-          leftType, operator, rightType, currentType);
+      if (operatorElement == null) return currentType;
+      return _refineNumericInvocationTypeNullSafe(
+          leftType, operatorElement, [rightType], currentType);
     } else {
       return _refineBinaryExpressionTypeLegacy(
           leftType, operator, rightType, currentType);
@@ -1513,74 +1514,117 @@ class TypeSystemImpl extends TypeSystem2 {
     return currentType;
   }
 
-  DartType _refineBinaryExpressionTypeNullSafe(DartType leftType,
-      TokenType operator, DartType rightType, DartType currentType) {
-    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
-      if (rightType == leftType || rightType.isDartCoreInt) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.PLUS_EQ ||
-            operator == TokenType.MINUS_EQ ||
-            operator == TokenType.STAR_EQ ||
-            operator == TokenType.PLUS_PLUS ||
-            operator == TokenType.MINUS_MINUS) {
-          return promoteToNonNull(leftType as TypeImpl);
-        }
-      }
-      if (rightType.isDartCoreDouble) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.SLASH) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          return promoteToNonNull(doubleType);
-        }
-      }
-      return currentType;
-    }
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      return promoteToNonNull(typeProvider.boolType);
-    }
-    if (leftType.isDartCoreInt) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        if (rightType.isDartCoreDouble) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          return promoteToNonNull(doubleType);
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ ||
-          operator == TokenType.PLUS_PLUS ||
-          operator == TokenType.MINUS_MINUS) {
-        if (rightType.isDartCoreInt) {
-          InterfaceTypeImpl intType = typeProvider.intType;
-          return promoteToNonNull(intType);
+  DartType _refineNumericInvocationTypeNullSafe(
+      DartType targetType,
+      MethodElement methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType) {
+    // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
+    // e1 % e2 or e1.remainder(e2)...
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
+      // ...where the static type of e1 is a non-Never type T and T <: num...
+      // Notes:
+      // - We don't have to check for Never because if T is Never, the method
+      //   element will fail to resolve so we'll never reach here.
+      // - We actually check against `num?` rather than `num`.  It's equivalent
+      //   from the standpoint of correctness (since it's illegal to call these
+      //   methods on nullable types, and that's checked for elsewhere), but
+      //   better from the standpoint of error recovery (since it allows e.g.
+      //   `int? + int` to resolve to `int` rather than `num`).
+      var t = targetType;
+      assert(!t.isBottom);
+      var numType = typeProvider.numType;
+      var numTypeQuestion = makeNullable(numType as InterfaceTypeImpl);
+      if (isSubtypeOf(t, numTypeQuestion)) {
+        // ...and where the static type of e2 is S and S is assignable to num.
+        // (Note: we don't have to check that S is assignable to num because
+        // this is required by the signature of the method.)
+        if (argumentTypes.length == 1) {
+          var s = argumentTypes[0];
+          // Then:
+          // - If T <: double then the static type of e is double. This includes
+          //   S being dynamic or Never.
+          // (Note: as above, we check against `double?` because it's equivalent
+          // and leads to better error recovery.)
+          var doubleType = typeProvider.doubleType;
+          var doubleTypeQuestion =
+              makeNullable(doubleType as InterfaceTypeImpl);
+          if (isSubtypeOf(t, doubleTypeQuestion)) {
+            return doubleType;
+          }
+          // - If S <: double and not S <: Never, then the static type of e is
+          //   double.
+          // (Again, we check against `double?` for error recovery.)
+          if (!s.isBottom && isSubtypeOf(s, doubleTypeQuestion)) {
+            return doubleType;
+          }
+          // - If T <: int, S <: int and not S <: Never, then the static type of
+          //   e is int.
+          // (As above, we check against `int?` for error recovery.)
+          var intType = typeProvider.intType;
+          var intTypeQuestion = makeNullable(intType as InterfaceTypeImpl);
+          if (!s.isBottom &&
+              isSubtypeOf(t, intTypeQuestion) &&
+              isSubtypeOf(s, intTypeQuestion)) {
+            return intType;
+          }
+          // - Otherwise the static type of e is num.
+          return numType;
         }
       }
     }
-    // default
+    // Let e be a normal invocation of the form e1.clamp(e2, e3)...
+    if (methodElement.name == 'clamp') {
+      // ...where the static types of e1, e2 and e3 are T1, T2 and T3
+      // respectively...
+      var t1 = targetType;
+      if (argumentTypes.length == 2) {
+        var t2 = argumentTypes[0];
+        var t3 = argumentTypes[1];
+        // ...and where T1, T2, and T3 are all non-Never subtypes of num.
+        // (Note: we actually check against `num?` rather than `num`.  It's
+        // equivalent from the standpoint of correctness (since it's illegal to
+        // call `num.clamp` on a nullable type or to pass it a nullable type
+        // as an argument, and that's checked for elsewhere), but better from
+        // the standpoint of error recovery (since it allows e.g.
+        // `int?.clamp(int, int)` to resolve to `int` rather than `num`).
+        var numType = typeProvider.numType;
+        var numTypeQuestion = makeNullable(numType as InterfaceTypeImpl);
+        if (!t1.isBottom &&
+            isSubtypeOf(t1, numTypeQuestion) &&
+            !t2.isBottom &&
+            isSubtypeOf(t2, numTypeQuestion) &&
+            !t3.isBottom &&
+            isSubtypeOf(t3, numTypeQuestion)) {
+          // Then:
+          // - If T1, T2 and T3 are all subtypes of int, the static type of e is
+          //   int.
+          // (Note: as above, we check against `int?` because it's equivalent
+          // and leads to better error recovery.)
+          var intType = typeProvider.intType;
+          var intTypeQuestion = makeNullable(intType as InterfaceTypeImpl);
+          if (isSubtypeOf(t1, intTypeQuestion) &&
+              isSubtypeOf(t2, intTypeQuestion) &&
+              isSubtypeOf(t3, intTypeQuestion)) {
+            return intType;
+          }
+          // If T1, T2 and T3 are all subtypes of double, the static type of e
+          // is double.
+          // (As above, we check against `double?` for error recovery.)
+          var doubleType = typeProvider.doubleType;
+          var doubleTypeQuestion =
+              makeNullable(doubleType as InterfaceTypeImpl);
+          if (isSubtypeOf(t1, doubleTypeQuestion) &&
+              isSubtypeOf(t2, doubleTypeQuestion) &&
+              isSubtypeOf(t3, doubleTypeQuestion)) {
+            return doubleType;
+          }
+          // Otherwise the static type of e is num.
+          return numType;
+        }
+      }
+    }
+    // No special rules apply.
     return currentType;
   }
 }

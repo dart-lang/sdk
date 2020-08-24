@@ -858,11 +858,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  _ElementMatcher _elementMatcher(Object elementOrMatcher) {
+  Matcher _elementMatcher(Object elementOrMatcher) {
     if (elementOrMatcher is Element) {
       return _ElementMatcher(this, declaration: elementOrMatcher);
     } else {
-      return elementOrMatcher;
+      return wrapMatcher(elementOrMatcher);
     }
   }
 

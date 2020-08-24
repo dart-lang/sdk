@@ -117,7 +117,13 @@ class InstanceMemberInferrer {
       currentClassElement,
       getterName,
     );
-    overriddenGetters ??= const [];
+    if (overriddenGetters != null) {
+      overriddenGetters = overriddenGetters.where((e) {
+        return e is PropertyAccessorElement && e.isGetter;
+      }).toList();
+    } else {
+      overriddenGetters = const [];
+    }
 
     var setterName = Name(elementLibraryUri, '$elementName=');
     var overriddenSetters = inheritance.getOverridden2(

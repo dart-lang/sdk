@@ -1125,7 +1125,7 @@ class C<T extends num/*?*/> {
 }
 ''');
     var assignment = findNode.assignment('+=');
-    visitSubexpression(assignment, 'T',
+    visitSubexpression(assignment, 'num',
         changes: {assignment: isNullableSource});
   }
 

@@ -34,6 +34,23 @@ f(int x) {
     );
   }
 
+  test_inc_double() async {
+    await assertNoErrorsInCode(r'''
+f(double x) {
+  x++;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('x++'),
+      element: elementMatcher(
+        doubleElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
   test_inc_localVariable() async {
     await assertNoErrorsInCode(r'''
 f(int x) {
@@ -48,6 +65,23 @@ f(int x) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'int',
+    );
+  }
+
+  test_inc_num() async {
+    await assertNoErrorsInCode(r'''
+f(num x) {
+  x++;
+}
+''');
+
+    assertPostfixExpression(
+      findNode.postfix('x++'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'num',
     );
   }
 

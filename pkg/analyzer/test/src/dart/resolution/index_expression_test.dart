@@ -106,7 +106,7 @@ main(A a) {
         numPlusElement,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
-      type: 'num',
+      type: typeToStringWithNullability ? 'double' : 'num',
     );
     assertParameterElement(
       assignment.rightHandSide,
@@ -322,7 +322,7 @@ main(A? a) {
     assertAssignment(
       assignment,
       operatorElement: numPlusElement,
-      type: 'num?',
+      type: 'double?',
     );
     assertParameterElement(
       assignment.rightHandSide,

@@ -386,6 +386,20 @@ class C implements A, B {
     _assertGetterTypeDynamic(foo);
   }
 
+  test_invalid_field_overrides_method() async {
+    await resolveTestCode('''
+abstract class A {
+  List<T> foo<T>() {}
+}
+
+class B implements A {
+  var foo = <String, int>{};
+}
+''');
+    var foo = findElement.field('foo', of: 'B');
+    _assertFieldType(foo, 'Map<String, int>');
+  }
+
   test_invalid_inheritanceCycle() async {
     await resolveTestCode('''
 class A extends C {}
