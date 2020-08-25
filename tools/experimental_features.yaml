@@ -35,7 +35,7 @@
 #    experiment is disabled by default, but may be enabled by specifying the
 #    flag on the command line. (e.g. --enable-experiment=non-nullable)
 #
-#    A version less than than this version may be specified in a .packages file
+#    A version less than this version may be specified in a .packages file
 #    or in a library language version override (e.g. // @dart = 2.1)
 #    to disable this feature. For more on library language version override, see
 #    https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md
