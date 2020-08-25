@@ -57,16 +57,19 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
   InterfaceType _doubleType;
+  InterfaceType _doubleTypeQuestion;
   InterfaceType _functionType;
   InterfaceType _futureDynamicType;
   InterfaceType _futureNullType;
   InterfaceType _futureOrNullType;
   InterfaceType _intType;
+  InterfaceType _intTypeQuestion;
   InterfaceType _iterableDynamicType;
   InterfaceType _iterableObjectType;
   InterfaceType _mapObjectObjectType;
   InterfaceType _nullType;
   InterfaceType _numType;
+  InterfaceType _numTypeQuestion;
   InterfaceType _objectType;
   InterfaceType _stackTraceType;
   InterfaceType _streamDynamicType;
@@ -148,6 +151,10 @@ class TypeProviderImpl extends TypeProviderBase {
     return _doubleType;
   }
 
+  InterfaceType get doubleTypeQuestion =>
+      _doubleTypeQuestion ??= (doubleType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
+
   @override
   DartType get dynamicType => DynamicTypeImpl.instance;
 
@@ -207,6 +214,10 @@ class TypeProviderImpl extends TypeProviderBase {
     _intType ??= _getType(_coreLibrary, "int");
     return _intType;
   }
+
+  InterfaceType get intTypeQuestion =>
+      _intTypeQuestion ??= (intType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
 
   @override
   InterfaceType get iterableDynamicType {
@@ -297,6 +308,10 @@ class TypeProviderImpl extends TypeProviderBase {
     _numType ??= _getType(_coreLibrary, "num");
     return _numType;
   }
+
+  InterfaceType get numTypeQuestion =>
+      _numTypeQuestion ??= (numType as InterfaceTypeImpl)
+          .withNullability(NullabilitySuffix.question);
 
   ClassElement get objectElement {
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
