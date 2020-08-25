@@ -9379,7 +9379,7 @@ void Function::PrintName(const NameFormattingParams& params,
   if (IsClosureFunction()) {
     if (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
       Function& parent = Function::Handle(fun.parent_function());
-      if (parent.IsAsyncClosure() || parent.IsSyncGenClosure() ||
+      if (parent.IsAsyncClosure() || parent.IsSyncGenClosureMaker() ||
           parent.IsAsyncGenClosure()) {
         // Skip the closure and use the real function name found in
         // the parent.

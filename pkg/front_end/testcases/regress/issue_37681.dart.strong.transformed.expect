@@ -124,10 +124,10 @@ static method main() → dynamic /* originally async */ {
             }
         }
         function f_sync_star() → core::int* /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<dynamic>*, [dynamic, dynamic]) →* core::bool* {
             core::int* :await_jump_var = 0;
             dynamic :await_ctx_var;
-            return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
+            function :sync_op(core::_SyncIterator<dynamic>* :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_current} = 42;
@@ -135,7 +135,8 @@ static method main() → dynamic /* originally async */ {
                 }
               }
               return false;
-            };
+            }
+            return :sync_op;
           }
           return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
         }

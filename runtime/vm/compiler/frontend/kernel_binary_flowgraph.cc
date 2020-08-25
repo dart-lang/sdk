@@ -4984,8 +4984,9 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
   Fragment continuation(instructions.entry, anchor);
 
   if (parsed_function()->function().IsAsyncClosure() ||
-      parsed_function()->function().IsAsyncGenClosure()) {
-    // If function is async closure or async gen closure it takes three
+      parsed_function()->function().IsAsyncGenClosure() ||
+      parsed_function()->function().IsSyncGenClosure()) {
+    // If function is {async, async gen, sync yielding} closure it takes three
     // parameters where the second and the third are exception and stack_trace.
     // Check if exception is non-null and rethrow it.
     //
@@ -5145,6 +5146,16 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       }
       function.set_is_generated_body(function_node_helper.async_marker_ ==
                                      FunctionNodeHelper::kSyncYielding);
+      // sync* functions contain two nested synthetic functions, the first of
+      // which (sync_op_gen) is a regular sync function so we need to manually
+      // label it generated:
+      if (function.parent_function() != Function::null()) {
+        const auto& parent = Function::Handle(function.parent_function());
+        if (parent.IsSyncGenerator()) {
+          function.set_is_generated_body(true);
+        }
+      }
+      // Note: Is..() methods use the modifiers set above, so order matters.
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
         function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                   !FLAG_lazy_async_stacks);
