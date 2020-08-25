@@ -8248,7 +8248,8 @@ class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  bool _extendsNullShorting(Expression child) => identical(child, operand);
+  bool _extendsNullShorting(Expression child) =>
+      identical(child, operand) && operator.type.isIncrementOperator;
 }
 
 /// The access of a property of an object.
