@@ -96,14 +96,14 @@ class CreateCommand extends DartdevCommand {
     );
 
     if (argResults['pub']) {
-      if (!Sdk.checkArtifactExists(sdk.pub)) {
+      if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
         return 255;
       }
       log.stdout('');
       var progress = log.progress('Running pub get');
-      var process = await startProcess(
-        sdk.pub,
-        ['get', '--no-precompile'],
+      var process = await startDartProcess(
+        sdk,
+        [sdk.pubSnapshot, 'get', '--no-precompile'],
         cwd: dir,
       );
 

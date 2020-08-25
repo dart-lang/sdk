@@ -57,12 +57,8 @@ void defineCreateTests() {
   test('directory already exists', () {
     p = project();
 
-    ProcessResult result = p.runSync('create', [
-      '--no-pub',
-      '--template',
-      CreateCommand.defaultTemplateId,
-      p.dir.path
-    ]);
+    ProcessResult result = p.runSync(
+        'create', ['--template', CreateCommand.defaultTemplateId, p.dir.path]);
     expect(result.exitCode, 73);
   });
 
@@ -79,8 +75,8 @@ void defineCreateTests() {
     test('create $templateId', () {
       p = project();
 
-      ProcessResult result = p.runSync('create',
-          ['--force', '--no-pub', '--template', templateId, p.dir.path]);
+      ProcessResult result = p
+          .runSync('create', ['--force', '--template', templateId, p.dir.path]);
       expect(result.exitCode, 0);
 
       String projectName = path.basename(p.dir.path);

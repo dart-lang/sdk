@@ -10,6 +10,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
+import 'sdk.dart';
 import 'utils.dart';
 
 Logger log;
@@ -48,15 +49,17 @@ abstract class DartdevCommand<int> extends Command {
   List<String> get specifiedExperiments => globalResults[experimentFlagName];
 }
 
-/// A utility method to start the given executable as a process, optionally
-/// providing a current working directory.
-Future<Process> startProcess(
-  String executable,
+/// A utility method to start a Dart VM instance with the given arguments and an
+/// optional current working directory.
+///
+/// [arguments] should contain the snapshot path.
+Future<Process> startDartProcess(
+  Sdk sdk,
   List<String> arguments, {
   String cwd,
 }) {
-  log.trace('$executable ${arguments.join(' ')}');
-  return Process.start(executable, arguments, workingDirectory: cwd);
+  log.trace('${sdk.dart} ${arguments.join(' ')}');
+  return Process.start(sdk.dart, arguments, workingDirectory: cwd);
 }
 
 void routeToStdout(

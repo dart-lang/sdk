@@ -20,16 +20,20 @@ void _sdk() {
     expectFileExists(Sdk().dart);
   });
 
-  test('analysis_server_snapshot', () {
+  test('analysis_server snapshot', () {
     expectFileExists(Sdk().analysisServerSnapshot);
   });
 
-  test('dartfmt', () {
-    expectFileExists(Sdk().dartfmt);
+  test('pub snapshot', () {
+    expectFileExists(Sdk().pubSnapshot);
   });
 
-  test('pub', () {
-    expectFileExists(Sdk().pub);
+  test('dds snapshot', () {
+    expectFileExists(Sdk().ddsSnapshot);
+  });
+
+  test('dart2js snapshot', () {
+    expectFileExists(Sdk().dart2jsSnapshot);
   });
 }
 
