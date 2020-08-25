@@ -828,6 +828,10 @@ class ContextManagerImpl implements ContextManager {
       }
 
       _updateAnalysisOptions(info);
+      final optionsFile = info?.analysisDriver?.contextRoot?.optionsFilePath;
+      if (optionsFile != null) {
+        _analyzeAnalysisOptionsFile(driver, optionsFile);
+      }
     }
   }
 
