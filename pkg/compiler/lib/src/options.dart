@@ -146,7 +146,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
   /// flag to produce the same or better results than the current unsound
   /// implementation.
-  bool newDeferredSplit = false;
+  bool newDeferredSplit = false; // default value.
+  bool _newDeferredSplit = false;
+  bool _noNewDeferredSplit = false;
 
   /// Show errors when a deferred type is inferred as a return type of a closure
   /// or in a type parameter. Those cases cause the compiler today to behave
@@ -443,7 +445,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
-      ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      .._newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      .._noNewDeferredSplit = _hasOption(options, Flags.noNewDeferredSplit)
       ..reportInvalidInferredDeferredTypes =
           _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
       .._deferClassTypes = _hasOption(options, Flags.deferClassTypes)
@@ -556,6 +559,10 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.deferClassTypes}' incompatible with "
           "'${Flags.noDeferClassTypes}'");
     }
+    if (_newDeferredSplit && _noNewDeferredSplit) {
+      throw ArgumentError("'${Flags.newDeferredSplit}' incompatible with "
+          "'${Flags.noNewDeferredSplit}'");
+    }
   }
 
   void deriveOptions() {
@@ -625,6 +632,9 @@ class CompilerOptions implements DiagnosticOptions {
       // TODO(sra): Add a command-line flag to control this independently.
       enableNativeReturnNullAssertions = true;
     }
+
+    if (_newDeferredSplit) newDeferredSplit = true;
+    if (_noNewDeferredSplit) newDeferredSplit = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.
