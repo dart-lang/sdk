@@ -2780,17 +2780,21 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = (IsUnboxedDartFieldLoad() && opt)
-                                 ? (FLAG_precompiled_mode ? 0 : 1)
-                                 : (IsPotentialUnboxedDartFieldLoad() ? 2 : 0);
-
+  const intptr_t kNumTemps =
+      (slot().representation() != kTagged)
+          ? 0
+          : ((IsUnboxedDartFieldLoad() && opt)
+                 ? (FLAG_precompiled_mode ? 0 : 1)
+                 : (IsPotentialUnboxedDartFieldLoad() ? 2 : 0));
   const auto contains_call =
-      (IsUnboxedDartFieldLoad() && opt)
+      (slot().representation() != kTagged)
           ? LocationSummary::kNoCall
-          : (IsPotentialUnboxedDartFieldLoad()
-                 ? LocationSummary::kCallOnSlowPath
-                 : (calls_initializer() ? LocationSummary::kCall
-                                        : LocationSummary::kNoCall));
+          : ((IsUnboxedDartFieldLoad() && opt)
+                 ? LocationSummary::kNoCall
+                 : (IsPotentialUnboxedDartFieldLoad()
+                        ? LocationSummary::kCallOnSlowPath
+                        : (calls_initializer() ? LocationSummary::kCall
+                                               : LocationSummary::kNoCall)));
 
   LocationSummary* locs =
       new (zone) LocationSummary(zone, kNumInputs, kNumTemps, contains_call);
@@ -2799,8 +2803,16 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                             InitInstanceFieldABI::kInstanceReg)
                                       : Location::RequiresRegister());
 
+  if (slot().representation() != kTagged) {
+    ASSERT(!calls_initializer());
+    ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
+    ASSERT(RepresentationUtils::ValueSize(slot().representation()) <=
+           compiler::target::kWordSize);
+    locs->set_out(0, Location::RequiresRegister());
+  }
   if (IsUnboxedDartFieldLoad() && opt) {
     ASSERT(!calls_initializer());
+    ASSERT(!slot().field().is_non_nullable_integer());
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
@@ -2826,10 +2838,25 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
   const Register instance_reg = locs()->in(0).reg();
+  if (slot().representation() != kTagged) {
+    const Register result = locs()->out(0).reg();
+    switch (slot().representation()) {
+      case kUnboxedInt64:
+        __ Comment("UnboxedInt64LoadFieldInstr");
+        __ movq(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+        break;
+      case kUnboxedUint32:
+        __ Comment("UnboxedUint32LoadFieldInstr");
+        __ movl(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+        break;
+      default:
+        UNIMPLEMENTED();
+        break;
+    }
+    return;
+  }
+
   if (IsUnboxedDartFieldLoad() && compiler->is_optimizing()) {
-    ASSERT_EQUAL(slot().representation(), kTagged);
-    ASSERT(!calls_initializer());
-    ASSERT(!slot().field().is_non_nullable_integer());
     XmmRegister result = locs()->out(0).fpu_reg();
     const intptr_t cid = slot().field().UnboxedFieldCid();
 
@@ -2881,10 +2908,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler::Label done;
-  Register result = locs()->out(0).reg();
+  const Register result = locs()->out(0).reg();
   if (IsPotentialUnboxedDartFieldLoad()) {
-    ASSERT_EQUAL(slot().representation(), kTagged);
-    ASSERT(!calls_initializer());
     Register temp = locs()->temp(1).reg();
     XmmRegister value = locs()->temp(0).fpu_reg();
 
@@ -2952,26 +2977,6 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
 
     __ Bind(&load_pointer);
-  }
-
-  if (slot().representation() != kTagged) {
-    ASSERT(!calls_initializer());
-    const Register result = locs()->out(0).reg();
-    const compiler::FieldAddress address(instance_reg, OffsetInBytes());
-    switch (slot().representation()) {
-      case kUnboxedInt64:
-        __ Comment("UnboxedInt64LoadFieldInstr");
-        __ movq(result, address);
-        break;
-      case kUnboxedUint32:
-        __ Comment("UnboxedUint32LoadFieldInstr");
-        __ movl(result, address);
-        break;
-      default:
-        UNIMPLEMENTED();
-        break;
-    }
-    return;
   }
 
   __ movq(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));

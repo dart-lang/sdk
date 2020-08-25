@@ -3257,18 +3257,15 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                       : Location::RequiresRegister());
 
   if (slot().representation() != kTagged) {
-    switch (slot().representation()) {
-      case kUnboxedInt64:
-        ASSERT(FLAG_precompiled_mode);
-        locs->set_out(0, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
-        break;
-      case kUnboxedUint32:
-        locs->set_out(0, Location::RequiresRegister());
-        break;
-      default:
-        UNIMPLEMENTED();
-        break;
+    ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
+    const size_t value_size =
+        RepresentationUtils::ValueSize(slot().representation());
+    if (value_size <= compiler::target::kWordSize) {
+      locs->set_out(0, Location::RequiresRegister());
+    } else {
+      ASSERT(value_size <= 2 * compiler::target::kWordSize);
+      locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                      Location::RequiresRegister()));
     }
   } else if (IsUnboxedDartFieldLoad() && opt) {
     ASSERT(!calls_initializer());
@@ -3302,19 +3299,18 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(!calls_initializer());
     switch (slot().representation()) {
       case kUnboxedInt64: {
-        const PairLocation* out_pair = locs()->out(0).AsPairLocation();
+        auto const out_pair = locs()->out(0).AsPairLocation();
         const Register out_lo = out_pair->At(0).reg();
         const Register out_hi = out_pair->At(1).reg();
+        const intptr_t offset_lo = OffsetInBytes() - kHeapObjectTag;
+        const intptr_t offset_hi = offset_lo + compiler::target::kWordSize;
         __ Comment("UnboxedInt64LoadFieldInstr");
-        __ LoadFromOffset(kWord, out_lo, instance_reg,
-                          OffsetInBytes() - kHeapObjectTag);
-        __ LoadFromOffset(
-            kWord, out_hi, instance_reg,
-            OffsetInBytes() - kHeapObjectTag + compiler::target::kWordSize);
+        __ LoadFromOffset(kWord, out_lo, instance_reg, offset_lo);
+        __ LoadFromOffset(kWord, out_hi, instance_reg, offset_hi);
         break;
       }
       case kUnboxedUint32: {
-        Register result = locs()->out(0).reg();
+        const Register result = locs()->out(0).reg();
         __ Comment("UnboxedUint32LoadFieldInstr");
         __ LoadFieldFromOffset(kWord, result, instance_reg, OffsetInBytes());
         break;
