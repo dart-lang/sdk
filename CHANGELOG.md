@@ -1,6 +1,7 @@
 ## 0.6.2
 
 * Update `protobuf` dependency.
+* Set min SDK to `2.3.0`, as generated code contains this version.
 
 ## 0.6.1
 
