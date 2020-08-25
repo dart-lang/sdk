@@ -2069,7 +2069,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Name n = new Name(name, libraryBuilder.nameOrigin);
       if (!isQualified && isDeclarationInstanceContext) {
         assert(declaration == null);
-        if (constantContext != ConstantContext.none || member.isField) {
+        if (constantContext != ConstantContext.none ||
+            (inFieldInitializer && !inLateFieldInitializer) && !inInitializer) {
           return new UnresolvedNameGenerator(this, token, n);
         }
         if (extensionThis != null) {

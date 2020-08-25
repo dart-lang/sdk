@@ -1,0 +1,6 @@
+class Class {
+  var f = () => x;
+  var x;
+}
+
+main() {}
