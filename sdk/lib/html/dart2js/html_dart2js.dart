@@ -1937,13 +1937,13 @@ class ButtonElement extends HtmlElement {
 
   set formAction(String? value) native;
 
-  String get formEnctype native;
+  String? get formEnctype native;
 
-  set formEnctype(String value) native;
+  set formEnctype(String? value) native;
 
-  String get formMethod native;
+  String? get formMethod native;
 
-  set formMethod(String value) native;
+  set formMethod(String? value) native;
 
   bool get formNoValidate native;
 
@@ -2120,15 +2120,15 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   /// The height of this canvas element in CSS pixels.
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   /// The width of this canvas element in CSS pixels.
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   MediaStream captureStream([num? frameRate]) native;
 
@@ -15994,9 +15994,9 @@ class FieldSetElement extends HtmlElement {
    */
   FieldSetElement.created() : super.created();
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   @Returns('HtmlCollection')
   @Creates('HtmlCollection')
@@ -21740,34 +21740,34 @@ class MeterElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  num get high native;
+  num? get high native;
 
-  set high(num value) native;
+  set high(num? value) native;
 
   @Unstable()
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node>? get labels native;
 
-  num get low native;
+  num? get low native;
 
-  set low(num value) native;
+  set low(num? value) native;
 
-  num get max native;
+  num? get max native;
 
-  set max(num value) native;
+  set max(num? value) native;
 
-  num get min native;
+  num? get min native;
 
-  set min(num value) native;
+  set min(num? value) native;
 
-  num get optimum native;
+  num? get optimum native;
 
-  set optimum(num value) native;
+  set optimum(num? value) native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29170,9 +29170,9 @@ class StyleElement extends HtmlElement {
 
   StyleSheet? get sheet native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
