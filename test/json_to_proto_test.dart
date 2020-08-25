@@ -41,7 +41,7 @@ main() {
         expectedPrefixes[kind] = kindToString(kind) + '/';
       }
 
-      for (final info in proto.allInfos) {
+      for (final info in proto.allInfos.entries) {
         final value = info.value;
         if (value.hasLibraryInfo()) {
           expect(value.serializedId,

@@ -28,11 +28,7 @@ main() {
       expect(import.files, hasLength(1));
       expect(import.files.first, 'hello_world_deferred.js_1.part.js');
 
-      // Dart protobuf doesn't support maps, translate the info list into
-      // a map for associative verifications.
-      final infoMap = <String, InfoPB>{};
-      infoMap.addEntries(proto.allInfos.map(
-          (entry) => new MapEntry<String, InfoPB>(entry.key, entry.value)));
+      final infoMap = proto.allInfos;
 
       final entrypoint = infoMap[proto.program.entrypointId];
       expect(entrypoint, isNotNull);

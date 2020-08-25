@@ -246,13 +246,11 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     return result;
   }
 
-  Iterable<AllInfoPB_AllInfosEntry> _convertToAllInfosEntries<T extends Info>(
+  Iterable<MapEntry<String, InfoPB>> _convertToAllInfosEntries<T extends Info>(
       Iterable<T> infos) sync* {
     for (final info in infos) {
       final infoProto = _convertToInfoPB(info);
-      final entry = new AllInfoPB_AllInfosEntry()
-        ..key = infoProto.serializedId
-        ..value = infoProto;
+      final entry = MapEntry<String, InfoPB>(infoProto.serializedId, infoProto);
       yield entry;
     }
   }
@@ -277,14 +275,14 @@ class AllInfoToProtoConverter extends Converter<AllInfo, AllInfoPB> {
     final proto = new AllInfoPB()
       ..program = _convertToProgramInfoPB(info.program);
 
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.libraries));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.classes));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.functions));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.fields));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.constants));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.outputUnits));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.typedefs));
-    proto.allInfos.addAll(_convertToAllInfosEntries(info.closures));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.libraries));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.classes));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.functions));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.fields));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.constants));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.outputUnits));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.typedefs));
+    proto.allInfos.addEntries(_convertToAllInfosEntries(info.closures));
 
     info.deferredFiles?.forEach((libraryUri, fields) {
       proto.deferredImports

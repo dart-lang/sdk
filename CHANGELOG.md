@@ -1,3 +1,7 @@
+## 0.6.2
+
+* Update `protobuf` dependency.
+
 ## 0.6.1
 
 * Move binary subcommands under src folder. Otherwise, `pub global activate`
