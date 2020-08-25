@@ -608,6 +608,8 @@ class TreeShaker {
   _TreeShakerConstantVisitor constantVisitor;
   _TreeShakerPass1 _pass1;
   _TreeShakerPass2 _pass2;
+
+  _MoveDeduplicatedMixin _moveMixinPass;
   _SignatureShaker _signatureShaker;
 
   TreeShaker(Component component, this.typeFlowAnalysis,
@@ -617,6 +619,7 @@ class TreeShaker {
     constantVisitor = new _TreeShakerConstantVisitor(this, typeVisitor);
     _pass1 = new _TreeShakerPass1(this);
     _pass2 = new _TreeShakerPass2(this);
+    _moveMixinPass = new _MoveDeduplicatedMixin(this);
     _signatureShaker = new _SignatureShaker(this.typeFlowAnalysis,
         treeShakeSignatures: treeShakeSignatures);
   }
@@ -624,6 +627,7 @@ class TreeShaker {
   transformComponent(Component component) {
     _pass1.transform(component);
     _pass2.transform(component);
+    _moveMixinPass.transform(component);
   }
 
   finalizeSignatures() {
@@ -632,20 +636,31 @@ class TreeShaker {
 
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
+
   bool isClassUsed(Class c) => _usedClasses.contains(c);
+
   bool isClassUsedInType(Class c) => _classesUsedInType.contains(c);
+
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
+
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
+
   bool isExtensionUsed(Extension e) => _usedExtensions.contains(e);
+
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
+
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
+
   bool isFieldGetterReachable(Field f) => typeFlowAnalysis.isFieldGetterUsed(f);
+
   bool isFieldSetterReachable(Field f) => typeFlowAnalysis.isFieldSetterUsed(f);
+
   bool isMemberReferencedFromNativeCode(Member m) =>
       typeFlowAnalysis.nativeCodeOracle.isMemberReferencedFromNativeCode(m);
+
   bool isTypedefUsed(Typedef t) => _usedTypedefs.contains(t);
 
   bool retainField(Field f) =>
@@ -897,6 +912,7 @@ class _TreeShakerPass1 extends Transformer {
       _staticTypeContext ??= StaticTypeContext(currentMember, environment);
 
   Member get currentMember => _currentMember;
+
   set currentMember(Member m) {
     _currentMember = m;
     _staticTypeContext = null;
@@ -1653,6 +1669,7 @@ class _SignatureShaker {
   final TypeFlowAnalysis analysis;
   final List<Member> deferred = [];
   final bool treeShakeSignatures;
+
   _SignatureShaker(this.analysis, {this.treeShakeSignatures});
 
   bool isShakingSignature(Member member) {
@@ -1818,4 +1835,38 @@ bool mayHaveSideEffects(Expression node) {
     }
   }
   return true;
+}
+
+class _MoveDeduplicatedMixin extends Transformer {
+  final TreeShaker shaker;
+  final Library deduplicatedMixins;
+
+  _MoveDeduplicatedMixin(this.shaker)
+      : deduplicatedMixins = shaker.typeFlowAnalysis.environment.coreTypes.index
+            .getLibrary('dart:_internal');
+
+  void transform(Component component) {
+    component.transformChildren(this);
+  }
+
+  @override
+  TreeNode visitLibrary(Library node) {
+    if (node.importUri.scheme == 'dart') {
+      return node;
+    }
+
+    node.transformChildren(this);
+    return node;
+  }
+
+  @override
+  TreeNode visitClass(Class node) {
+    if (node.isAnonymousMixin || node.isEliminatedMixin) {
+      deduplicatedMixins.addClass(node);
+      // move class to _internal.
+      return null;
+    }
+
+    return node;
+  }
 }

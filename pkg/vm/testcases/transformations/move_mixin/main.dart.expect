@@ -1,0 +1,44 @@
+main = #lib::main;
+ [@vm.table-selector.metadata=Instance of 'TableSelectorMetadata']library #lib from "#lib" as #lib {
+
+  import "#pkg/vm/testcases/transformations/move_mixin/library_base.dart";
+  import "#pkg/vm/testcases/transformations/move_mixin/library_one.dart";
+  import "#pkg/vm/testcases/transformations/move_mixin/library_other.dart";
+
+  static method main() → void {
+    new oth::OtherClass::•();
+  }
+}
+library base from "#pkg/vm/testcases/transformations/move_mixin/library_base.dart" as base {
+
+  abstract class B extends dart.core::Object {
+    synthetic constructor •() → base::B*
+      : super dart.core::Object::•()
+      ;
+  }
+  abstract class C extends dart.core::Object {
+  }
+}
+library one from "#pkg/vm/testcases/transformations/move_mixin/library_one.dart" as one {
+
+  import "#pkg/vm/testcases/transformations/move_mixin/library_base.dart";
+
+}
+library other from "#pkg/vm/testcases/transformations/move_mixin/library_other.dart" as oth {
+
+  import "#pkg/vm/testcases/transformations/move_mixin/library_base.dart";
+
+  class OtherClass extends _in::_OneClass&B&C {
+    synthetic constructor •() → oth::OtherClass*
+      : super _in::_OneClass&B&C::•()
+      ;
+  }
+}
+library dart._internal from "dart:_internal" as _in {
+
+  abstract class _OneClass&B&C extends base::B implements base::C /*isAnonymousMixin,isEliminatedMixin*/  { // from #pkg/vm/testcases/transformations/move_mixin/library_one.dart
+    synthetic constructor /*isNullableByDefault*/ •() → _in::_OneClass&B&C*
+      : super base::B::•()
+      ;
+  }
+}
