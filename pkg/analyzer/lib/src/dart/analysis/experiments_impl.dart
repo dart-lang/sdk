@@ -140,7 +140,10 @@ List<bool> restrictEnableFlagsToVersion({
         // release version.  From that point forward, all tools will no
         // longer use the current sdk version to opt code in, but rather
         // will use the experimental release version as the opt in version.
-        if (version >= experimentalReleaseVersion) {
+        // Updated 2020-08-25: we decided that experimental features should
+        // be available since `min(sdk, experimentalRelease)`.
+        if (version >= experimentalReleaseVersion ||
+            version >= sdkLanguageVersion) {
           decodedFlags[feature.index] = true;
         }
       }
