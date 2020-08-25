@@ -3112,7 +3112,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: false);
+    return getDisplayString(withNullability: true);
   }
 
   @override
