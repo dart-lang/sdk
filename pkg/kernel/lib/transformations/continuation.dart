@@ -28,10 +28,9 @@ class ContinuationVariables {
   static const stream = ':stream';
   static const syncForIterator = ':sync-for-iterator';
   static const syncOpGen = ':sync_op_gen';
-  static const syncOp = ':sync_op';
   // sync_op(..) parameter.
   static const iteratorParam = ':iterator';
-  // (a)sync_op(..) parameters.
+  // async_op(..) parameters.
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
 
@@ -408,42 +407,35 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     enclosingFunction.body =
         enclosingFunction.body.accept<TreeNode>(shadowRewriter);
 
-    // TODO(cskau): Figure out why inlining this below causes segfaults.
-    // Maybe related to http://dartbug.com/41596 ?
-    final syncOpFN = FunctionNode(buildClosureBody(),
-        positionalParameters: [
-          iteratorParameter,
-          new VariableDeclaration(ContinuationVariables.exceptionParam),
-          new VariableDeclaration(ContinuationVariables.stackTraceParam),
-        ],
-        requiredParameterCount: 1,
-        // Note: SyncYielding functions have no Dart equivalent. Since they are
-        // synchronous, we use Sync. (Note also that the Dart VM backend uses
-        // the Dart async marker to decide if functions are debuggable.)
-        asyncMarker: AsyncMarker.SyncYielding,
-        dartAsyncMarker: AsyncMarker.Sync,
-        returnType: helper.coreTypes.boolLegacyRawType)
-      ..fileOffset = enclosingFunction.fileOffset
-      ..fileEndOffset = enclosingFunction.fileEndOffset;
-    final syncOpType =
-        syncOpFN.computeThisFunctionType(staticTypeContext.nonNullable);
+    final syncOpType = FunctionType([iteratorParameter.type],
+        helper.coreTypes.boolLegacyRawType, staticTypeContext.nonNullable);
 
     final syncOpGenVariable = VariableDeclaration(
         ContinuationVariables.syncOpGen,
         type: FunctionType([], syncOpType, staticTypeContext.nonNullable));
 
-    final syncOpVariable = VariableDeclaration(ContinuationVariables.syncOp);
-    final syncOpDecl = FunctionDeclaration(syncOpVariable, syncOpFN);
+    // TODO(cskau): Figure out why inlining this below causes segfaults.
+    // Maybe related to http://dartbug.com/41596 ?
+    final syncOpFN = FunctionNode(buildClosureBody(),
+        positionalParameters: [iteratorParameter],
+        requiredParameterCount: 1,
+        asyncMarker: AsyncMarker.SyncYielding,
+        dartAsyncMarker: AsyncMarker.Sync,
+        returnType: helper.coreTypes.boolLegacyRawType)
+      ..fileOffset = enclosingFunction.fileOffset
+      ..fileEndOffset = enclosingFunction.fileEndOffset;
 
     enclosingFunction.body = Block([
       // :sync_op_gen() {
       //   :await_jump_var;
       //   :await_ctx_var;
-      //   bool sync_op(:iterator, [e, st]) yielding {
+      //   return bool (:iterator) yielding {
       //     modified <node.body> ...
       //   };
-      //   return sync_op;
       // }
+      // Note: SyncYielding functions have no Dart equivalent. Since they are
+      // synchronous, we use Sync. (Note also that the Dart VM backend uses
+      // the Dart async marker to decide if functions are debuggable.)
       FunctionDeclaration(
           syncOpGenVariable,
           FunctionNode(
@@ -452,10 +444,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
                 ...variableDeclarations(),
                 // Shadow any used function parameters with local copies.
                 ...shadowRewriter.shadowedParameters,
-                // :sync_op(..) { .. }
-                syncOpDecl,
-                // return sync_op;
-                ReturnStatement(VariableGet(syncOpVariable)),
+                ReturnStatement(FunctionExpression(syncOpFN)),
               ]),
               returnType: syncOpType)),
 

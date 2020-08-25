@@ -103,8 +103,7 @@ class num {
 // implement sync* generator functions. A sync* generator allocates
 // and returns a new _SyncIterable object.
 
-typedef _SyncGeneratorCallback<T> = bool Function(_SyncIterator<T>,
-    [Object, StackTrace]);
+typedef _SyncGeneratorCallback<T> = bool Function(_SyncIterator<T>);
 typedef _SyncGeneratorCallbackCallback<T> = _SyncGeneratorCallback<T>
     Function();
 
@@ -136,16 +135,7 @@ class _SyncIterator<T> implements Iterator<T> {
   T get current {
     final iterator = _yieldEachIterator;
     if (iterator != null) {
-      var result;
-      try {
-        result = iterator.current;
-      } catch (e, st) {
-        // `yield* e` is supposed to throw if `e` (moveNext or current) throws.
-        // So we need to pass any exception into the internal, generated
-        // exception handler to be rethrow from the correct place.
-        _moveNextFn!.call(this, e, st);
-      }
-      return result;
+      return iterator.current;
     } else {
       final cur = _current;
       return (cur != null) ? cur : cur as T;
@@ -165,21 +155,13 @@ class _SyncIterator<T> implements Iterator<T> {
       // delegate downwards from the immediate iterator.
       final iterator = _yieldEachIterator;
       if (iterator != null) {
-        try {
-          if (iterator.moveNext()) {
-            return true;
-          }
-        } catch (e, st) {
-          // `yield* e` is supposed to throw if e (moveNext or current) throws.
-          // So we need to pass any exception into the internal, generated
-          // exception handler to be rethrow from the correct place.
-          _moveNextFn!.call(this, e, st);
+        if (iterator.moveNext()) {
+          return true;
         }
         _yieldEachIterator = null;
       }
 
       final stack = _stack;
-      // _moveNextFn sets _yieldEachIterable.
       if (!_moveNextFn!.call(this)) {
         _moveNextFn = null;
         _current = null;

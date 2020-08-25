@@ -139,10 +139,10 @@ static method foo() → asy::Stream<core::List<core::int*>*>* /* originally asyn
   return :controller_stream;
 }
 static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::Map<core::int*, core::int*>*>*, [dynamic, dynamic]) →* core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<core::Map<core::int*, core::int*>*>*) →* core::bool* {
     core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<core::Map<core::int*, core::int*>*>* :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+    return (core::_SyncIterator<core::Map<core::int*, core::int*>*>* :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = core::Map::•<core::int*, core::int*>();
@@ -170,8 +170,7 @@ static method bar() → core::Iterable<core::Map<core::int*, core::int*>*>* /* o
         }
       }
       return false;
-    }
-    return :sync_op;
+    };
   }
   return new core::_SyncIterable::•<core::Map<core::int*, core::int*>*>(:sync_op_gen);
 }

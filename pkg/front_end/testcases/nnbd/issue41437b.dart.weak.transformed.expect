@@ -44,10 +44,10 @@ import "dart:async" as asy;
 static method getNull() → dynamic
   return null;
 static method getIterableNull() → core::Iterable<dynamic> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<dynamic>?, [dynamic, dynamic]) → core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>?) → core::bool* {
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+    return (core::_SyncIterator<dynamic>? :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = null;
@@ -55,16 +55,15 @@ static method getIterableNull() → core::Iterable<dynamic> /* originally sync* 
         }
       }
       return false;
-    }
-    return :sync_op;
+    };
   }
   return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
 }
 static method getIterableBool() → core::Iterable<core::bool> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+    return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = true;
@@ -72,16 +71,15 @@ static method getIterableBool() → core::Iterable<core::bool> /* originally syn
         }
       }
       return false;
-    }
-    return :sync_op;
+    };
   }
   return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
 }
 static method test1() → core::Iterable<core::bool> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+    return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
@@ -89,8 +87,7 @@ static method test1() → core::Iterable<core::bool> /* originally sync* */ {
         }
       }
       return false;
-    }
-    return :sync_op;
+    };
   }
   return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
 }
@@ -99,10 +96,10 @@ static method test2() → core::Iterable<core::bool>
 static method test3() → core::bool
   return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
 static method test4() → core::Iterable<core::bool> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+    return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_yieldEachIterable} = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:21:10: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
@@ -113,8 +110,7 @@ static method test4() → core::Iterable<core::bool> /* originally sync* */ {
         }
       }
       return false;
-    }
-    return :sync_op;
+    };
   }
   return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
 }
@@ -126,10 +122,10 @@ Iterable<bool> test5() => getIterableNull(); // error
 static method test6() → core::Iterable<core::bool>
   return self::getIterableBool();
 static method test7() → core::Iterable<core::bool> /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
     core::int :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+    return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_yieldEachIterable} = self::getIterableBool();
@@ -137,8 +133,7 @@ static method test7() → core::Iterable<core::bool> /* originally sync* */ {
         }
       }
       return false;
-    }
-    return :sync_op;
+    };
   }
   return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
 }
@@ -155,10 +150,10 @@ static method test() → dynamic /* originally async */ {
       #L1:
       {
         function test1() → core::Iterable<core::bool> /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
             core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+            return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_current} = self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
@@ -166,8 +161,7 @@ static method test() → dynamic /* originally async */ {
                 }
               }
               return false;
-            }
-            return :sync_op;
+            };
           }
           return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
         }
@@ -176,10 +170,10 @@ static method test() → dynamic /* originally async */ {
         function test3() → core::bool
           return self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
         function test4() → core::Iterable<core::bool> /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
             core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+            return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_yieldEachIterable} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41437b.dart:38:12: Error: A value of type 'Iterable<dynamic>' can't be assigned to a variable of type 'Iterable<bool>'.
@@ -190,8 +184,7 @@ static method test() → dynamic /* originally async */ {
                 }
               }
               return false;
-            }
-            return :sync_op;
+            };
           }
           return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
         }
@@ -203,10 +196,10 @@ static method test() → dynamic /* originally async */ {
         function test6() → core::Iterable<core::bool>
           return self::getIterableBool();
         function test7() → core::Iterable<core::bool> /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
             core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+            return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_yieldEachIterable} = self::getIterableBool();
@@ -214,8 +207,7 @@ static method test() → dynamic /* originally async */ {
                 }
               }
               return false;
-            }
-            return :sync_op;
+            };
           }
           return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
         }
@@ -223,10 +215,10 @@ static method test() → dynamic /* originally async */ {
  - 'Iterable' is from 'dart:core'.
   })(); // error
     ^" in (() → core::Iterable<dynamic> /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<dynamic>?, [dynamic, dynamic]) → core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<dynamic>?) → core::bool* {
             core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<dynamic>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+            return (core::_SyncIterator<dynamic>? :iterator) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_current} = self::getNull();
@@ -234,8 +226,7 @@ static method test() → dynamic /* originally async */ {
                 }
               }
               return false;
-            }
-            return :sync_op;
+            };
           }
           return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
         }).call() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
@@ -245,10 +236,10 @@ static method test() → dynamic /* originally async */ {
  - 'Iterable' is from 'dart:core'.
   })(); // error
     ^" in (() → core::Iterable<dynamic> /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<dynamic>?, [dynamic, dynamic]) → core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<dynamic>?) → core::bool* {
             core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<dynamic>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+            return (core::_SyncIterator<dynamic>? :iterator) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_yieldEachIterable} = self::getIterableNull();
@@ -256,8 +247,7 @@ static method test() → dynamic /* originally async */ {
                 }
               }
               return false;
-            }
-            return :sync_op;
+            };
           }
           return new core::_SyncIterable::•<dynamic>(:sync_op_gen);
         }).call() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
@@ -267,10 +257,10 @@ static method test() → dynamic /* originally async */ {
                                                  ^" in (() → core::Iterable<dynamic> => self::getIterableNull()).call() as{TypeError,ForNonNullableByDefault} core::Iterable<core::bool>;
         core::Iterable<core::bool> var6 = (() → core::Iterable<core::bool> => self::getIterableBool()).call();
         core::Iterable<core::bool> var7 = (() → core::Iterable<core::bool> /* originally sync* */ {
-          function :sync_op_gen() → (core::_SyncIterator<core::bool>?, [dynamic, dynamic]) → core::bool* {
+          function :sync_op_gen() → (core::_SyncIterator<core::bool>?) → core::bool* {
             core::int :await_jump_var = 0;
             dynamic :await_ctx_var;
-            function :sync_op(core::_SyncIterator<core::bool>? :iterator, [dynamic :exception, dynamic :stack_trace]) → core::bool* yielding {
+            return (core::_SyncIterator<core::bool>? :iterator) → core::bool* yielding {
               {
                 {
                   :iterator.{core::_SyncIterator::_yieldEachIterable} = self::getIterableBool();
@@ -278,8 +268,7 @@ static method test() → dynamic /* originally async */ {
                 }
               }
               return false;
-            }
-            return :sync_op;
+            };
           }
           return new core::_SyncIterable::•<core::bool>(:sync_op_gen);
         }).call();
