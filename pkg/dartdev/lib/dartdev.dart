@@ -23,6 +23,7 @@ import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
+import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
 /// This is typically called from bin/, but given the length of the method and
@@ -117,6 +118,14 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       commandName = getCommandStr(args, runner.commands.keys.toList());
       // ignore: unawaited_futures
       analytics.sendEvent(eventCategory, commandName);
+    }
+
+    // If ... help pub ... is in the args list, remove 'help', and add '--help'
+    // to the end of the list.  This will make it possible to use the help
+    // command to access subcommands of pub such as `dart help pub publish`, see
+    // https://github.com/dart-lang/sdk/issues/42965
+    if (PubUtils.shouldModifyArgs(args, runner.commands.keys.toList())) {
+      args = PubUtils.modifyArgs(args);
     }
 
     // Finally, call the runner to execute the command, see DartdevRunner.
@@ -218,6 +227,25 @@ class DartdevRunner<int> extends CommandRunner {
   String get invocation =>
       'dart [<vm-flags>] <command|dart-file> [<arguments>]';
 
+  void addExperimentalFlags(ArgParser argParser, bool verbose) {
+    List<ExperimentalFeature> features = experimentalFeatures;
+
+    Map<String, String> allowedHelp = {};
+    for (ExperimentalFeature feature in features) {
+      String suffix =
+          feature.isEnabledByDefault ? ' (no-op - enabled by default)' : '';
+      allowedHelp[feature.enableString] = '${feature.documentation}$suffix';
+    }
+
+    argParser.addMultiOption(
+      experimentFlagName,
+      valueHelp: 'experiment',
+      allowed: features.map((feature) => feature.enableString),
+      allowedHelp: verbose ? allowedHelp : null,
+      help: 'Enable one or more experimental features.',
+    );
+  }
+
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     assert(!topLevelResults.arguments.contains('--disable-dartdev-analytics'));
@@ -254,24 +282,5 @@ class DartdevRunner<int> extends CommandRunner {
     }
 
     return await super.runCommand(topLevelResults);
-  }
-
-  void addExperimentalFlags(ArgParser argParser, bool verbose) {
-    List<ExperimentalFeature> features = experimentalFeatures;
-
-    Map<String, String> allowedHelp = {};
-    for (ExperimentalFeature feature in features) {
-      String suffix =
-          feature.isEnabledByDefault ? ' (no-op - enabled by default)' : '';
-      allowedHelp[feature.enableString] = '${feature.documentation}$suffix';
-    }
-
-    argParser.addMultiOption(
-      experimentFlagName,
-      valueHelp: 'experiment',
-      allowedHelp: verbose ? allowedHelp : null,
-      help: 'Enable one or more experimental features '
-          '(see dart.dev/go/experiments).',
-    );
   }
 }
