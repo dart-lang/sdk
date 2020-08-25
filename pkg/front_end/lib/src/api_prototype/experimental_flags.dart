@@ -118,3 +118,38 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
   }
   return enabled;
 }
+
+Version getExperimentEnabledVersionInLibrary(
+    ExperimentalFlag flag, Uri canonicalUri,
+    {AllowedExperimentalFlags allowedExperimentalFlags,
+    Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting,
+    Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting}) {
+  allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
+  Set<ExperimentalFlag> allowedFlags;
+  if (canonicalUri.scheme == 'dart') {
+    allowedFlags = allowedExperimentalFlags.forSdkLibrary(canonicalUri.path);
+  } else if (canonicalUri.scheme == 'package') {
+    int index = canonicalUri.path.indexOf('/');
+    String packageName;
+    if (index >= 0) {
+      packageName = canonicalUri.path.substring(0, index);
+    } else {
+      packageName = canonicalUri.path;
+    }
+    allowedFlags = allowedExperimentalFlags.forPackage(packageName);
+  }
+  Version version;
+  if (allowedFlags != null && allowedFlags.contains(flag)) {
+    if (experimentReleasedVersionForTesting != null) {
+      version = experimentReleasedVersionForTesting[flag];
+    }
+    version ??= experimentReleasedVersion[flag];
+  } else {
+    if (experimentEnabledVersionForTesting != null) {
+      version = experimentEnabledVersionForTesting[flag];
+    }
+    version = experimentEnabledVersion[flag];
+  }
+  assert(version != null, "No version for enabling $flag in $canonicalUri.");
+  return version;
+}

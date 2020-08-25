@@ -65,7 +65,8 @@ import 'package:kernel/kernel.dart'
         Name,
         Procedure,
         Supertype,
-        TreeNode;
+        TreeNode,
+        Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -332,6 +333,8 @@ class NewWorldTest {
   Component component3;
 
   String doStringReplacements(String input) {
+    Version enableNonNullableVersion =
+        experimentEnabledVersion[ExperimentalFlag.nonNullable];
     String output = input.replaceAll("%NNBD_VERSION_MARKER%",
         "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
     return output;

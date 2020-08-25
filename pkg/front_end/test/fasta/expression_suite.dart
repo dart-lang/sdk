@@ -413,7 +413,7 @@ Future<Context> createContext(
       errors.add(message);
     }
     ..environmentDefines = const {}
-    ..allowedExperimentalFlags = const AllowedExperimentalFlags();
+    ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);

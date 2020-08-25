@@ -92,7 +92,11 @@ abstract class StackListenerImpl extends StackListener {
     assert(token != null);
     if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
-        addProblem(messageNonNullableOptOut, token.charOffset, token.charCount,
+        addProblem(
+            templateNonNullableOptOutExplicit.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.charOffset,
+            token.charCount,
             context: <LocatedMessage>[
               messageNonNullableOptOutComment.withLocation(
                   libraryBuilder.languageVersion.fileUri,
@@ -100,14 +104,20 @@ abstract class StackListenerImpl extends StackListener {
                   libraryBuilder.languageVersion.charCount)
             ]);
       } else {
-        addProblem(messageNonNullableOptOut, token.charOffset, token.charCount);
+        addProblem(
+            templateNonNullableOptOutImplicit.withArguments(
+                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            token.charOffset,
+            token.charCount);
       }
     } else if (!libraryBuilder.loader.target
         .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-      if (libraryBuilder.languageVersion.version < enableNonNullableVersion) {
+      if (libraryBuilder.languageVersion.version <
+          libraryBuilder.enableNonNullableVersionInLibrary) {
         addProblem(
             templateExperimentNotEnabledNoFlagInvalidLanguageVersion
-                .withArguments(enableNonNullableVersion.toText()),
+                .withArguments(
+                    libraryBuilder.enableNonNullableVersionInLibrary.toText()),
             token.offset,
             noLength);
       } else {
@@ -115,8 +125,8 @@ abstract class StackListenerImpl extends StackListener {
       }
     } else {
       addProblem(
-          templateExperimentNotEnabled.withArguments(
-              'non-nullable', enableNonNullableVersion.toText()),
+          templateExperimentNotEnabled.withArguments('non-nullable',
+              libraryBuilder.enableNonNullableVersionInLibrary.toText()),
           token.offset,
           noLength);
     }

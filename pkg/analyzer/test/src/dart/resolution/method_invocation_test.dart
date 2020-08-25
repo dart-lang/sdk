@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -22,6 +23,376 @@ class MethodInvocationResolutionTest extends PubPackageResolutionTest
     with MethodInvocationResolutionTestCases {}
 
 mixin MethodInvocationResolutionTestCases on PubPackageResolutionTest {
+  test_clamp_double_context_double() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  h(a.clamp(f(), f()));
+}
+h(double x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
+        [typeToStringWithNullability ? 'double' : 'num']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'),
+        [typeToStringWithNullability ? 'double' : 'num']);
+  }
+
+  test_clamp_double_context_int() async {
+    await assertErrorsInCode(
+        '''
+T f<T>() => throw Error();
+g(double a) {
+  h(a.clamp(f(), f()));
+}
+h(int x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 17),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+  }
+
+  test_clamp_double_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  a.clamp(f(), f());
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+  }
+
+  test_clamp_double_double_double() async {
+    await assertNoErrorsInCode('''
+f(double a, double b, double c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: typeToStringWithNullability ? 'double' : 'num');
+  }
+
+  test_clamp_double_double_int() async {
+    await assertNoErrorsInCode('''
+f(double a, double b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_double_int_double() async {
+    await assertNoErrorsInCode('''
+f(double a, int b, double c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_double_int_int() async {
+    await assertNoErrorsInCode('''
+f(double a, int b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_context_double() async {
+    await assertErrorsInCode(
+        '''
+T f<T>() => throw Error();
+g(int a) {
+  h(a.clamp(f(), f()));
+}
+h(double x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 17),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+  }
+
+  test_clamp_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a.clamp(f(), f()));
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_clamp_int_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  a.clamp(f(), f());
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['num']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['num']);
+  }
+
+  test_clamp_int_double_double() async {
+    await assertNoErrorsInCode('''
+f(int a, double b, double c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_double_int() async {
+    await assertNoErrorsInCode('''
+f(int a, double b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_int_double() async {
+    await assertNoErrorsInCode('''
+f(int a, int b, double c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_int_int() async {
+    await assertNoErrorsInCode('''
+f(int a, int b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: typeToStringWithNullability ? 'int' : 'num');
+  }
+
+  test_clamp_int_int_int_from_cascade() async {
+    await assertErrorsInCode(
+        '''
+f(int a, int b, int c) {
+  a..clamp(b, c).isEven;
+}
+''',
+        expectedErrorsByNullability(nullable: [], legacy: [
+          error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 6),
+        ]));
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: typeToStringWithNullability ? 'int' : 'num');
+  }
+
+  test_clamp_int_int_int_via_extension_explicit() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  String clamp(int x, int y) => '';
+}
+f(int a, int b, int c) {
+  E(a).clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp(b'),
+        elementMatcher(findElement.extension_('E').getMethod('clamp')),
+        'String Function(int, int)',
+        expectedType: 'String');
+  }
+
+  test_clamp_int_int_never() async {
+    await assertNoErrorsInCode('''
+f(int a, int b, Never c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_int_never_int() async {
+    await assertErrorsInCode(
+        '''
+f(int a, Never b, int c) {
+  a.clamp(b, c);
+}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(HintCode.DEAD_CODE, 40, 3),
+        ], legacy: []));
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'),
+        elementMatcher(numElement.getMethod('clamp'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num, num)',
+        expectedType: 'num');
+  }
+
+  test_clamp_never_int_int() async {
+    await assertErrorsInCode(
+        '''
+f(Never a, int b, int c) {
+  a.clamp(b, c);
+}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(HintCode.RECEIVER_OF_TYPE_NEVER, 29, 1),
+          error(HintCode.DEAD_CODE, 36, 7),
+        ], legacy: [
+          error(CompileTimeErrorCode.UNDEFINED_METHOD, 31, 5),
+        ]));
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp'), isNull, 'dynamic',
+        expectedType: typeToStringWithNullability ? 'Never' : 'dynamic');
+  }
+
+  test_clamp_other_context_int() async {
+    await assertErrorsInCode(
+        '''
+abstract class A {
+  num clamp(String x, String y);
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(a.clamp(f(), f()));
+}
+h(int x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 94, 17),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f(),'), ['String']);
+    assertTypeArgumentTypes(findNode.methodInvocation('f())'), ['String']);
+  }
+
+  test_clamp_other_int_int() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  String clamp(int x, int y);
+}
+f(A a, int b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp(b'),
+        elementMatcher(findElement.class_('A').getMethod('clamp')),
+        'String Function(int, int)',
+        expectedType: 'String');
+  }
+
+  test_clamp_other_int_int_via_extension_explicit() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  String clamp(int x, int y) => '';
+}
+f(A a, int b, int c) {
+  E(a).clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp(b'),
+        elementMatcher(findElement.extension_('E').getMethod('clamp')),
+        'String Function(int, int)',
+        expectedType: 'String');
+  }
+
+  test_clamp_other_int_int_via_extension_implicit() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  String clamp(int x, int y) => '';
+}
+f(A a, int b, int c) {
+  a.clamp(b, c);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('clamp(b'),
+        elementMatcher(findElement.extension_('E').getMethod('clamp')),
+        'String Function(int, int)',
+        expectedType: 'String');
+  }
+
   test_error_ambiguousImport_topFunction() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 void foo(int _) {}
@@ -1597,6 +1968,153 @@ main() {
       typeProvider.objectType.getMethod('toString'),
       'String Function()',
     );
+  }
+
+  test_remainder_int_context_cascaded() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a..remainder(f()));
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_remainder_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a.remainder(f()));
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_remainder_int_context_int_target_rewritten() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int Function() a) {
+  h(a().remainder(f()));
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_remainder_int_context_int_via_extension_explicit() async {
+    await assertErrorsInCode('''
+extension E on int {
+  String remainder(num x) => '';
+}
+T f<T>() => throw Error();
+g(int a) {
+  h(E(a).remainder(f()));
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 19),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_remainder_int_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  a.remainder(f());
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_remainder_int_double() async {
+    await assertNoErrorsInCode('''
+f(int a, double b) {
+  a.remainder(b);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('remainder'),
+        elementMatcher(numElement.getMethod('remainder'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num)',
+        expectedType: typeToStringWithNullability ? 'double' : 'num');
+  }
+
+  test_remainder_int_int() async {
+    await assertNoErrorsInCode('''
+f(int a, int b) {
+  a.remainder(b);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('remainder'),
+        elementMatcher(numElement.getMethod('remainder'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num)',
+        expectedType: typeToStringWithNullability ? 'int' : 'num');
+  }
+
+  test_remainder_int_int_target_rewritten() async {
+    await assertNoErrorsInCode('''
+f(int Function() a, int b) {
+  a().remainder(b);
+}
+''');
+
+    assertMethodInvocation(
+        findNode.methodInvocation('remainder'),
+        elementMatcher(numElement.getMethod('remainder'),
+            isLegacy: isNullSafetySdkAndLegacyLibrary),
+        'num Function(num)',
+        expectedType: typeToStringWithNullability ? 'int' : 'num');
+  }
+
+  test_remainder_other_context_int_via_extension_explicit() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {
+  String remainder(num x) => '';
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(E(a).remainder(f()));
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 19),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_remainder_other_context_int_via_extension_implicit() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {
+  String remainder(num x) => '';
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(a.remainder(f()));
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 16),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
   }
 
   test_syntheticName() async {

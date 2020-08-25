@@ -56,6 +56,14 @@
 # guarded by the flag.  Users can enable the flag and begin to try out
 # the feature as it is being developed.
 #
+# Experimental release:
+#    When an experiment is released, then the 'experimentalReleaseVersion' field
+# is added indicating which version of the SDK contains this new language
+# feature for libraries and packages in mentioned in
+# `sdk/lib/_internal/allowed_experiments.json`. For other libraries and
+# packages, passing the experiment flag is still required to turn on the
+# experiment.
+#
 # Shipped:
 #    When an experiment is shipped, then the 'enabledIn' field is added
 # indicating which version of the SDK contains this new language feature.

@@ -24,10 +24,13 @@ class RegionRenderer {
   /// of the HTML files used to view the content of those files.
   final PathMapper pathMapper;
 
+  /// The auth token for the current site, for use in generating URIs.
+  final String authToken;
+
   /// Initializes a newly created region page within the given [site]. The
   /// [unitInfo] provides the information needed to render the page.
-  RegionRenderer(
-      this.region, this.unitInfo, this.migrationInfo, this.pathMapper);
+  RegionRenderer(this.region, this.unitInfo, this.migrationInfo,
+      this.pathMapper, this.authToken);
 
   /// Returns the path context used to manipulate paths.
   path.Context get pathContext => migrationInfo.pathContext;
@@ -98,6 +101,7 @@ class RegionRenderer {
     var queryParams = {
       'offset': target.offset,
       if (target.line != null) 'line': target.line,
+      'authToken': authToken,
     }.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
     return '${pathMapper.map(path)}?$queryParams';
   }

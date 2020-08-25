@@ -108,6 +108,7 @@ class Flags {
   static const String noSoundNullSafety = '--no-sound-null-safety';
 
   static const String newDeferredSplit = '--new-deferred-split';
+  static const String noNewDeferredSplit = '--no-new-deferred-split';
   static const String reportInvalidInferredDeferredTypes =
       '--report-invalid-deferred-types';
   static const String deferClassTypes = '--defer-class-types';

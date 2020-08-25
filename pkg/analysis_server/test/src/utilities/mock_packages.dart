@@ -29,6 +29,11 @@ class MockPackages {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  Folder addPedantic(MemoryResourceProvider provider) {
+    var packageFolder = _addFiles(provider, 'pedantic');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
   Folder addUI(MemoryResourceProvider provider) {
     var packageFolder = _addFiles(provider, 'ui');
     return packageFolder.getChildAssumingFolder('lib');

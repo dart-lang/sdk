@@ -10358,6 +10358,88 @@ class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
 }
 
 /**
+ * This class has experimental Language-specific codes.
+ *
+ * Currently it only contains codes related to implicit dynamic.
+ */
+class LanguageCode extends ErrorCode {
+  /**
+   * This is appended to the end of an error message about implicit dynamic.
+   *
+   * The idea is to make sure the user is aware that this error message is the
+   * result of turning on a particular option, and they are free to turn it
+   * back off.
+   */
+  static const String _implicitDynamicCorrection =
+      "Try adding an explicit type, or remove implicit-dynamic from your "
+      "analysis options file.";
+
+  static const LanguageCode IMPLICIT_DYNAMIC_FIELD = LanguageCode(
+      'IMPLICIT_DYNAMIC_FIELD', "Missing field type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_FUNCTION = LanguageCode(
+      'IMPLICIT_DYNAMIC_FUNCTION',
+      "Missing type arguments for generic function '{0}<{1}>'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_INVOKE = LanguageCode(
+      'IMPLICIT_DYNAMIC_INVOKE',
+      "Missing type arguments for calling generic function type '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_LIST_LITERAL = LanguageCode(
+      'IMPLICIT_DYNAMIC_LIST_LITERAL',
+      "Missing type argument for list literal.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_MAP_LITERAL = LanguageCode(
+      'IMPLICIT_DYNAMIC_MAP_LITERAL', "Missing type arguments for map literal.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_METHOD = LanguageCode(
+      'IMPLICIT_DYNAMIC_METHOD',
+      "Missing type arguments for generic method '{0}<{1}>'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_PARAMETER = LanguageCode(
+      'IMPLICIT_DYNAMIC_PARAMETER', "Missing parameter type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_RETURN = LanguageCode(
+      'IMPLICIT_DYNAMIC_RETURN', "Missing return type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_TYPE = LanguageCode(
+      'IMPLICIT_DYNAMIC_TYPE', "Missing type arguments for generic type '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_VARIABLE = LanguageCode(
+      'IMPLICIT_DYNAMIC_VARIABLE', "Missing variable type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  @override
+  final ErrorType type = ErrorType.COMPILE_TIME_ERROR;
+
+  /**
+   * Initialize a newly created language code to have the given [type] and
+   * [name].
+   *
+   * The message associated with the code will be created from the given
+   * [message] template. The correction associated with the code will be
+   * created from the optional [correction] template.
+   */
+  const LanguageCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs ?? false);
+
+  @override
+  ErrorSeverity get errorSeverity => type.severity;
+}
+
+/**
  * The error codes used for static warnings. The convention for this class is
  * for the name of the error code to indicate the problem that caused the error
  * to be generated and for the error message to explain what is wrong and, when
@@ -10699,77 +10781,6 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
  * levels, so they are grouped for clarity.
  */
 class StrongModeCode extends ErrorCode {
-  /**
-   * This is appended to the end of an error message about implicit dynamic.
-   *
-   * The idea is to make sure the user is aware that this error message is the
-   * result of turning on a particular option, and they are free to turn it
-   * back off.
-   */
-  static const String _implicitDynamicCorrection =
-      "Try adding an explicit type like 'dynamic', or "
-      "enable implicit-dynamic in your analysis options file.";
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FIELD',
-      "Missing field type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FUNCTION',
-      "Missing type arguments for generic function '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_INVOKE',
-      "Missing type arguments for calling generic function type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_LIST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_LIST_LITERAL',
-      "Missing type argument for list literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_MAP_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_MAP_LITERAL',
-      "Missing type arguments for map literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_METHOD',
-      "Missing type arguments for generic method '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_PARAMETER',
-      "Missing parameter type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_RETURN = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_RETURN',
-      "Missing return type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_TYPE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_TYPE',
-      "Missing type arguments for generic type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_VARIABLE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_VARIABLE',
-      "Missing variable type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
   /*
    * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than
    * hints and then clean up the function _errorSeverity in

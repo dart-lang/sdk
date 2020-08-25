@@ -1,0 +1,28 @@
+mixin TestMixin<R, T> {
+  Future<T> test(Future<R> fetch) async {}
+}
+
+class PagingResponse<T> {
+  final PagingResponseData<T> data;
+  PagingResponse(this.data);
+}
+
+class PagingResponseData<T> {
+  final List<T> data;
+  PagingResponseData(this.data);
+}
+
+class Response<T> {
+  final T data;
+  Response(this.data);
+}
+
+class Class1 with TestMixin<Response<String>, String> {
+  _test() {}
+}
+
+class Class2 with TestMixin<PagingResponse<String>, String> {
+  _test() {}
+}
+
+main() {}

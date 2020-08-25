@@ -509,8 +509,10 @@ NonNullableLateDefinitelyUnassignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail
-NonNullableOptOut/analyzerCode: Fail
-NonNullableOptOut/example: Fail
+NonNullableOptOutExplicit/analyzerCode: Fail
+NonNullableOptOutExplicit/example: Fail
+NonNullableOptOutImplicit/analyzerCode: Fail
+NonNullableOptOutImplicit/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail

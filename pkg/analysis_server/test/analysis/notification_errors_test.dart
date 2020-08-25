@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
@@ -13,6 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../src/utilities/mock_packages.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -22,6 +24,7 @@ void main() {
 
 @reflectiveTest
 class NotificationErrorsTest extends AbstractAnalysisTest {
+  Folder pedanticFolder;
   Map<String, List<AnalysisError>> filesErrors = {};
 
   @override
@@ -44,6 +47,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
+    pedanticFolder = MockPackages.instance.addPedantic(resourceProvider);
   }
 
   Future<void> test_analysisOptionsFile() async {
@@ -68,6 +72,38 @@ linter:
     expect(error.location.file, filePath);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
+  Future<void> test_analysisOptionsFile_packageInclude() async {
+    var filePath = join(projectPath, 'analysis_options.yaml');
+    var analysisOptionsFile = newFile(filePath, content: '''
+include: package:pedantic/analysis_options.yaml
+''').path;
+
+    var request =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    // Verify there's an error for the import.
+    var errors = filesErrors[analysisOptionsFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+
+    // Write a package file that allows resolving the include.
+    newFile('$projectPath/.packages', content: '''
+pedantic:${pedanticFolder.toUri()}
+''');
+
+    // Ensure the errors disappear.
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    errors = filesErrors[analysisOptionsFile];
+    expect(errors, hasLength(0));
   }
 
   Future<void> test_androidManifestFile() async {

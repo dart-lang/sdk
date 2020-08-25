@@ -1,6 +1,7 @@
 ## 0.40.1-dev
 * Added `LocalVariableElement.hasInitializer`,
   `PropertyInducingElement.hasInitializer`, `ParameterElement.hasDefaultValue`.
+* `ElementImpl.toString()` uses `getDisplayString(withNullability: true)`.
 
 ## 0.40.0
 * Added `LibraryElement.featureSet`.

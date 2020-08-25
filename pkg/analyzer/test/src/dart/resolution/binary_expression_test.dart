@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -117,6 +118,19 @@ f(bool a, bool b) {
     );
   }
 
+  test_minus_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a - f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
   test_minus_int_double() async {
     await assertNoErrorsInCode(r'''
 f(int a, double b) {
@@ -149,6 +163,19 @@ f(int a, int b) {
       ),
       type: 'int',
     );
+  }
+
+  test_mod_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a % f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
   }
 
   test_mod_int_double() async {
@@ -185,6 +212,43 @@ f(int a, int b) {
     );
   }
 
+  test_plus_double_context_double() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  h(a + f());
+}
+h(double x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_double_context_int() async {
+    await assertErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  h(a + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 45, 7),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_double_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(double a) {
+  a + f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
   test_plus_double_dynamic() async {
     await assertNoErrorsInCode(r'''
 f(double a, dynamic b) {
@@ -200,6 +264,74 @@ f(double a, dynamic b) {
       ),
       type: 'double',
     );
+  }
+
+  test_plus_int_context_double() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a + f());
+}
+h(double x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'double' : 'num']);
+  }
+
+  test_plus_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a + f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_plus_int_context_int_target_rewritten() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int Function() a) {
+  h(a() + f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_int_context_int_via_extension_explicit() async {
+    await assertErrorsInCode('''
+extension E on int {
+  String operator+(num x) => '';
+}
+T f<T>() => throw Error();
+g(int a) {
+  h(E(a) + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 98, 10),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_int_context_none() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  a + f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
   }
 
   test_plus_int_double() async {
@@ -306,6 +438,78 @@ f(int a, num b) {
       ),
       type: 'num',
     );
+  }
+
+  test_plus_num_context_int() async {
+    await assertErrorsInCode(
+        '''
+T f<T>() => throw Error();
+g(num a) {
+  h(a + f());
+}
+h(int x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 7),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_other_context_int() async {
+    await assertErrorsInCode(
+        '''
+abstract class A {
+  num operator+(String x);
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(a + f());
+}
+h(int x) {}
+''',
+        expectedErrorsByNullability(nullable: [
+          error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 7),
+        ], legacy: []));
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['String']);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43114')
+  test_plus_other_context_int_via_extension_explicit() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(num x) => '';
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(E(a) + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 10),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
+  }
+
+  test_plus_other_context_int_via_extension_implicit() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {
+  String operator+(num x) => '';
+}
+T f<T>() => throw Error();
+g(A a) {
+  h(a + f());
+}
+h(int x) {}
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 105, 7),
+    ]);
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['num']);
   }
 
   test_plus_other_double() async {
@@ -417,6 +621,19 @@ f(int a, int b) {
       ),
       type: 'double',
     );
+  }
+
+  test_star_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  h(a * f());
+}
+h(int x) {}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
   }
 
   test_star_int_double() async {

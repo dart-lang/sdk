@@ -270,6 +270,7 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
 
     left.accept(_resolver);
+    left = node.leftOperand; // In case it was rewritten
 
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);
@@ -279,7 +280,13 @@ class BinaryExpressionResolver {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
-      InferenceContext.setType(right, rightParam.type);
+      InferenceContext.setType(
+          right,
+          _typeSystem.refineNumericInvocationContext(
+              left.staticType,
+              node.staticElement,
+              InferenceContext.getContext(node),
+              rightParam.type));
     }
 
     right.accept(_resolver);

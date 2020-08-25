@@ -1651,7 +1651,7 @@ class OutlineBuilder extends StackListenerImpl {
           !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
-            libraryBuilder.enableNonNullableInLibrary) {
+            libraryBuilder.isNonNullableByDefault) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.

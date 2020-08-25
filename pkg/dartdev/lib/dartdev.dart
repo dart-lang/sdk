@@ -8,8 +8,8 @@ import 'dart:isolate';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:dart_style/src/cli/format_command.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dart_style/src/cli/format_command.dart';
 import 'package:nnbd_migration/migration_cli.dart';
 import 'package:usage/usage.dart';
 
@@ -269,9 +269,9 @@ class DartdevRunner<int> extends CommandRunner {
     argParser.addMultiOption(
       experimentFlagName,
       valueHelp: 'experiment',
-      allowed: features.map((feature) => feature.enableString),
       allowedHelp: verbose ? allowedHelp : null,
-      help: 'Enable one or more experimental features.',
+      help: 'Enable one or more experimental features '
+          '(see dart.dev/go/experiments).',
     );
   }
 }

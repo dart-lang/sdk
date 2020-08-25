@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:meta/meta.dart';
@@ -315,6 +316,24 @@ abstract class TypeSystem2 implements public.TypeSystem {
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType, MethodElement operatorElement);
 
+  /// Determines the context type for the parameters of a method invocation
+  /// where the type of the target is [targetType], the method being invoked is
+  /// [methodElement], the context surrounding the method invocation is
+  /// [invocationContext], and the context type produced so far by resolution is
+  /// [currentType].
+  DartType refineNumericInvocationContext(DartType targetType,
+      Element methodElement, DartType invocationContext, DartType currentType);
+
+  /// Determines the type of a method invocation where the type of the target is
+  /// [targetType], the method being invoked is [methodElement], the types of
+  /// the arguments passed to the method are [argumentTypes], and the type
+  /// produced so far by resolution is [currentType].
+  DartType refineNumericInvocationType(
+      DartType targetType,
+      MethodElement methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType);
+
   @override
   DartType resolveToBound(DartType type) {
     if (type is TypeParameterTypeImpl) {
@@ -406,7 +425,7 @@ class TypeSystemImpl extends TypeSystem2 {
   bool strictInference;
 
   @override
-  final TypeProvider typeProvider;
+  final TypeProviderImpl typeProvider;
 
   /// The cached instance of `Object?`.
   InterfaceTypeImpl _objectQuestion;
@@ -430,8 +449,9 @@ class TypeSystemImpl extends TypeSystem2 {
     @required this.implicitCasts,
     @required bool isNonNullableByDefault,
     @required this.strictInference,
-    @required this.typeProvider,
-  }) : super(isNonNullableByDefault: isNonNullableByDefault) {
+    @required TypeProvider typeProvider,
+  })  : typeProvider = typeProvider as TypeProviderImpl,
+        super(isNonNullableByDefault: isNonNullableByDefault) {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
     _leastUpperBoundHelper = LeastUpperBoundHelper(this);
     _subtypeHelper = SubtypeHelper(this);
@@ -1357,6 +1377,33 @@ class TypeSystemImpl extends TypeSystem2 {
     }
   }
 
+  @override
+  DartType refineNumericInvocationContext(DartType targetType,
+      Element methodElement, DartType invocationContext, DartType currentType) {
+    if (methodElement is MethodElement && isNonNullableByDefault) {
+      return _refineNumericInvocationContextNullSafe(
+          targetType, methodElement, invocationContext, currentType);
+    } else {
+      // No special rules apply.
+      return currentType;
+    }
+  }
+
+  @override
+  DartType refineNumericInvocationType(
+      DartType targetType,
+      Element methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType) {
+    if (methodElement is MethodElement && isNonNullableByDefault) {
+      return _refineNumericInvocationTypeNullSafe(
+          targetType, methodElement, argumentTypes, currentType);
+    } else {
+      // No special rules apply.
+      return currentType;
+    }
+  }
+
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
   /// `Object?` with `Null` or `Never` and all contravariant occurrences of
   /// `Null` or `Never` with `Object` or `Object?`.
@@ -1514,11 +1561,122 @@ class TypeSystemImpl extends TypeSystem2 {
     return currentType;
   }
 
+  DartType _refineNumericInvocationContextNullSafe(
+      DartType targetType,
+      MethodElement methodElement,
+      DartType invocationContext,
+      DartType currentType) {
+    // If the method being invoked comes from an extension, don't refine the
+    // type because we can only make guarantees about methods defined in the
+    // SDK, and the numeric methods we refine are all instance methods.
+    if (methodElement.enclosingElement is ExtensionElement) {
+      return currentType;
+    }
+
+    // Sometimes the analyzer represents the unknown context as `null`.
+    invocationContext ??= UnknownInferredType.instance;
+
+    // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2 or
+    // e1.remainder(e2)...
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
+      // ...where C is the context type of e and T is the static type of e1, and
+      // where T is a non-Never subtype of num...
+      // Notes:
+      // - We don't have to check for Never because if T is Never, the method
+      //   element will fail to resolve so we'll never reach here.
+      // - We actually check against `num?` rather than `num`.  It's equivalent
+      //   from the standpoint of correctness (since it's illegal to call these
+      //   methods on nullable types, and that's checked for elsewhere), but
+      //   better from the standpoint of error recovery (since it allows e.g.
+      //   `int? + int` to resolve to `int` rather than `num`).
+      var c = invocationContext;
+      var t = targetType;
+      assert(!t.isBottom);
+      var numType = typeProvider.numType;
+      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+        // Then:
+        // - If int <: C, not num <: C, and T <: int, then the context type of
+        //   e2 is int.
+        // (Note: as above, we check the type of T against `int?`, because it's
+        // equivalent and leads to better error recovery.)
+        var intType = typeProvider.intType;
+        if (isSubtypeOf(intType, c) &&
+            !isSubtypeOf(numType, c) &&
+            isSubtypeOf(t, typeProvider.intTypeQuestion)) {
+          return intType;
+        }
+        // - If double <: C, not num <: C, and not T <: double, then the context
+        //   type of e2 is double.
+        // (Note: as above, we check the type of T against `double?`, because
+        // it's equivalent and leads to better error recovery.)
+        var doubleType = typeProvider.doubleType;
+        if (isSubtypeOf(doubleType, c) &&
+            !isSubtypeOf(numType, c) &&
+            !isSubtypeOf(t, typeProvider.doubleTypeQuestion)) {
+          return doubleType;
+        }
+        // Otherwise, the context type of e2 is num.
+        return numType;
+      }
+    }
+    // If e is an expression of the form e1.clamp(e2, e3)...
+    if (methodElement.name == 'clamp') {
+      // ...where C is the context type of e and T is the static type of e1
+      // where T is a non-Never subtype of num...
+      // Notes:
+      // - We don't have to check for Never because if T is Never, the method
+      //   element will fail to resolve so we'll never reach here.
+      // - We actually check against `num?` rather than `num`.  It's
+      //   equivalent from the standpoint of correctness (since it's illegal
+      //   to call `num.clamp` on a nullable type or to pass it a nullable
+      //   type as an argument, and that's checked for elsewhere), but better
+      //   from the standpoint of error recovery (since it allows e.g.
+      //   `int?.clamp(e2, e3)` to give the same context to `e2` and `e3` that
+      //   `int.clamp(e2, e3` would).
+      var c = invocationContext;
+      var t = targetType;
+      assert(!t.isBottom);
+      var numType = typeProvider.numType;
+      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+        // Then:
+        // - If int <: C, not num <: C, and T <: int, then the context type of
+        //   e2 and e3 is int.
+        // (Note: as above, we check the type of T against `int?`, because it's
+        // equivalent and leads to better error recovery.)
+        var intType = typeProvider.intType;
+        if (isSubtypeOf(intType, c) &&
+            !isSubtypeOf(numType, c) &&
+            isSubtypeOf(t, typeProvider.intTypeQuestion)) {
+          return intType;
+        }
+        // - If double <: C, not num <: C, and T <: double, then the context
+        //   type of e2 and e3 is double.
+        var doubleType = typeProvider.doubleType;
+        if (isSubtypeOf(doubleType, c) &&
+            !isSubtypeOf(numType, c) &&
+            isSubtypeOf(t, typeProvider.doubleTypeQuestion)) {
+          return doubleType;
+        }
+        // - Otherwise the context type of e2 an e3 is num.
+        return numType;
+      }
+    }
+    // No special rules apply.
+    return currentType;
+  }
+
   DartType _refineNumericInvocationTypeNullSafe(
       DartType targetType,
       MethodElement methodElement,
       List<DartType> argumentTypes,
       DartType currentType) {
+    // If the method being invoked comes from an extension, don't refine the
+    // type because we can only make guarantees about methods defined in the
+    // SDK, and the numeric methods we refine are all instance methods.
+    if (methodElement.enclosingElement is ExtensionElement) {
+      return currentType;
+    }
+
     // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
     // e1 % e2 or e1.remainder(e2)...
     if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
@@ -1533,9 +1691,7 @@ class TypeSystemImpl extends TypeSystem2 {
       //   `int? + int` to resolve to `int` rather than `num`).
       var t = targetType;
       assert(!t.isBottom);
-      var numType = typeProvider.numType;
-      var numTypeQuestion = makeNullable(numType as InterfaceTypeImpl);
-      if (isSubtypeOf(t, numTypeQuestion)) {
+      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
         // ...and where the static type of e2 is S and S is assignable to num.
         // (Note: we don't have to check that S is assignable to num because
         // this is required by the signature of the method.)
@@ -1547,8 +1703,7 @@ class TypeSystemImpl extends TypeSystem2 {
           // (Note: as above, we check against `double?` because it's equivalent
           // and leads to better error recovery.)
           var doubleType = typeProvider.doubleType;
-          var doubleTypeQuestion =
-              makeNullable(doubleType as InterfaceTypeImpl);
+          var doubleTypeQuestion = typeProvider.doubleTypeQuestion;
           if (isSubtypeOf(t, doubleTypeQuestion)) {
             return doubleType;
           }
@@ -1561,15 +1716,14 @@ class TypeSystemImpl extends TypeSystem2 {
           // - If T <: int, S <: int and not S <: Never, then the static type of
           //   e is int.
           // (As above, we check against `int?` for error recovery.)
-          var intType = typeProvider.intType;
-          var intTypeQuestion = makeNullable(intType as InterfaceTypeImpl);
+          var intTypeQuestion = typeProvider.intTypeQuestion;
           if (!s.isBottom &&
               isSubtypeOf(t, intTypeQuestion) &&
               isSubtypeOf(s, intTypeQuestion)) {
-            return intType;
+            return typeProvider.intType;
           }
           // - Otherwise the static type of e is num.
-          return numType;
+          return typeProvider.numType;
         }
       }
     }
@@ -1582,45 +1736,44 @@ class TypeSystemImpl extends TypeSystem2 {
         var t2 = argumentTypes[0];
         var t3 = argumentTypes[1];
         // ...and where T1, T2, and T3 are all non-Never subtypes of num.
-        // (Note: we actually check against `num?` rather than `num`.  It's
-        // equivalent from the standpoint of correctness (since it's illegal to
-        // call `num.clamp` on a nullable type or to pass it a nullable type
-        // as an argument, and that's checked for elsewhere), but better from
-        // the standpoint of error recovery (since it allows e.g.
-        // `int?.clamp(int, int)` to resolve to `int` rather than `num`).
-        var numType = typeProvider.numType;
-        var numTypeQuestion = makeNullable(numType as InterfaceTypeImpl);
-        if (!t1.isBottom &&
-            isSubtypeOf(t1, numTypeQuestion) &&
-            !t2.isBottom &&
-            isSubtypeOf(t2, numTypeQuestion) &&
-            !t3.isBottom &&
-            isSubtypeOf(t3, numTypeQuestion)) {
+        // Notes:
+        // - We don't have to check T1 for Never because if T1 is Never, the
+        //   method element will fail to resolve so we'll never reach here.
+        // - We actually check against `num?` rather than `num`.  It's
+        //   equivalent from the standpoint of correctness (since it's illegal
+        //   to call `num.clamp` on a nullable type or to pass it a nullable
+        //   type as an argument, and that's checked for elsewhere), but better
+        //   from the standpoint of error recovery (since it allows e.g.
+        //   `int?.clamp(int, int)` to resolve to `int` rather than `num`).
+        // - We don't check that T2 and T3 are subtypes of num because the
+        //   signature of `num.clamp` requires it.
+        var numTypeQuestion = typeProvider.numTypeQuestion;
+        if (isSubtypeOf(t1, numTypeQuestion) && !t2.isBottom && !t3.isBottom) {
+          assert(!t1.isBottom);
+          assert(isSubtypeOf(t2, numTypeQuestion));
+          assert(isSubtypeOf(t3, numTypeQuestion));
           // Then:
           // - If T1, T2 and T3 are all subtypes of int, the static type of e is
           //   int.
           // (Note: as above, we check against `int?` because it's equivalent
           // and leads to better error recovery.)
-          var intType = typeProvider.intType;
-          var intTypeQuestion = makeNullable(intType as InterfaceTypeImpl);
+          var intTypeQuestion = typeProvider.intTypeQuestion;
           if (isSubtypeOf(t1, intTypeQuestion) &&
               isSubtypeOf(t2, intTypeQuestion) &&
               isSubtypeOf(t3, intTypeQuestion)) {
-            return intType;
+            return typeProvider.intType;
           }
           // If T1, T2 and T3 are all subtypes of double, the static type of e
           // is double.
           // (As above, we check against `double?` for error recovery.)
-          var doubleType = typeProvider.doubleType;
-          var doubleTypeQuestion =
-              makeNullable(doubleType as InterfaceTypeImpl);
+          var doubleTypeQuestion = typeProvider.doubleTypeQuestion;
           if (isSubtypeOf(t1, doubleTypeQuestion) &&
               isSubtypeOf(t2, doubleTypeQuestion) &&
               isSubtypeOf(t3, doubleTypeQuestion)) {
-            return doubleType;
+            return typeProvider.doubleType;
           }
           // Otherwise the static type of e is num.
-          return numType;
+          return typeProvider.numType;
         }
       }
     }

@@ -443,6 +443,7 @@ oracle
 outbound
 overlay
 pack
+paging
 party
 pause
 paused
@@ -500,6 +501,7 @@ reflective
 regenerate
 regressions
 reify
+released
 reload
 remap
 remaps
@@ -622,6 +624,7 @@ unregistered
 untransformed
 untrimmed
 unusual
+unversioned
 upload
 uppercase
 upward
@@ -633,6 +636,7 @@ v2
 val
 vars
 verbatim
+versioned
 versioning
 waited
 waiting

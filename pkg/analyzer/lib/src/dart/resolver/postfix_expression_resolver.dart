@@ -10,6 +10,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -192,6 +193,16 @@ class PostfixExpressionResolver {
 
   void _resolveNullCheck(PostfixExpressionImpl node) {
     var operand = node.operand;
+
+    if (operand is SuperExpression) {
+      _resolver.errorReporter.reportErrorForNode(
+        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        node,
+      );
+      _inferenceHelper.recordStaticType(operand, DynamicTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, DynamicTypeImpl.instance);
+      return;
+    }
 
     var contextType = InferenceContext.getContext(node);
     if (contextType != null) {

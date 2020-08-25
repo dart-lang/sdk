@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -236,6 +237,38 @@ int g() => f(null)!;
       findNode.postfix('f(null)!'),
       element: null,
       type: 'int',
+    );
+  }
+
+  test_nullCheck_superExpression() async {
+    await assertErrorsInCode(r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  void bar() {
+    super!.foo();
+  }
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 6),
+    ]);
+
+    assertTypeDynamic(findNode.super_('super!'));
+
+    assertPostfixExpression(
+      findNode.postfix('super!'),
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('foo();'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
     );
   }
 

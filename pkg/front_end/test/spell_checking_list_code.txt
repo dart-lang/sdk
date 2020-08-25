@@ -745,6 +745,7 @@ oked
 op
 opt
 optimizations
+opting
 option1
 option2
 opts
@@ -907,11 +908,13 @@ relatively
 relativize
 relax
 relaxes
+released
 relink
 remapped
 remedy
 removal
 remover
+render
 reparse
 repeating
 replacements

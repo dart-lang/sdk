@@ -184,6 +184,54 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   }
   sb.write('''
 };
+
+const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
+''');
+  for (String key in keys) {
+    int major;
+    int minor;
+    String enabledIn =
+        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    if (enabledIn != null) {
+      List<String> split = enabledIn.split(".");
+      major = int.parse(split[0]);
+      minor = int.parse(split[1]);
+    } else {
+      major = currentVersionMajor;
+      minor = currentVersionMinor;
+    }
+    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: '
+        'const Version($major, $minor),');
+  }
+  sb.write('''
+};
+
+const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
+''');
+  for (String key in keys) {
+    int major;
+    int minor;
+    String enabledIn =
+        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    String experimentalReleaseVersion = getAsVersionNumberString(
+        (features[key] as YamlMap)['experimentalReleaseVersion']);
+    if (experimentalReleaseVersion != null) {
+      List<String> split = experimentalReleaseVersion.split(".");
+      major = int.parse(split[0]);
+      minor = int.parse(split[1]);
+    } else if (enabledIn != null) {
+      List<String> split = enabledIn.split(".");
+      major = int.parse(split[0]);
+      minor = int.parse(split[1]);
+    } else {
+      major = currentVersionMajor;
+      minor = currentVersionMinor;
+    }
+    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: '
+        'const Version($major, $minor),');
+  }
+  sb.write('''
+};
   
 ''');
 

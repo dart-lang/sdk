@@ -635,13 +635,25 @@ class ResolverVisitor extends ScopedVisitor {
           positional.skip(normalCount).take(optionalCount);
       Iterable<Expression> named =
           arguments.skipWhile((l) => l is! NamedExpression);
+      var parent = node.parent;
+      DartType targetType;
+      Element methodElement;
+      DartType invocationContext;
+      if (parent is MethodInvocation) {
+        targetType = parent.realTarget?.staticType;
+        methodElement = parent.methodName.staticElement;
+        invocationContext = InferenceContext.getContext(parent);
+      }
 
       //TODO(leafp): Consider using the parameter elements here instead.
       //TODO(leafp): Make sure that the parameter elements are getting
       // setup correctly with inference.
       int index = 0;
       for (Expression argument in required) {
-        InferenceContext.setType(argument, normalParameterTypes[index++]);
+        InferenceContext.setType(
+            argument,
+            typeSystem.refineNumericInvocationContext(targetType, methodElement,
+                invocationContext, normalParameterTypes[index++]));
       }
       index = 0;
       for (Expression argument in optional) {
