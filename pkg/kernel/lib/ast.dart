@@ -3059,8 +3059,32 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nonNullable);
     }
-    context.typeEnvironment
-        .typeError(this, '$type is not a subtype of $superclass');
+
+    // The static type of this expression is not a subtype of [superclass]. The
+    // means that the static type of this expression is not the same as when
+    // the parent [PropertyGet] or [MethodInvocation] was created.
+    //
+    // For instance when cloning generic mixin methods, the substitution can
+    // render some of the code paths as dead code:
+    //
+    //     mixin M<T> {
+    //       int method(T t) => t is String ? t.length : 0;
+    //     }
+    //     class C with M<int> {}
+    //
+    // The mixin transformation will clone the `M.method` method into the
+    // unnamed mixin application for `Object&M<int>` as this:
+    //
+    //     int method(int t) => t is String ? t.length : 0;
+    //
+    // Now `t.length`, which was originally an access to `String.length` on a
+    // receiver of type `T & String`, is an access to `String.length` on `int`.
+    // When computing the static type of `t.length` we will try to compute the
+    // type of `int` as an instance of `String`, and we do not find it to be
+    // an instance of `String`.
+    //
+    // To resolve this case we compute the type of `t.length` to be the type
+    // as if accessed on an unknown subtype `String`.
     return context.typeEnvironment.coreTypes
         .rawType(superclass, context.nonNullable);
   }
