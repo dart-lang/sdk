@@ -91,19 +91,19 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   AbstractBool isFixedLengthJsIndexable(covariant PowersetValue value) =>
-      _powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue
+      _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? AbstractBool.False
           : _abstractValueDomain.isFixedLengthJsIndexable(value._abstractValue);
 
   @override
   AbstractBool isJsIndexableAndIterable(covariant PowersetValue value) =>
-      _powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue
+      _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? AbstractBool.False
           : _abstractValueDomain.isJsIndexableAndIterable(unwrapOrNull(value));
 
   @override
   AbstractBool isJsIndexable(covariant PowersetValue value) =>
-      _powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue
+      _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? AbstractBool.False
           : _abstractValueDomain.isJsIndexable(value._abstractValue);
 
@@ -113,26 +113,32 @@ class PowersetDomain implements AbstractValueDomain {
       _abstractValueDomain.locateSingleMember(
           receiver._abstractValue, selector);
 
-  //TODO(coam): for now we are delegating this implementation to the CommonMasks domain
   @override
   AbstractBool isIn(
-      covariant PowersetValue subset, covariant PowersetValue superset) {
-    AbstractBool wrappedBool = _abstractValueDomain.isIn(
-        subset._abstractValue, superset._abstractValue);
-    return wrappedBool;
-  }
+          covariant PowersetValue subset, covariant PowersetValue superset) =>
+      AbstractBool.strengthen(
+          _powersetBitsDomain.isIn(
+              subset._powersetBits, superset._powersetBits),
+          _abstractValueDomain.isIn(
+              subset._abstractValue, superset._abstractValue));
 
   @override
   AbstractBool needsNoSuchMethodHandling(
           covariant PowersetValue receiver, Selector selector) =>
-      _abstractValueDomain.needsNoSuchMethodHandling(
-          receiver._abstractValue, selector);
+      AbstractBool.strengthen(
+          _powersetBitsDomain.needsNoSuchMethodHandling(
+              receiver._powersetBits, selector),
+          _abstractValueDomain.needsNoSuchMethodHandling(
+              receiver._abstractValue, selector));
 
   @override
   AbstractBool isTargetingMember(
           covariant PowersetValue receiver, MemberEntity member, Name name) =>
-      _abstractValueDomain.isTargetingMember(
-          receiver._abstractValue, member, name);
+      AbstractBool.strengthen(
+          _powersetBitsDomain.isTargetingMember(
+              receiver._powersetBits, member, name),
+          _abstractValueDomain.isTargetingMember(
+              receiver._abstractValue, member, name));
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) {
@@ -185,7 +191,7 @@ class PowersetDomain implements AbstractValueDomain {
   @override
   AbstractValue getDictionaryValueForKey(
       covariant PowersetValue value, String key) {
-    if (_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue) {
+    if (_powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse) {
       return dynamicType;
     }
     AbstractValue abstractValue = _abstractValueDomain.getDictionaryValueForKey(
@@ -195,7 +201,7 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   bool containsDictionaryKey(covariant PowersetValue value, String key) =>
-      _powersetBitsDomain.isNotOther(value._powersetBits).isPotentiallyFalse &&
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
       _abstractValueDomain.containsDictionaryKey(value._abstractValue, key);
 
   @override
@@ -221,12 +227,12 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   bool isDictionary(covariant PowersetValue value) =>
-      !_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue &&
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
       _abstractValueDomain.isDictionary(value._abstractValue);
 
   @override
   AbstractValue getMapValueType(covariant PowersetValue value) {
-    if (_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue) {
+    if (_powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse) {
       return dynamicType;
     }
     AbstractValue abstractValue =
@@ -236,7 +242,7 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   AbstractValue getMapKeyType(covariant PowersetValue value) {
-    if (_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue) {
+    if (_powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse) {
       return dynamicType;
     }
     AbstractValue abstractValue =
@@ -263,12 +269,12 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   bool isMap(covariant PowersetValue value) =>
-      !_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue &&
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
       _abstractValueDomain.isMap(value._abstractValue);
 
   @override
   AbstractValue getSetElementType(covariant PowersetValue value) {
-    if (_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue) {
+    if (_powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse) {
       return dynamicType;
     }
     AbstractValue abstractValue =
@@ -293,18 +299,18 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   bool isSet(covariant PowersetValue value) =>
-      !_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue &&
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
       _abstractValueDomain.isSet(value._abstractValue);
 
   @override
   int getContainerLength(covariant PowersetValue value) =>
-      _powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue
+      _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? null
           : _abstractValueDomain.getContainerLength(value._abstractValue);
 
   @override
   AbstractValue getContainerElementType(covariant PowersetValue value) {
-    if (_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue) {
+    if (_powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse) {
       return dynamicType;
     }
     AbstractValue abstractValue =
@@ -331,7 +337,7 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   bool isContainer(covariant PowersetValue value) =>
-      !_powersetBitsDomain.isNotOther(value._powersetBits).isDefinitelyTrue &&
+      _powersetBitsDomain.isOther(value._powersetBits).isPotentiallyTrue &&
       _abstractValueDomain.isContainer(value._abstractValue);
 
   // TODO(coam): this can be more precise if we build a ConstantValue visitor
@@ -355,9 +361,8 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   AbstractBool containsAll(covariant PowersetValue a) =>
-      a._powersetBits != _powersetBitsDomain.powersetTop
-          ? AbstractBool.False
-          : _abstractValueDomain.containsAll(a._abstractValue);
+      AbstractBool.strengthen(_powersetBitsDomain.containsAll(a._powersetBits),
+          _abstractValueDomain.containsAll(a._abstractValue));
 
   @override
   AbstractBool areDisjoint(
@@ -571,11 +576,10 @@ class PowersetDomain implements AbstractValueDomain {
       AbstractBool.strengthen(_powersetBitsDomain.isExact(value._powersetBits),
           _abstractValueDomain.isExact(value._abstractValue));
 
-  // TODO(coam): For now we delegate this to the CommonMasks domain
   @override
-  AbstractBool isEmpty(covariant PowersetValue value) {
-    return _abstractValueDomain.isEmpty(value._abstractValue);
-  }
+  AbstractBool isEmpty(covariant PowersetValue value) =>
+      AbstractBool.strengthen(_powersetBitsDomain.isEmpty(value._powersetBits),
+          _abstractValueDomain.isEmpty(value._abstractValue));
 
   @override
   AbstractBool isInstanceOf(covariant PowersetValue value, ClassEntity cls) =>

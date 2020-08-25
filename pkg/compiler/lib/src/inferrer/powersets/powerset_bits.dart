@@ -12,11 +12,11 @@ import '../../universe/selector.dart';
 import '../../world.dart';
 import '../abstract_value_domain.dart';
 
+/// This class is used as an API by the powerset abstract value domain to help
+/// implement some queries. It stores the bitmasks as integers and has the
+/// advantage that the operations needed are relatively fast. This will pack
+/// multiple powerset domains into a single integer.
 class PowersetBitsDomain {
-  // This class is used as an API by the powerset abstract value domain to help implement some queries.
-  // It stores the bitmasks as integers and has the advantage that the operations needed
-  // are relatively fast. This will pack multiple powerset domains into a single integer
-
   final JClosedWorld _closedWorld;
 
   static const int _trueIndex = 0;
@@ -54,10 +54,20 @@ class PowersetBitsDomain {
       isDefinitelyFalse(value) ||
       isDefinitelyNull(value);
 
+  /// Returns `true` if only singleton bits are set and `false` otherwise.
+  bool isPrecise(int value) => !isPotentiallyOther(value);
+
   AbstractBool isOther(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
-  AbstractBool isNotOther(int value) =>
-      AbstractBool.trueOrMaybe(!isPotentiallyOther(value));
+
+  AbstractBool isIn(int subset, int superset) {
+    if (union(subset, superset) == superset) {
+      if (isPrecise(superset)) return AbstractBool.True;
+    } else {
+      if (isPrecise(subset)) return AbstractBool.False;
+    }
+    return AbstractBool.Maybe;
+  }
 
   AbstractBool needsNoSuchMethodHandling(int receiver, Selector selector) =>
       AbstractBool.Maybe;
@@ -106,7 +116,7 @@ class PowersetBitsDomain {
   }
 
   AbstractBool areDisjoint(int a, int b) =>
-      AbstractBool.trueOrMaybe(a & b == powersetBottom);
+      AbstractBool.trueOrMaybe(intersection(a, b) == powersetBottom);
 
   int intersection(int a, int b) {
     return a & b;
@@ -120,8 +130,7 @@ class PowersetBitsDomain {
 
   AbstractBool isStringOrNull(int value) => isString(excludeNull(value));
 
-  AbstractBool isString(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isString(int value) => isOther(value);
 
   AbstractBool isBooleanOrNull(int value) => isBoolean(excludeNull(value));
 
@@ -131,64 +140,49 @@ class PowersetBitsDomain {
 
   AbstractBool isDoubleOrNull(int value) => isDouble(excludeNull(value));
 
-  AbstractBool isDouble(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isDouble(int value) => isOther(value);
 
   AbstractBool isNumberOrNull(int value) => isNumber(excludeNull(value));
 
-  AbstractBool isNumber(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isNumber(int value) => isOther(value);
 
   AbstractBool isIntegerOrNull(int value) => isInteger(excludeNull(value));
 
   AbstractBool isPositiveIntegerOrNull(int value) =>
       isPositiveInteger(excludeNull(value));
 
-  AbstractBool isPositiveInteger(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isPositiveInteger(int value) => isOther(value);
 
-  AbstractBool isUInt31(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isUInt31(int value) => isOther(value);
 
-  AbstractBool isUInt32(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isUInt32(int value) => isOther(value);
 
-  AbstractBool isInteger(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isInteger(int value) => isOther(value);
 
   AbstractBool isInterceptor(int value) => AbstractBool.Maybe;
 
-  AbstractBool isPrimitiveString(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isPrimitiveString(int value) => isOther(value);
 
-  AbstractBool isArray(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isArray(int value) => isOther(value);
 
-  AbstractBool isMutableIndexable(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isMutableIndexable(int value) => isOther(value);
 
-  AbstractBool isMutableArray(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isMutableArray(int value) => isOther(value);
 
-  AbstractBool isExtendableArray(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isExtendableArray(int value) => isOther(value);
 
-  AbstractBool isFixedArray(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isFixedArray(int value) => isOther(value);
 
-  AbstractBool isIndexablePrimitive(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isIndexablePrimitive(int value) => isOther(value);
 
-  AbstractBool isPrimitiveArray(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isPrimitiveArray(int value) => isOther(value);
 
   AbstractBool isPrimitiveBoolean(int value) => isPotentiallyBoolean(value)
       ? AbstractBool.trueOrMaybe(
           isDefinitelyTrue(value) || isDefinitelyFalse(value))
       : AbstractBool.False;
 
-  AbstractBool isPrimitiveNumber(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool isPrimitiveNumber(int value) => isOther(value);
 
   AbstractBool isPrimitive(int value) =>
       AbstractBool.trueOrMaybe(isSingleton(value));
@@ -202,12 +196,15 @@ class PowersetBitsDomain {
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 
   AbstractBool isEmpty(int value) =>
-      AbstractBool.trueOrFalse(value == powersetBottom);
+      AbstractBool.trueOrMaybe(value == powersetBottom);
 
   AbstractBool isInstanceOf(int value, ClassEntity cls) => AbstractBool.Maybe;
 
   AbstractBool isInstanceOfOrNull(int value, ClassEntity cls) =>
       AbstractBool.Maybe;
+
+  AbstractBool containsAll(int value) =>
+      AbstractBool.maybeOrFalse(value == powersetTop);
 
   AbstractBool containsOnlyType(int value, ClassEntity cls) =>
       AbstractBool.Maybe;
@@ -222,8 +219,7 @@ class PowersetBitsDomain {
     return value & (powersetTop - nullMask);
   }
 
-  AbstractBool couldBeTypedArray(int value) =>
-      AbstractBool.maybeOrFalse(isPotentiallyOther(value));
+  AbstractBool couldBeTypedArray(int value) => isOther(value);
 
   AbstractBool isTypedArray(int value) => AbstractBool.Maybe;
 
