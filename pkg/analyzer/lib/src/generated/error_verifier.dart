@@ -773,7 +773,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         if (parameterType is FunctionType &&
             parameterType.returnType.isDynamic) {
           _errorReporter.reportErrorForNode(
-              StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+              LanguageCode.IMPLICIT_DYNAMIC_RETURN,
               node.identifier,
               [node.identifier]);
         }
@@ -2722,11 +2722,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         variable.type.isDynamic) {
       ErrorCode errorCode;
       if (variable is FieldElement) {
-        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_FIELD;
+        errorCode = LanguageCode.IMPLICIT_DYNAMIC_FIELD;
       } else if (variable is ParameterElement) {
-        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER;
+        errorCode = LanguageCode.IMPLICIT_DYNAMIC_PARAMETER;
       } else {
-        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE;
+        errorCode = LanguageCode.IMPLICIT_DYNAMIC_VARIABLE;
       }
       _errorReporter.reportErrorForNode(errorCode, node, [id]);
     }
@@ -2743,7 +2743,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (element != null &&
         element.hasImplicitReturnType &&
         element.returnType.isDynamic) {
-      _errorReporter.reportErrorForNode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+      _errorReporter.reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
           functionName, [element.displayName]);
     }
   }
@@ -2758,8 +2758,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (type is ParameterizedType &&
         type.typeArguments.isNotEmpty &&
         type.typeArguments.any((t) => t.isDynamic)) {
-      _errorReporter.reportErrorForNode(
-          StrongModeCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
+      _errorReporter
+          .reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
     }
   }
 

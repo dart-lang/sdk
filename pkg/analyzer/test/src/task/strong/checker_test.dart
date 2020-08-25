@@ -2884,10 +2884,10 @@ class C {
   dynamic y1 = (<dynamic>[])[0];
 }
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FIELD, 16, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FIELD, 26, 21),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FIELD, 55, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FIELD, 68, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 16, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 26, 21),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 55, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 68, 2),
     ]);
   }
 
@@ -2921,13 +2921,13 @@ void main<S>() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION, 78, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION, 95, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION, 106, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION, 167, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION, 184, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION, 195, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE, 214, 15),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FUNCTION, 78, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FUNCTION, 95, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FUNCTION, 106, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FUNCTION, 167, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FUNCTION, 184, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FUNCTION, 195, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_INVOKE, 214, 15),
       error(HintCode.UNNECESSARY_CAST, 269, 9),
     ]);
   }
@@ -2946,10 +2946,10 @@ var l5 = <int>[];
 List<int> l6 = [];
 var l7 = [42];
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 9, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 23, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 46, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 75, 6),
+      error(LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 9, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 23, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 46, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL, 75, 6),
     ]);
   }
 
@@ -2969,12 +2969,12 @@ var m7 = <String, String>{};
 Map<String, String> m8 = {};
 var m9 = {'hi': 'there'};
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 9, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 22, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 53, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 82, 6),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 99, 16),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 126, 8),
+      error(LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 9, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 22, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 53, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 82, 6),
+      error(LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 99, 16),
+      error(LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL, 126, 8),
     ]);
   }
 
@@ -3006,12 +3006,12 @@ void f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 137, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_METHOD, 150, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_METHOD, 183, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_METHOD, 202, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_METHOD, 242, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_METHOD, 285, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_METHOD, 309, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_METHOD, 150, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_METHOD, 183, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_METHOD, 202, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_METHOD, 242, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_METHOD, 285, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_METHOD, 309, 1),
     ]);
   }
 
@@ -3048,13 +3048,13 @@ class C {
 void ftf0(void x(y)) {}
 void ftf1(void x(int y)) {}
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER, 60, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER, 117, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER, 241, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER, 290, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER, 412, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_FIELD, 456, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER, 517, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 60, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 117, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 241, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 290, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 412, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_FIELD, 456, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_PARAMETER, 517, 1),
     ]);
   }
 
@@ -3094,13 +3094,13 @@ void ftf1(dynamic f(int x)) {}
 var fe0 = (int x) => x as dynamic;
 var fe1 = (int x) => x;
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_RETURN, 12, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_RETURN, 96, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 12, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 96, 2),
       error(HintCode.UNUSED_ELEMENT, 96, 2),
       error(HintCode.UNUSED_ELEMENT, 126, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_RETURN, 212, 12),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_RETURN, 304, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_RETURN, 373, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 212, 12),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 304, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_RETURN, 373, 1),
     ]);
   }
 
@@ -3150,20 +3150,20 @@ A g(B b) {
   return new A();
 }
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 33, 4),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 93, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 108, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 126, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 148, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 163, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 181, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 33, 4),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 93, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 108, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 126, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 148, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 163, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 181, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 200, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 208, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 208, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 231, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 239, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 239, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 262, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 270, 1),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_TYPE, 288, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 270, 1),
+      error(LanguageCode.IMPLICIT_DYNAMIC_TYPE, 288, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 493, 1),
     ]);
   }
@@ -3177,10 +3177,10 @@ var x2, x3 = 42, x4;
 dynamic y0;
 dynamic y1 = (<dynamic>[])[0];
 ''', [
-      error(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE, 4, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE, 12, 21),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE, 39, 2),
-      error(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE, 52, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_VARIABLE, 4, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_VARIABLE, 12, 21),
+      error(LanguageCode.IMPLICIT_DYNAMIC_VARIABLE, 39, 2),
+      error(LanguageCode.IMPLICIT_DYNAMIC_VARIABLE, 52, 2),
     ]);
   }
 

@@ -111,7 +111,7 @@ class TypeArgumentsVerifier {
           Element element = function.staticElement;
           if (element is MethodElement) {
             _errorReporter.reportErrorForNode(
-                StrongModeCode.IMPLICIT_DYNAMIC_METHOD,
+                LanguageCode.IMPLICIT_DYNAMIC_METHOD,
                 node.function,
                 [element.displayName, element.typeParameters.join(', ')]);
             return;
@@ -119,7 +119,7 @@ class TypeArgumentsVerifier {
 
           if (element is FunctionElement) {
             _errorReporter.reportErrorForNode(
-                StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
+                LanguageCode.IMPLICIT_DYNAMIC_FUNCTION,
                 node.function,
                 [element.displayName, element.typeParameters.join(', ')]);
             return;
@@ -128,10 +128,8 @@ class TypeArgumentsVerifier {
 
         // The catch all case if neither of those matched.
         // For example, invoking a function expression.
-        _errorReporter.reportErrorForNode(
-            StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
-            node.function,
-            [declaredType]);
+        _errorReporter.reportErrorForNode(LanguageCode.IMPLICIT_DYNAMIC_INVOKE,
+            node.function, [declaredType]);
       }
     }
   }
@@ -145,8 +143,8 @@ class TypeArgumentsVerifier {
     if (type is InterfaceType && type.typeArguments.any((t) => t.isDynamic)) {
       // TODO(brianwilkerson) Add StrongModeCode.IMPLICIT_DYNAMIC_SET_LITERAL
       ErrorCode errorCode = node is ListLiteral
-          ? StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL
-          : StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL;
+          ? LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL
+          : LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL;
       _errorReporter.reportErrorForNode(errorCode, node);
     }
   }
