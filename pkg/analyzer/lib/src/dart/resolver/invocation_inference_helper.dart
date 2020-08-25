@@ -265,7 +265,11 @@ class InvocationInferenceHelper {
     node.typeArgumentTypes = _typeArgumentTypes;
     node.staticInvokeType = _invokeType;
 
-    var returnType = computeInvokeReturnType(_invokeType);
+    var returnType = _typeSystem.refineNumericInvocationType(
+        node.realTarget?.staticType,
+        node.methodName.staticElement,
+        [for (var argument in node.argumentList.arguments) argument.staticType],
+        computeInvokeReturnType(_invokeType));
     recordStaticType(node, returnType);
   }
 

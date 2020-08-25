@@ -315,6 +315,16 @@ abstract class TypeSystem2 implements public.TypeSystem {
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType, MethodElement operatorElement);
 
+  /// Determines the type of a method invocation where the type of the target is
+  /// [targetType], the method being invoked is [methodElement], the types of
+  /// the arguments passed to the method are [argumentTypes], and the type
+  /// produced so far by resolution is [currentType].
+  DartType refineNumericInvocationType(
+      DartType targetType,
+      MethodElement methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType);
+
   @override
   DartType resolveToBound(DartType type) {
     if (type is TypeParameterTypeImpl) {
@@ -1357,6 +1367,21 @@ class TypeSystemImpl extends TypeSystem2 {
     }
   }
 
+  @override
+  DartType refineNumericInvocationType(
+      DartType targetType,
+      Element methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType) {
+    if (methodElement is MethodElement && isNonNullableByDefault) {
+      return _refineNumericInvocationTypeNullSafe(
+          targetType, methodElement, argumentTypes, currentType);
+    } else {
+      // No special rules apply.
+      return currentType;
+    }
+  }
+
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
   /// `Object?` with `Null` or `Never` and all contravariant occurrences of
   /// `Null` or `Never` with `Object` or `Object?`.
@@ -1519,6 +1544,13 @@ class TypeSystemImpl extends TypeSystem2 {
       MethodElement methodElement,
       List<DartType> argumentTypes,
       DartType currentType) {
+    // If the method being invoked comes from an extension, don't refine the
+    // type because we can only make guarantees about methods defined in the
+    // SDK, and the numeric methods we refine are all instance methods.
+    if (methodElement.enclosingElement is ExtensionElement) {
+      return currentType;
+    }
+
     // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
     // e1 % e2 or e1.remainder(e2)...
     if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
@@ -1582,20 +1614,23 @@ class TypeSystemImpl extends TypeSystem2 {
         var t2 = argumentTypes[0];
         var t3 = argumentTypes[1];
         // ...and where T1, T2, and T3 are all non-Never subtypes of num.
-        // (Note: we actually check against `num?` rather than `num`.  It's
-        // equivalent from the standpoint of correctness (since it's illegal to
-        // call `num.clamp` on a nullable type or to pass it a nullable type
-        // as an argument, and that's checked for elsewhere), but better from
-        // the standpoint of error recovery (since it allows e.g.
-        // `int?.clamp(int, int)` to resolve to `int` rather than `num`).
+        // Notes:
+        // - We don't have to check T1 for Never because if T1 is Never, the
+        //   method element will fail to resolve so we'll never reach here.
+        // - We actually check against `num?` rather than `num`.  It's
+        //   equivalent from the standpoint of correctness (since it's illegal
+        //   to call `num.clamp` on a nullable type or to pass it a nullable
+        //   type as an argument, and that's checked for elsewhere), but better
+        //   from the standpoint of error recovery (since it allows e.g.
+        //   `int?.clamp(int, int)` to resolve to `int` rather than `num`).
+        // - We don't check that T2 and T3 are subtypes of num because the
+        //   signature of `num.clamp` requires it.
         var numType = typeProvider.numType;
         var numTypeQuestion = makeNullable(numType as InterfaceTypeImpl);
-        if (!t1.isBottom &&
-            isSubtypeOf(t1, numTypeQuestion) &&
-            !t2.isBottom &&
-            isSubtypeOf(t2, numTypeQuestion) &&
-            !t3.isBottom &&
-            isSubtypeOf(t3, numTypeQuestion)) {
+        if (isSubtypeOf(t1, numTypeQuestion) && !t2.isBottom && !t3.isBottom) {
+          assert(!t1.isBottom);
+          assert(isSubtypeOf(t2, numTypeQuestion));
+          assert(isSubtypeOf(t3, numTypeQuestion));
           // Then:
           // - If T1, T2 and T3 are all subtypes of int, the static type of e is
           //   int.

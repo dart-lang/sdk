@@ -462,7 +462,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertMethodInvocation(
     MethodInvocation invocation,
-    Element expectedElement,
+    Object expectedElement,
     String expectedInvokeType, {
     String expectedMethodNameType,
     String expectedNameType,
@@ -473,7 +473,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     // TODO(scheglov) Check for Member.
     var element = invocation.methodName.staticElement;
-    expect(element?.declaration, same(expectedElement));
+    if (expectedElement is Element) {
+      expect(element?.declaration, same(expectedElement));
+    } else {
+      expect(element, expectedElement);
+    }
 
     // TODO(scheglov) Should we enforce this?
 //    if (expectedNameType == null) {
