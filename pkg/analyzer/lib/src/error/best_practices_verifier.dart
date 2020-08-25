@@ -25,15 +25,15 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
-import 'package:meta/meta_meta.dart';
 import 'package:path/path.dart' as path;
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
 class BestPracticesVerifier extends RecursiveAstVisitor<void> {
+//  static String _HASHCODE_GETTER_NAME = "hashCode";
+
   static const String _NULL_TYPE_NAME = "Null";
 
   static const String _TO_INT_METHOD_NAME = "toInt";
@@ -115,29 +115,26 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     ElementAnnotation element = node.elementAnnotation;
-    if (element == null) {
-      return;
-    }
     AstNode parent = node.parent;
-    if (element.isFactory == true) {
+    if (element?.isFactory == true) {
       if (parent is MethodDeclaration) {
         _checkForInvalidFactory(parent);
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_FACTORY_ANNOTATION, node, []);
       }
-    } else if (element.isImmutable == true) {
+    } else if (element?.isImmutable == true) {
       if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
       }
-    } else if (element.isLiteral == true) {
+    } else if (element?.isLiteral == true) {
       if (parent is! ConstructorDeclaration ||
           (parent as ConstructorDeclaration).constKeyword == null) {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_LITERAL_ANNOTATION, node, []);
       }
-    } else if (element.isNonVirtual == true) {
+    } else if (element?.isNonVirtual == true) {
       if (parent is FieldDeclaration) {
         if (parent.isStatic) {
           _errorReporter.reportErrorForNode(
@@ -158,13 +155,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node, [node.element.name]);
       }
-    } else if (element.isSealed == true) {
+    } else if (element?.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_SEALED_ANNOTATION, node, [node.element.name]);
       }
-    } else if (element.isVisibleForTemplate == true ||
-        element.isVisibleForTesting == true) {
+    } else if (element?.isVisibleForTemplate == true ||
+        element?.isVisibleForTesting == true) {
       if (parent is Declaration) {
         void reportInvalidAnnotation(Element declaredElement) {
           _errorReporter.reportErrorForNode(
@@ -193,27 +190,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // Something other than a declaration was annotated. Whatever this is,
         // it probably warrants a Hint, but this has not been specified on
         // visibleForTemplate or visibleForTesting, so leave it alone for now.
-      }
-    }
-    var kinds = _targetKindsFor(element);
-    if (kinds.isNotEmpty) {
-      if (!_isValidTarget(parent, kinds)) {
-        var invokedElement = element.element;
-        var name = invokedElement.name;
-        if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement.name;
-          if (name.isEmpty) {
-            name = className;
-          } else {
-            name = '$className.$name';
-          }
-        }
-        var kindNames = kinds.map((kind) => kind.displayString).toList()
-          ..sort();
-        var validKinds = kindNames.commaSeparatedWithOr;
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_ANNOTATION_TARGET, node.name, [name, validKinds]);
-        return;
       }
     }
 
@@ -1418,80 +1394,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return _workspacePackage.contains(library.source);
   }
 
-  /// Return `true` if it is valid to have an annotation on the given [target]
-  /// when the annotation is marked as being valid for the given [kinds] of
-  /// targets.
-  bool _isValidTarget(AstNode target, Set<TargetKind> kinds) {
-    if (target is ClassDeclaration) {
-      return kinds.contains(TargetKind.classType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is Directive) {
-      return (target.parent as CompilationUnit).directives.first == target &&
-          kinds.contains(TargetKind.library);
-    } else if (target is EnumDeclaration) {
-      return kinds.contains(TargetKind.enumType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is ExtensionDeclaration) {
-      return kinds.contains(TargetKind.extension);
-    } else if (target is FieldDeclaration) {
-      return kinds.contains(TargetKind.field);
-    } else if (target is FunctionDeclaration) {
-      if (target.isGetter) {
-        return kinds.contains(TargetKind.getter);
-      }
-      if (target.isSetter) {
-        return kinds.contains(TargetKind.setter);
-      }
-      return kinds.contains(TargetKind.function);
-    } else if (target is MethodDeclaration) {
-      if (target.isGetter) {
-        return kinds.contains(TargetKind.getter);
-      }
-      if (target.isSetter) {
-        return kinds.contains(TargetKind.setter);
-      }
-      return kinds.contains(TargetKind.method);
-    } else if (target is MixinDeclaration) {
-      return kinds.contains(TargetKind.mixinType) ||
-          kinds.contains(TargetKind.type);
-    } else if (target is FormalParameter) {
-      return kinds.contains(TargetKind.parameter);
-    } else if (target is FunctionTypeAlias || target is GenericTypeAlias) {
-      return kinds.contains(TargetKind.typedefType) ||
-          kinds.contains(TargetKind.type);
-    }
-    return false;
-  }
-
-  /// Return the target kinds defined for the given [annotation].
-  Set<TargetKind> _targetKindsFor(ElementAnnotation annotation) {
-    var element = annotation.element;
-    ClassElement classElement;
-    if (element is VariableElement) {
-      var type = element.type;
-      if (type is InterfaceType) {
-        classElement = type.element;
-      }
-    } else if (element is ConstructorElement) {
-      classElement = element.enclosingElement;
-    }
-    if (classElement == null) {
-      return const <TargetKind>{};
-    }
-    for (var annotation in classElement.metadata) {
-      if (annotation.isTarget) {
-        var value = annotation.constantValue;
-        var kinds = <TargetKind>{};
-        for (var kindObject in value.getField('kinds').toSetValue()) {
-          var index = kindObject.getField('index').toIntValue();
-          kinds.add(TargetKind.values[index]);
-        }
-        return kinds;
-      }
-    }
-    return const <TargetKind>{};
-  }
-
   /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]
   /// hint code.
   ///
@@ -1805,40 +1707,5 @@ class _UsedParameterVisitor extends RecursiveAstVisitor<void> {
     if (_parameters.contains(element)) {
       _usedParameters.add(element);
     }
-  }
-}
-
-extension on TargetKind {
-  /// Return a user visible string used to describe this target kind.
-  String get displayString {
-    switch (this) {
-      case TargetKind.classType:
-        return 'classes';
-      case TargetKind.enumType:
-        return 'enums';
-      case TargetKind.extension:
-        return 'extensions';
-      case TargetKind.field:
-        return 'fields';
-      case TargetKind.function:
-        return 'top-level functions';
-      case TargetKind.library:
-        return 'librarys';
-      case TargetKind.getter:
-        return 'getters';
-      case TargetKind.method:
-        return 'methods';
-      case TargetKind.mixinType:
-        return 'mixins';
-      case TargetKind.parameter:
-        return 'parameters';
-      case TargetKind.setter:
-        return 'setters';
-      case TargetKind.type:
-        return 'types (classes, enums, mixins, or typedefs)';
-      case TargetKind.typedefType:
-        return 'typedefs';
-    }
-    throw 'Remove this when this library is converted to null-safety';
   }
 }

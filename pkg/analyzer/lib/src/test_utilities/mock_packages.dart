@@ -72,28 +72,5 @@ class _VisibleForTesting {
   const _VisibleForTesting();
 }
 ''');
-    libFolder.getChildAssumingFile('meta_meta.dart').writeAsStringSync(r'''
-library meta_meta;
-
-class Target {
-  final Set<TargetKind> kinds;
-  const Target(this.kinds);
-}
-enum TargetKind {
-  classType,
-  enumType,
-  extension,
-  field,
-  function,
-  library,
-  getter,
-  method,
-  mixinType,
-  parameter,
-  setter,
-  type,
-  typedefType,
-}
-''');
   }
 }

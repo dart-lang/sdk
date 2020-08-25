@@ -270,7 +270,6 @@ import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
-import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
@@ -815,7 +814,6 @@ main() {
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_getter.main();
-    invalid_annotation_target.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_constant.main();

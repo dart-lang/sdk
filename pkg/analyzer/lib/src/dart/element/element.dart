@@ -1767,7 +1767,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   EvaluationResultImpl get evaluationResult {
     if (_evaluationResult == null) {
       Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
-        'index': DartObjectImpl(
+        name: DartObjectImpl(
           library.typeSystem,
           library.typeProvider.intType,
           IntState(_index),
@@ -2324,10 +2324,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of `meta` library, used to define analysis annotations.
   static const String _META_LIB_NAME = "meta";
 
-  /// The name of `meta_meta` library, used to define annotations for other
-  /// annotations.
-  static const String _META_META_LIB_NAME = "meta_meta";
-
   /// The name of the top-level variable used to mark a method as requiring
   /// overriders to call super.
   static const String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
@@ -2360,10 +2356,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   /// The name of the top-level variable used to mark a class as being sealed.
   static const String _SEALED_VARIABLE_NAME = "sealed";
-
-  /// The name of the class used to annotate a class as an annotation with a
-  /// specific set of target element kinds.
-  static const String _TARGET_CLASS_NAME = 'Target';
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
@@ -2518,12 +2510,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
       element.name == _SEALED_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
-
-  @override
-  bool get isTarget =>
-      element is ConstructorElement &&
-      element.enclosingElement.name == _TARGET_CLASS_NAME &&
-      element.library?.name == _META_META_LIB_NAME;
 
   @override
   bool get isVisibleForTemplate =>

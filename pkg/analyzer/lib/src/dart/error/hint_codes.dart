@@ -560,15 +560,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try specifying the type of the parameter.");
 
   /**
-   * Parameters:
-   * 0: the name of the annotation
-   * 1: the list of valid targets
-   */
-  static const HintCode INVALID_ANNOTATION_TARGET = HintCode(
-      'INVALID_ANNOTATION_TARGET',
-      "The annotation '{0}' can only be used on {1}");
-
-  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
