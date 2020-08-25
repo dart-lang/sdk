@@ -104,7 +104,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTagged: {
       const auto out = locs()->out(0).reg();
       __ add(out, base_reg(), compiler::Operand(index, LSL, 1));
-      __ ldr(out, compiler::Address(out, offset()));
+      __ LoadFromOffset(kWord, out, out, offset());
       break;
     }
     case kUnboxedInt64: {
@@ -112,9 +112,9 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const auto out_hi = locs()->out(0).AsPairLocation()->At(1).reg();
 
       __ add(out_hi, base_reg(), compiler::Operand(index, LSL, 1));
-      __ ldr(out_lo, compiler::Address(out_hi, offset()));
-      __ ldr(out_hi,
-             compiler::Address(out_hi, offset() + compiler::target::kWordSize));
+      __ LoadFromOffset(kWord, out_lo, out_hi, offset());
+      __ LoadFromOffset(kWord, out_hi, out_hi,
+                        offset() + compiler::target::kWordSize);
       break;
     }
     case kUnboxedDouble: {

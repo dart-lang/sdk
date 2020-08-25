@@ -94,7 +94,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kUnboxedInt64: {
       const auto out = locs()->out(0).reg();
       __ add(out, base_reg(), compiler::Operand(index, LSL, 2));
-      __ ldr(out, compiler::Address(out, offset()));
+      __ LoadFromOffset(out, out, offset());
       break;
     }
     case kUnboxedDouble: {
