@@ -495,8 +495,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   void setAnalysisRoots(List<String> includedPaths) {
     declarationsTracker?.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
-    contextManager.setRoots(uniquePaths.toList(), []);
     notificationManager.setAnalysisRoots(includedPaths, []);
+    contextManager.setRoots(uniquePaths.toList(), []);
     addContextsToDeclarationsTracker();
   }
 

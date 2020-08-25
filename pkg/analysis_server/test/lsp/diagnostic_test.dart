@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/utilities/mock_packages.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -18,6 +20,8 @@ void main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
+  Folder pedanticLibFolder;
+
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
     final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
 
@@ -63,6 +67,12 @@ String b = "Test";
     expect(related.location.range.end.character, equals(16));
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    pedanticLibFolder = MockPackages.instance.addPedantic(resourceProvider);
+  }
+
   Future<void> test_afterDocumentEdits() async {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, content: initialContents);
@@ -78,6 +88,45 @@ String b = "Test";
     await replaceFile(222, mainFileUri, 'String a = 1;');
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(1));
+  }
+
+  Future<void> test_analysisOptionsFile() async {
+    newFile(analysisOptionsPath, content: '''
+linter:
+  rules:
+    - invalid_lint_rule_name
+''').path;
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics.first.code, 'undefined_lint_warning');
+  }
+
+  Future<void> test_analysisOptionsFile_packageInclude() async {
+    newFile(analysisOptionsPath, content: '''
+include: package:pedantic/analysis_options.yaml
+''').path;
+
+    // Verify there's an error for the import.
+    final firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Warning);
+    expect(initialDiagnostics.first.code, 'include_file_not_found');
+
+    // Write a package file that allows resolving the include.
+    final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
+    newFile('$projectFolderPath/.packages', content: '''
+pedantic:${pedanticLibFolder.toUri()}
+''');
+
+    // Ensure the error disappeared.
+    final updatedDiagnostics = await secondDiagnosticsUpdate;
+    expect(updatedDiagnostics, hasLength(0));
   }
 
   Future<void> test_contextMessage() async {
