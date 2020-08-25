@@ -4323,6 +4323,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (target is SuperExpression) {
+      return;
+    }
+
     ErrorCode errorCode;
     Token endToken = operator;
     List<Object> arguments = const [];

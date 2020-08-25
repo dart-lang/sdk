@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -381,6 +382,23 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
+  }
+
+  test_super() async {
+    await assertErrorsInCode('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar() {
+    super?.foo();
+  }
+}
+''', [
+      error(ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER, 73,
+          2),
     ]);
   }
 }
