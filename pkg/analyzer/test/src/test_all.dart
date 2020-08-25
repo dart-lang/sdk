@@ -22,6 +22,7 @@ import 'summary/test_all.dart' as summary;
 import 'summary2/test_all.dart' as summary2;
 import 'task/test_all.dart' as task;
 import 'util/test_all.dart' as util;
+import 'utilities/test_all.dart' as utilities;
 import 'workspace/test_all.dart' as workspace;
 
 main() {
@@ -44,6 +45,7 @@ main() {
     summary2.main();
     task.main();
     util.main();
+    utilities.main();
     workspace.main();
   }, name: 'src');
 }

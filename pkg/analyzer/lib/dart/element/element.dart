@@ -764,6 +764,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// sealed.
   bool get isSealed;
 
+  /// Return `true` if this annotation marks the associated class as being
+  /// intended to be used as an annotation.
+  bool get isTarget;
+
   /// Return `true` if this annotation marks the associated member as being
   /// visible for template files.
   bool get isVisibleForTemplate;
