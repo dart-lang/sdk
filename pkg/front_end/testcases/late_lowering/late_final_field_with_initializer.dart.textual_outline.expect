@@ -1,13 +1,3 @@
-class B {
-  final int x;
-  B(this.x);
-}
-class C extends B {
-  late ;
-  final y = x + 1;
-  C(int x) : super(x);
-  method() => x;
-}
 int? lateTopLevelField1Init;
 int initLateTopLevelField1(int value) {}
 late ;

@@ -140,8 +140,6 @@ class _ImplicitFieldTypeRoot extends ImplicitFieldType {
       bodyBuilder.constantContext = fieldBuilder.isConst
           ? ConstantContext.inferred
           : ConstantContext.none;
-      bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = fieldBuilder.isLate;
       Expression initializer =
           bodyBuilder.parseFieldInitializer(initializerToken);
       initializerToken = null;
