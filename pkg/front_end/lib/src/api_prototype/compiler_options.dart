@@ -7,6 +7,8 @@ library front_end.compiler_options;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
+import 'package:kernel/ast.dart' show Version;
+
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
 
@@ -130,7 +132,9 @@ class CompilerOptions {
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
-  AllowedExperimentalFlags allowedExperimentalFlags;
+  AllowedExperimentalFlags allowedExperimentalFlagsForTesting;
+  Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting;
+  Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant

@@ -23,7 +23,12 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, defaultExperimentalFlags, isExperimentEnabled;
+    show
+        AllowedExperimentalFlags,
+        ExperimentalFlag,
+        defaultAllowedExperimentalFlags,
+        defaultExperimentalFlags,
+        isExperimentEnabled;
 
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
@@ -59,7 +64,7 @@ import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:kernel/ast.dart'
-    show AwaitExpression, Component, Library, Node, Visitor;
+    show AwaitExpression, Component, Library, Node, Version, Visitor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -182,10 +187,17 @@ class TestOptions {
 class LinkDependenciesOptions {
   final Set<Uri> content;
   final NnbdMode nnbdMode;
+  final AllowedExperimentalFlags allowedExperimentalFlags;
+  final Map<ExperimentalFlag, Version> experimentEnabledVersion;
+  final Map<ExperimentalFlag, Version> experimentReleasedVersion;
   Component component;
   List<Iterable<String>> errors;
 
-  LinkDependenciesOptions(this.content, {this.nnbdMode})
+  LinkDependenciesOptions(this.content,
+      {this.nnbdMode,
+      this.allowedExperimentalFlags,
+      this.experimentEnabledVersion,
+      this.experimentReleasedVersion})
       : assert(content != null);
 }
 
@@ -408,6 +420,9 @@ class FastaContext extends ChainContext with MatchContext {
           new File.fromUri(directory.uri.resolve('link.options'));
       Set<Uri> content = new Set<Uri>();
       NnbdMode nnbdMode;
+      AllowedExperimentalFlags allowedExperimentalFlags;
+      Map<ExperimentalFlag, Version> experimentEnabledVersion;
+      Map<ExperimentalFlag, Version> experimentReleasedVersion;
       if (optionsFile.existsSync()) {
         for (String line in optionsFile.readAsStringSync().split('\n')) {
           line = line.trim();
@@ -430,6 +445,24 @@ class FastaContext extends ChainContext with MatchContext {
                   'Nnbd mode $nnbdMode already specified.');
             }
             nnbdMode = NnbdMode.Weak;
+          } else if (line == '--fix-nnbd-release-version') {
+            // Allow package:allowed_package to use nnbd features from version
+            // 2.9.
+            allowedExperimentalFlags = new AllowedExperimentalFlags(
+                sdkDefaultExperiments:
+                    defaultAllowedExperimentalFlags.sdkDefaultExperiments,
+                sdkLibraryExperiments:
+                    defaultAllowedExperimentalFlags.sdkLibraryExperiments,
+                packageExperiments: {
+                  ...defaultAllowedExperimentalFlags.packageExperiments,
+                  'allowed_package': {ExperimentalFlag.nonNullable}
+                });
+            experimentEnabledVersion = const {
+              ExperimentalFlag.nonNullable: const Version(2, 10)
+            };
+            experimentReleasedVersion = const {
+              ExperimentalFlag.nonNullable: const Version(2, 9)
+            };
           } else {
             Uri uri = description.uri.resolve(line);
             if (uri.scheme != 'package') {
@@ -443,8 +476,11 @@ class FastaContext extends ChainContext with MatchContext {
           }
         }
       }
-      linkDependenciesOptions =
-          new LinkDependenciesOptions(content, nnbdMode: nnbdMode);
+      linkDependenciesOptions = new LinkDependenciesOptions(content,
+          nnbdMode: nnbdMode,
+          allowedExperimentalFlags: allowedExperimentalFlags,
+          experimentEnabledVersion: experimentEnabledVersion,
+          experimentReleasedVersion: experimentReleasedVersion);
       _linkDependencies[directory.uri] = linkDependenciesOptions;
     }
     return linkDependenciesOptions;
@@ -642,7 +678,11 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         : (testOptions.nnbdAgnosticMode ? NnbdMode.Agnostic : NnbdMode.Strong);
     List<Uri> inputs = <Uri>[description.uri];
 
-    ProcessedOptions createProcessedOptions(NnbdMode nnbdMode) {
+    ProcessedOptions createProcessedOptions(
+        NnbdMode nnbdMode,
+        AllowedExperimentalFlags allowedExperimentalFlags,
+        Map<ExperimentalFlag, Version> experimentEnabledVersion,
+        Map<ExperimentalFlag, Version> experimentReleasedVersion) {
       CompilerOptions compilerOptions = new CompilerOptions()
         ..onDiagnostic = (DiagnosticMessage message) {
           errors.add(message.plainTextFormatted);
@@ -650,7 +690,10 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         ..environmentDefines = {}
         ..experimentalFlags = experimentalFlags
         ..nnbdMode = nnbdMode
-        ..librariesSpecificationUri = librariesSpecificationUri;
+        ..librariesSpecificationUri = librariesSpecificationUri
+        ..allowedExperimentalFlagsForTesting = allowedExperimentalFlags
+        ..experimentEnabledVersionForTesting = experimentEnabledVersion
+        ..experimentReleasedVersionForTesting = experimentReleasedVersion;
       if (testOptions.overwriteCurrentSdkVersion != null) {
         compilerOptions.currentSdkVersion =
             testOptions.overwriteCurrentSdkVersion;
@@ -662,14 +705,22 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
     // platforms and independent of stdin/stderr.
     colors.enableColors = false;
 
-    ProcessedOptions options = createProcessedOptions(nnbdMode);
+    ProcessedOptions options = createProcessedOptions(
+        nnbdMode,
+        linkDependenciesOptions.allowedExperimentalFlags,
+        linkDependenciesOptions.experimentEnabledVersion,
+        linkDependenciesOptions.experimentReleasedVersion);
 
     if (linkDependenciesOptions.content.isNotEmpty &&
         linkDependenciesOptions.component == null) {
       // Compile linked dependency.
       ProcessedOptions linkOptions = options;
       if (linkDependenciesOptions.nnbdMode != null) {
-        linkOptions = createProcessedOptions(linkDependenciesOptions.nnbdMode);
+        linkOptions = createProcessedOptions(
+            linkDependenciesOptions.nnbdMode,
+            linkDependenciesOptions.allowedExperimentalFlags,
+            linkDependenciesOptions.experimentEnabledVersion,
+            linkDependenciesOptions.experimentReleasedVersion);
       }
       await CompilerContext.runWithOptions(linkOptions, (_) async {
         KernelTarget sourceTarget = await outlineInitialization(context,

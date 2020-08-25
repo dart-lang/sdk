@@ -336,6 +336,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableVarianceInLibrary;
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
+  Version _enableNonNullableVersionInLibrary;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
 
@@ -348,9 +349,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .isExperimentEnabledInLibrary(ExperimentalFlag.nonfunctionTypeAliases,
               _packageUri ?? importUri);
 
+  /// Returns `true` if the 'non-nullable' experiment is enabled for this
+  /// library.
+  ///
+  /// Note that the library might still opt out of the experiment by having
+  /// a version that is too low for opting in to the experiment.
   bool get enableNonNullableInLibrary => _enableNonNullableInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
           ExperimentalFlag.nonNullable, _packageUri ?? importUri);
+
+  Version get enableNonNullableVersionInLibrary =>
+      _enableNonNullableVersionInLibrary ??= loader.target
+          .getExperimentEnabledVersionInLibrary(
+              ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
@@ -426,7 +437,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       enableNonNullableInLibrary &&
-      languageVersion.version >= enableNonNullableVersion &&
+      languageVersion.version >= enableNonNullableVersionInLibrary &&
       !isOptOutTest(library.importUri);
 
   static bool isOptOutTest(Uri uri) {

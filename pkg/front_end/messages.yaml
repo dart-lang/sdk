@@ -4090,12 +4090,13 @@ FieldNonNullableWithoutInitializerError:
 FieldNonNullableNotInitializedByConstructorError:
   template: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
-NonNullableOptOut:
+NonNullableOptOutExplicit:
   template: "Null safety features are disabled for this library."
-  # Used to be this:
-  # tip: "Try removing the `@dart=` annotation or setting the language version higher."
-  # Once the version number is locked in, we can write something like that again.
-  tip: "Try removing the `@dart=` annotation or setting the language version higher."
+  tip: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
+
+NonNullableOptOutImplicit:
+  template: "Null safety features are disabled for this library."
+  tip: "Try removing the package language version or setting the language version to #string or higher."
 
 NonNullableOptOutComment:
   template: "This is the annotation that opts out this library from null safety features."

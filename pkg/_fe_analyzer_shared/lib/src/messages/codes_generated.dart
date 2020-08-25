@@ -6459,16 +6459,6 @@ Message _withArgumentsNonNullableNotAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeNonNullableOptOut = messageNonNullableOptOut;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonNullableOptOut = const MessageCode(
-    "NonNullableOptOut",
-    message: r"""Null safety features are disabled for this library.""",
-    tip:
-        r"""Try removing the `@dart=` annotation or setting the language version higher.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonNullableOptOutComment = messageNonNullableOptOutComment;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6477,6 +6467,62 @@ const MessageCode messageNonNullableOptOutComment = const MessageCode(
     severity: Severity.context,
     message:
         r"""This is the annotation that opts out this library from null safety features.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateNonNullableOptOutExplicit = const Template<
+        Message Function(String string)>(
+    messageTemplate: r"""Null safety features are disabled for this library.""",
+    tipTemplate:
+        r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
+    withArguments: _withArgumentsNonNullableOptOutExplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNonNullableOptOutExplicit =
+    const Code<Message Function(String string)>(
+  "NonNullableOptOutExplicit",
+  templateNonNullableOptOutExplicit,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableOptOutExplicit(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeNonNullableOptOutExplicit,
+      message: """Null safety features are disabled for this library.""",
+      tip:
+          """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateNonNullableOptOutImplicit = const Template<
+        Message Function(String string)>(
+    messageTemplate: r"""Null safety features are disabled for this library.""",
+    tipTemplate:
+        r"""Try removing the package language version or setting the language version to #string or higher.""",
+    withArguments: _withArgumentsNonNullableOptOutImplicit);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeNonNullableOptOutImplicit =
+    const Code<Message Function(String string)>(
+  "NonNullableOptOutImplicit",
+  templateNonNullableOptOutImplicit,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableOptOutImplicit(String string) {
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeNonNullableOptOutImplicit,
+      message: """Null safety features are disabled for this library.""",
+      tip:
+          """Try removing the package language version or setting the language version to ${string} or higher.""",
+      arguments: {'string': string});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonPartOfDirectiveInPart = messageNonPartOfDirectiveInPart;

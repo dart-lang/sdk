@@ -12,7 +12,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
+import 'package:kernel/kernel.dart'
+    show CanonicalName, Component, Location, Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -346,7 +347,17 @@ class ProcessedOptions {
       flags.ExperimentalFlag flag, Uri importUri) {
     return flags.isExperimentEnabledInLibrary(flag, importUri,
         experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlags);
+        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting);
+  }
+
+  Version getExperimentEnabledVersionInLibrary(
+      flags.ExperimentalFlag flag, Uri importUri) {
+    return flags.getExperimentEnabledVersionInLibrary(flag, importUri,
+        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting,
+        experimentEnabledVersionForTesting:
+            _raw.experimentEnabledVersionForTesting,
+        experimentReleasedVersionForTesting:
+            _raw.experimentReleasedVersionForTesting);
   }
 
   /// Get an outline component that summarizes the SDK, if any.
