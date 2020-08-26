@@ -24,6 +24,13 @@ class PowersetBitsDomain {
   static const int _nullIndex = 2;
   static const int _otherIndex = 3;
 
+  static const int _maxIndex = _otherIndex;
+  static const List<int> _singletonIndices = [
+    _trueIndex,
+    _falseIndex,
+    _nullIndex,
+  ];
+
   const PowersetBitsDomain(this._closedWorld);
 
   CommonElements get commonElements => _closedWorld.commonElements;
@@ -36,26 +43,26 @@ class PowersetBitsDomain {
   int get boolOrNullMask => boolMask | nullMask;
   int get nullOrOtherMask => nullMask | otherMask;
   int get boolNullOtherMask => boolOrNullMask | otherMask;
+  int get preciseMask => _singletonIndices.fold(
+      powersetBottom, (mask, index) => mask | 1 << index);
 
   int get powersetBottom => 0;
-  int get powersetTop => boolNullOtherMask;
+  int get powersetTop => (1 << _maxIndex + 1) - 1;
 
   bool isPotentiallyBoolean(int value) => (value & boolMask) != 0;
-  bool isPotentiallyOther(int value) => (value & otherMask) != 0;
   bool isPotentiallyNull(int value) => (value & nullMask) != 0;
-  bool isPotentiallyBooleanOrNull(int value) => (value & boolOrNullMask) != 0;
-  bool isPotentiallyNullOrOther(int value) => (value & nullOrOtherMask) != 0;
+  bool isPotentiallyOther(int value) => (value & otherMask) != 0;
 
-  bool isDefinitelyTrue(int value) => (value & boolNullOtherMask) == trueMask;
-  bool isDefinitelyFalse(int value) => (value & boolNullOtherMask) == falseMask;
-  bool isDefinitelyNull(int value) => (value & boolNullOtherMask) == nullMask;
+  bool isDefinitelyTrue(int value) => value == trueMask;
+  bool isDefinitelyFalse(int value) => value == falseMask;
+  bool isDefinitelyNull(int value) => value == nullMask;
   bool isSingleton(int value) =>
       isDefinitelyTrue(value) ||
       isDefinitelyFalse(value) ||
       isDefinitelyNull(value);
 
   /// Returns `true` if only singleton bits are set and `false` otherwise.
-  bool isPrecise(int value) => !isPotentiallyOther(value);
+  bool isPrecise(int value) => value & ~preciseMask == 0;
 
   AbstractBool isOther(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
@@ -115,8 +122,12 @@ class PowersetBitsDomain {
     return otherMask;
   }
 
-  AbstractBool areDisjoint(int a, int b) =>
-      AbstractBool.trueOrMaybe(intersection(a, b) == powersetBottom);
+  AbstractBool areDisjoint(int a, int b) {
+    int overlap = intersection(a, b);
+    if (overlap == powersetBottom) return AbstractBool.True;
+    if (isPrecise(overlap)) return AbstractBool.False;
+    return AbstractBool.Maybe;
+  }
 
   int intersection(int a, int b) {
     return a & b;
@@ -134,9 +145,11 @@ class PowersetBitsDomain {
 
   AbstractBool isBooleanOrNull(int value) => isBoolean(excludeNull(value));
 
-  AbstractBool isBoolean(int value) => isPotentiallyBoolean(value)
-      ? AbstractBool.trueOrMaybe(!isPotentiallyNullOrOther(value))
-      : AbstractBool.False;
+  AbstractBool isBoolean(int value) {
+    if (!isPotentiallyBoolean(value)) return AbstractBool.False;
+    if (value & ~boolMask == 0) return AbstractBool.True;
+    return AbstractBool.Maybe;
+  }
 
   AbstractBool isDoubleOrNull(int value) => isDouble(excludeNull(value));
 
@@ -177,10 +190,13 @@ class PowersetBitsDomain {
 
   AbstractBool isPrimitiveArray(int value) => isOther(value);
 
-  AbstractBool isPrimitiveBoolean(int value) => isPotentiallyBoolean(value)
-      ? AbstractBool.trueOrMaybe(
-          isDefinitelyTrue(value) || isDefinitelyFalse(value))
-      : AbstractBool.False;
+  AbstractBool isPrimitiveBoolean(int value) {
+    if (isDefinitelyTrue(value) || isDefinitelyFalse(value)) {
+      return AbstractBool.True;
+    }
+    if (!isPotentiallyBoolean(value)) return AbstractBool.False;
+    return AbstractBool.Maybe;
+  }
 
   AbstractBool isPrimitiveNumber(int value) => isOther(value);
 
@@ -195,8 +211,11 @@ class PowersetBitsDomain {
 
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 
-  AbstractBool isEmpty(int value) =>
-      AbstractBool.trueOrMaybe(value == powersetBottom);
+  AbstractBool isEmpty(int value) {
+    if (value == powersetBottom) return AbstractBool.True;
+    if (isPrecise(value)) return AbstractBool.False;
+    return AbstractBool.Maybe;
+  }
 
   AbstractBool isInstanceOf(int value, ClassEntity cls) => AbstractBool.Maybe;
 
@@ -216,7 +235,7 @@ class PowersetBitsDomain {
   }
 
   int excludeNull(int value) {
-    return value & (powersetTop - nullMask);
+    return value & ~nullMask;
   }
 
   AbstractBool couldBeTypedArray(int value) => isOther(value);

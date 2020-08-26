@@ -60,7 +60,7 @@ class MyCanvas extends CanvasElement {
     CanvasRenderingContext2D context =
         this.getContext('2d') as CanvasRenderingContext2D;
     context.fillStyle = 'red';
-    context.fillRect(0, 0, width, height);
+    context.fillRect(0, 0, width!, height!);
     context.fill();
 
     var data = context.getImageData(0, 0, 1, 1).data;

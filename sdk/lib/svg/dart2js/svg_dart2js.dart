@@ -683,9 +683,9 @@ class FEColorMatrixElement extends SvgElement
 
   AnimatedString get in1 native;
 
-  AnimatedEnumeration get type native;
+  AnimatedEnumeration? get type native;
 
-  AnimatedNumberList get values native;
+  AnimatedNumberList? get values native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
