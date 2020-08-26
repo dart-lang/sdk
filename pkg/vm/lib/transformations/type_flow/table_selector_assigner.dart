@@ -26,6 +26,20 @@ class TableSelectorAssigner {
       }
     }
     _selectorIdForMemberId = List(_unionFind.size);
+    // Assign all selector IDs eagerly to make them independent of how they are
+    // queried in later phases. This makes TFA test expectation files (which
+    // contain selector IDs) more stable under changes to how selector IDs are
+    // used in TFA phases.
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        for (Member member in cls.members) {
+          if (member.isInstanceMember) {
+            _selectorIdForMember(member, getter: false);
+            _selectorIdForMember(member, getter: true);
+          }
+        }
+      }
+    }
   }
 
   Map<Name, int> _memberIdsForClass(Class cls, {bool getter}) {
@@ -83,7 +97,8 @@ class TableSelectorAssigner {
     return cache[cls] = memberIds;
   }
 
-  int _selectorIdForMap(Map<Class, Map<Name, int>> map, Member member) {
+  int _selectorIdForMember(Member member, {bool getter}) {
+    final map = getter ? _getterMemberIds : _methodOrSetterMemberIds;
     int memberId = map[member.enclosingClass][member.name];
     if (memberId == null) {
       assertx(member is Procedure &&
@@ -106,11 +121,11 @@ class TableSelectorAssigner {
   }
 
   int methodOrSetterSelectorId(Member member) {
-    return _selectorIdForMap(_methodOrSetterMemberIds, member);
+    return _selectorIdForMember(member, getter: false);
   }
 
   int getterSelectorId(Member member) {
-    return _selectorIdForMap(_getterMemberIds, member);
+    return _selectorIdForMember(member, getter: true);
   }
 
   void registerMethodOrSetterCall(Member member, bool calledOnNull) {

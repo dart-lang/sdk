@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-[@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  final field core::List<dynamic>* afield;
+[@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  final field core::List<dynamic>* afield;
   constructor •([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::List<dynamic>* afield) → self::A*
     : self::A::afield = afield, super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method toString() → core::String*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method toString() → core::String*
     return [@vm.direct-call.metadata=dart.core::_GrowableList.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] [@vm.direct-call.metadata=#lib::A.afield] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] this.{self::A::afield}.{core::Object::toString}();
 }
 class B extends core::Object {
