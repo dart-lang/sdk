@@ -2403,10 +2403,10 @@ class ICData : public CallSiteData {
   friend class CallSiteResetter;
   friend class CallTargets;
   friend class Class;
-  friend class Deserializer;
+  friend class VMDeserializationRoots;
   friend class ICDataTestTask;
   friend class Interpreter;
-  friend class Serializer;
+  friend class VMSerializationRoots;
   friend class SnapshotWriter;
 };
 
@@ -7104,8 +7104,8 @@ class SubtypeTestCache : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
-  friend class Serializer;
-  friend class Deserializer;
+  friend class VMSerializationRoots;
+  friend class VMDeserializationRoots;
 };
 
 class LoadingUnit : public Object {

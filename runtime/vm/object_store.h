@@ -460,8 +460,8 @@ class ObjectStore {
     return NULL;
   }
 
-  friend class Serializer;
-  friend class Deserializer;
+  friend class ProgramSerializationRoots;
+  friend class ProgramDeserializationRoots;
   friend class ProgramVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);

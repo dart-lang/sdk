@@ -994,6 +994,7 @@ class FunctionLayout : public ObjectLayout {
 
  private:
   friend class Class;
+  friend class UnitDeserializationRoots;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
@@ -1526,6 +1527,8 @@ class CodeLayout : public ObjectLayout {
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
+  friend class UnitSerializationRoots;
+  friend class UnitDeserializationRoots;
   friend class CallSiteResetter;
 };
 
