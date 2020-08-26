@@ -146,7 +146,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
   /// flag to produce the same or better results than the current unsound
   /// implementation.
-  bool newDeferredSplit = false; // default value.
+  bool newDeferredSplit = true; // default value.
   bool _newDeferredSplit = false;
   bool _noNewDeferredSplit = false;
 
