@@ -3567,6 +3567,9 @@ CantReadFile:
     main() {
     }
 
+ExceptionReadingFile:
+  template: "Exception when reading '#uri': #string"
+
 PackagesFileFormat:
   template: "Problem in packages configuration file: #string"
   external: test/packages_format_error_test.dart

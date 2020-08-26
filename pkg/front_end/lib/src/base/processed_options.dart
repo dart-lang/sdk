@@ -48,6 +48,7 @@ import '../fasta/fasta_codes.dart'
         templateCannotReadSdkSpecification,
         templateCantReadFile,
         templateDebugTrace,
+        templateExceptionReadingFile,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -526,6 +527,14 @@ class ProcessedOptions {
         reportWithoutLocation(
             templateCantReadFile.withArguments(uri, e.message), Severity.error);
       }
+    } catch (e) {
+      Message message =
+          templateExceptionReadingFile.withArguments(uri, e.message);
+      reportWithoutLocation(message, Severity.error);
+      // We throw a new exception to ensure that the message include the uri
+      // that led to the exception. Exceptions in Uri don't include the
+      // offending uri in the exception message.
+      throw new ArgumentError(message.message);
     }
     return null;
   }
