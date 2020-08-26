@@ -187,6 +187,8 @@ DuplicatedName/example: Fail
 DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 DuplicatePrefix/example: Fail
+ExceptionReadingFile/analyzerCode: Fail
+ExceptionReadingFile/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
 EnumInstantiation/example: Fail

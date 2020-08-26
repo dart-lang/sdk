@@ -2550,6 +2550,29 @@ const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
     tip: r"""Try putting parentheses around one of the comparisons.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Uri uri_, String string)>
+    templateExceptionReadingFile =
+    const Template<Message Function(Uri uri_, String string)>(
+        messageTemplate: r"""Exception when reading '#uri': #string""",
+        withArguments: _withArgumentsExceptionReadingFile);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_, String string)> codeExceptionReadingFile =
+    const Code<Message Function(Uri uri_, String string)>(
+  "ExceptionReadingFile",
+  templateExceptionReadingFile,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExceptionReadingFile(Uri uri_, String string) {
+  String uri = relativizeUri(uri_);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeExceptionReadingFile,
+      message: """Exception when reading '${uri}': ${string}""",
+      arguments: {'uri': uri_, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateExpectedAfterButGot =
     const Template<Message Function(String string)>(
         messageTemplate: r"""Expected '#string' after this.""",
