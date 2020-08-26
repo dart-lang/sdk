@@ -605,7 +605,15 @@ int Options::ParseArguments(int argc,
   }
 
   if (!Options::disable_dart_dev() && enable_vm_service_) {
-    dart_options->AddArgument("--launch-dds");
+    const char* dds_format_str = "--launch-dds=%s:%d";
+    size_t size = snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
+                           vm_service_server_port());
+    // Make room for '\0'.
+    ++size;
+    char* dds_uri = new char[size];
+    snprintf(dds_uri, size, dds_format_str, vm_service_server_ip(),
+             vm_service_server_port());
+    dart_options->AddArgument(dds_uri);
   }
 
   // Verify consistency of arguments.

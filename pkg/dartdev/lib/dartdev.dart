@@ -80,9 +80,15 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 
   // --launch-dds is provided by the VM if the VM service is to be enabled. In
   // that case, we need to launch DDS as well.
-  // TODO(bkonyi): add support for pub run (#42726)
-  if (args.contains('--launch-dds')) {
+  final launchDdsArg = args.singleWhere(
+    (element) => element.startsWith('--launch-dds'),
+    orElse: () => null,
+  );
+  if (launchDdsArg != null) {
     RunCommand.launchDds = true;
+    final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
+    RunCommand.ddsHost = ddsUrl[0];
+    RunCommand.ddsPort = ddsUrl[1];
   }
   String commandName;
 
@@ -97,8 +103,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 
     // Run also can't be called with '--launch-dds', remove it if it's
     // contained in args.
-    if (args.contains('--launch-dds')) {
-      args = List.from(args)..remove('--launch-dds');
+    if (launchDdsArg != null) {
+      args = List.from(args)..remove(launchDdsArg);
     }
 
     // These flags have a format that can't be handled by package:args, so

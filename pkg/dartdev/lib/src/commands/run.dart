@@ -18,6 +18,8 @@ import '../vm_interop_handler.dart';
 
 class RunCommand extends DartdevCommand<int> {
   static bool launchDds = false;
+  static String ddsHost;
+  static String ddsPort;
 
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
   static const errorExitCode = 255;
@@ -209,9 +211,6 @@ class RunCommand extends DartdevCommand<int> {
     // service intermediary which implements the VM service protocol and
     // provides non-VM specific extensions (e.g., log caching, client
     // synchronization).
-    // TODO(bkonyi): Remove once DevTools supports DDS.
-    // See https://github.com/flutter/flutter/issues/62507
-    launchDds = false;
     _DebuggingSession debugSession;
     if (launchDds) {
       debugSession = _DebuggingSession();
@@ -255,7 +254,9 @@ class _DebuggingSession {
             sdk.ddsSnapshot
           else
             absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot'),
-          serviceInfo.serverUri.toString()
+          serviceInfo.serverUri.toString(),
+          RunCommand.ddsHost,
+          RunCommand.ddsPort,
         ],
         mode: ProcessStartMode.detachedWithStdio);
     final completer = Completer<void>();
@@ -264,10 +265,20 @@ class _DebuggingSession {
       if (event == 'DDS started') {
         sub.cancel();
         completer.complete();
+      } else if (event.contains('Failed to start DDS')) {
+        sub.cancel();
+        completer.completeError(event.replaceAll(
+          'Failed to start DDS',
+          'Could not start Observatory HTTP server',
+        ));
       }
     });
-
-    await completer.future;
-    return true;
+    try {
+      await completer.future;
+      return true;
+    } catch (e) {
+      stderr.write(e);
+      return false;
+    }
   }
 }

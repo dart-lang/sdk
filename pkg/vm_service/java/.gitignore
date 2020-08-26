@@ -5,7 +5,6 @@ src/org/dartlang/vm/service/consumer/AddBreakpointAtEntryConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointWithScriptUriConsumer.java
 src/org/dartlang/vm/service/consumer/ClearCpuSamplesConsumer.java
-src/org/dartlang/vm/service/consumer/ClientNameConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateInFrameConsumer.java
 src/org/dartlang/vm/service/consumer/FlagListConsumer.java
@@ -42,7 +41,6 @@ src/org/dartlang/vm/service/consumer/TimelineFlagsConsumer.java
 src/org/dartlang/vm/service/consumer/TimestampConsumer.java
 src/org/dartlang/vm/service/consumer/VMConsumer.java
 src/org/dartlang/vm/service/consumer/VersionConsumer.java
-src/org/dartlang/vm/service/consumer/WebSocketTargetConsumer.java
 src/org/dartlang/vm/service/element/AllocationProfile.java
 src/org/dartlang/vm/service/element/BoundField.java
 src/org/dartlang/vm/service/element/BoundVariable.java
@@ -51,7 +49,6 @@ src/org/dartlang/vm/service/element/ClassHeapStats.java
 src/org/dartlang/vm/service/element/ClassList.java
 src/org/dartlang/vm/service/element/ClassObj.java
 src/org/dartlang/vm/service/element/ClassRef.java
-src/org/dartlang/vm/service/element/ClientName.java
 src/org/dartlang/vm/service/element/Code.java
 src/org/dartlang/vm/service/element/CodeKind.java
 src/org/dartlang/vm/service/element/CodeRef.java
@@ -129,4 +126,3 @@ src/org/dartlang/vm/service/element/UnresolvedSourceLocation.java
 src/org/dartlang/vm/service/element/VM.java
 src/org/dartlang/vm/service/element/VMRef.java
 src/org/dartlang/vm/service/element/Version.java
-src/org/dartlang/vm/service/element/WebSocketTarget.java
