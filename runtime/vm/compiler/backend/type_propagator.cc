@@ -761,8 +761,7 @@ const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
     // Type propagation has not run. Return dynamic-type.
     if (cid_ == kIllegalCid) {
-      type_ = &Object::dynamic_type();
-      return type_;
+      return &Object::dynamic_type();
     }
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
