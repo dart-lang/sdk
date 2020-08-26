@@ -12,12 +12,23 @@ import '../../universe/selector.dart';
 import '../../world.dart';
 import '../abstract_value_domain.dart';
 
+/// This class is used to store bits information about class entities.
+class ClassInfo {
+  final int exactBits;
+  final int strictSubtypeBits;
+  final int strictSubclassBits;
+
+  const ClassInfo(
+      this.exactBits, this.strictSubtypeBits, this.strictSubclassBits);
+}
+
 /// This class is used as an API by the powerset abstract value domain to help
 /// implement some queries. It stores the bitmasks as integers and has the
 /// advantage that the operations needed are relatively fast. This will pack
 /// multiple powerset domains into a single integer.
 class PowersetBitsDomain {
   final JClosedWorld _closedWorld;
+  final Map<ClassEntity, ClassInfo> _storedClassInfo = {};
 
   static const int _trueIndex = 0;
   static const int _falseIndex = 1;
@@ -31,7 +42,7 @@ class PowersetBitsDomain {
     _nullIndex,
   ];
 
-  const PowersetBitsDomain(this._closedWorld);
+  PowersetBitsDomain(this._closedWorld);
 
   CommonElements get commonElements => _closedWorld.commonElements;
 
@@ -242,50 +253,102 @@ class PowersetBitsDomain {
 
   AbstractBool isTypedArray(int value) => AbstractBool.Maybe;
 
-  bool isBoolSubtype(ClassEntity cls) {
+  bool _isBoolSubtype(ClassEntity cls) {
     return cls == commonElements.jsBoolClass || cls == commonElements.boolClass;
   }
 
-  int createNullableSubtype(ClassEntity cls) {
-    if (isBoolSubtype(cls)) {
-      return boolOrNullMask;
+  bool _isNullSubtype(ClassEntity cls) {
+    return cls == commonElements.jsNullClass || cls == commonElements.nullClass;
+  }
+
+  // This function checks if cls is one of those classes other than bool or null
+  // that are live by default in a program.
+  bool _isLiveByDefault(ClassEntity cls) {
+    return cls == commonElements.intClass ||
+        cls == commonElements.numClass ||
+        cls == commonElements.doubleClass ||
+        cls == commonElements.stringClass;
+  }
+
+  ClassInfo _computeClassInfo(ClassEntity cls) {
+    ClassInfo classInfo = _storedClassInfo[cls];
+    if (classInfo != null) {
+      return classInfo;
     }
-    return nullOrOtherMask;
+
+    // Bool and Null are handled specially because the powerset bits
+    // contain information about values being bool or null.
+    if (_isNullSubtype(cls)) {
+      classInfo = ClassInfo(nullMask, powersetBottom, powersetBottom);
+      _storedClassInfo[cls] = classInfo;
+      return classInfo;
+    }
+    if (_isBoolSubtype(cls)) {
+      classInfo = ClassInfo(boolMask, powersetBottom, powersetBottom);
+      _storedClassInfo[cls] = classInfo;
+      return classInfo;
+    }
+
+    // If cls is instantiated or live by default the 'other' bit should be set to 1.
+    int exactBits = powersetBottom;
+    if (_isLiveByDefault(cls) ||
+        _closedWorld.classHierarchy.isInstantiated(cls)) {
+      exactBits = otherMask;
+    }
+
+    int strictSubtypeBits = powersetBottom;
+    for (ClassEntity strictSubtype
+        in _closedWorld.classHierarchy.strictSubtypesOf(cls)) {
+      // Currently null is a subtype of Object in the class hierarchy but we don't
+      // want to consider it as a subtype of a nonnull class
+      if (!_isNullSubtype(strictSubtype)) {
+        strictSubtypeBits |= _computeClassInfo(strictSubtype).exactBits;
+      }
+    }
+
+    int strictSubclassBits = powersetBottom;
+    for (ClassEntity strictSubclass
+        in _closedWorld.classHierarchy.strictSubclassesOf(cls)) {
+      // Currently null is a subtype of Object in the class hierarchy but we don't
+      // want to consider it as a subtype of a nonnull class
+      if (!_isNullSubtype(strictSubclass)) {
+        strictSubclassBits |= _computeClassInfo(strictSubclass).exactBits;
+      }
+    }
+
+    classInfo = ClassInfo(exactBits, strictSubtypeBits, strictSubclassBits);
+    _storedClassInfo[cls] = classInfo;
+    return classInfo;
+  }
+
+  int createNullableSubtype(ClassEntity cls) {
+    return includeNull(createNonNullSubtype(cls));
   }
 
   int createNonNullSubtype(ClassEntity cls) {
-    if (isBoolSubtype(cls)) {
-      return boolMask;
-    }
-    return otherMask;
+    ClassInfo classInfo = _computeClassInfo(cls);
+    return classInfo.exactBits | classInfo.strictSubtypeBits;
   }
 
   int createNonNullSubclass(ClassEntity cls) {
-    if (isBoolSubtype(cls)) {
-      return boolMask;
-    }
-    return otherMask;
+    ClassInfo classInfo = _computeClassInfo(cls);
+    return classInfo.exactBits | classInfo.strictSubclassBits;
   }
 
   int createNullableExact(ClassEntity cls) {
-    if (isBoolSubtype(cls)) {
-      return boolOrNullMask;
-    }
-    return nullOrOtherMask;
+    return includeNull(createNonNullExact(cls));
   }
 
   int createNonNullExact(ClassEntity cls) {
-    if (isBoolSubtype(cls)) {
-      return boolMask;
-    }
-    return otherMask;
+    ClassInfo classInfo = _computeClassInfo(cls);
+    return classInfo.exactBits;
   }
 
   int createFromStaticType(DartType type,
       {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
     // TODO(coam): This only works for bool
     int bits = otherMask;
-    if (type is InterfaceType && isBoolSubtype(type.element)) {
+    if (type is InterfaceType && _isBoolSubtype(type.element)) {
       bits = boolMask;
     }
     if (nullable) {
