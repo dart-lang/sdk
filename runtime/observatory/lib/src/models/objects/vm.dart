@@ -35,10 +35,9 @@ abstract class VM implements VMRef {
   int get pid;
 
   /// The current amount of native heap allocated memory within the VM.
-  int get heapAllocatedMemoryUsage;
-
-  /// The current number of allocations on the native heap within the VM.
-  int get heapAllocationCount;
+  int get mallocUsed;
+  int get mallocCapacity;
+  String get mallocImplementation;
 
   int get currentMemory;
   int get maxRSS;

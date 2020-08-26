@@ -30,7 +30,9 @@ class MallocHooks : public AllStatic {
   static void set_stack_trace_collection_enabled(bool enabled);
   static void ResetStats();
   static bool Active();
-  static void PrintToJSONObject(JSONObject* jsobj);
+  static bool GetStats(intptr_t* used,
+                       intptr_t* capacity,
+                       const char** implementation);
   static Sample* GetSample(const void* ptr);
 
   static intptr_t allocation_count();

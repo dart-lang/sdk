@@ -10,6 +10,8 @@
 
 #include "gperftools/malloc_hook.h"
 
+#include <malloc.h>
+
 #include "platform/assert.h"
 #include "vm/hash_map.h"
 #include "vm/json_stream.h"
@@ -334,29 +336,14 @@ bool MallocHooks::Active() {
   return MallocHooksState::Active();
 }
 
-void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
-  if (!FLAG_profiler_native_memory) {
-    return;
-  }
-  intptr_t allocated_memory = 0;
-  intptr_t allocation_count = 0;
-  bool add_usage = false;
-  // AddProperty may call malloc which would result in an attempt
-  // to acquire the lock recursively so we extract the values first
-  // and then add the JSON properties.
-  {
-    MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
-                    MallocHooksState::malloc_hook_mutex_owner());
-    if (MallocHooksState::Active()) {
-      allocated_memory = MallocHooksState::heap_allocated_memory_in_bytes();
-      allocation_count = MallocHooksState::allocation_count();
-      add_usage = true;
-    }
-  }
-  if (add_usage) {
-    jsobj->AddProperty("_heapAllocatedMemoryUsage", allocated_memory);
-    jsobj->AddProperty("_heapAllocationCount", allocation_count);
-  }
+bool MallocHooks::GetStats(intptr_t* used,
+                           intptr_t* capacity,
+                           const char** implementation) {
+  struct mallinfo info = mallinfo();
+  *used = info.uordblks;
+  *capacity = *used + info.fordblks;
+  *implementation = "tcmalloc";
+  return true;
 }
 
 intptr_t MallocHooks::allocation_count() {
