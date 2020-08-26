@@ -806,6 +806,7 @@ class ClassLayout : public ObjectLayout {
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
   friend class CidRewriteVisitor;
+  friend class Api;
 };
 
 class PatchClassLayout : public ObjectLayout {
