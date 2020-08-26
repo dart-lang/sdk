@@ -12,9 +12,9 @@
 #include <stdint.h>
 
 #include <fuchsia/deprecatedtimezone/cpp/fidl.h>
-#include <lib/async-loop/default.h>
-#include <lib/async-loop/loop.h>
 #include <lib/async/default.h>
+#include <lib/async-loop/loop.h>
+#include <lib/async-loop/default.h>
 #include <lib/inspect/cpp/inspect.h>
 #include <lib/sys/cpp/component_context.h>
 #include <lib/sys/cpp/service_directory.h>
@@ -22,7 +22,6 @@
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
-#include <zircon/time.h>
 #include <zircon/types.h>
 
 #include "platform/assert.h"
@@ -116,15 +115,6 @@ bool InitializeTZData() {
   return true;
 }
 
-int64_t GetCurrentTimeNanos() {
-  struct timespec ts;
-  if (timespec_get(&ts, TIME_UTC) == 0) {
-    FATAL("timespec_get failed");
-    return 0;
-  }
-  return zx_time_add_duration(ZX_SEC(ts.tv_sec), ZX_NSEC(ts.tv_nsec));
-}
-
 }  // namespace
 
 namespace dart {
@@ -187,18 +177,21 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
-  int64_t now_seconds = GetCurrentTimeNanos() / ZX_SEC(1);
-  zx_status_t status =
-      GetLocalAndDstOffsetInSeconds(now_seconds, &local_offset, &dst_offset);
+  zx_time_t now = 0;
+  zx_clock_get(ZX_CLOCK_UTC, &now);
+  zx_status_t status = GetLocalAndDstOffsetInSeconds(
+      now / ZX_SEC(1), &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
 }
 
 int64_t OS::GetCurrentTimeMillis() {
-  return GetCurrentTimeNanos() / ZX_MSEC(1);
+  return GetCurrentTimeMicros() / 1000;
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  return GetCurrentTimeNanos() / ZX_USEC(1);
+  zx_time_t now = 0;
+  zx_clock_get(ZX_CLOCK_UTC, &now);
+  return now / kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
