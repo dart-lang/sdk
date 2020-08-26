@@ -24,7 +24,7 @@ class TestCommand extends DartdevCommand<int> {
 
   @override
   void printUsage() {
-    if (!Sdk.checkArtifactExists(sdk.pub)) {
+    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
       return;
     }
     super.printUsage();
@@ -32,7 +32,7 @@ class TestCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.pub)) {
+    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
       return 255;
     }
     // "Could not find package "test". Did you forget to add a dependency?"
@@ -44,7 +44,7 @@ class TestCommand extends DartdevCommand<int> {
       }
     }
 
-    final command = sdk.pub;
+    final command = sdk.pubSnapshot;
     final testArgs = argResults.arguments.toList();
 
     final args = [

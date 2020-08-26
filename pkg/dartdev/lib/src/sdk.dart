@@ -54,17 +54,11 @@ class Sdk {
         'analysis_server.dart.snapshot',
       );
 
-  String get dart2js => path.absolute(
+  String get dart2jsSnapshot => path.absolute(
         sdkPath,
         'bin',
         'snapshots',
         'dart2js.dart.snapshot',
-      );
-
-  String get dartfmt => path.absolute(
-        sdkPath,
-        'bin',
-        _binName('dartfmt'),
       );
 
   String get ddsSnapshot => path.absolute(
@@ -74,15 +68,12 @@ class Sdk {
         'dds.dart.snapshot',
       );
 
-  String get pub => path.absolute(
+  String get pubSnapshot => path.absolute(
         sdkPath,
         'bin',
         'snapshots',
         'pub.dart.snapshot',
       );
-
-  static String _binName(String base) =>
-      Platform.isWindows ? '$base.bat' : base;
 
   static bool checkArtifactExists(String path) {
     if (!File(path).existsSync()) {

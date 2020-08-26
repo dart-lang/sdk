@@ -3244,6 +3244,13 @@
           ]
         },
         {
+          "name": "validate pkg/ pubspec files",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/package_deps/bin/package_deps.dart"
+          ]
+        },
+        {
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",

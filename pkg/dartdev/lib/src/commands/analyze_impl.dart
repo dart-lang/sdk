@@ -53,7 +53,7 @@ class AnalysisServer {
       sdkPath.path,
     ];
 
-    _process = await startProcess(sdk.dart, command);
+    _process = await startDartProcess(sdk, command);
     // This callback hookup can't throw.
     //ignore: unawaited_futures
     _process.exitCode.whenComplete(() => _process = null);

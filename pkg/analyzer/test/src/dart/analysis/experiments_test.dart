@@ -386,7 +386,7 @@ class ExperimentsTest {
     });
   }
 
-  test_fromStrings2_sdkLanguage_restricts_explicit_experimentalReleased() {
+  test_fromStrings2_sdkLanguage_allows_experimentalReleased() {
     knownFeatures['a'] = ExperimentalFeature(
       index: 0,
       enableString: 'a',
@@ -429,12 +429,12 @@ class ExperimentsTest {
         flags: ['b', 'c', 'd'],
       );
       assertSdkLanguageVersion(status, '1.5');
-      expect(getFlags(status), [true, true, true, false]);
+      expect(getFlags(status), [true, true, true, true]);
 
       // Restricting to the SDK version does not change anything.
       var status2 = status.restrictToVersion(Version.parse('1.5.0'));
       assertSdkLanguageVersion(status2, '1.5');
-      expect(getFlags(status2), [true, true, true, false]);
+      expect(getFlags(status2), [true, true, true, true]);
 
       // Restricting to a version disables some experiments.
       var status3 = status.restrictToVersion(Version.parse('1.4.0'));

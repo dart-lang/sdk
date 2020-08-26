@@ -22,10 +22,10 @@ class PubCommand extends DartdevCommand<int> {
     // Override [printUsage] for invocations of 'dart help pub' which won't
     // execute [run] below.  Without this, the 'dart help pub' reports the
     // command pub with no commands or flags.
-    if (!Sdk.checkArtifactExists(sdk.pub)) {
+    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
       return;
     }
-    final command = sdk.pub;
+    final command = sdk.pubSnapshot;
     final args = ['help'];
 
     log.trace('$command ${args.first}');
@@ -36,10 +36,10 @@ class PubCommand extends DartdevCommand<int> {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.pub)) {
+    if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
       return 255;
     }
-    final command = sdk.pub;
+    final command = sdk.pubSnapshot;
     var args = argResults.arguments;
 
     // Pass any --enable-experiment options along.

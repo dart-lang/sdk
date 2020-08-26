@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -15,23 +17,53 @@ void pub() {
 
   tearDown(() => p?.dispose());
 
-  test('implicit --help', () {
-    p = project();
-    var result = p.runSync('pub', []);
+  void _assertPubHelpInvoked(ProcessResult result) {
+    expect(result, isNotNull);
     expect(result.exitCode, 0);
     expect(result.stdout, contains('Pub is a package manager for Dart'));
     expect(result.stdout, contains('Available commands:'));
     expect(result.stderr, isEmpty);
+  }
+
+  test('implicit --help', () {
+    _assertPubHelpInvoked(project().runSync('pub', []));
   });
 
   test('--help', () {
+    _assertPubHelpInvoked(project().runSync('pub', ['--help']));
+  });
+
+  test('-h', () {
+    _assertPubHelpInvoked(project().runSync('pub', ['-h']));
+  });
+
+  test('help cache', () {
     p = project();
-    var result = p.runSync('pub', ['--help']);
+    var result = p.runSync('pub', ['help', 'cache']);
+    var result2 = p.runSync('pub', ['cache', '--help']);
 
     expect(result.exitCode, 0);
-    expect(result.stdout, contains('Pub is a package manager for Dart'));
-    expect(result.stdout, contains('Available commands:'));
+
+    expect(result.stdout, contains('Work with the system cache.'));
+    expect(result.stdout, result2.stdout);
+
     expect(result.stderr, isEmpty);
+    expect(result.stderr, result2.stderr);
+  });
+
+  test('help publish', () {
+    p = project();
+    var result = p.runSync('pub', ['help', 'publish']);
+    var result2 = p.runSync('pub', ['publish', '--help']);
+
+    expect(result.exitCode, 0);
+
+    expect(result.stdout,
+        contains('Publish the current package to pub.dartlang.org.'));
+    expect(result.stdout, result2.stdout);
+
+    expect(result.stderr, isEmpty);
+    expect(result.stderr, result2.stderr);
   });
 
   test('--enable-experiment pub run', () {

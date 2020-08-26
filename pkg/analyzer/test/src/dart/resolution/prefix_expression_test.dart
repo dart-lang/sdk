@@ -207,6 +207,46 @@ f(int x) {
 @reflectiveTest
 class PrefixExpressionResolutionWithNullSafetyTest
     extends PrefixExpressionResolutionTest with WithNullSafetyMixin {
+  test_bang_no_nullShorting() async {
+    await assertErrorsInCode(r'''
+class A {
+  bool get foo => true;
+}
+
+void f(A? a) {
+  !a?.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 55, 6),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('!a'),
+      element: boolElement.getMethod('!'),
+      type: 'bool',
+    );
+  }
+
+  test_minus_no_nullShorting() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  -a?.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('-a'),
+      element: intElement.getMethod('unary-'),
+      type: 'int',
+    );
+  }
+
   test_plusPlus_depromote() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -244,6 +284,26 @@ f(A? a) {
       findNode.prefix('++a'),
       element: numElement.getMethod('+'),
       type: 'int?',
+    );
+  }
+
+  test_tilde_no_nullShorting() async {
+    await assertErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  ~a?.foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 51, 6),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('~a'),
+      element: intElement.getMethod('~'),
+      type: 'int',
     );
   }
 }
