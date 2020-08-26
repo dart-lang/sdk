@@ -65,5 +65,4 @@ Future<void> main(args) => runIsolateTests(
       hotReloadTest,
       testeeConcurrent: fooBar,
       pause_on_start: true,
-      enableService: false,
     );

@@ -158,13 +158,8 @@ class Server {
 
   /// Returns the server address including the auth token.
   Uri? get serverAddress {
-    if (!running || _service.isExiting) {
+    if (!running) {
       return null;
-    }
-    // If DDS is connected it should be treated as the "true" VM service and be
-    // advertised as such.
-    if (_service.ddsUri != null) {
-      return _service.ddsUri;
     }
     final server = _server!;
     final ip = server.address.address;
@@ -369,11 +364,32 @@ class Server {
           WebSocketClient(webSocket, _service);
         });
       } else {
-        request.response.statusCode = HttpStatus.forbidden;
-        request.response.write('Cannot connect directly to the VM service as '
-            'a Dart Development Service (DDS) instance has taken control and '
-            'can be found at ${_service.ddsUri}.');
-        request.response.close();
+        // Forward the websocket connection request to DDS.
+        // The Javascript WebSocket implementation doesn't like websocket
+        // connection requests being redirected. Instead of redirecting, we'll
+        // just forward the connection manually if 'implicit-redirect' is
+        // provided as a protocol.
+        if (subprotocols != null) {
+          if (subprotocols.contains('implicit-redirect')) {
+            WebSocketTransformer.upgrade(request,
+                    protocolSelector: (_) => 'implicit-redirect',
+                    compression: CompressionOptions.compressionOff)
+                .then((WebSocket webSocket) async {
+              final ddsWs = await WebSocket.connect(
+                  _service.ddsUri!.replace(scheme: 'ws').toString());
+              ddsWs.addStream(webSocket);
+              webSocket.addStream(ddsWs);
+              webSocket.done.then((_) {
+                ddsWs.close();
+              });
+              ddsWs.done.then((_) {
+                webSocket.close();
+              });
+            });
+            return;
+          }
+        }
+        request.response.redirect(_service.ddsUri!);
       }
       return;
     }

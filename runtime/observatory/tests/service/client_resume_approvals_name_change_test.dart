@@ -57,5 +57,4 @@ Future<void> main(args) => runIsolateTests(
       testeeConcurrent: fooBar,
       pause_on_start: true,
       pause_on_exit: true,
-      enableService: false,
     );

@@ -41,7 +41,7 @@ void main() {
           final service = await vmServiceConnectUri(dds.wsUri.toString());
           final version = await service.getVersion();
           expect(version.major > 0, true);
-          expect(version.minor >= 0, true);
+          expect(version.minor > 0, true);
 
           expect(
             dds.uri.pathSegments,
@@ -64,7 +64,7 @@ void main() {
               .single);
           expect(jsonResponse['result']['type'], 'Version');
           expect(jsonResponse['result']['major'] > 0, true);
-          expect(jsonResponse['result']['minor'] >= 0, true);
+          expect(jsonResponse['result']['minor'] > 0, true);
         },
       );
     }
