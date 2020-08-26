@@ -54,6 +54,60 @@ main() {
     assertType(right, 'int');
   }
 
+  test_compound_plus_int_context_int() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int a) {
+  a += f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_compound_plus_int_context_int_complex() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(List<int> a) {
+  a[0] += f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_compound_plus_int_context_int_promoted() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(num a) {
+  if (a is int) {
+    a += f();
+  }
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+  }
+
+  test_compound_plus_int_context_int_promoted_with_subsequent_demotion() async {
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(num a, bool b) {
+  if (a is int) {
+    a += b ? f() : 1.0;
+    print(a);
+  }
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'),
+        [typeToStringWithNullability ? 'int' : 'num']);
+    assertType(findNode.simple('a);').staticType, 'num');
+  }
+
   test_compound_prefixedIdentifier() async {
     await resolveTestCode(r'''
 main() {
@@ -170,6 +224,18 @@ main() {
     var assignment = findNode.assignment('= c');
     assertElementNull(assignment);
     assertType(assignment, 'double');
+  }
+
+  test_nullAware_context() async {
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertNoErrorsInCode('''
+T f<T>() => throw Error();
+g(int$question a) {
+  a ??= f();
+}
+''');
+
+    assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['int$question']);
   }
 
   test_propertyAccess_forwardingStub() async {
