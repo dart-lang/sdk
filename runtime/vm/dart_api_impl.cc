@@ -653,23 +653,29 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     intptr_t* field_values) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid >= kNumPredefinedCids) {
-      TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
-          ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
-      if (native_fields == TypedData::null()) {
-        memset(field_values, 0, (num_fields * sizeof(field_values[0])));
-      } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
-        intptr_t* native_values =
-            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
-        memmove(field_values, native_values,
-                (num_fields * sizeof(field_values[0])));
-      }
-      return true;
-    }
+  intptr_t cid = raw_obj->GetClassIdMayBeSmi();
+  int class_num_fields = arguments->thread()
+                             ->isolate()
+                             ->class_table()
+                             ->At(cid)
+                             ->ptr()
+                             ->num_native_fields_;
+  if (num_fields != class_num_fields) {
+    // No native fields or mismatched native field count.
+    return false;
   }
-  return false;
+  TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
+      ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
+  if (native_fields == TypedData::null()) {
+    // Native fields not initialized.
+    memset(field_values, 0, (num_fields * sizeof(field_values[0])));
+    return true;
+  }
+  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length_));
+  intptr_t* native_values =
+      reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
+  memmove(field_values, native_values, (num_fields * sizeof(field_values[0])));
+  return true;
 }
 
 void Api::SetWeakHandleReturnValue(NativeArguments* args,

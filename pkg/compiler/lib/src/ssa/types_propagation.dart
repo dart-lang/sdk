@@ -472,4 +472,10 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     }
     return outputType;
   }
+
+  @override
+  AbstractValue visitBoolConversion(HBoolConversion instruction) {
+    return abstractValueDomain.intersection(
+        abstractValueDomain.boolType, instruction.checkedInput.instructionType);
+  }
 }

@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('Sdk', _sdk);
+  group('Runtime', _runtime);
 }
 
 void _sdk() {
@@ -34,6 +35,13 @@ void _sdk() {
 
   test('dart2js snapshot', () {
     expectFileExists(Sdk().dart2jsSnapshot);
+  });
+}
+
+void _runtime() {
+  test('channel', () {
+    final runtime = Runtime.runtime;
+    expect(runtime.channel, isNotEmpty);
   });
 }
 

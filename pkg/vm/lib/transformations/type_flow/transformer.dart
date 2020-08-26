@@ -19,7 +19,7 @@ import 'analysis.dart';
 import 'calls.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
-import 'table_selector.dart';
+import 'table_selector_assigner.dart';
 import 'types.dart';
 import 'unboxing_info.dart';
 import 'utils.dart';
@@ -94,12 +94,14 @@ Component transformComponent(
           component, typeFlowAnalysis, hierarchy, treeShaker.fieldMorpher)
       .visitComponent(component);
 
+  final tableSelectorAssigner = new TableSelectorAssigner(component);
+
   final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis);
 
   _makePartition(component, typeFlowAnalysis, unboxingInfo);
 
-  new AnnotateKernel(
-          component, typeFlowAnalysis, treeShaker.fieldMorpher, unboxingInfo)
+  new AnnotateKernel(component, typeFlowAnalysis, treeShaker.fieldMorpher,
+          tableSelectorAssigner, unboxingInfo)
       .visitComponent(component);
 
   treeShaker.finalizeSignatures();
@@ -155,7 +157,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   Constant _nullConstant;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.fieldMorpher,
-      this._unboxingInfo)
+      this._tableSelectorAssigner, this._unboxingInfo)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag],
         _inferredTypeMetadata = new InferredTypeMetadataRepository(),
@@ -163,7 +165,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _tableSelectorAssigner = new TableSelectorAssigner(component),
         _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);

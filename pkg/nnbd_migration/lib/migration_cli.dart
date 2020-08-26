@@ -176,7 +176,10 @@ class DependencyChecker {
 class MigrateCommand extends Command<dynamic> {
   final bool verbose;
 
-  MigrateCommand({this.verbose = false}) {
+  @override
+  final bool hidden;
+
+  MigrateCommand({this.verbose = false, this.hidden = false}) {
     MigrationCli._defineOptions(argParser, !verbose);
   }
 

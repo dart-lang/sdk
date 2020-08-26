@@ -36,7 +36,7 @@ static Dart_NativeFunction native_resolver(Dart_Handle name,
                                            bool* auto_setup_scope) {
   ASSERT(auto_setup_scope);
   *auto_setup_scope = false;
-  return reinterpret_cast<Dart_NativeFunction>(&NativeFunc);
+  return NativeFunc;
 }
 
 TEST_CASE(StackMapGC) {

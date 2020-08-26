@@ -1032,13 +1032,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
-  Future<ResponseMessage> provideConfig(
-      Future<ResponseMessage> Function() f, Map<String, dynamic> config) {
+  Future<ResponseMessage> provideConfig(Future<ResponseMessage> Function() f,
+      FutureOr<Map<String, dynamic>> config) {
     return handleExpectedRequest<ResponseMessage, ConfigurationParams,
         List<Map<String, dynamic>>>(
       Method.workspace_configuration,
       f,
-      handler: (configurationParams) => [config],
+      handler: (configurationParams) async => [await config],
     );
   }
 

@@ -77,20 +77,20 @@ class AssignmentExpressionResolver {
     left?.accept(_resolver);
     left = node.leftHandSide;
 
+    _resolve1(node);
+    TokenType operator = node.operator.type;
+    _setRhsContext(node, left.staticType, operator, right);
+
     _flowAnalysis?.assignmentExpression(node);
 
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.EQ ||
-        operator == TokenType.QUESTION_QUESTION_EQ) {
-      InferenceContext.setType(right, left.staticType);
-    } else {
+    if (operator != TokenType.EQ &&
+        operator != TokenType.QUESTION_QUESTION_EQ) {
       _nullableDereferenceVerifier.expression(left);
     }
 
     right?.accept(_resolver);
     right = node.rightHandSide;
 
-    _resolve1(node);
     _resolve2(node);
 
     _flowAnalysis?.assignmentExpression_afterRight(node);
@@ -346,10 +346,8 @@ class AssignmentExpressionResolver {
       _resolver.checkReadOfNotAssignedLocalVariable(left);
     }
 
-    if (operator == TokenType.EQ ||
-        operator == TokenType.QUESTION_QUESTION_EQ) {
-      InferenceContext.setType(right, leftType);
-    }
+    _resolve1(node);
+    _setRhsContext(node, leftType, operator, right);
 
     var flow = _flowAnalysis?.flow;
     if (flow != null && operator == TokenType.QUESTION_QUESTION_EQ) {
@@ -359,7 +357,6 @@ class AssignmentExpressionResolver {
     right?.accept(_resolver);
     right = node.rightHandSide;
 
-    _resolve1(node);
     _resolve2(node);
 
     if (flow != null) {
@@ -376,6 +373,32 @@ class AssignmentExpressionResolver {
   // TODO(scheglov) this is duplicate
   DartType _resolveTypeParameter(DartType type) =>
       type?.resolveToBound(_typeProvider.objectType);
+
+  void _setRhsContext(AssignmentExpressionImpl node, DartType leftType,
+      TokenType operator, Expression right) {
+    switch (operator) {
+      case TokenType.EQ:
+      case TokenType.QUESTION_QUESTION_EQ:
+        InferenceContext.setType(right, leftType);
+        break;
+      case TokenType.AMPERSAND_AMPERSAND_EQ:
+      case TokenType.BAR_BAR_EQ:
+        InferenceContext.setType(right, _typeProvider.boolType);
+        break;
+      default:
+        var method = node.staticElement;
+        if (method != null) {
+          var parameters = method.parameters;
+          if (parameters.isNotEmpty) {
+            InferenceContext.setType(
+                right,
+                _typeSystem.refineNumericInvocationContext(
+                    leftType, method, leftType, parameters[0].type));
+          }
+        }
+        break;
+    }
+  }
 
   /// Return `true` if we should report an error for the lookup [result] on
   /// the [type].

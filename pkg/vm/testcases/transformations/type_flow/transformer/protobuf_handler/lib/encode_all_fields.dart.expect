@@ -57,30 +57,30 @@ class FooKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::FooKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::FooKeep::_i;
   @#C11
   static method create() → self::FooKeep*
     return new self::FooKeep::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2]  @#C13
   set barKeep([@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(1, v);
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  @#C15
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  @#C15
   get mapKeep() → core::Map<core::String*, self::BarKeep*>*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=! (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String*, self::BarKeep*>(2);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  @#C17
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  @#C17
   get mapDrop() → core::Map<core::String*, self::ZopDrop*>*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=! (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String*, self::ZopDrop*>(3);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6] [@vm.unboxing-info.metadata=(i)->b]  @#C19
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5] [@vm.unboxing-info.metadata=(i)->b]  @#C19
   set aKeep([@vm.inferred-type.metadata=dart.core::_Smi (value: 43)] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(4, v);
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7]  @#C21
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6]  @#C21
   set hasKeep([@vm.inferred-type.metadata=foo.pb.dart::HasKeep] self::HasKeep* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(6, v);
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8]  @#C23
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7]  @#C23
   set clearKeep([@vm.inferred-type.metadata=foo.pb.dart::ClearKeep] self::ClearKeep* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.setField] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::setField}(7, v);
   }
@@ -96,16 +96,16 @@ class BarKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::BarKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::BarKeep::_i;
   @#C11
   static method create() → self::BarKeep*
     return new self::BarKeep::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9] [@vm.unboxing-info.metadata=(i)->b]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8] [@vm.unboxing-info.metadata=(i)->b]  @#C13
   set aKeep([@vm.inferred-type.metadata=dart.core::_Smi] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v);
   }
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10] [@vm.unboxing-info.metadata=(i)->b]  @#C25
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9] [@vm.unboxing-info.metadata=(i)->b]  @#C25
   set bDrop([@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(1, v);
   }
@@ -120,7 +120,7 @@ class HasKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::HasKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::HasKeep] self::HasKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::HasKeep::_i;
   @#C11
   static method create() → self::HasKeep*
@@ -136,7 +136,7 @@ class ClearKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::ClearKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::ClearKeep] self::ClearKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::ClearKeep::_i;
   @#C11
   static method create() → self::ClearKeep*
@@ -152,12 +152,12 @@ class ZopDrop extends pro::GeneratedMessage {
     ;
   static factory •() → self::ZopDrop*
     return [@vm.inferred-type.metadata=foo.pb.dart::ZopDrop] self::ZopDrop::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::ZopDrop::_i;
   @#C11
   static method create() → self::ZopDrop*
     return new self::ZopDrop::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11] [@vm.unboxing-info.metadata=(i)->b]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10] [@vm.unboxing-info.metadata=(i)->b]  @#C13
   set aDrop([@vm.inferred-type.metadata=dart.core::_Smi (value: 3)] core::int* v) → void {
     [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=!? (skip check)] this.{pro::GeneratedMessage::$_setSignedInt32}(0, v);
   }
