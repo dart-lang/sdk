@@ -115,7 +115,6 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     // Before calling to run, send the first ping to analytics to have the first
     // ping, as well as the command itself, running in parallel.
     if (analytics.enabled) {
-      analytics.setSessionValue(flagsParam, getFlags(args));
       commandName = getCommandStr(args, runner.commands.keys.toList());
       // ignore: unawaited_futures
       analytics.sendEvent(eventCategory, commandName);
