@@ -10,7 +10,7 @@ class Element extends core::Object {
     ;
 }
 class InheritedElement extends self::Element {
-[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<#lib::Element*, dart.core::Object*>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
+[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<#lib::Element*, dart.core::Object*>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
   synthetic constructor •() → self::InheritedElement*
     : super self::Element::•()
     ;

@@ -9,8 +9,6 @@ import '../../metadata/procedure_attributes.dart';
 import '../../metadata/table_selector.dart';
 
 // Assigns dispatch table selector IDs to interface targets.
-// TODO(dartbug.com/40188): Implement a more fine-grained assignment based on
-// hierarchy connectedness.
 class TableSelectorAssigner {
   final TableSelectorMetadata metadata = TableSelectorMetadata();
 
@@ -72,7 +70,7 @@ class TableSelectorAssigner {
               throw "Unexpected procedure kind '${member.kind}'";
           }
         } else if (member is Field) {
-          addToMap = true;
+          addToMap = getter || member.hasSetter;
         } else {
           throw "Unexpected member kind '${member.runtimeType}'";
         }
@@ -89,11 +87,14 @@ class TableSelectorAssigner {
     int memberId = map[member.enclosingClass][member.name];
     if (memberId == null) {
       assertx(member is Procedure &&
-          ((identical(map, _getterMemberIds) &&
-                  (member.kind == ProcedureKind.Operator ||
-                      member.kind == ProcedureKind.Setter)) ||
+              ((identical(map, _getterMemberIds) &&
+                      (member.kind == ProcedureKind.Operator ||
+                          member.kind == ProcedureKind.Setter)) ||
+                  identical(map, _methodOrSetterMemberIds) &&
+                      member.kind == ProcedureKind.Getter) ||
+          member is Field &&
               identical(map, _methodOrSetterMemberIds) &&
-                  member.kind == ProcedureKind.Getter));
+              !member.hasSetter);
       return ProcedureAttributesMetadata.kInvalidSelectorId;
     }
     memberId = _unionFind.find(memberId);
