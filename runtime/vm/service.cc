@@ -4137,122 +4137,94 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   rss.AddProperty64("size", Service::CurrentRSS());
   JSONArray rss_children(&rss, "children");
 
+  JSONObject vm(&rss_children);
   intptr_t vm_size = 0;
   {
-    JSONObject vm(&rss_children);
-    {
-      JSONArray vm_children(&vm, "children");
-
-      {
-        JSONObject profiler(&vm_children);
-        profiler.AddProperty("name", "Profiler");
-        profiler.AddProperty("description",
-                             "Samples from the Dart VM's profiler");
-        intptr_t size = Profiler::Size();
-        vm_size += size;
-        profiler.AddProperty64("size", size);
-        JSONArray(&profiler, "children");
-      }
-
-      {
-        JSONObject timeline(&vm_children);
-        timeline.AddProperty("name", "Timeline");
-        timeline.AddProperty(
-            "description",
-            "Timeline events from dart:developer and Dart_TimelineEvent");
-        intptr_t size = Timeline::recorder()->Size();
-        vm_size += size;
-        timeline.AddProperty64("size", size);
-        JSONArray(&timeline, "children");
-      }
-
-      {
-        JSONObject zone(&vm_children);
-        zone.AddProperty("name", "Zone");
-        zone.AddProperty("description", "Arena allocation in the Dart VM");
-        intptr_t size = Zone::Size();
-        vm_size += size;
-        zone.AddProperty64("size", size);
-        JSONArray(&zone, "children");
-      }
-
-      {
-        JSONObject semi(&vm_children);
-        semi.AddProperty("name", "SemiSpace Cache");
-        semi.AddProperty("description", "Cached heap regions");
-        intptr_t size = SemiSpace::CachedSize();
-        vm_size += size;
-        semi.AddProperty64("size", size);
-        JSONArray(&semi, "children");
-      }
-
-      IsolateGroup::ForEach([&vm_children,
-                             &vm_size](IsolateGroup* isolate_group) {
-        // Note: new_space()->CapacityInWords() includes memory that hasn't been
-        // allocated from the OS yet.
-        int64_t capacity =
-            (isolate_group->heap()->new_space()->UsedInWords() +
-             isolate_group->heap()->old_space()->CapacityInWords()) *
-            kWordSize;
-        int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
-        int64_t free = capacity - used;
-
-        JSONObject group(&vm_children);
-        group.AddPropertyF("name", "IsolateGroup %s",
-                           isolate_group->source()->name);
-        group.AddProperty("description", "Dart heap capacity");
-        vm_size += capacity;
-        group.AddProperty64("size", capacity);
-        JSONArray group_children(&group, "children");
-
-        {
-          JSONObject jsused(&group_children);
-          jsused.AddProperty("name", "Used");
-          jsused.AddProperty("description", "");
-          jsused.AddProperty64("size", used);
-          JSONArray(&jsused, "children");
-        }
-
-        {
-          JSONObject jsfree(&group_children);
-          jsfree.AddProperty("name", "Free");
-          jsfree.AddProperty("description", "");
-          jsfree.AddProperty64("size", free);
-          JSONArray(&jsfree, "children");
-        }
-      });
-    }  // vm_children
-
-    vm.AddProperty("name", "Dart VM");
-    vm.AddProperty("description", "");
-    vm.AddProperty64("size", vm_size);
-  }
-
-  intptr_t used, capacity;
-  const char* implementation;
-  if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
-    JSONObject malloc(&rss_children);
-    malloc.AddPropertyF("name", "Malloc (%s)", implementation);
-    malloc.AddProperty("description", "");
-    malloc.AddProperty64("size", capacity);
-    JSONArray malloc_children(&malloc, "children");
+    JSONArray vm_children(&vm, "children");
 
     {
-      JSONObject malloc_used(&malloc_children);
-      malloc_used.AddProperty("name", "Used");
-      malloc_used.AddProperty("description", "");
-      malloc_used.AddProperty64("size", used);
-      JSONArray(&malloc_used, "children");
+      JSONObject profiler(&vm_children);
+      profiler.AddProperty("name", "Profiler");
+      profiler.AddProperty("description",
+                           "Samples from the Dart VM's profiler");
+      intptr_t size = Profiler::Size();
+      vm_size += size;
+      profiler.AddProperty64("size", size);
+      JSONArray(&profiler, "children");
     }
 
     {
-      JSONObject malloc_free(&malloc_children);
-      malloc_free.AddProperty("name", "Free");
-      malloc_free.AddProperty("description", "");
-      malloc_free.AddProperty64("size", capacity - used);
-      JSONArray(&malloc_free, "children");
+      JSONObject timeline(&vm_children);
+      timeline.AddProperty("name", "Timeline");
+      timeline.AddProperty(
+          "description",
+          "Timeline events from dart:developer and Dart_TimelineEvent");
+      intptr_t size = Timeline::recorder()->Size();
+      vm_size += size;
+      timeline.AddProperty64("size", size);
+      JSONArray(&timeline, "children");
     }
-  }
+
+    {
+      JSONObject zone(&vm_children);
+      zone.AddProperty("name", "Zone");
+      zone.AddProperty("description", "Arena allocation in the Dart VM");
+      intptr_t size = Zone::Size();
+      vm_size += size;
+      zone.AddProperty64("size", size);
+      JSONArray(&zone, "children");
+    }
+
+    {
+      JSONObject semi(&vm_children);
+      semi.AddProperty("name", "SemiSpace Cache");
+      semi.AddProperty("description", "Cached heap regions");
+      intptr_t size = SemiSpace::CachedSize();
+      vm_size += size;
+      semi.AddProperty64("size", size);
+      JSONArray(&semi, "children");
+    }
+
+    IsolateGroup::ForEach(
+        [&vm_children, &vm_size](IsolateGroup* isolate_group) {
+          // Note: new_space()->CapacityInWords() includes memory that hasn't
+          // been allocated from the OS yet.
+          int64_t capacity =
+              (isolate_group->heap()->new_space()->UsedInWords() +
+               isolate_group->heap()->old_space()->CapacityInWords()) *
+              kWordSize;
+          int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+          int64_t free = capacity - used;
+
+          JSONObject group(&vm_children);
+          group.AddPropertyF("name", "IsolateGroup %s",
+                             isolate_group->source()->name);
+          group.AddProperty("description", "Dart heap capacity");
+          vm_size += capacity;
+          group.AddProperty64("size", capacity);
+          JSONArray group_children(&group, "children");
+
+          {
+            JSONObject jsused(&group_children);
+            jsused.AddProperty("name", "Used");
+            jsused.AddProperty("description", "");
+            jsused.AddProperty64("size", used);
+            JSONArray(&jsused, "children");
+          }
+
+          {
+            JSONObject jsfree(&group_children);
+            jsfree.AddProperty("name", "Free");
+            jsfree.AddProperty("description", "");
+            jsfree.AddProperty64("size", free);
+            JSONArray(&jsfree, "children");
+          }
+        });
+  }  // vm_children
+
+  vm.AddProperty("name", "Dart VM");
+  vm.AddProperty("description", "");
+  vm.AddProperty64("size", vm_size);
 
   return vm_size;
 }
@@ -4686,15 +4658,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty64("pid", OS::ProcessId());
   jsobj.AddPropertyTimeMillis(
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
-  {
-    intptr_t used, capacity;
-    const char* implementation;
-    if (MallocHooks::GetStats(&used, &capacity, &implementation)) {
-      jsobj.AddProperty("_mallocUsed", used);
-      jsobj.AddProperty("_mallocCapacity", capacity);
-      jsobj.AddProperty("_mallocImplementation", implementation);
-    }
-  }
+  MallocHooks::PrintToJSONObject(&jsobj);
   PrintJSONForEmbedderInformation(&jsobj);
   // Construct the isolate and isolate_groups list.
   {

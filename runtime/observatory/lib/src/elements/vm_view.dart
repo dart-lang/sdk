@@ -174,28 +174,14 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'malloc used memory',
+                  ..text = 'malloc memory',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.mallocUsed != null
-                      ? Utils.formatSize(_vm.mallocUsed)
+                  ..text = _vm.heapAllocatedMemoryUsage != null
+                      ? Utils.formatSize(_vm.heapAllocatedMemoryUsage)
                       : 'unavailable'
-                  ..title =
-                      _vm.mallocUsed != null ? '${_vm.mallocUsed} bytes' : null
-              ],
-            new DivElement()
-              ..classes = ['memberItem']
-              ..children = <Element>[
-                new DivElement()
-                  ..classes = ['memberName']
-                  ..text = 'malloc capacity memory',
-                new DivElement()
-                  ..classes = ['memberValue']
-                  ..text = _vm.mallocCapacity != null
-                      ? Utils.formatSize(_vm.mallocCapacity)
-                      : 'unavailable'
-                  ..title = _vm.mallocCapacity != null
-                      ? '${_vm.mallocCapacity} bytes'
+                  ..title = _vm.heapAllocatedMemoryUsage != null
+                      ? '${_vm.heapAllocatedMemoryUsage} bytes'
                       : null
               ],
             new DivElement()
@@ -203,10 +189,12 @@ class VMViewElement extends CustomElement implements Renderable {
               ..children = <Element>[
                 new DivElement()
                   ..classes = ['memberName']
-                  ..text = 'malloc implementation',
+                  ..text = 'malloc allocation count',
                 new DivElement()
                   ..classes = ['memberValue']
-                  ..text = _vm.mallocImplementation
+                  ..text = _vm.heapAllocationCount != null
+                      ? '${_vm.heapAllocationCount}'
+                      : 'unavailable'
               ],
             new DivElement()
               ..classes = ['memberItem']

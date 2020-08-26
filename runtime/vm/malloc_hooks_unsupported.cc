@@ -8,24 +8,6 @@
 
 #include "vm/malloc_hooks.h"
 
-#include "vm/json_stream.h"
-
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
-#include <malloc.h>
-#elif defined(HOST_OS_MACOS)
-#include <malloc/malloc.h>
-#endif
-
-#if !defined(HOST_OS_WINDOWS)
-extern "C" {
-__attribute__((weak)) uintptr_t __sanitizer_get_current_allocated_bytes();
-__attribute__((weak)) uintptr_t __sanitizer_get_heap_size();
-__attribute__((weak)) int __sanitizer_install_malloc_and_free_hooks(
-    void (*malloc_hook)(const void*, uintptr_t),
-    void (*free_hook)(const void*));
-}
-#endif
-
 namespace dart {
 
 void MallocHooks::Init() {
@@ -56,37 +38,8 @@ bool MallocHooks::Active() {
   return false;
 }
 
-bool MallocHooks::GetStats(intptr_t* used,
-                           intptr_t* capacity,
-                           const char** implementation) {
-#if !defined(PRODUCT)
-#if !defined(HOST_OS_WINDOWS)
-  if (__sanitizer_get_current_allocated_bytes != nullptr &&
-      __sanitizer_get_heap_size != nullptr) {
-    *used = __sanitizer_get_current_allocated_bytes();
-    *capacity = __sanitizer_get_heap_size();
-    *implementation = "scudo";
-    return true;
-  }
-#endif
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
-  struct mallinfo info = mallinfo();
-  *used = info.uordblks;
-  *capacity = *used + info.fordblks;
-  *implementation = "unknown";
-  return true;
-#elif defined(HOST_OS_MACOS)
-  struct mstats stats = mstats();
-  *used = stats.bytes_used;
-  *capacity = stats.bytes_total;
-  *implementation = "macos";
-  return true;
-#else
-  return false;
-#endif
-#else
-  return false;
-#endif
+void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
+  // Do nothing.
 }
 
 Sample* MallocHooks::GetSample(const void* ptr) {
