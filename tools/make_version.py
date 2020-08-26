@@ -48,21 +48,13 @@ def MakeSnapshotHashString():
     return vmhash.hexdigest()
 
 
-def GetSemanticVersionFormat(no_git_hash, custom_for_pub):
+def GetSemanticVersionFormat(no_git_hash):
     version_format = '{{SEMANTIC_SDK_VERSION}}'
-
-    if custom_for_pub and utils.GetChannel() == 'be':
-        if no_git_hash:
-            version_format = '{{LATEST}}.{{PUB_CUSTOM}}'
-        else:
-            version_format = '{{LATEST}}.{{PUB_CUSTOM}}-{{GIT_HASH}}'
-
     return version_format
 
 
 def FormatVersionString(version,
                         no_git_hash,
-                        custom_for_pub,
                         version_file=None,
                         git_revision_file=None):
     use_git_hash = not no_git_hash
@@ -70,26 +62,13 @@ def FormatVersionString(version,
     semantic_sdk_version = utils.GetSemanticSDKVersion(no_git_hash,
                                                        version_file,
                                                        git_revision_file)
-    semantic_version_format = GetSemanticVersionFormat(no_git_hash,
-                                                       custom_for_pub)
+    semantic_version_format = GetSemanticVersionFormat(no_git_hash)
     version_str = (semantic_sdk_version
                    if version_file else semantic_version_format)
 
     version = version.replace('{{VERSION_STR}}', version_str)
 
     version = version.replace('{{SEMANTIC_SDK_VERSION}}', semantic_sdk_version)
-
-    if custom_for_pub:
-        # LATEST is only used for custom_for_pub.
-        latest = None
-        if use_git_hash:
-            # If grabbing the dev tag fails, then fall back on the default VERSION file.
-            latest = utils.GetLatestDevTag()
-        if not latest:
-            latest = utils.GetSemanticSDKVersion(no_git_hash=True)
-        version = version.replace('{{LATEST}}', latest)
-
-        version = version.replace('{{PUB_CUSTOM}}', custom_for_pub)
 
     git_hash = None
     if use_git_hash:
@@ -118,11 +97,6 @@ def main():
     try:
         # Parse input.
         parser = argparse.ArgumentParser()
-        parser.add_argument(
-            '--custom_for_pub',
-            help=('Generates a version string that works with pub that '
-                  'includes the given string. This is silently ignored on '
-                  'channels other than be.'))
         parser.add_argument('--input', help='Input template file.')
         parser.add_argument(
             '--no_git_hash',
@@ -159,8 +133,7 @@ def main():
             raise 'No version template given! Set either --input or --format.'
 
         version = FormatVersionString(version_template, args.no_git_hash,
-                                      args.custom_for_pub, args.version_file,
-                                      args.git_revision_file)
+                                      args.version_file, args.git_revision_file)
 
         if args.output:
             with open(args.output, 'w') as fh:
