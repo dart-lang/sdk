@@ -20,9 +20,10 @@ import 'src/commands/create.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/pub.dart';
 import 'src/commands/run.dart';
-import 'src/commands/test.dart';
+import 'src/commands/test.dart' hide Runtime;
 import 'src/core.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
 
@@ -217,7 +218,10 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(CompileCommand());
     addCommand(FixCommand());
     addCommand(FormatCommand());
-    addCommand(MigrateCommand(verbose: verbose));
+    addCommand(MigrateCommand(
+      verbose: verbose,
+      hidden: Runtime.runtime.stableChannel,
+    ));
     addCommand(PubCommand());
     addCommand(RunCommand(verbose: verbose));
     addCommand(TestCommand());
