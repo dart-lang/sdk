@@ -115,8 +115,12 @@ class PowersetBitsDomain {
     return otherMask;
   }
 
-  AbstractBool areDisjoint(int a, int b) =>
-      AbstractBool.trueOrMaybe(intersection(a, b) == powersetBottom);
+  AbstractBool areDisjoint(int a, int b) {
+    int overlap = intersection(a, b);
+    if (overlap == powersetBottom) return AbstractBool.True;
+    if (isPrecise(overlap)) return AbstractBool.False;
+    return AbstractBool.Maybe;
+  }
 
   int intersection(int a, int b) {
     return a & b;
@@ -195,8 +199,11 @@ class PowersetBitsDomain {
 
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 
-  AbstractBool isEmpty(int value) =>
-      AbstractBool.trueOrMaybe(value == powersetBottom);
+  AbstractBool isEmpty(int value) {
+    if (value == powersetBottom) return AbstractBool.True;
+    if (isPrecise(value)) return AbstractBool.False;
+    return AbstractBool.Maybe;
+  }
 
   AbstractBool isInstanceOf(int value, ClassEntity cls) => AbstractBool.Maybe;
 
