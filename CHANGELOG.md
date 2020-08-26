@@ -1,3 +1,10 @@
+## 2.9.2 - 2020-08-26
+
+This is a patch release that fixes transient StackOverflow exceptions when
+building Flutter applications (issue [flutter/flutter#63560][]).
+
+[flutter/flutter#63560]: https://github.com/flutter/flutter/issues/63560
+
 ## 2.9.1 - 2020-08-12
 
 This is a patch release that fixes unhandled exceptions in some Flutter

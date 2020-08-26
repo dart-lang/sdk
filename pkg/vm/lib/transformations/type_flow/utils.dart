@@ -148,6 +148,7 @@ class Statistics {
   static int maxInvocationsCachedPerSelector = 0;
   static int approximateInvocationsCreated = 0;
   static int approximateInvocationsUsed = 0;
+  static int deepInvocationsDeferred = 0;
   static int classesDropped = 0;
   static int membersDropped = 0;
   static int methodBodiesDropped = 0;
@@ -177,6 +178,7 @@ class Statistics {
     maxInvocationsCachedPerSelector = 0;
     approximateInvocationsCreated = 0;
     approximateInvocationsUsed = 0;
+    deepInvocationsDeferred = 0;
     classesDropped = 0;
     membersDropped = 0;
     methodBodiesDropped = 0;
@@ -207,6 +209,7 @@ class Statistics {
     ${maxInvocationsCachedPerSelector} maximum invocations cached per selector
     ${approximateInvocationsCreated} approximate invocations created
     ${approximateInvocationsUsed} times approximate invocation is used
+    ${deepInvocationsDeferred} times invocation processing was deferred due to deep call stack
     ${classesDropped} classes dropped
     ${membersDropped} members dropped
     ${methodBodiesDropped} method bodies dropped
