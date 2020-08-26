@@ -709,6 +709,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
+    analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }
