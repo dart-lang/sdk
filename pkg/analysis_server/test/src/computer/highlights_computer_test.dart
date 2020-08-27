@@ -48,6 +48,13 @@ main() {
     _check(HighlightRegionType.IDENTIFIER_DEFAULT, 'foo');
   }
 
+  Future<void> test_trailingComment() async {
+    await _computeHighlights('''
+// A trailing comment
+''');
+    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// A trailing comment');
+  }
+
   void _check(HighlightRegionType expectedType, String expectedText) {
     for (var region in highlights) {
       if (region.type == expectedType) {
