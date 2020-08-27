@@ -431,7 +431,9 @@ Bytecode {
   PushNull
   ReturnTOS
 }
+Default function type arguments: CP#0
 ConstantPool {
+  [0] = ObjectRef < dart:core::String* >
 }
 
 
@@ -903,7 +905,7 @@ ConstantPool {
     }
   }
   class E<P extends dart.core::String* = dart.core::String*> extends dart.core::Object {
-    static factory •<P extends dart.core::String* = dynamic>() → #lib::E<#lib::E::•::P*>*
+    static factory •<P extends dart.core::String* = dart.core::String*>() → #lib::E<#lib::E::•::P*>*
       return null;
     method foo6<generic-covariant-impl T extends #lib::E::P* = #lib::E::P*, U extends dart.core::List<#lib::E::foo6::T*>* = dart.core::List<#lib::E::P*>*>(dart.core::Map<#lib::E::foo6::T*, #lib::E::foo6::U*>* map) → void {}
     abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode

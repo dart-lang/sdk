@@ -36,7 +36,7 @@ class D<P extends core::Object* = dynamic, Q extends core::Object* = dynamic> ex
     ;
 }
 class E<P extends core::String* = core::String*> extends core::Object {
-  static factory •<P extends core::String* = dynamic>() → self::E<self::E::•::P*>*
+  static factory •<P extends core::String* = core::String*>() → self::E<self::E::•::P*>*
     ;
   method foo6<generic-covariant-impl T extends self::E::P* = self::E::P*, U extends core::List<self::E::foo6::T*>* = core::List<self::E::P*>*>(core::Map<self::E::foo6::T*, self::E::foo6::U*>* map) → void
     ;

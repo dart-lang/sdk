@@ -81,19 +81,19 @@ class NonStruct extends core::Object {
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
-extension Extension<T extends self::Struct* = dynamic> on T* {
+extension Extension<T extends self::Struct* = self::Struct*> on T* {
   method method = self::Extension|method;
   tearoff method = self::Extension|get#method;
   get property = self::Extension|get#property;
   set property = self::Extension|set#property;
 }
-static method Extension|method<T extends self::Struct* = dynamic>(final self::Extension|method::T* #this) → self::Extension|method::T*
+static method Extension|method<T extends self::Struct* = self::Struct*>(final self::Extension|method::T* #this) → self::Extension|method::T*
   return #this;
-static method Extension|get#method<T extends self::Struct* = dynamic>(final self::Extension|get#method::T* #this) → () →* self::Extension|get#method::T*
+static method Extension|get#method<T extends self::Struct* = self::Struct*>(final self::Extension|get#method::T* #this) → () →* self::Extension|get#method::T*
   return () → self::Extension|get#method::T* => self::Extension|method<self::Extension|get#method::T*>(#this);
-static method Extension|get#property<T extends self::Struct* = dynamic>(final self::Extension|get#property::T* #this) → self::Extension|get#property::T*
+static method Extension|get#property<T extends self::Struct* = self::Struct*>(final self::Extension|get#property::T* #this) → self::Extension|get#property::T*
   return #this;
-static method Extension|set#property<T extends self::Struct* = dynamic>(final self::Extension|set#property::T* #this, self::Extension|set#property::T* value) → void {}
+static method Extension|set#property<T extends self::Struct* = self::Struct*>(final self::Extension|set#property::T* #this, self::Extension|set#property::T* value) → void {}
 static method main() → dynamic {
   self::Struct* struct;
   self::StructA* structA;

@@ -2863,6 +2863,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           reportIssues(issues);
           count += computeDefaultTypesForVariables(declaration.typeVariables,
               inErrorRecovery: issues.isNotEmpty);
+
+          declaration.constructors.forEach((String name, Builder member) {
+            if (member is ProcedureBuilder) {
+              assert(member.isFactory,
+                  "Unexpected constructor member (${member.runtimeType}).");
+              count += computeDefaultTypesForVariables(member.typeVariables,
+                  // Type variables are inherited from the class so if the class
+                  // has issues, so does the factory constructors.
+                  inErrorRecovery: issues.isNotEmpty);
+            } else {
+              assert(member is ConstructorBuilder,
+                  "Unexpected constructor member (${member.runtimeType}).");
+            }
+          });
         }
         declaration.forEach((String name, Builder member) {
           if (member is ProcedureBuilder) {
@@ -2871,6 +2885,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
+          } else {
+            assert(member is FieldBuilder,
+                "Unexpected class member $member (${member.runtimeType}).");
           }
         });
       } else if (declaration is TypeAliasBuilder) {
@@ -2885,6 +2902,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         reportIssues(issues);
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
+      } else if (declaration is ExtensionBuilder) {
+        {
+          List<Object> issues = getNonSimplicityIssuesForDeclaration(
+              declaration,
+              performErrorRecovery: true);
+          reportIssues(issues);
+          count += computeDefaultTypesForVariables(declaration.typeParameters,
+              inErrorRecovery: issues.isNotEmpty);
+        }
+        declaration.forEach((String name, Builder member) {
+          if (member is ProcedureBuilder) {
+            List<Object> issues =
+                getNonSimplicityIssuesForTypeVariables(member.typeVariables);
+            reportIssues(issues);
+            count += computeDefaultTypesForVariables(member.typeVariables,
+                inErrorRecovery: issues.isNotEmpty);
+          } else {
+            assert(member is FieldBuilder,
+                "Unexpected extension member $member (${member.runtimeType}).");
+          }
+        });
+      } else {
+        assert(
+            declaration is FieldBuilder ||
+                declaration is PrefixBuilder ||
+                declaration is DynamicTypeBuilder ||
+                declaration is NeverTypeBuilder,
+            "Unexpected top level member $declaration "
+            "(${declaration.runtimeType}).");
       }
     }
 
