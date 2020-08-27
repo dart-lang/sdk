@@ -58,10 +58,6 @@ class ParserTestListener implements Listener {
     doPrint('logEvent(' '$name)');
   }
 
-  set suppressParseErrors(bool value) {
-    doPrint('suppressParseErrors(' '$value)');
-  }
-
   void beginArguments(Token token) {
     seen(token);
     doPrint('beginArguments(' '$token)');

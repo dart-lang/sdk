@@ -44,8 +44,6 @@ class Listener implements UnescapeErrorListener {
 
   void logEvent(String name) {}
 
-  set suppressParseErrors(bool value) {}
-
   void beginArguments(Token token) {}
 
   void endArguments(int count, Token beginToken, Token endToken) {

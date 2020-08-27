@@ -13,11 +13,6 @@ class ForwardingListener implements Listener {
   ForwardingListener([this.listener]);
 
   @override
-  set suppressParseErrors(bool value) {
-    listener?.suppressParseErrors = value;
-  }
-
-  @override
   Uri get uri => listener?.uri;
 
   @override
