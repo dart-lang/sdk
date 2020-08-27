@@ -105,3 +105,5 @@ LibTest/html/IFrameElement/onMouseWheel_A01_t01: Skip # Times out
 LibTest/html/IFrameElement/onTransitionEnd_A01_t01: Skip # Times out
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
+LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported
+

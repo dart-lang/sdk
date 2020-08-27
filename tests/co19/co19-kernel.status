@@ -17,6 +17,9 @@ Language/Statements/For/syntax_t13: Crash # Assertion error: kernel_shadow_ast.d
 Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.dart: 'receiver == null': is not true.
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: Crash
 
+[ $runtime == dart_precompiled ]
+LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported:
+
 [ $runtime == vm ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
