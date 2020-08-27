@@ -233,4 +233,8 @@ class GnWorkspacePackage extends WorkspacePackage {
     // learning exactly which package [filePath] is contained in.
     return workspace.findPackageFor(filePath).root == root;
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace.packageMap;
 }

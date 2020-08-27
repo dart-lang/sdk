@@ -538,4 +538,10 @@ class BazelWorkspacePackage extends WorkspacePackage {
     // learning exactly which package [filePath] is contained in.
     return workspace.findPackageFor(filePath).root == root;
   }
+
+  @override
+  // TODO(brianwilkerson) Implement this by looking in the BUILD file for 'deps'
+  //  lists.
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      <String, List<Folder>>{};
 }

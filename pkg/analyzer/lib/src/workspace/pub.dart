@@ -113,4 +113,11 @@ class PubWorkspacePackage extends WorkspacePackage {
     // is in the package as well.
     return workspace.provider.pathContext.isWithin(root, filePath);
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) {
+    // TODO(brianwilkerson) Consider differentiating based on whether the
+    //  [libraryPath] is inside the `lib` directory.
+    return workspace.packageMap;
+  }
 }
