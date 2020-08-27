@@ -180,9 +180,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
 
 class DartdevRunner<int> extends CommandRunner {
   @override
-  final ArgParser argParser = ArgParser(
-    usageLineLength: dartdevUsageLineLength,
-  );
+  final ArgParser argParser =
+      ArgParser(usageLineLength: dartdevUsageLineLength);
 
   static const String dartdevDescription =
       'A command-line utility for Dart development';

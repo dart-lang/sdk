@@ -5,14 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 import 'package:dart2native/generate.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../sdk.dart';
-import '../utils.dart';
 import '../vm_interop_handler.dart';
 
 const int compileErrorExitCode = 64;
@@ -230,22 +227,8 @@ Remove debugging information from the output and save it separately to the speci
   }
 }
 
-class CompileCommand extends Command {
-  // TODO(mit/jwren) Investigate and document why this command isn't a subtype
-  // of DartdevCommand, or change it to be a subtype, removing the requirement
-  // to have the following override.
-  @override
-  final ArgParser argParser = ArgParser(
-    usageLineLength: dartdevUsageLineLength,
-  );
-
-  @override
-  String get description => 'Compile Dart to various formats.';
-
-  @override
-  String get name => 'compile';
-
-  CompileCommand() {
+class CompileCommand extends DartdevCommand {
+  CompileCommand() : super('compile', 'Compile Dart to various formats.') {
     addSubcommand(CompileJSCommand());
     addSubcommand(CompileSnapshotCommand(
       commandName: 'jit-snapshot',

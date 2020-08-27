@@ -15,7 +15,7 @@ class PubCommand extends DartdevCommand<int> {
   PubCommand() : super('pub', 'Work with packages.');
 
   @override
-  final ArgParser argParser = ArgParser.allowAnything();
+  ArgParser createArgParser() => ArgParser.allowAnything();
 
   @override
   void printUsage() {

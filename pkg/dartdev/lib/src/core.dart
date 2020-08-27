@@ -37,9 +37,12 @@ abstract class DartdevCommand<int> extends Command {
   ArgParser _argParser;
 
   @override
-  ArgParser get argParser => _argParser ??= _createArgParser();
+  ArgParser get argParser => _argParser ??= createArgParser();
 
-  ArgParser _createArgParser() =>
+  /// Create the ArgParser instance for this command.
+  ///
+  /// Subclasses can override this in order to create a customized ArgParser.
+  ArgParser createArgParser() =>
       ArgParser(usageLineLength: dartdevUsageLineLength);
 
   Project get project => _project ??= Project();
