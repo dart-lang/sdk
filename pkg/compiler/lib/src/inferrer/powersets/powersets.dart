@@ -40,7 +40,8 @@ class PowersetValue implements AbstractValue {
 
   @override
   String toString() =>
-      '[Powerset of ${_abstractValue.toString()} with bits ${_powersetBits}]';
+      '${PowersetBitsDomain.toText(_powersetBits, omitIfTop: true)}'
+      '${_abstractValue}';
 }
 
 AbstractValue unwrapOrNull(PowersetValue powerset) {
@@ -99,7 +100,7 @@ class PowersetDomain implements AbstractValueDomain {
   AbstractBool isJsIndexableAndIterable(covariant PowersetValue value) =>
       _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? AbstractBool.False
-          : _abstractValueDomain.isJsIndexableAndIterable(unwrapOrNull(value));
+          : _abstractValueDomain.isJsIndexableAndIterable(value._abstractValue);
 
   @override
   AbstractBool isJsIndexable(covariant PowersetValue value) =>
