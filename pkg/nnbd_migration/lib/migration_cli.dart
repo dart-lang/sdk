@@ -381,23 +381,7 @@ class MigrationCli {
   }
 
   static void _defineOptions(ArgParser parser, bool hide) {
-    parser.addFlag(CommandLineOptions.applyChangesFlag,
-        defaultsTo: false,
-        negatable: false,
-        help: 'Apply the proposed null safety changes to the files on disk.');
-    parser.addFlag(
-      CommandLineOptions.ignoreErrorsFlag,
-      defaultsTo: false,
-      negatable: false,
-      help: 'Attempt to perform null safety analysis even if there are '
-          'analysis errors in the project.',
-    );
-    parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
-        defaultsTo: false,
-        negatable: false,
-        help:
-            'Attempt to perform null safety analysis even if exceptions occur.',
-        hide: hide);
+    addCoreOptions(parser, hide);
     parser.addFlag(
       CommandLineOptions.skipPubOutdatedFlag,
       defaultsTo: false,
@@ -417,6 +401,26 @@ class MigrationCli {
     parser.addOption(CommandLineOptions.summaryOption,
         help:
             'Output path for a machine-readable summary of migration changes');
+  }
+
+  static void addCoreOptions(ArgParser parser, bool hide) {
+    parser.addFlag(CommandLineOptions.applyChangesFlag,
+        defaultsTo: false,
+        negatable: false,
+        help: 'Apply the proposed null safety changes to the files on disk.');
+    parser.addFlag(
+      CommandLineOptions.ignoreErrorsFlag,
+      defaultsTo: false,
+      negatable: false,
+      help: 'Attempt to perform null safety analysis even if there are '
+          'analysis errors in the project.',
+    );
+    parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
+        defaultsTo: false,
+        negatable: false,
+        help:
+            'Attempt to perform null safety analysis even if exceptions occur.',
+        hide: hide);
     parser.addFlag(CommandLineOptions.verboseFlag,
         abbr: 'v',
         defaultsTo: false,
