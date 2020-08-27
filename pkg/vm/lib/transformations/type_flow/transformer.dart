@@ -96,9 +96,8 @@ Component transformComponent(
 
   final tableSelectorAssigner = new TableSelectorAssigner(component);
 
-  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis);
-
-  _makePartition(component, typeFlowAnalysis, unboxingInfo);
+  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
+    ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
   new AnnotateKernel(component, typeFlowAnalysis, treeShaker.fieldMorpher,
           tableSelectorAssigner, unboxingInfo)
@@ -496,86 +495,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   visitComponent(Component node) {
     super.visitComponent(node);
     _tableSelectorMetadata.mapping[node] = _tableSelectorAssigner.metadata;
-  }
-}
-
-// Partition the methods in order to idenfity parameters and return values
-// that are unboxing candidates
-void _makePartition(Component component, TypeFlowAnalysis typeFlowAnalysis,
-    UnboxingInfoManager unboxingInfo) {
-  // Traverses all the members and creates the partition graph.
-  // Currently unboxed parameters and return value are not supported for
-  // closures, therefore they do not exist in this graph
-  for (bool registering in const [true, false]) {
-    for (Library library in component.libraries) {
-      for (Class cls in library.classes) {
-        for (Member member in cls.members) {
-          if (registering) {
-            unboxingInfo.registerMember(member);
-          } else {
-            unboxingInfo.linkWithSuperClasses(member);
-          }
-        }
-      }
-      if (registering) {
-        for (Member member in library.members) {
-          unboxingInfo.registerMember(member);
-        }
-      }
-    }
-  }
-  unboxingInfo.finishGraph();
-
-  for (Library library in component.libraries) {
-    for (Class cls in library.classes) {
-      for (Member member in cls.members) {
-        _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
-      }
-    }
-    for (Member member in library.members) {
-      _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
-    }
-  }
-}
-
-void _updateUnboxingInfoOfMember(Member member,
-    TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoManager unboxingInfo) {
-  if (typeFlowAnalysis.isMemberUsed(member)) {
-    if (member is Procedure || member is Constructor) {
-      final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-      assertx(argTypes != null);
-
-      final int firstParamIndex =
-          numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
-
-      final positionalParams = member.function.positionalParameters;
-      assertx(argTypes.positionalCount ==
-          firstParamIndex + positionalParams.length);
-
-      for (int i = 0; i < positionalParams.length; i++) {
-        final inferredType = argTypes.values[firstParamIndex + i];
-        unboxingInfo.applyToArg(member, i, inferredType);
-      }
-
-      final names = argTypes.names;
-      for (int i = 0; i < names.length; i++) {
-        final inferredType =
-            argTypes.values[firstParamIndex + positionalParams.length + i];
-        unboxingInfo.applyToArg(
-            member, positionalParams.length + i, inferredType);
-      }
-
-      final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
-      unboxingInfo.applyToReturn(member, resultType);
-    } else if (member is Field) {
-      final fieldValue = typeFlowAnalysis.getFieldValue(member).value;
-      if (member.hasSetter) {
-        unboxingInfo.applyToArg(member, 0, fieldValue);
-      }
-      unboxingInfo.applyToReturn(member, fieldValue);
-    } else {
-      assertx(false);
-    }
   }
 }
 

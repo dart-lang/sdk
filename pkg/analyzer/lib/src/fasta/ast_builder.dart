@@ -487,11 +487,6 @@ class AstBuilder extends StackListener {
     // printEvent('AstBuilder: $name');
   }
 
-  @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    pop();
-  }
-
   void doDotExpression(Token dot) {
     Expression identifierOrInvoke = pop();
     Expression receiver = pop();

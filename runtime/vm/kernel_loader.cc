@@ -2277,7 +2277,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
-    T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
+    T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
   }
 }

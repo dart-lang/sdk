@@ -58,10 +58,6 @@ class ParserTestListener implements Listener {
     doPrint('logEvent(' '$name)');
   }
 
-  set suppressParseErrors(bool value) {
-    doPrint('suppressParseErrors(' '$value)');
-  }
-
   void beginArguments(Token token) {
     seen(token);
     doPrint('beginArguments(' '$token)');
@@ -2148,10 +2144,6 @@ class ParserTestListener implements Listener {
   void handleScript(Token token) {
     seen(token);
     doPrint('handleScript(' '$token)');
-  }
-
-  void discardTypeReplacedWithCommentTypeAssign() {
-    doPrint('discardTypeReplacedWithCommentTypeAssign()');
   }
 
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
