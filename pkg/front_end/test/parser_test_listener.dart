@@ -2150,10 +2150,6 @@ class ParserTestListener implements Listener {
     doPrint('handleScript(' '$token)');
   }
 
-  void discardTypeReplacedWithCommentTypeAssign() {
-    doPrint('discardTypeReplacedWithCommentTypeAssign()');
-  }
-
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     doPrint(
         'handleCommentReferenceText(' '$referenceSource, ' '$referenceOffset)');

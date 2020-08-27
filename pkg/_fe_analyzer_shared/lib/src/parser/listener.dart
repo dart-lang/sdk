@@ -1630,11 +1630,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Script");
   }
 
-  /// A type has been just parsed, and the parser noticed that the next token
-  /// has a type substitution comment /*=T*. So, the type that has been just
-  /// parsed should be discarded, and a new type should be parsed instead.
-  void discardTypeReplacedWithCommentTypeAssign() {}
-
   /// A single comment reference has been found
   /// where [referenceSource] is the text between the `[` and `]`
   /// and [referenceOffset] is the character offset in the token stream.

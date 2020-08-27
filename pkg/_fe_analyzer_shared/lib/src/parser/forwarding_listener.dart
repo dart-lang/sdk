@@ -463,11 +463,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    listener?.discardTypeReplacedWithCommentTypeAssign();
-  }
-
-  @override
   void endArguments(int count, Token beginToken, Token endToken) {
     listener?.endArguments(count, beginToken, endToken);
   }
