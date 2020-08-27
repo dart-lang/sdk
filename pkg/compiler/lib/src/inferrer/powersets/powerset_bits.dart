@@ -6,7 +6,7 @@ import '../../common_elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';
-import '../../elements/types.dart' show DartType, InterfaceType;
+import '../../elements/types.dart';
 import '../../ir/static_type.dart';
 import '../../universe/selector.dart';
 import '../../world.dart';
@@ -48,6 +48,8 @@ class PowersetBitsDomain {
   PowersetBitsDomain(this._closedWorld);
 
   CommonElements get commonElements => _closedWorld.commonElements;
+
+  DartTypes get dartTypes => _closedWorld.dartTypes;
 
   int get trueMask => 1 << _trueIndex;
   int get falseMask => 1 << _falseIndex;
@@ -376,16 +378,130 @@ class PowersetBitsDomain {
 
   int createFromStaticType(DartType type,
       {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
-    // TODO(coam): This only works for bool
-    int bits = otherMask;
-    if (type is InterfaceType && _isBoolSubtype(type.element)) {
-      bits = boolMask;
+    assert(nullable != null);
+
+    if ((classRelation == ClassRelation.subtype ||
+            classRelation == ClassRelation.thisExpression) &&
+        dartTypes.isTopType(type)) {
+      // A cone of a top type includes all values. This would be 'precise' if we
+      // tracked that.
+      return dynamicType;
     }
-    if (nullable) {
-      bits = bits | nullMask;
+
+    if (type is NullableType) {
+      assert(dartTypes.useNullSafety);
+      return _createFromStaticType(type.baseType, classRelation, true);
     }
-    return bits;
+
+    if (type is LegacyType) {
+      assert(dartTypes.useNullSafety);
+      DartType baseType = type.baseType;
+      if (baseType is NeverType) {
+        // Never* is same as Null, for both 'is' and 'as'.
+        return nullMask;
+      }
+
+      // Object* is a top type for both 'is' and 'as'. This is handled in the
+      // 'cone of top type' case above.
+
+      return _createFromStaticType(baseType, classRelation, nullable);
+    }
+
+    if (dartTypes.useLegacySubtyping) {
+      // In legacy and weak mode, `String` is nullable depending on context.
+      return _createFromStaticType(type, classRelation, nullable);
+    } else {
+      // In strong mode nullability comes from explicit NullableType.
+      return _createFromStaticType(type, classRelation, false);
+    }
   }
+
+  int _createFromStaticType(
+      DartType type, ClassRelation classRelation, bool nullable) {
+    assert(nullable != null);
+
+    int finish(int value, bool isPrecise) {
+      // [isPrecise] is ignored since we only treat singleton partitions as
+      // precise.
+      // TODO(sra): Each bit that represents more that one concrete value could
+      // have an 'isPrecise' bit.
+      return nullable ? includeNull(value) : value;
+    }
+
+    bool isPrecise = true;
+    while (type is TypeVariableType) {
+      TypeVariableType typeVariable = type;
+      type = _closedWorld.elementEnvironment
+          .getTypeVariableBound(typeVariable.element);
+      classRelation = ClassRelation.subtype;
+      isPrecise = false;
+      if (type is NullableType) {
+        // <A extends B?, B extends num>  ...  null is A --> can be `true`.
+        // <A extends B, B extends num?>  ...  null is A --> can be `true`.
+        nullable = true;
+        type = type.withoutNullability;
+      }
+    }
+
+    if ((classRelation == ClassRelation.thisExpression ||
+            classRelation == ClassRelation.subtype) &&
+        dartTypes.isTopType(type)) {
+      // A cone of a top type includes all values. Since we already tested this
+      // in [createFromStaticType], we get here only for type parameter bounds.
+      return finish(dynamicType, isPrecise);
+    }
+
+    if (type is InterfaceType) {
+      ClassEntity cls = type.element;
+      List<DartType> arguments = type.typeArguments;
+      if (isPrecise && arguments.isNotEmpty) {
+        // Can we ignore the type arguments?
+        //
+        // For legacy covariance, if the interface type is a generic interface
+        // type and is maximal (i.e. instantiated to bounds), the typemask,
+        // which is based on the class element, is still precise. We check
+        // against Top for the parameter arguments since we don't have a
+        // convenient check for instantation to bounds.
+        //
+        // TODO(sra): Check arguments against bounds.
+        // TODO(sra): Handle other variances.
+        List<Variance> variances = dartTypes.getTypeVariableVariances(cls);
+        for (int i = 0; i < arguments.length; i++) {
+          Variance variance = variances[i];
+          DartType argument = arguments[i];
+          if (variance == Variance.legacyCovariant &&
+              dartTypes.isTopType(argument)) {
+            continue;
+          }
+          isPrecise = false;
+        }
+      }
+      switch (classRelation) {
+        case ClassRelation.exact:
+          return finish(createNonNullExact(cls), isPrecise);
+        case ClassRelation.thisExpression:
+          if (!_closedWorld.isUsedAsMixin(cls)) {
+            return finish(createNonNullSubclass(cls), isPrecise);
+          }
+          break;
+        case ClassRelation.subtype:
+          break;
+      }
+      return finish(createNonNullSubtype(cls), isPrecise);
+    }
+
+    if (type is FunctionType) {
+      return finish(createNonNullSubtype(commonElements.functionClass), false);
+    }
+
+    if (type is NeverType) {
+      return finish(emptyType, isPrecise);
+    }
+
+    return finish(dynamicType, false);
+  }
+
+  int get dynamicType => powersetTop;
 
   int get asyncStarStreamType => powersetTop;
 
