@@ -99,7 +99,7 @@ class PowersetDomain implements AbstractValueDomain {
   AbstractBool isJsIndexableAndIterable(covariant PowersetValue value) =>
       _powersetBitsDomain.isOther(value._powersetBits).isDefinitelyFalse
           ? AbstractBool.False
-          : _abstractValueDomain.isJsIndexableAndIterable(unwrapOrNull(value));
+          : _abstractValueDomain.isJsIndexableAndIterable(value._abstractValue);
 
   @override
   AbstractBool isJsIndexable(covariant PowersetValue value) =>

@@ -798,8 +798,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isJsIndexableAndIterable(covariant TypeMask mask) {
-    return AbstractBool.trueOrMaybe(mask != null &&
-        mask.satisfies(
+    return AbstractBool.trueOrMaybe(mask.satisfies(
             _closedWorld.commonElements.jsIndexableClass, _closedWorld) &&
         // String is indexable but not iterable.
         !mask.satisfies(

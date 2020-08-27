@@ -74,7 +74,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractBool isJsIndexableAndIterable(covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.isJsIndexableAndIterable(unwrapOrNull(value));
+      _abstractValueDomain.isJsIndexableAndIterable(value._abstractValue);
 
   @override
   AbstractBool isJsIndexable(covariant WrappedAbstractValue value) =>
