@@ -40,6 +40,15 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _assertLegacyElement(node.readElement);
+    _assertLegacyElement(node.writeElement);
+    _assertLegacyType(node.readType);
+    _assertLegacyType(node.writeType);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitClassMember(ClassMember node) {
     final element = node.declaredElement;
     if (element is ExecutableElement) {
@@ -103,6 +112,14 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitVariableDeclaration(node);
+  }
+
+  void _assertLegacyElement(Element element) {
+    if (element is ExecutableElement) {
+      _assertLegacyType(element.type);
+    } else if (element is VariableElement) {
+      _assertLegacyType(element.type);
+    }
   }
 
   void _assertLegacyType(DartType type) {

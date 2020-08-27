@@ -432,10 +432,14 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (isInGetterContext && isInSetterContext) {
       node.staticElement = result.setter;
       node.auxiliaryElements = AuxiliaryElements(result.getter);
+      _resolver.setReadElement(node, result.getter);
+      _resolver.setWriteElement(node, result.setter);
     } else if (isInGetterContext) {
       node.staticElement = result.getter;
+      _resolver.setReadElement(node, result.getter);
     } else if (isInSetterContext) {
       node.staticElement = result.setter;
+      _resolver.setWriteElement(node, result.setter);
     }
 
     if (isInGetterContext) {
@@ -559,6 +563,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // identifier and this is really equivalent to a property access node.
     //
     _resolvePropertyAccess(
+      node,
       prefix,
       identifier,
       isCascaded: false,
@@ -585,6 +590,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ExecutableElement member;
       var result = _extensionResolver.getOverrideMember(target, memberName);
       if (propertyName.inSetterContext()) {
+        _resolver.setWriteElement(node, result.setter);
         member = result.setter;
         if (member == null) {
           _errorReporter.reportErrorForNode(
@@ -593,6 +599,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [memberName, element.name]);
         }
         if (propertyName.inGetterContext()) {
+          _resolver.setReadElement(node, result.getter);
           ExecutableElement getter = result.getter;
           if (getter == null) {
             _errorReporter.reportErrorForNode(
@@ -603,6 +610,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           propertyName.auxiliaryElements = AuxiliaryElements(getter);
         }
       } else if (propertyName.inGetterContext()) {
+        _resolver.setReadElement(node, result.getter);
         member = result.getter;
         if (member == null) {
           _errorReporter.reportErrorForNode(
@@ -622,6 +630,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
     SimpleIdentifier propertyName = node.propertyName;
     _resolvePropertyAccess(
+      node,
       target,
       propertyName,
       isCascaded: node.isCascaded,
@@ -734,8 +743,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
     }
     node.staticElement = element;
+
+    _resolver.setWriteElement(node, element);
+
+    var inGetterContext = node.inGetterContext();
+    if (inGetterContext) {
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is CompilationUnitElement) {
+        _resolver.setReadElement(node, element.variable.getter);
+      } else {
+        _resolver.setReadElement(node, null);
+      }
+    }
+
     if (node.inSetterContext() &&
-        node.inGetterContext() &&
+        inGetterContext &&
         enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.thisType;
       var result = _typePropertyResolver.resolve(
@@ -748,6 +770,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       node.auxiliaryElements = AuxiliaryElements(
         result.getter,
       );
+      _resolver.setReadElement(node, result.getter);
     }
     //
     // Validate annotation element.
@@ -1243,6 +1266,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   void _resolvePropertyAccess(
+    Expression node,
     Expression target,
     SimpleIdentifier propertyName, {
     @required bool isCascaded,
@@ -1323,8 +1347,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
           }
         }
 
+        element = _resolver.toLegacyElement(element);
+        _resolver.setReadElement(node, element);
+
         if (element != null) {
-          element = _resolver.toLegacyElement(element);
           propertyName.staticElement = element;
           _checkForStaticAccessToInstanceMember(propertyName, element);
         } else {
@@ -1343,6 +1369,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
         ExecutableElement element;
 
         var setter = typeReference.getSetter(propertyName.name);
+        setter = _resolver.toLegacyElement(setter);
+
+        _resolver.setWriteElement(node, setter);
+
         if (setter != null) {
           element = setter;
           if (!setter.isAccessibleIn(_definingLibrary)) {
@@ -1355,7 +1385,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         }
 
         if (element != null) {
-          element = _resolver.toLegacyElement(element);
           propertyName.staticElement = element;
           _checkForStaticAccessToInstanceMember(propertyName, element);
         } else {
@@ -1382,6 +1411,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           var name = Name(_definingLibrary.source.uri, propertyName.name);
           var element = _resolver.inheritance
               .getMember2(staticType.element, name, forSuper: true);
+          _resolver.setReadElement(node, element);
 
           if (element != null) {
             element = _resolver.toLegacyElement(element);
@@ -1416,6 +1446,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             concrete: true,
             inherited: true,
           );
+          _resolver.setWriteElement(node, element);
 
           if (element != null) {
             element = _resolver.toLegacyElement(element);
@@ -1479,6 +1510,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     );
 
     if (propertyName.inGetterContext()) {
+      _resolver.setReadElement(node, result.getter);
       var shouldReportUndefinedGetter = false;
       if (result.isSingle) {
         var getter = result.getter;
@@ -1511,6 +1543,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
 
     if (propertyName.inSetterContext()) {
+      _resolver.setWriteElement(node, result.setter);
       if (result.isSingle) {
         var setter = result.setter;
         if (setter != null) {

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -571,9 +572,65 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void setReadElement(Expression node, Element element) {
+    var parent = node.parent;
+    if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
+      parent.readElement = element;
+
+      DartType readType = DynamicTypeImpl.instance;
+      if (node is IndexExpression) {
+        if (element is MethodElement) {
+          readType = element.returnType;
+        }
+      } else if (node is PrefixedIdentifier ||
+          node is PropertyAccess ||
+          node is SimpleIdentifier) {
+        if (element is PropertyAccessorElement && element.isGetter) {
+          readType = element.returnType;
+        } else if (element is VariableElement) {
+          readType = localVariableTypeProvider.getType(node);
+        }
+      }
+      parent.readType = readType;
+    }
+  }
+
   @visibleForTesting
   void setThisInterfaceType(InterfaceType thisType) {
     _thisType = thisType;
+  }
+
+  void setWriteElement(Expression node, Element element) {
+    var parent = node.parent;
+    if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
+      parent.writeElement = element;
+
+      DartType writeType = DynamicTypeImpl.instance;
+      if (node is IndexExpression) {
+        if (element is MethodElement) {
+          var parameters = element.parameters;
+          if (parameters.length == 2) {
+            writeType = parameters[1].type;
+          }
+        }
+      } else if (node is PrefixedIdentifier ||
+          node is PropertyAccess ||
+          node is SimpleIdentifier) {
+        if (element is PropertyAccessorElement && element.isSetter) {
+          if (element.isSynthetic) {
+            writeType = element.variable.type;
+          } else {
+            var parameters = element.parameters;
+            if (parameters.length == 1) {
+              writeType = parameters[0].type;
+            }
+          }
+        } else if (element is VariableElement) {
+          writeType = element.type;
+        }
+      }
+      parent.writeType = writeType;
+    }
   }
 
   /// If in a legacy library, return the legacy view on the [element].

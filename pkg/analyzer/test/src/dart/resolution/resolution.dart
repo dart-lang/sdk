@@ -96,9 +96,27 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertAssignment(
     AssignmentExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
     @required Object operatorElement,
     @required String type,
   }) {
+    assertElement(node.readElement, readElement);
+    if (readType == null) {
+      expect(node.readType, isNull);
+    } else {
+      assertType(node.readType, readType);
+    }
+
+    assertElement(node.writeElement, writeElement);
+    if (writeType == null) {
+      expect(node.writeType, isNull);
+    } else {
+      assertType(node.writeType, writeType);
+    }
+
     assertElement(node.staticElement, operatorElement);
     assertType(node, type);
   }

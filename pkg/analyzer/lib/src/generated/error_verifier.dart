@@ -1685,6 +1685,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, expression);
     } else if (element is ClassElement ||
+        element is DynamicElementImpl ||
         element is FunctionTypeAliasElement ||
         element is TypeParameterElement) {
       _errorReporter.reportErrorForNode(
@@ -2955,10 +2956,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    VariableElement leftVariableElement = getVariableElement(lhs);
-    DartType leftType = (leftVariableElement == null)
-        ? getStaticType(lhs)
-        : leftVariableElement.type;
+    DartType leftType;
+    var parent = lhs.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == lhs) {
+      leftType = parent.writeType;
+    } else {
+      VariableElement leftVariableElement = getVariableElement(lhs);
+      leftType = (leftVariableElement == null)
+          ? getStaticType(lhs)
+          : leftVariableElement.type;
+    }
 
     if (!leftType.isVoid && _checkForUseOfVoidResult(rhs)) {
       return;
