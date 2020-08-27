@@ -204,26 +204,75 @@ main() {
     assertType(indexed, 'double');
   }
 
-  test_notLValue_parenthesized() async {
-    await resolveTestCode(r'''
-int a, b;
-double c = 0.0;
-main() {
-  (a + b) = c;
+  test_notLValue_parenthesized_compound() async {
+    await assertErrorsInCode(r'''
+void f(int a, int b, double c) {
+  (a + b) += c;
 }
-''');
-    expect(result.errors, isNotEmpty);
-
-    var parenthesized = findNode.parenthesized('(a + b)');
-    assertType(parenthesized, 'int');
-
-    assertTopGetRef('a + b', 'a');
-    assertTopGetRef('b)', 'b');
-    assertTopGetRef('c;', 'c');
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
+    ]);
 
     var assignment = findNode.assignment('= c');
-    assertElementNull(assignment);
-    assertType(assignment, 'double');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: 'dynamic',
+      writeElement: null,
+      writeType: 'dynamic',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'double',
+    );
+  }
+
+  test_notLValue_parenthesized_simple() async {
+    await assertErrorsInCode(r'''
+void f(int a, int b, double c) {
+  (a + b) = c;
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+    ]);
+
+    var assignment = findNode.assignment('= c');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'double',
+    );
+
+    assertType(assignment.leftHandSide, 'int');
+
+    assertSimpleIdentifier(
+      findNode.simple('a + b'),
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      findNode.simple('b)'),
+      readElement: findElement.parameter('b'),
+      writeElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      findNode.simple('c;'),
+      readElement: findElement.parameter('c'),
+      writeElement: null,
+      type: 'double',
+    );
   }
 
   test_nullAware_context() async {
@@ -458,12 +507,15 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 1),
     ]);
 
     var assignment = findNode.assignment('C = 0');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.class_('C'),
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -492,6 +544,10 @@ class C {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -520,6 +576,10 @@ class C {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -550,6 +610,10 @@ class C {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.getter('x'),
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -580,6 +644,10 @@ class C {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.getter('x'),
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -608,6 +676,10 @@ void f() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topGet('x'),
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -636,6 +708,10 @@ main() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.prefix('x'),
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -662,6 +738,10 @@ void f() {
     var assignment = findNode.assignment('x += 3');
     assertAssignment(
       assignment,
+      readElement: findElement.localVar('x'),
+      readType: 'num',
+      writeElement: findElement.localVar('x'),
+      writeType: 'num',
       operatorElement: elementMatcher(
         numElement.getMethod('+'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
@@ -691,6 +771,10 @@ void f() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.localVar('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -719,6 +803,10 @@ void f() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.localVar('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -747,6 +835,10 @@ void f() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.localVar('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -772,6 +864,10 @@ void f(num$question x) {
     var assignment = findNode.assignment('x ??=');
     assertAssignment(
       assignment,
+      readElement: findElement.parameter('x'),
+      readType: 'num$question',
+      writeElement: findElement.parameter('x'),
+      writeType: 'num$question',
       operatorElement: null,
       type: 'num',
     );
@@ -800,6 +896,10 @@ void f(double$question a, int b) {
     var assignment = findNode.assignment('a ??=');
     assertAssignment(
       assignment,
+      readElement: findElement.parameter('a'),
+      readType: 'double$question',
+      writeElement: findElement.parameter('a'),
+      writeType: 'double$question',
       operatorElement: null,
       type: 'num',
     );
@@ -866,6 +966,10 @@ void f(num x) {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.parameter('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -892,6 +996,10 @@ void f(int x) {
     var assignment = findNode.assignment('x = true');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.parameter('x'),
+      writeType: 'int',
       operatorElement: null,
       type: 'bool',
     );
@@ -918,6 +1026,10 @@ void f(final int x) {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.parameter('x'),
+      writeType: 'int',
       operatorElement: null,
       type: 'int',
     );
@@ -944,6 +1056,10 @@ void f(int y) {
     var assignment = findNode.assignment('= y');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -963,6 +1079,76 @@ void f(int y) {
     );
   }
 
+  test_simpleIdentifier_thisGetter_thisSetter_compound() async {
+    await assertNoErrorsInCode('''
+class C {
+  int get x => 0;
+  set x(num _) {}
+
+  void f() {
+    x += 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.getter('x'),
+      writeElement: findElement.setter('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_topGetter_topSetter_compound() async {
+    await assertNoErrorsInCode('''
+int get x => 0;
+set x(num _) {}
+
+void f() {
+  x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.topGet('x'),
+      readType: 'int',
+      writeElement: findElement.topSet('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.topGet('x'),
+      writeElement: findElement.topSet('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
   test_simpleIdentifier_topLevelVariable_simple() async {
     await assertNoErrorsInCode(r'''
 num x = 0;
@@ -975,6 +1161,10 @@ void f() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topSet('x'),
+      writeType: 'num',
       operatorElement: null,
       type: 'int',
     );
@@ -1003,6 +1193,10 @@ void f() {
     var assignment = findNode.assignment('x = true');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topSet('x'),
+      writeType: 'int',
       operatorElement: null,
       type: 'bool',
     );
@@ -1031,6 +1225,10 @@ void f() {
     var assignment = findNode.assignment('x = 2');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topGet('x'),
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -1040,6 +1238,97 @@ void f() {
       readElement: null,
       writeElement: findElement.topGet('x'),
       type: null,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_typeLiteral_compound() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int += 3;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 17, 2),
+    ]);
+
+    var assignment = findNode.assignment('int += 3');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: 'dynamic',
+      writeElement: intElement,
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: intElement,
+      type: 'Type',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_typeLiteral_simple() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
+    ]);
+
+    var assignment = findNode.assignment('int = 0');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: intElement,
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: intElement,
+      type: 'Type',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_unresolved_compound() async {
+    await assertErrorsInCode(r'''
+void f() {
+  x += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1),
+    ]);
+
+    var assignment = findNode.assignment('x += 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: 'dynamic',
+      writeElement: null,
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
     );
 
     assertType(assignment.rightHandSide, 'int');
@@ -1057,6 +1346,10 @@ void f(int a) {
     var assignment = findNode.assignment('x = a');
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );

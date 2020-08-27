@@ -30,7 +30,6 @@ f(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 95, 1),
     ]);
   }
 
@@ -61,7 +60,6 @@ extension E on C {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 86, 8),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 97, 1),
     ]);
   }
 }

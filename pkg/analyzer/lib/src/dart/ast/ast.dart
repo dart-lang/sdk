@@ -16,6 +16,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
@@ -612,7 +613,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 ///    assignmentExpression ::=
 ///        [Expression] operator [Expression]
 class AssignmentExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   /// The expression used to compute the left hand side.
   ExpressionImpl _leftHandSide;
@@ -2153,6 +2154,20 @@ abstract class CompilationUnitMemberImpl extends DeclarationImpl
   /// the corresponding attribute.
   CompilationUnitMemberImpl(CommentImpl comment, List<Annotation> metadata)
       : super(comment, metadata);
+}
+
+mixin CompoundAssignmentExpressionImpl implements CompoundAssignmentExpression {
+  @override
+  Element readElement;
+
+  @override
+  Element writeElement;
+
+  @override
+  DartType readType;
+
+  @override
+  DartType writeType = DynamicTypeImpl.instance;
 }
 
 /// A conditional expression.
@@ -8010,7 +8025,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 ///    postfixExpression ::=
 ///        [Expression] [Token]
 class PostfixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PostfixExpression {
   /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
@@ -8180,7 +8195,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 ///    prefixExpression ::=
 ///        [Token] [Expression]
 class PrefixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PrefixExpression {
   /// The prefix operator being applied to the operand.
   @override
@@ -8849,38 +8864,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   Precedence get precedence => Precedence.primary;
 
-  /// If this identifier is used as an expression to read a value, this
-  /// is the element that provides the value.
-  ///
-  /// In valid code this can be almost any element, usually a
-  /// [LocalVariableElement], a [ParameterElement], or a
-  /// [PropertyAccessorElement] getter.
-  ///
-  /// In invalid code, for recovery, we might use a [PropertyAccessorElement]
-  /// setter `print(mySetter)` even though the setter cannot be used to read a
-  /// value. We do this to help the user to navigate to the setter, and maybe
-  /// add the corresponding getter.
-  ///
-  /// Return `null` if this identifier is not used to read a value, or the
-  /// AST structure has not been resolved, or if this identifier could not be
-  /// resolved.
-  ///
-  /// If this identifier is used as the target for a compound assignment
-  /// `x += 2`, both [readElement] and [writeElement] could be not `null`.
-  ///
-  /// If [referenceElement] is not `null`, then both [readElement] and
-  /// [writeElement] are `null`, because the identifier is not being used to
-  /// read or write a value.
-  ///
-  /// If either [readElement] or [writeElement] are not `null`, the
-  /// [referenceElement] is `null`, because the identifier is being used to
-  /// read or write a value.
-  ///
-  /// All three [readElement], [writeElement], and [referenceElement] can be
-  /// `null` when the AST structure has not been resolved, or this identifier
-  /// could not be resolved.
-  Element get readElement => null;
-
   /// This element is set when this identifier is used not as an expression,
   /// but just to reference some element.
   ///
@@ -8915,39 +8898,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   set staticElement(Element element) {
     _staticElement = element;
   }
-
-  /// If this identifier is used as a target to assign a value, explicitly
-  /// using an [AssignmentExpression], or implicitly using a [PrefixExpression]
-  /// or [PostfixExpression], this is the element that is used to write the
-  /// value.
-  ///
-  /// In valid code this is a [LocalVariableElement], [ParameterElement], or a
-  /// [PropertyAccessorElement] setter.
-  ///
-  /// In invalid code, for recovery, we might use other elements, for example a
-  /// [PropertyAccessorElement] getter `myGetter = 0` even though the getter
-  /// cannot be used to write a value. We do this to help the user to navigate
-  /// to the getter, and maybe add the corresponding setter.
-  ///
-  /// Return `null` if this identifier is not used to write a value, or the
-  /// AST structure has not been resolved, or if this identifier could not be
-  /// resolved.
-  ///
-  /// If this identifier is used as the target for a compound assignment
-  /// `x += 2`, both [readElement] and [writeElement] could be not `null`.
-  ///
-  /// If [referenceElement] is not `null`, then both [readElement] and
-  /// [writeElement] are `null`, because the identifier is not being used to
-  /// read or write a value.
-  ///
-  /// If either [readElement] or [writeElement] are not `null`, the
-  /// [referenceElement] is `null`, because the identifier is being used to
-  /// read or write a value.
-  ///
-  /// All three [readElement], [writeElement], and [referenceElement] can be
-  /// `null` when the AST structure has not been resolved, or this identifier
-  /// could not be resolved.
-  Element get writeElement => null;
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);

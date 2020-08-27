@@ -77,8 +77,18 @@ class AssignmentExpressionResolver {
     left?.accept(_resolver);
     left = node.leftHandSide;
 
-    _resolve1(node);
     TokenType operator = node.operator.type;
+    if (left is! IndexExpression &&
+        left is! PrefixedIdentifier &&
+        left is! PropertyAccess &&
+        left is! SimpleIdentifier) {
+      if (operator != TokenType.EQ) {
+        _resolver.setReadElement(left, null);
+      }
+      _resolver.setWriteElement(left, null);
+    }
+
+    _resolve1(node);
     _setRhsContext(node, left.staticType, operator, right);
 
     _flowAnalysis?.assignmentExpression(node);
@@ -282,13 +292,18 @@ class AssignmentExpressionResolver {
     VariableElement leftElement,
     Expression right,
   ) {
+    var operator = node.operator.type;
+
     left.staticElement = leftElement;
+    if (operator != TokenType.EQ) {
+      _resolver.setReadElement(left, leftElement);
+    }
+    _resolver.setWriteElement(left, leftElement);
 
     var leftType = _resolver.localVariableTypeProvider.getType(left);
     // TODO(scheglov) Set the type only when `operator != TokenType.EQ`.
     _recordStaticType(left, leftType);
 
-    var operator = node.operator.type;
     if (operator != TokenType.EQ) {
       _resolver.checkReadOfNotAssignedLocalVariable(left);
     }

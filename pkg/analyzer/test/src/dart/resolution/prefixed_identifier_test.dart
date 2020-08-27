@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,6 +55,130 @@ int Function() foo() {
       findElement.importFind('package:test/a.dart').topGet('a'),
     );
     assertType(identifier, 'A');
+  }
+
+  test_read() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    var prefixed = findNode.prefixed('a.foo');
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.getter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.getter('foo'),
+      writeElement: null,
+      type: 'int',
+    );
+  }
+
+  test_readWrite_assignment() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo += 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo += 1');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('foo'),
+      readType: 'int',
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
+  }
+
+  test_write() async {
+    await assertNoErrorsInCode('''
+class A {
+  int foo = 0;
+}
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
+
+    var assignment = findNode.assignment('foo = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('foo'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertPrefixedIdentifier(
+      prefixed,
+      element: findElement.setter('foo'),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.prefix,
+      readElement: findElement.parameter('a'),
+      writeElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: null,
+      writeElement: findElement.setter('foo'),
+      type: 'int',
+    );
   }
 }
 

@@ -425,6 +425,10 @@ void main(Never x) {
 
     assertAssignment(
       findNode.assignment('foo += 0'),
+      readElement: null,
+      readType: 'dynamic',
+      writeElement: null,
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -463,6 +467,10 @@ void main(Never x) {
 
     assertAssignment(
       findNode.assignment('foo = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );

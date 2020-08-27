@@ -1,0 +1,4 @@
+// @dart = 2.8
+import 'opt_in_lib.dart';
+
+main() {}

@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
@@ -32,6 +33,17 @@ abstract class DartdevCommand<int> extends Command {
 
   @override
   String get description => _description;
+
+  ArgParser _argParser;
+
+  @override
+  ArgParser get argParser => _argParser ??= createArgParser();
+
+  /// Create the ArgParser instance for this command.
+  ///
+  /// Subclasses can override this in order to create a customized ArgParser.
+  ArgParser createArgParser() =>
+      ArgParser(usageLineLength: dartdevUsageLineLength);
 
   Project get project => _project ??= Project();
 

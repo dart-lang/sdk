@@ -285,7 +285,10 @@ abstract class AssertStatement implements Assertion, Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AssignmentExpression
-    implements NullShortableExpression, MethodReferenceExpression {
+    implements
+        NullShortableExpression,
+        MethodReferenceExpression,
+        CompoundAssignmentExpression {
   /// Return the expression used to compute the left hand side.
   Expression get leftHandSide;
 
@@ -1273,6 +1276,65 @@ abstract class CompilationUnit implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitMember implements Declaration {}
+
+/// A potentially compound assignment.
+///
+/// A compound assignment is any node in which a single expression is used to
+/// specify both where to access a value to be operated on (the "read") and to
+/// specify where to store the result of the operation (the "write"). This
+/// happens in an [AssignmentExpression] when the assignment operator is a
+/// compound assignment operator, and in a [PrefixExpression] or
+/// [PostfixExpression] when the operator is an increment operator.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class CompoundAssignmentExpression {
+  /// The element that is used to read the value.
+  ///
+  /// If this node is not a compound assignment, this element is `null`.
+  ///
+  /// In valid code this element can be a [LocalVariableElement], a
+  /// [ParameterElement], or a [PropertyAccessorElement] getter.
+  ///
+  /// In invalid code this element is `null`, for example `int += 2`. For
+  /// recovery [writeElement] is filled, and can be used for navigation.
+  ///
+  /// This element is `null` if the AST structure has not been resolved, or
+  /// if the target could not be resolved.
+  Element get readElement;
+
+  /// The type of the value read with the [readElement].
+  ///
+  /// If this node is not a compound assignment, this type is `null`.
+  ///
+  /// In invalid code, e.g. `int += 2`, this type is `dynamic`.
+  ///
+  /// This type is `null` if the AST structure has not been resolved.
+  ///
+  /// If the target could not be resolved, this type is `dynamic`.
+  DartType get readType;
+
+  /// The element that is used to write the result.
+  ///
+  /// In valid code this is a [LocalVariableElement], [ParameterElement], or a
+  /// [PropertyAccessorElement] setter.
+  ///
+  /// In invalid code, for recovery, we might use other elements, for example a
+  /// [PropertyAccessorElement] getter `myGetter = 0` even though the getter
+  /// cannot be used to write a value. We do this to help the user to navigate
+  /// to the getter, and maybe add the corresponding setter.
+  ///
+  /// If this node is a compound assignment, e. g. `x += 2`, both [readElement]
+  /// and [writeElement] could be not `null`.
+  ///
+  /// This element is `null` if the AST structure has not been resolved, or
+  /// if the target could not be resolved.
+  Element get writeElement;
+
+  /// The types of assigned values must be subtypes of this type.
+  ///
+  /// If the target could not be resolved, this type is `dynamic`.
+  DartType get writeType;
+}
 
 /// A conditional expression.
 ///
@@ -4192,7 +4254,11 @@ abstract class PartOfDirective implements Directive {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PostfixExpression
-    implements Expression, NullShortableExpression, MethodReferenceExpression {
+    implements
+        Expression,
+        NullShortableExpression,
+        MethodReferenceExpression,
+        CompoundAssignmentExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 
@@ -4252,7 +4318,11 @@ abstract class PrefixedIdentifier implements Identifier {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixExpression
-    implements Expression, NullShortableExpression, MethodReferenceExpression {
+    implements
+        Expression,
+        NullShortableExpression,
+        MethodReferenceExpression,
+        CompoundAssignmentExpression {
   /// Return the expression computing the operand for the operator.
   Expression get operand;
 

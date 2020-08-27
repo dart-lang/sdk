@@ -26,11 +26,13 @@ class RunCommand extends DartdevCommand<int> {
   // provided before any command and to provide a more consistent help message
   // with the rest of the tool.
   @override
-  final ArgParser argParser = ArgParser(
-    // Don't parse flags after script name.
-    allowTrailingOptions: false,
-    usageLineLength: stdout.hasTerminal ? stdout.terminalColumns : null,
-  );
+  ArgParser createArgParser() {
+    return ArgParser(
+      // Don't parse flags after script name.
+      allowTrailingOptions: false,
+      usageLineLength: dartdevUsageLineLength,
+    );
+  }
 
   @override
   final bool verbose;

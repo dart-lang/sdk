@@ -31,12 +31,15 @@ void command() {
   });
 
   // Assert that all found usageLineLengths are the same and null
-  test('argParser usageLineLength isNull', () {
+  test('argParser usageLineLength', () {
     DartdevRunner(['--disable-dartdev-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
-        if (command.name == 'run') {
+        if (command.name != 'help' &&
+            command.name != 'format' &&
+            command.name != 'migrate' &&
+            command.name != 'pub') {
           expect(command.argParser.usageLineLength,
               stdout.hasTerminal ? stdout.terminalColumns : null);
         } else {

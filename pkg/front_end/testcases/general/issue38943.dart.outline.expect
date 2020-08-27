@@ -5,7 +5,7 @@ import "dart:core" as core;
 class D<X extends () →* void = () →* void> extends core::Object {
   constructor _() → self::D<self::D::X*>*
     ;
-  static factory foo<X extends () →* void = dynamic>() → self::D<self::D::foo::X*>*
+  static factory foo<X extends () →* void = () →* void>() → self::D<self::D::foo::X*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

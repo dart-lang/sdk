@@ -1,0 +1,11 @@
+extension Extension1<T extends Object> (){}
+on T (){}
+extension Extension2<T extends String> (){}
+on T (){}
+extension Extension3<T extends dynamic> (){}
+on T (){}
+extension Extension4<T> (){}
+on T (){}
+extension Extension5<T extends Object?> (){}
+on T (){}
+main() {}

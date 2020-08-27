@@ -71,7 +71,7 @@ main(A<double> a) {
     );
   }
 
-  test_readWrite() async {
+  test_readWrite_assignment() async {
     await assertNoErrorsInCode(r'''
 class A {
   num operator[](int index) => 0;
@@ -102,6 +102,10 @@ main(A a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: indexElement,
+      readType: 'num',
+      writeElement: indexEqElement,
+      writeType: 'num',
       operatorElement: elementMatcher(
         numPlusElement,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
@@ -114,7 +118,7 @@ main(A a) {
     );
   }
 
-  test_readWrite_generic() async {
+  test_readWrite_assignment_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
   T operator[](int index) => throw 42;
@@ -151,6 +155,16 @@ main(A<double> a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: elementMatcher(
+        indexElement,
+        substitution: {'T': 'double'},
+      ),
+      readType: 'double',
+      writeElement: elementMatcher(
+        indexEqElement,
+        substitution: {'T': 'double'},
+      ),
+      writeType: 'double',
       operatorElement: elementMatcher(
         doublePlusElement,
         isLegacy: isNullSafetySdkAndLegacyLibrary,
@@ -191,6 +205,10 @@ main(A a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: indexEqElement,
+      writeType: 'num',
       operatorElement: null,
       type: 'double',
     );
@@ -228,6 +246,13 @@ main(A<double> a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: elementMatcher(
+        indexEqElement,
+        substitution: {'T': 'double'},
+      ),
+      writeType: 'double',
       operatorElement: null,
       type: 'double',
     );
@@ -321,6 +346,10 @@ main(A? a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: indexElement,
+      readType: 'num',
+      writeElement: indexEqElement,
+      writeType: 'num',
       operatorElement: numPlusElement,
       type: 'double?',
     );
@@ -388,6 +417,10 @@ main(A? a) {
     var assignment = indexExpression.parent as AssignmentExpression;
     assertAssignment(
       assignment,
+      readElement: null,
+      readType: null,
+      writeElement: indexEqElement,
+      writeType: 'num',
       operatorElement: null,
       type: 'double?',
     );

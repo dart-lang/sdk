@@ -22,6 +22,7 @@ regress/utf_16_le_content.crash: EmptyOutput
 
 extensions/ambiguous: FormatterCrash
 extensions/annotations: FormatterCrash
+extensions/bounds: FormatterCrash
 extensions/builtin_identifiers: FormatterCrash
 extensions/call_methods: FormatterCrash
 extensions/check_bounds: FormatterCrash
@@ -167,6 +168,7 @@ nnbd/abstract_field_errors: FormatterCrash
 nnbd/abstract_fields_spec: FormatterCrash
 nnbd/abstract_fields: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
+nnbd/extension_bounds: FormatterCrash
 nnbd/extension_never: FormatterCrash
 nnbd/external_field_errors: FormatterCrash
 nnbd/external_fields_spec: FormatterCrash

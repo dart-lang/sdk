@@ -92,7 +92,7 @@ class RegionRenderer {
       //  for all nodes.
       return '';
     }
-    return pathContext.relative(pathMapper.map(target.filePath), from: unitDir);
+    return pathMapper.map(pathContext.relative(target.filePath, from: unitDir));
   }
 
   /// Return the URL that will navigate to the given [target] in the file at the

@@ -14,12 +14,8 @@ import '../utils.dart';
 import 'analyze_impl.dart';
 
 class FixCommand extends DartdevCommand {
-  FixCommand()
-      : super(
-          'fix', 'Fix Dart source code.',
-          // Experimental.
-          hidden: true,
-        );
+  // This command is hidden as its currently experimental.
+  FixCommand() : super('fix', 'Fix Dart source code.', hidden: true);
 
   @override
   FutureOr<int> run() async {

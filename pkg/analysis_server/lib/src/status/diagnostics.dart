@@ -984,7 +984,13 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     } else {
       prettyJson(server.capabilities.toJson());
     }
-    buf.writeln('</div>');
+    buf.writeln('</div>'); // half for server capabilities
+    buf.writeln('</div>'); // columns
+
+    h3('Current registrations');
+    p('Showing the LSP method name and the registration params sent to the '
+        'client.');
+    prettyJson(server.capabilitiesComputer.currentRegistrations);
   }
 }
 
