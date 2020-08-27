@@ -32,6 +32,7 @@ LibTest/core/int/parse_A01_t02: SkipByDesign # big integers cannot be represente
 LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
+LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # d8 is not a browser

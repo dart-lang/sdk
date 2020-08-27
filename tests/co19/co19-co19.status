@@ -95,12 +95,6 @@ LibTest/io/sleep/*: Skip # Not migrated to NNBD
 LibTest/io/stderr/*: Skip # Not migrated to NNBD
 LibTest/io/systemEncodingConstant/*: Skip # Not migrated to NNBD
 LibTest/io/zlib/*: Skip # Not migrated to NNBD
-LibTest/isolate/Capability/*: Skip # Not migrated to NNBD
-LibTest/isolate/Isolate/*: Skip # Not migrated to NNBD
-LibTest/isolate/RawReceivePort/*: Skip # Not migrated to NNBD
-LibTest/isolate/ReceivePort/*: Skip # Not migrated to NNBD
-LibTest/isolate/SendPort/*: Skip # Not migrated to NNBD
-LibTest/mirrors/*: Skip # Not migrated to NNBD
 LibTest/typed_data/*: Skip # Not migrated to NNBD
 LibTest/typed_data/ByteBuffer/*: Skip # Not migrated to NNBD
 LibTest/typed_data/ByteData/*: Skip # Not migrated to NNBD
