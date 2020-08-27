@@ -6,6 +6,11 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+/// For commands where we are able to initialize the [ArgParser], this value
+/// is used as the usageLineLength.
+int get dartdevUsageLineLength =>
+    stdout.hasTerminal ? stdout.terminalColumns : null;
+
 /// Given a data structure which is a Map of String to dynamic values, return
 /// the same structure (`Map<String, dynamic>`) with the correct runtime types.
 Map<String, dynamic> castStringKeyedMap(dynamic untyped) {
@@ -36,6 +41,14 @@ String trimEnd(String s, String suffix) {
 /// Static util methods used in dartdev to potentially modify the order of the
 /// arguments passed into dartdev.
 class PubUtils {
+  /// If [doModifyArgs] returns true, then this method returns a modified copy
+  /// of the argument list, 'help' is removed from the interior of the list, and
+  /// '--help' is added to the end of the list of arguments. This method returns
+  /// a modified copy of the list, the list itself is not modified.
+  static List<String> modifyArgs(List<String> args) => List.from(args)
+    ..remove('help')
+    ..add('--help');
+
   /// If ... help pub ..., and no other verb (such as 'analyze') appears before
   /// the ... help pub ... in the argument list, then return true.
   static bool shouldModifyArgs(List<String> args, List<String> allCmds) =>
@@ -47,14 +60,6 @@ class PubUtils {
       args.contains('help') &&
       args.contains('pub') &&
       args.indexOf('help') + 1 == args.indexOf('pub');
-
-  /// If [doModifyArgs] returns true, then this method returns a modified copy
-  /// of the argument list, 'help' is removed from the interior of the list, and
-  /// '--help' is added to the end of the list of arguments. This method returns
-  /// a modified copy of the list, the list itself is not modified.
-  static List<String> modifyArgs(List<String> args) => List.from(args)
-    ..remove('help')
-    ..add('--help');
 }
 
 extension FileSystemEntityExtension on FileSystemEntity {
