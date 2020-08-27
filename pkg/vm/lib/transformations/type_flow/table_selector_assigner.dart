@@ -146,4 +146,7 @@ class TableSelectorAssigner {
       methodSelector.tornOff = true;
     }
   }
+
+  /// A (conservative) number which is bigger than all selector IDs.
+  int get selectorIdRange => metadata.selectors.length;
 }

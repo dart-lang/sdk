@@ -5,95 +5,166 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/external_name.dart' show getExternalName;
+import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:vm/transformations/type_flow/analysis.dart';
+import 'package:vm/transformations/type_flow/calls.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
+import 'package:vm/transformations/type_flow/table_selector_assigner.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
 import '../../metadata/unboxing_info.dart';
 import 'utils.dart';
 
 class UnboxingInfoManager {
-  final List<UnboxingInfoMetadata> _allUnboxingInfo = [];
-  final Map<Member, int> _memberIds = {};
-  final List<int> _partitionIds = [];
-  final List<int> _partitionRank = [];
-  final Set<Member> _mustBox = {};
+  final Map<Member, UnboxingInfoMetadata> _memberInfo = {};
 
   final TypeHierarchy _typeHierarchy;
   final CoreTypes _coreTypes;
   final NativeCodeOracle _nativeCodeOracle;
-  bool _finishedGraph;
 
   UnboxingInfoManager(TypeFlowAnalysis typeFlowAnalysis)
       : _typeHierarchy = typeFlowAnalysis.hierarchyCache,
         _coreTypes = typeFlowAnalysis.environment.coreTypes,
-        _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle,
-        _finishedGraph = false;
-
-  void registerMember(Member member) {
-    member = _validMemberOrNull(member);
-    if (member == null) return;
-    _addMember(member);
-  }
+        _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle;
 
   UnboxingInfoMetadata getUnboxingInfoOfMember(Member member) {
-    assertx(_finishedGraph);
-    member = _validMemberOrNull(member);
-    if ((member == null || (!_memberIds.containsKey(member)))) {
-      return null;
+    final UnboxingInfoMetadata info = _memberInfo[member];
+    if (member is Procedure && member.isGetter) {
+      // Remove placeholder parameter info slot for setters that the getter is
+      // grouped with.
+      return UnboxingInfoMetadata(0)..returnInfo = info.returnInfo;
     }
-    final partitionId = _memberIds[member];
-    return _allUnboxingInfo[partitionId];
+    return info;
   }
 
-  void linkWithSuperClasses(Member member) {
-    member = _validMemberOrNull(member);
-    if (member == null) return;
-    _linkRecursive(member, member.enclosingClass);
-  }
+  void analyzeComponent(Component component, TypeFlowAnalysis typeFlowAnalysis,
+      TableSelectorAssigner tableSelectorAssigner) {
+    const kInvalidSelectorId = ProcedureAttributesMetadata.kInvalidSelectorId;
 
-  void finishGraph() {
-    assertx(!_finishedGraph);
-    final oldToNewId = {};
-    final newUnboxingInfo = <UnboxingInfoMetadata>[];
-    for (int i = 0; i < _allUnboxingInfo.length; i++) {
-      if (_find(i) == i) {
-        final newId = oldToNewId.length;
-        oldToNewId[i] = newId;
-        newUnboxingInfo.add(_allUnboxingInfo[i]);
+    // Unboxing info for instance members is grouped by selector ID, such that
+    // the unboxing decisions match up for all members that can be called from
+    // the same call site.
+
+    // Unify the selector IDs for the getter and setter of every (writable)
+    // field, such that it can be grouped with both getters and setters.
+    // In the unified unboxing info, the return info represents the getters, and
+    // the parameter info represents the setters.
+    final selectorUnionFind = UnionFind(tableSelectorAssigner.selectorIdRange);
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        for (Field field in cls.fields) {
+          if (field.isInstanceMember && field.hasSetter) {
+            final getterId = tableSelectorAssigner.getterSelectorId(field);
+            final setterId =
+                tableSelectorAssigner.methodOrSetterSelectorId(field);
+            assertx(getterId != kInvalidSelectorId);
+            assertx(setterId != kInvalidSelectorId);
+            selectorUnionFind.union(getterId, setterId);
+          }
+        }
       }
     }
-    for (final key in _memberIds.keys) {
-      final newId = oldToNewId[_partitionIds[_memberIds[key]]];
-      assertx(newId != null);
-      _memberIds[key] = newId;
-    }
-    _allUnboxingInfo.clear();
-    _allUnboxingInfo.insertAll(0, newUnboxingInfo);
-    _memberIds.forEach((member, id) {
-      if (_mustBox.contains(member)) {
-        _allUnboxingInfo[id].returnInfo = UnboxingInfoMetadata.kBoxed;
-        _allUnboxingInfo[id].unboxedArgsInfo.clear();
+
+    // Map members to unboxing info.
+    final Map<int, UnboxingInfoMetadata> selectorIdToInfo = {};
+
+    void addMember(Member member) {
+      if (!(member is Procedure || member is Constructor || member is Field)) {
+        return;
       }
-    });
-    _partitionIds.clear();
-    _partitionRank.clear();
-    _finishedGraph = true;
+      // Give getters one parameter info slot to hold the unboxing info for the
+      // setters that the getter is grouped with.
+      final int paramCount = member is Field
+          ? (member.hasSetter ? 1 : 0)
+          : member is Procedure && member.isGetter
+              ? 1
+              : member.function.requiredParameterCount;
+      UnboxingInfoMetadata info;
+      if (member.isInstanceMember) {
+        int selectorId =
+            member is Field || member is Procedure && member.isGetter
+                ? tableSelectorAssigner.getterSelectorId(member)
+                : tableSelectorAssigner.methodOrSetterSelectorId(member);
+        assertx(selectorId != kInvalidSelectorId);
+        selectorId = selectorUnionFind.find(selectorId);
+        info = selectorIdToInfo[selectorId];
+        if (info == null) {
+          info = UnboxingInfoMetadata(paramCount);
+          selectorIdToInfo[selectorId] = info;
+        } else {
+          if (paramCount < info.unboxedArgsInfo.length) {
+            info.unboxedArgsInfo.length = paramCount;
+          }
+        }
+      } else {
+        info = UnboxingInfoMetadata(paramCount);
+      }
+      _memberInfo[member] = info;
+      _updateUnboxingInfoOfMember(member, typeFlowAnalysis);
+    }
+
+    for (Library library in component.libraries) {
+      for (Class cls in library.classes) {
+        for (Member member in cls.members) {
+          addMember(member);
+        }
+      }
+      for (Member member in library.members) {
+        addMember(member);
+      }
+    }
   }
 
-  void applyToArg(Member member, int argPos, Type type) {
-    assertx(_finishedGraph);
-    member = _validMemberOrNull(member);
-    if (member == null) return;
-    assertx(_memberIds.containsKey(member));
-    final partitionId = _memberIds[member];
+  void _updateUnboxingInfoOfMember(
+      Member member, TypeFlowAnalysis typeFlowAnalysis) {
+    if (typeFlowAnalysis.isMemberUsed(member)) {
+      final UnboxingInfoMetadata unboxingInfo = _memberInfo[member];
+      if (_cannotUnbox(member)) {
+        unboxingInfo.unboxedArgsInfo.length = 0;
+        unboxingInfo.returnInfo = UnboxingInfoMetadata.kBoxed;
+        return;
+      }
+      if (member is Procedure || member is Constructor) {
+        final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
+        assertx(argTypes != null);
 
-    if (argPos < 0 ||
-        _allUnboxingInfo[partitionId].unboxedArgsInfo.length <= argPos) {
+        final int firstParamIndex =
+            numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
+
+        final positionalParams = member.function.positionalParameters;
+        assertx(argTypes.positionalCount ==
+            firstParamIndex + positionalParams.length);
+
+        for (int i = 0; i < positionalParams.length; i++) {
+          final inferredType = argTypes.values[firstParamIndex + i];
+          _applyToArg(unboxingInfo, i, inferredType);
+        }
+
+        final names = argTypes.names;
+        for (int i = 0; i < names.length; i++) {
+          final inferredType =
+              argTypes.values[firstParamIndex + positionalParams.length + i];
+          _applyToArg(unboxingInfo, positionalParams.length + i, inferredType);
+        }
+
+        final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
+        _applyToReturn(unboxingInfo, resultType);
+      } else if (member is Field) {
+        final fieldValue = typeFlowAnalysis.getFieldValue(member).value;
+        if (member.hasSetter) {
+          _applyToArg(unboxingInfo, 0, fieldValue);
+        }
+        _applyToReturn(unboxingInfo, fieldValue);
+      } else {
+        assertx(false);
+      }
+    }
+  }
+
+  void _applyToArg(UnboxingInfoMetadata unboxingInfo, int argPos, Type type) {
+    if (argPos < 0 || unboxingInfo.unboxedArgsInfo.length <= argPos) {
       return;
     }
-
-    final unboxingInfo = _allUnboxingInfo[partitionId];
 
     if (type is NullableType ||
         (!type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass) &&
@@ -107,14 +178,7 @@ class UnboxingInfoManager {
     }
   }
 
-  void applyToReturn(Member member, Type type) {
-    assertx(_finishedGraph);
-    member = _validMemberOrNull(member);
-    if (member == null) return;
-    assertx(_memberIds.containsKey(member));
-    final partitionId = _memberIds[member];
-    final unboxingInfo = _allUnboxingInfo[partitionId];
-
+  void _applyToReturn(UnboxingInfoMetadata unboxingInfo, Type type) {
     if (type is NullableType ||
         (!type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass) &&
             !type.isSubtypeOf(_typeHierarchy, _coreTypes.doubleClass))) {
@@ -127,82 +191,18 @@ class UnboxingInfoManager {
     }
   }
 
-  void _linkRecursive(Member member, Class cls) {
-    for (final superType in cls.supers) {
-      final superClass = superType.classNode;
-      bool linked = false;
-      superClass.members.forEach((Member superMember) {
-        if (member.isInstanceMember) {
-          if (member.name == superMember.name) {
-            _linkMembers(member, superMember);
-            linked = true;
-          }
-        }
-      });
-      if (!linked) {
-        _linkRecursive(member, superClass);
-      }
-    }
-  }
-
-  void _linkMembers(Member member1, Member member2) {
-    member1 = _validMemberOrNull(member1);
-    member2 = _validMemberOrNull(member2);
-    if (member1 == null ||
-        member2 == null ||
-        _isConstructorOrStatic(member1) ||
-        _isConstructorOrStatic(member2)) {
-      return;
-    }
-    _union(_getMemberId(member1), _getMemberId(member2));
-  }
-
-  Member _validMemberOrNull(Member member) {
-    if (member == null ||
-        (member is! Procedure && member is! Constructor && member is! Field)) {
-      return null;
-    }
-    return member;
-  }
-
-  bool _isConstructorOrStatic(Member member) {
-    return ((member is Constructor) ||
-        ((member is Procedure) && member.isStatic));
-  }
-
-  void _addMember(Member member) {
-    assertx(!_finishedGraph);
-
-    if (_cannotUnbox(member)) {
-      _mustBox.add(member);
-    }
-
-    final int memberId = _allUnboxingInfo.length;
-    assertx(memberId == _partitionIds.length);
-    assertx(_partitionIds.length == _partitionRank.length);
-    final int argsLen = member is Field
-        ? (member.hasSetter ? 1 : 0)
-        : member.function.requiredParameterCount;
-    _memberIds[member] = memberId;
-    _allUnboxingInfo.add(UnboxingInfoMetadata(argsLen));
-    _partitionIds.add(memberId);
-    _partitionRank.add(1);
-  }
-
   bool _cannotUnbox(Member member) {
     // Methods that do not need dynamic invocation forwarders can not have
     // unboxed parameters and return because dynamic calls always use boxed
     // values.
     // Similarly C->Dart calls (entrypoints) and Dart->C calls (natives) need to
     // have boxed parameters and return values.
-    return (_isNative(member) ||
+    return _isNative(member) ||
         _nativeCodeOracle.isMemberReferencedFromNativeCode(member) ||
-        _isEnclosingClassSubtypeOfNum(member));
+        _isEnclosingClassSubtypeOfNum(member);
   }
 
-  bool _isNative(Member member) {
-    return (getExternalName(member) != null);
-  }
+  bool _isNative(Member member) => getExternalName(member) != null;
 
   // TODO(dartbug.com/33549): Calls to these methods could be replaced by
   // CheckedSmiOpInstr, so in order to allow the parameters and return
@@ -212,49 +212,5 @@ class UnboxingInfoManager {
     return (member.enclosingClass != null &&
         ConeType(_typeHierarchy.getTFClass(member.enclosingClass))
             .isSubtypeOf(_typeHierarchy, _coreTypes.numClass));
-  }
-
-  int _getMemberId(Member member) {
-    return _memberIds[member];
-  }
-
-  int _find(int memberId) {
-    assertx(!_finishedGraph);
-    if (memberId == _partitionIds[memberId]) {
-      return memberId;
-    }
-    final partitionId = _find(_partitionIds[memberId]);
-    _allUnboxingInfo[memberId] = null;
-    _partitionIds[memberId] = partitionId;
-    return partitionId;
-  }
-
-  void _union(int memberId1, int memberId2) {
-    assertx(!_finishedGraph);
-    final partitionId1 = _find(memberId1);
-    final partitionId2 = _find(memberId2);
-
-    if (partitionId1 == partitionId2) {
-      return;
-    }
-
-    int from, to;
-    if (_partitionRank[partitionId1] < _partitionRank[partitionId2]) {
-      from = partitionId1;
-      to = partitionId2;
-    } else {
-      from = partitionId2;
-      to = partitionId1;
-    }
-    final fromArgsInfo = _allUnboxingInfo[from].unboxedArgsInfo;
-    final toArgsInfo = _allUnboxingInfo[to].unboxedArgsInfo;
-    if (fromArgsInfo.length < toArgsInfo.length) {
-      toArgsInfo.length = fromArgsInfo.length;
-    }
-    _allUnboxingInfo[from] = null;
-    _partitionIds[from] = to;
-    if (_partitionRank[from] == _partitionRank[to]) {
-      _partitionRank[to]++;
-    }
   }
 }

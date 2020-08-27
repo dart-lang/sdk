@@ -56,7 +56,7 @@ abstract class UBI extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5] [@vm.unboxing-info.metadata=()->i]  abstract get value() → core::int*;
 }
 class UBIA extends core::Object implements self::UBI {
-[@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:5] [@vm.unboxing-info.metadata=()->i]  field core::int* value;
+[@vm.inferred-type.metadata=int] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:6,getterSelectorId:5] [@vm.unboxing-info.metadata=(i)->i]  field core::int* value;
 [@vm.unboxing-info.metadata=(i)->b]  constructor •([@vm.inferred-type.metadata=int] core::int* value) → self::UBIA*
     : self::UBIA::value = value, super core::Object::•()
     ;
