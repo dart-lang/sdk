@@ -101,10 +101,9 @@ class AssignmentExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2,
-      {bool read = false}) {
-    DartType staticType1 = _getExpressionType(expr1, read: read);
-    DartType staticType2 = _getExpressionType(expr2, read: read);
+      Expression node, Expression expr1, Expression expr2) {
+    DartType staticType1 = getReadType(expr1);
+    DartType staticType2 = getReadType(expr2);
 
     _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }
@@ -128,57 +127,6 @@ class AssignmentExpressionResolver {
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
     _inferenceHelper.recordStaticType(node, staticType);
-  }
-
-  /// Gets the definite type of expression, which can be used in cases where
-  /// the most precise type is desired, for example computing the least upper
-  /// bound.
-  ///
-  /// See [getExpressionType] for more information. Without strong mode, this is
-  /// equivalent to [_getStaticType].
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
-
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getStaticType1(Expression expression, {bool read = false}) {
-    if (expression is NullLiteral) {
-      return _typeProvider.nullType;
-    }
-    DartType type = read ? getReadType(expression) : expression.staticType;
-    return _resolveTypeParameter(type);
-  }
-
-  /// Return the static type of the given [expression].
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getStaticType2(Expression expression, {bool read = false}) {
-    DartType type;
-    if (read) {
-      type = getReadType(expression);
-    } else {
-      if (expression is SimpleIdentifier && expression.inSetterContext()) {
-        var element = expression.staticElement;
-        if (element is PromotableElement) {
-          // We're writing to the element so ignore promotions.
-          type = element.type;
-        } else {
-          type = expression.staticType;
-        }
-      } else {
-        type = expression.staticType;
-      }
-    }
-    if (type == null) {
-      // TODO(brianwilkerson) Determine the conditions for which the static type
-      // is null.
-      return DynamicTypeImpl.instance;
-    }
-    return type;
   }
 
   /// Return the non-nullable variant of the [type] if null safety is enabled,
@@ -222,9 +170,11 @@ class AssignmentExpressionResolver {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     Expression leftHandSide = node.leftHandSide;
-    DartType staticType = _getStaticType1(leftHandSide, read: true);
 
-    if (identical(staticType, NeverTypeImpl.instance)) {
+    var leftType = getReadType(leftHandSide);
+    leftType = _resolveTypeParameter(leftType);
+
+    if (identical(leftType, NeverTypeImpl.instance)) {
       return;
     }
 
@@ -233,7 +183,7 @@ class AssignmentExpressionResolver {
     // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.
     if (operatorType != TokenType.EQ) {
-      if (staticType != null && staticType.isVoid) {
+      if (leftType != null && leftType.isVoid) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.USE_OF_VOID_RESULT,
           operator,
@@ -253,17 +203,17 @@ class AssignmentExpressionResolver {
         //  side to the operator.
         var result = _typePropertyResolver.resolve(
           receiver: leftHandSide,
-          receiverType: staticType,
+          receiverType: leftType,
           name: methodName,
           receiverErrorNode: leftHandSide,
           nameErrorNode: leftHandSide,
         );
         node.staticElement = result.getter;
-        if (_shouldReportInvalidMember(staticType, result)) {
+        if (_shouldReportInvalidMember(leftType, result)) {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.UNDEFINED_OPERATOR,
             operator,
-            [methodName, staticType],
+            [methodName, leftType],
           );
         }
       }
@@ -273,9 +223,8 @@ class AssignmentExpressionResolver {
   void _resolve2(AssignmentExpressionImpl node) {
     TokenType operator = node.operator.type;
     if (operator == TokenType.EQ) {
-      Expression rightHandSide = node.rightHandSide;
-      DartType staticType = _getStaticType2(rightHandSide);
-      _inferenceHelper.recordStaticType(node, staticType);
+      var rightType = node.rightHandSide.staticType;
+      _inferenceHelper.recordStaticType(node, rightType);
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
       if (_isNonNullableByDefault) {
         // The static type of a compound assignment using ??= with NNBD is the
@@ -284,14 +233,12 @@ class AssignmentExpressionResolver {
         // if null)
         _analyzeLeastUpperBoundTypes(
             node,
-            _typeSystem.promoteToNonNull(
-                _getExpressionType(node.leftHandSide, read: true)),
-            _getExpressionType(node.rightHandSide, read: true));
+            _typeSystem.promoteToNonNull(getReadType(node.leftHandSide)),
+            getReadType(node.rightHandSide));
       } else {
         // The static type of a compound assignment using ??= before NNBD is the
         // least upper bound of the static types of the LHS and RHS.
-        _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
-            read: true);
+        _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
       }
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -300,7 +247,7 @@ class AssignmentExpressionResolver {
     } else {
       var rightType = node.rightHandSide.staticType;
 
-      var leftReadType = _getStaticType2(node.leftHandSide, read: true);
+      var leftReadType = getReadType(node.leftHandSide);
       if (identical(leftReadType, NeverTypeImpl.instance)) {
         _inferenceHelper.recordStaticType(node, rightType);
         return;
@@ -317,7 +264,7 @@ class AssignmentExpressionResolver {
       );
       _inferenceHelper.recordStaticType(node, type);
 
-      var leftWriteType = _getStaticType2(node.leftHandSide);
+      var leftWriteType = _getWriteType(node.leftHandSide);
       if (!_typeSystem.isAssignableTo2(type, leftWriteType)) {
         _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -412,6 +359,19 @@ class AssignmentExpressionResolver {
       return true;
     }
     return false;
+  }
+
+  /// The type of the RHS assigned to [left] must be subtype of the return.
+  static DartType _getWriteType(Expression left) {
+    // We are writing, so ignore promotions.
+    if (left is SimpleIdentifier) {
+      var element = left.staticElement;
+      if (element is PromotableElement) {
+        return element.type;
+      }
+    }
+
+    return left.staticType;
   }
 }
 

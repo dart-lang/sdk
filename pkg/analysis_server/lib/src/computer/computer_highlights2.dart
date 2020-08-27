@@ -25,7 +25,7 @@ class DartUnitHighlightsComputer2 {
 
   void _addCommentRanges() {
     var token = _unit.beginToken;
-    while (token != null && token.type != TokenType.EOF) {
+    do {
       Token commentToken = token.precedingComments;
       while (commentToken != null) {
         HighlightRegionType highlightType;
@@ -45,7 +45,7 @@ class DartUnitHighlightsComputer2 {
         commentToken = commentToken.next;
       }
       token = token.next;
-    }
+    } while (token != null && token.type != TokenType.EOF);
   }
 
   void _addIdentifierRegion(SimpleIdentifier node) {
