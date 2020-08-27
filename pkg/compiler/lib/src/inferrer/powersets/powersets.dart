@@ -40,7 +40,8 @@ class PowersetValue implements AbstractValue {
 
   @override
   String toString() =>
-      '[Powerset of ${_abstractValue.toString()} with bits ${_powersetBits}]';
+      '${PowersetBitsDomain.toText(_powersetBits, omitIfTop: true)}'
+      '${_abstractValue}';
 }
 
 AbstractValue unwrapOrNull(PowersetValue powerset) {

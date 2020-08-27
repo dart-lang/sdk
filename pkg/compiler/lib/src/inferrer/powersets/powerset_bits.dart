@@ -36,11 +36,14 @@ class PowersetBitsDomain {
   static const int _otherIndex = 3;
 
   static const int _maxIndex = _otherIndex;
+
   static const List<int> _singletonIndices = [
     _trueIndex,
     _falseIndex,
     _nullIndex,
   ];
+
+  static const List<String> _bitNames = ['true', 'false', 'null', 'other'];
 
   PowersetBitsDomain(this._closedWorld);
 
@@ -85,6 +88,33 @@ class PowersetBitsDomain {
       if (isPrecise(subset)) return AbstractBool.False;
     }
     return AbstractBool.Maybe;
+  }
+
+  /// Returns a descriptive string for [bits]
+  static String toText(int bits, {bool omitIfTop = false}) {
+    int boolDomainMask = (1 << _maxIndex + 1) - 1;
+    return _toTextDomain(bits, boolDomainMask, omitIfTop);
+  }
+
+  /// Returns a descriptive string for a subset of [bits] defined by
+  /// [domainMask]. If [omitIfTop] is `true` and all the bits in the
+  /// [domainMask] are set, an empty string is returned.
+  static String _toTextDomain(int bits, int domainMask, bool omitIfTop) {
+    bits &= domainMask;
+    if (bits == domainMask && omitIfTop) return '';
+    final sb = StringBuffer();
+    sb.write('{');
+    String comma = '';
+    while (bits != 0) {
+      int lowestBit = bits & ~(bits - 1);
+      int index = lowestBit.bitLength - 1;
+      sb.write(comma);
+      sb.write(_bitNames[index]);
+      comma = ',';
+      bits &= ~lowestBit;
+    }
+    sb.write('}');
+    return '$sb';
   }
 
   AbstractBool needsNoSuchMethodHandling(int receiver, Selector selector) =>
