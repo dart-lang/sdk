@@ -372,8 +372,10 @@ class MethodInvocationResolver {
 
     if (node.isCascaded) {
       // Report this error and recover by treating it like a non-cascade.
-      _resolver.errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, node.operator);
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+        override.extensionName,
+      );
     }
 
     nameNode.staticElement = member;

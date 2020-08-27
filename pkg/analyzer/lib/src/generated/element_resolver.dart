@@ -578,11 +578,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
         SuperContext.of(target) != SuperContext.valid) {
       return;
     } else if (target is ExtensionOverride) {
-      if (node.isCascaded) {
+      if (target.parent is CascadeExpression) {
         // Report this error and recover by treating it like a non-cascade.
-        _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-            node.operator);
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+          target.extensionName,
+        );
       }
       ExtensionElement element = target.extensionName.staticElement;
       SimpleIdentifier propertyName = node.propertyName;
