@@ -92,7 +92,7 @@ class ServerCapabilitiesComputer {
   final LspAnalysisServer _server;
 
   /// Map from method name to current registration data.
-  Map<String, Registration> _currentRegistrations = {};
+  Map<String, Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
   ServerCapabilitiesComputer(this._server);
@@ -373,7 +373,7 @@ class ServerCapabilitiesComputer {
     // compute a diff of old and new registrations to send the unregister or
     // another register request. We assume that we'll only ever have one
     // registration per LSP method name.
-    for (final entry in _currentRegistrations.entries) {
+    for (final entry in currentRegistrations.entries) {
       final method = entry.key;
       final registration = entry.value;
 
@@ -393,7 +393,7 @@ class ServerCapabilitiesComputer {
       }
     }
 
-    _currentRegistrations = newRegistrationsByMethod;
+    currentRegistrations = newRegistrationsByMethod;
 
     if (removedRegistrations.isNotEmpty) {
       await _server.sendRequest(Method.client_unregisterCapability,
