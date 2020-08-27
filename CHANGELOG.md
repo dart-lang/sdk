@@ -31,6 +31,11 @@
     unsoundness with only a minimal regression. To explicitly disable
     deferred loading of types, pass `--no-defer-class-types`. See the original
     post on the [unsoundness in the deferred loading algorithm][].
+*   Enables a new sound deferred splitting algorithm. To explicitly disable
+    the new deferred splitting algorithm, pass `--no-new-deferred-split'.
+    See the original post on the
+    [unsoundness in the deferred loading algorithm][].
+
 
 [#42982]: https://github.com/dart-lang/sdk/issues/42982
 [unsoundness in the deferred loading algorithm]: https://github.com/dart-lang/sdk/blob/302ad7ab2cd2de936254850550aad128ae76bbb7/CHANGELOG.md#dart2js-3

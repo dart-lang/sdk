@@ -2170,15 +2170,15 @@ class WeakSerializationReferenceSerializationCluster
     // its canonical counterpart's object ID. This ensures that any reference to
     // it is serialized as a reference to the canonicalized one.
     for (auto const ref : objects_) {
-      ASSERT(Serializer::IsReachableReference(heap_->GetObjectId(ref)));
+      ASSERT(IsReachableReference(heap_->GetObjectId(ref)));
       if (ShouldDrop(ref)) {
         // For dropped references, reset their ID to be the unreachable
         // reference value, so RefId retrieves the target ID instead.
-        heap_->SetObjectId(ref, Serializer::kUnreachableReference);
+        heap_->SetObjectId(ref, kUnreachableReference);
         continue;
       }
       // Skip if we've already allocated a reference (this is a canonical WSR).
-      if (Serializer::IsAllocatedReference(heap_->GetObjectId(ref))) continue;
+      if (IsAllocatedReference(heap_->GetObjectId(ref))) continue;
       auto const target_cid = WeakSerializationReference::TargetClassIdOf(ref);
       ASSERT(canonical_wsr_map_.HasKey(target_cid));
       auto const canonical_index = canonical_wsr_map_.Lookup(target_cid) - 1;
@@ -2187,7 +2187,7 @@ class WeakSerializationReferenceSerializationCluster
       // canonical WSR entry, so we'll reference the canonical WSR when
       // serializing references to this object.
       auto const canonical_heap_id = heap_->GetObjectId(canonical_wsr);
-      ASSERT(Serializer::IsAllocatedReference(canonical_heap_id));
+      ASSERT(IsAllocatedReference(canonical_heap_id));
       heap_->SetObjectId(ref, canonical_heap_id);
     }
   }
@@ -2233,7 +2233,7 @@ class WeakSerializationReferenceSerializationCluster
   // the object ID from the heap directly.
   bool ShouldDrop(WeakSerializationReferencePtr ref) const {
     auto const target = WeakSerializationReference::TargetOf(ref);
-    return Serializer::IsReachableReference(heap_->GetObjectId(target));
+    return IsReachableReference(heap_->GetObjectId(target));
   }
 
   Heap* const heap_;
@@ -4944,6 +4944,432 @@ class FakeSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class VMSerializationRoots : public SerializationRoots {
+ public:
+  explicit VMSerializationRoots(const Array& symbols)
+      : symbols_(symbols), zone_(Thread::Current()->zone()) {}
+
+  void AddBaseObjects(Serializer* s) {
+    // These objects are always allocated by Object::InitOnce, so they are not
+    // written into the snapshot.
+
+    s->AddBaseObject(Object::null(), "Null", "null");
+    s->AddBaseObject(Object::sentinel().raw(), "Null", "sentinel");
+    s->AddBaseObject(Object::transition_sentinel().raw(), "Null",
+                     "transition_sentinel");
+    s->AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
+    s->AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
+    s->AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
+    s->AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
+    s->AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments",
+                     "[]");
+    s->AddBaseObject(Bool::True().raw(), "bool", "true");
+    s->AddBaseObject(Bool::False().raw(), "bool", "false");
+    ASSERT(Object::extractor_parameter_types().raw() != Object::null());
+    s->AddBaseObject(Object::extractor_parameter_types().raw(), "Array",
+                     "<extractor parameter types>");
+    ASSERT(Object::extractor_parameter_names().raw() != Object::null());
+    s->AddBaseObject(Object::extractor_parameter_names().raw(), "Array",
+                     "<extractor parameter names>");
+    s->AddBaseObject(Object::empty_context_scope().raw(), "ContextScope",
+                     "<empty>");
+    s->AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors",
+                     "<empty>");
+    s->AddBaseObject(Object::empty_var_descriptors().raw(),
+                     "LocalVarDescriptors", "<empty>");
+    s->AddBaseObject(Object::empty_exception_handlers().raw(),
+                     "ExceptionHandlers", "<empty>");
+    s->AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
+                     "<implicit getter>");
+    s->AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
+                     "<implicit setter>");
+    s->AddBaseObject(Object::implicit_static_getter_bytecode().raw(),
+                     "Bytecode", "<implicit static getter>");
+    s->AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
+                     "<method extractor>");
+    s->AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
+                     "<invoke closure>");
+    s->AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
+                     "<invoke field>");
+    s->AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
+                     "<nsm dispatcher>");
+    s->AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw(),
+                     "Bytecode", "<dyn forwarder>");
+
+    for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
+      s->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
+                       "ArgumentsDescriptor", "<cached arguments descriptor>");
+    }
+    for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+      s->AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
+                       "<empty icdata entries>");
+    }
+    s->AddBaseObject(SubtypeTestCache::cached_array_, "Array",
+                     "<empty subtype entries>");
+
+    ClassTable* table = s->isolate()->class_table();
+    for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
+      // Error, CallSiteData has no class object.
+      if (cid != kErrorCid && cid != kCallSiteDataCid) {
+        ASSERT(table->HasValidClassAt(cid));
+        s->AddBaseObject(table->At(cid), "Class");
+      }
+    }
+    s->AddBaseObject(table->At(kDynamicCid), "Class");
+    s->AddBaseObject(table->At(kVoidCid), "Class");
+
+    if (!Snapshot::IncludesCode(s->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        s->AddBaseObject(StubCode::EntryAt(i).raw(), "Code", "<stub code>");
+      }
+    }
+  }
+
+  void PushRoots(Serializer* s) {
+    s->Push(symbols_.raw());
+    if (Snapshot::IncludesCode(s->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        s->Push(StubCode::EntryAt(i).raw());
+      }
+    }
+  }
+
+  void WriteRoots(Serializer* s) {
+    s->WriteRootRef(symbols_.raw(), "symbol-table");
+    if (Snapshot::IncludesCode(s->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        s->WriteRootRef(StubCode::EntryAt(i).raw(),
+                        zone_->PrintToString("Stub:%s", StubCode::NameAt(i)));
+      }
+    }
+  }
+
+ private:
+  const Array& symbols_;
+  Zone* zone_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class VMDeserializationRoots : public DeserializationRoots {
+ public:
+  VMDeserializationRoots() : symbol_table_(Array::Handle()) {}
+
+  void AddBaseObjects(Deserializer* d) {
+    // These objects are always allocated by Object::InitOnce, so they are not
+    // written into the snapshot.
+
+    d->AddBaseObject(Object::null());
+    d->AddBaseObject(Object::sentinel().raw());
+    d->AddBaseObject(Object::transition_sentinel().raw());
+    d->AddBaseObject(Object::empty_array().raw());
+    d->AddBaseObject(Object::zero_array().raw());
+    d->AddBaseObject(Object::dynamic_type().raw());
+    d->AddBaseObject(Object::void_type().raw());
+    d->AddBaseObject(Object::empty_type_arguments().raw());
+    d->AddBaseObject(Bool::True().raw());
+    d->AddBaseObject(Bool::False().raw());
+    ASSERT(Object::extractor_parameter_types().raw() != Object::null());
+    d->AddBaseObject(Object::extractor_parameter_types().raw());
+    ASSERT(Object::extractor_parameter_names().raw() != Object::null());
+    d->AddBaseObject(Object::extractor_parameter_names().raw());
+    d->AddBaseObject(Object::empty_context_scope().raw());
+    d->AddBaseObject(Object::empty_descriptors().raw());
+    d->AddBaseObject(Object::empty_var_descriptors().raw());
+    d->AddBaseObject(Object::empty_exception_handlers().raw());
+    d->AddBaseObject(Object::implicit_getter_bytecode().raw());
+    d->AddBaseObject(Object::implicit_setter_bytecode().raw());
+    d->AddBaseObject(Object::implicit_static_getter_bytecode().raw());
+    d->AddBaseObject(Object::method_extractor_bytecode().raw());
+    d->AddBaseObject(Object::invoke_closure_bytecode().raw());
+    d->AddBaseObject(Object::invoke_field_bytecode().raw());
+    d->AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
+    d->AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw());
+
+    for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
+      d->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
+    }
+    for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+      d->AddBaseObject(ICData::cached_icdata_arrays_[i]);
+    }
+    d->AddBaseObject(SubtypeTestCache::cached_array_);
+
+    ClassTable* table = d->isolate()->class_table();
+    for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
+      // Error, CallSiteData has no class object.
+      if (cid != kErrorCid && cid != kCallSiteDataCid) {
+        ASSERT(table->HasValidClassAt(cid));
+        d->AddBaseObject(table->At(cid));
+      }
+    }
+    d->AddBaseObject(table->At(kDynamicCid));
+    d->AddBaseObject(table->At(kVoidCid));
+
+    if (!Snapshot::IncludesCode(d->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        d->AddBaseObject(StubCode::EntryAt(i).raw());
+      }
+    }
+  }
+
+  void ReadRoots(Deserializer* d) {
+    symbol_table_ ^= d->ReadRef();
+    d->isolate()->object_store()->set_symbol_table(symbol_table_);
+    if (Snapshot::IncludesCode(d->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        Code* code = Code::ReadOnlyHandle();
+        *code ^= d->ReadRef();
+        StubCode::EntryAtPut(i, code);
+      }
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) {
+    // Move remaining bump allocation space to the freelist so it used by C++
+    // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
+    d->heap()->old_space()->AbandonBumpAllocation();
+
+    Symbols::InitFromSnapshot(d->isolate());
+
+    Object::set_vm_isolate_snapshot_object_table(refs);
+  }
+
+ private:
+  Array& symbol_table_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static const char* kObjectStoreFieldNames[] = {
+#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
+    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
+};
+
+class ProgramSerializationRoots : public SerializationRoots {
+ public:
+  ProgramSerializationRoots(intptr_t num_base_objects,
+                            ObjectStore* object_store)
+      : num_base_objects_(num_base_objects),
+        object_store_(object_store),
+        dispatch_table_entries_(Array::Handle()) {}
+
+  void AddBaseObjects(Serializer* s) {
+    if (num_base_objects_ == 0) {
+      // Not writing a new vm isolate: use the one this VM was loaded from.
+      const Array& base_objects = Object::vm_isolate_snapshot_object_table();
+      for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
+        s->AddBaseObject(base_objects.At(i));
+      }
+    } else {
+      // Base objects carried over from WriteVMSnapshot.
+      s->CarryOverBaseObjects(num_base_objects_);
+    }
+  }
+
+  void PushRoots(Serializer* s) {
+    ObjectPtr* from = object_store_->from();
+    ObjectPtr* to = object_store_->to_snapshot(s->kind());
+    for (ObjectPtr* p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+
+    dispatch_table_entries_ = object_store_->dispatch_table_code_entries();
+    // We should only have a dispatch table in precompiled mode.
+    ASSERT(dispatch_table_entries_.IsNull() || s->kind() == Snapshot::kFullAOT);
+
+#if defined(DART_PRECOMPILER)
+    // We treat the dispatch table as a root object and trace the Code objects
+    // it references. Otherwise, a non-empty entry could be invalid on
+    // deserialization if the corresponding Code object was not reachable from
+    // the existing snapshot roots.
+    if (!dispatch_table_entries_.IsNull()) {
+      for (intptr_t i = 0; i < dispatch_table_entries_.Length(); i++) {
+        s->Push(dispatch_table_entries_.At(i));
+      }
+    }
+#endif
+  }
+
+  void WriteRoots(Serializer* s) {
+    ObjectPtr* from = object_store_->from();
+    ObjectPtr* to = object_store_->to_snapshot(s->kind());
+    for (ObjectPtr* p = from; p <= to; p++) {
+      s->WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
+    }
+
+    // The dispatch table is serialized only for precompiled snapshots.
+    s->WriteDispatchTable(dispatch_table_entries_);
+  }
+
+ private:
+  intptr_t num_base_objects_;
+  ObjectStore* object_store_;
+  Array& dispatch_table_entries_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class ProgramDeserializationRoots : public DeserializationRoots {
+ public:
+  explicit ProgramDeserializationRoots(ObjectStore* object_store)
+      : object_store_(object_store) {}
+
+  void AddBaseObjects(Deserializer* d) {
+    // N.B.: Skipping index 0 because ref 0 is illegal.
+    const Array& base_objects = Object::vm_isolate_snapshot_object_table();
+    for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
+      d->AddBaseObject(base_objects.At(i));
+    }
+  }
+
+  void ReadRoots(Deserializer* d) {
+    // Read roots.
+    ObjectPtr* from = object_store_->from();
+    ObjectPtr* to = object_store_->to_snapshot(d->kind());
+    for (ObjectPtr* p = from; p <= to; p++) {
+      *p = d->ReadRef();
+    }
+
+    // Deserialize dispatch table (when applicable)
+    d->ReadDispatchTable();
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) {
+    Isolate* isolate = d->thread()->isolate();
+    isolate->class_table()->CopySizesFromClassObjects();
+    d->heap()->old_space()->EvaluateAfterLoading();
+
+    const Array& units =
+        Array::Handle(isolate->object_store()->loading_units());
+    if (!units.IsNull()) {
+      LoadingUnit& unit = LoadingUnit::Handle();
+      unit ^= units.At(LoadingUnit::kRootId);
+      unit.set_base_objects(refs);
+    }
+    isolate->isolate_object_store()->PreallocateObjects();
+
+    // Setup native resolver for bootstrap impl.
+    Bootstrap::SetupNativeResolver();
+  }
+
+ private:
+  ObjectStore* object_store_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class UnitSerializationRoots : public SerializationRoots {
+ public:
+  explicit UnitSerializationRoots(LoadingUnitSerializationData* unit)
+      : unit_(unit) {}
+
+  void AddBaseObjects(Serializer* s) {
+    intptr_t num_base_objects = unit_->parent()->num_objects();
+    ASSERT(num_base_objects != 0);
+    s->CarryOverBaseObjects(num_base_objects);
+  }
+
+  void PushRoots(Serializer* s) {
+    intptr_t num_deferred_objects = unit_->deferred_objects()->length();
+    for (intptr_t i = 0; i < num_deferred_objects; i++) {
+      const Object* deferred_object = (*unit_->deferred_objects())[i];
+      ASSERT(deferred_object->IsCode());
+      CodePtr code = static_cast<CodePtr>(deferred_object->raw());
+      s->Push(code->ptr()->compressed_stackmaps_);
+      s->Push(code->ptr()->code_source_map_);
+    }
+    {
+      GrowableArray<CodePtr> raw_codes(num_deferred_objects);
+      for (intptr_t i = 0; i < num_deferred_objects; i++) {
+        raw_codes.Add((*unit_->deferred_objects())[i]->raw());
+      }
+      s->PrepareInstructions(&raw_codes);
+    }
+  }
+
+  void WriteRoots(Serializer* s) {
+#if defined(DART_PRECOMPILER)
+    intptr_t start_index = 0;
+    intptr_t num_deferred_objects = unit_->deferred_objects()->length();
+    if (num_deferred_objects != 0) {
+      start_index = s->RefId(unit_->deferred_objects()->At(0)->raw());
+      ASSERT(start_index > 0);
+    }
+    s->WriteUnsigned(start_index);
+    s->WriteUnsigned(num_deferred_objects);
+    for (intptr_t i = 0; i < num_deferred_objects; i++) {
+      const Object* deferred_object = (*unit_->deferred_objects())[i];
+      ASSERT(deferred_object->IsCode());
+      CodePtr code = static_cast<CodePtr>(deferred_object->raw());
+      ASSERT(s->RefId(code) == (start_index + i));
+      s->WriteInstructions(code->ptr()->instructions_,
+                           code->ptr()->unchecked_offset_, code, false);
+      s->WriteRootRef(code->ptr()->compressed_stackmaps_, "deferred-code");
+      s->WriteRootRef(code->ptr()->code_source_map_, "deferred-code");
+    }
+#endif
+  }
+
+ private:
+  LoadingUnitSerializationData* unit_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class UnitDeserializationRoots : public DeserializationRoots {
+ public:
+  explicit UnitDeserializationRoots(const LoadingUnit& unit) : unit_(unit) {}
+
+  void AddBaseObjects(Deserializer* d) {
+    const Array& base_objects =
+        Array::Handle(LoadingUnit::Handle(unit_.parent()).base_objects());
+    for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
+      d->AddBaseObject(base_objects.At(i));
+    }
+  }
+
+  void ReadRoots(Deserializer* d) {
+    deferred_start_index_ = d->ReadUnsigned();
+    deferred_stop_index_ = deferred_start_index_ + d->ReadUnsigned();
+    for (intptr_t id = deferred_start_index_; id < deferred_stop_index_; id++) {
+      CodePtr code = static_cast<CodePtr>(d->Ref(id));
+      d->ReadInstructions(code, false);
+      if (code->ptr()->owner_->IsFunction()) {
+        FunctionPtr func = static_cast<FunctionPtr>(code->ptr()->owner_);
+        uword entry_point = code->ptr()->entry_point_;
+        ASSERT(entry_point != 0);
+        func->ptr()->entry_point_ = entry_point;
+        uword unchecked_entry_point = code->ptr()->unchecked_entry_point_;
+        ASSERT(unchecked_entry_point != 0);
+        func->ptr()->unchecked_entry_point_ = unchecked_entry_point;
+      }
+      code->ptr()->compressed_stackmaps_ =
+          static_cast<CompressedStackMapsPtr>(d->ReadRef());
+      code->ptr()->code_source_map_ =
+          static_cast<CodeSourceMapPtr>(d->ReadRef());
+    }
+
+    // Reinitialize the dispatch table by rereading the table's serialization
+    // in the root snapshot.
+    IsolateGroup* group = d->thread()->isolate()->group();
+    if (group->dispatch_table_snapshot() != nullptr) {
+      ReadStream stream(group->dispatch_table_snapshot(),
+                        group->dispatch_table_snapshot_size());
+      d->ReadDispatchTable(&stream);
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) {
+    d->EndInstructions(refs, deferred_start_index_, deferred_stop_index_);
+    unit_.set_base_objects(refs);
+  }
+
+ private:
+  const LoadingUnit& unit_;
+  intptr_t deferred_start_index_;
+  intptr_t deferred_stop_index_;
+};
+
 #if defined(DEBUG)
 static const int32_t kSectionMarker = 0xABAB;
 #endif
@@ -4968,7 +5394,7 @@ Serializer::Serializer(Thread* thread,
       num_tlc_cids_(0),
       num_base_objects_(0),
       num_written_objects_(0),
-      next_ref_index_(1),
+      next_ref_index_(kFirstReference),
       previous_text_offset_(0),
       field_table_(thread->isolate()->field_table()),
       vm_(vm),
@@ -5071,13 +5497,13 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   ASSERT(profile_writer() != nullptr);
 
   intptr_t id = heap_->GetObjectId(obj);
-  if (Serializer::IsAllocatedReference(id)) {
+  if (IsAllocatedReference(id)) {
     return false;
   }
-  if (Serializer::IsArtificialReference(id)) {
+  if (IsArtificialReference(id)) {
     return true;
   }
-  ASSERT(id == Serializer::kUnreachableReference);
+  ASSERT_EQUAL(id, kUnreachableReference);
   id = AssignArtificialRef(obj);
 
   const char* type = nullptr;
@@ -5383,6 +5809,7 @@ intptr_t Serializer::GetDataSize() const {
   }
   return image_writer_->data_size();
 }
+#endif
 
 void Serializer::Push(ObjectPtr object) {
   if (!object->IsHeapObject()) {
@@ -5505,6 +5932,7 @@ void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   free(const_cast<char*>(expected_features));
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static int CompareClusters(SerializationCluster* const* a,
                            SerializationCluster* const* b) {
   if ((*a)->size() > (*b)->size()) {
@@ -5516,7 +5944,13 @@ static int CompareClusters(SerializationCluster* const* a,
   }
 }
 
-void Serializer::Serialize() {
+intptr_t Serializer::Serialize(SerializationRoots* roots) {
+  roots->AddBaseObjects(this);
+
+  NoSafepointScope no_safepoint;
+
+  roots->PushRoots(this);
+
   while (stack_.length() > 0) {
     Trace(stack_.RemoveLast());
   }
@@ -5593,6 +6027,24 @@ void Serializer::Serialize() {
 #endif
     }
   }
+
+  roots->WriteRoots(this);
+
+#if defined(DEBUG)
+  Write<int32_t>(kSectionMarker);
+#endif
+
+  FlushBytesWrittenToRoot();
+  object_currently_writing_.stream_start_ = stream_.Position();
+
+  PrintSnapshotSizes();
+
+  // Note we are not clearing the object id table. The full ref table
+  // of the vm isolate snapshot serves as the base objects for the
+  // regular isolate snapshot.
+
+  // Return the number of objects, -1 accounts for unused ref 0.
+  return next_ref_index_ - kFirstReference;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -5713,6 +6165,33 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     Write(repeat_count);
   }
   dispatch_table_size_ = bytes_written() - bytes_before;
+
+  object_currently_writing_.stream_start_ = stream_.Position();
+  // If any bytes were written for the dispatch table, add it to the profile.
+  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
+    // Grab an unused ref index for a unique object id for the dispatch table.
+    const auto dispatch_table_id = next_ref_index_++;
+    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
+        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
+    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
+    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
+                                          "DispatchTable", nullptr);
+    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
+                                      dispatch_table_size_);
+
+    if (!entries.IsNull()) {
+      for (intptr_t i = 0; i < entries.Length(); i++) {
+        auto const code = Code::RawCast(entries.At(i));
+        if (code == Code::null()) continue;
+        const V8SnapshotProfileWriter::ObjectId code_id(
+            V8SnapshotProfileWriter::kSnapshot, RefId(code));
+        profile_writer_->AttributeReferenceTo(
+            dispatch_table_snapshot_id,
+            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
+      }
+    }
+  }
+
 #endif  // defined(DART_PRECOMPILER)
 }
 
@@ -5772,279 +6251,6 @@ void Serializer::PrintSnapshotSizes() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void Serializer::AddVMIsolateBaseObjects() {
-  // These objects are always allocated by Object::InitOnce, so they are not
-  // written into the snapshot.
-
-  AddBaseObject(Object::null(), "Null", "null");
-  AddBaseObject(Object::sentinel().raw(), "Null", "sentinel");
-  AddBaseObject(Object::transition_sentinel().raw(), "Null",
-                "transition_sentinel");
-  AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
-  AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
-  AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
-  AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
-  AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
-  AddBaseObject(Bool::True().raw(), "bool", "true");
-  AddBaseObject(Bool::False().raw(), "bool", "false");
-  ASSERT(Object::extractor_parameter_types().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_types().raw(), "Array",
-                "<extractor parameter types>");
-  ASSERT(Object::extractor_parameter_names().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_names().raw(), "Array",
-                "<extractor parameter names>");
-  AddBaseObject(Object::empty_context_scope().raw(), "ContextScope", "<empty>");
-  AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors", "<empty>");
-  AddBaseObject(Object::empty_var_descriptors().raw(), "LocalVarDescriptors",
-                "<empty>");
-  AddBaseObject(Object::empty_exception_handlers().raw(), "ExceptionHandlers",
-                "<empty>");
-  AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
-                "<implicit getter>");
-  AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
-                "<implicit setter>");
-  AddBaseObject(Object::implicit_static_getter_bytecode().raw(), "Bytecode",
-                "<implicit static getter>");
-  AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
-                "<method extractor>");
-  AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
-                "<invoke closure>");
-  AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
-                "<invoke field>");
-  AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
-                "<nsm dispatcher>");
-  AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw(),
-                "Bytecode", "<dyn forwarder>");
-
-  for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-    AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
-                  "ArgumentsDescriptor", "<cached arguments descriptor>");
-  }
-  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
-                  "<empty icdata entries>");
-  }
-  AddBaseObject(SubtypeTestCache::cached_array_, "Array",
-                "<empty subtype entries>");
-
-  ClassTable* table = isolate()->class_table();
-  for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
-    // Error, CallSiteData has no class object.
-    if (cid != kErrorCid && cid != kCallSiteDataCid) {
-      ASSERT(table->HasValidClassAt(cid));
-      AddBaseObject(table->At(cid), "Class");
-    }
-  }
-  AddBaseObject(table->At(kDynamicCid), "Class");
-  AddBaseObject(table->At(kVoidCid), "Class");
-
-  if (!Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i).raw(), "Code", "<stub code>");
-    }
-  }
-}
-
-intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
-  NoSafepointScope no_safepoint;
-
-  AddVMIsolateBaseObjects();
-
-  // Push roots.
-  Push(symbols.raw());
-  if (Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      Push(StubCode::EntryAt(i).raw());
-    }
-  }
-
-  Serialize();
-
-  // Write roots.
-  WriteRootRef(symbols.raw(), "symbol-table");
-  if (Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRootRef(StubCode::EntryAt(i).raw(),
-                   zone_->PrintToString("Stub:%s", StubCode::NameAt(i)));
-    }
-  }
-
-#if defined(DEBUG)
-  Write<int32_t>(kSectionMarker);
-#endif
-
-  FlushBytesWrittenToRoot();
-
-  PrintSnapshotSizes();
-
-  // Note we are not clearing the object id table. The full ref table
-  // of the vm isolate snapshot serves as the base objects for the
-  // regular isolate snapshot.
-
-  // Return the number of objects, -1 accounts for unused ref 0.
-  return next_ref_index_ - 1;
-}
-
-static const char* kObjectStoreFieldNames[] = {
-#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
-    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD)
-#undef DECLARE_OBJECT_STORE_FIELD
-};
-
-void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
-                                      ObjectStore* object_store) {
-  NoSafepointScope no_safepoint;
-
-  if (num_base_objects == 0) {
-    // Not writing a new vm isolate: use the one this VM was loaded from.
-    const Array& base_objects = Object::vm_isolate_snapshot_object_table();
-    for (intptr_t i = 1; i < base_objects.Length(); i++) {
-      AddBaseObject(base_objects.At(i));
-    }
-  } else {
-    // Base objects carried over from WriteVMSnapshot.
-    num_base_objects_ = num_base_objects;
-    next_ref_index_ = num_base_objects + 1;
-  }
-
-  // Push roots.
-  ObjectPtr* from = object_store->from();
-  ObjectPtr* to = object_store->to_snapshot(kind_);
-  for (ObjectPtr* p = from; p <= to; p++) {
-    Push(*p);
-  }
-
-  const auto& dispatch_table_entries =
-      Array::Handle(zone_, object_store->dispatch_table_code_entries());
-  // We should only have a dispatch table in precompiled mode.
-  ASSERT(dispatch_table_entries.IsNull() || kind() == Snapshot::kFullAOT);
-
-#if defined(DART_PRECOMPILER)
-  // We treat the dispatch table as a root object and trace the Code objects it
-  // references. Otherwise, a non-empty entry could be invalid on
-  // deserialization if the corresponding Code object was not reachable from the
-  // existing snapshot roots.
-  if (!dispatch_table_entries.IsNull()) {
-    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-      Push(dispatch_table_entries.At(i));
-    }
-  }
-#endif
-
-  Serialize();
-
-  // Write roots.
-  for (ObjectPtr* p = from; p <= to; p++) {
-    WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
-  }
-
-  FlushBytesWrittenToRoot();
-  // The dispatch table is serialized only for precompiled snapshots.
-  WriteDispatchTable(dispatch_table_entries);
-  object_currently_writing_.stream_start_ = stream_.Position();
-#if defined(DART_PRECOMPILER)
-  // If any bytes were written for the dispatch table, add it to the profile.
-  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
-    // Grab an unused ref index for a unique object id for the dispatch table.
-    const auto dispatch_table_id = next_ref_index_++;
-    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
-        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
-    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
-                                          "DispatchTable", nullptr);
-    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
-                                      dispatch_table_size_);
-
-    if (!dispatch_table_entries.IsNull()) {
-      for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-        auto const code = Code::RawCast(dispatch_table_entries.At(i));
-        if (code == Code::null()) continue;
-        const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, RefId(code));
-        profile_writer_->AttributeReferenceTo(
-            dispatch_table_snapshot_id,
-            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
-      }
-    }
-  }
-#endif
-
-#if defined(DEBUG)
-  Write<int32_t>(kSectionMarker);
-#endif
-
-  PrintSnapshotSizes();
-
-  // TODO(rmacnak): This also carries over object ids from loading units that
-  // aren't dominators. It would be more robust to remember the written objects
-  // in each loading and re-assign objects when setting up the base objects.
-  // Then a reference to a non-dominating object would produce an error instead
-  // of corruption.
-  if (kind() != Snapshot::kFullAOT) {
-    heap_->ResetObjectIdTable();
-  }
-}
-
-void Serializer::WriteUnitSnapshot(LoadingUnitSerializationData* unit,
-                                   uint32_t program_hash) {
-  Write(program_hash);
-
-  NoSafepointScope no_safepoint;
-
-  intptr_t num_base_objects = unit->parent()->num_objects();
-  ASSERT(num_base_objects != 0);
-  num_base_objects_ = num_base_objects;
-  next_ref_index_ = num_base_objects + 1;
-
-  intptr_t num_deferred_objects = unit->deferred_objects()->length();
-  for (intptr_t i = 0; i < num_deferred_objects; i++) {
-    const Object* deferred_object = (*unit->deferred_objects())[i];
-    ASSERT(deferred_object->IsCode());
-    CodePtr code = static_cast<CodePtr>(deferred_object->raw());
-    Push(code->ptr()->compressed_stackmaps_);
-    Push(code->ptr()->code_source_map_);
-  }
-  {
-    GrowableArray<CodePtr> raw_codes(num_deferred_objects);
-    for (intptr_t i = 0; i < num_deferred_objects; i++) {
-      raw_codes.Add((*unit->deferred_objects())[i]->raw());
-    }
-    PrepareInstructions(&raw_codes);
-  }
-
-  Serialize();
-
-  intptr_t start_index = 0;
-  if (num_deferred_objects != 0) {
-    start_index = RefId(unit->deferred_objects()->At(0)->raw());
-    ASSERT(start_index > 0);
-  }
-  WriteUnsigned(start_index);
-  WriteUnsigned(num_deferred_objects);
-  for (intptr_t i = 0; i < num_deferred_objects; i++) {
-    const Object* deferred_object = (*unit->deferred_objects())[i];
-    ASSERT(deferred_object->IsCode());
-    CodePtr code = static_cast<CodePtr>(deferred_object->raw());
-    ASSERT(RefId(code) == (start_index + i));
-    WriteInstructions(code->ptr()->instructions_,
-                      code->ptr()->unchecked_offset_, code, false);
-    WriteRootRef(code->ptr()->compressed_stackmaps_, "deferred-code");
-    WriteRootRef(code->ptr()->code_source_map_, "deferred-code");
-  }
-
-  FlushBytesWrittenToRoot();
-  object_currently_writing_.stream_start_ = stream_.Position();
-
-#if defined(DEBUG)
-  Write<int32_t>(kSectionMarker);
-#endif
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 Deserializer::Deserializer(Thread* thread,
                            Snapshot::Kind kind,
                            const uint8_t* buffer,
@@ -6059,7 +6265,7 @@ Deserializer::Deserializer(Thread* thread,
       stream_(buffer, size),
       image_reader_(NULL),
       refs_(nullptr),
-      next_ref_index_(1),
+      next_ref_index_(kFirstReference),
       previous_text_offset_(0),
       clusters_(NULL),
       field_table_(thread->isolate()->field_table()) {
@@ -6491,48 +6697,6 @@ ObjectPtr Deserializer::GetObjectAt(uint32_t offset) const {
   return image_reader_->GetObjectAt(offset);
 }
 
-void Deserializer::Prepare() {
-  num_base_objects_ = ReadUnsigned();
-  num_objects_ = ReadUnsigned();
-  num_clusters_ = ReadUnsigned();
-  const intptr_t field_table_len = ReadUnsigned();
-
-  clusters_ = new DeserializationCluster*[num_clusters_];
-  refs_ = Array::New(num_objects_ + 1, Heap::kOld);
-  if (field_table_len > 0) {
-    field_table_->AllocateIndex(field_table_len - 1);
-  }
-  ASSERT(field_table_->NumFieldIds() == field_table_len);
-}
-
-void Deserializer::Deserialize() {
-  if (num_base_objects_ != (next_ref_index_ - 1)) {
-    FATAL2("Snapshot expects %" Pd
-           " base objects, but deserializer provided %" Pd,
-           num_base_objects_, next_ref_index_ - 1);
-  }
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i] = ReadCluster();
-    clusters_[i]->ReadAlloc(this);
-#if defined(DEBUG)
-    intptr_t serializers_next_ref_index_ = Read<int32_t>();
-    ASSERT(serializers_next_ref_index_ == next_ref_index_);
-#endif
-  }
-
-  // We should have completely filled the ref array.
-  ASSERT((next_ref_index_ - 1) == num_objects_);
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->ReadFill(this);
-#if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
-#endif
-  }
-}
-
 class HeapLocker : public StackResource {
  public:
   HeapLocker(Thread* thread, PageSpace* page_space)
@@ -6548,86 +6712,53 @@ class HeapLocker : public StackResource {
   FreeList* freelist_;
 };
 
-void Deserializer::AddVMIsolateBaseObjects() {
-  // These objects are always allocated by Object::InitOnce, so they are not
-  // written into the snapshot.
-
-  AddBaseObject(Object::null());
-  AddBaseObject(Object::sentinel().raw());
-  AddBaseObject(Object::transition_sentinel().raw());
-  AddBaseObject(Object::empty_array().raw());
-  AddBaseObject(Object::zero_array().raw());
-  AddBaseObject(Object::dynamic_type().raw());
-  AddBaseObject(Object::void_type().raw());
-  AddBaseObject(Object::empty_type_arguments().raw());
-  AddBaseObject(Bool::True().raw());
-  AddBaseObject(Bool::False().raw());
-  ASSERT(Object::extractor_parameter_types().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_types().raw());
-  ASSERT(Object::extractor_parameter_names().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_names().raw());
-  AddBaseObject(Object::empty_context_scope().raw());
-  AddBaseObject(Object::empty_descriptors().raw());
-  AddBaseObject(Object::empty_var_descriptors().raw());
-  AddBaseObject(Object::empty_exception_handlers().raw());
-  AddBaseObject(Object::implicit_getter_bytecode().raw());
-  AddBaseObject(Object::implicit_setter_bytecode().raw());
-  AddBaseObject(Object::implicit_static_getter_bytecode().raw());
-  AddBaseObject(Object::method_extractor_bytecode().raw());
-  AddBaseObject(Object::invoke_closure_bytecode().raw());
-  AddBaseObject(Object::invoke_field_bytecode().raw());
-  AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
-  AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw());
-
-  for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-    AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
-  }
-  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i]);
-  }
-  AddBaseObject(SubtypeTestCache::cached_array_);
-
-  ClassTable* table = isolate()->class_table();
-  for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
-    // Error, CallSiteData has no class object.
-    if (cid != kErrorCid && cid != kCallSiteDataCid) {
-      ASSERT(table->HasValidClassAt(cid));
-      AddBaseObject(table->At(cid));
-    }
-  }
-  AddBaseObject(table->At(kDynamicCid));
-  AddBaseObject(table->At(kVoidCid));
-
-  if (!Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i).raw());
-    }
-  }
-}
-
-void Deserializer::ReadVMSnapshot() {
-  Array& symbol_table = Array::Handle(zone_);
+void Deserializer::Deserialize(DeserializationRoots* roots) {
   Array& refs = Array::Handle(zone_);
-  Prepare();
+  num_base_objects_ = ReadUnsigned();
+  num_objects_ = ReadUnsigned();
+  num_clusters_ = ReadUnsigned();
+  const intptr_t field_table_len = ReadUnsigned();
+
+  clusters_ = new DeserializationCluster*[num_clusters_];
+  refs_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
+  if (field_table_len > 0) {
+    field_table_->AllocateIndex(field_table_len - 1);
+  }
+  ASSERT_EQUAL(field_table_->NumFieldIds(), field_table_len);
 
   {
     NoSafepointScope no_safepoint;
     HeapLocker hl(thread(), heap_->old_space());
 
-    AddVMIsolateBaseObjects();
+    roots->AddBaseObjects(this);
 
-    Deserialize();
-
-    // Read roots.
-    symbol_table ^= ReadRef();
-    isolate()->object_store()->set_symbol_table(symbol_table);
-    if (Snapshot::IncludesCode(kind_)) {
-      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-        Code* code = Code::ReadOnlyHandle();
-        *code ^= ReadRef();
-        StubCode::EntryAtPut(i, code);
-      }
+    if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
+      FATAL2("Snapshot expects %" Pd
+             " base objects, but deserializer provided %" Pd,
+             num_base_objects_, next_ref_index_ - kFirstReference);
     }
+
+    for (intptr_t i = 0; i < num_clusters_; i++) {
+      clusters_[i] = ReadCluster();
+      clusters_[i]->ReadAlloc(this);
+#if defined(DEBUG)
+      intptr_t serializers_next_ref_index_ = Read<int32_t>();
+      ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
+#endif
+    }
+
+    // We should have completely filled the ref array.
+    ASSERT_EQUAL(next_ref_index_ - kFirstReference, num_objects_);
+
+    for (intptr_t i = 0; i < num_clusters_; i++) {
+      clusters_[i]->ReadFill(this);
+#if defined(DEBUG)
+    int32_t section_marker = Read<int32_t>();
+    ASSERT(section_marker == kSectionMarker);
+#endif
+    }
+
+    roots->ReadRoots(this);
 
 #if defined(DEBUG)
     int32_t section_marker = Read<int32_t>();
@@ -6638,162 +6769,19 @@ void Deserializer::ReadVMSnapshot() {
     refs_ = NULL;
   }
 
-  // Move remaining bump allocation space to the freelist so it used by C++
-  // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
-  heap_->old_space()->AbandonBumpAllocation();
-
-  Symbols::InitFromSnapshot(isolate());
-
-  Object::set_vm_isolate_snapshot_object_table(refs);
-
-#if defined(DEBUG)
-  isolate()->ValidateClassTable();
-#endif
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(this, refs);
-  }
-}
-
-void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
-  Array& refs = Array::Handle(zone_);
-  Prepare();
-
-  {
-    NoSafepointScope no_safepoint;
-    HeapLocker hl(thread(), heap_->old_space());
-
-    // N.B.: Skipping index 0 because ref 0 is illegal.
-    const Array& base_objects = Object::vm_isolate_snapshot_object_table();
-    for (intptr_t i = 1; i < base_objects.Length(); i++) {
-      AddBaseObject(base_objects.At(i));
-    }
-
-    Deserialize();
-
-    // Read roots.
-    ObjectPtr* from = object_store->from();
-    ObjectPtr* to = object_store->to_snapshot(kind_);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      *p = ReadRef();
-    }
-
-    // Deserialize dispatch table (when applicable)
-    ReadDispatchTable(&stream_);
-
-#if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
-#endif
-
-    refs = refs_;
-    refs_ = NULL;
-  }
-
-  thread()->isolate()->class_table()->CopySizesFromClassObjects();
-  heap_->old_space()->EvaluateAfterLoading();
-
-  Isolate* isolate = thread()->isolate();
-#if defined(DEBUG)
-  isolate->ValidateClassTable();
-  isolate->heap()->Verify();
-#endif
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(this, refs);
-  }
-  const Array& units =
-      Array::Handle(zone_, isolate->object_store()->loading_units());
-  if (!units.IsNull()) {
-    LoadingUnit& unit = LoadingUnit::Handle(zone_);
-    unit ^= units.At(LoadingUnit::kRootId);
-    unit.set_base_objects(refs);
-  }
-  isolate->isolate_object_store()->PreallocateObjects();
-
-  // Setup native resolver for bootstrap impl.
-  Bootstrap::SetupNativeResolver();
-}
-
-ApiErrorPtr Deserializer::ReadUnitSnapshot(const LoadingUnit& unit) {
-  Array& units = Array::Handle(
-      zone_, thread()->isolate()->object_store()->loading_units());
-  uint32_t main_program_hash = Smi::Value(Smi::RawCast(units.At(0)));
-  uint32_t unit_program_hash = Read<uint32_t>();
-  if (main_program_hash != unit_program_hash) {
-    return ApiError::New(
-        String::Handle(String::New("Deferred loading unit is from a different "
-                                   "program than the main loading unit")));
-  }
-
-  Array& refs = Array::Handle(zone_);
-  Prepare();
-
-  intptr_t deferred_start_index;
-  intptr_t deferred_stop_index;
-  {
-    NoSafepointScope no_safepoint;
-    HeapLocker hl(thread(), heap_->old_space());
-
-    // N.B.: Skipping index 0 because ref 0 is illegal.
-    const Array& base_objects = Array::Handle(
-        zone_, LoadingUnit::Handle(zone_, unit.parent()).base_objects());
-    for (intptr_t i = 1; i < base_objects.Length(); i++) {
-      AddBaseObject(base_objects.At(i));
-    }
-
-    Deserialize();
-
-    deferred_start_index = ReadUnsigned();
-    deferred_stop_index = deferred_start_index + ReadUnsigned();
-    for (intptr_t id = deferred_start_index; id < deferred_stop_index; id++) {
-      CodePtr code = static_cast<CodePtr>(Ref(id));
-      ReadInstructions(code, false);
-      if (code->ptr()->owner_->IsFunction()) {
-        FunctionPtr func = static_cast<FunctionPtr>(code->ptr()->owner_);
-        uword entry_point = code->ptr()->entry_point_;
-        ASSERT(entry_point != 0);
-        func->ptr()->entry_point_ = entry_point;
-        uword unchecked_entry_point = code->ptr()->unchecked_entry_point_;
-        ASSERT(unchecked_entry_point != 0);
-        func->ptr()->unchecked_entry_point_ = unchecked_entry_point;
-      }
-      code->ptr()->compressed_stackmaps_ =
-          static_cast<CompressedStackMapsPtr>(ReadRef());
-      code->ptr()->code_source_map_ = static_cast<CodeSourceMapPtr>(ReadRef());
-    }
-
-    // Reinitialize the dispatch table by rereading the table's serialization
-    // in the root snapshot.
-    IsolateGroup* group = thread()->isolate()->group();
-    if (group->dispatch_table_snapshot() != nullptr) {
-      ReadStream stream(group->dispatch_table_snapshot(),
-                        group->dispatch_table_snapshot_size());
-      ReadDispatchTable(&stream);
-    }
-
-#if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
-#endif
-
-    refs = refs_;
-    refs_ = NULL;
-  }
+  roots->PostLoad(this, refs);
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();
   isolate->ValidateClassTable();
-  isolate->heap()->Verify();
+  if (isolate != Dart::vm_isolate()) {
+    isolate->heap()->Verify();
+  }
 #endif
 
-  EndInstructions(refs, deferred_start_index, deferred_stop_index);
   for (intptr_t i = 0; i < num_clusters_; i++) {
     clusters_[i]->PostLoad(this, refs);
   }
-  unit.set_base_objects(refs);
-
-  return ApiError::null();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -6846,13 +6834,9 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(true);
-  // VM snapshot roots are:
-  // - the symbol table
-  // - the stub code (App-AOT, App-JIT or Core-JIT)
-
-  const Array& symbols =
-      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table());
-  intptr_t num_objects = serializer.WriteVMSnapshot(symbols);
+  VMSerializationRoots roots(
+      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table()));
+  intptr_t num_objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 
@@ -6892,9 +6876,8 @@ void FullSnapshotWriter::WriteProgramSnapshot(
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
-  // Isolate snapshot roots are:
-  // - the object store
-  serializer.WriteProgramSnapshot(num_base_objects, object_store);
+  ProgramSerializationRoots roots(num_base_objects, object_store);
+  serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -6929,7 +6912,10 @@ void FullSnapshotWriter::WriteUnitSnapshot(
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
-  serializer.WriteUnitSnapshot(unit, program_hash);
+  serializer.Write(program_hash);
+
+  UnitSerializationRoots roots(unit);
+  serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -7174,7 +7160,8 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
                                        /* is_executable */ true);
   }
 
-  deserializer.ReadVMSnapshot();
+  VMDeserializationRoots roots;
+  deserializer.Deserialize(&roots);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Initialize entries in the VM portion of the BSS segment.
@@ -7217,8 +7204,8 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
                                        /* is_executable */ true);
   }
 
-  auto object_store = thread_->isolate()->object_store();
-  deserializer.ReadProgramSnapshot(object_store);
+  ProgramDeserializationRoots roots(thread_->isolate()->object_store());
+  deserializer.Deserialize(&roots);
 
   PatchGlobalObjectPool();
   InitializeBSS();
@@ -7241,6 +7228,17 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   if (api_error != ApiError::null()) {
     return api_error;
   }
+  {
+    Array& units =
+        Array::Handle(thread_->isolate()->object_store()->loading_units());
+    uint32_t main_program_hash = Smi::Value(Smi::RawCast(units.At(0)));
+    uint32_t unit_program_hash = deserializer.Read<uint32_t>();
+    if (main_program_hash != unit_program_hash) {
+      return ApiError::New(String::Handle(
+          String::New("Deferred loading unit is from a different "
+                      "program than the main loading unit")));
+    }
+  }
 
   if (Snapshot::IncludesCode(kind_)) {
     ASSERT(data_image_ != NULL);
@@ -7251,10 +7249,8 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
                                        /* is_executable */ true);
   }
 
-  api_error = deserializer.ReadUnitSnapshot(unit);
-  if (api_error != ApiError::null()) {
-    return api_error;
-  }
+  UnitDeserializationRoots roots(unit);
+  deserializer.Deserialize(&roots);
 
   PatchGlobalObjectPool();
   InitializeBSS();

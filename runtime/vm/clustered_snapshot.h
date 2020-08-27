@@ -124,6 +124,22 @@ class DeserializationCluster : public ZoneAllocated {
   intptr_t stop_index_;
 };
 
+class SerializationRoots {
+ public:
+  virtual ~SerializationRoots() {}
+  virtual void AddBaseObjects(Serializer* serializer) = 0;
+  virtual void PushRoots(Serializer* serializer) = 0;
+  virtual void WriteRoots(Serializer* serializer) = 0;
+};
+
+class DeserializationRoots {
+ public:
+  virtual ~DeserializationRoots() {}
+  virtual void AddBaseObjects(Deserializer* deserializer) = 0;
+  virtual void ReadRoots(Deserializer* deserializer) = 0;
+  virtual void PostLoad(Deserializer* deserializer, const Array& refs) = 0;
+};
+
 class SmiObjectIdPair {
  public:
   SmiObjectIdPair() : smi_(nullptr), id_(0) {}
@@ -149,6 +165,29 @@ class SmiObjectIdPairTrait {
 
 typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
 
+// Reference value for objects that either are not reachable from the roots or
+// should never have a reference in the snapshot (because they are dropped,
+// for example). Should be the default value for Heap::GetObjectId.
+static constexpr intptr_t kUnreachableReference = 0;
+COMPILE_ASSERT(kUnreachableReference == WeakTable::kNoValue);
+static constexpr intptr_t kFirstReference = 1;
+
+// Reference value for traced objects that have not been allocated their final
+// reference ID.
+static const intptr_t kUnallocatedReference = -1;
+
+static constexpr bool IsAllocatedReference(intptr_t ref) {
+  return ref > kUnreachableReference;
+}
+
+static constexpr bool IsArtificialReference(intptr_t ref) {
+  return ref < kUnallocatedReference;
+}
+
+static constexpr bool IsReachableReference(intptr_t ref) {
+  return ref == kUnallocatedReference || IsAllocatedReference(ref);
+}
+
 class Serializer : public ThreadStackResource {
  public:
   Serializer(Thread* thread,
@@ -160,36 +199,6 @@ class Serializer : public ThreadStackResource {
              bool vm_,
              V8SnapshotProfileWriter* profile_writer = nullptr);
   ~Serializer();
-
-  // Reference value for objects that either are not reachable from the roots or
-  // should never have a reference in the snapshot (because they are dropped,
-  // for example). Should be the default value for Heap::GetObjectId.
-  static constexpr intptr_t kUnreachableReference = 0;
-  COMPILE_ASSERT(kUnreachableReference == WeakTable::kNoValue);
-
-  static constexpr bool IsReachableReference(intptr_t ref) {
-    return ref == kUnallocatedReference || IsAllocatedReference(ref);
-  }
-
-  // Reference value for traced objects that have not been allocated their final
-  // reference ID.
-  static const intptr_t kUnallocatedReference = -1;
-
-  static constexpr bool IsAllocatedReference(intptr_t ref) {
-    return ref > kUnreachableReference;
-  }
-
-  static constexpr bool IsArtificialReference(intptr_t ref) {
-    return ref < kUnallocatedReference;
-  }
-
-  intptr_t WriteVMSnapshot(const Array& symbols);
-  void WriteProgramSnapshot(intptr_t num_base_objects,
-                            ObjectStore* object_store);
-  void WriteUnitSnapshot(LoadingUnitSerializationData* unit,
-                         uint32_t program_hash);
-
-  void AddVMIsolateBaseObjects();
 
   void AddBaseObject(ObjectPtr base_object,
                      const char* type = nullptr,
@@ -208,6 +217,10 @@ class Serializer : public ThreadStackResource {
           {V8SnapshotProfileWriter::kSnapshot, ref}, type, name);
       profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, ref});
     }
+  }
+  void CarryOverBaseObjects(intptr_t num_base_objects) {
+    num_base_objects_ = num_base_objects;
+    next_ref_index_ = num_base_objects + 1;
   }
 
   intptr_t AssignRef(ObjectPtr object) {
@@ -270,7 +283,7 @@ class Serializer : public ThreadStackResource {
 
   void WriteVersionAndFeatures(bool is_vm_snapshot);
 
-  void Serialize();
+  intptr_t Serialize(SerializationRoots* roots);
   void PrintSnapshotSizes();
 
   FieldTable* field_table() { return field_table_; }
@@ -438,9 +451,6 @@ class Serializer : public ThreadStackResource {
     current_loading_unit_id_ = id;
   }
 
- private:
-  static const char* ReadOnlyObjectType(intptr_t cid);
-
   // Returns the reference ID for the object. Fails for objects that have not
   // been allocated a reference ID yet, so should be used only after all
   // WriteAlloc calls.
@@ -481,6 +491,9 @@ class Serializer : public ThreadStackResource {
 #endif  // !DART_PRECOMPILED_RUNTIME
     FATAL("Missing ref");
   }
+
+ private:
+  static const char* ReadOnlyObjectType(intptr_t cid);
 
   Heap* heap_;
   Zone* zone_;
@@ -619,12 +632,6 @@ class Deserializer : public ThreadStackResource {
   // message otherwise.
   ApiErrorPtr VerifyImageAlignment();
 
-  void ReadProgramSnapshot(ObjectStore* object_store);
-  ApiErrorPtr ReadUnitSnapshot(const LoadingUnit& unit);
-  void ReadVMSnapshot();
-
-  void AddVMIsolateBaseObjects();
-
   static void InitializeHeader(ObjectPtr raw,
                                intptr_t cid,
                                intptr_t size,
@@ -697,13 +704,11 @@ class Deserializer : public ThreadStackResource {
                        intptr_t stop_index);
   ObjectPtr GetObjectAt(uint32_t offset) const;
 
-  void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
-
-  void Prepare();
-  void Deserialize();
+  void Deserialize(DeserializationRoots* roots);
 
   DeserializationCluster* ReadCluster();
 
+  void ReadDispatchTable() { ReadDispatchTable(&stream_); }
   void ReadDispatchTable(ReadStream* stream);
 
   intptr_t next_index() const { return next_ref_index_; }

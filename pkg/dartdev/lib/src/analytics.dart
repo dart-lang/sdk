@@ -39,7 +39,6 @@ Dart programming language (https://dart.dev).
 
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
-const String flagsParam = 'flags';
 
 Analytics instance;
 
@@ -102,25 +101,6 @@ String getCommandStr(List<String> args, List<String> allCommands) {
   }
   return args.firstWhere((arg) => allCommands.contains(arg),
       orElse: () => _unknownCommand);
-}
-
-/// Given some set of arguments and parameters, this returns a proper subset
-/// of the arguments that start with '-', joined by a space character.
-String getFlags(List<String> args) {
-  if (args == null || args.isEmpty) {
-    return '';
-  }
-  var argSubset = <String>[];
-  for (var arg in args) {
-    if (arg.startsWith('-')) {
-      if (arg.contains('=')) {
-        argSubset.add(arg.substring(0, arg.indexOf('=') + 1));
-      } else {
-        argSubset.add(arg);
-      }
-    }
-  }
-  return argSubset.join(' ');
 }
 
 /// The directory used to store the analytics settings file.
