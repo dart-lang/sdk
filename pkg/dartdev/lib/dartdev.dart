@@ -247,9 +247,9 @@ class DartdevRunner<int> extends CommandRunner {
     argParser.addMultiOption(
       experimentFlagName,
       valueHelp: 'experiment',
-      allowed: features.map((feature) => feature.enableString),
       allowedHelp: verbose ? allowedHelp : null,
-      help: 'Enable one or more experimental features.',
+      help: 'Enable one or more experimental features '
+          '(see dart.dev/go/experiments).',
     );
   }
 
