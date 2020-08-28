@@ -12,7 +12,7 @@ environment:
   sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
-  analyzer: ^0.39.14
+  analyzer: ^0.40.0
   args: '>=1.4.0 <2.0.0'
   charcode: ^1.0.0
   glob: ^1.0.3
@@ -26,7 +26,6 @@ dev_dependencies:
   async: any # referenced in tests
   benchmark_harness: ^1.0.0
   cli_util: '>=0.1.2 <0.3.0'
-  dart_style: ^1.3.3
   fixnum:
     path: test/mock_packages/fixnum
   github: '>=6.0.5 <8.0.0'
