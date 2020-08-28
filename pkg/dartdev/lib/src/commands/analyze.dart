@@ -15,6 +15,13 @@ import 'analyze_impl.dart';
 // TODO: Support enable-experiment for 'dart analyze'.
 
 class AnalyzeCommand extends DartdevCommand<int> {
+  /// The maximum length of any of the existing severity labels.
+  static const int _severityWidth = 7;
+
+  /// The number of spaces needed to indent follow-on lines (the body) under the
+  /// message. The width left for the severity label plus the separator width.
+  static const int _bodyIndentWidth = _severityWidth + 3;
+
   AnalyzeCommand() : super('analyze', "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
@@ -91,7 +98,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
         // error • Message ... at path.dart:line:col • (code)
 
         var filePath = path.relative(error.file, from: dir.path);
-        var severity = error.severity.toLowerCase().padLeft(7);
+        var severity = error.severity.toLowerCase().padLeft(_severityWidth);
         if (error.isError) {
           severity = log.ansi.error(severity);
         }
@@ -104,7 +111,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
         );
 
         if (verbose) {
-          var padding = ' '.padLeft(error.severity.length + 2);
+          var padding = ' ' * _bodyIndentWidth;
           for (var message in error.contextMessages) {
             log.stdout('$padding${message.message} '
                 'at ${message.filePath}:${message.line}:${message.column}');
