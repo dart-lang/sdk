@@ -150,6 +150,7 @@ cardinality
 caret
 carets
 carriage
+carring
 cascades
 casing
 cast
@@ -569,6 +570,7 @@ jensj
 johnniwinther
 js
 json
+jumps
 juxtaposition
 juxtapositions
 k
@@ -639,6 +641,7 @@ mb
 mc
 md
 me
+meeting
 merely
 meta
 metadata's
@@ -816,6 +819,7 @@ pow
 pragma
 pre
 prebuilt
+preexisting
 preorder
 prev
 prime

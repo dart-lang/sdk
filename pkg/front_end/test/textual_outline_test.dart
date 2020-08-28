@@ -1,5 +1,5 @@
 import "dart:convert";
-import "package:front_end/src/fasta/util/textual_outline_v2.dart";
+import "package:front_end/src/fasta/util/textual_outline.dart";
 
 main() {
   // Doesn't sort if not asked to perform modelling.
@@ -177,7 +177,7 @@ import "baz.dart";
   if (result !=
       """
 import "bar.dart";
-import "foo.dart" show B, A, C;
+import "foo.dart" show A, B, C;
 
 main() {}
 
@@ -203,7 +203,7 @@ export "baz.dart";
   if (result !=
       """
 export "bar.dart";
-export "foo.dart" show B, A, C;
+export "foo.dart" show A, B, C;
 
 main() {}
 
@@ -234,9 +234,9 @@ import "baz.dart";
   if (result !=
       """
 export "bar.dart";
-export "foo.dart" show B, A, C;
+export "foo.dart" show A, B, C;
 import "bar.dart";
-import "foo.dart" show B, A, C;
+import "foo.dart" show A, B, C;
 
 main() {}
 
@@ -271,8 +271,6 @@ bar() {}""") {
   }
 
   // Ending metadata (not associated with anything) is still present.
-  // TODO: The extra metadata should actually stay at the bottom as it's not
-  // associated with anything and it will now basically be associated with foo.
   result = textualOutline(utf8.encode("""
 @Object2()
 foo() {
@@ -335,6 +333,91 @@ class C2<V> = Super<V> with Mixin<V>;
 class D extends Super with Mixin {}
 
 class D2 = Super with Mixin;""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Metadata on imports / exports.
+  result = textualOutline(utf8.encode("""
+@Object1
+export "a3.dart";
+@Object2
+import "a2.dart";
+@Object3
+export "a1.dart";
+@Object4
+import "a0.dart";
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+@Object3
+export "a1.dart";
+
+@Object1
+export "a3.dart";
+
+@Object4
+import "a0.dart";
+
+@Object2
+import "a2.dart";""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Doesn't crash on illegal import/export.
+  // Note that for now a bad import becomes unknown as it has
+  // 'advanced recovery' via "handleRecoverImport" whereas exports enforce the
+  // structure more.
+  result = textualOutline(utf8.encode("""
+// bad line.
+import "a0.dart" show
+// ok line
+import "a1.dart" show foo;
+// bad line.
+export "a2.dart" show
+// ok line
+export "a3.dart" show foo;
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+---- unknown chunk starts ----
+import "a0.dart" show ;
+---- unknown chunk ends ----
+
+export "a2.dart" show ;
+export "a3.dart" show foo;
+import "a1.dart" show foo;""") {
+    throw "Unexpected result: $result";
+  }
+
+  // Enums.
+  result = textualOutline(utf8.encode("""
+library test;
+
+enum E { v1 }
+final x = E.v1;
+
+main() {
+  x;
+}
+"""),
+      throwOnUnexpected: true,
+      performModelling: true,
+      addMarkerForUnknownForTest: true);
+  if (result !=
+      """
+library test;
+
+enum E { v1 }
+
+final x = E.v1;
+
+main() {}""") {
     throw "Unexpected result: $result";
   }
 }
