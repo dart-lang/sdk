@@ -7,18 +7,18 @@ Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]
 
 Global options:
 -h, --help                 Print this usage information.
--v, --verbose              Show verbose output.
+-v, --verbose              Show additional command output.
     --version              Print the Dart SDK version.
     --enable-analytics     Enable anonymous analytics.
     --disable-analytics    Disable anonymous analytics.
 
 Available commands:
   analyze   Analyze the project's Dart code.
+  compile   Compile Dart to various formats.
   create    Create a new project.
-  format    Format Dart source code.
-  migrate   Perform a null safety migration on a project or package.
+  format    Idiomatically formats Dart source code.
   pub       Work with packages.
-  run       Run a Dart file.
+  run       Run a Dart program.
   test      Runs tests in this project.
 
 Run "dart help <command>" for more information about a command.
