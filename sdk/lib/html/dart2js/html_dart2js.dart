@@ -8,7 +8,7 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
- * For information on writing web apps with Dart, see https://webdev.dartlang.org.
+ * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
  */
@@ -17965,15 +17965,12 @@ class HtmlOptionsCollection extends HtmlCollection {
   * as the requested resource.
   * In the example above, the myData.json file must be co-located with the
   * app that uses it.
-  * You might be able to
-  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#a-note-on-cors-and-httprequest)
-  * by using CORS headers or JSONP.
   *
   * ## Other resources
   *
   * * [Fetch data dynamically](https://dart.dev/tutorials/web/fetch-data/),
   * a tutorial shows how to load data from a static file or from a server.
-  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+  * * [Dart article on using HttpRequests](https://dart.dev/guides/libraries/library-tour#using-http-resources-with-httprequest)
   * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
   * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
@@ -28941,18 +28938,13 @@ class StaticRange extends Interceptor {
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
  *     window.localStorage.clear();
  *     assert(window.localStorage.length == 0);
  *
- * For more examples of using this API, see
- * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
- * For details on using the Map API, see the
- * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
- * section of the library tour.
  */
 @Unstable()
 @Native("Storage")
