@@ -630,7 +630,8 @@ class InferenceVisitor
     Expression write;
     if (writeTarget.isMissing) {
       write = inferrer.createMissingPropertySet(
-          node.writeOffset, writeReceiver, readType, node.propertyName, value);
+          node.writeOffset, writeReceiver, readType, node.propertyName, value,
+          forEffect: node.forEffect);
     } else {
       assert(writeTarget.isExtensionMember);
       write = new StaticInvocation(
