@@ -330,4 +330,8 @@ class PackageBuildWorkspacePackage extends WorkspacePackage {
 
     return false;
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace._packageMap;
 }
