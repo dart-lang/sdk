@@ -223,6 +223,9 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
   AbstractBool isBoolean(AbstractValue value) => AbstractBool.Maybe;
 
   @override
+  AbstractBool isTruthy(AbstractValue value) => AbstractBool.Maybe;
+
+  @override
   AbstractBool isDoubleOrNull(AbstractValue value) => AbstractBool.Maybe;
 
   @override

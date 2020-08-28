@@ -1219,6 +1219,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIf(HIf node) {
     HInstruction condition = node.condition;
     if (condition.isConstant()) return node;
+
+    AbstractBool isTruthy =
+        _abstractValueDomain.isTruthy(condition.instructionType);
+    if (isTruthy.isDefinitelyTrue) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(true, _closedWorld));
+    } else if (isTruthy.isDefinitelyFalse) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(false, _closedWorld));
+    }
+
     bool isNegated = condition is HNot;
 
     if (isNegated) {
@@ -1238,6 +1249,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     simplifyCondition(node.thenBlock, condition, !isNegated);
     simplifyCondition(node.elseBlock, condition, isNegated);
+    return node;
+  }
+
+  /// Returns [node] after replacing condition.
+  HInstruction _replaceHIfCondition(HIf node, HInstruction newCondition) {
+    HInstruction condition = node.condition;
+    node.inputs[0] = newCondition;
+    condition.usedBy.remove(node);
+    newCondition.usedBy.add(node);
     return node;
   }
 

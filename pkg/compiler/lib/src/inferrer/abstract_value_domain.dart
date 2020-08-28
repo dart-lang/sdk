@@ -414,6 +414,11 @@ abstract class AbstractValueDomain {
   /// primitive, possible `null`.
   AbstractBool isPrimitiveOrNull(covariant AbstractValue value);
 
+  /// Return an [AbstractBool] that describes whether [value] is a JavaScript
+  /// 'truthy' value at runtime. This is effectively symbolically evaluating the
+  /// abstract value as a JavaScript condition.
+  AbstractBool isTruthy(covariant AbstractValue value);
+
   /// Returns [AbstractValue] for the runtime values contained in either [a] or
   /// [b].
   AbstractValue union(covariant AbstractValue a, covariant AbstractValue b);

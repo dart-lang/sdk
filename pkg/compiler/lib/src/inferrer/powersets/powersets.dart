@@ -431,6 +431,11 @@ class PowersetDomain implements AbstractValueDomain {
           _abstractValueDomain.isBoolean(value._abstractValue));
 
   @override
+  AbstractBool isTruthy(covariant PowersetValue value) =>
+      AbstractBool.strengthen(_powersetBitsDomain.isTruthy(value._powersetBits),
+          _abstractValueDomain.isTruthy(value._abstractValue));
+
+  @override
   AbstractBool isDoubleOrNull(covariant PowersetValue value) =>
       AbstractBool.strengthen(
           _powersetBitsDomain.isDoubleOrNull(value._powersetBits),
