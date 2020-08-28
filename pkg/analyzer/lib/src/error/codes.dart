@@ -2897,7 +2897,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   void m() {}
   // }
   // f() {
-  //   E(3)[!..!]m();
+  //   [!E!](3)..m();
   // }
   // ```
   //

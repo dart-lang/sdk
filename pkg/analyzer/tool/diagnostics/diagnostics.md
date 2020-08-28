@@ -2364,7 +2364,7 @@ extension E on int {
   void m() {}
 }
 f() {
-  E(3)[!..!]m();
+  [!E!](3)..m();
 }
 {% endprettify %}
 
