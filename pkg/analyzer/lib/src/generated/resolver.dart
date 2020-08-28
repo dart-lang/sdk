@@ -573,24 +573,28 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void setReadElement(Expression node, Element element) {
+    DartType readType = DynamicTypeImpl.instance;
+    if (node is IndexExpression) {
+      if (element is MethodElement) {
+        readType = element.returnType;
+      }
+    } else if (node is PrefixedIdentifier ||
+        node is PropertyAccess ||
+        node is SimpleIdentifier) {
+      if (element is PropertyAccessorElement && element.isGetter) {
+        readType = element.returnType;
+      } else if (element is VariableElement) {
+        readType = localVariableTypeProvider.getType(node);
+      }
+    }
+
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
       parent.readElement = element;
-
-      DartType readType = DynamicTypeImpl.instance;
-      if (node is IndexExpression) {
-        if (element is MethodElement) {
-          readType = element.returnType;
-        }
-      } else if (node is PrefixedIdentifier ||
-          node is PropertyAccess ||
-          node is SimpleIdentifier) {
-        if (element is PropertyAccessorElement && element.isGetter) {
-          readType = element.returnType;
-        } else if (element is VariableElement) {
-          readType = localVariableTypeProvider.getType(node);
-        }
-      }
+      parent.readType = readType;
+    } else if (parent is PostfixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.readElement = element;
       parent.readType = readType;
     }
   }
@@ -601,34 +605,38 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   void setWriteElement(Expression node, Element element) {
+    DartType writeType = DynamicTypeImpl.instance;
+    if (node is IndexExpression) {
+      if (element is MethodElement) {
+        var parameters = element.parameters;
+        if (parameters.length == 2) {
+          writeType = parameters[1].type;
+        }
+      }
+    } else if (node is PrefixedIdentifier ||
+        node is PropertyAccess ||
+        node is SimpleIdentifier) {
+      if (element is PropertyAccessorElement && element.isSetter) {
+        if (element.isSynthetic) {
+          writeType = element.variable.type;
+        } else {
+          var parameters = element.parameters;
+          if (parameters.length == 1) {
+            writeType = parameters[0].type;
+          }
+        }
+      } else if (element is VariableElement) {
+        writeType = element.type;
+      }
+    }
+
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
       parent.writeElement = element;
-
-      DartType writeType = DynamicTypeImpl.instance;
-      if (node is IndexExpression) {
-        if (element is MethodElement) {
-          var parameters = element.parameters;
-          if (parameters.length == 2) {
-            writeType = parameters[1].type;
-          }
-        }
-      } else if (node is PrefixedIdentifier ||
-          node is PropertyAccess ||
-          node is SimpleIdentifier) {
-        if (element is PropertyAccessorElement && element.isSetter) {
-          if (element.isSynthetic) {
-            writeType = element.variable.type;
-          } else {
-            var parameters = element.parameters;
-            if (parameters.length == 1) {
-              writeType = parameters[0].type;
-            }
-          }
-        } else if (element is VariableElement) {
-          writeType = element.type;
-        }
-      }
+      parent.writeType = writeType;
+    } else if (parent is PostfixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.writeElement = element;
       parent.writeType = writeType;
     }
   }

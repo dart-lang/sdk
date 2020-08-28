@@ -16,7 +16,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/engine.dart';
@@ -2167,7 +2166,7 @@ mixin CompoundAssignmentExpressionImpl implements CompoundAssignmentExpression {
   DartType readType;
 
   @override
-  DartType writeType = DynamicTypeImpl.instance;
+  DartType writeType;
 }
 
 /// A conditional expression.

@@ -509,6 +509,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Element prefixElement = prefix.staticElement;
     if (prefixElement is PrefixElement) {
       var lookupResult = prefixElement.scope.lookup2(identifier.name);
+
+      if (identifier.inGetterContext()) {
+        _resolver.setReadElement(
+          node,
+          _resolver.toLegacyElement(lookupResult.getter),
+        );
+      }
+
+      if (identifier.inSetterContext()) {
+        _resolver.setWriteElement(
+          node,
+          _resolver.toLegacyElement(lookupResult.setter),
+        );
+      }
+
       var element = lookupResult.getter;
       if (element == null && identifier.inSetterContext()) {
         element = lookupResult.setter;
@@ -747,19 +762,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
     _resolver.setWriteElement(node, element);
 
+    Element getter;
     var inGetterContext = node.inGetterContext();
     if (inGetterContext) {
       if (element is PropertyAccessorElement &&
           element.enclosingElement is CompilationUnitElement) {
-        _resolver.setReadElement(node, element.variable.getter);
-      } else {
-        _resolver.setReadElement(node, null);
+        getter = element.variable.getter;
       }
     }
 
-    if (node.inSetterContext() &&
-        inGetterContext &&
-        enclosingClass != null) {
+    if (node.inSetterContext() && inGetterContext && enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.thisType;
       var result = _typePropertyResolver.resolve(
         receiver: null,
@@ -771,8 +783,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
       node.auxiliaryElements = AuxiliaryElements(
         result.getter,
       );
-      _resolver.setReadElement(node, result.getter);
+      getter ??= result.getter;
     }
+
+    if (inGetterContext) {
+      _resolver.setReadElement(node, getter);
+    }
+
     //
     // Validate annotation element.
     //
