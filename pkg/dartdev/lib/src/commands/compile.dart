@@ -35,8 +35,7 @@ This can be an absolute or reletive path.
 
 bool checkFile(String sourcePath) {
   if (!FileSystemEntity.isFileSync(sourcePath)) {
-    stderr.writeln(
-        '"$sourcePath" is not a file. See \'--help\' for more information.');
+    stderr.writeln('"$sourcePath" file not found.');
     stderr.flush();
     return false;
   }
@@ -45,7 +44,7 @@ bool checkFile(String sourcePath) {
 }
 
 class CompileJSCommand extends DartdevCommand<int> {
-  CompileJSCommand() : super('js', 'Compile Dart to JavaScript') {
+  CompileJSCommand() : super('js', 'Compile Dart to JavaScript.') {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -80,19 +79,20 @@ class CompileJSCommand extends DartdevCommand<int> {
 
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
-      log.stderr('Missing Dart entry point.');
-      printUsage();
-      return compileErrorExitCode;
+      // This throws.
+      usageException('Missing Dart entry point.');
     }
+
     final String sourcePath = argResults.rest[0];
     if (!checkFile(sourcePath)) {
-      return -1;
+      return 1;
     }
 
     VmInteropHandler.run(sdk.dart2jsSnapshot, [
       '--libraries-spec=$librariesPath',
       ...argResults.arguments,
     ]);
+
     return 0;
   }
 }
@@ -124,10 +124,10 @@ class CompileSnapshotCommand extends DartdevCommand<int> {
   FutureOr<int> run() async {
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
-      log.stderr('Missing Dart entry point.');
-      printUsage();
-      return compileErrorExitCode;
+      // This throws.
+      usageException('Missing Dart entry point.');
     }
+
     final String sourcePath = argResults.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
@@ -175,16 +175,19 @@ class CompileNativeCommand extends DartdevCommand<int> {
       )
       ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
 Set values of environment variables. To specify multiple variables, use multiple options or use commas to separate key-value pairs.
-E.g.: dart compile $commandName -Da=1,b=2 main.dart''')
+For example, 'dart compile $commandName -Da=1,b=2 main.dart'.''')
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
-      ..addOption('packages', abbr: 'p', valueHelp: 'path', help: '''
-Get package locations from the specified file instead of .packages. <path> can be relative or absolute.
-E.g.: dart compile $commandName --packages=/tmp/pkgs main.dart
-''')
+      ..addOption('packages',
+          abbr: 'p',
+          valueHelp: 'path',
+          help:
+              '''Get package locations from the specified file instead of .packages.
+<path> can be relative or absolute.
+For example, 'dart compile $commandName --packages=/tmp/pkgs main.dart'.''')
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
-Remove debugging information from the output and save it separately to the specified file. <path> can be relative or absolute.
-''');
+Remove debugging information from the output and save it separately to the specified file.
+<path> can be relative or absolute.''');
   }
 
   @override
@@ -198,10 +201,10 @@ Remove debugging information from the output and save it separately to the speci
     }
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
-      log.stderr('Missing Dart entry point.');
-      printUsage();
-      return compileErrorExitCode;
+      // This throws.
+      usageException('Missing Dart entry point.');
     }
+
     final String sourcePath = argResults.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
@@ -232,24 +235,24 @@ class CompileCommand extends DartdevCommand {
     addSubcommand(CompileJSCommand());
     addSubcommand(CompileSnapshotCommand(
       commandName: 'jit-snapshot',
-      help: 'to a JIT snapshot',
+      help: 'to a JIT snapshot.',
       fileExt: 'jit',
       formatName: 'app-jit',
     ));
     addSubcommand(CompileSnapshotCommand(
       commandName: 'kernel',
-      help: 'to a kernel snapshot',
+      help: 'to a kernel snapshot.',
       fileExt: 'dill',
       formatName: 'kernel',
     ));
     addSubcommand(CompileNativeCommand(
       commandName: 'exe',
-      help: 'to a self-contained executable',
+      help: 'to a self-contained executable.',
       format: 'exe',
     ));
     addSubcommand(CompileNativeCommand(
       commandName: 'aot-snapshot',
-      help: 'to an AOT snapshot',
+      help: 'to an AOT snapshot.',
       format: 'aot',
     ));
   }
