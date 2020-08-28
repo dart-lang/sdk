@@ -364,6 +364,10 @@ void main(Never x) {
 
     assertPrefixExpression(
       findNode.prefix('++x'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never',
       element: null,
       type: 'Never',
     );
@@ -380,6 +384,10 @@ void main(Never? x) {
 
     assertPrefixExpression(
       findNode.prefix('++x'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never?',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never?',
       element: null,
       type: 'dynamic',
     );
