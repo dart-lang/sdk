@@ -654,6 +654,18 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
+  AbstractBool isTruthy(TypeMask value) {
+    if (value is ValueTypeMask && !value.isNullable) {
+      PrimitiveConstantValue constant = value.value;
+      if (constant is BoolConstantValue) {
+        return constant.boolValue ? AbstractBool.True : AbstractBool.False;
+      }
+    }
+    // TODO(sra): Non-intercepted types are generally JavaScript falsy values.
+    return AbstractBool.Maybe;
+  }
+
+  @override
   AbstractBool isString(TypeMask value) {
     return AbstractBool.trueOrMaybe(
         value.containsOnlyString(_closedWorld) && !value.isNullable);

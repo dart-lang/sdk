@@ -15,7 +15,7 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
- * For information on writing web apps with Dart, see https://webdev.dartlang.org.
+ * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
  */
