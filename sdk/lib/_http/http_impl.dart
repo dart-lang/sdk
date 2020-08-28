@@ -1988,9 +1988,23 @@ class _HttpClientConnection {
     _socket.destroy();
   }
 
+  void destroyFromExternal() {
+    closed = true;
+    _httpClient._connectionClosedNoFurtherClosing(this);
+    _socket.destroy();
+  }
+
   void close() {
     closed = true;
     _httpClient._connectionClosed(this);
+    _streamFuture!
+        .timeout(_httpClient.idleTimeout)
+        .then((_) => _socket.destroy());
+  }
+
+  void closeFromExternal() {
+    closed = true;
+    _httpClient._connectionClosedNoFurtherClosing(this);
     _streamFuture!
         .timeout(_httpClient.idleTimeout)
         .then((_) => _socket.destroy());
@@ -2141,14 +2155,14 @@ class _ConnectionTarget {
     }
     if (force) {
       for (var c in _idle.toList()) {
-        c.destroy();
+        c.destroyFromExternal();
       }
       for (var c in _active.toList()) {
-        c.destroy();
+        c.destroyFromExternal();
       }
     } else {
       for (var c in _idle.toList()) {
-        c.close();
+        c.closeFromExternal();
       }
     }
   }
@@ -2483,6 +2497,20 @@ class _HttpClient implements HttpClient {
         _connectionTargets.remove(connection.key);
       }
       _connectionsChanged();
+    }
+  }
+
+  // Remove a closed connection and not issue _closeConnections(). If the close
+  // is signaled from user by calling close(), _closeConnections() was called
+  // and prevent further calls.
+  void _connectionClosedNoFurtherClosing(_HttpClientConnection connection) {
+    connection.stopTimer();
+    var connectionTarget = _connectionTargets[connection.key];
+    if (connectionTarget != null) {
+      connectionTarget.connectionClosed(connection);
+      if (connectionTarget.isEmpty) {
+        _connectionTargets.remove(connection.key);
+      }
     }
   }
 
