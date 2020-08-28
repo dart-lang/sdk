@@ -204,6 +204,86 @@ main() {
     assertType(indexed, 'double');
   }
 
+  test_indexExpression_instance_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+}
+
+void f(A a) {
+  a[0] += 2;
+}
+''');
+
+    assertAssignment(
+      findNode.assignment('[0] += 2'),
+      readElement: findElement.method('[]'),
+      readType: 'int',
+      writeElement: findElement.method('[]='),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  test_indexExpression_super_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+}
+
+class B extends A {
+  void f(A a) {
+    this[0] += 2;
+  }
+}
+''');
+
+    assertAssignment(
+      findNode.assignment('[0] += 2'),
+      readElement: findElement.method('[]'),
+      readType: 'int',
+      writeElement: findElement.method('[]='),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
+  test_indexExpression_this_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+
+  void f(A a) {
+    this[0] += 2;
+  }
+}
+''');
+
+    assertAssignment(
+      findNode.assignment('[0] += 2'),
+      readElement: findElement.method('[]'),
+      readType: 'int',
+      writeElement: findElement.method('[]='),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+  }
+
   test_notLValue_parenthesized_compound() async {
     await assertErrorsInCode(r'''
 void f(int a, int b, double c) {
@@ -287,6 +367,122 @@ g(int$question a) {
     assertTypeArgumentTypes(findNode.methodInvocation('f()'), ['int$question']);
   }
 
+  test_prefixedIdentifier_instance_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get x => 0;
+  set x(num _) {}
+}
+
+void f(A a) {
+  a.x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: findElement.getter('x'),
+      writeElement: findElement.setter('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_prefixedIdentifier_topLevel_compound() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+int get x => 0;
+set x(num _) {}
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.x += 2;
+}
+''');
+
+    var importFind = findElement.importFind('package:test/a.dart');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: importFind.topGet('x'),
+      readType: 'int',
+      writeElement: importFind.topSet('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var prefixed = assignment.leftHandSide as PrefixedIdentifier;
+    assertImportPrefix(prefixed.prefix, importFind.prefix);
+
+    assertSimpleIdentifier(
+      prefixed.identifier,
+      readElement: importFind.topGet('x'),
+      writeElement: importFind.topSet('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_propertyAccess_cascade_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get x => 0;
+  set x(num _) {}
+}
+
+void f(A a) {
+  a..x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('x'),
+      writeElement: findElement.setter('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
   test_propertyAccess_forwardingStub() async {
     await resolveTestCode(r'''
 class A {
@@ -317,6 +513,123 @@ main() {
 
     var right = assignment.rightHandSide;
     assertType(right, 'int');
+  }
+
+  test_propertyAccess_instance_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get x => 0;
+  set x(num _) {}
+}
+
+void f() {
+  A().x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('x'),
+      writeElement: findElement.setter('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_propertyAccess_super_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set x(num _) {}
+  int get x => 0;
+}
+
+class B extends A {
+  set x(num _) {}
+  int get x => 0;
+
+  void f() {
+    super.x += 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x', of: 'A'),
+      readType: 'int',
+      writeElement: findElement.setter('x', of: 'A'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertSuperExpression(propertyAccess.target);
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('x', of: 'A'),
+      writeElement: findElement.setter('x', of: 'A'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_propertyAccess_this_compound() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get x => 0;
+  set x(num _) {}
+
+  void f() {
+    this.x += 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x'),
+      readType: 'int',
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    var propertyAccess = assignment.leftHandSide as PropertyAccess;
+    assertSimpleIdentifier(
+      propertyAccess.propertyName,
+      readElement: findElement.getter('x'),
+      writeElement: findElement.setter('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
   }
 
   test_simple_indexExpression() async {
@@ -1122,6 +1435,42 @@ set x(num _) {}
 
 void f() {
   x += 2;
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.topGet('x'),
+      readType: 'int',
+      writeElement: findElement.topSet('x'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.topGet('x'),
+      writeElement: findElement.topSet('x'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_topGetter_topSetter_fromClass_compound() async {
+    await assertNoErrorsInCode('''
+int get x => 0;
+set x(num _) {}
+
+class A {
+  void f() {
+    x += 2;
+  }
 }
 ''');
 

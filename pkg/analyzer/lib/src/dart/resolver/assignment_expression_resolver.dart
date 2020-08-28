@@ -77,14 +77,13 @@ class AssignmentExpressionResolver {
     left?.accept(_resolver);
     left = node.leftHandSide;
 
-    TokenType operator = node.operator.type;
-    if (left is! IndexExpression &&
-        left is! PrefixedIdentifier &&
-        left is! PropertyAccess &&
-        left is! SimpleIdentifier) {
-      if (operator != TokenType.EQ) {
+    var operator = node.operator.type;
+    if (operator != TokenType.EQ) {
+      if (node.readElement == null || node.readType == null) {
         _resolver.setReadElement(left, null);
       }
+    }
+    if (node.writeElement == null || node.writeType == null) {
       _resolver.setWriteElement(left, null);
     }
 

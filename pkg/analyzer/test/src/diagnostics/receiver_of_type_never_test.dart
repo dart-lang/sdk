@@ -323,6 +323,10 @@ void main(Never x) {
 
     assertPostfixExpression(
       findNode.postfix('x++'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never',
       element: null,
       type: 'Never',
     );
@@ -339,6 +343,10 @@ void main(Never? x) {
 
     assertPostfixExpression(
       findNode.postfix('x++'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never?',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never?',
       element: null,
       type: 'Never?',
     );

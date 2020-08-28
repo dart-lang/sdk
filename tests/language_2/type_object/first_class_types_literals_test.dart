@@ -57,8 +57,6 @@ main() {
   //                                   ^
   // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
   // [cfe] Can't assign to a type literal.
-  //                                    ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   Expect.throwsNoSuchMethodError(() => C + 1);
   //                                     ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
@@ -81,8 +79,6 @@ main() {
   // [cfe] Can't assign to a type literal.
   //                                   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
-  //                                          ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   Expect.throwsNoSuchMethodError(() => dynamic + 1);
   //                                           ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR

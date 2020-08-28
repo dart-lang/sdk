@@ -103,20 +103,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     @required Object operatorElement,
     @required String type,
   }) {
-    assertElement(node.readElement, readElement);
-    if (readType == null) {
-      expect(node.readType, isNull);
-    } else {
-      assertType(node.readType, readType);
-    }
-
-    assertElement(node.writeElement, writeElement);
-    if (writeType == null) {
-      expect(node.writeType, isNull);
-    } else {
-      assertType(node.writeType, writeType);
-    }
-
+    assertCompoundAssignment(
+      node,
+      readElement: readElement,
+      readType: readType,
+      writeElement: writeElement,
+      writeType: writeType,
+    );
     assertElement(node.staticElement, operatorElement);
     assertType(node, type);
   }
@@ -154,6 +147,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
       SimpleIdentifier identifier, ClassElement expectedElement) {
     assertElement(identifier, expectedElement);
     assertTypeNull(identifier);
+  }
+
+  void assertCompoundAssignment(
+    CompoundAssignmentExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
+  }) {
+    assertElement(node.readElement, readElement);
+    if (readType == null) {
+      expect(node.readType, isNull);
+    } else {
+      assertType(node.readType, readType);
+    }
+
+    assertElement(node.writeElement, writeElement);
+    if (writeType == null) {
+      expect(node.writeType, isNull);
+    } else {
+      assertType(node.writeType, writeType);
+    }
   }
 
   void assertConstructorElement(
@@ -571,9 +586,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertPostfixExpression(
     PostfixExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
     @required Object element,
     @required String type,
   }) {
+    assertCompoundAssignment(
+      node,
+      readElement: readElement,
+      readType: readType,
+      writeElement: writeElement,
+      writeType: writeType,
+    );
     assertElement(node.staticElement, element);
     assertType(node, type);
   }

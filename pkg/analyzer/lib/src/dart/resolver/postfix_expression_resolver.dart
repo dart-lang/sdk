@@ -55,12 +55,26 @@ class PostfixExpressionResolver {
 
     node.operand.accept(_resolver);
 
-    var receiverType = getReadType(
-      node.operand,
-    );
+    var operand = node.operand;
+    if (operand is SimpleIdentifier) {
+      var element = operand.staticElement;
+      // ElementResolver does not set it.
+      if (element is VariableElement) {
+        _resolver.setReadElement(operand, element);
+        _resolver.setWriteElement(operand, element);
+      }
+    }
+
+    if (node.readElement == null || node.readType == null) {
+      _resolver.setReadElement(operand, null);
+    }
+    if (node.writeElement == null || node.writeType == null) {
+      _resolver.setWriteElement(operand, null);
+    }
 
     _assignmentShared.checkFinalAlreadyAssigned(node.operand);
 
+    var receiverType = node.readType;
     _resolve1(node, receiverType);
     _resolve2(node, receiverType);
   }
