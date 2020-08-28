@@ -2409,6 +2409,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   List<AnalysisError> get constantEvaluationErrors =>
       evaluationResult?.errors ?? const <AnalysisError>[];
 
+  @Deprecated('Use computeConstantValue() instead')
   @override
   DartObject get constantValue => evaluationResult?.value;
 
@@ -2565,7 +2566,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       computeConstants(library.typeProvider, library.typeSystem,
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
-    return constantValue;
+    return evaluationResult?.value;
   }
 
   @override
@@ -7596,6 +7597,7 @@ abstract class VariableElementImpl extends ElementImpl
   /// initializers.
   Expression get constantInitializer => null;
 
+  @Deprecated('Use computeConstantValue() instead')
   @override
   DartObject get constantValue => evaluationResult?.value;
 

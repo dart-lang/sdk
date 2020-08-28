@@ -1480,7 +1480,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
     for (var annotation in classElement.metadata) {
       if (annotation.isTarget) {
-        var value = annotation.constantValue;
+        var value = annotation.computeConstantValue();
         var kinds = <TargetKind>{};
         for (var kindObject in value.getField('kinds').toSetValue()) {
           var index = kindObject.getField('index').toIntValue();

@@ -40,7 +40,7 @@ const a = const A();
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
     expect(p.isConstantEvaluated, isTrue);
-    expect(p.constantValue.isNull, isTrue);
+    expect(p.computeConstantValue().isNull, isTrue);
   }
 
   test_constFactoryRedirection_super() async {
@@ -64,7 +64,7 @@ main() {}
 ''');
 
     var node = findNode.annotation('@I');
-    var value = node.elementAnnotation.constantValue;
+    var value = node.elementAnnotation.computeConstantValue();
     expect(value.getField('(super)').getField('f').toIntValue(), 42);
   }
 

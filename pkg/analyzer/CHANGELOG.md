@@ -2,6 +2,8 @@
 * Added `LocalVariableElement.hasInitializer`,
   `PropertyInducingElement.hasInitializer`, `ParameterElement.hasDefaultValue`.
 * `ElementImpl.toString()` uses `getDisplayString(withNullability: true)`.
+* Deprecated `ElementAnnotation.constantValue`, it does not guarantee that
+  the value has been computed. Use `computeConstantValue()` instead.
 
 ## 0.40.0
 * Added `LibraryElement.featureSet`.
