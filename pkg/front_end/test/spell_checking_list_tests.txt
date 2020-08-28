@@ -531,6 +531,7 @@ segment
 selection
 sensitive
 services
+setups
 severe
 sheets
 shipped
@@ -566,6 +567,7 @@ stub's
 stupid
 subcommand
 subdir
+subfolder
 subtool
 subtools
 subtyping1a

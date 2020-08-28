@@ -68,6 +68,7 @@ extensions/issue39889: FormatterCrash
 extensions/issue40596: FormatterCrash
 extensions/issue40713: FormatterCrash
 extensions/issue40816: FormatterCrash
+extensions/issue43218: FormatterCrash
 extensions/missing_toplevel: FormatterCrash
 extensions/nested_on_types: FormatterCrash
 extensions/null_aware: FormatterCrash

@@ -2729,72 +2729,36 @@ bool FlowGraphAllocator::TargetLocationIsSpillSlot(LiveRange* range,
   return GetLiveRange(range->vreg())->spill_slot().Equals(target);
 }
 
-void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
-                                              BlockEntryInstr* source_block,
-                                              BlockEntryInstr* target_block) {
-  TRACE_ALLOC(THR_Print("Connect v%" Pd " on the edge B%" Pd " -> B%" Pd "\n",
-                        parent->vreg(), source_block->block_id(),
-                        target_block->block_id()));
-  if (parent->next_sibling() == NULL) {
-    // Nothing to connect. The whole range was allocated to the same location.
-    TRACE_ALLOC(THR_Print("range v%" Pd " has no siblings\n", parent->vreg()));
-    return;
-  }
-
-  const intptr_t source_pos = source_block->end_pos() - 1;
-  ASSERT(IsInstructionEndPosition(source_pos));
-
-  const intptr_t target_pos = target_block->start_pos();
-
-  Location target;
-  Location source;
-
-#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
-  LiveRange* source_cover = NULL;
-  LiveRange* target_cover = NULL;
-#endif
-
-  LiveRange* range = parent;
-  while ((range != NULL) && (source.IsInvalid() || target.IsInvalid())) {
-    if (range->CanCover(source_pos)) {
-      ASSERT(source.IsInvalid());
-      source = range->assigned_location();
-#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
-      source_cover = range;
-#endif
+static LiveRange* FindCover(LiveRange* parent, intptr_t pos) {
+  for (LiveRange* range = parent; range != nullptr;
+       range = range->next_sibling()) {
+    if (range->CanCover(pos)) {
+      return range;
     }
-    if (range->CanCover(target_pos)) {
-      ASSERT(target.IsInvalid());
-      target = range->assigned_location();
-#if defined(INCLUDE_LINEAR_SCAN_TRACING_CODE)
-      target_cover = range;
-#endif
+  }
+  UNREACHABLE();
+  return nullptr;
+}
+
+static bool AreLocationsAllTheSame(const GrowableArray<Location>& locs) {
+  for (intptr_t j = 1; j < locs.length(); j++) {
+    if (!locs[j].Equals(locs[0])) {
+      return false;
     }
-
-    range = range->next_sibling();
   }
+  return true;
+}
 
-  TRACE_ALLOC(THR_Print("connecting v%" Pd " between [%" Pd ", %" Pd ") {%s} "
-                        "to [%" Pd ", %" Pd ") {%s}\n",
-                        parent->vreg(), source_cover->Start(),
-                        source_cover->End(), source.Name(),
-                        target_cover->Start(), target_cover->End(),
-                        target.Name()));
-
-  // Siblings were allocated to the same register.
-  if (source.Equals(target)) return;
-
-  // Values are eagerly spilled. Spill slot already contains appropriate value.
-  if (TargetLocationIsSpillSlot(parent, target)) {
-    return;
-  }
-
-  Instruction* last = source_block->last_instruction();
-  if ((last->SuccessorCount() == 1) && !source_block->IsGraphEntry()) {
+// Emit move on the edge from |pred| to |succ|.
+static void EmitMoveOnEdge(BlockEntryInstr* succ,
+                           BlockEntryInstr* pred,
+                           MoveOperands move) {
+  Instruction* last = pred->last_instruction();
+  if ((last->SuccessorCount() == 1) && !pred->IsGraphEntry()) {
     ASSERT(last->IsGoto());
-    last->AsGoto()->GetParallelMove()->AddMove(target, source);
+    last->AsGoto()->GetParallelMove()->AddMove(move.dest(), move.src());
   } else {
-    target_block->GetParallelMove()->AddMove(target, source);
+    succ->GetParallelMove()->AddMove(move.dest(), move.src());
   }
 }
 
@@ -2805,7 +2769,7 @@ void FlowGraphAllocator::ResolveControlFlow() {
     LiveRange* range = live_ranges_[vreg];
     if (range == NULL) continue;
 
-    while (range->next_sibling() != NULL) {
+    while (range->next_sibling() != nullptr) {
       LiveRange* sibling = range->next_sibling();
       TRACE_ALLOC(THR_Print("connecting [%" Pd ", %" Pd ") [", range->Start(),
                             range->End()));
@@ -2826,14 +2790,145 @@ void FlowGraphAllocator::ResolveControlFlow() {
   }
 
   // Resolve non-linear control flow across branches.
+  // At joins we attempt to sink duplicated moves from predecessors into join
+  // itself as long as their source is not blocked by other moves.
+  // Moves which are candidates to sinking are collected in the |pending|
+  // array and we later compute which one of them we can emit (|can_emit|)
+  // at the join itself.
+  GrowableArray<Location> src_locs(2);
+  GrowableArray<MoveOperands> pending(10);
+  BitVector* can_emit = new BitVector(flow_graph_.zone(), 10);
   for (intptr_t i = 1; i < block_order_.length(); i++) {
     BlockEntryInstr* block = block_order_[i];
     BitVector* live = liveness_.GetLiveInSet(block);
     for (BitVector::Iterator it(live); !it.Done(); it.Advance()) {
       LiveRange* range = GetLiveRange(it.Current());
-      for (intptr_t j = 0; j < block->PredecessorCount(); j++) {
-        ConnectSplitSiblings(range, block->PredecessorAt(j), block);
+      if (range->next_sibling() == nullptr) {
+        // Nothing to connect. The whole range was allocated to the same
+        // location.
+        TRACE_ALLOC(
+            THR_Print("range v%" Pd " has no siblings\n", range->vreg()));
+        continue;
       }
+
+      LiveRange* dst_cover = FindCover(range, block->start_pos());
+      Location dst = dst_cover->assigned_location();
+
+      TRACE_ALLOC(THR_Print("range v%" Pd
+                            " is allocated to %s on entry to B%" Pd
+                            " covered by [%" Pd ", %" Pd ")\n",
+                            range->vreg(), dst.ToCString(), block->block_id(),
+                            dst_cover->Start(), dst_cover->End()));
+
+      if (TargetLocationIsSpillSlot(range, dst)) {
+        // Values are eagerly spilled. Spill slot already contains appropriate
+        // value.
+        TRACE_ALLOC(
+            THR_Print("  [no resolution necessary - range is spilled]\n"));
+        continue;
+      }
+
+      src_locs.Clear();
+      for (intptr_t j = 0; j < block->PredecessorCount(); j++) {
+        BlockEntryInstr* pred = block->PredecessorAt(j);
+        LiveRange* src_cover = FindCover(range, pred->end_pos() - 1);
+        Location src = src_cover->assigned_location();
+        src_locs.Add(src);
+
+        TRACE_ALLOC(THR_Print("| incoming value in %s on exit from B%" Pd
+                              " covered by [%" Pd ", %" Pd ")\n",
+                              src.ToCString(), pred->block_id(),
+                              src_cover->Start(), src_cover->End()));
+      }
+
+      // Check if all source locations are the same for the range. Then
+      // we can try to emit a single move at the destination if we can
+      // guarantee that source location is available on all incoming edges.
+      // (i.e. it is not destroyed by some other move).
+      if ((src_locs.length() > 1) && AreLocationsAllTheSame(src_locs)) {
+        if (!dst.Equals(src_locs[0])) {
+          // We have a non-redundant move which potentially can be performed
+          // at the start of block, however we will only be able to check
+          // whether or not source location is alive on all incoming edges
+          // only when we finish processing all live-in values.
+          pending.Add(MoveOperands(dst, src_locs[0]));
+        }
+
+        // Next incoming value.
+        continue;
+      }
+
+      for (intptr_t j = 0; j < block->PredecessorCount(); j++) {
+        if (dst.Equals(src_locs[j])) {
+          // Redundant move.
+          continue;
+        }
+
+        EmitMoveOnEdge(block, block->PredecessorAt(j), {dst, src_locs[j]});
+      }
+    }
+
+    // For each pending move we need to check if it can be emitted into the
+    // destination block (prerequisite for that is that predecessors should
+    // not destroy the value in the Goto move).
+    if (pending.length() > 0) {
+      if (can_emit->length() < pending.length()) {
+        can_emit = new BitVector(flow_graph_.zone(), pending.length());
+      }
+      can_emit->SetAll();
+
+      // Set to |true| when we discover more blocked pending moves and
+      // need to run another run through pending moves to propagate that.
+      bool changed = false;
+
+      // Process all pending moves and check if any move in the predecessor
+      // blocks then by overwriting their source.
+      for (intptr_t j = 0; j < pending.length(); j++) {
+        Location src = pending[j].src();
+        for (intptr_t p = 0; p < block->PredecessorCount(); p++) {
+          BlockEntryInstr* pred = block->PredecessorAt(p);
+          for (auto move :
+               pred->last_instruction()->AsGoto()->GetParallelMove()->moves()) {
+            if (!move->IsRedundant() && move->dest().Equals(src)) {
+              can_emit->Remove(j);
+              changed = true;
+              break;
+            }
+          }
+        }
+      }
+
+      // Check if newly discovered blocked moves block any other pending moves.
+      while (changed) {
+        changed = false;
+        for (intptr_t j = 0; j < pending.length(); j++) {
+          if (can_emit->Contains(j)) {
+            for (intptr_t k = 0; k < pending.length(); k++) {
+              if (!can_emit->Contains(k) &&
+                  pending[k].dest().Equals(pending[j].src())) {
+                can_emit->Remove(j);
+                changed = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Emit pending moves either in the successor block or in predecessors
+      // (if they are blocked).
+      for (intptr_t j = 0; j < pending.length(); j++) {
+        const auto& move = pending[j];
+        if (can_emit->Contains(j)) {
+          block->GetParallelMove()->AddMove(move.dest(), move.src());
+        } else {
+          for (intptr_t p = 0; p < block->PredecessorCount(); p++) {
+            EmitMoveOnEdge(block, block->PredecessorAt(p), move);
+          }
+        }
+      }
+
+      pending.Clear();
     }
   }
 
