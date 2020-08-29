@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_documentation_into_line.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
@@ -86,6 +87,8 @@ class BulkFixProcessor {
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
     LintNames.prefer_final_fields: MakeFinal.newInstance,
+    LintNames.prefer_for_elements_to_map_fromIterable:
+        ConvertMapFromIterableToForLiteral.newInstance,
     LintNames.prefer_generic_function_type_aliases:
         ConvertToGenericFunctionSyntax.newInstance,
     LintNames.prefer_if_elements_to_conditional_expressions:
