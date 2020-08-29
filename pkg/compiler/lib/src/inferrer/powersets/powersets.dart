@@ -18,7 +18,7 @@ import 'powerset_bits.dart';
 class PowersetValue implements AbstractValue {
   final AbstractValue _abstractValue;
   final int _powersetBits;
-  const PowersetValue(this._abstractValue, this._powersetBits);
+  PowersetValue(this._abstractValue, this._powersetBits);
 
   AbstractValue get abstractValue => _abstractValue;
   int get powersetBits => _powersetBits;
@@ -143,7 +143,7 @@ class PowersetDomain implements AbstractValueDomain {
 
   @override
   AbstractValue computeReceiver(Iterable<MemberEntity> members) {
-    int powersetBits = _powersetBitsDomain.powersetTop;
+    int powersetBits = _powersetBitsDomain.computeReceiver(members);
     AbstractValue abstractValue = _abstractValueDomain.computeReceiver(members);
     return PowersetValue(abstractValue, powersetBits);
   }
@@ -213,7 +213,7 @@ class PowersetDomain implements AbstractValueDomain {
       covariant PowersetValue key,
       covariant PowersetValue value,
       covariant Map<String, AbstractValue> mappings) {
-    int powersetBits = _powersetBitsDomain.otherMask;
+    int powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createDictionaryValue(
         originalValue._abstractValue,
         allocationNode,
@@ -258,7 +258,7 @@ class PowersetDomain implements AbstractValueDomain {
       MemberEntity allocationElement,
       covariant PowersetValue key,
       covariant PowersetValue value) {
-    int powersetBits = _powersetBitsDomain.otherMask;
+    int powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createMapValue(
         originalValue._abstractValue,
         allocationNode,
@@ -289,7 +289,7 @@ class PowersetDomain implements AbstractValueDomain {
       Object allocationNode,
       MemberEntity allocationElement,
       covariant PowersetValue elementType) {
-    int powersetBits = _powersetBitsDomain.otherMask;
+    int powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createSetValue(
         originalValue._abstractValue,
         allocationNode,
@@ -326,7 +326,7 @@ class PowersetDomain implements AbstractValueDomain {
       MemberEntity allocationElement,
       covariant PowersetValue elementType,
       int length) {
-    int powersetBits = _powersetBitsDomain.otherMask;
+    int powersetBits = originalValue._powersetBits;
     AbstractValue abstractValue = _abstractValueDomain.createContainerValue(
         originalValue._abstractValue,
         allocationNode,
