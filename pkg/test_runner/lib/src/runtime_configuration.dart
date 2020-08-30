@@ -303,7 +303,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useElf;
-  DartPrecompiledRuntimeConfiguration({bool useElf}) : useElf = useElf;
+  DartPrecompiledRuntimeConfiguration({this.useElf});
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -360,7 +360,7 @@ class DartPrecompiledAdbRuntimeConfiguration
   static const deviceTestDir = '/data/local/tmp/precompilation-testing/test';
 
   final bool useElf;
-  DartPrecompiledAdbRuntimeConfiguration({bool useElf}) : useElf = useElf;
+  DartPrecompiledAdbRuntimeConfiguration({this.useElf});
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
