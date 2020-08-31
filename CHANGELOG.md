@@ -42,6 +42,12 @@
 
 ### Tools
 
+#### dartfmt
+
+* Don't crash when non-ASCII whitespace is trimmed.
+* Split all conditional expressions (`?:`) when they are nested.
+* Handle `external` and `abstract` fields and variables.
+
 #### Linter
 
 Updated the Linter to `0.1.118`, which includes:
