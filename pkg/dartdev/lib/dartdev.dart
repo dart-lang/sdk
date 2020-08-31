@@ -206,10 +206,12 @@ class DartdevRunner<int> extends CommandRunner {
     // A hidden flag to disable analytics on this run, this constructor can be
     // called with this flag, but should be removed before run() is called as
     // the flag has not been added to all sub-commands.
-    argParser.addFlag('disable-dartdev-analytics',
-        negatable: false,
-        help: 'Disable anonymous analytics for this `dart *` run',
-        hide: true);
+    argParser.addFlag(
+      'disable-dartdev-analytics',
+      negatable: false,
+      help: 'Disable anonymous analytics for this `dart *` run',
+      hide: true,
+    );
 
     // Another hidden flag used by the VM to indicate that DDS should be
     // launched. Should be removed for all commands other than `run`.
@@ -254,6 +256,7 @@ class DartdevRunner<int> extends CommandRunner {
       allowedHelp: verbose ? allowedHelp : null,
       help: 'Enable one or more experimental features '
           '(see dart.dev/go/experiments).',
+      hide: !verbose,
     );
   }
 
