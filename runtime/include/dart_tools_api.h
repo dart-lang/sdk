@@ -268,6 +268,62 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length);
 
+/**
+ * Usage statistics for a space/generation at a particular moment in time.
+ *
+ * \param new_space Data for New Space.
+ *
+ * \param old_space Data for Old Space.
+ */
+typedef struct {
+  /**
+   * \param used_in_words Amount of memory space used, in words.
+   *
+   * \param capacity_in_words Memory space capacity, in words.
+   *
+   * \param external_in_words External memory, in words.
+   */
+  struct {
+    intptr_t used_in_words;
+    intptr_t capacity_in_words;
+    intptr_t external_in_words;
+  } new_space, old_space;
+} Dart_GCStats;
+
+/**
+ * A Garbage Collection event with memory usage statistics.
+ *
+ * \param type The event type. Static lifetime.
+ *
+ * \param reason The reason for the GC event. Static lifetime.
+ *
+ * \param before Memory usage statistics measured before GC was performed.
+ *
+ * \param before Memory usage statistics measured after GC was performed.
+ */
+typedef struct {
+  const char* type;
+  const char* reason;
+  Dart_GCStats before;
+  Dart_GCStats after;
+} Dart_GCEvent;
+
+/**
+ * A callback invoked when the VM emits a GC event.
+ *
+ * \param event The GC event data. Pointer only valid for the duration of the
+ *   callback.
+ */
+typedef void (*Dart_GCEventCallback)(Dart_GCEvent* event);
+
+/**
+ * Sets the native GC event callback.
+ *
+ * \param callback A function pointer to an event handler callback function.
+ *   A NULL value removes the existing listen callback function if any.
+ */
+DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback);
+
 /*
  * ========
  * Reload support

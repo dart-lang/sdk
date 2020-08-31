@@ -67,7 +67,8 @@ Heap::Heap(IsolateGroup* isolate_group,
       read_only_(false),
       last_gc_was_old_space_(false),
       assume_scavenge_will_fail_(false),
-      gc_on_nth_allocation_(kNoForcedGarbageCollection) {
+      gc_on_nth_allocation_(kNoForcedGarbageCollection),
+      gc_event_callback_(nullptr) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -1017,6 +1018,35 @@ void Heap::RecordAfterGC(GCType type) {
     });
   }
 #endif  // !PRODUCT
+  if (gc_event_callback_ != nullptr) {
+    Dart_GCEvent event;
+
+    event.type = GCTypeToString(stats_.type_);
+    event.reason = GCReasonToString(stats_.reason_);
+
+    event.before.new_space.capacity_in_words =
+        stats_.before_.new_.capacity_in_words;
+    event.before.new_space.external_in_words =
+        stats_.before_.new_.external_in_words;
+    event.before.new_space.used_in_words = stats_.before_.new_.used_in_words;
+    event.before.old_space.capacity_in_words =
+        stats_.before_.old_.capacity_in_words;
+    event.before.old_space.external_in_words =
+        stats_.before_.old_.external_in_words;
+    event.before.old_space.used_in_words = stats_.before_.old_.used_in_words;
+    event.after.new_space.capacity_in_words =
+        stats_.after_.new_.capacity_in_words;
+    event.after.new_space.external_in_words =
+        stats_.after_.new_.external_in_words;
+    event.after.new_space.used_in_words = stats_.after_.new_.used_in_words;
+    event.after.old_space.capacity_in_words =
+        stats_.after_.old_.capacity_in_words;
+    event.after.old_space.external_in_words =
+        stats_.after_.old_.external_in_words;
+    event.after.old_space.used_in_words = stats_.after_.old_.used_in_words;
+
+    (*gc_event_callback_)(&event);
+  }
 }
 
 void Heap::PrintStats() {
