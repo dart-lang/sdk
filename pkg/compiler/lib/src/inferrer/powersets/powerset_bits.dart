@@ -35,15 +35,26 @@ class PowersetBitsDomain {
   static const int _nullIndex = 2;
   static const int _otherIndex = 3;
 
-  static const int _maxIndex = _otherIndex;
+  static const int _interceptorIndex = 4;
+  static const int _notInterceptorIndex = 5;
+  static const int _nullInterceptorIndex = 6;
 
+  static const int _maxIndex = _nullInterceptorIndex;
   static const List<int> _singletonIndices = [
     _trueIndex,
     _falseIndex,
     _nullIndex,
   ];
 
-  static const List<String> _bitNames = ['true', 'false', 'null', 'other'];
+  static const List<String> _bitNames = [
+    'true',
+    'false',
+    'null',
+    'other',
+    'interceptor',
+    'notInterceptor',
+    'null'
+  ];
 
   PowersetBitsDomain(this._closedWorld);
 
@@ -62,16 +73,35 @@ class PowersetBitsDomain {
   int get preciseMask => _singletonIndices.fold(
       powersetBottom, (mask, index) => mask | 1 << index);
 
+  int get interceptorMask => 1 << _interceptorIndex;
+  int get notInterceptorMask => 1 << _notInterceptorIndex;
+  int get nullInterceptorMask => 1 << _nullInterceptorIndex;
+  int get interceptorDomainMask =>
+      interceptorMask | notInterceptorMask | nullInterceptorMask;
+
   int get powersetBottom => 0;
   int get powersetTop => (1 << _maxIndex + 1) - 1;
+
+  int get trueValue => trueMask | interceptorMask;
+  int get falseValue => falseMask | interceptorMask;
+  int get boolValue => boolMask | interceptorMask;
+  int get nullValue => nullMask | nullInterceptorMask;
+  int get otherValue => otherMask | interceptorMask | notInterceptorMask;
+  int get interceptorOtherValue => otherMask | interceptorMask;
 
   bool isPotentiallyBoolean(int value) => (value & boolMask) != 0;
   bool isPotentiallyNull(int value) => (value & nullMask) != 0;
   bool isPotentiallyOther(int value) => (value & otherMask) != 0;
+  bool isPotentiallyInterceptor(int value) => (value & interceptorMask) != 0;
+  bool isPotentiallyNotInterceptor(int value) =>
+      (value & notInterceptorMask) != 0;
+  bool isPotentiallyNullInterceptor(int value) =>
+      (value & notInterceptorMask) != 0;
 
-  bool isDefinitelyTrue(int value) => value == trueMask;
-  bool isDefinitelyFalse(int value) => value == falseMask;
-  bool isDefinitelyNull(int value) => value == nullMask;
+  bool isDefinitelyTrue(int value) => value == trueValue;
+  bool isDefinitelyFalse(int value) => value == falseValue;
+  bool isDefinitelyNull(int value) => value == nullValue;
+
   bool isSingleton(int value) =>
       isDefinitelyTrue(value) ||
       isDefinitelyFalse(value) ||
@@ -83,19 +113,13 @@ class PowersetBitsDomain {
   AbstractBool isOther(int value) =>
       AbstractBool.maybeOrFalse(isPotentiallyOther(value));
 
-  AbstractBool isIn(int subset, int superset) {
-    if (union(subset, superset) == superset) {
-      if (isPrecise(superset)) return AbstractBool.True;
-    } else {
-      if (isPrecise(subset)) return AbstractBool.False;
-    }
-    return AbstractBool.Maybe;
-  }
-
   /// Returns a descriptive string for [bits]
   static String toText(int bits, {bool omitIfTop = false}) {
-    int boolDomainMask = (1 << _maxIndex + 1) - 1;
-    return _toTextDomain(bits, boolDomainMask, omitIfTop);
+    int boolNullOtherMask = (1 << _otherIndex + 1) - 1;
+    int interceptorDomainMask =
+        (1 << _nullInterceptorIndex + 1) - (1 << _interceptorIndex);
+    return _toTextDomain(bits, interceptorDomainMask, omitIfTop) +
+        _toTextDomain(bits, boolNullOtherMask, omitIfTop);
   }
 
   /// Returns a descriptive string for a subset of [bits] defined by
@@ -117,6 +141,20 @@ class PowersetBitsDomain {
     }
     sb.write('}');
     return '$sb';
+  }
+
+  AbstractBool _isIn(int subset, int superset) {
+    if (union(subset, superset) == superset) {
+      if (isPrecise(superset)) return AbstractBool.True;
+    } else {
+      if (isPrecise(subset)) return AbstractBool.False;
+    }
+    return AbstractBool.Maybe;
+  }
+
+  AbstractBool isIn(int subset, int superset) {
+    // TODO(coam): We can also take advantage of other bits to be more precise
+    return _isIn(subset & boolNullOtherMask, superset & boolNullOtherMask);
   }
 
   AbstractBool needsNoSuchMethodHandling(int receiver, Selector selector) =>
@@ -154,20 +192,26 @@ class PowersetBitsDomain {
 
   int computeAbstractValueForConstant(ConstantValue value) {
     if (value.isTrue) {
-      return trueMask;
+      return trueValue;
     }
     if (value.isFalse) {
-      return falseMask;
+      return falseValue;
     }
     if (value.isNull) {
-      return nullMask;
+      return nullValue;
     }
-    return otherMask;
+
+    // TODO(coam): We could be more precise if we implement a visitor to
+    // ConstantValue
+    return createFromStaticType(value.getType(commonElements), nullable: false);
   }
 
   AbstractBool areDisjoint(int a, int b) {
     int overlap = intersection(a, b);
-    if (overlap == powersetBottom) return AbstractBool.True;
+    if (overlap & interceptorDomainMask == powersetBottom) {
+      return AbstractBool.True;
+    }
+    if (overlap & boolNullOtherMask == powersetBottom) return AbstractBool.True;
     if (isPrecise(overlap)) return AbstractBool.False;
     return AbstractBool.Maybe;
   }
@@ -221,7 +265,11 @@ class PowersetBitsDomain {
 
   AbstractBool isInteger(int value) => isOther(value);
 
-  AbstractBool isInterceptor(int value) => AbstractBool.Maybe;
+  AbstractBool isInterceptor(int value) {
+    if (!isPotentiallyInterceptor(value)) return AbstractBool.False;
+    if (isPotentiallyNotInterceptor(value)) return AbstractBool.Maybe;
+    return AbstractBool.True;
+  }
 
   AbstractBool isPrimitiveString(int value) => isOther(value);
 
@@ -261,7 +309,9 @@ class PowersetBitsDomain {
   AbstractBool isExact(int value) => AbstractBool.Maybe;
 
   AbstractBool isEmpty(int value) {
-    if (value == powersetBottom) return AbstractBool.True;
+    if (value & interceptorDomainMask == powersetBottom)
+      return AbstractBool.True;
+    if (value & boolNullOtherMask == powersetBottom) return AbstractBool.True;
     if (isPrecise(value)) return AbstractBool.False;
     return AbstractBool.Maybe;
   }
@@ -280,11 +330,11 @@ class PowersetBitsDomain {
   AbstractBool containsType(int value, ClassEntity cls) => AbstractBool.Maybe;
 
   int includeNull(int value) {
-    return value | nullMask;
+    return value | nullValue;
   }
 
   int excludeNull(int value) {
-    return value & ~nullMask;
+    return value & ~nullValue;
   }
 
   AbstractBool couldBeTypedArray(int value) => isOther(value);
@@ -299,39 +349,43 @@ class PowersetBitsDomain {
     return cls == commonElements.jsNullClass || cls == commonElements.nullClass;
   }
 
-  // This function checks if cls is one of those classes other than bool or null
-  // that are live by default in a program.
-  bool _isLiveByDefault(ClassEntity cls) {
-    return cls == commonElements.intClass ||
-        cls == commonElements.numClass ||
-        cls == commonElements.doubleClass ||
-        cls == commonElements.stringClass;
-  }
-
   ClassInfo _computeClassInfo(ClassEntity cls) {
     ClassInfo classInfo = _storedClassInfo[cls];
     if (classInfo != null) {
       return classInfo;
     }
 
-    // Bool and Null are handled specially because the powerset bits
-    // contain information about values being bool or null.
+    // Handle null case specially
     if (_isNullSubtype(cls)) {
-      classInfo = ClassInfo(nullMask, powersetBottom, powersetBottom);
-      _storedClassInfo[cls] = classInfo;
-      return classInfo;
-    }
-    if (_isBoolSubtype(cls)) {
-      classInfo = ClassInfo(boolMask, powersetBottom, powersetBottom);
+      classInfo = ClassInfo(nullValue, powersetBottom, powersetBottom);
       _storedClassInfo[cls] = classInfo;
       return classInfo;
     }
 
-    // If cls is instantiated or live by default the 'other' bit should be set to 1.
-    int exactBits = powersetBottom;
-    if (_isLiveByDefault(cls) ||
-        _closedWorld.classHierarchy.isInstantiated(cls)) {
-      exactBits = otherMask;
+    // Handle bool and JSBool specially. Both appear to be 'instantiated' but
+    // only JSBool is really instantiated.
+    if (_isBoolSubtype(cls)) {
+      int exactBits = boolMask | interceptorMask;
+      classInfo = ClassInfo(exactBits, powersetBottom, powersetBottom);
+      _storedClassInfo[cls] = classInfo;
+      return classInfo;
+    }
+
+    // Compute interceptor and notInterceptor bits first
+    int interceptorBits = powersetBottom;
+    if (_closedWorld.classHierarchy.isInstantiated(cls)) {
+      if (_closedWorld.classHierarchy
+          .isSubclassOf(cls, commonElements.jsInterceptorClass)) {
+        interceptorBits |= interceptorMask;
+      } else {
+        interceptorBits |= notInterceptorMask;
+      }
+    }
+
+    int exactBits = interceptorBits;
+    if (_closedWorld.classHierarchy.isInstantiated(cls)) {
+      // If cls is instantiated or live by default the 'other' bit should be set to 1.
+      exactBits |= otherMask;
     }
 
     int strictSubtypeBits = powersetBottom;
@@ -517,43 +571,65 @@ class PowersetBitsDomain {
 
   int get emptyType => powersetBottom;
 
-  int get constMapType => otherMask;
+  int _constMapType;
+  int get constMapType => _constMapType ??=
+      createNonNullSubtype(commonElements.constMapLiteralClass);
 
-  int get constSetType => otherMask;
+  int get constSetType => otherValue;
 
-  int get constListType => otherMask;
+  int _constListType;
+  int get constListType => _constListType ??=
+      createNonNullExact(commonElements.jsUnmodifiableArrayClass);
 
-  int get positiveIntType => otherMask;
+  int _fixedListType;
+  int get fixedListType =>
+      _fixedListType ??= createNonNullExact(commonElements.jsFixedArrayClass);
 
-  int get uint32Type => otherMask;
+  int _growableListType;
+  int get growableListType => _growableListType ??=
+      createNonNullExact(commonElements.jsExtendableArrayClass);
 
-  int get uint31Type => otherMask;
+  int get nullType => nullValue;
 
-  int get fixedListType => otherMask;
+  int get nonNullType => powersetTop & ~nullValue;
 
-  int get growableListType => otherMask;
+  int _mapType;
+  int get mapType =>
+      _mapType ??= createNonNullSubtype(commonElements.mapLiteralClass);
 
-  int get nullType => nullMask;
+  int _setType;
+  int get setType =>
+      _setType ??= createNonNullSubtype(commonElements.setLiteralClass);
 
-  int get nonNullType => otherMask;
+  int _listType;
+  int get listType =>
+      _listType ??= createNonNullExact(commonElements.jsArrayClass);
 
-  int get mapType => otherMask;
+  int _stringType;
+  int get stringType =>
+      _stringType ??= createNonNullSubtype(commonElements.jsStringClass);
 
-  int get setType => otherMask;
+  int _numType;
+  int get numType =>
+      _numType ??= createNonNullSubclass(commonElements.jsNumberClass);
 
-  int get listType => otherMask;
+  int _doubleType;
+  int get doubleType =>
+      _doubleType ??= createNonNullExact(commonElements.jsDoubleClass);
 
-  int get stringType => otherMask;
+  int _intType;
+  int get intType =>
+      _intType ??= createNonNullSubtype(commonElements.jsIntClass);
 
-  int get numType => otherMask;
+  int get positiveIntType => intType;
+  int get uint32Type => intType;
+  int get uint31Type => intType;
 
-  int get doubleType => otherMask;
+  int get boolType => boolValue;
 
-  int get intType => otherMask;
+  int _functionType;
+  int get functionType =>
+      _functionType ??= createNonNullSubtype(commonElements.functionClass);
 
-  int get boolType => boolMask;
-
-  int get functionType => otherMask;
-
-  int get typeType => otherMask;
+  int get typeType => otherValue;
 }

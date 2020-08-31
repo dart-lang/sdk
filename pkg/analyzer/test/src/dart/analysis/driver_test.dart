@@ -860,7 +860,7 @@ const x = 1;
 ''');
     var result = await driver.getResult(testFile);
     Annotation at_x = AstFinder.getClass(result.unit, 'C').metadata[0];
-    expect(at_x.elementAnnotation.constantValue.toIntValue(), 1);
+    expect(at_x.elementAnnotation.computeConstantValue().toIntValue(), 1);
   }
 
   test_const_circular_reference() async {

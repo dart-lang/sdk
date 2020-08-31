@@ -29,6 +29,21 @@ class Highlights2ComputerTest extends AbstractContextTest {
     sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
+  Future<void> test_comment() async {
+    await _computeHighlights('''
+// A trailing comment
+''');
+    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// A trailing comment');
+  }
+
+  Future<void> test_comment_trailing() async {
+    await _computeHighlights('''
+class A {}
+// A trailing comment
+''');
+    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// A trailing comment');
+  }
+
   Future<void> test_extension() async {
     await _computeHighlights('''
 extension E on String {}
@@ -60,13 +75,6 @@ void main() {
 }
   ''');
     _check(HighlightRegionType.KEYWORD, 'throw');
-  }
-
-  Future<void> test_trailingComment() async {
-    await _computeHighlights('''
-// A trailing comment
-''');
-    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// A trailing comment');
   }
 
   void _check(HighlightRegionType expectedType, String expectedText) {

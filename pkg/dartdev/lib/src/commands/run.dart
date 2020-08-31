@@ -189,11 +189,9 @@ class RunCommand extends DartdevCommand<int> {
       }
 
       if (!foundImplicitFileToRun) {
-        log.stderr(
-          'Could not find the implicit file to run: '
-          'bin$separator$cwdName.dart.',
-        );
-        return errorExitCode;
+        // This throws.
+        usageException('Could not find the implicit file to run: '
+            'bin$separator$cwdName.dart.');
       }
     }
 

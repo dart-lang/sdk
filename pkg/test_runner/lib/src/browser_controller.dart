@@ -815,11 +815,8 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  BrowserTestRunner(
-      TestConfiguration configuration, String localIp, this.maxNumBrowsers)
-      : configuration = configuration,
-        localIp = localIp,
-        testingServer = BrowserTestingServer(configuration, localIp,
+  BrowserTestRunner(this.configuration, this.localIp, this.maxNumBrowsers)
+      : testingServer = BrowserTestingServer(configuration, localIp,
             Browser.requiresFocus(configuration.runtime.name)) {
     testingServer.testRunner = this;
   }

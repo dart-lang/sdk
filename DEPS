@@ -44,7 +44,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "d94e371b8aafa3f4b88821c63a5ef1f618c2124d",
+  "co19_rev": "12855e59cd7e031d076cc8cece9f5ee08e77ca8c",
   "co19_2_rev": "e48b3090826cf40b8037648f19d211e8eab1b4b6",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
@@ -79,8 +79,8 @@ vars = {
   "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
-  "csslib_rev": "451448a9ac03f87a8d0377fc0b411d8c388a6cb4",
-  "dart2js_info_rev" : "94ba36cb77067f28b75a4212e77b810a2d7385e9",
+  "csslib_rev": "166d3e07eabc8283c6137cfde17fb25b8bb40080",
+  "dart2js_info_rev" : "0632a623b08e1f601c7eba99e0186a581ae799e9",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`

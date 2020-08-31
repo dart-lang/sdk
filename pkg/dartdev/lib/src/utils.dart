@@ -56,7 +56,8 @@ class PubUtils {
       allCmds != null &&
       args.isNotEmpty &&
       allCmds.isNotEmpty &&
-      args.firstWhere((arg) => allCmds.contains(arg)) == 'help' &&
+      args.firstWhere((arg) => allCmds.contains(arg), orElse: () => '') ==
+          'help' &&
       args.contains('help') &&
       args.contains('pub') &&
       args.indexOf('help') + 1 == args.indexOf('pub');

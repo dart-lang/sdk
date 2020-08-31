@@ -6,19 +6,19 @@ const String valueClass = "valueClass";
 
 @valueClass
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 @valueClass
 class Cat implements Animal {
-  final int numLegs;
-  final int numWhiskers;
+  final int numberOfLegs;
+  final int numberOfWhiskers;
 }
 
 main() {
-  Cat firstCat = Cat(numLegs: 4, numWhiskers: 10);
-  Cat secondCat = Cat(numLegs: 4, numWhiskers: 10);
-  Cat thirdCat = Cat(numLegs: 4, numWhiskers: 0);
+  Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+  Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+  Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
 
   expect(true, firstCat == secondCat);
   expect(false, firstCat == thirdCat);

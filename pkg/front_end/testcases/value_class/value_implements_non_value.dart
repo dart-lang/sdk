@@ -5,12 +5,12 @@
 const String valueClass = "valueClass";
 
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 @valueClass
 class Cat implements Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 main() {}

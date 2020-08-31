@@ -596,6 +596,10 @@ class ResolverVisitor extends ScopedVisitor {
         parent.operator.type.isIncrementOperator) {
       parent.readElement = element;
       parent.readType = readType;
+    } else if (parent is PrefixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.readElement = element;
+      parent.readType = readType;
     }
   }
 
@@ -635,6 +639,10 @@ class ResolverVisitor extends ScopedVisitor {
       parent.writeElement = element;
       parent.writeType = writeType;
     } else if (parent is PostfixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.writeElement = element;
+      parent.writeType = writeType;
+    } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
       parent.writeElement = element;
       parent.writeType = writeType;

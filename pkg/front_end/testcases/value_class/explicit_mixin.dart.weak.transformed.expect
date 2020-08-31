@@ -2,7 +2,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-@#C1
 class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
@@ -28,7 +27,6 @@ class E extends self::B implements self::A /*isEliminatedMixin*/  {
     : super self::B::•()
     ;
 }
-@#C1
 class F extends self::B implements self::C /*isEliminatedMixin*/  {
   synthetic constructor •() → self::F
     : super self::B::•()

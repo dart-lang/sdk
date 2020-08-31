@@ -171,12 +171,15 @@ abstract class TypeSystem2 implements public.TypeSystem {
   bool isNonNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return false;
+    } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
+      return isNonNullable(type.promotedBound);
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
-    } else if (type.isDartAsyncFutureOr) {
-      return isNonNullable((type as InterfaceType).typeArguments[0]);
+    } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      return isNonNullable(type.typeArguments[0]);
     } else if (type is TypeParameterType) {
-      return isNonNullable(type.bound);
+      var bound = type.element.bound;
+      return bound != null && isNonNullable(bound);
     }
     return true;
   }
@@ -185,6 +188,8 @@ abstract class TypeSystem2 implements public.TypeSystem {
   bool isNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return true;
+    } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
+      return isNullable(type.promotedBound);
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return true;
     } else if (type.isDartAsyncFutureOr) {

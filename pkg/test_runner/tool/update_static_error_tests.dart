@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
 import 'package:test_runner/src/path.dart';
@@ -17,6 +18,8 @@ import 'package:test_runner/src/update_errors.dart';
 
 const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";
+
+final String _analyzerPath = _findAnalyzer();
 
 Future<void> main(List<String> args) async {
   var sources = ErrorSource.all.map((e) => e.marker).toList();
@@ -207,15 +210,11 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
-  var result = await Process.run(
-      Platform.isWindows
-          ? "sdk\\bin\\dartanalyzer.bat"
-          : "sdk/bin/dartanalyzer",
-      [
-        ...options,
-        "--format=machine",
-        path,
-      ]);
+  var result = await Process.run(_analyzerPath, [
+    ...options,
+    "--format=machine",
+    path,
+  ]);
 
   // Analyzer returns 3 when it detects errors, 2 when it detects
   // warnings and --fatal-warnings is enabled, 1 when it detects
@@ -259,4 +258,35 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
   var errors = <StaticError>[];
   FastaCommandOutput.parseErrors(result.stdout as String, errors);
   return errors;
+}
+
+/// Find the most recently-built analyzer.
+String _findAnalyzer() {
+  String newestAnalyzer;
+  DateTime newestAnalyzerTime;
+
+  var buildDirectory = Directory(Platform.isMacOS ? "xcodebuild" : "out");
+  if (buildDirectory.existsSync()) {
+    for (var config in buildDirectory.listSync()) {
+      var analyzerPath = p.join(config.path, "dart-sdk", "bin", "dartanalyzer");
+      var analyzerFile = File(analyzerPath);
+      if (!analyzerFile.existsSync()) continue;
+      var modified = analyzerFile.lastModifiedSync();
+
+      if (newestAnalyzerTime == null || modified.isAfter(newestAnalyzerTime)) {
+        newestAnalyzer = analyzerPath;
+        newestAnalyzerTime = modified;
+      }
+    }
+  }
+
+  if (newestAnalyzer == null) {
+    // Clear the current line since we're in the middle of a progress line.
+    print("");
+    print("Could not find a built SDK with a dartanalyzer to run.");
+    print("Make sure to build the Dart SDK before running this tool.");
+    exit(1);
+  }
+
+  return newestAnalyzer;
 }

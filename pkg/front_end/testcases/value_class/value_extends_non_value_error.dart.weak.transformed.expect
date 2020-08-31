@@ -2,20 +2,19 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/value_class/value_extends_non_value_error.dart:8:7: Error: Field 'numLegs' should be initialized because its type 'int' doesn't allow null.
-//   int numLegs;
-//       ^^^^^^^
+// pkg/front_end/testcases/value_class/value_extends_non_value_error.dart:8:7: Error: Field 'numberOfLegs' should be initialized because its type 'int' doesn't allow null.
+//   int numberOfLegs;
+//       ^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
 
 class Animal extends core::Object {
-  field core::int numLegs = null;
+  field core::int numberOfLegs = null;
   synthetic constructor •() → self::Animal
     : super core::Object::•()
     ;
 }
-@#C1
 class Cat extends self::Animal {
   synthetic constructor •() → self::Cat
     : super self::Animal::•()

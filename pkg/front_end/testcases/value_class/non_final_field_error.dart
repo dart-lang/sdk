@@ -6,7 +6,7 @@ const String valueClass = "valueClass";
 
 @valueClass
 class Animal {
-  int numLegs;
+  int numberOfLegs;
 }
 
 main() {}

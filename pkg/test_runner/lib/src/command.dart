@@ -502,11 +502,10 @@ class VMBatchCommand extends ProcessCommand implements VMCommand {
   final String dartFile;
   final bool checked;
 
-  VMBatchCommand(String executable, String dartFile, List<String> arguments,
+  VMBatchCommand(String executable, this.dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
       {this.checked = true, int index = 0})
-      : dartFile = dartFile,
-        super('vm-batch', executable, arguments, environmentOverrides, null,
+      : super('vm-batch', executable, arguments, environmentOverrides, null,
             index);
 
   VMBatchCommand indexedCopy(int index) =>

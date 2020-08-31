@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dartdev/src/commands/analyze_impl.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
 
 void main() {
+  group('analysisError', defineAnalysisError, timeout: longTimeout);
   group('analyze', defineAnalyze, timeout: longTimeout);
 }
 
@@ -14,6 +16,13 @@ const String _analyzeDescriptionText = "Analyze the project's Dart code.";
 
 const String _analyzeUsageText =
     'Usage: dart analyze [arguments] [<directory>]';
+
+const String _unusedImportAnalysisOptions = '''
+analyzer:
+  errors:
+    # Increase the severity of several hints.
+    unused_import: warning
+''';
 
 const String _unusedImportCodeSnippet = '''
 import 'dart:convert';
@@ -23,12 +32,26 @@ void main() {
 }
 ''';
 
-const String _unusedImportAnalysisOptions = '''
-analyzer:
-  errors:
-    # Increase the severity of several hints.
-    unused_import: warning
-''';
+void defineAnalysisError() {
+  group('contextMessages', () {
+    test('none', () {
+      var error = AnalysisError({});
+      expect(error.contextMessages, isEmpty);
+    });
+    test('one', () {
+      var error = AnalysisError({
+        'contextMessages': [<String, dynamic>{}],
+      });
+      expect(error.contextMessages, hasLength(1));
+    });
+    test('two', () {
+      var error = AnalysisError({
+        'contextMessages': [<String, dynamic>{}, <String, dynamic>{}],
+      });
+      expect(error.contextMessages, hasLength(2));
+    });
+  });
+}
 
 void defineAnalyze() {
   TestProject p;

@@ -56,11 +56,12 @@ main() {
       Expect.equals(bits, mask.powersetBits);
     }
 
-    checkBits('a', powersetBitsDomain.trueMask);
-    checkBits('b', powersetBitsDomain.boolMask);
-    checkBits('c', powersetBitsDomain.boolMask);
-    checkBits('d', powersetBitsDomain.boolMask);
-    checkBits('e', powersetBitsDomain.falseMask | powersetBitsDomain.nullMask);
+    checkBits('a', powersetBitsDomain.trueValue);
+    checkBits('b', powersetBitsDomain.boolValue);
+    checkBits('c', powersetBitsDomain.boolValue);
+    checkBits('d', powersetBitsDomain.boolValue);
+    checkBits(
+        'e', powersetBitsDomain.falseValue | powersetBitsDomain.nullValue);
   }
 
   asyncTest(() async {

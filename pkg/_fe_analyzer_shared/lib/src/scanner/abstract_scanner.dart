@@ -1894,8 +1894,9 @@ abstract class AbstractScanner implements Scanner {
         codeUnits.add(next);
         next = advance();
       }
-      appendToken(new StringToken.fromString(TokenType.IDENTIFIER,
-          new String.fromCharCodes(codeUnits), charOffset));
+      appendToken(new StringToken.fromString(
+          TokenType.IDENTIFIER, new String.fromCharCodes(codeUnits), charOffset,
+          precedingComments: comments));
       return next;
     } else {
       prependErrorToken(errorToken);

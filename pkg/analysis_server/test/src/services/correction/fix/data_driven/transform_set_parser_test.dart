@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -17,6 +18,26 @@ void main() {
 
 @reflectiveTest
 class TransformSetParserTest extends AbstractTransformSetParserTest {
+  void test_incomplete() {
+    parse('''
+version: 1
+transforms:
+''');
+    expect(result, null);
+    // TODO(brianwilkerson) Report a diagnostic.
+    errorListener.assertErrors([]);
+  }
+
+  void test_invalidYaml() {
+    parse('''
+[
+''');
+    expect(result, null);
+    errorListener.assertErrors([
+      error(TransformSetErrorCode.yamlSyntaxError, 2, 0),
+    ]);
+  }
+
   void test_rename() {
     parse('''
 version: 1

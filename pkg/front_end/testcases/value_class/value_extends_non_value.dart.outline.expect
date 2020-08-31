@@ -3,12 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class Animal extends core::Object {
-  final field core::int numLegs;
-  synthetic constructor •() → self::Animal
+  final field core::int numberOfLegs;
+  constructor •({required core::int numberOfLegs}) → self::Animal
     ;
 }
 @self::valueClass
 class Cat extends self::Animal {
+  final field core::int numberOfWhiskers;
   synthetic constructor •() → self::Cat
     ;
 }

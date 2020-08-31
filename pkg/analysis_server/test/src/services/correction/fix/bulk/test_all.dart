@@ -8,6 +8,8 @@ import 'add_await_test.dart' as add_await;
 import 'add_override_test.dart' as add_override;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
+import 'convert_map_from_iterable_to_for_literal_test.dart'
+    as convert_map_from_iterable_to_for_literal;
 import 'convert_to_contains_test.dart' as convert_to_contains;
 import 'convert_to_generic_function_syntax_test.dart'
     as convert_to_generic_function_syntax;
@@ -51,6 +53,7 @@ void main() {
     add_await.main();
     add_override.main();
     convert_documentation_into_line.main();
+    convert_map_from_iterable_to_for_literal.main();
     convert_to_contains.main();
     convert_to_generic_function_syntax.main();
     convert_to_if_element.main();

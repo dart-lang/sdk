@@ -239,6 +239,10 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   List<DiagnosticMessage> get contextMessages {
     var messages = json['contextMessages'] as List<dynamic>;
+    if (messages == null) {
+      // The field is optional, so we return an empty list as a default value.
+      return [];
+    }
     return messages.map((message) => DiagnosticMessage(message)).toList();
   }
 

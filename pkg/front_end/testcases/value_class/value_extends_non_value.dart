@@ -5,10 +5,13 @@
 const String valueClass = "valueClass";
 
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
+  Animal({required this.numberOfLegs});
 }
 
 @valueClass
-class Cat extends Animal {}
+class Cat extends Animal {
+  final int numberOfWhiskers;
+}
 
 main() {}

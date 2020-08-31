@@ -12,15 +12,15 @@ class TransformSetErrorCode extends ErrorCode {
    * Parameters:
    * 0: the unsupported key
    */
-  static const TransformSetErrorCode unsupportedKey = TransformSetErrorCode(
-      'unsupported_key', "The key '{0}' isn't supported.");
+  static const TransformSetErrorCode unsupportedKey =
+      TransformSetErrorCode('unsupportedKey', "The key '{0}' isn't supported.");
 
   /**
    * Parameters:
    * 0: the message produced by the YAML parser
    */
   static const TransformSetErrorCode yamlSyntaxError =
-      TransformSetErrorCode('yaml_syntax_error', "{0}");
+      TransformSetErrorCode('yamlSyntaxError', "{0}");
 
   /// Initialize a newly created error code.
   const TransformSetErrorCode(String name, String message,

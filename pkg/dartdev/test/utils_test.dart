@@ -108,6 +108,8 @@ void main() {
       expect(PubUtils.shouldModifyArgs([], null), isFalse);
       expect(PubUtils.shouldModifyArgs(null, []), isFalse);
       expect(PubUtils.shouldModifyArgs([], []), isFalse);
+      expect(PubUtils.shouldModifyArgs(['-h'], allCmds), isFalse);
+      expect(PubUtils.shouldModifyArgs(['--help'], allCmds), isFalse);
       expect(PubUtils.shouldModifyArgs(['help'], allCmds), isFalse);
       expect(PubUtils.shouldModifyArgs(['pub'], allCmds), isFalse);
       expect(PubUtils.shouldModifyArgs(['analyze', 'help', 'pub'], allCmds),

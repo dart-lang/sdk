@@ -6379,6 +6379,10 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
+DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback) {
+  Isolate::Current()->heap()->SetGCEventCallback(callback);
+}
+
 DART_EXPORT char* Dart_SetFileModifiedCallback(
     Dart_FileModifiedCallback file_modified_callback) {
 #if !defined(PRODUCT)

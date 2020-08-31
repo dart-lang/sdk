@@ -2,7 +2,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-@#C1
 class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
@@ -28,7 +27,6 @@ class E = self::B with self::A {
     : super self::B::•()
     ;
 }
-@#C1
 class F = self::B with self::C {
   synthetic constructor •() → self::F
     : super self::B::•()

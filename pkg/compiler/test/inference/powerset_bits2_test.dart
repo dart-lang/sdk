@@ -39,8 +39,8 @@ main() {
     PowersetDomain powersetDomain = closedWorld.abstractValueDomain;
     PowersetBitsDomain powersetBitsDomain = powersetDomain.powersetBitsDomain;
 
-    var exactTrue = powersetBitsDomain.trueMask;
-    var exactFalse = powersetBitsDomain.falseMask;
+    var exactTrue = powersetBitsDomain.trueValue;
+    var exactFalse = powersetBitsDomain.falseValue;
     dynamic classA =
         elementEnvironment.lookupClass(elementEnvironment.mainLibrary, 'A');
     var exactA = powersetBitsDomain.createNonNullExact(classA);

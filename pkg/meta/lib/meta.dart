@@ -19,6 +19,8 @@
 /// language tour.
 library meta;
 
+import 'meta_meta.dart';
+
 /// Used to annotate a function `f`. Indicates that `f` always throws an
 /// exception. Any functions that override `f`, in class inheritance, are also
 /// expected to conform to this contract.
@@ -305,6 +307,13 @@ class _Checked {
   const _Checked();
 }
 
+@Target({
+  TargetKind.classType,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.library,
+  TargetKind.method,
+})
 class _DoNotStore {
   const _DoNotStore();
 }

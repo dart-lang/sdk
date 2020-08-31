@@ -858,12 +858,10 @@ main() {
     ParameterElement parameter = argument.staticParameterElement;
 
     ElementAnnotation annotation = parameter.metadata[0];
-    expect(annotation.constantValue, isNull);
 
     DartObject value = annotation.computeConstantValue();
     expect(value, isNotNull);
     expect(value.getField('f').toStringValue(), 'x');
-    expect(annotation.constantValue, value);
   }
 }
 
