@@ -58,26 +58,6 @@ LibTest/html/IFrameElement/*: Skip # Not migrated to NNBD
 LibTest/html/Node/*: Skip # Not migrated to NNBD
 LibTest/html/Window/*: Skip # Not migrated to NNBD
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
-LibTest/typed_data/*: Skip # Not migrated to NNBD
-LibTest/typed_data/ByteBuffer/*: Skip # Not migrated to NNBD
-LibTest/typed_data/ByteData/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Float32List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Float32x4/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Float32x4List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Float64List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Float64x2/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Float64x2List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Int16List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Int32List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Int32x4/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Int32x4List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Int64List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Int8List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Uint16List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Uint32List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Uint64List/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Uint8ClampedList/*: Skip # Not migrated to NNBD
-LibTest/typed_data/Uint8List/*: Skip # Not migrated to NNBD
 Utils/tests/Expect/*: Skip # Not migrated to NNBD
 
 [ $compiler == dart2analyzer ]
