@@ -1631,6 +1631,24 @@ void f(dynamic a) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_downcast_to_null() async {
+    // This probably doesn't arise too often for real-world code, since it is
+    // most likely a mistake.  Still, we want to make sure we don't crash.
+    var content = '''
+test() {
+  var x = List.filled(3, null);
+  x[0] = 1;
+}
+''';
+    var expected = '''
+test() {
+  var x = List.filled(3, null);
+  x[0] = 1 as Null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_downcast_type_argument_preserve_nullability() async {
     // There are no examples in front of us yet where anyone downcasts a type
     // with a nullable type parameter. This is maybe correct, maybe not, and it

@@ -3371,6 +3371,13 @@ mixin _AssignmentChecker {
         // Nothing else to do.
         return;
       }
+    } else if (destinationType.isDartCoreNull) {
+      // There's not really much we can infer from trying to assign a type to
+      // Null.  We could say that the source of the assignment must be nullable,
+      // but that's not really useful because the nullability won't propagate
+      // anywhere.  Besides, the code is probably erroneous (e.g. the user is
+      // trying to store a value into a `List<Null>`).  So do nothing.
+      return;
     } else if (destinationType is TypeParameterType) {
       if (source.type is! TypeParameterType) {
         // Assume an assignment to the type parameter's bound.
