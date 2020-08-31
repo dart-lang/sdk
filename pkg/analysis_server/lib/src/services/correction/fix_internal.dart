@@ -500,6 +500,7 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
@@ -509,6 +510,7 @@ class FixProcessor extends BaseProcessor {
       AddMissingParameter.newInstance,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
@@ -519,6 +521,7 @@ class FixProcessor extends BaseProcessor {
       DataDriven.newInstance,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
@@ -551,21 +554,25 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      DataDriven.newInstance,
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
+      DataDriven.newInstance,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      DataDriven.newInstance,
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forTopLevelVariable,
@@ -578,6 +585,10 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_SETTER: [
+      DataDriven.newInstance,
+      // TODO(brianwilkerson) Support ImportLibrary
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
       DataDriven.newInstance,
@@ -595,6 +606,9 @@ class FixProcessor extends BaseProcessor {
       DataDriven.newInstance,
     ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.newInstance,
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
