@@ -504,7 +504,7 @@ compiler.''',
 
         case _OptionValueType.string:
           // Validate against the allowed values.
-          if (!option.values.isEmpty) {
+          if (option.values.isNotEmpty) {
             validate(String value) {
               if (!option.values.contains(value)) {
                 _fail('Unknown value "$value" for option "$command".');

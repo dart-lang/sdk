@@ -113,7 +113,7 @@ class TestCase {
   }
 
   CommandOutput get lastCommandOutput {
-    if (commandOutputs.length == 0) {
+    if (commandOutputs.isEmpty) {
       throw Exception("CommandOutputs is empty, maybe no command was run? ("
           "displayName: '$displayName', "
           "configurationString: '$configurationString')");
@@ -122,7 +122,7 @@ class TestCase {
   }
 
   Command get lastCommandExecuted {
-    if (commandOutputs.length == 0) {
+    if (commandOutputs.isEmpty) {
       throw Exception("CommandOutputs is empty, maybe no command was run? ("
           "displayName: '$displayName', "
           "configurationString: '$configurationString')");

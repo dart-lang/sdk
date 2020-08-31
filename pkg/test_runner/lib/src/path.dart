@@ -200,7 +200,7 @@ class Path {
     var isAbs = isAbsolute;
     var segs = segments();
     String drive;
-    if (isAbs && !segs.isEmpty && segs[0].length == 2 && segs[0][1] == ':') {
+    if (isAbs && segs.isNotEmpty && segs[0].length == 2 && segs[0][1] == ':') {
       drive = segs[0];
       segs.removeRange(0, 1);
     }
