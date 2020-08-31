@@ -10,6 +10,6 @@ class A {}
 class B {}
 
 class C extends B with A {} // error, value class as mixin
-class C extends A with B {} // error, C extends a value class
+class D extends A with B {} // error, D extends a value class
 
 main() {}

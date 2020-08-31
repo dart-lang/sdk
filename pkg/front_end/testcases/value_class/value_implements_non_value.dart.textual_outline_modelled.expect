@@ -1,10 +1,10 @@
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 @valueClass
 class Cat implements Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 const String valueClass = "valueClass";

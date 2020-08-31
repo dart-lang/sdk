@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 @self::valueClass
 class Animal extends core::Object {
-  field core::int numLegs;
+  field core::int numberOfLegs;
   synthetic constructor •() → self::Animal
     ;
 }

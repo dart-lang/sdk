@@ -1,5 +1,5 @@
 class Animal {
-  int numLegs;
+  int numberOfLegs;
 }
 
 @valueClass

@@ -6,13 +6,13 @@ const String valueClass = "valueClass";
 
 @valueClass
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 main() {
-  Animal firstAnimal = Animal(numLegs: 4);
-  Animal secondAnimal = Animal(numLegs: 4);
-  Animal thirdAnimal = Animal(numLegs: 3);
+  Animal firstAnimal = Animal(numberOfLegs: 4);
+  Animal secondAnimal = Animal(numberOfLegs: 4);
+  Animal thirdAnimal = Animal(numberOfLegs: 3);
 
   expect(true, firstAnimal == secondAnimal);
   expect(false, firstAnimal == thirdAnimal);

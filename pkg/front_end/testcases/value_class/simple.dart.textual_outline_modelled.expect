@@ -1,6 +1,6 @@
 @valueClass
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 const String valueClass = "valueClass";

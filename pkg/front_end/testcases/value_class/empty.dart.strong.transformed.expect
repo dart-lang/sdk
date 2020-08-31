@@ -2,7 +2,6 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-@#C1
 class EmptyClass extends core::Object {
   synthetic constructor •() → self::EmptyClass
     : super core::Object::•()

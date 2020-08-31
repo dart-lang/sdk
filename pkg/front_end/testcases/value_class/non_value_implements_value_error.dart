@@ -6,11 +6,11 @@ const String valueClass = "valueClass";
 
 @valueClass
 class Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 class Cat implements Animal {
-  final int numLegs;
+  final int numberOfLegs;
 }
 
 main() {}

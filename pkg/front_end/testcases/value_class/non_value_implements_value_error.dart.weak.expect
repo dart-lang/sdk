@@ -2,28 +2,27 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/value_class/non_value_implements_value_error.dart:9:13: Error: Final field 'numLegs' is not initialized.
+// pkg/front_end/testcases/value_class/non_value_implements_value_error.dart:9:13: Error: Final field 'numberOfLegs' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
-//   final int numLegs;
-//             ^^^^^^^
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/value_class/non_value_implements_value_error.dart:13:13: Error: Final field 'numLegs' is not initialized.
+// pkg/front_end/testcases/value_class/non_value_implements_value_error.dart:13:13: Error: Final field 'numberOfLegs' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
-//   final int numLegs;
-//             ^^^^^^^
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;
 
-@#C1
 class Animal extends core::Object {
-  final field core::int numLegs = null;
-  synthetic constructor •() → self::Animal
-    : super core::Object::•()
+  final field core::int numberOfLegs = null;
+  synthetic constructor •({required core::int numberOfLegs}) → self::Animal
+    : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
     ;
 }
 class Cat extends core::Object implements self::Animal {
-  final field core::int numLegs = null;
+  final field core::int numberOfLegs = null;
   synthetic constructor •() → self::Cat
     : super core::Object::•()
     ;

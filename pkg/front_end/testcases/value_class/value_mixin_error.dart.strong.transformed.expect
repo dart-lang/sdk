@@ -1,18 +1,7 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/value_class/value_mixin_error.dart:13:7: Error: 'C' is already declared in this scope.
-// class C extends A with B {} // error, C extends a value class
-//       ^
-// pkg/front_end/testcases/value_class/value_mixin_error.dart:12:7: Context: Previous declaration of 'C'.
-// class C extends B with A {} // error, value class as mixin
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 
-@#C1
 class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
@@ -28,19 +17,19 @@ abstract class _C&B&A extends self::B implements self::A /*isAnonymousMixin,isEl
     : super self::B::•()
     ;
 }
-class C#1 extends self::_C&A&B {
-  synthetic constructor •() → self::C#1
-    : super self::_C&A&B::•()
-    ;
-}
 class C extends self::_C&B&A {
   synthetic constructor •() → self::C
     : super self::_C&B&A::•()
     ;
 }
-abstract class _C&A&B extends self::A implements self::B /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •() → self::_C&A&B
+abstract class _D&A&B extends self::A implements self::B /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_D&A&B
     : super self::A::•()
+    ;
+}
+class D extends self::_D&A&B {
+  synthetic constructor •() → self::D
+    : super self::_D&A&B::•()
     ;
 }
 static const field core::String valueClass = #C1;
