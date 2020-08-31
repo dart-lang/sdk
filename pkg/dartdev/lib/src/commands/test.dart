@@ -18,7 +18,7 @@ import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
 class TestCommand extends DartdevCommand<int> {
-  TestCommand() : super('test', 'Runs tests in this project.') {
+  TestCommand() : super('test', 'Run tests in this package.') {
     generateParser(argParser);
   }
 

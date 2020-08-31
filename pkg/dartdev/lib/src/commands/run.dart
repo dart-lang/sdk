@@ -82,7 +82,7 @@ class RunCommand extends DartdevCommand<int> {
             ' when running with --enable-vm-service.',
       )
       ..addSeparator(
-        'Other debugging options include:',
+        'Other debugging options:',
       )
       ..addFlag(
         'pause-isolates-on-start',

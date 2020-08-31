@@ -393,14 +393,12 @@ class MigrationCli {
         negatable: true,
         help: 'Show an interactive preview of the proposed null safety changes '
             'in a browser window.\n'
-            'With --no-web-preview, the proposed changes are instead printed to '
-            'the console.');
+            '--no-web-preview prints proposed changes to the console.');
 
     parser.addOption(CommandLineOptions.sdkPathOption,
         help: 'The path to the Dart SDK.', hide: hide);
     parser.addOption(CommandLineOptions.summaryOption,
-        help:
-            'Output path for a machine-readable summary of migration changes');
+        help: 'Output a machine-readable summary of migration changes.');
   }
 
   static void addCoreOptions(ArgParser parser, bool hide) {
@@ -412,8 +410,8 @@ class MigrationCli {
       CommandLineOptions.ignoreErrorsFlag,
       defaultsTo: false,
       negatable: false,
-      help: 'Attempt to perform null safety analysis even if there are '
-          'analysis errors in the project.',
+      help: 'Attempt to perform null safety analysis even if the package has '
+          'analysis errors.',
     );
     parser.addFlag(CommandLineOptions.ignoreExceptionsFlag,
         defaultsTo: false,
@@ -424,7 +422,7 @@ class MigrationCli {
     parser.addFlag(CommandLineOptions.verboseFlag,
         abbr: 'v',
         defaultsTo: false,
-        help: 'Verbose output.',
+        help: 'Show additional command output.',
         negatable: false);
     parser.addOption(CommandLineOptions.previewHostnameOption,
         defaultsTo: 'localhost',
