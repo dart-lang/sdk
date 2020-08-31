@@ -80,7 +80,7 @@ vars = {
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "166d3e07eabc8283c6137cfde17fb25b8bb40080",
-  "dart2js_info_rev" : "94ba36cb77067f28b75a4212e77b810a2d7385e9",
+  "dart2js_info_rev" : "0632a623b08e1f601c7eba99e0186a581ae799e9",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter in `tools/sdks/dart-sdk/bin/dartfmt`
