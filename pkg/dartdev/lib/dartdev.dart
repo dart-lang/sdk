@@ -222,7 +222,7 @@ class DartdevRunner<int> extends CommandRunner {
     addCommand(CreateCommand(verbose: verbose));
     addCommand(CompileCommand());
     addCommand(FixCommand());
-    addCommand(FormatCommand());
+    addCommand(FormatCommand(verbose: verbose));
     addCommand(MigrateCommand(
       verbose: verbose,
       hidden: Runtime.runtime.stableChannel,
