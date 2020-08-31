@@ -19,7 +19,9 @@ import 'package:test_runner/src/update_errors.dart';
 const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";
 
-final String _analyzerPath = _findAnalyzer();
+final _dartPath = _findBinary("dart");
+final _analyzerPath = _findBinary("dartanalyzer");
+final _dart2jsPath = _findBinary("dart2js");
 
 Future<void> main(List<String> args) async {
   var sources = ErrorSource.all.map((e) => e.marker).toList();
@@ -176,20 +178,31 @@ Future<void> _processFile(File file,
     }
   }
 
-  if (insert.contains(ErrorSource.cfe)) {
+  // If we're inserting web errors, we also need to gather the CFE errors to
+  // tell which web errors are web-specific.
+  List<StaticError> cfeErrors;
+  if (insert.contains(ErrorSource.cfe) || insert.contains(ErrorSource.web)) {
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    var fileErrors = await runCfe(file.absolute.path, options);
+    cfeErrors = await runCfe(file.absolute.path, options);
+    if (cfeErrors == null) {
+      print("Error: failed to update ${file.path}");
+    } else if (insert.contains(ErrorSource.cfe)) {
+      errors.addAll(cfeErrors);
+    }
+  }
+
+  if (insert.contains(ErrorSource.web)) {
+    // Clear the previous line.
+    stdout.write("\r${file.path}                      ");
+    stdout.write("\r${file.path} (Running dart2js...)");
+    var fileErrors = await runDart2js(file.absolute.path, options, cfeErrors);
     if (fileErrors == null) {
       print("Error: failed to update ${file.path}");
     } else {
       errors.addAll(fileErrors);
     }
-  }
-
-  if (insert.contains(ErrorSource.web)) {
-    // TODO(rnystrom): Run DDC and collect web errors.
   }
 
   errors = StaticError.simplify(errors);
@@ -235,8 +248,7 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
-  var result = await Process.run(
-      Platform.isWindows ? "sdk\\bin\\dart.bat" : "sdk/bin/dart", [
+  var result = await Process.run(_dartPath, [
     "pkg/front_end/tool/_fasta/compile.dart",
     ...options,
     "--verify",
@@ -260,33 +272,63 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
   return errors;
 }
 
-/// Find the most recently-built analyzer.
-String _findAnalyzer() {
-  String newestAnalyzer;
-  DateTime newestAnalyzerTime;
+/// Invoke dart2js on [path] and gather all static errors it reports.
+Future<List<StaticError>> runDart2js(
+    String path, List<String> options, List<StaticError> cfeErrors) async {
+  var result = await Process.run(_dart2jsPath, [
+    ...options,
+    "-o",
+    "dev:null", // Output is only created for file URIs.
+    path,
+  ]);
+
+  var errors = <StaticError>[];
+  Dart2jsCompilerCommandOutput.parseErrors(result.stdout as String, errors);
+
+  // We only want the web-specific errors from dart2js, so filter out any errors
+  // that are also reported by the CFE.
+  errors.removeWhere((dart2jsError) {
+    return cfeErrors.any((cfeError) {
+      return dart2jsError.line == cfeError.line &&
+          dart2jsError.column == cfeError.column &&
+          dart2jsError.length == cfeError.length &&
+          dart2jsError.errorFor(ErrorSource.web) ==
+              cfeError.errorFor(ErrorSource.cfe);
+    });
+  });
+
+  return errors;
+}
+
+/// Find the most recently-built [binary] in any of the build directories.
+String _findBinary(String binary) {
+  if (Platform.isWindows) binary += ".bat";
+
+  String newestPath;
+  DateTime newestTime;
 
   var buildDirectory = Directory(Platform.isMacOS ? "xcodebuild" : "out");
   if (buildDirectory.existsSync()) {
     for (var config in buildDirectory.listSync()) {
-      var analyzerPath = p.join(config.path, "dart-sdk", "bin", "dartanalyzer");
+      var analyzerPath = p.join(config.path, "dart-sdk", "bin", binary);
       var analyzerFile = File(analyzerPath);
       if (!analyzerFile.existsSync()) continue;
       var modified = analyzerFile.lastModifiedSync();
 
-      if (newestAnalyzerTime == null || modified.isAfter(newestAnalyzerTime)) {
-        newestAnalyzer = analyzerPath;
-        newestAnalyzerTime = modified;
+      if (newestTime == null || modified.isAfter(newestTime)) {
+        newestPath = analyzerPath;
+        newestTime = modified;
       }
     }
   }
 
-  if (newestAnalyzer == null) {
+  if (newestPath == null) {
     // Clear the current line since we're in the middle of a progress line.
     print("");
-    print("Could not find a built SDK with a dartanalyzer to run.");
+    print("Could not find a built SDK with a $binary to run.");
     print("Make sure to build the Dart SDK before running this tool.");
     exit(1);
   }
 
-  return newestAnalyzer;
+  return newestPath;
 }
