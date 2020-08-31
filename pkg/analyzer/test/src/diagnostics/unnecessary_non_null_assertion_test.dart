@@ -31,7 +31,33 @@ f() {
 ''');
   }
 
-  test_nonNull() async {
+  test_nonNull_function() async {
+    await assertErrorsInCode('''
+void g() {}
+
+void f() {
+  g!();
+}
+''', [
+      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 27, 1),
+    ]);
+  }
+
+  test_nonNull_method() async {
+    await assertErrorsInCode('''
+class A {
+  static void foo() {}
+}
+
+void f() {
+  A.foo!();
+}
+''', [
+      error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 54, 1),
+    ]);
+  }
+
+  test_nonNull_parameter() async {
     await assertErrorsInCode('''
 f(int x) {
   x!;
