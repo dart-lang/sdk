@@ -862,6 +862,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ExpectedContextMessage message(String filePath, int offset, int length) =>
       ExpectedContextMessage(convertPath(filePath), offset, length);
 
+  Matcher multiplyDefinedElementMatcher(List<Element> elements) {
+    return _MultiplyDefinedElementMatcher(elements);
+  }
+
   Future<ResolvedUnitResult> resolveFile(String path);
 
   /// Resolve the file with the [path] into [result].
@@ -970,6 +974,27 @@ class _ElementMatcher extends Matcher {
       } else {
         return !isLegacy && substitution.isEmpty;
       }
+    }
+    return false;
+  }
+}
+
+class _MultiplyDefinedElementMatcher extends Matcher {
+  final Iterable<Element> elements;
+
+  _MultiplyDefinedElementMatcher(this.elements);
+
+  @override
+  Description describe(Description description) {
+    return description.add('elements: $elements\n');
+  }
+
+  @override
+  bool matches(element, Map matchState) {
+    if (element is MultiplyDefinedElementImpl) {
+      var actualSet = element.conflictingElements.toSet();
+      actualSet.removeAll(elements);
+      return actualSet.isEmpty;
     }
     return false;
   }

@@ -1409,6 +1409,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           var getter = typeReference.getGetter(propertyName.name);
           if (getter != null) {
             propertyName.staticElement = getter;
+            _resolver.setWriteElement(node, getter);
             // The error will be reported in ErrorVerifier.
           } else {
             _errorReporter.reportErrorForNode(
@@ -1570,6 +1571,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         } else {
           var getter = result.getter;
           propertyName.staticElement = getter;
+          _resolver.setWriteElement(node, getter);
           // A more specific error will be reported in ErrorVerifier.
         }
       } else if (result.isNone) {
