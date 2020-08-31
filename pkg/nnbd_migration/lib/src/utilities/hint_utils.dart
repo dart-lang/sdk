@@ -65,7 +65,7 @@ HintComment getPrefixHint(Token token) {
 
 /// Information about a hint found in a source file.
 class HintComment {
-  static final _alphaNumericRegexp = RegExp('[a-zA-Z0-9]');
+  static final _identifierCharRegexp = RegExp('[a-zA-Z0-9_]');
 
   /// What kind of hint this is.
   final HintCommentKind kind;
@@ -108,8 +108,8 @@ class HintComment {
     bool appendSpace = false;
     var removeOffset = _removeOffset;
     var removeEnd = _removeEnd;
-    if (_isAlphaNumericBeforeOffset(sourceText, removeOffset) &&
-        _isAlphaNumericAtOffset(sourceText, _keepOffset)) {
+    if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
+        _isIdentifierCharAtOffset(sourceText, _keepOffset)) {
       if (sourceText[removeOffset] == ' ') {
         // We can just keep this space.
         removeOffset++;
@@ -117,8 +117,8 @@ class HintComment {
         prependSpace = true;
       }
     }
-    if (_isAlphaNumericBeforeOffset(sourceText, _keepEnd) &&
-        _isAlphaNumericAtOffset(sourceText, removeEnd)) {
+    if (_isIdentifierCharBeforeOffset(sourceText, _keepEnd) &&
+        _isIdentifierCharAtOffset(sourceText, removeEnd)) {
       if (sourceText[removeEnd - 1] == ' ') {
         // We can just keep this space.
         removeEnd--;
@@ -143,8 +143,8 @@ class HintComment {
       {AtomicEditInfo info}) {
     bool appendSpace = false;
     var removeOffset = this._removeOffset;
-    if (_isAlphaNumericBeforeOffset(sourceText, removeOffset) &&
-        _isAlphaNumericAtOffset(sourceText, _removeEnd)) {
+    if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
+        _isIdentifierCharAtOffset(sourceText, _removeEnd)) {
       if (sourceText[removeOffset] == ' ') {
         // We can just keep this space.
         removeOffset++;
@@ -173,13 +173,13 @@ class HintComment {
     };
   }
 
-  static bool _isAlphaNumericAtOffset(String sourceText, int offset) {
+  static bool _isIdentifierCharAtOffset(String sourceText, int offset) {
     return offset < sourceText.length &&
-        _alphaNumericRegexp.hasMatch(sourceText[offset]);
+        _identifierCharRegexp.hasMatch(sourceText[offset]);
   }
 
-  static bool _isAlphaNumericBeforeOffset(String sourceText, int offset) {
-    return offset > 0 && _alphaNumericRegexp.hasMatch(sourceText[offset - 1]);
+  static bool _isIdentifierCharBeforeOffset(String sourceText, int offset) {
+    return offset > 0 && _identifierCharRegexp.hasMatch(sourceText[offset - 1]);
   }
 }
 

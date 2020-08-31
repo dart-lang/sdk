@@ -3996,6 +3996,18 @@ void repro(){
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_late_hint_followed_by_underscore() async {
+    var content = '''
+class _C {}
+/*late*/ _C c;
+''';
+    var expected = '''
+class _C {}
+late _C c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_late_hint_instance_field_with_constructor() async {
     var content = '''
 class C {
