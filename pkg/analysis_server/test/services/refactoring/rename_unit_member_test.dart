@@ -84,7 +84,8 @@ main() {
     refactoring.newName = '_NewName';
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Renamed class will be invisible in 'my.lib'.");
+        expectedMessage:
+            "Renamed class will be invisible in '${convertPath("lib/lib.dart")}'.");
   }
 
   Future<void> test_checkFinalConditions_shadowedBy_MethodElement() async {
