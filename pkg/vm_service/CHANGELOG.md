@@ -4,6 +4,7 @@
 - Added `isSystemIsolate` property to `IsolateRef` and `Isolate`.
 - Added `isSystemIsolateGroup` property to `IsolateGroupRef` and `IsolateGroup`.
 - Added `serviceIsolates` and `serviceIsolateGroups` properties to `VM`.
+- Fixed issue where `VmServerConnection` would always response with a string ID even if the request ID was not a string.
 
 ## 4.2.0
 - Update to version `3.37.0` of the spec.
