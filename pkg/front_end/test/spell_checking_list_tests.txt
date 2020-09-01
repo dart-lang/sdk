@@ -89,6 +89,7 @@ causal
 cb
 cc
 ccc
+cell
 charcode
 charset
 checkme
@@ -136,6 +137,7 @@ contract
 conversion
 conversions
 coo
+corners
 costly
 cov
 cp
@@ -465,6 +467,7 @@ outbound
 overlay
 pack
 paging
+paint
 party
 pause
 paused
@@ -543,6 +546,7 @@ retains
 rev
 risky
 row
+rows
 runtimes
 say
 scans

@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:io";
-import 'dart:typed_data';
-import "package:front_end/src/fasta/util/direct_parser_ast.dart";
-import "package:front_end/src/fasta/util/direct_parser_ast_helper.dart";
+import "dart:io" show File, Platform;
+import "dart:typed_data" show Uint8List;
+
+import "package:front_end/src/fasta/util/direct_parser_ast.dart" show getAST;
+import "package:front_end/src/fasta/util/direct_parser_ast_helper.dart"
+    show DirectParserASTContent, DirectParserASTType;
 
 import "console_helper.dart";
 
@@ -17,32 +19,16 @@ void main(List<String> args) {
   Uint8List bytes = new File.fromUri(uri).readAsBytesSync();
   DirectParserASTContent ast = getAST(bytes);
 
-  Widget widget = new PairWidget(new AstWidget(ast), new StatusBar());
+  Widget widget = new QuitOnQWidget(
+    new WithSingleLineBottomWidget(
+      new BoxedWidget(
+        new AstWidget(ast),
+      ),
+      new StatusBarWidget(),
+    ),
+  );
   Application app = new Application(widget);
   app.start();
-}
-
-class PairWidget extends Widget {
-  Widget first;
-  Widget second;
-
-  PairWidget(this.first, this.second);
-
-  @override
-  void print(Application app) {
-    first.print(app);
-    second.print(app);
-  }
-
-  @override
-  void input(Application app, List<int> data) {
-    if (data.length == 1 && String.fromCharCode(data[0]) == 'q') {
-      app.quit();
-      return;
-    }
-    first.input(app, data);
-    second.input(app, data);
-  }
 }
 
 class PrintedLine {
@@ -66,13 +52,9 @@ class PrintedLine {
 class AstWidget extends Widget {
   List<PrintedLine> shown;
   int selected = 0;
-  int _latestSelected;
-  List<PrintedLine> _latestShown;
 
   AstWidget(DirectParserASTContent ast) {
     shown = [new PrintedLine.ast(ast, textualize(ast))];
-    _latestSelected = selected;
-    _latestShown = shown;
   }
 
   String textualize(DirectParserASTContent element,
@@ -100,38 +82,30 @@ class AstWidget extends Widget {
         "${element.arguments.toString()}${extra}";
   }
 
-  void clear(Application app) {
-    int realSelected = selected;
-    selected = -1;
-    for (int i = 0; i < app.lastKnownTerminalLines - 2; i++) {
-      printLineText(app, "", i);
-    }
-    selected = realSelected;
-  }
-
   @override
-  void print(Application app, {bool totalRepaint: true}) {
-    if (!totalRepaint && _latestShown != shown) {
-      totalRepaint = true;
-    }
-    if (!totalRepaint && selected == _latestSelected) {
-      return;
-    }
+  void print(WriteOnlyOutput output) {
+    for (int row = 0; row < shown.length; row++) {
+      if (row >= output.rows) break;
 
-    if (totalRepaint) {
-      clear(app);
-      drawBox(
-          1, 1, app.lastKnownTerminalColumns, app.lastKnownTerminalLines - 1);
-      for (int i = 0; i < shown.length; i++) {
-        if (3 + i >= app.lastKnownTerminalLines) break;
-        printLine(app, i);
+      PrintedLine element = shown[row];
+      String line = element.text;
+
+      if (selected == row) {
+        // Mark line with blue background.
+        for (int column = 0; column < output.columns; column++) {
+          output.setCell(row, column, backgroundColor: BackgroundColor.Blue);
+        }
       }
-    } else {
-      printLine(app, _latestSelected);
-      printLine(app, selected);
+
+      // Print text.
+      int length = line.length;
+      if (length > output.columns) {
+        length = output.columns;
+      }
+      for (int column = 0; column < length; column++) {
+        output.setCell(row, column, char: line[column]);
+      }
     }
-    _latestShown = shown;
-    _latestSelected = selected;
   }
 
   void enter() {
@@ -155,69 +129,63 @@ class AstWidget extends Widget {
     }
   }
 
-  void printLine(Application app, int lineNum) {
-    PrintedLine element = shown[lineNum];
-    String line = element.text;
-    printLineText(app, line, lineNum);
-  }
-
-  void printLineText(Application app, String line, int lineNum) {
-    if (line.length > app.lastKnownTerminalColumns - 2) {
-      line = line.substring(0, app.lastKnownTerminalColumns - 2);
-    } else {
-      line = line.padRight(app.lastKnownTerminalColumns - 2);
-    }
-    printAt(2 + lineNum, 2, ifSelected(line, selected == lineNum));
-  }
-
-  String ifSelected(String s, bool isSelected) {
-    if (isSelected) return colorBackgroundBlue(s);
-    return s;
-  }
-
   @override
-  void input(Application app, List<int> data) {
+  bool input(_, List<int> data) {
     if (data.length > 2 &&
-        data[0] == CSI.codeUnitAt(0) &&
-        data[1] == CSI.codeUnitAt(1)) {
+        data[0] == Application.CSI.codeUnitAt(0) &&
+        data[1] == Application.CSI.codeUnitAt(1)) {
       // ANSI codes --- at least on my machine.
       if (data[2] == 65 /* A */) {
         // CSI _n_ A: Cursor Up (where n is optional defaulting to 1).
         // Up arrow.
         if (selected > 0) {
           selected--;
+          return true;
         }
       } else if (data[2] == 66 /* B */) {
         // CSI _n_ B: Cursor Down (where n is optional defaulting to 1).
         // Down arrow.
         if (selected < shown.length - 1) {
           selected++;
+          return true;
         }
       }
     } else if (data.length == 1 && data[0] == 10) {
       // <Return>.
       enter();
+      return true;
     }
-    print(app, totalRepaint: false);
+    return false;
   }
 }
 
-class StatusBar extends Widget {
+class StatusBarWidget extends Widget {
   List<int> latestInput;
 
   @override
-  void print(Application app) {
+  void print(WriteOnlyOutput output) {
+    // Paint everything with a red background.
+    for (int row = 0; row < output.rows; row++) {
+      for (int column = 0; column < output.columns; column++) {
+        output.setCell(row, column, backgroundColor: BackgroundColor.Red);
+      }
+    }
+
     String leftString = "> ${latestInput ?? ""}";
     String rightString = "Press q or Ctrl-C to quit";
-    int padding =
-        app.lastKnownTerminalColumns - leftString.length - rightString.length;
-    printAt(app.lastKnownTerminalLines, 1,
-        colorBackgroundRed("$leftString${" " * padding}${rightString}"));
+    for (int i = 0; i < leftString.length; i++) {
+      output.setCell(0, i,
+          char: leftString[i], backgroundColor: BackgroundColor.Red);
+    }
+    for (int i = 0; i < rightString.length; i++) {
+      output.setCell(output.rows - 1, output.columns - rightString.length + i,
+          char: rightString[i], backgroundColor: BackgroundColor.Red);
+    }
   }
 
   @override
-  void input(Application app, List<int> data) {
+  bool input(Application app, List<int> data) {
     latestInput = data;
-    print(app);
+    return true;
   }
 }
