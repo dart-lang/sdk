@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -358,6 +359,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
               HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
               field.name,
               [field.name, overriddenElement.enclosingElement.name]);
+        }
+
+        var expression = field.initializer;
+
+        Element element;
+        if (expression is PropertyAccess) {
+          element = expression.propertyName.staticElement;
+          // Tear-off.
+          if (element is FunctionElement || element is MethodElement) {
+            element = null;
+          }
+        } else if (expression is MethodInvocation) {
+          element = expression.methodName.staticElement;
+        } else if (expression is Identifier) {
+          element = expression.staticElement;
+          // Tear-off.
+          if (element is FunctionElement || element is MethodElement) {
+            element = null;
+          }
+        }
+        if (element != null) {
+          if (element is PropertyAccessorElement && element.isSynthetic) {
+            element = (element as PropertyAccessorElement).variable;
+          }
+          if (element.hasOrInheritsDoNotStore) {
+            _errorReporter.reportErrorForNode(
+              HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+              expression,
+              [element.name],
+            );
+          }
         }
       }
     } finally {
