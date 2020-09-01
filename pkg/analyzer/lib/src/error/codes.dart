@@ -4399,13 +4399,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
-   * 15 Metadata: Metadata consists of a series of annotations, each of which
-   * begin with the character @, followed by a constant expression that must be
-   * either a reference to a compile-time constant variable, or a call to a
-   * constant constructor.
+   * No parameters.
    */
   static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName('INVALID_ANNOTATION',
           'INVALID_ANNOTATION_GETTER', "Getters can't be used as annotations.",
           correction: "Try using a top-level variable or a field.");
 
