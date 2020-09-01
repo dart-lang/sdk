@@ -11,26 +11,21 @@ import 'data_driven_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(Rename_DeprecatedMemberUseTest);
-    defineReflectiveTests(Rename_ExtendsNonClassTest);
-    defineReflectiveTests(Rename_ImplementsNonClassTest);
-    defineReflectiveTests(Rename_MixinOfNonClassTest);
-    defineReflectiveTests(Rename_OverrideOnNonOverridingMethodTest);
-    defineReflectiveTests(Rename_UndefinedClassTest);
-    defineReflectiveTests(Rename_UndefinedFunctionTest);
-    defineReflectiveTests(Rename_UndefinedGetterTest);
-    defineReflectiveTests(Rename_UndefinedIdentifierTest);
-    defineReflectiveTests(Rename_UndefinedMethodTest);
+    defineReflectiveTests(RenameClassTest);
+    defineReflectiveTests(RenameConstructorTest);
+    defineReflectiveTests(RenameExtensionTest);
+    defineReflectiveTests(RenameFieldTest);
+    defineReflectiveTests(RenameMethodTest);
+    defineReflectiveTests(RenameMixinTest);
+    defineReflectiveTests(RenameTopLevelFunctionTest);
+    defineReflectiveTests(RenameTypedefTest);
   });
 }
 
 @reflectiveTest
-class Rename_DeprecatedMemberUseTest extends _AbstractRenameTest {
-  Future<void> test_class_reference_inExtends() async {
-    addMetaPackage();
+class RenameClassTest extends _AbstractRenameTest {
+  Future<void> test_inExtends_deprecated() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
-
 @deprecated
 class Old {}
 class New {}
@@ -48,11 +43,25 @@ class C extends New {}
 ''');
   }
 
-  Future<void> test_class_reference_inImplements() async {
-    addMetaPackage();
+  Future<void> test_inExtends_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+class C extends Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C extends New {}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_inImplements_deprecated() async {
+    setPackageContent('''
 @deprecated
 class Old {}
 class New {}
@@ -70,11 +79,25 @@ class C implements New {}
 ''');
   }
 
-  Future<void> test_class_reference_inOn() async {
-    addMetaPackage();
+  Future<void> test_inImplements_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+class C implements Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C implements New {}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_inOn_deprecated() async {
+    setPackageContent('''
 @deprecated
 class Old {}
 class New {}
@@ -92,11 +115,25 @@ extension E on New {}
 ''');
   }
 
-  Future<void> test_class_reference_inTypeAnnotation() async {
-    addMetaPackage();
+  Future<void> test_inOn_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+extension E on Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+extension E on New {}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_inTypeAnnotation_deprecated() async {
+    setPackageContent('''
 @deprecated
 class Old {}
 class New {}
@@ -114,11 +151,25 @@ void f(New o) {}
 ''');
   }
 
-  Future<void> test_class_reference_inWith() async {
-    addMetaPackage();
+  Future<void> test_inTypeAnnotation_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f(Old o) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(New o) {}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_inWith_deprecated() async {
+    setPackageContent('''
 @deprecated
 class Old {}
 class New {}
@@ -136,11 +187,25 @@ class C with New {}
 ''');
   }
 
-  Future<void> test_class_reference_staticField() async {
-    addMetaPackage();
+  Future<void> test_inWith_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+class C with Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C with New {}
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_staticField_deprecated() async {
+    setPackageContent('''
 @deprecated
 class Old {
   static String empty = '';
@@ -162,11 +227,30 @@ var s = New.empty;
 ''');
   }
 
-  Future<void> test_constructor_named_reference() async {
-    addMetaPackage();
+  Future<void> test_staticField_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {
+  static String empty = '';
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+var s = Old.empty;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var s = New.empty;
+''', errorFilter: ignoreUnusedImport);
+  }
+}
+
+@reflectiveTest
+class RenameConstructorTest extends _AbstractRenameTest {
+  Future<void> test_named_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   C.old();
@@ -190,11 +274,31 @@ void f() {
 ''');
   }
 
-  Future<void> test_constructor_unnamed_reference() async {
-    addMetaPackage();
+  Future<void> test_named_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class C {
+  C.new();
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f() {
+  C.old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.new();
+}
+''');
+  }
+
+  Future<void> test_unnamed_deprecated() async {
+    setPackageContent('''
 @deprecated
 class Old {
   Old();
@@ -220,11 +324,34 @@ void f() {
 ''');
   }
 
-  Future<void> test_extension_reference_override() async {
-    addMetaPackage();
+  Future<void> test_unnamed_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class New {
+  New();
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f() {
+  Old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  New();
+}
+''', errorFilter: ignoreUnusedImport);
+  }
+}
+
+@reflectiveTest
+class RenameExtensionTest extends _AbstractRenameTest {
+  Future<void> test_override_deprecated() async {
+    setPackageContent('''
 @deprecated
 extension Old on String {
   int get double => length * 2;
@@ -246,11 +373,27 @@ var l = New('a').double;
 ''');
   }
 
-  Future<void> test_extension_reference_staticField() async {
-    addMetaPackage();
+  Future<void> test_override_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+extension New on String {
+  int get double => length * 2;
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+var l = Old('a').double;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var l = New('a').double;
+''', errorFilter: ignoreUnusedImport);
+  }
+
+  Future<void> test_staticField_deprecated() async {
+    setPackageContent('''
 @deprecated
 extension Old on String {
   static String empty = '';
@@ -272,11 +415,30 @@ var s = New.empty;
 ''');
   }
 
-  Future<void> test_field_instance_reference() async {
-    addMetaPackage();
+  Future<void> test_staticField_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+extension New on String {
+  static String empty = '';
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
 
+var s = Old.empty;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var s = New.empty;
+''', errorFilter: ignoreUnusedImport);
+  }
+}
+
+@reflectiveTest
+class RenameFieldTest extends _AbstractRenameTest {
+  Future<void> test_instance_reference_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   int old;
@@ -300,11 +462,31 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_field_static_assignment() async {
-    addMetaPackage();
+  Future<void> test_instance_reference_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class C {
+  int new;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f(C c) {
+  c.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.new;
+}
+''');
+  }
+
+  Future<void> test_static_assignment_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   static int old;
@@ -328,11 +510,31 @@ void f() {
 ''');
   }
 
-  Future<void> test_field_static_reference() async {
-    addMetaPackage();
+  Future<void> test_static_assignment_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class C {
+  static int new;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f() {
+  C.old = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.new = 0;
+}
+''');
+  }
+
+  Future<void> test_static_reference_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   static int old;
@@ -356,12 +558,35 @@ void f() {
 ''');
   }
 
-  @failingTest
-  Future<void> test_method_instance_override() async {
-    addMetaPackage();
+  Future<void> test_static_reference_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class C {
+  static int new;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f() {
+  C.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  C.new;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RenameMethodTest extends _AbstractRenameTest {
+  @failingTest
+  Future<void> test_instance_override_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   int old() => 0;
@@ -387,11 +612,33 @@ class D extends C {
 ''');
   }
 
-  Future<void> test_method_instance_reference() async {
-    addMetaPackage();
+  Future<void> test_instance_override_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class C {
+  int new() => 0;
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
 
+class D extends C {
+  @override
+  int old() => 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class D extends C {
+  @override
+  int new() => 0;
+}
+''');
+  }
+
+  Future<void> test_instance_reference_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   int old() {}
@@ -415,11 +662,31 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_method_static_reference() async {
-    addMetaPackage();
+  Future<void> test_instance_reference_removed() async {
     setPackageContent('''
-import 'package:meta/meta.dart';
+class C {
+  int new() {}
+}
+''');
+    setPackageData(_rename(['C', 'old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
 
+void f(C c) {
+  c.old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.new();
+}
+''');
+  }
+
+  Future<void> test_static_reference_deprecated() async {
+    setPackageContent('''
 class C {
   @deprecated
   static int old() {}
@@ -443,441 +710,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_mixin_reference_inWith() async {
-    addMetaPackage();
-    setPackageContent('''
-import 'package:meta/meta.dart';
-
-@deprecated
-mixin Old {}
-mixin New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-class C with Old {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-class C with New {}
-''');
-  }
-
-  Future<void> test_topLevelFunction_reference() async {
-    addMetaPackage();
-    setPackageContent('''
-import 'package:meta/meta.dart';
-
-@deprecated
-int old() {}
-int new() {}
-''');
-    setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f() {
-  old();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f() {
-  new();
-}
-''');
-  }
-
-  Future<void> test_typedef_reference() async {
-    addMetaPackage();
-    setPackageContent('''
-import 'package:meta/meta.dart';
-
-@deprecated
-typedef Old = int Function(int);
-typedef New = int Function(int);
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(Old o) {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(New o) {}
-''');
-  }
-}
-
-@reflectiveTest
-class Rename_ExtendsNonClassTest extends _AbstractRenameTest {
-  Future<void> test_class_reference_inExtends() async {
-    setPackageContent('''
-class New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-class C extends Old {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-class C extends New {}
-''', errorFilter: ignoreUnusedImport);
-  }
-}
-
-@reflectiveTest
-class Rename_ImplementsNonClassTest extends _AbstractRenameTest {
-  Future<void> test_class_reference_inImplements() async {
-    setPackageContent('''
-class New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-class C implements Old {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-class C implements New {}
-''', errorFilter: ignoreUnusedImport);
-  }
-}
-
-@reflectiveTest
-class Rename_MixinOfNonClassTest extends _AbstractRenameTest {
-  Future<void> test_class_reference_inWith() async {
-    setPackageContent('''
-class New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-class C with Old {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-class C with New {}
-''', errorFilter: ignoreUnusedImport);
-  }
-
-  Future<void> test_mixin_reference_inWith() async {
-    setPackageContent('''
-mixin New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-class C with Old {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-class C with New {}
-''', errorFilter: ignoreUnusedImport);
-  }
-}
-
-@reflectiveTest
-class Rename_OverrideOnNonOverridingMethodTest extends _AbstractRenameTest {
-  Future<void> test_method_instance_override() async {
-    setPackageContent('''
-class C {
-  int new() => 0;
-}
-''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-class D extends C {
-  @override
-  int old() => 0;
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-class D extends C {
-  @override
-  int new() => 0;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class Rename_UndefinedClassTest extends _AbstractRenameTest {
-  Future<void> test_class_reference_inOn() async {
-    setPackageContent('''
-class New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-extension E on Old {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-extension E on New {}
-''', errorFilter: ignoreUnusedImport);
-  }
-
-  Future<void> test_class_reference_inTypeAnnotation() async {
-    setPackageContent('''
-class New {}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(Old o) {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(New o) {}
-''', errorFilter: ignoreUnusedImport);
-  }
-
-  Future<void> test_typedef_reference() async {
-    setPackageContent('''
-typedef New = int Function(int);
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(Old o) {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(New o) {}
-''', errorFilter: ignoreUnusedImport);
-  }
-}
-
-@reflectiveTest
-class Rename_UndefinedFunctionTest extends _AbstractRenameTest {
-  Future<void> test_constructor_unnamed_reference() async {
-    setPackageContent('''
-class New {
-  New();
-}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f() {
-  Old();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f() {
-  New();
-}
-''', errorFilter: ignoreUnusedImport);
-  }
-
-  Future<void> test_extension_reference_override() async {
-    setPackageContent('''
-extension New on String {
-  int get double => length * 2;
-}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-var l = Old('a').double;
-''');
-    await assertHasFix('''
-import '$importUri';
-
-var l = New('a').double;
-''', errorFilter: ignoreUnusedImport);
-  }
-
-  Future<void> test_field_instance_reference() async {
-    setPackageContent('''
-class C {
-  int new;
-}
-''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(C c) {
-  c.old;
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(C c) {
-  c.new;
-}
-''');
-  }
-
-  Future<void> test_topLevelFunction_reference() async {
-    setPackageContent('''
-int new() {}
-''');
-    setPackageData(_rename(['old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f() {
-  old();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f() {
-  new();
-}
-''', errorFilter: ignoreUnusedImport);
-  }
-}
-
-@reflectiveTest
-class Rename_UndefinedGetterTest extends _AbstractRenameTest {
-  Future<void> test_field_static_reference() async {
-    setPackageContent('''
-class C {
-  static int new;
-}
-''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f() {
-  C.old;
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f() {
-  C.new;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class Rename_UndefinedIdentifierTest extends _AbstractRenameTest {
-  Future<void> test_class_reference_staticField() async {
-    setPackageContent('''
-class New {
-  static String empty = '';
-}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-var s = Old.empty;
-''');
-    await assertHasFix('''
-import '$importUri';
-
-var s = New.empty;
-''', errorFilter: ignoreUnusedImport);
-  }
-
-  Future<void> test_extension_reference_staticField() async {
-    setPackageContent('''
-extension New on String {
-  static String empty = '';
-}
-''');
-    setPackageData(_rename(['Old'], 'New'));
-    await resolveTestUnit('''
-import '$importUri';
-
-var s = Old.empty;
-''');
-    await assertHasFix('''
-import '$importUri';
-
-var s = New.empty;
-''', errorFilter: ignoreUnusedImport);
-  }
-}
-
-@reflectiveTest
-class Rename_UndefinedMethodTest extends _AbstractRenameTest {
-  Future<void> test_constructor_named_reference() async {
-    setPackageContent('''
-class C {
-  C.new();
-}
-''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f() {
-  C.old();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f() {
-  C.new();
-}
-''');
-  }
-
-  Future<void> test_method_instance_reference() async {
-    setPackageContent('''
-class C {
-  int new() {}
-}
-''');
-    setPackageData(_rename(['C', 'old'], 'new'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(C c) {
-  c.old();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(C c) {
-  c.new();
-}
-''');
-  }
-
-  Future<void> test_method_static_reference() async {
+  Future<void> test_static_reference_removed() async {
     setPackageContent('''
 class C {
   static int new() {}
@@ -902,28 +735,127 @@ void f() {
 }
 
 @reflectiveTest
-class Rename_UndefinedSetterTest extends _AbstractRenameTest {
-  Future<void> test_field_static_assignment() async {
+class RenameMixinTest extends _AbstractRenameTest {
+  Future<void> test_inWith_deprecated() async {
     setPackageContent('''
-class C {
-  static int new;
-}
+@deprecated
+mixin Old {}
+mixin New {}
 ''');
-    setPackageData(_rename(['C', 'old'], 'new'));
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+class C with Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C with New {}
+''');
+  }
+
+  Future<void> test_inWith_removed() async {
+    setPackageContent('''
+mixin New {}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+class C with Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+class C with New {}
+''', errorFilter: ignoreUnusedImport);
+  }
+}
+
+@reflectiveTest
+class RenameTopLevelFunctionTest extends _AbstractRenameTest {
+  Future<void> test_deprecated() async {
+    setPackageContent('''
+@deprecated
+int old() {}
+int new() {}
+''');
+    setPackageData(_rename(['old'], 'new'));
     await resolveTestUnit('''
 import '$importUri';
 
 void f() {
-  C.old = 0;
+  old();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f() {
-  C.new = 0;
+  new();
 }
 ''');
+  }
+
+  Future<void> test_removed() async {
+    setPackageContent('''
+int new() {}
+''');
+    setPackageData(_rename(['old'], 'new'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f() {
+  old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  new();
+}
+''', errorFilter: ignoreUnusedImport);
+  }
+}
+
+@reflectiveTest
+class RenameTypedefTest extends _AbstractRenameTest {
+  Future<void> test_deprecated() async {
+    setPackageContent('''
+@deprecated
+typedef Old = int Function(int);
+typedef New = int Function(int);
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(Old o) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(New o) {}
+''');
+  }
+
+  Future<void> test_removed() async {
+    setPackageContent('''
+typedef New = int Function(int);
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(Old o) {}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(New o) {}
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
