@@ -136,13 +136,18 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     var flow = _flowAnalysis?.flow;
-    flow?.equalityOp_rightBegin(left, left.staticType);
+    var leftExtensionOverride = left is ExtensionOverride;
+    if (!leftExtensionOverride) {
+      flow?.equalityOp_rightBegin(left, left.staticType);
+    }
 
     var right = node.rightOperand;
     right.accept(_resolver);
     right = node.rightOperand;
 
-    flow?.equalityOp_end(node, right, right.staticType, notEqual: notEqual);
+    if (!leftExtensionOverride) {
+      flow?.equalityOp_end(node, right, right.staticType, notEqual: notEqual);
+    }
 
     _resolveUserDefinableElement(
       node,

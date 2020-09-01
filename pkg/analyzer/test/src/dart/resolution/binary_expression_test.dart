@@ -39,6 +39,24 @@ f(int a, int b) {
     );
   }
 
+  test_bangEq_extensionOverride_left() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+
+void f(int a) {
+  E(a) != 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('!= 0'),
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
   test_eqEq() async {
     await assertNoErrorsInCode(r'''
 f(int a, int b) {
@@ -53,6 +71,24 @@ f(int a, int b) {
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
       type: 'bool',
+    );
+  }
+
+  test_eqEq_extensionOverride_left() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+
+void f(int a) {
+  E(a) == 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 46, 2),
+    ]);
+
+    assertBinaryExpression(
+      findNode.binary('== 0'),
+      element: null,
+      type: 'dynamic',
     );
   }
 
