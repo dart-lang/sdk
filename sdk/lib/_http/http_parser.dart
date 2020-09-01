@@ -236,6 +236,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   Uint8List? _buffer;
   int _index = -1;
 
+  // Whether a HTTP request is being parsed (as opposed to a response).
   final bool _requestParser;
   int _state = _State.START;
   int? _httpVersionIndex;
@@ -246,8 +247,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
   final List<int> _uriOrReasonPhrase = [];
   final List<int> _headerField = [];
   final List<int> _headerValue = [];
-  // The limit for method, uriOrReasonPhrase, header field and value
-  int _headerSizeLimit = 8 * 1024;
+  static const _headerTotalSizeLimit = 1024 * 1024;
+  int _headersReceivedSize = 0;
 
   int _httpVersion = _HttpVersion.UNDETERMINED;
   int _transferLength = -1;
@@ -946,6 +947,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     _messageType = _MessageType.UNDETERMINED;
     _headerField.clear();
     _headerValue.clear();
+    _headersReceivedSize = 0;
     _method.clear();
     _uriOrReasonPhrase.clear();
 
@@ -977,8 +979,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   static bool _isValueChar(int byte) {
-    return (byte > 31 && byte < 128) ||
-        (byte == _CharCode.HT);
+    return (byte > 31 && byte < 128) || (byte == _CharCode.HT);
   }
 
   static List<String> _tokenizeFieldValue(String headerValue) {
@@ -1036,7 +1037,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   void _addWithValidation(List<int> list, int byte) {
-    if (list.length < _headerSizeLimit) {
+    _headersReceivedSize++;
+    if (_headersReceivedSize < _headerTotalSizeLimit) {
       list.add(byte);
     } else {
       _reportSizeLimitError();
@@ -1074,7 +1076,8 @@ class _HttpParser extends Stream<_HttpIncoming> {
         throw UnsupportedError("Unexpected state: $_state");
         break;
     }
-    throw HttpException("$method exceeds the $_headerSizeLimit size limit");
+    throw HttpException(
+        "$method exceeds the $_headerTotalSizeLimit size limit");
   }
 
   _HttpIncoming _createIncoming(int transferLength) {
