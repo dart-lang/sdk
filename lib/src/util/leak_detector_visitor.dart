@@ -97,6 +97,7 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
                     n.methodName.name) &&
                 (_isSimpleIdentifierElementEqualToVariable(
                         n.realTarget, variable) ||
+                    _isPropertyAccessThroughThis(n.realTarget, variable) ||
                     (n.thisOrAncestorMatching((a) => a == variable) !=
                         null))) ||
             (_isInvocationThroughCascadeExpression(n, variable))));
@@ -142,6 +143,23 @@ bool _isInvocationThroughCascadeExpression(
     }
   }
   return false;
+}
+
+bool _isPropertyAccessThroughThis(Expression n, VariableDeclaration variable) {
+  if (n is! PropertyAccess) {
+    return false;
+  }
+
+  var target = (n as PropertyAccess).realTarget;
+  if (target is! ThisExpression) {
+    return false;
+  }
+
+  var property = (n as PropertyAccess).propertyName;
+  return property.staticElement == variable.name.staticElement ||
+      (property.staticElement is PropertyAccessorElement &&
+          (property.staticElement as PropertyAccessorElement).variable ==
+              variable.name.staticElement);
 }
 
 bool _isSimpleIdentifierElementEqualToVariable(

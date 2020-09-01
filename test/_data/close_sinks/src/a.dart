@@ -12,6 +12,17 @@
 import 'dart:async';
 import 'dart:io';
 
+class B0 {
+  IOSink _sinkB0; // OK
+  void init(filename) {
+    _sinkB0 = new File(filename).openWrite();
+  }
+
+  void dispose(filename) {
+    this._sinkB0.close();
+  }
+}
+
 class MockIOSink implements Sink {
   @override
   void add(data) {}
