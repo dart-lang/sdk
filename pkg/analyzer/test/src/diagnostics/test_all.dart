@@ -364,6 +364,8 @@ import 'mixin_class_declares_constructor_test.dart'
     as mixin_class_declares_constructor;
 import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
 import 'mixin_deferred_class_test.dart' as mixin_deferred_class;
+import 'mixin_inference_no_possible_substitution_test.dart'
+    as mixin_inference_no_possible_substitution;
 import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
@@ -879,6 +881,7 @@ main() {
     mixin_class_declares_constructor.main();
     mixin_declares_constructor.main();
     mixin_deferred_class.main();
+    mixin_inference_no_possible_substitution.main();
     mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();

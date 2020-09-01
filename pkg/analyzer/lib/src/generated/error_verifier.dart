@@ -4819,23 +4819,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     ClassElement classElement = node.declaredElement;
-    var type = classElement.thisType;
     var supertype = classElement.supertype;
-    List<InterfaceType> supertypesForMixinInference = <InterfaceType>[];
-    ClassElementImpl.collectAllSupertypes(
-        supertypesForMixinInference, supertype, type);
+
+    var interfacesMerger = InterfacesMerger(_typeSystem);
+    interfacesMerger.addWithSupertypes(supertype);
+
     for (var typeName in withClause.mixinTypes) {
       var mixinType = typeName.type;
-      var mixinElement = mixinType.element;
-      if (mixinElement is ClassElement) {
+      if (mixinType is InterfaceType) {
+        var mixinElement = mixinType.element;
         if (typeName.typeArguments == null) {
           var mixinSupertypeConstraints = _typeSystem
               .gatherMixinSupertypeConstraintsForInference(mixinElement);
           if (mixinSupertypeConstraints.isNotEmpty) {
             var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
-                typeName,
-                mixinSupertypeConstraints,
-                supertypesForMixinInference);
+              typeName,
+              mixinSupertypeConstraints,
+              interfacesMerger.typeList,
+            );
             if (matchingInterfaceTypes != null) {
               // Try to pattern match matchingInterfaceType against
               // mixinSupertypeConstraint to find the correct set of type
@@ -4855,8 +4856,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             }
           }
         }
-        ClassElementImpl.collectAllSupertypes(
-            supertypesForMixinInference, mixinType, type);
+        interfacesMerger.addWithSupertypes(mixinType);
       }
     }
   }

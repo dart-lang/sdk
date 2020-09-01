@@ -9441,6 +9441,31 @@ mixin M<U> on A<U> {
         annotateNullability: true);
   }
 
+  test_mixin_inference_nullSafety2() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/a.dart', r'''
+class A<T> {}
+
+mixin B<T> on A<T> {}
+mixin C<T> on A<T> {}
+''');
+    var library = await checkLibrary(r'''
+// @dart=2.8
+import 'a.dart';
+
+class D extends A<int> with B<int>, C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class D extends A<int*>* with B<int*>*, C<int*>* {
+  synthetic D();
+}
+''',
+        annotateNullability: true);
+  }
+
   test_mixin_inference_nullSafety_mixed_inOrder() async {
     featureSet = enableNnbd;
     addLibrarySource('/a.dart', r'''
