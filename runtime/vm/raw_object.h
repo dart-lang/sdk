@@ -2143,15 +2143,16 @@ class LibraryPrefixLayout : public InstanceLayout {
 
   VISIT_FROM(ObjectPtr, name_)
   StringPtr name_;       // Library prefix name.
-  LibraryPtr importer_;  // Library which declares this prefix.
   ArrayPtr imports_;     // Libraries imported with this prefix.
-  VISIT_TO(ObjectPtr, imports_)
+  LibraryPtr importer_;  // Library which declares this prefix.
+  VISIT_TO(ObjectPtr, importer_)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kFull:
-      case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&imports_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
