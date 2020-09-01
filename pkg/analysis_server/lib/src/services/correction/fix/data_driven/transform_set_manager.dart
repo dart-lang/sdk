@@ -14,7 +14,7 @@ class TransformSetManager {
   static final TransformSetManager instance = TransformSetManager._();
 
   /// The name of the data file.
-  static const String _dataFileName = 'fix_data.yaml';
+  static const String dataFileName = 'fix_data.yaml';
 
   /// Initialize a newly created transform set manager.
   TransformSetManager._();
@@ -28,7 +28,7 @@ class TransformSetManager {
     var packageMap = package.packagesAvailableTo(libraryPath);
     for (var entry in packageMap.entries) {
       var directory = entry.value[0];
-      var file = directory.getChildAssumingFile(_dataFileName);
+      var file = directory.getChildAssumingFile(dataFileName);
       var transformSet = _loadTransformSet(file);
       if (transformSet != null) {
         transformSets.add(transformSet);

@@ -5,8 +5,6 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -532,7 +530,7 @@ class C extends Old {}
 import '$importUri';
 
 class C extends New {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
@@ -552,7 +550,7 @@ class C implements Old {}
 import '$importUri';
 
 class C implements New {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
@@ -572,7 +570,7 @@ class C with Old {}
 import '$importUri';
 
 class C with New {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 
   Future<void> test_mixin_reference_inWith() async {
@@ -589,7 +587,7 @@ class C with Old {}
 import '$importUri';
 
 class C with New {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
@@ -637,7 +635,7 @@ extension E on Old {}
 import '$importUri';
 
 extension E on New {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 
   Future<void> test_class_reference_inTypeAnnotation() async {
@@ -654,7 +652,7 @@ void f(Old o) {}
 import '$importUri';
 
 void f(New o) {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 
   Future<void> test_typedef_reference() async {
@@ -671,7 +669,7 @@ void f(Old o) {}
 import '$importUri';
 
 void f(New o) {}
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
@@ -697,7 +695,7 @@ import '$importUri';
 void f() {
   New();
 }
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 
   Future<void> test_extension_reference_override() async {
@@ -716,7 +714,7 @@ var l = Old('a').double;
 import '$importUri';
 
 var l = New('a').double;
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 
   Future<void> test_field_instance_reference() async {
@@ -760,7 +758,7 @@ import '$importUri';
 void f() {
   new();
 }
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
@@ -793,7 +791,6 @@ void f() {
 @reflectiveTest
 class Rename_UndefinedIdentifierTest extends _AbstractRenameTest {
   Future<void> test_class_reference_staticField() async {
-    // CompileTimeErrorCode.UNDEFINED_IDENTIFIER
     setPackageContent('''
 class New {
   static String empty = '';
@@ -809,7 +806,7 @@ var s = Old.empty;
 import '$importUri';
 
 var s = New.empty;
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 
   Future<void> test_extension_reference_staticField() async {
@@ -828,7 +825,7 @@ var s = Old.empty;
 import '$importUri';
 
 var s = New.empty;
-''', errorFilter: _ignoreUnusedImport);
+''', errorFilter: ignoreUnusedImport);
   }
 }
 
@@ -931,9 +928,6 @@ void f() {
 }
 
 class _AbstractRenameTest extends DataDrivenFixProcessorTest {
-  bool _ignoreUnusedImport(AnalysisError error) =>
-      error.errorCode != HintCode.UNUSED_IMPORT;
-
   Transform _rename(List<String> components, String newName) => Transform(
           title: 'title',
           element: ElementDescriptor(

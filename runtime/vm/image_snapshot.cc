@@ -334,6 +334,7 @@ void ImageWriter::DumpInstructionsSizes() {
       cls ^= owner.raw();
       name = cls.ScrubbedName();
       lib = cls.library();
+      url = lib.url();
       js.PrintPropertyStr("l", url);
       js.PrintPropertyStr("c", name);
     }

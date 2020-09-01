@@ -151,7 +151,7 @@ class B {
   }
 
   Future<void>
-      test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
+      test_checkFinalConditions_publicToPrivate_usedInNamedLibrary() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -170,7 +170,31 @@ main(A a) {
     refactoring.newName = '_newName';
     var status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Renamed method will be invisible in 'my.lib'.");
+        expectedMessage:
+            "Renamed method will be invisible in '${convertPath("lib/lib.dart")}'.");
+  }
+
+  Future<void>
+      test_checkFinalConditions_publicToPrivate_usedInUnnamedLibrary() async {
+    await indexTestUnit('''
+class A {
+  var foo = 1;
+}
+''');
+    await indexUnit('/home/test/lib/lib.dart', '''
+import 'test.dart';
+
+main(A a) {
+  print(a.foo);
+}
+''');
+    createRenameRefactoringAtString('foo');
+    // check status
+    refactoring.newName = '_newName';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Renamed field will be invisible in '${convertPath("lib/lib.dart")}'.");
   }
 
   Future<void>
