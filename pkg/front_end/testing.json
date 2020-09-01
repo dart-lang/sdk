@@ -275,6 +275,19 @@
       "exclude": []
     },
     {
+      "name": "parser_all",
+      "kind": "Chain",
+      "source": "test/parser_all_suite.dart",
+      "path": "../../",
+      "status": "parser_testcases/parser_all.status",
+      "pattern": [
+        "pkg/front_end/.*\\.dart$",
+        "pkg/front_end/.*\\.crash_dart$",
+        "tests/.*\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "lint",
       "kind": "Chain",
       "source": "test/lint_suite.dart",

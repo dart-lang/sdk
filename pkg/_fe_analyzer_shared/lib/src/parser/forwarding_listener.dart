@@ -141,6 +141,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginUncategorizedTopLevelDeclaration(Token token) {
+    listener?.beginUncategorizedTopLevelDeclaration(token);
+  }
+
+  @override
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
     listener?.beginExtensionDeclarationPrelude(extensionKeyword);
   }
@@ -387,8 +392,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginThenControlFlow(Token token) {
-    listener?.beginThenControlFlow(token);
+  void handleThenControlFlow(Token token) {
+    listener?.handleThenControlFlow(token);
   }
 
   @override
@@ -477,6 +482,11 @@ class ForwardingListener implements Listener {
   @override
   void endBinaryExpression(Token token) {
     listener?.endBinaryExpression(token);
+  }
+
+  @override
+  void handleEndingBinaryExpression(Token token) {
+    listener?.handleEndingBinaryExpression(token);
   }
 
   @override
@@ -995,8 +1005,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token token) {
-    listener?.endTopLevelDeclaration(token);
+  void endTopLevelDeclaration(Token nextToken) {
+    listener?.endTopLevelDeclaration(nextToken);
+  }
+
+  @override
+  void beginFields(Token lastConsumed) {
+    listener?.beginFields(lastConsumed);
   }
 
   @override

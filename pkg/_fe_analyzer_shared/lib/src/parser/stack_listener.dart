@@ -294,9 +294,9 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void endTopLevelDeclaration(Token token) {
+  void endTopLevelDeclaration(Token nextToken) {
     debugEvent("TopLevelDeclaration");
-    checkEmpty(token.charOffset);
+    checkEmpty(nextToken.charOffset);
   }
 
   @override

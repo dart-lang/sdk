@@ -46,6 +46,7 @@ b2x
 ba
 baba
 backed
+background
 bail
 bailout
 bash
@@ -62,6 +63,7 @@ blah
 blindly
 blocked
 blorp
+bold
 boo
 bootstrap
 bots
@@ -111,6 +113,7 @@ cnn
 coded
 codepath
 collisions
+columns
 commented
 commit
 companion
@@ -137,7 +140,10 @@ costly
 cov
 cp
 crashes
+csi
+ctrl
 cumulative
+cursor
 cx
 dacoharkes
 dadd
@@ -154,7 +160,9 @@ dds
 debugger
 decrease
 decrements
+dectcem
 def
+defaulting
 defintions
 deleting
 denylist
@@ -190,6 +198,7 @@ doesnt
 dog
 doo
 downstream
+draw
 dumping
 dumps
 dupe
@@ -200,6 +209,7 @@ e's
 e2e
 ease
 ec
+echo
 edits
 elapse
 ell
@@ -207,7 +217,9 @@ entrypoint
 entrypoints
 eoo
 epoch
+erase
 err
+esc
 everytime
 evicting
 exceed
@@ -261,6 +273,7 @@ foo\"bar\'baz
 foos
 forbidden
 forces
+foreground
 foreign
 forrest
 foundation
@@ -278,6 +291,7 @@ generators
 git
 goo
 google
+graphic
 greeting
 gtgt
 gulp
@@ -309,6 +323,7 @@ inclosure
 increased
 incrementally
 increments
+indents
 infinity
 initializer2
 inspect
@@ -317,6 +332,7 @@ intact
 interactive
 internet
 interpolate
+introducer
 inv
 invalidating
 invocation1a
@@ -345,11 +361,13 @@ issue41496b
 issue41498b
 issue41499b
 it'll
+italic
 iter
 joo
 jumped
 kernels
 kill
+kitty
 ko
 koo
 la
@@ -409,6 +427,7 @@ metrics
 mf
 micro
 minimize
+mintty
 minutes
 mismatched
 misnamed
@@ -466,6 +485,7 @@ portions
 pp
 preliminary
 prematurely
+press
 pretends
 producer
 profile
@@ -482,6 +502,7 @@ px
 py
 python
 quicker
+quit
 quot
 quux
 qux
@@ -507,6 +528,8 @@ released
 reload
 remap
 remaps
+rendition
+repaint
 repeating
 repro
 resource
@@ -519,6 +542,7 @@ retainingpath
 retains
 rev
 risky
+row
 runtimes
 say
 scans
@@ -538,7 +562,9 @@ sheets
 shipped
 shortest
 shot
+sigint
 signalled
+sigwinch
 slight
 smoke
 somehow
@@ -617,11 +643,14 @@ txt
 typeargs
 typeparam
 typeparambounds
+u250c
 ugly
 unassignment
 unawaited
 unbreak
+uncategorized
 unconverted
+underline
 unpacked
 unpaused
 unregistered
@@ -643,6 +672,8 @@ verbatim
 versioned
 versioning
 vp
+vt
+vte
 waited
 waiting
 waits

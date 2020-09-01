@@ -4539,11 +4539,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginThenControlFlow(Token token) {
+  void handleThenControlFlow(Token token) {
     Expression condition = popForValue();
     enterThenForTypePromotion(condition);
     push(condition);
-    super.beginThenControlFlow(token);
+    super.handleThenControlFlow(token);
   }
 
   @override
