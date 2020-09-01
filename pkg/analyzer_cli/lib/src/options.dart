@@ -128,11 +128,6 @@ class CommandLineOptions {
   /// Whether to treat info level items as fatal
   final bool infosAreFatal;
 
-  /// Whether to use strong static checking.
-  ///
-  /// This flag is deprecated and hard-coded to `true`.
-  final bool strongMode = true;
-
   /// Whether to treat lints as fatal
   // TODO(devoncarew): Deprecate and remove this flag.
   final bool lintsAreFatal;

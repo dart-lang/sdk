@@ -688,7 +688,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
             previous.showPackageWarningsPrefix &&
         newOptions.showSdkWarnings == previous.showSdkWarnings &&
         newOptions.lints == previous.lints &&
-        newOptions.strongMode == previous.strongMode &&
         _equalLists(
             newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
