@@ -27,15 +27,25 @@ void main() {
       process = null;
     });
 
-    void createSmokeTest(bool useAuthCodes) {
+    void createSmokeTest(bool useAuthCodes, bool ipv6) {
+      final protocol = ipv6 ? 'IPv6' : 'IPv4';
       test(
-        'Smoke Test with ${useAuthCodes ? "" : "no "} authentication codes',
+        'Smoke Test with ${useAuthCodes ? "" : "no"} authentication codes '
+        'with $protocol',
         () async {
           dds = await DartDevelopmentService.startDartDevelopmentService(
             remoteVmServiceUri,
             enableAuthCodes: useAuthCodes,
+            ipv6: ipv6,
           );
           expect(dds.isRunning, true);
+
+          try {
+            Uri.parseIPv6Address(dds.uri.host);
+            expect(ipv6, true);
+          } on FormatException {
+            expect(ipv6, false);
+          }
 
           // Ensure basic websocket requests are forwarded correctly to the VM service.
           final service = await vmServiceConnectUri(dds.wsUri.toString());
@@ -69,8 +79,9 @@ void main() {
       );
     }
 
-    createSmokeTest(true);
-    createSmokeTest(false);
+    createSmokeTest(true, false);
+    createSmokeTest(false, false);
+    createSmokeTest(true, true);
 
     test('startup fails when VM service has existing clients', () async {
       Uri httpToWebSocketUri(Uri httpUri) {
@@ -119,6 +130,24 @@ void main() {
         () async => await DartDevelopmentService.startDartDevelopmentService(
               Uri.parse('http://localhost:1234'),
               serviceUri: Uri.parse('dart-lang://localhost:2345'),
+            ),
+        throwsA(TypeMatcher<ArgumentError>()));
+
+    // Protocol mismatch
+    expect(
+        () async => await DartDevelopmentService.startDartDevelopmentService(
+              Uri.parse('http://localhost:1234'),
+              serviceUri: Uri.parse('http://127.0.0.1:2345'),
+              ipv6: true,
+            ),
+        throwsA(TypeMatcher<ArgumentError>()));
+
+    // Protocol mismatch
+    expect(
+        () async => await DartDevelopmentService.startDartDevelopmentService(
+              Uri.parse('http://localhost:1234'),
+              serviceUri: Uri.parse('http://[::1]:2345'),
+              ipv6: false,
             ),
         throwsA(TypeMatcher<ArgumentError>()));
   });
