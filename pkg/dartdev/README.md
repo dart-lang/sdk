@@ -6,11 +6,12 @@ A command-line utility for Dart development.
 Usage: dart [<vm-flags>] <command|dart-file> [<arguments>]
 
 Global options:
--h, --help                 Print this usage information.
--v, --verbose              Show additional command output.
-    --version              Print the Dart SDK version.
-    --enable-analytics     Enable anonymous analytics.
-    --disable-analytics    Disable anonymous analytics.
+-h, --help                              Print this usage information.
+-v, --verbose                           Show additional command output.
+    --version                           Print the Dart SDK version.
+    --enable-analytics                  Enable anonymous analytics.
+    --disable-analytics                 Disable anonymous analytics.
+    --enable-experiment=<experiment>    Enable one or more experimental features (see dart.dev/go/experiments).
 
 Available commands:
   analyze   Analyze the project's Dart code.
@@ -19,7 +20,7 @@ Available commands:
   format    Idiomatically formats Dart source code.
   pub       Work with packages.
   run       Run a Dart program.
-  test      Runs tests in this project.
+  test      Run tests in this package.
 
 Run "dart help <command>" for more information about a command.
 ```

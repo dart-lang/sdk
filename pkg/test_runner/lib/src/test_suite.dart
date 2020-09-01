@@ -595,14 +595,14 @@ class StandardTestSuite extends TestSuite {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
-    assert(!vmOptionsList.isEmpty);
+    assert(vmOptionsList.isNotEmpty);
 
     for (var vmOptionsVariant = 0;
         vmOptionsVariant < vmOptionsList.length;
         vmOptionsVariant++) {
       var vmOptions = vmOptionsList[vmOptionsVariant];
       var allVmOptions = vmOptions;
-      if (!extraVmOptions.isEmpty) {
+      if (extraVmOptions.isNotEmpty) {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
@@ -623,7 +623,7 @@ class StandardTestSuite extends TestSuite {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
-    assert(!vmOptionsList.isEmpty);
+    assert(vmOptionsList.isNotEmpty);
 
     var emitDdsTest = false;
     for (var i = 0; i < 2; ++i) {
@@ -632,7 +632,7 @@ class StandardTestSuite extends TestSuite {
           vmOptionsVariant++) {
         var vmOptions = vmOptionsList[vmOptionsVariant];
         var allVmOptions = vmOptions;
-        if (!extraVmOptions.isEmpty) {
+        if (extraVmOptions.isNotEmpty) {
           allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
         }
         if (emitDdsTest) {

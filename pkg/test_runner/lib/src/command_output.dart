@@ -969,6 +969,11 @@ class CompilationCommandOutput extends CommandOutput {
 
 class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
+  static void parseErrors(String stdout, List<StaticError> errors) {
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.web, _errorRegexp, stdout, errors);
+  }
+
   /// Matches the location and message of a dart2js error message, which looks
   /// like:
   ///
@@ -996,8 +1001,7 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
-    _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, decodeUtf8(stdout), errors);
+    parseErrors(decodeUtf8(stdout), errors);
     errors.forEach(addError);
   }
 }

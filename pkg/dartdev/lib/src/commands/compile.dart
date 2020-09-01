@@ -28,7 +28,7 @@ final Map<String, Option> commonOptions = {
     abbr: 'o',
     help: '''
 Write the output to <file name>.
-This can be an absolute or reletive path.
+This can be an absolute or relative path.
 ''',
   ),
 };
@@ -175,7 +175,7 @@ class CompileNativeCommand extends DartdevCommand<int> {
       )
       ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
-For example, 'dart compile $commandName -Da=1,b=2 main.dart'.''')
+For example: dart compile $commandName -Da=1,b=2 main.dart.''')
       ..addFlag('enable-asserts',
           negatable: false, help: 'Enable assert statements.')
       ..addOption('packages',
@@ -184,7 +184,7 @@ For example, 'dart compile $commandName -Da=1,b=2 main.dart'.''')
           help:
               '''Get package locations from the specified file instead of .packages.
 <path> can be relative or absolute.
-For example, 'dart compile $commandName --packages=/tmp/pkgs main.dart'.''')
+For example: dart compile $commandName --packages=/tmp/pkgs main.dart.''')
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''');

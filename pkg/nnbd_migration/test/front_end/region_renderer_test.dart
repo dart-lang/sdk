@@ -22,17 +22,9 @@ void main() {
 class RegionRendererTest extends NnbdMigrationTestBase {
   PathMapper pathMapper;
 
-  /// Returns the path of [testFile] used in traces.
-  ///
-  /// On Windows, we display the absolute path of the test file.
-  /// On Posix, we display the path of the target file relative to the current
-  /// file.
-  // TODO(srawlins): I doubt this is intentional. While I don't see a bug,
-  //  the discrepancy could lead to confusion and may be an indicator of bugs.
-  String get _testFilePathForTrace =>
-      resourceProvider.pathContext.style == p.Style.windows
-          ? testFile
-          : resourceProvider.pathContext.basename(testFile);
+  /// Returns the basename of [testFile], used in traces.
+  String get _testFileBasename =>
+      resourceProvider.pathContext.basename(testFile);
 
   /// Render the region at [offset], using a [MigrationInfo] which knows only
   /// about the library at `infos.single`.
@@ -64,7 +56,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     var trace = response.traces[0];
     expect(trace.entries, hasLength(2));
     expect(trace.entries[0].description,
-        equals('parameter 0 of f ($_testFilePathForTrace:1:3)'));
+        equals('parameter 0 of f ($_testFileBasename:1:3)'));
     expect(trace.entries[1].description, equals('data flow'));
   }
 
@@ -80,7 +72,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     expect(entry.link.href,
         equals('$testFileUriPath?offset=2&line=1&authToken=AUTH_TOKEN'));
     expect(entry.link.path,
-        equals(resourceProvider.pathContext.toUri(_testFilePathForTrace).path));
+        equals(resourceProvider.pathContext.toUri(_testFileBasename).path));
   }
 
   Future<void>
@@ -151,11 +143,10 @@ g() {
     var trace = response.traces[0];
     expect(trace.description, equals('Nullability reason'));
     expect(trace.entries, hasLength(4));
-    expect(
-        trace.entries[0].description, equals('a ($_testFilePathForTrace:1:1)'));
+    expect(trace.entries[0].description, equals('a ($_testFileBasename:1:1)'));
     expect(trace.entries[1].description, equals('data flow'));
     expect(trace.entries[2].description,
-        equals('null literal ($_testFilePathForTrace:1:9)'));
+        equals('null literal ($_testFileBasename:1:9)'));
     expect(trace.entries[3].description, equals('literal expression'));
   }
 

@@ -89,6 +89,88 @@ void f(String? s) {
 @reflectiveTest
 class InvalidNullAwareOperatorTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_extensionOverride_assignmentExpression_indexExpression() async {
+    await assertErrorsInCode('''
+extension E on int {
+  operator[]=(int index, bool _) {}
+}
+
+void f(int? a, int b) {
+  E(a)?[0] = true;
+  E(b)?[0] = true;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 109, 2),
+    ]);
+  }
+
+  test_extensionOverride_assignmentExpression_propertyAccess() async {
+    await assertErrorsInCode('''
+extension E on int {
+  set foo(bool _) {}
+}
+
+void f(int? a, int b) {
+  E(a)?.foo = true;
+  E(b)?.foo = true;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 95, 2),
+    ]);
+  }
+
+  test_extensionOverride_indexExpression() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool operator[](int index) => true;
+}
+
+void f(int? a, int b) {
+  E(a)?[0];
+  E(b)?[0];
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 104, 2),
+    ]);
+    assertType(findNode.index('E(a)'), 'bool?');
+    assertType(findNode.index('E(b)'), 'bool?');
+  }
+
+  test_extensionOverride_methodInvocation() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool foo() => true;
+}
+
+void f(int? a, int b) {
+  E(a)?.foo();
+  E(b)?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
+    ]);
+
+    assertType(findNode.methodInvocation('E(a)'), 'bool?');
+    assertType(findNode.methodInvocation('E(b)'), 'bool?');
+  }
+
+  test_extensionOverride_propertyAccess() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool get foo => true;
+}
+
+void f(int? a, int b) {
+  E(a)?.foo;
+  E(b)?.foo;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
+    ]);
+    assertType(findNode.propertyAccess('E(a)'), 'bool?');
+    assertType(findNode.propertyAccess('E(b)'), 'bool?');
+  }
+
   test_getter_class() async {
     await assertNoErrorsInCode('''
 class C {

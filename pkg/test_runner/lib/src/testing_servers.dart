@@ -241,7 +241,7 @@ class TestingServers {
   Uri _getFileUriFromRequestUri(Uri request) {
     // Go to the top of the file to see an explanation of the URL path scheme.
     var pathSegments = request.normalizePath().pathSegments;
-    if (pathSegments.length == 0) return null;
+    if (pathSegments.isEmpty) return null;
     var packagesIndex = pathSegments.indexOf('packages');
     if (packagesIndex != -1) {
       var packageUri = Uri(

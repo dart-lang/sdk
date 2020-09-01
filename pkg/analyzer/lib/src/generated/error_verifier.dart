@@ -834,13 +834,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     checkIndexExpression(node.auxiliaryElements?.staticElement);
 
     if (node.isNullAware) {
-      var target = node.realTarget;
-      if (_isExpressionWithType(target)) {
-        _checkForUnnecessaryNullAware(
-          target,
-          node.question ?? node.period ?? node.leftBracket,
-        );
-      }
+      _checkForUnnecessaryNullAware(
+        node.realTarget,
+        node.question ?? node.period ?? node.leftBracket,
+      );
     }
     super.visitIndexExpression(node);
   }
@@ -934,9 +931,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
       _checkForInstanceAccessToStaticMember(
           typeReference, node.target, methodName);
-      if (_isExpressionWithType(target)) {
-        _checkForUnnecessaryNullAware(target, node.operator);
-      }
+      _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
@@ -1039,9 +1034,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    if (_isExpressionWithType(target)) {
-      _checkForUnnecessaryNullAware(target, node.operator);
-    }
+    _checkForUnnecessaryNullAware(target, node.operator);
 
     super.visitPropertyAccess(node);
   }
@@ -4364,33 +4357,37 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         var type = operator.type;
         if (type == TokenType.QUESTION_PERIOD) {
           var realTarget = target.realTarget;
-          if (_isExpressionWithType(realTarget)) {
-            return previousShortCircuitingOperator(realTarget) ?? operator;
-          }
+          return previousShortCircuitingOperator(realTarget) ?? operator;
         }
       } else if (target is IndexExpression) {
         if (target.question != null) {
           var realTarget = target.realTarget;
-          if (_isExpressionWithType(realTarget)) {
-            return previousShortCircuitingOperator(realTarget) ??
-                target.question;
-          }
+          return previousShortCircuitingOperator(realTarget) ?? target.question;
         }
       } else if (target is MethodInvocation) {
         var operator = target.operator;
         var type = operator?.type;
         if (type == TokenType.QUESTION_PERIOD) {
           var realTarget = target.realTarget;
-          if (_isExpressionWithType(realTarget)) {
-            return previousShortCircuitingOperator(realTarget) ?? operator;
-          }
-          return operator;
+          return previousShortCircuitingOperator(realTarget) ?? operator;
         }
       }
       return null;
     }
 
-    if (_typeSystem.isStrictlyNonNullable(target.staticType)) {
+    var targetType = target.staticType;
+    if (target is ExtensionOverride) {
+      var arguments = target.argumentList.arguments;
+      if (arguments.length == 1) {
+        targetType = arguments[0].staticType;
+      } else {
+        return;
+      }
+    } else if (targetType == null) {
+      return;
+    }
+
+    if (_typeSystem.isStrictlyNonNullable(targetType)) {
       if (errorCode == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
         var previousOperator = previousShortCircuitingOperator(target);
         if (previousOperator != null) {
@@ -5330,20 +5327,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return null;
-  }
-
-  static bool _isExpressionWithType(Expression node) {
-    if (node is ExtensionOverride) {
-      return false;
-    }
-
-    // For `foo?.bar`, `foo` must be an identifier with a value.
-    if (node is Identifier) {
-      var element = node.staticElement;
-      return element is PropertyAccessorElement || element is VariableElement;
-    }
-
-    return true;
   }
 }
 

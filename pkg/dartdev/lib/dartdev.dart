@@ -231,6 +231,10 @@ class DartdevRunner<int> extends CommandRunner {
   }
 
   @override
+  String get usageFooter =>
+      'See https://dart.dev/tools/dart-tool for detailed documentation.';
+
+  @override
   String get invocation =>
       'dart [<vm-flags>] <command|dart-file> [<arguments>]';
 

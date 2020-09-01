@@ -8,7 +8,8 @@ environment:
 dependencies:
   analysis_server_client:
     path: ../analysis_server_client
-  analyzer: any
+  analyzer:
+    path: ../analyzer
   args: ^1.6.0
   cli_util: '>=0.1.4 <0.3.0'
   dart2native:

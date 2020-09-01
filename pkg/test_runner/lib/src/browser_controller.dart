@@ -1105,7 +1105,7 @@ class BrowserTestRunner {
   }
 
   void printDoubleReportingTests() {
-    if (doubleReportingOutputs.length == 0) return;
+    if (doubleReportingOutputs.isEmpty) return;
     // TODO(ricow): die on double reporting.
     // Currently we just report this here, we could have a callback to the
     // encapsulating environment.

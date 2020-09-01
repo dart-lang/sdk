@@ -20,7 +20,7 @@ void defineTest() {
     var result = p.runSync('test', ['--help']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
-    expect(result.stdout, contains('Runs tests in this project.'));
+    expect(result.stdout, contains('Run tests in this package.'));
     expect(result.stdout, contains('Usage: dart test [arguments]'));
     expect(result.stdout, contains('======== Selecting Tests'));
   });

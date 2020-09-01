@@ -8,6 +8,8 @@ import 'package:args/args.dart';
 import 'package:args/src/arg_parser.dart';
 import 'package:path/path.dart' as path;
 
+// TODO(devoncarew): This class is unused.
+
 class MigrateOptions {
   static const applyChangesOption = 'apply-changes';
   static const debugOption = 'debug';
@@ -62,8 +64,8 @@ class MigrateOptions {
       ignoreErrorsOption,
       defaultsTo: false,
       negatable: false,
-      help: 'Attempt to perform null safety analysis even if there are '
-          'analysis errors in the project.',
+      help: 'Attempt to perform null safety analysis even if the package has '
+          'analysis errors.',
     );
     argParser.addOption(
       sdkPathOption,

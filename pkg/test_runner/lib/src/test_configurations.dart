@@ -254,7 +254,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   }
 
   // Start all the HTTP servers required before starting the process queue.
-  if (!serverFutures.isEmpty) {
+  if (serverFutures.isNotEmpty) {
     await Future.wait(serverFutures);
   }
 

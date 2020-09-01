@@ -36,10 +36,9 @@ class RegionRenderer {
   path.Context get pathContext => migrationInfo.pathContext;
 
   EditDetails render() {
-    var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
-
     TargetLink linkForTarget(NavigationTarget target) {
-      var relativePath = _relativePathToTarget(target, unitDir);
+      var relativePath =
+          _relativePathToTarget(target, pathContext.dirname(unitInfo.path));
       var targetUri = _uriForPath(target.filePath, target);
       return TargetLink(
         path: relativePath,
