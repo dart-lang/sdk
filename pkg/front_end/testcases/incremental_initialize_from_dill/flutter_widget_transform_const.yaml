@@ -42,7 +42,7 @@ worlds:
         }
 
         class Boz extends Widget {
-          factory Boz({bool createNew}) {
+          factory Boz({required bool createNew}) {
             if (createNew) {
               return new Boz._();
             } else {

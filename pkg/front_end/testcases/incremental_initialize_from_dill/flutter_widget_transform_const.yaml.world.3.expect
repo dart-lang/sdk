@@ -66,7 +66,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4}) → foo::Boz
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
-    static factory •({dart.core::bool createNew = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4}) → foo::Boz {
+    static factory •({required dart.core::bool createNew = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4}) → foo::Boz {
       if(createNew) {
         return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
       }
@@ -99,7 +99,7 @@ constants  {
   #C9 = wid::_Location {file:#C2, line:#C8, column:#C4, name:#C1, parameterLocations:#C5}
   #C10 = foo::Baz {_location:#C9}
   #C11 = 9.0
-  #C12 = 119.0
+  #C12 = 128.0
   #C13 = wid::_Location {file:#C2, line:#C11, column:#C12, name:#C1, parameterLocations:#C5}
   #C14 = foo::Boz {_location:#C13}
   #C15 = "org-dartlang-test:///main.dart"
