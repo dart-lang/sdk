@@ -20,18 +20,16 @@ class ConvertToNullAwareTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestUnit('''
-abstract class A {
-  int m();
+class A {
+  int m(int p) => p;
 }
-int f(A a) => null == a ? null : a.m();
-int g(A a) => a == null ? null : a.m();
+int f(A x, A y) => x == null ? null : x.m(y == null ? null : y.m(0));
 ''');
     await assertHasFix('''
-abstract class A {
-  int m();
+class A {
+  int m(int p) => p;
 }
-int f(A a) => a?.m();
-int g(A a) => a?.m();
+int f(A x, A y) => x?.m(y?.m(0));
 ''');
   }
 }
