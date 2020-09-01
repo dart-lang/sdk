@@ -18,13 +18,16 @@ import '../problems.dart' show unimplemented;
 import 'dill_class_builder.dart' show computeTypeVariableBuilders;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
-class DillTypeAliasBuilder extends TypeAliasBuilder {
+class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
+  final Typedef typedef;
+
   List<TypeVariableBuilder> _typeVariables;
   TypeBuilder _type;
 
-  DillTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
-      : super(null, typedef.name, null, null, parent, typedef.fileOffset,
-            typedef: typedef);
+  DartType thisType;
+
+  DillTypeAliasBuilder(this.typedef, DillLibraryBuilder parent)
+      : super(null, typedef.name, parent, typedef.fileOffset);
 
   List<MetadataBuilder> get metadata {
     return unimplemented("metadata", -1, null);

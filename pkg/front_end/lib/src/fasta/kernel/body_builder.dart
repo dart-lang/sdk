@@ -4304,7 +4304,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (type is TypeAliasBuilder) {
       errorName = debugName(type.name, name);
       TypeAliasBuilder aliasBuilder = type;
-      int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
+      int numberOfTypeParameters = aliasBuilder.typeVariablesCount;
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
@@ -4327,7 +4327,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           typeArgumentBuilders.add(unresolvedType?.builder);
         }
       } else {
-        if (aliasBuilder.typeVariables?.isNotEmpty ?? false) {
+        if (aliasBuilder.typeVariablesCount > 0) {
           // Raw generic type alias used for instance creation, needs inference.
           ClassBuilder classBuilder;
           if (type is ClassBuilder) {
@@ -4539,11 +4539,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginThenControlFlow(Token token) {
+  void handleThenControlFlow(Token token) {
     Expression condition = popForValue();
     enterThenForTypePromotion(condition);
     push(condition);
-    super.beginThenControlFlow(token);
+    super.handleThenControlFlow(token);
   }
 
   @override

@@ -637,6 +637,7 @@ class Parser {
   /// ```
   Token parseLibraryName(Token libraryKeyword) {
     assert(optional('library', libraryKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
     listener.beginLibraryName(libraryKeyword);
     Token token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
         IdentifierContext.libraryNameContinuation);
@@ -677,6 +678,7 @@ class Parser {
   /// ```
   Token parseImport(Token importKeyword) {
     assert(optional('import', importKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(importKeyword);
     listener.beginImport(importKeyword);
     Token token = ensureLiteralString(importKeyword);
     Token uri = token;
@@ -875,6 +877,7 @@ class Parser {
   /// ```
   Token parseExport(Token exportKeyword) {
     assert(optional('export', exportKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(exportKeyword);
     listener.beginExport(exportKeyword);
     Token token = ensureLiteralString(exportKeyword);
     token = parseConditionalUriStar(token);
@@ -974,6 +977,7 @@ class Parser {
 
   Token parsePartOrPartOf(Token partKeyword, DirectiveContext directiveState) {
     assert(optional('part', partKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(partKeyword);
     if (optional('of', partKeyword.next)) {
       directiveState?.checkPartOf(this, partKeyword);
       return parsePartOf(partKeyword);
@@ -1098,6 +1102,7 @@ class Parser {
   /// ```
   Token parseTypedef(Token typedefKeyword) {
     assert(optional('typedef', typedefKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
     listener.beginFunctionTypeAlias(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);
     Token token = typeInfo.skipType(typedefKeyword);
@@ -1733,6 +1738,7 @@ class Parser {
   /// ```
   Token parseEnum(Token enumKeyword) {
     assert(optional('enum', enumKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(enumKeyword);
     listener.beginEnum(enumKeyword);
     Token token =
         ensureIdentifier(enumKeyword, IdentifierContext.enumDeclaration);
@@ -2510,6 +2516,8 @@ class Parser {
       DeclarationKind kind,
       String enclosingDeclarationName,
       bool nameIsRecovered) {
+    listener.beginFields(beforeStart);
+
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
     // Field that are covariant late final with initializers are checked further
@@ -4598,7 +4606,7 @@ class Parser {
             // [parsePrimary] instead.
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
-            listener.endBinaryExpression(operator);
+            listener.handleEndingBinaryExpression(operator);
 
             Token bangToken = token;
             if (optional('!', token.next)) {
@@ -4703,7 +4711,7 @@ class Parser {
           token, noTypeParamOrArg, /* checkedNullAware = */ false);
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
-      listener.endBinaryExpression(cascadeOperator);
+      listener.handleEndingBinaryExpression(cascadeOperator);
     }
     Token next = token.next;
     Token mark;
@@ -4713,7 +4721,7 @@ class Parser {
         Token period = next;
         token = parseSend(next, IdentifierContext.expressionContinuation);
         next = token.next;
-        listener.endBinaryExpression(period);
+        listener.handleEndingBinaryExpression(period);
       } else if (optional('!', next)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -7208,6 +7216,7 @@ class Parser {
         token = next.endGroup;
       }
     }
+    listener.endMember();
     return token;
   }
 
@@ -7230,6 +7239,7 @@ class Parser {
         token = next.endGroup;
       }
     }
+    listener.endMember();
     return token;
   }
 
@@ -7240,6 +7250,7 @@ class Parser {
     // TODO(brianwilkerson): If the declaration appears to be a valid typedef
     // then skip the entire declaration so that we generate a single error
     // (above) rather than many unhelpful errors.
+    listener.endMember();
     return token;
   }
 

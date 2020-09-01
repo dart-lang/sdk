@@ -68,6 +68,7 @@ atm
 atom
 atoms
 attributes
+auto
 automagically
 auxiliary
 awaited
@@ -156,6 +157,7 @@ casing
 cast
 casted
 casts
+categorized
 ce
 cfe
 ch
@@ -357,6 +359,7 @@ emitted
 emitting
 en
 encapsulation
+end'ed
 enforce
 enforced
 enforces
@@ -461,6 +464,7 @@ glob
 globally
 glyph
 gn
+gobble
 goldens
 googlesource
 goto
@@ -1181,6 +1185,7 @@ unaligned
 unaltered
 unassigned
 unbound
+uncategorized
 uncomment
 uncommon
 unconditionally

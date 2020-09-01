@@ -32,6 +32,7 @@ import 'incremental_load_from_dill_suite.dart' as incremental_load
 import 'lint_suite.dart' as lint show createContext;
 import 'old_dill_suite.dart' as old_dill show createContext;
 import 'parser_suite.dart' as parser show createContext;
+import 'parser_all_suite.dart' as parserAll show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
     show createContext;
 import 'spelling_test_src_suite.dart' as spelling_src show createContext;
@@ -266,6 +267,7 @@ const List<Suite> suites = [
   const Suite("lint", lint.createContext, "../testing.json"),
   const Suite("old_dill", old_dill.createContext, "../testing.json"),
   const Suite("parser", parser.createContext, "../testing.json"),
+  const Suite("parser_all", parserAll.createContext, "../testing.json"),
   const Suite("spelling_test_not_src", spelling_not_src.createContext,
       "../testing.json"),
   const Suite(
@@ -300,6 +302,9 @@ void runSuite(SuiteConfiguration configuration) {
   String name = suite.prefix;
   String fullSuiteName = "$suiteNamePrefix/$name";
   Uri suiteUri = Platform.script.resolve(suite.path ?? "${name}_suite.dart");
+  if (!new File.fromUri(suiteUri).existsSync()) {
+    throw "File doesn't exist: $suiteUri";
+  }
   ResultLogger logger = ResultLogger(
       fullSuiteName,
       configuration.resultsPort,

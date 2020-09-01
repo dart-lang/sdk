@@ -450,7 +450,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginClassOrNamedMixinApplicationPrelude(Token token) {
-    debugEvent("beginClassOrNamedMixinApplication");
+    debugEvent("beginClassOrNamedMixinApplicationPrelude");
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.classOrNamedMixinApplication,
         "class or mixin application");

@@ -174,6 +174,33 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               isCovariant);
         }
       }
+    } else if (libraryBuilder.isNonNullableByDefault &&
+        libraryBuilder.loader.target.backendTarget.useStaticFieldLowering &&
+        (isStatic || isTopLevel) &&
+        hasInitializer) {
+      if (isFinal) {
+        _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            reference,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
+      } else {
+        _fieldEncoding = new LateFieldWithInitializerEncoding(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            reference,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
+      }
     } else {
       assert(lateIsSetReferenceFrom == null);
       assert(getterReferenceFrom == null);

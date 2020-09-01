@@ -55,20 +55,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("AsyncModifier");
   }
 
+  /// Ended by either [endAwaitExpression] or [endInvalidAwaitExpression].
   void beginAwaitExpression(Token token) {}
 
+  /// One of the two possible corresponding end events for
+  /// [beginAwaitExpression].
   void endAwaitExpression(Token beginToken, Token endToken) {
     logEvent("AwaitExpression");
   }
 
+  /// One of the two possible corresponding end events for
+  /// [beginAwaitExpression].
   void endInvalidAwaitExpression(
       Token beginToken, Token endToken, MessageCode errorCode) {
     logEvent("InvalidAwaitExpression");
-  }
-
-  void endInvalidYieldStatement(Token beginToken, Token starToken,
-      Token endToken, MessageCode errorCode) {
-    logEvent("InvalidYieldStatement");
   }
 
   void beginBlock(Token token, BlockKind blockKind) {}
@@ -111,8 +111,11 @@ class Listener implements UnescapeErrorListener {
 
   /// Called before parsing a class or named mixin application.
   ///
-  /// At this point only the `class` keyword have been seen, so we know a
-  /// declaration is coming but not its name or type parameter declarations.
+  /// At this point only the `class` or `mixin` keyword have been seen,
+  /// so we know a declaration is coming but not its name or type
+  /// parameter declarations.
+  ///
+  /// Ended by [endTopLevelDeclaration].
   void beginClassOrNamedMixinApplicationPrelude(Token token) {}
 
   /// Handle the beginning of a class declaration.
@@ -208,11 +211,18 @@ class Listener implements UnescapeErrorListener {
     logEvent("MixinDeclaration");
   }
 
+  /// Begins a not-further-categorized top-level declaration.
+  ///
+  /// Ended by [endTopLevelDeclaration].
+  void beginUncategorizedTopLevelDeclaration(Token token) {}
+
   /// Handle the beginning of an extension methods declaration.  Substructures:
   /// - metadata
   ///
   /// At this point only the `extension` keyword have been seen, so we know a
   /// declaration is coming but not its name or type parameter declarations.
+  ///
+  /// Ended by [endTopLevelDeclaration].
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {}
 
   /// Handle the beginning of an extension methods declaration.  Substructures:
@@ -315,6 +325,8 @@ class Listener implements UnescapeErrorListener {
     logEvent("ExpressionStatement");
   }
 
+  /// Note that this is ended by [endClassFactoryMethod],
+  /// [endMixinFactoryMethod] or [endExtensionFactoryMethod].
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {}
 
@@ -366,7 +378,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type
   /// - Variable declarations (count times)
   ///
-  /// Doesn't have a corresponding begin event, use [beginMember] instead.
+  /// Started by [beginFields].
   void endClassFields(
       Token abstractToken,
       Token externalToken,
@@ -386,7 +398,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type
   /// - Variable declarations (count times)
   ///
-  /// Doesn't have a corresponding begin event, use [beginMember] instead.
+  /// Started by [beginFields].
   void endMixinFields(
       Token abstractToken,
       Token externalToken,
@@ -408,7 +420,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type
   /// - Variable declarations (count times)
   ///
-  /// Doesn't have a corresponding begin event, use [beginMember] instead.
+  /// Started by [beginFields].
   void endExtensionFields(
       Token abstractToken,
       Token externalToken,
@@ -829,6 +841,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("StringJuxtaposition");
   }
 
+  /// Called for class-like members (class, mixin, extension), but each member
+  /// should also have a more specific begin/end pair, e.g.
+  /// [beginFactoryMethod]/[endClassFactoryMethod]/[endMixinFactoryMethod]/
+  /// [endExtensionFactoryMethod].
   void beginMember() {}
 
   /// Handle an invalid member declaration. Substructures:
@@ -837,7 +853,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("InvalidMember");
   }
 
-  /// This event is added for convenience. Normally, one should override
+  /// This event is added for convenience to the listener.
+  /// Members will actually be begin/end'ed by more specific
+  /// events as well.
+  /// Normally listeners should probably override
   /// [endClassFields], [endMixinFields], [endExtensionFields],
   /// [endClassMethod], [endMixinMethod], [endExtensionMethod],
   /// [endClassConstructor], [endMixinConstructor],
@@ -846,8 +865,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("Member");
   }
 
-  /// Handle the beginning of a method declaration.  Substructures:
+  /// Handle the beginning of a class-like method declaration.  Substructures:
   /// - metadata
+  /// Note that this is ended with [endClassConstructor], [endClassMethod],
+  /// [endExtensionConstructor], [endExtensionMethod], [endMixinConstructor] or
+  /// [endMixinMethod].
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
       Token varFinalOrConst, Token getOrSet, Token name) {}
 
@@ -1075,11 +1097,21 @@ class Listener implements UnescapeErrorListener {
     logEvent("RethrowStatement");
   }
 
-  /// This event is added for convenience. Normally, one should use
+  /// This event is added for convenience for the listener.
+  /// All top-level declarations will actually be begin/end'ed by more specific
+  /// events as well, e.g. [beginClassDeclaration]/[endClassDeclaration],
+  /// [beginEnum]/[endEnum] etc.
+  ///
+  /// Normally listeners should probably override
   /// [endClassDeclaration], [endNamedMixinApplication], [endEnum],
   /// [endFunctionTypeAlias], [endLibraryName], [endImport], [endExport],
-  /// [endPart], [endPartOf], [endTopLevelFields], or [endTopLevelMethod].
-  void endTopLevelDeclaration(Token token) {
+  /// [endPart], [endPartOf], [endTopLevelFields], or [endTopLevelMethod]
+  /// instead.
+  ///
+  /// Started by one of [beginExtensionDeclarationPrelude],
+  /// [beginClassOrNamedMixinApplicationPrelude], [beginTopLevelMember] or
+  /// [beginUncategorizedTopLevelDeclaration].
+  void endTopLevelDeclaration(Token nextToken) {
     logEvent("TopLevelDeclaration");
   }
 
@@ -1095,9 +1127,15 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Marks the beginning of a top level field or method declaration.
-  /// Doesn't have a corresponding end event.
-  /// See [endTopLevelFields] and [endTopLevelMethod].
+  /// See also [endTopLevelFields] and [endTopLevelMethod].
+  ///
+  /// Ended by [endTopLevelDeclaration].
   void beginTopLevelMember(Token token) {}
+
+  /// Marks the beginning of a fields declaration.
+  /// Note that this is ended with [endTopLevelFields], [endClassFields],
+  /// [endMixinFields] or [endExtensionFields].
+  void beginFields(Token lastConsumed) {}
 
   /// Handle the end of a top level variable declaration.  Substructures:
   /// - Metadata
@@ -1105,8 +1143,8 @@ class Listener implements UnescapeErrorListener {
   /// - Repeated [count] times:
   ///   - Variable name (identifier)
   ///   - Field initializer
-  /// Doesn't have a corresponding begin event.
-  /// Use [beginTopLevelMember] instead.
+  ///
+  /// Started by [beginFields].
   void endTopLevelFields(
       Token externalToken,
       Token staticToken,
@@ -1291,6 +1329,12 @@ class Listener implements UnescapeErrorListener {
     logEvent("BinaryExpression");
   }
 
+  /// Called for `.`, `?.` and `..`.
+  void handleEndingBinaryExpression(Token token) {
+    // TODO(jensj): push implementation into subclasses
+    endBinaryExpression(token);
+  }
+
   /// Called when the parser encounters a `?` operator and begins parsing a
   /// conditional expression.
   void beginConditionalExpression(Token question) {}
@@ -1311,24 +1355,30 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called before parsing a "for" control flow list, set, or map entry.
+  /// Ended by either [endForControlFlow] or [endForInControlFlow].
   void beginForControlFlow(Token awaitToken, Token forToken) {}
 
   /// Called after parsing a "for" control flow list, set, or map entry.
+  /// One of the two possible corresponding end events for
+  /// [beginForControlFlow].
   void endForControlFlow(Token token) {
     logEvent('endForControlFlow');
   }
 
   /// Called after parsing a "for-in" control flow list, set, or map entry.
+  /// One of the two possible corresponding end events for
+  /// [beginForControlFlow].
   void endForInControlFlow(Token token) {
     logEvent('endForInControlFlow');
   }
 
   /// Called before parsing an `if` control flow list, set, or map entry.
+  /// Ended by either [endIfControlFlow] or [endIfElseControlFlow].
   void beginIfControlFlow(Token ifToken) {}
 
   /// Called before parsing the `then` portion of an `if` control flow list,
   /// set, or map entry.
-  void beginThenControlFlow(Token token) {}
+  void handleThenControlFlow(Token token) {}
 
   /// Called before parsing the `else` portion of an `if` control flow list,
   /// set, or map entry.
@@ -1340,6 +1390,8 @@ class Listener implements UnescapeErrorListener {
   /// Substructures:
   /// - if conditional expression
   /// - expression
+  /// One of the two possible corresponding end events for
+  /// [beginIfControlFlow].
   void endIfControlFlow(Token token) {
     logEvent("endIfControlFlow");
   }
@@ -1349,6 +1401,8 @@ class Listener implements UnescapeErrorListener {
   /// - if conditional expression
   /// - then expression
   /// - else expression
+  /// One of the two possible corresponding end events for
+  /// [beginIfControlFlow].
   void endIfElseControlFlow(Token token) {
     logEvent("endIfElseControlFlow");
   }
@@ -1589,10 +1643,20 @@ class Listener implements UnescapeErrorListener {
     logEvent("handleVoidKeywordWithTypeArguments");
   }
 
+  /// Ended by either [endYieldStatement] or [endInvalidYieldStatement].
   void beginYieldStatement(Token token) {}
 
+  /// One of the two possible corresponding end events for
+  /// [beginYieldStatement].
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     logEvent("YieldStatement");
+  }
+
+  /// One of the two possible corresponding end events for
+  /// [beginYieldStatement].
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    logEvent("InvalidYieldStatement");
   }
 
   /// The parser noticed a syntax error, but was able to recover from it. The

@@ -101,19 +101,6 @@ class ParserTestListener implements Listener {
         '$errorCode)');
   }
 
-  void endInvalidYieldStatement(Token beginToken, Token starToken,
-      Token endToken, MessageCode errorCode) {
-    indent--;
-    seen(beginToken);
-    seen(starToken);
-    seen(endToken);
-    doPrint('endInvalidYieldStatement('
-        '$beginToken, '
-        '$starToken, '
-        '$endToken, '
-        '$errorCode)');
-  }
-
   void beginBlock(Token token, BlockKind blockKind) {
     seen(token);
     doPrint('beginBlock(' '$token, ' '$blockKind)');
@@ -245,6 +232,12 @@ class ParserTestListener implements Listener {
     seen(mixinKeyword);
     seen(endToken);
     doPrint('endMixinDeclaration(' '$mixinKeyword, ' '$endToken)');
+  }
+
+  void beginUncategorizedTopLevelDeclaration(Token token) {
+    seen(token);
+    doPrint('beginUncategorizedTopLevelDeclaration(' '$token)');
+    indent++;
   }
 
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
@@ -1431,10 +1424,10 @@ class ParserTestListener implements Listener {
     doPrint('endRethrowStatement(' '$rethrowToken, ' '$endToken)');
   }
 
-  void endTopLevelDeclaration(Token token) {
+  void endTopLevelDeclaration(Token nextToken) {
     indent--;
-    seen(token);
-    doPrint('endTopLevelDeclaration(' '$token)');
+    seen(nextToken);
+    doPrint('endTopLevelDeclaration(' '$nextToken)');
   }
 
   void handleInvalidTopLevelDeclaration(Token endToken) {
@@ -1445,6 +1438,12 @@ class ParserTestListener implements Listener {
   void beginTopLevelMember(Token token) {
     seen(token);
     doPrint('beginTopLevelMember(' '$token)');
+    indent++;
+  }
+
+  void beginFields(Token lastConsumed) {
+    seen(lastConsumed);
+    doPrint('beginFields(' '$lastConsumed)');
     indent++;
   }
 
@@ -1698,11 +1697,18 @@ class ParserTestListener implements Listener {
   void beginBinaryExpression(Token token) {
     seen(token);
     doPrint('beginBinaryExpression(' '$token)');
+    indent++;
   }
 
   void endBinaryExpression(Token token) {
+    indent--;
     seen(token);
     doPrint('endBinaryExpression(' '$token)');
+  }
+
+  void handleEndingBinaryExpression(Token token) {
+    seen(token);
+    doPrint('handleEndingBinaryExpression(' '$token)');
   }
 
   void beginConditionalExpression(Token question) {
@@ -1759,10 +1765,9 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
-  void beginThenControlFlow(Token token) {
+  void handleThenControlFlow(Token token) {
     seen(token);
-    doPrint('beginThenControlFlow(' '$token)');
-    indent++;
+    doPrint('handleThenControlFlow(' '$token)');
   }
 
   void handleElseControlFlow(Token elseToken) {
@@ -2111,6 +2116,19 @@ class ParserTestListener implements Listener {
     seen(starToken);
     seen(endToken);
     doPrint('endYieldStatement(' '$yieldToken, ' '$starToken, ' '$endToken)');
+  }
+
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    indent--;
+    seen(beginToken);
+    seen(starToken);
+    seen(endToken);
+    doPrint('endInvalidYieldStatement('
+        '$beginToken, '
+        '$starToken, '
+        '$endToken, '
+        '$errorCode)');
   }
 
   void handleRecoverableError(
