@@ -7,6 +7,8 @@
 // https://github.com/dart-lang/sdk/blob/master/pkg/js/lib/js.dart
 library _js_annotations;
 
+export 'dart:js' show allowInterop, allowInteropCaptureThis;
+
 class JS {
   final String? name;
   const JS([this.name]);
