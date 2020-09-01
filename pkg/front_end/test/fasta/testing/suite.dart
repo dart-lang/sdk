@@ -162,6 +162,7 @@ const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _experimentalFlags;
   final bool forceLateLowering;
+  final bool forceStaticFieldLowering;
   final bool forceNoExplicitGetterCalls;
   final bool nnbdAgnosticMode;
   final String target;
@@ -169,12 +170,14 @@ class FolderOptions {
 
   FolderOptions(this._experimentalFlags,
       {this.forceLateLowering: false,
+      this.forceStaticFieldLowering: false,
       this.forceNoExplicitGetterCalls: false,
       this.nnbdAgnosticMode: false,
       this.target: "vm",
       // can be null
       this.overwriteCurrentSdkVersion})
       : assert(forceLateLowering != null),
+        assert(forceStaticFieldLowering != null),
         assert(forceNoExplicitGetterCalls != null),
         assert(nnbdAgnosticMode != null),
         assert(target != null);
@@ -314,12 +317,14 @@ class FastaContext extends ChainContext with MatchContext {
     FolderOptions folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
       bool forceLateLowering = false;
+      bool forceStaticFieldLowering = false;
       bool forceNoExplicitGetterCalls = false;
       bool nnbdAgnosticMode = false;
       String target = "vm";
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
             forceLateLowering: forceLateLowering,
+            forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
             nnbdAgnosticMode: nnbdAgnosticMode,
             target: target);
@@ -339,6 +344,8 @@ class FastaContext extends ChainContext with MatchContext {
                   line.substring(overwriteCurrentSdkVersion.length);
             } else if (line.startsWith(Flags.forceLateLowering)) {
               forceLateLowering = true;
+            } else if (line.startsWith(Flags.forceStaticFieldLowering)) {
+              forceStaticFieldLowering = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
               forceNoExplicitGetterCalls = true;
             } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
@@ -360,6 +367,7 @@ class FastaContext extends ChainContext with MatchContext {
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
               forceLateLowering: forceLateLowering,
+              forceStaticFieldLowering: forceStaticFieldLowering,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
               nnbdAgnosticMode: nnbdAgnosticMode,
               target: target,
@@ -831,6 +839,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         await context.computeUriTranslator(description);
     TargetFlags targetFlags = new TargetFlags(
       forceLateLoweringForTesting: testOptions.forceLateLowering,
+      forceStaticFieldLoweringForTesting: testOptions.forceStaticFieldLowering,
       forceNoExplicitGetterCallsForTesting:
           testOptions.forceNoExplicitGetterCalls,
       enableNullSafety: !context.weak,

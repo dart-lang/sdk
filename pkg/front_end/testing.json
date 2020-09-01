@@ -78,7 +78,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -99,7 +100,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -120,7 +122,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {
@@ -141,7 +144,8 @@
         "/testcases/expression/",
         "/testcases/general_nnbd_opt_out/",
         "/testcases/nnbd_mixed/",
-        "/testcases/nonfunction_type_aliases/"
+        "/testcases/nonfunction_type_aliases/",
+        "/testcases/static_field_lowering/"
       ]
     },
     {

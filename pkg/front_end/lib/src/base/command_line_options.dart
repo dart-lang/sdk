@@ -9,6 +9,8 @@ class Flags {
   static const String nnbdWeakMode = "--nnbd-weak";
 
   static const String forceLateLowering = "--force-late-lowering";
+  static const String forceStaticFieldLowering =
+      "--force-static-field-lowering";
   static const String forceNoExplicitGetterCalls =
       "--force-no-explicit-getter-calls";
 
