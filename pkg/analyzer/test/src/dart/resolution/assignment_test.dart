@@ -500,7 +500,7 @@ void f(num x, int y) {
       writeElement: null,
       writeType: 'dynamic',
       operatorElement: null,
-      type: 'num',
+      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
@@ -594,7 +594,7 @@ void f(num x, int y) {
       writeElement: null,
       writeType: 'dynamic',
       operatorElement: null,
-      type: 'num',
+      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
@@ -1483,6 +1483,43 @@ void f() {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_simpleIdentifier_importPrefix_hasSuperSetter_simple() async {
+    await assertErrorsInCode('''
+// ignore:unused_import
+import 'dart:math' as x;
+
+class A {
+  var x;
+}
+
+class B extends A {
+  void f() {
+    x = 2;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 109, 1),
+    ]);
+
+    var assignment = findNode.assignment('x = 2');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.prefix('x'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.prefix('x'),
+      type: null,
+    );
+  }
+
   test_simpleIdentifier_importPrefix_simple() async {
     await assertErrorsInCode('''
 import 'dart:math' as x;
@@ -1671,6 +1708,42 @@ void f(num$question x) {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_simpleIdentifier_parameter_compound_ifNull2() async {
+    var question = typeToStringWithNullability ? '?' : '';
+    var errorOffset = typeToStringWithNullability ? 77 : 76;
+    await assertErrorsInCode('''
+class A {}
+class B extends A {}
+class C extends A {}
+
+void f(B$question x) {
+  x ??= C();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, errorOffset, 3),
+    ]);
+
+    var assignment = findNode.assignment('x ??=');
+    assertAssignment(
+      assignment,
+      readElement: findElement.parameter('x'),
+      readType: 'B$question',
+      writeElement: findElement.parameter('x'),
+      writeType: 'B$question',
+      operatorElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.parameter('x'),
+      writeElement: findElement.parameter('x'),
+      type: 'B$question',
+    );
+
+    assertType(assignment.rightHandSide, 'C');
+  }
+
   test_simpleIdentifier_parameter_compound_ifNull_notAssignableType() async {
     var question = typeToStringWithNullability ? '?' : '';
     var code = '''
@@ -1773,6 +1846,41 @@ void f(num x) {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_simpleIdentifier_parameter_simple_context() async {
+    await assertNoErrorsInCode(r'''
+void f(Object x) {
+  if (x is double) {
+    x = 1;
+  }
+}
+''');
+
+    var expectedType = typeStringByNullability(
+      nullable: 'double',
+      legacy: 'int',
+    );
+
+    var assignment = findNode.assignment('x = 1');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.parameter('x'),
+      writeType: 'Object',
+      operatorElement: null,
+      type: expectedType,
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.parameter('x'),
+      type: 'Object',
+    );
+
+    assertType(assignment.rightHandSide, expectedType);
+  }
+
   test_simpleIdentifier_parameter_simple_notAssignableType() async {
     await assertErrorsInCode(r'''
 void f(int x) {
@@ -1833,6 +1941,40 @@ void f(final int x) {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_simpleIdentifier_superSetter_simple() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set x(num _) {}
+}
+
+class B extends A {
+  void f() {
+    x = 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x = 2');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x'),
+      writeType: 'num',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.setter('x'),
+      type: null,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
   test_simpleIdentifier_synthetic_simple() async {
     await assertErrorsInCode('''
 void f(int y) {
@@ -1866,6 +2008,42 @@ void f(int y) {
       writeElement: null,
       type: 'int',
     );
+  }
+
+  test_simpleIdentifier_thisGetter_superGetter_simple() async {
+    await assertNoErrorsInCode('''
+class A {
+  int x = 0;
+}
+
+class B extends A {
+  int get x => 1;
+
+  void f() {
+    x = 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x = 2');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.setter('x', of: 'A'),
+      writeType: 'int',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.setter('x', of: 'A'),
+      type: null,
+    );
+
+    assertType(assignment.rightHandSide, 'int');
   }
 
   test_simpleIdentifier_thisGetter_thisSetter_compound() async {
@@ -1904,6 +2082,49 @@ class C {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_simpleIdentifier_thisGetter_thisSetter_fromMixins_compound() async {
+    await assertNoErrorsInCode('''
+class M1 {
+  int get x => 0;
+  set x(num _) {}
+}
+
+class M2 {
+  int get x => 0;
+  set x(num _) {}
+}
+
+class C with M1, M2 {
+  void f() {
+    x += 2;
+  }
+}
+''');
+
+    var assignment = findNode.assignment('x += 2');
+    assertAssignment(
+      assignment,
+      readElement: findElement.getter('x', of: 'M2'),
+      readType: 'int',
+      writeElement: findElement.setter('x', of: 'M2'),
+      writeType: 'num',
+      operatorElement: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.getter('x', of: 'M2'),
+      writeElement: findElement.setter('x', of: 'M2'),
+      type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
   test_simpleIdentifier_topGetter_topSetter_compound() async {
     await assertNoErrorsInCode('''
 int get x => 0;
@@ -1936,6 +2157,44 @@ void f() {
     );
 
     assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_topGetter_topSetter_compound_ifNull2() async {
+    var question = typeToStringWithNullability ? '?' : '';
+    await assertErrorsInCode('''
+void f() {
+  x ??= C();
+}
+
+class A {}
+class B extends A {}
+class C extends A {}
+
+B$question get x => B();
+set x(B$question _) {}
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3),
+    ]);
+
+    var assignment = findNode.assignment('x ??=');
+    assertAssignment(
+      assignment,
+      readElement: findElement.topGet('x'),
+      readType: 'B$question',
+      writeElement: findElement.topSet('x'),
+      writeType: 'B$question',
+      operatorElement: null,
+      type: 'A',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: findElement.topGet('x'),
+      writeElement: findElement.topSet('x'),
+      type: 'B$question',
+    );
+
+    assertType(assignment.rightHandSide, 'C');
   }
 
   test_simpleIdentifier_topGetter_topSetter_fromClass_compound() async {
@@ -2075,13 +2334,12 @@ void f() {
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 17, 2),
     ]);
 
     var assignment = findNode.assignment('int += 3');
     assertAssignment(
       assignment,
-      readElement: null,
+      readElement: intElement,
       readType: 'dynamic',
       writeElement: intElement,
       writeType: 'dynamic',
@@ -2093,7 +2351,7 @@ void f() {
       assignment.leftHandSide,
       readElement: null,
       writeElement: intElement,
-      type: 'Type',
+      type: 'dynamic',
     );
 
     assertType(assignment.rightHandSide, 'int');

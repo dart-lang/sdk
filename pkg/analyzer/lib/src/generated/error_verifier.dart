@@ -311,7 +311,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Expression rhs = node.rightHandSide;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForInvalidAssignment(lhs, rhs);
+      // Already handled in the assignment resolver.
+      if (lhs is! SimpleIdentifier) {
+        _checkForInvalidAssignment(lhs, rhs);
+      }
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
@@ -1625,6 +1628,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
   /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
+    // Already handled in the assignment resolver.
+    if (expression is SimpleIdentifier &&
+        expression.parent is AssignmentExpression) {
+      return;
+    }
+
     // prepare element
     Element element;
     AstNode highlightedNode = expression;

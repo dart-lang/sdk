@@ -33,6 +33,7 @@ import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
@@ -52,6 +53,7 @@ import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:meta/meta.dart';
@@ -206,6 +208,9 @@ class ResolverVisitor extends ScopedVisitor {
   /// The mixin declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a mixin.
   MixinDeclaration _enclosingMixinDeclaration;
+
+  /// The helper for tracking if the current location has access to `this`.
+  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
 
   InferenceContext inferenceContext;
 
@@ -512,6 +517,16 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
+  /// Return the result of lexical lookup for the [node], not `null`.
+  ///
+  /// Implements `16.35 Lexical Lookup` from the language specification.
+  LexicalLookupResult lexicalLookup({
+    @required SimpleIdentifier node,
+    @required bool setter,
+  }) {
+    return LexicalLookup(this).perform(node: node, setter: setter);
+  }
+
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
   void nullShortingTermination(Expression node, {bool discardType = false}) {
@@ -803,8 +818,10 @@ class ResolverVisitor extends ScopedVisitor {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     try {
       inferenceContext.pushFunctionBodyContext(node);
+      _thisAccessTracker.enterFunctionBody(node);
       super.visitBlockFunctionBody(node);
     } finally {
+      _thisAccessTracker.exitFunctionBody(node);
       inferenceContext.popFunctionBodyContext(node);
     }
   }
@@ -1159,12 +1176,14 @@ class ResolverVisitor extends ScopedVisitor {
     if (resolveOnlyCommentInFunctionBody) {
       return;
     }
+
     try {
       inferenceContext.pushFunctionBodyContext(node);
       InferenceContext.setType(
         node.expression,
         inferenceContext.bodyContext.contextType,
       );
+      _thisAccessTracker.enterFunctionBody(node);
 
       super.visitExpressionFunctionBody(node);
 
@@ -1172,6 +1191,7 @@ class ResolverVisitor extends ScopedVisitor {
 
       inferenceContext.bodyContext.addReturnExpression(node.expression);
     } finally {
+      _thisAccessTracker.exitFunctionBody(node);
       inferenceContext.popFunctionBodyContext(node);
     }
   }
@@ -1198,6 +1218,16 @@ class ResolverVisitor extends ScopedVisitor {
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _thisAccessTracker.enterFieldDeclaration(node);
+    try {
+      super.visitFieldDeclaration(node);
+    } finally {
+      _thisAccessTracker.exitFieldDeclaration(node);
+    }
   }
 
   @override

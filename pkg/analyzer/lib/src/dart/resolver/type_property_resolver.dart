@@ -51,6 +51,7 @@ class TypePropertyResolver {
     @required AstNode receiverErrorNode,
     @required Expression nameErrorNode,
   }) {
+    assert(receiverType != null);
     _receiver = receiver;
     _name = name;
     _nameErrorNode = nameErrorNode;

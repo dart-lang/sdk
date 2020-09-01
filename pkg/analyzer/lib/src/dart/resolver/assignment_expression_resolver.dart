@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -62,16 +63,9 @@ class AssignmentExpressionResolver {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
-    // Case `id = e`.
-    // Consider an assignment of the form `id = e`, where `id` is an identifier.
     if (left is SimpleIdentifier) {
-      var leftLookup = _resolver.nameScope.lookup2(left.name);
-      // When the lexical lookup yields a local variable `v`.
-      var leftGetter = leftLookup.getter;
-      if (leftGetter is VariableElement) {
-        _resolve_SimpleIdentifier_LocalVariable(node, left, leftGetter, right);
-        return;
-      }
+      _resolve_SimpleIdentifier(node, left);
+      return;
     }
 
     left?.accept(_resolver);
@@ -87,7 +81,8 @@ class AssignmentExpressionResolver {
       _resolver.setWriteElement(left, null);
     }
 
-    _resolve1(node);
+    _resolve1(node, getReadType(left));
+
     _setRhsContext(node, left.staticType, operator, right);
 
     _flowAnalysis?.assignmentExpression(node);
@@ -103,18 +98,6 @@ class AssignmentExpressionResolver {
     _resolve2(node);
 
     _flowAnalysis?.assignmentExpression_afterRight(node);
-  }
-
-  /// Set the static type of [node] to be the least upper bound of the static
-  /// types of subexpressions [expr1] and [expr2].
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2) {
-    DartType staticType1 = getReadType(expr1);
-    DartType staticType2 = getReadType(expr2);
-
-    _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }
 
   /// Set the static type of [node] to be the least upper bound of the static
@@ -136,6 +119,55 @@ class AssignmentExpressionResolver {
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
     _inferenceHelper.recordStaticType(node, staticType);
+  }
+
+  void _checkForInvalidAssignment(
+    DartType writeType,
+    Expression right,
+    DartType rightType,
+  ) {
+    // TODO(scheglov) should not happen
+    if (writeType == null) {
+      return;
+    }
+
+    if (!writeType.isVoid && _checkForUseOfVoidResult(right)) {
+      return;
+    }
+
+    if (_typeSystem.isAssignableTo2(rightType, writeType)) {
+      return;
+    }
+
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      right,
+      [rightType, writeType],
+    );
+  }
+
+  /// Check for situations where the result of a method or function is used,
+  /// when it returns 'void'. Or, in rare cases, when other types of expressions
+  /// are void, such as identifiers.
+  ///
+  /// See [StaticWarningCode.USE_OF_VOID_RESULT].
+  /// TODO(scheglov) this is duplicate
+  bool _checkForUseOfVoidResult(Expression expression) {
+    if (expression == null ||
+        !identical(expression.staticType, VoidTypeImpl.instance)) {
+      return false;
+    }
+
+    if (expression is MethodInvocation) {
+      SimpleIdentifier methodName = expression.methodName;
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, methodName, []);
+    } else {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, expression, []);
+    }
+
+    return true;
   }
 
   /// Return the non-nullable variant of the [type] if null safety is enabled,
@@ -175,13 +207,104 @@ class AssignmentExpressionResolver {
     }
   }
 
-  void _resolve1(AssignmentExpressionImpl node) {
+  void _reportNotSetter(
+    Expression left,
+    Element requested,
+    Element recovery,
+  ) {
+    if (requested != null) {
+      if (requested is VariableElement) {
+        if (requested.isConst) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+            left,
+          );
+        } else if (requested.isFinal) {
+          if (_isNonNullableByDefault) {
+            // Handled during resolution, with flow analysis.
+          } else {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+              left,
+              [requested.name],
+            );
+          }
+        }
+      }
+      return;
+    }
+
+    if (recovery is ClassElement ||
+        recovery is DynamicElementImpl ||
+        recovery is FunctionTypeAliasElement ||
+        recovery is TypeParameterElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
+        left,
+      );
+    } else if (recovery is FunctionElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
+        left,
+      );
+    } else if (recovery is MethodElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
+        left,
+      );
+    } else if (recovery is PrefixElement) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+        left,
+        [recovery.name],
+      );
+    } else if (recovery is PropertyAccessorElement && recovery.isGetter) {
+      var variable = recovery.variable;
+      if (variable.isConst) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          left,
+        );
+      } else if (variable.isFinal && !variable.isLate) {
+        if (variable is FieldElement) {
+          if (variable.setter == null && variable.isSynthetic) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+              left,
+              [variable.name, variable.enclosingElement.displayName],
+            );
+          } else {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              left,
+              [variable.name],
+            );
+          }
+          return;
+        }
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+          left,
+          [variable.name],
+        );
+      }
+    } else if (recovery is MultiplyDefinedElementImpl) {
+      // Will be reported in ErrorVerifier.
+    } else {
+      if (left is SimpleIdentifier && !left.isSynthetic) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          left,
+          [left.name],
+        );
+      }
+    }
+  }
+
+  void _resolve1(AssignmentExpressionImpl node, DartType leftType) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     Expression leftHandSide = node.leftHandSide;
-
-    var leftType = getReadType(leftHandSide);
-    leftType = _resolveTypeParameter(leftType);
 
     if (identical(leftType, NeverTypeImpl.instance)) {
       return;
@@ -241,13 +364,18 @@ class AssignmentExpressionResolver {
         // promoting the LHS/ to non-null (as we know its value will not be used
         // if null)
         _analyzeLeastUpperBoundTypes(
-            node,
-            _typeSystem.promoteToNonNull(getReadType(node.leftHandSide)),
-            getReadType(node.rightHandSide));
+          node,
+          _typeSystem.promoteToNonNull(node.readType),
+          getReadType(node.rightHandSide),
+        );
       } else {
         // The static type of a compound assignment using ??= before NNBD is the
         // least upper bound of the static types of the LHS and RHS.
-        _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide);
+        _analyzeLeastUpperBoundTypes(
+          node,
+          node.readType,
+          node.rightHandSide.staticType,
+        );
       }
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
@@ -285,30 +413,56 @@ class AssignmentExpressionResolver {
     _resolver.nullShortingTermination(node);
   }
 
-  void _resolve_SimpleIdentifier_LocalVariable(
+  void _resolve_SimpleIdentifier(
     AssignmentExpressionImpl node,
     SimpleIdentifier left,
-    VariableElement leftElement,
-    Expression right,
   ) {
+    var right = node.rightHandSide;
     var operator = node.operator.type;
 
-    left.staticElement = leftElement;
     if (operator != TokenType.EQ) {
-      _resolver.setReadElement(left, leftElement);
+      var readLookup = _resolver.lexicalLookup(node: left, setter: false);
+      var readElement = readLookup.requested;
+      _resolver.setReadElement(left, readElement);
     }
-    _resolver.setWriteElement(left, leftElement);
 
-    var leftType = _resolver.localVariableTypeProvider.getType(left);
-    // TODO(scheglov) Set the type only when `operator != TokenType.EQ`.
-    _recordStaticType(left, leftType);
+    var writeLookup = _resolver.lexicalLookup(node: left, setter: true);
+    var writeElement = writeLookup.requested ?? writeLookup.recovery;
+    _resolver.setWriteElement(left, writeElement);
+    _reportNotSetter(left, writeLookup.requested, writeLookup.recovery);
+
+    // TODO(scheglov) This is mostly necessary for backward compatibility.
+    // Although we also use `staticElement` for `getType(left)` below.
+    {
+      if (operator != TokenType.EQ) {
+        var readElement = node.readElement;
+        if (readElement is PropertyAccessorElement) {
+          left.auxiliaryElements = AuxiliaryElements(readElement);
+        }
+      }
+      left.staticElement = node.writeElement;
+      if (node.readElement is VariableElement) {
+        var leftType = _resolver.localVariableTypeProvider.getType(left);
+        _recordStaticType(left, leftType);
+      } else {
+        _recordStaticType(left, node.writeType);
+      }
+    }
 
     if (operator != TokenType.EQ) {
+      // TODO(scheglov) Change this method to work with elements.
       _resolver.checkReadOfNotAssignedLocalVariable(left);
     }
 
-    _resolve1(node);
-    _setRhsContext(node, leftType, operator, right);
+    _resolve1(node, node.readType);
+
+    {
+      var leftType = node.writeType;
+      if (node.writeElement is VariableElement) {
+        leftType = _resolver.localVariableTypeProvider.getType(left);
+      }
+      _setRhsContext(node, leftType, operator, right);
+    }
 
     var flow = _flowAnalysis?.flow;
     if (flow != null && operator == TokenType.QUESTION_QUESTION_EQ) {
@@ -320,20 +474,25 @@ class AssignmentExpressionResolver {
 
     _resolve2(node);
 
+    // TODO(scheglov) inline into resolve2().
+    DartType assignedType;
+    if (operator == TokenType.EQ ||
+        operator == TokenType.QUESTION_QUESTION_EQ) {
+      assignedType = right.staticType;
+    } else {
+      assignedType = node.staticType;
+    }
+    _checkForInvalidAssignment(node.writeType, right, assignedType);
+
     if (flow != null) {
-      flow.write(leftElement, node.staticType);
+      if (writeElement is VariableElement) {
+        flow.write(writeElement, node.staticType);
+      }
       if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
         flow.ifNullExpression_end();
       }
     }
   }
-
-  /// If the given [type] is a type parameter, resolve it to the type that
-  /// should be used when looking up members. Otherwise, return the original
-  /// type.
-  // TODO(scheglov) this is duplicate
-  DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
 
   void _setRhsContext(AssignmentExpressionImpl node, DartType leftType,
       TokenType operator, Expression right) {
