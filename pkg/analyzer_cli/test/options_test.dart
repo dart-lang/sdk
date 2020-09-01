@@ -72,7 +72,6 @@ void main() {
         expect(options.showSdkWarnings, isFalse);
         expect(options.sourceFiles, equals(['foo.dart']));
         expect(options.warningsAreFatal, isFalse);
-        expect(options.strongMode, isTrue);
         expect(options.lintsAreFatal, isFalse);
         expect(options.trainSnapshot, isFalse);
       });
