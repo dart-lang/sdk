@@ -166,6 +166,8 @@ import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
 
+import 'source_type_alias_builder.dart';
+
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
@@ -2383,7 +2385,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     Typedef referenceFrom = referencesFromIndexed?.lookupTypedef(name);
-    TypeAliasBuilder typedefBuilder = new TypeAliasBuilder(
+    TypeAliasBuilder typedefBuilder = new SourceTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset,
         referenceFrom: referenceFrom);
     loader.target.metadataCollector
@@ -2481,7 +2483,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           library.addMember(member);
         }
       });
-    } else if (declaration is TypeAliasBuilder) {
+    } else if (declaration is SourceTypeAliasBuilder) {
       Typedef typedef = declaration.build(this);
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addTypedef(typedef);
