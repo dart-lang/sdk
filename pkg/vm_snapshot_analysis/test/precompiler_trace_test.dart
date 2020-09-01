@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:vm_snapshot_analysis/precompiler_trace.dart';
+import 'package:vm_snapshot_analysis/program_info.dart';
 
 import 'utils.dart';
 
@@ -97,6 +98,19 @@ void main() async {
               'package:input/input.dart::B.[tear-off-extractor] get:tornOff',
               'package:input/input.dart::A.[tear-off-extractor] get:tornOff',
             ]));
+      });
+    });
+
+    test('collapse-by-package', () async {
+      await withFlag(
+          'collapse-by-package', testSource, '--trace_precompiler_to',
+          (json) async {
+        final jsonRaw = await loadJson(File(json));
+        final callGraph = loadTrace(jsonRaw).collapse(NodeType.packageNode);
+
+        // Collapsing by package should not collapse dart:* libraries into root
+        // node and create predecessors for the root node.
+        expect(callGraph.root.pred, isEmpty);
       });
     });
   });
