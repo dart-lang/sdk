@@ -673,7 +673,10 @@ class OutlineBuilder extends StackListenerImpl {
         supertype = supertypeConstraints.first;
       } else {
         supertype = new MixinApplicationBuilder(
-            supertypeConstraints.first, supertypeConstraints.skip(1).toList());
+            supertypeConstraints.first,
+            supertypeConstraints.skip(1).toList(),
+            supertypeConstraints.first.fileUri,
+            supertypeConstraints.first.charOffset);
       }
     }
 
@@ -761,7 +764,9 @@ class OutlineBuilder extends StackListenerImpl {
     String documentationComment = getDocumentationComment(extensionKeyword);
     Object onType = pop();
     if (onType is ParserRecovery) {
-      onType = new FixedTypeBuilder(const InvalidType());
+      ParserRecovery parserRecovery = onType;
+      onType = new FixedTypeBuilder(
+          const InvalidType(), uri, parserRecovery.charOffset);
     }
     List<TypeVariableBuilder> typeVariables = pop(NullValue.TypeVariables);
     int nameOffset = pop();
@@ -821,6 +826,11 @@ class OutlineBuilder extends StackListenerImpl {
         // This isn't abstract as we'll add an error-recovery node in
         // [BodyBuilder.finishFunction].
         isAbstract = false;
+      }
+      if (returnType != null && !returnType.isVoidType) {
+        addProblem(messageNonVoidReturnSetter, beginToken.charOffset, noLength);
+        // Use implicit void as recovery.
+        returnType = null;
       }
     }
     int modifiers = pop();
@@ -1067,6 +1077,20 @@ class OutlineBuilder extends StackListenerImpl {
         // [BodyBuilder.finishFunction].
         isAbstract = false;
       }
+      if (returnType != null && !returnType.isVoidType) {
+        addProblem(messageNonVoidReturnSetter,
+            returnType.charOffset ?? beginToken.charOffset, noLength);
+        // Use implicit void as recovery.
+        returnType = null;
+      }
+    }
+    if (nameOrOperator == Operator.indexSet &&
+        returnType != null &&
+        !returnType.isVoidType) {
+      addProblem(messageNonVoidReturnOperator,
+          returnType.charOffset ?? beginToken.offset, noLength);
+      // Use implicit void as recovery.
+      returnType = null;
     }
     int modifiers = Modifier.toMask(pop());
     modifiers = Modifier.addAbstractMask(modifiers, isAbstract: isAbstract);
@@ -1148,9 +1172,8 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers &= ~constMask;
       }
       if (returnType != null) {
-        // TODO(danrubel): Report this error on the return type
-        handleRecoverableError(
-            messageConstructorWithReturnType, beginToken, beginToken);
+        addProblem(messageConstructorWithReturnType,
+            returnType.charOffset ?? beginToken.offset, noLength);
         returnType = null;
       }
       final int startCharOffset =

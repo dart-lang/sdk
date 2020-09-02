@@ -6,12 +6,13 @@ library fasta.void_type_builder;
 
 import 'package:kernel/ast.dart' show DartType;
 
-import 'builtin_type_builder.dart';
+import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
 
-class VoidTypeBuilder extends BuiltinTypeBuilder {
-  VoidTypeBuilder(DartType type, LibraryBuilder compilationUnit, int charOffset)
+class VoidTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
+  VoidTypeDeclarationBuilder(
+      DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("void", type, compilationUnit, charOffset);
 
-  String get debugName => "VoidTypeBuilder";
+  String get debugName => "VoidTypeDeclarationBuilder";
 }

@@ -67,7 +67,7 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 import '../builder/variable_builder.dart';
-import '../builder/void_type_builder.dart';
+import '../builder/void_type_declaration_builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -3248,8 +3248,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new NamedTypeBuilder(name.name,
-          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
+      result = new NamedTypeBuilder(
+          name.name,
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+          /* arguments = */ null,
+          name.fileUri,
+          name.charOffset)
         ..bind(new InvalidTypeDeclarationBuilder(
             name.name,
             name.message.withLocation(
@@ -3318,7 +3322,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(new UnresolvedType(
         new NamedTypeBuilder(
             "void", const NullabilityBuilder.nullable(), null, uri, offset)
-          ..bind(new VoidTypeBuilder(const VoidType(), libraryBuilder, offset)),
+          ..bind(new VoidTypeDeclarationBuilder(
+              const VoidType(), libraryBuilder, offset)),
         offset,
         uri));
   }
@@ -6036,7 +6041,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (message == null) return unresolved;
       return new UnresolvedType(
           new NamedTypeBuilder(
-              typeParameter.name, builder.nullabilityBuilder, null)
+              typeParameter.name,
+              builder.nullabilityBuilder,
+              /* arguments = */ null,
+              unresolved.fileUri,
+              unresolved.charOffset)
             ..bind(
                 new InvalidTypeDeclarationBuilder(typeParameter.name, message)),
           unresolved.charOffset,
@@ -6508,7 +6517,7 @@ class FormalParameters {
       [List<TypeVariableBuilder> typeParameters]) {
     return new UnresolvedType(
         new FunctionTypeBuilder(returnType?.builder, typeParameters, parameters,
-            nullabilityBuilder),
+            nullabilityBuilder, uri, charOffset),
         charOffset,
         uri);
   }

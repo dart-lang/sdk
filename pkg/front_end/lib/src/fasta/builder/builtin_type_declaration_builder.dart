@@ -1,22 +1,24 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.never_type_builder;
+library fasta.builtin_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'builtin_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
-class NeverTypeBuilder extends BuiltinTypeBuilder {
-  NeverTypeBuilder(
-      DartType type, LibraryBuilder compilationUnit, int charOffset)
-      : super("Never", type, compilationUnit, charOffset);
+import 'type_declaration_builder.dart';
 
-  String get debugName => "NeverTypeBuilder";
+abstract class BuiltinTypeDeclarationBuilder
+    extends TypeDeclarationBuilderImpl {
+  final DartType type;
+
+  BuiltinTypeDeclarationBuilder(
+      String name, this.type, LibraryBuilder compilationUnit, int charOffset)
+      : super(null, 0, name, compilationUnit, charOffset);
 
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
@@ -28,4 +30,6 @@ class NeverTypeBuilder extends BuiltinTypeBuilder {
       Nullability nullability, List<DartType> arguments) {
     return type.withDeclaredNullability(nullability);
   }
+
+  String get debugName => "BuiltinTypeDeclarationBuilder";
 }

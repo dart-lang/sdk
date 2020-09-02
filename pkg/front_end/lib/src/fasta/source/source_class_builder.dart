@@ -308,7 +308,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     if (message != null) {
       return new NamedTypeBuilder(
-          supertype.name, const NullabilityBuilder.omitted(), null)
+          supertype.name,
+          const NullabilityBuilder.omitted(),
+          /* arguments = */ null,
+          fileUri,
+          charOffset)
         ..bind(new InvalidTypeDeclarationBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }

@@ -4240,3 +4240,19 @@ CannotAssignToTypeLiteral:
     main() {
       Object = String;
     }
+
+NonVoidReturnOperator:
+  template: "The return type of the operator []= must be 'void'."
+  tip: "Try changing the return type to 'void'."
+  analyzerCode: NON_VOID_RETURN_FOR_OPERATOR
+  script:
+    - class Class { int operator[]=(a, b) {} }
+    - class Class { dynamic operator[]=(a, b) {} }
+
+NonVoidReturnSetter:
+  template: "The return type of the setter must be 'void' or absent."
+  tip: "Try removing the return type, or define a method rather than a setter."
+  analyzerCode: NON_VOID_RETURN_FOR_SETTER
+  script:
+    - int set setter(_) {}
+    - dynamic set setter(_) {}
