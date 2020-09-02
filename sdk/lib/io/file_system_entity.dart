@@ -596,7 +596,7 @@ abstract class FileSystemEntity {
   /// the path of [entity], if it has a drive letter (starts with `[a-zA-z]:`),
   /// or `-1` if it has no drive letter.
   static int _windowsDriveLetter(String path) {
-    if (!path.startsWith(':', 1)) return -1;
+    if (path.isEmpty || !path.startsWith(':', 1)) return -1;
     var first = path.codeUnitAt(0) & ~0x20;
     if (first >= 0x41 && first <= 0x5b) return first;
     return -1;
@@ -640,7 +640,8 @@ abstract class FileSystemEntity {
       if (entityDrive != _windowsDriveLetter(current)) {
         // Need to resolve relative to current directory of the drive.
         // Windows remembers the last CWD of each drive.
-        // We currently don't have that information, so we assume the root of that drive.
+        // We currently don't have that information,
+        // so we assume the root of that drive.
         return '${path[0]}:\\$path';
       }
 
