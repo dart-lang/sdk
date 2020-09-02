@@ -237,6 +237,49 @@ extension E on int {
 @reflectiveTest
 class ConstantResolutionWithNullSafetyTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_constructor_nullSafe_fromLegacy_super() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  const A(List<Object> a);
+}
+
+class B extends A {
+  const B(List<Object> a) : super(a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+const a = <dynamic>[];
+const b = B(a);
+''');
+
+    var b = findElement.topVar('b');
+    assertType(b.computeConstantValue().type, 'B*');
+  }
+
+  test_constructor_nullSafe_fromLegacy_this() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  const A(List<Object> a) : this(a);
+  const A.second(List<Object> a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+const a = <dynamic>[];
+const b = A(a);
+''');
+
+    var b = findElement.topVar('b');
+    assertType(b.computeConstantValue().type, 'A*');
+  }
+
   test_context_eliminateTypeVariables() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
