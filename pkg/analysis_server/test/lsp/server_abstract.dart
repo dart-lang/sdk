@@ -896,10 +896,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     ClientCapabilitiesWindow windowCapabilities,
     Map<String, Object> initializationOptions,
     bool throwOnFailure = true,
+    bool allowEmptyRootUri = false,
   }) async {
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
-    if (rootPath == null && rootUri == null && workspaceFolders == null) {
+    if (rootPath == null &&
+        rootUri == null &&
+        workspaceFolders == null &&
+        !allowEmptyRootUri) {
       rootUri = Uri.file(projectFolderPath);
     }
     final request = makeRequest(

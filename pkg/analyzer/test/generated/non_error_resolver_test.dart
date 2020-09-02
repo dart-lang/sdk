@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -127,7 +125,6 @@ class Future {
 }
 ''');
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'lib.dart';
 main() {
   print(Future.zero);
@@ -291,7 +288,6 @@ f(A a) {
 
   test_assert_with_message_await() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 f() async {
   assert(false, await g());
 }

@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -113,6 +115,38 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     final method = myClass.children[2];
     expect(method.name, equals('myMethod'));
     expect(method.kind, equals(SymbolKind.Method));
+  }
+
+  Future<void> test_noAnalysisRoot_openedFile() async {
+    // When there are no analysis roots and we open a file, it should be added as
+    // a temporary root allowing us to service requests for it.
+    const content = 'class MyClass {}';
+    newFile(mainFilePath, content: content);
+    await initialize(allowEmptyRootUri: true);
+    await openFile(mainFileUri, content);
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => throw 'Expected SymbolInformations, got DocumentSymbols',
+      (symbolInfos) => symbolInfos,
+    );
+    expect(symbols, hasLength(1));
+
+    final myClass = symbols[0];
+    expect(myClass.name, equals('MyClass'));
+    expect(myClass.kind, equals(SymbolKind.Class));
+    expect(myClass.containerName, isNull);
+  }
+
+  Future<void> test_noAnalysisRoot_unopenedFile() async {
+    // When there are no analysis roots and we receive requests for a file that
+    // was not opened, we will reject the file due to not being analyzed.
+    const content = 'class MyClass {}';
+    newFile(mainFilePath, content: content);
+    await initialize(allowEmptyRootUri: true);
+
+    await expectLater(getDocumentSymbols(mainFileUri.toString()),
+        throwsA(isResponseError(ServerErrorCodes.InvalidFilePath)));
   }
 
   Future<void> test_nonDartFile() async {

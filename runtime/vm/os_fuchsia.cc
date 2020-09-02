@@ -353,7 +353,7 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
-  if (async_get_default_dispatcher() == NULL) {
+  if (async_get_default_dispatcher() == nullptr) {
     async_loop_create(&kAsyncLoopConfigAttachToCurrentThread, &message_loop);
     async_set_default_dispatcher(async_loop_get_dispatcher(message_loop));
     async_loop_start_thread(message_loop, "Fuchsia async loop", nullptr);
@@ -368,9 +368,19 @@ void OS::Init() {
 }
 
 void OS::Cleanup() {
+  if (message_loop != nullptr) {
+    async_loop_shutdown(message_loop);
+  }
+
   metrics = nullptr;
   component_inspector = nullptr;
+
   if (message_loop != nullptr) {
+    // Check message_loop is still the default dispatcher before clearing it.
+    if (async_get_default_dispatcher() ==
+        async_loop_get_dispatcher(message_loop)) {
+      async_set_default_dispatcher(nullptr);
+    }
     async_loop_destroy(message_loop);
     message_loop = nullptr;
   }

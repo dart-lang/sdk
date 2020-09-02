@@ -102,6 +102,21 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   StreamSubscription _pluginChangeSubscription;
 
+  /// Temporary analysis roots for open files.
+  ///
+  /// When a file is opened and there is no driver available (for example no
+  /// folder was opened in the editor, so the set of analysis roots is empty)
+  /// we add temporary roots for the project (or containing) folder. When the
+  /// file is closed, it is removed from this map and if no other open file
+  /// uses that root, it will be removed from the set of analysis roots.
+  ///
+  /// key: file path of the open file
+  /// value: folder to be used as a root.
+  final _temporaryAnalysisRoots = <String, String>{};
+
+  /// The set of analysis roots explicitly added to the workspace.
+  final _explicitAnalysisRoots = HashSet<String>();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -168,6 +183,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
     }
+  }
+
+  /// Adds a temporary analysis root for an open file.
+  void addTemporaryAnalysisRoot(String filePath, String folderPath) {
+    _temporaryAnalysisRoots[filePath] = folderPath;
+    _refreshAnalysisRoots();
   }
 
   /// The socket from which messages are being read has been closed.
@@ -417,6 +438,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
+  /// Removes any temporary analysis root for a file that was closed.
+  void removeTemporaryAnalysisRoot(String filePath) {
+    _temporaryAnalysisRoots.remove(filePath);
+    _refreshAnalysisRoots();
+  }
+
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
       channel.sendResponse(ResponseMessage(
@@ -492,14 +519,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
-  void setAnalysisRoots(List<String> includedPaths) {
-    declarationsTracker?.discardContexts();
-    final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
-    notificationManager.setAnalysisRoots(includedPaths, []);
-    contextManager.setRoots(uniquePaths.toList(), []);
-    addContextsToDeclarationsTracker();
-  }
-
   /// Returns `true` if closing labels should be sent for [file] with the given
   /// absolute path.
   bool shouldSendClosingLabelsFor(String file) {
@@ -567,12 +586,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
     // TODO(dantup): This is currently case-sensitive!
-    final newPaths =
-        HashSet<String>.of(contextManager.includedPaths ?? const [])
-          ..addAll(addedPaths ?? const [])
-          ..removeAll(removedPaths ?? const []);
 
-    setAnalysisRoots(newPaths.toList());
+    _explicitAnalysisRoots
+      ..addAll(addedPaths ?? const [])
+      ..removeAll(removedPaths ?? const []);
+
+    _refreshAnalysisRoots();
   }
 
   void _afterOverlayChanged(String path, dynamic changeForPlugins) {
@@ -587,6 +606,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
+  }
+
+  void _refreshAnalysisRoots() {
+    // Always include any temporary analysis roots for open files.
+    final includedPaths = HashSet<String>.of(_explicitAnalysisRoots)
+      ..addAll(_temporaryAnalysisRoots.values)
+      ..toList();
+
+    declarationsTracker?.discardContexts();
+    notificationManager.setAnalysisRoots(includedPaths.toList(), []);
+    contextManager.setRoots(includedPaths.toList(), []);
+    addContextsToDeclarationsTracker();
   }
 
   void _updateDriversAndPluginsPriorityFiles() {

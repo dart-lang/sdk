@@ -5,6 +5,8 @@
 depth of outputted dependency trees configurable.
 - Rename `deps-collapse-depth` (formerly `-d`) flag for `summary` command to
 `deps-start-depth` (now `-s`).
+- Add `generateCallGraphWithDominators` method that generates a `CallGraph`
+object from precompiler trace.
 
 ## 0.5.4
 - Fix bug causing name clash for Type class.

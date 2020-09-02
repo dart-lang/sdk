@@ -187,17 +187,13 @@ void outputSummary(File input,
       (granularity == HistogramType.byLibrary ||
           granularity == HistogramType.byPackage)) {
     final traceJsonRaw = await loadJsonFromFile(traceJson);
-    var callGraph = loadTrace(traceJsonRaw);
 
-    // Convert call graph into the approximate dependency graph, dropping any
-    // dynamic and dispatch table based dependencies from the graph and only
-    // following the static call, field access and allocation edges.
-    callGraph = callGraph.collapse(
-        granularity == HistogramType.byLibrary
-            ? NodeType.libraryNode
-            : NodeType.packageNode,
-        dropCallNodes: true);
-    callGraph.computeDominators();
+    final callGraph = generateCallGraphWithDominators(
+      traceJsonRaw,
+      granularity == HistogramType.byLibrary
+          ? NodeType.libraryNode
+          : NodeType.packageNode,
+    );
 
     // Compute name mapping from histogram buckets to new coarser buckets, by
     // collapsing dependency tree at [depsStartDepth] level: node 'Foo' with
