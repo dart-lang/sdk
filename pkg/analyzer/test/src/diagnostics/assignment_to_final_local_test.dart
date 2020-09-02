@@ -160,13 +160,15 @@ void f(int value) {
   }
 
   test_topLevelVariable_late() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 late final int a;
 late final int b = 0;
 void f() {
   a = 1;
   b = 1;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 62, 1),
+    ]);
   }
 }

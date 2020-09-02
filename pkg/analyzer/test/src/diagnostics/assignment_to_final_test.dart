@@ -46,8 +46,23 @@ f() {
 @reflectiveTest
 class AssignmentToFinalWithNullSafetyTest extends AssignmentToFinalTest
     with WithNullSafetyMixin {
-  test_field_late() async {
-    await assertNoErrorsInCode('''
+  test_field_late_propertyAccess() async {
+    await assertErrorsInCode('''
+class A {
+  late final int a;
+  late final int b = 0;
+  void m() {
+    this.a = 1;
+    this.b = 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 92, 1),
+    ]);
+  }
+
+  test_field_late_simpleIdentifier() async {
+    await assertErrorsInCode('''
 class A {
   late final int a;
   late final int b = 0;
@@ -56,11 +71,29 @@ class A {
     b = 1;
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 82, 1),
+    ]);
   }
 
-  test_field_static_late() async {
-    await assertNoErrorsInCode('''
+  test_field_static_final_late_prefixedIdentifier() async {
+    await assertErrorsInCode('''
+class A {
+  static late final int a;
+  static late final int b = 0;
+}
+
+void f() {
+  A.a = 1;
+  A.b = 1;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 97, 1),
+    ]);
+  }
+
+  test_field_static_final_late_simpleIdentifier() async {
+    await assertErrorsInCode('''
 class A {
   static late final int a;
   static late final int b = 0;
@@ -69,7 +102,9 @@ class A {
     b = 1;
   }
 }
-''');
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+    ]);
   }
 
   test_set_abstract_field_final_invalid() async {

@@ -265,9 +265,9 @@ class AssignmentExpressionResolver {
           CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
           left,
         );
-      } else if (variable.isFinal && !variable.isLate) {
+      } else if (variable.setter == null) {
         if (variable is FieldElement) {
-          if (variable.setter == null && variable.isSynthetic) {
+          if (variable.isSynthetic) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
               left,

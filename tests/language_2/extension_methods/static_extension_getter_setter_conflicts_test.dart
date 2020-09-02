@@ -109,7 +109,7 @@ void test1() {
 
   c1a.m1 = 0;
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   // [cfe] The setter 'm1' isn't defined for the class 'C1<int>'.
 
   c1a.m2;
