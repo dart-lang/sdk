@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
@@ -30,7 +31,7 @@ class LexicalLookup {
             requested: _resolver.toLegacyElement(scopeSetter),
           );
         }
-        if (!_isInstanceMember(scopeGetter)) {
+        if (!scopeGetter.isInstanceMember) {
           return LexicalLookupResult(
             recovery: _resolver.toLegacyElement(scopeGetter),
           );
@@ -85,11 +86,6 @@ class LexicalLookup {
         );
       }
     }
-  }
-
-  static bool _isInstanceMember(Element element) {
-    var enclosing = element.enclosingElement;
-    return enclosing is ClassElement || enclosing is ExtensionElement;
   }
 }
 
