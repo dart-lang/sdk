@@ -1,6 +1,5 @@
-# 1.3.2
+# 1.3.2-dev
 
-- Add IPv6 hosting support.
 - Fix handling of requests that are outstanding when a client channel is closed.
 
 # 1.3.1

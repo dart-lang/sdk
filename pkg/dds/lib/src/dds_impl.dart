@@ -6,7 +6,10 @@ part of dds;
 
 class _DartDevelopmentService implements DartDevelopmentService {
   _DartDevelopmentService(
-      this._remoteVmServiceUri, this._uri, this._authCodesEnabled, this._ipv6) {
+    this._remoteVmServiceUri,
+    this._uri,
+    this._authCodesEnabled,
+  ) {
     _clientManager = _ClientManager(this);
     _expressionEvaluator = _ExpressionEvaluator(this);
     _isolateManager = _IsolateManager(this);
@@ -35,9 +38,8 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   Future<void> _startDDSServer() async {
     // No provided address, bind to an available port on localhost.
-    final host = uri?.host ??
-        (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
-            .host;
+    // TODO(bkonyi): handle case where there's no IPv4 loopback.
+    final host = uri?.host ?? InternetAddress.loopbackIPv4.host;
     final port = uri?.port ?? 0;
 
     // Start the DDS server.
@@ -223,8 +225,6 @@ class _DartDevelopmentService implements DartDevelopmentService {
   Uri get sseUri => _toSse(_uri);
   Uri get wsUri => _toWebSocket(_uri);
   Uri _uri;
-
-  final bool _ipv6;
 
   bool get isRunning => _uri != null;
 

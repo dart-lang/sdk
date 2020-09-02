@@ -51,8 +51,7 @@ abstract class DartDevelopmentService {
   /// development service will communicate with.
   ///
   /// If provided, [serviceUri] will determine the address and port of the
-  /// spawned Dart Development Service. The format of [serviceUri] must be
-  /// consistent with the protocol determined by [ipv6].
+  /// spawned Dart Development Service.
   ///
   /// [enableAuthCodes] controls whether or not an authentication code must
   /// be provided by clients when communicating with this instance of
@@ -60,14 +59,10 @@ abstract class DartDevelopmentService {
   /// encoded string provided as the first element of the DDS path and is meant
   /// to make it more difficult for unintended clients to connect to this
   /// service. Authentication codes are enabled by default.
-  ///
-  /// [ipv6] controls whether or not DDS is served via IPv6. IPv4 is enabled by
-  /// default.
   static Future<DartDevelopmentService> startDartDevelopmentService(
     Uri remoteVmServiceUri, {
     Uri serviceUri,
     bool enableAuthCodes = true,
-    bool ipv6 = false,
   }) async {
     if (remoteVmServiceUri == null) {
       throw ArgumentError.notNull('remoteVmServiceUri');
@@ -77,29 +72,15 @@ abstract class DartDevelopmentService {
         'remoteVmServiceUri must have an HTTP scheme. Actual: ${remoteVmServiceUri.scheme}',
       );
     }
-    if (serviceUri != null) {
-      if (serviceUri.scheme != 'http') {
-        throw ArgumentError(
-          'serviceUri must have an HTTP scheme. Actual: ${serviceUri.scheme}',
-        );
-      }
-
-      // If provided an address to bind to, ensure it uses a protocol consistent
-      // with that used to spawn DDS.
-      final address = (await InternetAddress.lookup(serviceUri.host)).first;
-      if ((ipv6 && address.type != InternetAddressType.IPv6) ||
-          (!ipv6 && address.type != InternetAddressType.IPv4)) {
-        throw ArgumentError(
-          "serviceUri '$serviceUri' is not an IPv${ipv6 ? "6" : "4"} address.",
-        );
-      }
+    if (serviceUri != null && serviceUri.scheme != 'http') {
+      throw ArgumentError(
+        'serviceUri must have an HTTP scheme. Actual: ${serviceUri.scheme}',
+      );
     }
-
     final service = _DartDevelopmentService(
       remoteVmServiceUri,
       serviceUri,
       enableAuthCodes,
-      ipv6,
     );
     await service.startService();
     return service;
