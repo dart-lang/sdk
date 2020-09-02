@@ -80,7 +80,7 @@ static int InotifyEventToMask(struct inotify_event* e) {
     mask |= FileSystemWatcher::kModifyContent;
   }
   if ((e->mask & IN_ATTRIB) != 0) {
-    mask |= FileSystemWatcher::kModifyAttribute;
+    mask |= FileSystemWatcher::kModefyAttribute;
   }
   if ((e->mask & IN_CREATE) != 0) {
     mask |= FileSystemWatcher::kCreate;

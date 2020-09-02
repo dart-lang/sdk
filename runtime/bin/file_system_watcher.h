@@ -24,7 +24,7 @@ class FileSystemWatcher {
     kModifyContent = 1 << 1,
     kDelete = 1 << 2,
     kMove = 1 << 3,
-    kModifyAttribute = 1 << 4,
+    kModefyAttribute = 1 << 4,
     kDeleteSelf = 1 << 5,
     kIsDir = 1 << 6
   };
