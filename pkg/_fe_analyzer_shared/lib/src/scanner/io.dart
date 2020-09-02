@@ -4,8 +4,6 @@
 
 library _fe_analyzer_shared.scanner.io;
 
-import 'dart:async' show Future;
-
 import 'dart:io' show File, RandomAccessFile;
 
 import 'dart:typed_data' show Uint8List;
