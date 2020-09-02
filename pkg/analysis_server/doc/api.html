@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.28.0
+  1.29.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -4810,24 +4810,34 @@ a:focus, a:hover {
       </dd><dt class="field"><b>offset: int</b></dt><dd>
         
         <p>
-          The offset of the region to which the user can navigate.
+          The offset of the name of the target to which the user can navigate.
         </p>
       </dd><dt class="field"><b>length: int</b></dt><dd>
         
         <p>
-          The length of the region to which the user can navigate.
+          The length of the name of the target to which the user can navigate.
         </p>
       </dd><dt class="field"><b>startLine: int</b></dt><dd>
         
         <p>
           The one-based index of the line containing the first character of the
-          region.
+          name of the target.
         </p>
       </dd><dt class="field"><b>startColumn: int</b></dt><dd>
         
         <p>
           The one-based index of the column containing the first character of
-          the region.
+          the name of the target.
+        </p>
+      </dd><dt class="field"><b>codeOffset: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The offset of the target code to which the user can navigate.
+        </p>
+      </dd><dt class="field"><b>codeLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The length of the target code to which the user can navigate.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_Occurrences">Occurrences: object</a></dt><dd>
     <p>
