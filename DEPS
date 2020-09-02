@@ -99,7 +99,7 @@ vars = {
   "chromedriver_tag": "83.0.4103.39",
   "dartdoc_rev" : "291ebc50072746bc59ccab59115a298915218428",
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
-  "fixnum_rev": "300c3f025e94a72b7b6770e15f76a4de15f77668",
+  "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
   "html_rev": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
