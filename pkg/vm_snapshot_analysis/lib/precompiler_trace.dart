@@ -105,21 +105,21 @@ class CallGraph {
 
   // Mapping from [ProgramInfoNode] to a corresponding [CallGraphNode] (if any)
   // via [ProgramInfoNode.id].
-  final List<CallGraphNode> _nodeByEntityId;
+  final List<CallGraphNode> _graphNodeByEntityId;
 
-  CallGraph._(this.program, this.nodes, this._nodeByEntityId);
+  CallGraph._(this.program, this.nodes, this._graphNodeByEntityId);
 
   CallGraphNode get root => nodes.first;
 
-  CallGraphNode lookup(ProgramInfoNode node) => _nodeByEntityId[node.id];
+  CallGraphNode lookup(ProgramInfoNode node) => _graphNodeByEntityId[node.id];
 
   Iterable<CallGraphNode> get dynamicCalls =>
       nodes.where((n) => n.isDynamicCallNode);
 
   /// Compute a collapsed version of the call-graph, where
   CallGraph collapse(NodeType type, {bool dropCallNodes = false}) {
-    final nodesByData = <Object, CallGraphNode>{};
-    final nodeByEntityId = <CallGraphNode>[];
+    final graphNodesByData = <Object, CallGraphNode>{};
+    final graphNodeByEntityId = <CallGraphNode>[];
 
     ProgramInfoNode collapsed(ProgramInfoNode nn) {
       // Root always collapses onto itself.
@@ -138,14 +138,14 @@ class CallGraph {
       return n;
     }
 
-    CallGraphNode nodeFor(Object data) {
-      return nodesByData.putIfAbsent(data, () {
-        final n = CallGraphNode(nodesByData.length, data: data);
+    CallGraphNode callGraphNodeFor(Object data) {
+      return graphNodesByData.putIfAbsent(data, () {
+        final n = CallGraphNode(graphNodesByData.length, data: data);
         if (data is ProgramInfoNode) {
-          if (nodeByEntityId.length <= data.id) {
-            nodeByEntityId.length = data.id * 2 + 1;
+          if (graphNodeByEntityId.length <= data.id) {
+            graphNodeByEntityId.length = data.id * 2 + 1;
           }
-          nodeByEntityId[data.id] = n;
+          graphNodeByEntityId[data.id] = n;
         }
         return n;
       });
@@ -153,9 +153,9 @@ class CallGraph {
 
     final newNodes = nodes.map((n) {
       if (n.data is ProgramInfoNode) {
-        return nodeFor(collapsed(n.data));
+        return callGraphNodeFor(collapsed(n.data));
       } else if (!dropCallNodes) {
-        return nodeFor(n.data);
+        return callGraphNodeFor(n.data);
       }
     }).toList(growable: false);
 
@@ -170,8 +170,8 @@ class CallGraph {
       }
     }
 
-    return CallGraph._(
-        program, nodesByData.values.toList(growable: false), nodeByEntityId);
+    return CallGraph._(program, graphNodesByData.values.toList(growable: false),
+        graphNodeByEntityId);
   }
 
   /// Compute dominator tree of the call-graph.
@@ -528,4 +528,22 @@ class _TraceReader {
     return program.makeNode(
         name: libraryUri, parent: node, type: NodeType.libraryNode);
   }
+}
+
+/// Generates a [CallGraph] from the given [precompilerTrace], which is produced
+/// by `--trace-precompiler-to`, then collapses it down to the granularity
+/// specified by [nodeType], and computes dominators of the resulting graph.
+CallGraph generateCallGraphWithDominators(
+  Object precompilerTrace,
+  NodeType nodeType,
+) {
+  var callGraph = loadTrace(precompilerTrace);
+
+  // Convert call graph into the approximate dependency graph, dropping any
+  // dynamic and dispatch table based dependencies from the graph and only
+  // following the static call, field access and allocation edges.
+  callGraph = callGraph.collapse(nodeType, dropCallNodes: true)
+    ..computeDominators();
+
+  return callGraph;
 }
