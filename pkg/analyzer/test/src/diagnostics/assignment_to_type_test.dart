@@ -28,11 +28,11 @@ main() {
 
   test_dynamic() async {
     await assertErrorsInCode(r'''
-main() {
+void f() {
   dynamic = 1;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 11, 7),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 7),
     ]);
   }
 

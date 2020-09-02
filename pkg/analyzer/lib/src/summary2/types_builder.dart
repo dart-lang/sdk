@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -208,12 +209,14 @@ class _MixinInference {
   final FeatureSet featureSet;
   final InterfaceType classType;
 
-  List<InterfaceType> mixinTypes = [];
-  List<InterfaceType> supertypesForMixinInference;
+  InterfacesMerger interfacesMerger;
 
   _MixinInference(this.element, this.featureSet)
       : typeSystem = element.library.typeSystem,
-        classType = element.thisType;
+        classType = element.thisType {
+    interfacesMerger = InterfacesMerger(typeSystem);
+    interfacesMerger.addWithSupertypes(element.supertype);
+  }
 
   NullabilitySuffix get _noneOrStarSuffix {
     return _nonNullableEnabled
@@ -228,19 +231,7 @@ class _MixinInference {
 
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode);
-      mixinTypes.add(mixinType);
-
-      _addSupertypes(mixinType);
-    }
-  }
-
-  void _addSupertypes(InterfaceType type) {
-    if (supertypesForMixinInference != null) {
-      ClassElementImpl.collectAllSupertypes(
-        supertypesForMixinInference,
-        type,
-        classType,
-      );
+      interfacesMerger.addWithSupertypes(mixinType);
     }
   }
 
@@ -293,17 +284,9 @@ class _MixinInference {
       return mixinType;
     }
 
-    if (supertypesForMixinInference == null) {
-      supertypesForMixinInference = <InterfaceType>[];
-      _addSupertypes(classType.superclass);
-      for (var previousMixinType in mixinTypes) {
-        _addSupertypes(previousMixinType);
-      }
-    }
-
     var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
       mixinSupertypeConstraints,
-      supertypesForMixinInference,
+      interfacesMerger.typeList,
     );
 
     // Note: if matchingInterfaceType is null, that's an error.  Also,

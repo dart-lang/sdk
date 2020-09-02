@@ -14,50 +14,14 @@ import 'data_driven_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ModifyParameters_DeprecatedMemberUseTest);
-    defineReflectiveTests(ModifyParameters_NotEnoughPositionalArgumentsTest);
-    defineReflectiveTests(ModifyParameters_UndefinedMethodTest);
+    defineReflectiveTests(ModifyParametersOfMethodTest);
+    defineReflectiveTests(ModifyParametersOfTopLevelFunctionTest);
   });
 }
 
-/// In the tests where a required named parameter is being added, the tests
-/// avoid the question of whether the defining library is opted in to the
-/// null-safety feature by omitting both the `required` keyword and annotation.
-/// This works because the information the change needs is taken from the
-/// `AddParameter` object rather than the source code.
-///
-/// The tests for 'function' exist to check that these changes can also be
-/// applied to top-level functions, but are not intended to be exhaustive.
 @reflectiveTest
-class ModifyParameters_DeprecatedMemberUseTest extends _ModifyParameters {
-  Future<void> test_add_function_first_requiredNamed() async {
-    setPackageContent('''
-@deprecated
-void f(int b) {}
-void g(int a, int b) {}
-''');
-    setPackageData(_modify([
-      'f'
-    ], [
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0')),
-    ], newName: 'g'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void h() {
-  f(1);
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void h() {
-  g(0, 1);
-}
-''');
-  }
-
-  Future<void> test_add_method_first_optionalNamed() async {
+class ModifyParametersOfMethodTest extends _ModifyParameters {
+  Future<void> test_add_first_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -84,7 +48,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_first_optionalPositional() async {
+  Future<void> test_add_first_optionalPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -114,7 +78,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_first_requiredNamed() async {
+  Future<void> test_add_first_requiredNamed_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -144,7 +108,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_first_requiredPositional() async {
+  Future<void> test_add_first_requiredPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -174,7 +138,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_last_optionalNamed() async {
+  Future<void> test_add_last_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -201,7 +165,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_last_optionalPositional() async {
+  Future<void> test_add_last_optionalPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -231,7 +195,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_last_requiredNamed() async {
+  Future<void> test_add_last_requiredNamed_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -261,7 +225,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_last_requiredPositional() async {
+  Future<void> test_add_last_requiredPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -291,7 +255,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_add_method_multiple() async {
+  Future<void> test_add_multiple_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -323,7 +287,59 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_mixed_method_noOverlap_removedFirst() async {
+  Future<void> test_add_renamed_removed() async {
+    setPackageContent('''
+class C {
+  void m2(int a, int b) {}
+}
+''');
+    setPackageData(_modify([
+      'C',
+      'm'
+    ], [
+      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
+    ], newName: 'm2'));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m2(0, 1);
+}
+''');
+  }
+
+  Future<void> test_add_sameName_removed() async {
+    setPackageContent('''
+class C {
+  void m(int a, int b) {}
+}
+''');
+    setPackageData(_modify(['C', 'm'],
+        [AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))]));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0, 1);
+}
+''');
+  }
+
+  Future<void> test_mixed_noOverlap_removedFirst_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -354,7 +370,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_mixed_method_noOverlap_removedLast() async {
+  Future<void> test_mixed_noOverlap_removedLast_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -385,7 +401,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_mixed_method_overlap_first() async {
+  Future<void> test_mixed_overlap_first_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -417,7 +433,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_mixed_method_overlap_last() async {
+  Future<void> test_mixed_overlap_last_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -449,7 +465,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_mixed_method_overlap_middle() async {
+  Future<void> test_mixed_overlap_middle_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -482,32 +498,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_function_first_requiredPositional() async {
-    setPackageContent('''
-@deprecated
-void f(int a, int b) {}
-void g(int b) {}
-''');
-    setPackageData(_modify(
-        ['f'], [RemoveParameter(PositionalParameterReference(0))],
-        newName: 'g'));
-    await resolveTestUnit('''
-import '$importUri';
-
-void h() {
-  f(0, 1);
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void h() {
-  g(1);
-}
-''');
-  }
-
-  Future<void> test_remove_method_first_optionalNamed() async {
+  Future<void> test_remove_first_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -534,7 +525,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_first_optionalPositional() async {
+  Future<void> test_remove_first_optionalPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -561,7 +552,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_first_requiredPositional() async {
+  Future<void> test_remove_first_requiredPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -588,7 +579,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_last_optionalNamed() async {
+  Future<void> test_remove_last_optionalNamed_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -615,7 +606,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_last_optionalPositional() async {
+  Future<void> test_remove_last_optionalPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -642,7 +633,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_last_requiredPositional() async {
+  Future<void> test_remove_last_requiredPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -669,7 +660,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_multiple() async {
+  Future<void> test_remove_multiple_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -701,7 +692,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_only_optionalNamed_withArg() async {
+  Future<void> test_remove_only_optionalNamed_withArg_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -728,7 +719,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_only_optionalNamed_withoutArg() async {
+  Future<void> test_remove_only_optionalNamed_withoutArg_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -755,7 +746,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_only_optionalPositional_withArg() async {
+  Future<void> test_remove_only_optionalPositional_withArg_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -782,7 +773,8 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_only_optionalPositional_withoutArg() async {
+  Future<void>
+      test_remove_only_optionalPositional_withoutArg_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -809,7 +801,7 @@ void f(C c) {
 ''');
   }
 
-  Future<void> test_remove_method_only_requiredPositional() async {
+  Future<void> test_remove_only_requiredPositional_deprecated() async {
     setPackageContent('''
 class C {
   @deprecated
@@ -837,60 +829,64 @@ void f(C c) {
   }
 }
 
+/// In the tests where a required named parameter is being added, the tests
+/// avoid the question of whether the defining library is opted in to the
+/// null-safety feature by omitting both the `required` keyword and annotation.
+/// This works because the information the change needs is taken from the
+/// `AddParameter` object rather than the source code.
+///
+/// The tests for 'function' exist to check that these changes can also be
+/// applied to top-level functions, but are not intended to be exhaustive.
 @reflectiveTest
-class ModifyParameters_NotEnoughPositionalArgumentsTest
-    extends _ModifyParameters {
-  Future<void> test_method_sameName() async {
+class ModifyParametersOfTopLevelFunctionTest extends _ModifyParameters {
+  Future<void> test_add_first_requiredNamed_deprecated() async {
     setPackageContent('''
-class C {
-  void m(int a, int b) {}
-}
+@deprecated
+void f(int b) {}
+void g(int a, int b) {}
 ''');
-    setPackageData(_modify(['C', 'm'],
-        [AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))]));
+    setPackageData(_modify([
+      'f'
+    ], [
+      AddParameter(0, 'a', true, true, null, LiteralExtractor('0')),
+    ], newName: 'g'));
     await resolveTestUnit('''
 import '$importUri';
 
-void f(C c) {
-  c.m(1);
+void h() {
+  f(1);
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
-void f(C c) {
-  c.m(0, 1);
+void h() {
+  g(0, 1);
 }
 ''');
   }
-}
 
-@reflectiveTest
-class ModifyParameters_UndefinedMethodTest extends _ModifyParameters {
-  Future<void> test_method_renamed() async {
+  Future<void> test_remove_first_requiredPositional_deprecated() async {
     setPackageContent('''
-class C {
-  void m2(int a, int b) {}
-}
+@deprecated
+void f(int a, int b) {}
+void g(int b) {}
 ''');
-    setPackageData(_modify([
-      'C',
-      'm'
-    ], [
-      AddParameter(0, 'a', true, true, null, LiteralExtractor('0'))
-    ], newName: 'm2'));
+    setPackageData(_modify(
+        ['f'], [RemoveParameter(PositionalParameterReference(0))],
+        newName: 'g'));
     await resolveTestUnit('''
 import '$importUri';
 
-void f(C c) {
-  c.m(1);
+void h() {
+  f(0, 1);
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
-void f(C c) {
-  c.m2(0, 1);
+void h() {
+  g(1);
 }
 ''');
   }

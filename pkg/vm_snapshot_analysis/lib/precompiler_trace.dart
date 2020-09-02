@@ -122,8 +122,17 @@ class CallGraph {
     final nodeByEntityId = <CallGraphNode>[];
 
     ProgramInfoNode collapsed(ProgramInfoNode nn) {
+      // Root always collapses onto itself.
+      if (nn == program.root) {
+        return nn;
+      }
+
+      // Even though all code is grouped into libraries, not all libraries
+      // are grouped into packages (e.g. dart:* libraries). Meaning
+      // that if we are collapsing by package we need to stop right before
+      // hitting the root node.
       var n = nn;
-      while (n.parent != null && n.type != type) {
+      while (n.parent != program.root && n.type != type) {
         n = n.parent;
       }
       return n;

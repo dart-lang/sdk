@@ -1,9 +1,17 @@
-## 0.40.1-dev
+## 0.40.1
 * Added `LocalVariableElement.hasInitializer`,
   `PropertyInducingElement.hasInitializer`, `ParameterElement.hasDefaultValue`.
 * `ElementImpl.toString()` uses `getDisplayString(withNullability: true)`.
 * Deprecated `ElementAnnotation.constantValue`, it does not guarantee that
   the value has been computed. Use `computeConstantValue()` instead.
+* Added `CompoundAssignmentExpression` with read/write element/type getters.
+  This interface is implemented by `AssignmentExpression`, `PostfixExpression`
+  and `PrefixExpression`. Use it instead of `staticElement` and `staticType`
+  of the left-hand side expressions (target expressions in case of postfix
+  or prefix expressions with increment operator).
+* Changes to the way experiments are handled, and SDK version.
+* Bug fixes: 43268, 43214, 39642, 42379, 42629, 43168, 43144, 43100,
+  43032, 43073.
 
 ## 0.40.0
 * Added `LibraryElement.featureSet`.

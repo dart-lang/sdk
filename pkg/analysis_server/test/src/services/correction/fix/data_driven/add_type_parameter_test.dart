@@ -12,114 +12,89 @@ import 'data_driven_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddTypeParameter_DeprecatedMemberUseTest);
-    defineReflectiveTests(AddTypeParameter_InvalidOverrideTest);
-    defineReflectiveTests(AddTypeParameter_WrongNumberOfTypeArgumentsTest);
+    defineReflectiveTests(AddTypeParameterToClassTest);
+    defineReflectiveTests(AddTypeParameterToConstructorTest);
+    defineReflectiveTests(AddTypeParameterToExtensionTest);
+    defineReflectiveTests(AddTypeParameterToMethodTest);
   });
 }
 
 @reflectiveTest
-class AddTypeParameter_DeprecatedMemberUseTest extends _AddTypeParameterChange {
-  Future<void> test_method_first() async {
+class AddTypeParameterToClassTest extends _AddTypeParameterChange {
+  Future<void> test_class_removed() async {
     setPackageContent('''
-class C {
-  @deprecated
-  void m<T>() {}
-}
+class C<S, T> {}
 ''');
-    setPackageData(_add(0));
+    setPackageData(_add(0, components: ['C']));
     await resolveTestUnit('''
 import '$importUri';
 
-void f(C c) {
-  c.m<int>();
-}
+void f(C<int> c) {}
 ''');
     await assertHasFix('''
 import '$importUri';
 
-void f(C c) {
-  c.m<String, int>();
-}
+void f(C<String, int> c) {}
 ''');
   }
+}
 
-  Future<void> test_method_last() async {
+@reflectiveTest
+class AddTypeParameterToConstructorTest extends _AddTypeParameterChange {
+  Future<void> test_constructor_removed() async {
     setPackageContent('''
-class C {
-  @deprecated
-  void m<S, T>() {}
+class C<S, T> {
+  void C() {}
 }
 ''');
-    setPackageData(_add(2));
+    setPackageData(_add(0, components: ['C', 'C']));
     await resolveTestUnit('''
 import '$importUri';
 
-void f(C c) {
-  c.m<int, double>();
+C f() {
+  return C<int>();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
-void f(C c) {
-  c.m<int, double, String>();
-}
-''');
-  }
-
-  Future<void> test_method_middle() async {
-    setPackageContent('''
-class C {
-  @deprecated
-  void m<S, U>() {}
-}
-''');
-    setPackageData(_add(1));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(C c) {
-  c.m<int, double>();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(C c) {
-  c.m<int, String, double>();
-}
-''');
-  }
-
-  Future<void> test_method_only() async {
-    setPackageContent('''
-class C {
-  @deprecated
-  void m() {}
-}
-''');
-    setPackageData(_add(0));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(C c) {
-  c.m();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(C c) {
-  c.m<String>();
+C f() {
+  return C<String, int>();
 }
 ''');
   }
 }
 
 @reflectiveTest
-class AddTypeParameter_InvalidOverrideTest extends _AddTypeParameterChange {
-  Future<void> test_method_bound() async {
+class AddTypeParameterToExtensionTest extends _AddTypeParameterChange {
+  Future<void> test_extension_removed() async {
+    setPackageContent('''
+class C {}
+extension E<S, T> on C {
+  void m() {}
+}
+''');
+    setPackageData(_add(0, components: ['E']));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  E<int>(c).m();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  E<String, int>(c).m();
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddTypeParameterToMethodTest extends _AddTypeParameterChange {
+  Future<void> test_method_bound_removed() async {
     setPackageContent('''
 class C {
   void m<T extends num>() {}
@@ -144,7 +119,79 @@ class D extends C {
 ''');
   }
 
-  Future<void> test_method_noBound() async {
+  Future<void> test_method_first_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  void m<T>() {}
+}
+''');
+    setPackageData(_add(0));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int>();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m<String, int>();
+}
+''');
+  }
+
+  Future<void> test_method_last_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  void m<S, T>() {}
+}
+''');
+    setPackageData(_add(2));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int, double>();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int, double, String>();
+}
+''');
+  }
+
+  Future<void> test_method_middle_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  void m<S, U>() {}
+}
+''');
+    setPackageData(_add(1));
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int, double>();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int, String, double>();
+}
+''');
+  }
+
+  Future<void> test_method_noBound_removed() async {
     setPackageContent('''
 class C {
   void m<T>() {}
@@ -168,76 +215,32 @@ class D extends C {
 }
 ''');
   }
-}
 
-@reflectiveTest
-class AddTypeParameter_WrongNumberOfTypeArgumentsTest
-    extends _AddTypeParameterChange {
-  Future<void> test_class() async {
+  Future<void> test_method_only_deprecated() async {
     setPackageContent('''
-class C<S, T> {}
-''');
-    setPackageData(_add(0, components: ['C']));
-    await resolveTestUnit('''
-import '$importUri';
-
-void f(C<int> c) {}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-void f(C<String, int> c) {}
-''');
-  }
-
-  Future<void> test_constructor() async {
-    setPackageContent('''
-class C<S, T> {
-  void C() {}
-}
-''');
-    setPackageData(_add(0, components: ['C', 'C']));
-    await resolveTestUnit('''
-import '$importUri';
-
-C f() {
-  return C<int>();
-}
-''');
-    await assertHasFix('''
-import '$importUri';
-
-C f() {
-  return C<String, int>();
-}
-''');
-  }
-
-  Future<void> test_extension() async {
-    setPackageContent('''
-class C {}
-extension E<S, T> on C {
+class C {
+  @deprecated
   void m() {}
 }
 ''');
-    setPackageData(_add(0, components: ['E']));
+    setPackageData(_add(0));
     await resolveTestUnit('''
 import '$importUri';
 
 void f(C c) {
-  E<int>(c).m();
+  c.m();
 }
 ''');
     await assertHasFix('''
 import '$importUri';
 
 void f(C c) {
-  E<String, int>(c).m();
+  c.m<String>();
 }
 ''');
   }
 
-  Future<void> test_method() async {
+  Future<void> test_method_removed() async {
     setPackageContent('''
 class C {
   void m<S, T>() {}

@@ -141,6 +141,34 @@ void f() {
     );
   }
 
+  test_inc_notLValue_typeLiteral_typeParameter() async {
+    await assertErrorsInCode(r'''
+void f<T>() {
+  T++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 16, 1),
+    ]);
+
+    var postfix = findNode.postfix('T++');
+    assertPostfixExpression(
+      postfix,
+      readElement: null,
+      readType: 'dynamic',
+      writeElement: findElement.typeParameter('T'),
+      writeType: 'dynamic',
+      element: null,
+      type: 'dynamic',
+    );
+
+    assertSimpleIdentifier(
+      postfix.operand,
+      readElement: findElement.typeParameter('T'),
+      writeElement: findElement.typeParameter('T'),
+      type: 'Type',
+    );
+  }
+
   test_inc_prefixedIdentifier_instance() async {
     await assertNoErrorsInCode(r'''
 class A {

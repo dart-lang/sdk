@@ -311,7 +311,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Expression rhs = node.rightHandSide;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForInvalidAssignment(lhs, rhs);
+      // Already handled in the assignment resolver.
+      if (lhs is! SimpleIdentifier) {
+        _checkForInvalidAssignment(lhs, rhs);
+      }
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
@@ -1625,6 +1628,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
   /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
+    // Already handled in the assignment resolver.
+    if (expression is SimpleIdentifier &&
+        expression.parent is AssignmentExpression) {
+      return;
+    }
+
     // prepare element
     Element element;
     AstNode highlightedNode = expression;
@@ -4819,23 +4828,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     ClassElement classElement = node.declaredElement;
-    var type = classElement.thisType;
     var supertype = classElement.supertype;
-    List<InterfaceType> supertypesForMixinInference = <InterfaceType>[];
-    ClassElementImpl.collectAllSupertypes(
-        supertypesForMixinInference, supertype, type);
+
+    var interfacesMerger = InterfacesMerger(_typeSystem);
+    interfacesMerger.addWithSupertypes(supertype);
+
     for (var typeName in withClause.mixinTypes) {
       var mixinType = typeName.type;
-      var mixinElement = mixinType.element;
-      if (mixinElement is ClassElement) {
+      if (mixinType is InterfaceType) {
+        var mixinElement = mixinType.element;
         if (typeName.typeArguments == null) {
           var mixinSupertypeConstraints = _typeSystem
               .gatherMixinSupertypeConstraintsForInference(mixinElement);
           if (mixinSupertypeConstraints.isNotEmpty) {
             var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
-                typeName,
-                mixinSupertypeConstraints,
-                supertypesForMixinInference);
+              typeName,
+              mixinSupertypeConstraints,
+              interfacesMerger.typeList,
+            );
             if (matchingInterfaceTypes != null) {
               // Try to pattern match matchingInterfaceType against
               // mixinSupertypeConstraint to find the correct set of type
@@ -4855,8 +4865,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             }
           }
         }
-        ClassElementImpl.collectAllSupertypes(
-            supertypesForMixinInference, mixinType, type);
+        interfacesMerger.addWithSupertypes(mixinType);
       }
     }
   }

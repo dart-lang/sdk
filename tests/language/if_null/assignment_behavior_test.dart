@@ -177,8 +177,6 @@ main() {
 //^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
-//      ^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   h ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
