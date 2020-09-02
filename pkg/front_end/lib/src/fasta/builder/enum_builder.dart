@@ -128,19 +128,39 @@ class EnumBuilder extends SourceClassBuilder {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    TypeBuilder intType =
-        new NamedTypeBuilder("int", const NullabilityBuilder.omitted(), null);
+    TypeBuilder intType = new NamedTypeBuilder(
+        "int",
+        const NullabilityBuilder.omitted(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     TypeBuilder stringType = new NamedTypeBuilder(
-        "String", const NullabilityBuilder.omitted(), null);
+        "String",
+        const NullabilityBuilder.omitted(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     NamedTypeBuilder objectType = new NamedTypeBuilder(
-        "Object", const NullabilityBuilder.omitted(), null);
+        "Object",
+        const NullabilityBuilder.omitted(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     Class cls = new Class(name: name, reference: referencesFrom?.reference);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
-    NamedTypeBuilder selfType =
-        new NamedTypeBuilder(name, const NullabilityBuilder.omitted(), null);
+    NamedTypeBuilder selfType = new NamedTypeBuilder(
+        name,
+        const NullabilityBuilder.omitted(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     TypeBuilder listType = new NamedTypeBuilder(
-        "List", const NullabilityBuilder.omitted(), <TypeBuilder>[selfType]);
+        "List",
+        const NullabilityBuilder.omitted(),
+        <TypeBuilder>[selfType],
+        /* fileUri = */ null,
+        /* charOffset = */ null);
 
     /// metadata class E {
     ///   final int index;

@@ -6,13 +6,13 @@ library fasta.dynamic_type_builder;
 
 import 'package:kernel/ast.dart' show DartType;
 
-import 'builtin_type_builder.dart';
+import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
 
-class DynamicTypeBuilder extends BuiltinTypeBuilder {
-  DynamicTypeBuilder(
+class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
+  DynamicTypeDeclarationBuilder(
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("dynamic", type, compilationUnit, charOffset);
 
-  String get debugName => "DynamicTypeBuilder";
+  String get debugName => "DynamicTypeDeclarationBuilder";
 }

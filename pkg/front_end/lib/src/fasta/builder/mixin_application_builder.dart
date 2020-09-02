@@ -16,11 +16,14 @@ import 'type_variable_builder.dart';
 class MixinApplicationBuilder extends TypeBuilder {
   final TypeBuilder supertype;
   final List<TypeBuilder> mixins;
+  final Uri fileUri;
+  final int charOffset;
   Supertype builtType;
 
   List<TypeVariableBuilder> typeVariables;
 
-  MixinApplicationBuilder(this.supertype, this.mixins);
+  MixinApplicationBuilder(
+      this.supertype, this.mixins, this.fileUri, this.charOffset);
 
   String get name => null;
 
@@ -29,6 +32,8 @@ class MixinApplicationBuilder extends TypeBuilder {
   }
 
   String get debugName => "MixinApplicationBuilder";
+
+  bool get isVoidType => false;
 
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write(supertype);

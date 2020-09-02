@@ -6,7 +6,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  operator []=(dynamic index, dynamic value) → dynamic {}
+  operator []=(dynamic index, dynamic value) → void {}
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf

@@ -6608,6 +6608,27 @@ Message _withArgumentsNonSimpleBoundViaVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonVoidReturnOperator = messageNonVoidReturnOperator;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonVoidReturnOperator = const MessageCode(
+    "NonVoidReturnOperator",
+    analyzerCodes: <String>["NON_VOID_RETURN_FOR_OPERATOR"],
+    message: r"""The return type of the operator []= must be 'void'.""",
+    tip: r"""Try changing the return type to 'void'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonVoidReturnSetter = messageNonVoidReturnSetter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonVoidReturnSetter = const MessageCode(
+    "NonVoidReturnSetter",
+    analyzerCodes: <String>["NON_VOID_RETURN_FOR_SETTER"],
+    message: r"""The return type of the setter must be 'void' or absent.""",
+    tip:
+        r"""Try removing the return type, or define a method rather than a setter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNotAConstantExpression = messageNotAConstantExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

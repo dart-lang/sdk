@@ -6,17 +6,17 @@ library fasta.future_or_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, FutureOrType, Nullability;
 
-import 'builtin_type_builder.dart';
+import 'builtin_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
-class FutureOrTypeBuilder extends BuiltinTypeBuilder {
-  FutureOrTypeBuilder(
+class FutureOrTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
+  FutureOrTypeDeclarationBuilder(
       DartType type, LibraryBuilder compilationUnit, int charOffset)
       : super("FutureOr", type, compilationUnit, charOffset);
 
-  String get debugName => "FutureOrTypeBuilder";
+  String get debugName => "FutureOrTypeDeclarationBuilder";
 
   DartType buildType(LibraryBuilder library,
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments,
