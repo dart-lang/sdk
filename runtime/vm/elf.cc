@@ -962,35 +962,8 @@ class DwarfElfStream : public DwarfWriteStream {
         stream_(ASSERT_NOTNULL(stream)),
         address_map_(address_map) {}
 
-  void sleb128(intptr_t value) {
-    bool is_last_part = false;
-    while (!is_last_part) {
-      uint8_t part = value & 0x7F;
-      value >>= 7;
-      if ((value == 0 && (part & 0x40) == 0) ||
-          (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
-        is_last_part = true;
-      } else {
-        part |= 0x80;
-      }
-      stream_->WriteFixed(part);
-    }
-  }
-
-  void uleb128(uintptr_t value) {
-    bool is_last_part = false;
-    while (!is_last_part) {
-      uint8_t part = value & 0x7F;
-      value >>= 7;
-      if (value == 0) {
-        is_last_part = true;
-      } else {
-        part |= 0x80;
-      }
-      stream_->WriteFixed(part);
-    }
-  }
-
+  void sleb128(intptr_t value) { stream_->Write(value); }
+  void uleb128(uintptr_t value) { stream_->WriteUnsigned(value); }
   void u1(uint8_t value) { stream_->WriteFixed(value); }
   // Can't use WriteFixed for these, as we may not be at aligned positions.
   void u2(uint16_t value) { stream_->WriteBytes(&value, sizeof(value)); }
