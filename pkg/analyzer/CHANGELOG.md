@@ -1,3 +1,6 @@
+## 0.40.2
+* Require `meta: ^1.2.3`.
+
 ## 0.40.1
 * Added `LocalVariableElement.hasInitializer`,
   `PropertyInducingElement.hasInitializer`, `ParameterElement.hasDefaultValue`.
