@@ -1,3 +1,10 @@
+# 0.1.119
+
+* fix `close_sinks` to handle `this`-prefixed property accesses
+* new lint: `unnecessary_null_checks`
+* fix `unawaited_futures` to handle `Future` subtypes
+* new lint: `avoid_type_to_string`
+
 # 0.1.118
 
 * new lint: `unnecessary_nullable_for_final_variable_declarations`
