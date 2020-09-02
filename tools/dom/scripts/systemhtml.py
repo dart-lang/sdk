@@ -1054,7 +1054,7 @@ promise_operations = monitored.Dict(
         "RTCPeerConnection.getStats": {
             "type": "RtcStatsReport",
             "maplike": "RTCStatsReport",
-            "creates": "RTCStatsReport"
+            "creates": "RtcStatsReport"
         },
         "RTCPeerConnection.generateCertificate": {
             "type": "RtcCertificate",
