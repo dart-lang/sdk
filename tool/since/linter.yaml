@@ -6,6 +6,7 @@ always_specify_types: 0.1.4
 annotate_overrides: 0.1.11
 avoid_annotating_with_dynamic: 0.1.31
 avoid_bool_literals_in_conditional_expressions: 0.1.46
+avoid_type_to_string : 0.1.119
 avoid_types_on_closure_parameters: 0.1.31
 avoid_as: 0.1.5
 avoid_catching_errors: 0.1.31
@@ -39,6 +40,7 @@ avoid_slow_async_io: 0.1.30
 avoid_types_as_parameter_names: 0.1.45
 avoid_unnecessary_containers : 0.1.102
 avoid_unused_constructor_parameters: 0.1.36
+always_use_package_imports : 0.1.118
 avoid_void_async: 0.1.60
 avoid_web_libraries_in_flutter : 0.1.101
 await_only_futures: 0.1.16
@@ -149,6 +151,8 @@ unnecessary_getters_setters: 0.1.1
 unnecessary_lambdas: 0.1.30
 unnecessary_new: 0.1.54
 unnecessary_null_aware_assignments: 0.1.30
+unnecessary_null_checks : 0.1.119
+unnecessary_nullable_for_final_variable_declarations : 0.1.118
 unnecessary_null_in_if_null_operators: 0.1.30
 unnecessary_overrides: 0.1.31
 unnecessary_parenthesis: 0.1.44
@@ -163,6 +167,7 @@ use_full_hex_values_for_flutter_colors: 0.1.80
 use_function_type_syntax_for_parameters: 0.1.72
 use_is_even_rather_than_modulo : 0.1.116
 use_key_in_widget_constructors : 0.1.108
+use_late_for_private_fields_and_variables : 0.1.118
 use_raw_strings : 0.1.111
 use_rethrow_when_possible: 0.1.31
 use_setters_to_change_properties: 0.1.31
