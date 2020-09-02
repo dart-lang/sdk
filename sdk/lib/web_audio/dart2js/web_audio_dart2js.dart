@@ -682,13 +682,8 @@ class BaseAudioContext extends EventTarget {
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
           [DecodeSuccessCallback? successCallback,
           DecodeErrorCallback? errorCallback]) =>
-      promiseToFuture<AudioBuffer>(JS(
-          "creates:AudioBuffer;",
-          "#.decodeAudioData(#, #, #)",
-          this,
-          audioData,
-          successCallback,
-          errorCallback));
+      promiseToFuture<AudioBuffer>(JS("", "#.decodeAudioData(#, #, #)", this,
+          audioData, successCallback, errorCallback));
 
   Future resume() => promiseToFuture(JS("", "#.resume()", this));
 }
@@ -1080,8 +1075,8 @@ class OfflineAudioContext extends BaseAudioContext {
 
   int? get length native;
 
-  Future<AudioBuffer> startRendering() => promiseToFuture<AudioBuffer>(
-      JS("creates:AudioBuffer;", "#.startRendering()", this));
+  Future<AudioBuffer> startRendering() =>
+      promiseToFuture<AudioBuffer>(JS("", "#.startRendering()", this));
 
   @JSName('suspend')
   Future suspendFor(num suspendTime) =>

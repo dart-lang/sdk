@@ -890,64 +890,53 @@ class HtmlDartInterfaceGenerator(object):
 promise_attributes = monitored.Dict(
     'systemhtml.promise_attr_type', {
         "Animation.finished": {
-            "type": "Animation",
-            "creates": "Animation"
+            "type": "Animation"
         },
         "Animation.ready": {
-            "type": "Animation",
-            "creates": "Animation"
+            "type": "Animation"
         },
         "BeforeInstallPromptEvent.userChoice": {
             "type": "dictionary"
         },
         "FontFace.loaded": {
-            "type": "FontFace",
-            "creates": "FontFace"
+            "type": "FontFace"
         },
         "FontFaceSet.ready": {
-            "type": "FontFaceSet",
-            "creates": "FontFaceSet"
+            "type": "FontFaceSet"
         },
         "MediaKeySession.closed": {
             "type": "void"
         },
         "PresentationReceiver.connectionList": {
-            "type": "PresentationConnectionList",
-            "creates": "PresentationConnectionList"
+            "type": "PresentationConnectionList"
         },
         "ServiceWorkerContainer.ready": {
-            "type": "ServiceWorkerRegistration",
-            "creates": "ServiceWorkerRegistration"
+            "type": "ServiceWorkerRegistration"
         },
     })
 
 promise_operations = monitored.Dict(
     'systemhtml.promise_oper_type', {
         "Clipboard.read": {
-            "type": "DataTransfer",
-            "creates": "DataTransfer"
+            "type": "DataTransfer"
         },
         "Clipboard.readText": {
             "type": "String"
         },
         "FontFace.load": {
-            "type": "FontFace",
-            "creates": "FontFace"
+            "type": "FontFace"
         },
         "FontFaceSet.load": {
             "type": "List<dynamic>"
         },
         "OffscreenCanvas.load": {
-            "type": "Blob",
-            "creates": "Blob"
+            "type": "Blob"
         },
         "BackgroundFetchManager.fetch": {
-            "type": "BackgroundFetchRegistration",
-            "creates": "BackgroundFetchRegistration"
+            "type": "BackgroundFetchRegistration"
         },
         "BackgroundFetchManager.get": {
-            "type": "BackgroundFetchRegistration",
-            "creates": "BackgroundFetchRegistration"
+            "type": "BackgroundFetchRegistration"
         },
         "BackgroundFetchManager.getIds": {
             "type": "List<dynamic>"
@@ -962,60 +951,49 @@ promise_operations = monitored.Dict(
             "type": "double"
         },
         "BudgetService.getBudget": {
-            "type": "BudgetState",
-            "creates": "BudgetState"
+            "type": "BudgetState"
         },
         "BudgetService.reserve": {
             "type": "bool"
         },
         "Body.blob": {
-            "type": "Blob",
-            "creates": "Blob"
+            "type": "Blob"
         },
         "Body.formData": {
-            "type": "FormData",
-            "creates": "FormData"
+            "type": "FormData"
         },
         "Body.text": {
             "type": "String"
         },
         "ImageCapture.getPhotoCapabilities": {
-            "type": "PhotoCapabilities",
-            "creates": "PhotoCapabilities"
+            "type": "PhotoCapabilities"
         },
         "ImageCapture.getPhotoSettings": {
             "type": "dictionary"
         },
         "ImageCapture.takePhoto": {
-            "type": "Blob",
-            "creates": "Blob"
+            "type": "Blob"
         },
         "ImageCapture.grabFrame": {
-            "type": "ImageBitmap",
-            "creates": "ImageBitmap"
+            "type": "ImageBitmap"
         },
         "Navigator.getInstalledRelatedApps": {
-            "type": "RelatedApplication",
-            "creates": "RelatedApplication"
+            "type": "RelatedApplication"
         },
         "OffscreenCanvas.convertToBlob": {
-            "type": "Blob",
-            "creates": "Blob"
+            "type": "Blob"
         },
         "MediaCapabilities.decodingInfo": {
-            "type": "MediaCapabilitiesInfo",
-            "creates": "MediaCapabilitiesInfo"
+            "type": "MediaCapabilitiesInfo"
         },
         "MediaCapabilities.encodingInfo": {
-            "type": "MediaCapabilitiesInfo",
-            "creates": "MediaCapabilitiesInfo"
+            "type": "MediaCapabilitiesInfo"
         },
         "MediaDevices.enumerateDevices": {
             "type": "List<dynamic>"
         },
         "MediaDevices.getUserMedia": {
-            "type": "MediaStream",
-            "creates": "MediaStream"
+            "type": "MediaStream"
         },
         "ServiceWorkerRegistration.getNotifications": {
             "type": "List<dynamic>"
@@ -1033,68 +1011,53 @@ promise_operations = monitored.Dict(
             "type": "bool"
         },
         "PaymentRequest.show": {
-            "type": "PaymentResponse",
-            "creates": "PaymentResponse"
+            "type": "PaymentResponse"
         },
         "PaymentRequest.canMakePayment": {
             "type": "bool"
         },
         "PaymentRequestEvent.openWindow": {
-            "type": "WindowClient",
-            "creates": "WindowClient"
+            "type": "WindowClient"
         },
         "RTCPeerConnection.createOffer": {
-            "type": "RtcSessionDescription",
-            "creates": "RtcSessionDescription"
+            "type": "RtcSessionDescription"
         },
         "RTCPeerConnection.createAnswer": {
-            "type": "RtcSessionDescription",
-            "creates": "RtcSessionDescription"
+            "type": "RtcSessionDescription"
         },
         "RTCPeerConnection.getStats": {
             "type": "RtcStatsReport",
-            "maplike": "RTCStatsReport",
-            "creates": "RTCStatsReport"
+            "maplike": "RTCStatsReport"
         },
         "RTCPeerConnection.generateCertificate": {
-            "type": "RtcCertificate",
-            "creates": "RtcCertificate"
+            "type": "RtcCertificate"
         },
         "Permissions.query": {
-            "type": "PermissionStatus",
-            "creates": "PermissionStatus"
+            "type": "PermissionStatus"
         },
         "Permissions.request": {
-            "type": "PermissionStatus",
-            "creates": "PermissionStatus"
+            "type": "PermissionStatus"
         },
         "Permissions.revoke": {
-            "type": "PermissionStatus",
-            "creates": "PermissionStatus"
+            "type": "PermissionStatus"
         },
         "Permissions.requestAll": {
-            "type": "PermissionStatus",
-            "creates": "PermissionStatus"
+            "type": "PermissionStatus"
         },
         "PresentationRequest.start": {
-            "type": "PresentationConnection",
-            "creates": "PresentationConnection"
+            "type": "PresentationConnection"
         },
         "PresentationRequest.reconnect": {
-            "type": "PresentationConnection",
-            "creates": "PresentationConnection"
+            "type": "PresentationConnection"
         },
         "PresentationRequest.getAvailability": {
-            "type": "PresentationAvailability",
-            "creates": "PresentationAvailability"
+            "type": "PresentationAvailability"
         },
         "PushManager.subscribe": {
-            "type": "PushSubscription",
-            "creates": "PushSubscription"
+            "type": "PushSubscription"
         },
         "PushManager.getSubscription": {
-            "type": "PushSubscription",
-            "creates": "PushSubscription"
+            "type": "PushSubscription"
         },
         "PushSubscription.unsubscribe": {
             "type": "bool"
@@ -1115,37 +1078,31 @@ promise_operations = monitored.Dict(
             "type": "List<dynamic>"
         },
         "Clients.openWindow": {
-            "type": "WindowClient",
-            "creates": "WindowClient"
+            "type": "WindowClient"
         },
         "NavigationPreloadManager.getState": {
             "type": "dictionary"
         },
         "ServiceWorkerContainer.register": {
-            "type": "ServiceWorkerRegistration",
-            "creates": "ServiceWorkerRegistration"
+            "type": "ServiceWorkerRegistration"
         },
         "ServiceWorkerContainer.getRegistration": {
-            "type": "ServiceWorkerRegistration",
-            "creates": "ServiceWorkerRegistration"
+            "type": "ServiceWorkerRegistration"
         },
         "ServiceWorkerContainer.getRegistrations": {
             "type": "List<dynamic>"
         },
         "ServiceWorkerGlobalScope.fetch": {
-            "type": "_Response",
-            "creates": "_Response"
+            "type": "Response"
         },
         "ServiceWorkerRegistration.unregister": {
             "type": "bool"
         },
         "WindowClient.focus": {
-            "type": "WindowClient",
-            "creates": "WindowClient"
+            "type": "WindowClient"
         },
         "WindowClient.navigate": {
-            "type": "WindowClient",
-            "creates": "WindowClient"
+            "type": "WindowClient"
         },
         "BarcodeDetector.detect": {
             "type": "List<dynamic>"
@@ -1157,71 +1114,10 @@ promise_operations = monitored.Dict(
             "type": "List<dynamic>"
         },
         "BaseAudioContext.decodeAudioData": {
-            "type": "AudioBuffer",
-            "creates": "AudioBuffer"
+            "type": "AudioBuffer"
         },
         "OfflineAudioContext.startRendering": {
-            "type": "AudioBuffer",
-            "creates": "AudioBuffer"
-        },
-        "CacheStorage.match": {
-            "type": "_Response",
-            "creates": "_Response"
-        },
-        "CacheStorage.open": {
-            "type": "_Cache",
-            "creates": "_Cache"
-        },
-        "CookieStore.getAll": {
-            "type": "dictionary"
-        },
-        "CredentialsContainer.create": {
-            "type": "Credential",
-            "creates": "Credential"
-        },
-        "CredentialsContainer.get": {
-            "type": "Credential",
-            "creates": "Credential"
-        },
-        "CredentialsContainer.store": {
-            "type": "Credential",
-            "creates": "Credential"
-        },
-        "FetchEvent.preloadResponse": {
-            "type": "_Response",
-            "creates": "_Response"
-        },
-        "MediaKeys.getStatusForPolicy": {
-            # Actual return value is MediaKeyStatus, which is an IDL enum of
-            # strings.
-            "type": "String"
-        },
-        "MediaKeySystemAccess.createMediaKeys": {
-            "type": "MediaKeys",
-            "creates": "MediaKeys"
-        },
-        "MediaStreamTrack.applyConstraints": {
-            "type": "dictionary"
-        },
-        "Navigator.getVRDisplays": {
-            "type": "List<VRDisplay>",
-            "creates": "VRDisplay"
-        },
-        "Navigator.requestMediaKeySystemAccess": {
-            "type": "MediaKeySystemAccess",
-            "creates": "MediaKeySystemAccess"
-        },
-        "VRSession.requestFrameOfReference": {
-            "type": "VRFrameOfReference",
-            "creates": "VRFrameOfReference"
-        },
-        "Window.fetch": {
-            "type": "_Response",
-            "creates": "_Response"
-        },
-        "WorkerGlobalScope.fetch": {
-            "type": "_Response",
-            "creates": "_Response"
+            "type": "AudioBuffer"
         },
     })
 
@@ -1596,7 +1492,6 @@ class Dart2JSBackend(HtmlDartGenerator):
                 promiseFound = _GetPromiseAttributeType(lookupOp)
                 promiseType = 'Future'
                 promiseCall = 'promiseToFuture'
-                type_description = ''
                 if promiseFound is not (None):
                     if 'maplike' in promiseFound:
                         promiseCall = 'promiseToFuture<dynamic>'
@@ -1615,14 +1510,10 @@ class Dart2JSBackend(HtmlDartGenerator):
                         promiseCall = 'promiseToFuture<%s>' % paramType
                         promiseType = 'Future<%s>' % paramType
 
-                    if 'creates' in promiseFound:
-                        createsType = promiseFound['creates']
-                        type_description = 'creates:%s;' % createsType
-
                 if attribute.type.nullable:
                     promiseType += '?'
 
-                template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("$TYPE_DESC", "#.$NAME", this));\n'
+                template = '\n  $RENAME$(ANNOTATIONS)$TYPE get $NAME => $PROMISE_CALL(JS("", "#.$NAME", this));\n'
 
                 self._members_emitter.Emit(
                     template,
@@ -1630,8 +1521,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                     ANNOTATIONS=metadata,
                     TYPE=promiseType,
                     PROMISE_CALL=promiseCall,
-                    TYPE_DESC=type_description,
-                    NAME=html_name,)
+                    NAME=html_name)
             else:
                 # Need to use a getter for list.length properties so we can
                 # add a setter which throws an exception, satisfying List
@@ -1843,12 +1733,11 @@ class Dart2JSBackend(HtmlDartGenerator):
         return resultType
 
     def _zeroArgs(self, argsNames):
-        return 'JS("$TYPE_DESC", "#.$JSNAME()", this)'
+        return 'JS("", "#.$JSNAME()", this)'
 
     def _manyArgs(self, numberArgs, argsNames):
         argsPound = "#" if numberArgs == 1 else ("#, " * numberArgs)[:-2]
-        template = '    JS("$TYPE_DESC", "#.$JSNAME(%s)", this, %s)'
-        return template % (argsPound, argsNames)
+        return '    JS("", "#.$JSNAME(%s)", this, %s)' % (argsPound, argsNames)
 
     """ If argument conversionsMapToDictionary is a list first entry is argument
       name and second entry signals if argument is optional (True). """
@@ -1923,7 +1812,6 @@ class Dart2JSBackend(HtmlDartGenerator):
             promiseFound = _GetPromiseOperationType(lookupOp)
             promiseType = 'Future'
             promiseCall = 'promiseToFuture'
-            type_description = ''
             if promiseFound is not (None):
                 paramType = promiseFound['type']
                 if 'maplike' in promiseFound:
@@ -1946,10 +1834,6 @@ class Dart2JSBackend(HtmlDartGenerator):
                     promiseCall = 'promiseToFuture<%s>' % paramType
                     promiseType = 'Future<%s>' % paramType
 
-                if 'creates' in promiseFound:
-                    createsType = promiseFound['creates']
-                    type_description = 'creates:%s;' % createsType
-
             argsNames = info.ParametersAsArgumentList()
             dictionary_argument = info.dictionaryArgumentName()
             codeTemplate = self._promiseToFutureCode(argsNames,
@@ -1967,7 +1851,6 @@ class Dart2JSBackend(HtmlDartGenerator):
                 TYPE=promiseType,
                 PROMISE_CALL=promiseCall,
                 NAME=html_name,
-                TYPE_DESC=type_description,
                 JSNAME=info.declared_name,
                 PARAMS=info.ParametersAsDeclaration(self._NarrowInputType,
                                                     force_optional))
