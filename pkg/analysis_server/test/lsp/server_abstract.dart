@@ -340,6 +340,15 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withLocationLinkSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'definition': {'linkSupport': true},
+      'implementation': {'linkSupport': true}
+    });
+  }
+
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
     List<MarkupKind> formats,
@@ -714,7 +723,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
-  Future<List<Location>> getDefinition(Uri uri, Position pos) {
+  Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
+      Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
       TextDocumentPositionParams(
@@ -722,7 +732,24 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<List<Location>>(request);
+    return expectSuccessfulResponseTo(request);
+  }
+
+  Future<List<Location>> getDefinitionAsLocation(Uri uri, Position pos) async {
+    final results = await getDefinition(uri, pos);
+    return results.map(
+      (locations) => locations,
+      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
+    );
+  }
+
+  Future<List<LocationLink>> getDefinitionAsLocationLinks(
+      Uri uri, Position pos) async {
+    final results = await getDefinition(uri, pos);
+    return results.map(
+      (locations) => throw 'Expected List<LocationLink> got List<Location>',
+      (locationLinks) => locationLinks,
+    );
   }
 
   Future<DartDiagnosticServer> getDiagnosticServer() {
@@ -1058,6 +1085,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     } else {
       throw 'Contents contained multiple ranges but only one was expected';
     }
+  }
+
+  /// Returns the range of [searchText] in [content].
+  Range rangeOfString(String content, String searchText) {
+    content = withoutMarkers(content);
+    final startOffset = content.indexOf(searchText);
+    return startOffset == -1
+        ? null
+        : Range(
+            start: positionFromOffset(startOffset, content),
+            end: positionFromOffset(startOffset + searchText.length, content),
+          );
   }
 
   /// Returns all ranges surrounded by `[[markers]]` in the provided string,

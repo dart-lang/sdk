@@ -62,7 +62,13 @@ class _DartNavigationCollector {
     if (location == null) {
       return;
     }
-    collector.addRegion(offset, length, kind, location);
+
+    var codeLocation = collector.collectCodeLocations
+        ? _getCodeLocation(element, location, converter)
+        : null;
+
+    collector.addRegion(offset, length, kind, location,
+        targetCodeLocation: codeLocation);
   }
 
   void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
@@ -84,6 +90,51 @@ class _DartNavigationCollector {
     var offset = token.offset;
     var length = token.length;
     _addRegion(offset, length, element);
+  }
+
+  /// Get the location of the code (excluding leading doc comments) for this element.
+  protocol.Location _getCodeLocation(Element element,
+      protocol.Location location, AnalyzerConverter converter) {
+    var codeElement = element;
+    // For synthetic getters created for fields, we need to access the associated
+    // variable to get the codeOffset/codeLength.
+    if (codeElement.isSynthetic && codeElement is PropertyAccessorElementImpl) {
+      final variable = (codeElement as PropertyAccessorElementImpl).variable;
+      if (variable is ElementImpl) {
+        codeElement = variable as ElementImpl;
+      }
+    }
+
+    // Read the main codeOffset from the element. This may include doc comments
+    // but will give the correct end position.
+    int codeOffset, codeLength;
+    if (codeElement is ElementImpl) {
+      codeOffset = codeElement.codeOffset;
+      codeLength = codeElement.codeLength;
+    }
+
+    // Read the declaration so we can get the offset after the doc comments.
+    final declaration = codeElement.session
+        .getParsedLibrary(location.file)
+        .getElementDeclaration(codeElement);
+    var node = declaration?.node;
+    if (node is VariableDeclaration) {
+      node = node.parent;
+    }
+    if (node is AnnotatedNode) {
+      var offsetAfterDocs = node.firstTokenAfterCommentAndMetadata.offset;
+
+      // Reduce the length by the difference between the end of docs and the start.
+      codeLength -= (offsetAfterDocs - codeOffset);
+      codeOffset = offsetAfterDocs;
+    }
+
+    if (codeOffset == null || codeLength == null) {
+      return null;
+    }
+
+    return converter.locationFromElement(element,
+        offset: codeOffset, length: codeLength);
   }
 }
 
