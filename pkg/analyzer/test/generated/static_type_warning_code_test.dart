@@ -40,126 +40,116 @@ f(Object x) {
 
   test_await_flattened() async {
     await assertErrorsInCode('''
-import 'dart:async';
 Future<Future<int>> ffi() => null;
 f() async {
   Future<int> b = await ffi(); 
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
-    ]);
-  }
-
-  test_await_simple() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Future<int> fi() => null;
-f() async {
-  String a = await fi(); // Warning: int not assignable to String
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 72, 10),
-    ]);
-  }
-
-  test_awaitForIn_declaredVariableRightType() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  await for (int i in stream) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
-    ]);
-  }
-
-  test_awaitForIn_declaredVariableWrongType() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<String> stream;
-  await for (int i in stream) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 80, 6),
-    ]);
-  }
-
-  test_awaitForIn_downcast() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<num> stream;
-  await for (int i in stream) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
-    ]);
-  }
-
-  test_awaitForIn_dynamicVariable() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  await for (var i in stream) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
-    ]);
-  }
-
-  test_awaitForIn_existingVariableRightType() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  int i;
-  await for (i in stream) {}
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
   }
 
+  test_await_simple() async {
+    await assertErrorsInCode('''
+Future<int> fi() => null;
+f() async {
+  String a = await fi(); // Warning: int not assignable to String
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 51, 10),
+    ]);
+  }
+
+  test_awaitForIn_declaredVariableRightType() async {
+    await assertErrorsInCode('''
+f() async {
+  Stream<int> stream;
+  await for (int i in stream) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+    ]);
+  }
+
+  test_awaitForIn_declaredVariableWrongType() async {
+    await assertErrorsInCode('''
+f() async {
+  Stream<String> stream;
+  await for (int i in stream) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 59, 6),
+    ]);
+  }
+
+  test_awaitForIn_downcast() async {
+    await assertErrorsInCode('''
+f() async {
+  Stream<num> stream;
+  await for (int i in stream) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+    ]);
+  }
+
+  test_awaitForIn_dynamicVariable() async {
+    await assertErrorsInCode('''
+f() async {
+  Stream<int> stream;
+  await for (var i in stream) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+    ]);
+  }
+
+  test_awaitForIn_existingVariableRightType() async {
+    await assertErrorsInCode('''
+f() async {
+  Stream<int> stream;
+  int i;
+  await for (i in stream) {}
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+    ]);
+  }
+
   test_awaitForIn_existingVariableWrongType() async {
     await assertErrorsInCode('''
-import 'dart:async';
 f() async {
   Stream<String> stream;
   int i;
   await for (i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 85, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE, 64, 6),
     ]);
   }
 
   test_awaitForIn_streamOfDynamic() async {
     await assertErrorsInCode('''
-import 'dart:async';
 f() async {
   Stream stream;
   await for (int i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
   }
 
   test_awaitForIn_upcast() async {
     await assertErrorsInCode('''
-import 'dart:async';
 f() async {
   Stream<int> stream;
   await for (num i in stream) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 72, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
   }
 
@@ -600,7 +590,6 @@ main(A<NoSuchType> a) {
 class StrongModeStaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_legalAsyncGeneratorReturnType_function_supertypeOfStream() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 f() async* { yield 42; }
 dynamic f2() async* { yield 42; }
 Object f3() async* { yield 42; }
@@ -614,7 +603,6 @@ Stream<int> f8() async* { yield 42; }
 
   test_legalAsyncReturnType_function_supertypeOfFuture() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 f() async { return 42; }
 dynamic f2() async { return 42; }
 Object f3() async { return 42; }

@@ -41,13 +41,12 @@ int f() async {
 
   test_function_subtypeOfFuture() async {
     await assertErrorsInCode('''
-import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
 SubFuture<int> f() async {
   return 0;
 }
 ''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 73, 14),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 52, 14),
     ]);
   }
 
@@ -71,7 +70,6 @@ class C {
 
   test_method_subtypeOfFuture() async {
     await assertErrorsInCode('''
-import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
 class C {
   SubFuture<int> m() async {
@@ -79,7 +77,7 @@ class C {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 85, 14),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 64, 14),
     ]);
   }
 }

@@ -170,7 +170,6 @@ mixin C on A {
   test_overriddenWithFuture() async {
     // https://github.com/flutter/flutter/issues/11646
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -191,7 +190,6 @@ class C extends A {
   test_overriddenWithFuture2() async {
     // https://github.com/flutter/flutter/issues/11646
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper

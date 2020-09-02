@@ -28,7 +28,6 @@ class InferredTypeTest extends PubPackageResolutionTest {
 
   test_asyncClosureReturnType_flatten() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<int> futureInt = null;
 var f = () => futureInt;
 var g = () async => futureInt;
@@ -73,7 +72,6 @@ var g = () async => futureOrInt;
 
   test_blockBodiedLambdas_async_allReturnsAreFutures() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -87,8 +85,8 @@ main() {
   Future<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 239, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 262, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 218, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 241, 1),
     ]);
 
     var f = findLocalVariable(_resultUnit, 'f');
@@ -97,7 +95,6 @@ main() {
 
   test_blockBodiedLambdas_async_allReturnsAreValues() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -111,8 +108,8 @@ main() {
   Future<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 190, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 213, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 169, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 1),
     ]);
 
     var f = findLocalVariable(_resultUnit, 'f');
@@ -121,7 +118,6 @@ main() {
 
   test_blockBodiedLambdas_async_mixOfValuesAndFutures() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 import 'dart:math' show Random;
 main() {
   var f = () async {
@@ -135,8 +131,8 @@ main() {
   Future<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 213, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 236, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 192, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 215, 1),
     ]);
 
     var f = findLocalVariable(_resultUnit, 'f');
@@ -145,7 +141,6 @@ main() {
 
   test_blockBodiedLambdas_asyncStar() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 main() {
   var f = () async* {
     yield 1;
@@ -156,8 +151,8 @@ main() {
   Stream<int> h = f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 120, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 143, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 99, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 122, 1),
     ]);
 
     var f = findLocalVariable(_resultUnit, 'f');
@@ -203,7 +198,6 @@ var g = f;
 
   test_blockBodiedLambdas_inferBottom_async() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 main() async {
   var f = () async { return null; };
   Future y = f();
@@ -211,9 +205,9 @@ main() async {
   String s = await f();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 108, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 126, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
     ]);
 
     var f = findLocalVariable(_resultUnit, 'f');
@@ -222,7 +216,6 @@ main() async {
 
   test_blockBodiedLambdas_inferBottom_asyncStar() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 main() async {
   var f = () async* { yield null; };
   Stream y = f();
@@ -230,9 +223,9 @@ main() async {
   String s = await f().first;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 108, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 126, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 105, 1),
     ]);
 
     var f = findLocalVariable(_resultUnit, 'f');
@@ -844,22 +837,19 @@ void main() {
 
   test_downwardsInferenceAsyncAwait() async {
     await assertErrorsInCode('''
-import 'dart:async';
 Future test() async {
   dynamic d;
   List<int> l0 = await [d];
   List<int> l1 = await new Future.value([d]);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 68, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 96, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 75, 2),
     ]);
   }
 
   test_downwardsInferenceForEach() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 abstract class MyStream<T> extends Stream<T> {
   factory MyStream() => throw 0;
 }
@@ -869,8 +859,8 @@ Future main() async {
   await for(int x in new MyStream()) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 137, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 172, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 115, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 150, 1),
     ]);
   }
 
@@ -1689,7 +1679,6 @@ int get y => null;
 
   test_futureOr_subtyping() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 void add(int x) {}
 add2(int y) {}
 main() {
@@ -1698,14 +1687,15 @@ main() {
   var b = f.then(add2);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 87, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 66, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 89, 1),
     ]);
   }
 
   test_futureThen() async {
     String build({String declared, String downwards, String upwards}) => '''
 import 'dart:async';
+
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
@@ -1793,7 +1783,6 @@ void main() {
   test_futureThen_downwardsMethodTarget() async {
     // Not working yet, see: https://github.com/dart-lang/sdk/issues/27114
     await assertErrorsInCode(r'''
-import 'dart:async';
 main() {
   Future<int> f;
   Future<List<int>> b = f
@@ -1802,13 +1791,12 @@ main() {
   b = f.then((x) => []);
 }
   ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
     ]);
   }
 
   test_futureThen_explicitFuture() async {
     await assertErrorsInCode(r'''
-import "dart:async";
 m1() {
   Future<int> f;
   var x = f.then<Future<List<int>>>((x) => []);
@@ -1820,10 +1808,10 @@ m2() {
   Future<List<int>> y = x;
 }
 ''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 88, 2),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 113, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 117, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 206, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 67, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 92, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 96, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 185, 1),
     ]);
   }
 
@@ -1887,7 +1875,6 @@ $declared foo() => new $declared<int>.value(1);
   test_futureThen_upwardsFromBlock() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27113.
     await assertErrorsInCode(r'''
-import 'dart:async';
 main() {
   Future<int> base;
   var f = base.then((x) { return x == 0; });
@@ -1896,7 +1883,7 @@ main() {
   b = g;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 146, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 125, 1),
     ]);
   }
 
@@ -2018,8 +2005,6 @@ $downwards<List<int>> g3() async {
     // We need to take a future union into account for both directions of
     // generic method inference.
     await assertErrorsInCode(r'''
-import 'dart:async';
-
 foo() async {
   Future<List<A>> f1 = null;
   Future<List<A>> f2 = null;
@@ -2028,15 +2013,13 @@ foo() async {
 
 class A {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 110, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 88, 6),
     ]);
   }
 
   test_futureUnion_downwardsGenericMethodWithGenericReturn() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27284
     await assertErrorsInCode(r'''
-import 'dart:async';
-
 T id<T>(T x) => x;
 
 main() async {
@@ -2044,15 +2027,13 @@ main() async {
   String s = await id(f);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 86, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
     ]);
   }
 
   test_futureUnion_upwardsGenericMethods() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/27151
     await assertErrorsInCode(r'''
-import 'dart:async';
-
 main() async {
   var b = new Future<B>.value(new B());
   var c = new Future<C>.value(new C());
@@ -2067,7 +2048,7 @@ class A {}
 class B extends A {}
 class C extends A {}
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 229, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 207, 4),
     ]);
   }
 
@@ -2287,8 +2268,6 @@ main() {
 
   test_genericMethods_IterableAndFuture() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 Future<int> make(int x) => (new Future(() => x));
 
 main() {
@@ -2304,11 +2283,11 @@ main() {
     => list.fold<String>('', (x, y) => x + y.toString()));
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 205, 8),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 279, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 315, 8),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 377, 33),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 432, 8),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 183, 8),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 257, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 293, 8),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 355, 33),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 410, 8),
     ]);
   }
 
