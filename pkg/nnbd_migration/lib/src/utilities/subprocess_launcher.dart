@@ -6,8 +6,6 @@
 // and extract into a separate package, generate testing and mirrors, and
 // reimport that into the SDK, before cut and paste gets out of hand.
 
-import 'dart:async';
-
 /// This is a modified version of dartdoc's
 /// SubprocessLauncher from test/src/utils.dart, for use with the
 /// nnbd_migration script.
