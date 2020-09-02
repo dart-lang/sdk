@@ -3814,15 +3814,14 @@ class NullAwareGuard {
         assert(_inferrer != null) {
     // Ensure the initializer of [_nullAwareVariable] is promoted to
     // non-nullable.
-    _inferrer.flowAnalysis.nullAwareAccess_rightBegin(
-        _nullAwareVariable.initializer, _nullAwareVariable.type);
+    _inferrer.flowAnalysis
+        .nullAwareAccess_rightBegin(_nullAwareVariable.initializer);
     // Ensure [_nullAwareVariable] is promoted to non-nullable.
     // TODO(johnniwinther): Avoid creating a [VariableGet] to promote the
     // variable.
     VariableGet read = new VariableGet(_nullAwareVariable);
     _inferrer.flowAnalysis.variableRead(read, _nullAwareVariable);
-    _inferrer.flowAnalysis
-        .nullAwareAccess_rightBegin(read, _nullAwareVariable.type);
+    _inferrer.flowAnalysis.nullAwareAccess_rightBegin(read);
   }
 
   /// Creates the null-guarded application of [nullAwareAction] with the

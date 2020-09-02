@@ -84,8 +84,6 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 28, 2),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
     ]);
   }
@@ -98,8 +96,6 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 28, 2),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
       _notAssignedError(28, 1),
     ]);
@@ -122,11 +118,7 @@ void f() {
   (v = 0) ?? 0;
   v;
 }
-''', [
-      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 33, 7),
-    ]);
+''', [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1)]);
   }
 
   test_binaryExpression_ifNull_right() async {
@@ -138,8 +130,6 @@ void f(int a) {
 }
 ''', [
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
-      // See https://github.com/dart-lang/sdk/issues/43263.
-      error(HintCode.DEAD_CODE, 32, 13),
       _notAssignedError(43, 1),
     ]);
   }

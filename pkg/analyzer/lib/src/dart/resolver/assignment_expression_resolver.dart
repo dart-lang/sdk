@@ -466,7 +466,7 @@ class AssignmentExpressionResolver {
 
     var flow = _flowAnalysis?.flow;
     if (flow != null && operator == TokenType.QUESTION_QUESTION_EQ) {
-      flow.ifNullExpression_rightBegin(left, leftType);
+      flow.ifNullExpression_rightBegin(left);
     }
 
     right?.accept(_resolver);

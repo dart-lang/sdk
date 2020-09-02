@@ -178,7 +178,7 @@ class BinaryExpressionResolver {
     }
     InferenceContext.setType(right, rightContextType);
 
-    flow?.ifNullExpression_rightBegin(left, leftType);
+    flow?.ifNullExpression_rightBegin(left);
     right.accept(_resolver);
     right = node.rightOperand;
     flow?.ifNullExpression_end();

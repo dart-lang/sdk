@@ -1159,8 +1159,7 @@ class InferenceVisitor
             lhsResult.inferredType, equalsName, node.fileOffset)
         .member;
 
-    inferrer.flowAnalysis
-        .ifNullExpression_rightBegin(node.left, lhsResult.inferredType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(node.left);
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
     ExpressionInferenceResult rhsResult;
@@ -2671,7 +2670,7 @@ class InferenceVisitor
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
-    inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
     ExpressionInferenceResult writeResult = inferrer
         .inferExpression(node.write, typeContext, true, isVoidAllowed: true);
     inferrer.flowAnalysis.ifNullExpression_end();
@@ -2743,7 +2742,7 @@ class InferenceVisitor
       read = readResult.expression;
       readType = readResult.inferredType;
     }
-    inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
     ExpressionInferenceResult writeResult = inferrer
         .inferExpression(node.write, typeContext, true, isVoidAllowed: true);
     inferrer.flowAnalysis.ifNullExpression_end();
@@ -3099,7 +3098,7 @@ class InferenceVisitor
         readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
-    inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
 
     Member equalsMember = inferrer
         .findInterfaceMember(readType, equalsName, node.testOffset)
@@ -3270,7 +3269,7 @@ class InferenceVisitor
         ..fileOffset = node.readOffset;
     }
 
-    inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
     ExpressionInferenceResult valueResult = inferrer
         .inferExpression(node.value, valueType, true, isVoidAllowed: true);
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
@@ -3424,7 +3423,7 @@ class InferenceVisitor
         readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
-    inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
 
     Member equalsMember = inferrer
         .findInterfaceMember(readType, equalsName, node.testOffset)
@@ -4904,7 +4903,7 @@ class InferenceVisitor
         isThisReceiver: node.receiver is ThisExpression);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
-    inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
+    inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
 
     Member readEqualsMember = inferrer
         .findInterfaceMember(readType, equalsName, node.testOffset)
