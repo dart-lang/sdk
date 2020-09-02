@@ -170,7 +170,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var variable in fields.variables) {
-      final element = variable.declaredElement;
+      final element = variable.declaredElement as PropertyInducingElement;
 
       if (element.isPrivate && !_mutatedFields.contains(element)) {
         bool fieldInConstructor(ConstructorDeclaration constructor) =>
@@ -190,7 +190,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (isFieldInAllConstructors) {
             rule.reportLint(variable);
           }
-        } else if (element.initializer != null) {
+        } else if (element.hasInitializer) {
           rule.reportLint(variable);
         }
       }
