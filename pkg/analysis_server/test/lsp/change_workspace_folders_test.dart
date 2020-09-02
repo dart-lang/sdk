@@ -59,6 +59,139 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void>
+      test_changeWorkspaceFolders_addExplicitParentOfImplicit_closeFile() async {
+    final nestedFolderPath =
+        join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
+    final nestedFilePath = join(nestedFolderPath, 'test.dart');
+    final nestedFileUri = Uri.file(nestedFilePath);
+    await newFile(nestedFilePath);
+
+    await initialize(allowEmptyRootUri: true);
+    await openFile(nestedFileUri, '');
+
+    // Expect implicit root for the open file.
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([nestedFolderPath]),
+    );
+
+    // Add the real project root to the workspace (which should become an
+    // explicit root).
+    await changeWorkspaceFolders(add: [workspaceFolder1Uri]);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path, nestedFolderPath]),
+    );
+
+    // Closing the file should not result in the project being removed.
+    await closeFile(nestedFileUri);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+  }
+
+  Future<void>
+      test_changeWorkspaceFolders_addExplicitParentOfImplicit_closeFolder() async {
+    final nestedFolderPath =
+        join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
+    final nestedFilePath = join(nestedFolderPath, 'test.dart');
+    final nestedFileUri = Uri.file(nestedFilePath);
+    await newFile(nestedFilePath);
+
+    await initialize(allowEmptyRootUri: true);
+    await openFile(nestedFileUri, '');
+
+    // Expect implicit root for the open file.
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([nestedFolderPath]),
+    );
+
+    // Add the real project root to the workspace (which should become an
+    // explicit root).
+    await changeWorkspaceFolders(add: [workspaceFolder1Uri]);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path, nestedFolderPath]),
+    );
+
+    // Removing the workspace folder should result in falling back to just the
+    // nested folder.
+    await changeWorkspaceFolders(remove: [workspaceFolder1Uri]);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([nestedFolderPath]),
+    );
+  }
+
+  Future<void>
+      test_changeWorkspaceFolders_addImplicitChildOfExplicitParent_closeFile() async {
+    final nestedFolderPath =
+        join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
+    final nestedFilePath = join(nestedFolderPath, 'test.dart');
+    final nestedFileUri = Uri.file(nestedFilePath);
+    await newFile(nestedFilePath);
+
+    await initialize(workspaceFolders: [workspaceFolder1Uri]);
+
+    // Expect explicit root for the workspace folder.
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    // Open a file, though no new root is expected as it was mapped to the existing
+    // open folder.
+    await openFile(nestedFileUri, '');
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    // Closing the file should not result in the project being removed.
+    await closeFile(nestedFileUri);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+  }
+
+  Future<void>
+      test_changeWorkspaceFolders_addImplicitChildOfExplicitParent_closeFolder() async {
+    final nestedFolderPath =
+        join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
+    final nestedFilePath = join(nestedFolderPath, 'test.dart');
+    final nestedFileUri = Uri.file(nestedFilePath);
+    await newFile(nestedFilePath);
+
+    await initialize(workspaceFolders: [workspaceFolder1Uri]);
+
+    // Expect explicit root for the workspace folder.
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    // Open a file, though no new root is expected as it was mapped to the existing
+    // open folder.
+    await openFile(nestedFileUri, '');
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    // Removing the workspace folder will retain the workspace folder, as that's
+    // the folder we picked when the file was opened since there was already
+    // a root for it.
+    await changeWorkspaceFolders(remove: [workspaceFolder1Uri]);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+  }
+
   Future<void> test_changeWorkspaceFolders_remove() async {
     await initialize(
       workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],
@@ -79,7 +212,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
 
     // Generate an error in the test project.
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await openFile(mainFileUri, 'String a = 1;');
+    newFile(mainFilePath, content: 'String a = 1;');
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
 
