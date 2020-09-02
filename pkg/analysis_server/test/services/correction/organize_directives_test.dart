@@ -83,14 +83,14 @@ import 'dart:async';
 import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
 }''');
     // validate change
     _assertOrganize(r'''
 import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
 }''', removeUnused: true);
   }
 
@@ -164,7 +164,7 @@ import 'dart:math';
 class A {}
 
 main() {
-  Future f;
+  Completer f;
 }''');
     // validate change
     _assertOrganize(r'''
@@ -173,7 +173,7 @@ import 'dart:async';
 class A {}
 
 main() {
-  Future f;
+  Completer f;
 }''', removeUnused: true);
   }
 

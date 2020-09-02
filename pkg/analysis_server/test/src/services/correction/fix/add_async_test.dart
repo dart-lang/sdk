@@ -25,7 +25,6 @@ class AddAsyncTest extends FixProcessorTest {
 
   Future<void> test_asyncFor() async {
     await resolveTestUnit('''
-import 'dart:async';
 void main(Stream<String> names) {
   await for (String name in names) {
     print(name);
@@ -33,7 +32,6 @@ void main(Stream<String> names) {
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
 Future<void> main(Stream<String> names) async {
   await for (String name in names) {
     print(name);
@@ -78,15 +76,11 @@ Future<int> f() async {
 
   Future<void> test_closure() async {
     await resolveTestUnit('''
-import 'dart:async';
-
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() => await 1);
 ''');
     await assertHasFix('''
-import 'dart:async';
-
 void takeFutureCallback(Future callback()) {}
 
 void doStuff() => takeFutureCallback(() async => await 1);
@@ -115,7 +109,6 @@ var F = await;
 
   Future<void> test_returnFuture_alreadyFuture() async {
     await resolveTestUnit('''
-import 'dart:async';
 foo() {}
 Future<int> main() {
   await foo();
@@ -123,7 +116,6 @@ Future<int> main() {
 }
 ''');
     await assertHasFix('''
-import 'dart:async';
 foo() {}
 Future<int> main() async {
   await foo();
