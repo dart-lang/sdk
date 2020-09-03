@@ -46,6 +46,7 @@ import 'replace_with_conditional_assignment_test.dart'
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_tear_off_test.dart' as replace_with_tear_off;
 import 'replace_with_var_test.dart' as replace_with_var;
+import 'sort_child_properties_last.dart' as sort_child_properties_last;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_rethrow_test.dart' as use_rethrow;
@@ -88,6 +89,7 @@ void main() {
     replace_with_is_empty.main();
     replace_with_tear_off.main();
     replace_with_var.main();
+    sort_child_properties_last.main();
     use_curly_braces.main();
     use_is_not_empty.main();
     use_rethrow.main();

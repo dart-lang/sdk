@@ -44,6 +44,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_condit
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
+import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
@@ -103,6 +104,7 @@ class BulkFixProcessor {
     LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
     LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
+    LintNames.sort_child_properties_last: SortChildPropertyLast.newInstance,
     LintNames.type_init_formals: RemoveTypeAnnotation.newInstance,
     LintNames.unawaited_futures: AddAwait.newInstance,
     LintNames.unnecessary_brace_in_string_interps:
