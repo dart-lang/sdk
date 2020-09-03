@@ -284,10 +284,6 @@ bool Options::ExtractPortAndAddress(const char* option_value,
   return true;
 }
 
-static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
-static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
-static const int INVALID_VM_SERVICE_SERVER_PORT = -1;
-
 const char* Options::vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
 int Options::vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
 bool Options::ProcessEnableVmServiceOption(const char* arg,
@@ -605,7 +601,15 @@ int Options::ParseArguments(int argc,
   }
 
   if (!Options::disable_dart_dev() && enable_vm_service_) {
-    dart_options->AddArgument("--launch-dds");
+    const char* dds_format_str = "--launch-dds=%s:%d";
+    size_t size = snprintf(nullptr, 0, dds_format_str, vm_service_server_ip(),
+                           vm_service_server_port());
+    // Make room for '\0'.
+    ++size;
+    char* dds_uri = new char[size];
+    snprintf(dds_uri, size, dds_format_str, vm_service_server_ip(),
+             vm_service_server_port());
+    dart_options->AddArgument(dds_uri);
   }
 
   // Verify consistency of arguments.

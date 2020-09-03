@@ -367,13 +367,6 @@ vms.ClassList assertClassList(vms.ClassList obj) {
   return obj;
 }
 
-vms.ClientName assertClientName(vms.ClientName obj) {
-  assertNotNull(obj);
-  assertString(obj.type);
-  assertString(obj.name);
-  return obj;
-}
-
 vms.CodeRef assertCodeRef(vms.CodeRef obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -1199,12 +1192,5 @@ vms.VM assertVM(vms.VM obj) {
   assertListOfIsolateGroupRef(obj.isolateGroups);
   assertListOfIsolateRef(obj.systemIsolates);
   assertListOfIsolateGroupRef(obj.systemIsolateGroups);
-  return obj;
-}
-
-vms.WebSocketTarget assertWebSocketTarget(vms.WebSocketTarget obj) {
-  assertNotNull(obj);
-  assertString(obj.type);
-  assertString(obj.uri);
   return obj;
 }

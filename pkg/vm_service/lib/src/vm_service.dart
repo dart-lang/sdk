@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.38.0';
+const String vmServiceVersion = '4.0.0';
 
 /// @optional
 const String optional = 'optional';
@@ -117,7 +117,6 @@ Map<String, Function> _typeFactories = {
   'Class': Class.parse,
   'ClassHeapStats': ClassHeapStats.parse,
   'ClassList': ClassList.parse,
-  'ClientName': ClientName.parse,
   '@Code': CodeRef.parse,
   'Code': Code.parse,
   '@Context': ContextRef.parse,
@@ -186,7 +185,6 @@ Map<String, Function> _typeFactories = {
   'Version': Version.parse,
   '@VM': VMRef.parse,
   'VM': VM.parse,
-  'WebSocketTarget': WebSocketTarget.parse,
 };
 
 Map<String, List<String>> _methodReturnTypes = {
@@ -200,7 +198,6 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef'],
   'getAllocationProfile': const ['AllocationProfile'],
   'getClassList': const ['ClassList'],
-  'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences'],
@@ -221,16 +218,13 @@ Map<String, List<String>> _methodReturnTypes = {
   'getVMTimeline': const ['Timeline'],
   'getVMTimelineFlags': const ['TimelineFlags'],
   'getVMTimelineMicros': const ['Timestamp'],
-  'getWebSocketTarget': const ['WebSocketTarget'],
   'pause': const ['Success'],
   'kill': const ['Success'],
   'registerService': const ['Success'],
   'reloadSources': const ['ReloadReport'],
   'removeBreakpoint': const ['Success'],
   'requestHeapSnapshot': const ['Success'],
-  'requirePermissionToResume': const ['Success'],
   'resume': const ['Success'],
-  'setClientName': const ['Success'],
   'setExceptionPauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
@@ -517,13 +511,6 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<ClassList> getClassList(String isolateId);
-
-  /// The `getClientName` RPC is used to retrieve the name associated with the
-  /// currently connected VM service client. If no name was previously set
-  /// through the [setClientName] RPC, a default name will be returned.
-  ///
-  /// See [ClientName].
-  Future<ClientName> getClientName();
 
   /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
@@ -854,13 +841,6 @@ abstract class VmServiceInterface {
   /// See [Timestamp] and [getVMTimeline].
   Future<Timestamp> getVMTimelineMicros();
 
-  /// The `getWebSocketTarget` RPC returns the web socket URI that should be
-  /// used by VM service clients with WebSocket implementations that do not
-  /// follow redirects (e.g., `dart:html`'s [WebSocket]).
-  ///
-  /// See [WebSocketTarget].
-  Future<WebSocketTarget> getWebSocketTarget();
-
   /// The `pause` RPC is used to interrupt a running isolate. The RPC enqueues
   /// the interrupt request and potentially returns before the isolate is
   /// paused.
@@ -956,39 +936,6 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> requestHeapSnapshot(String isolateId);
 
-  /// The `requirePermissionToResume` RPC is used to change the pause/resume
-  /// behavior of isolates by providing a way for the VM service to wait for
-  /// approval to resume from some set of clients. This is useful for clients
-  /// which want to perform some operation on an isolate after a pause without
-  /// it being resumed by another client.
-  ///
-  /// If the `onPauseStart` parameter is `true`, isolates will not resume after
-  /// pausing on start until the client sends a `resume` request and all other
-  /// clients which need to provide resume approval for this pause type have
-  /// done so.
-  ///
-  /// If the `onPauseReload` parameter is `true`, isolates will not resume after
-  /// pausing after a reload until the client sends a `resume` request and all
-  /// other clients which need to provide resume approval for this pause type
-  /// have done so.
-  ///
-  /// If the `onPauseExit` parameter is `true`, isolates will not resume after
-  /// pausing on exit until the client sends a `resume` request and all other
-  /// clients which need to provide resume approval for this pause type have
-  /// done so.
-  ///
-  /// **Important Notes:**
-  ///
-  /// - All clients with the same client name share resume permissions. Only a
-  /// single client of a given name is required to provide resume approval.
-  /// - When a client requiring approval disconnects from the service, a paused
-  /// isolate may resume if all other clients requiring resume approval have
-  /// already given approval. In the case that no other client requires resume
-  /// approval for the current pause event, the isolate will be resumed if at
-  /// least one other client has attempted to [resume] the isolate.
-  Future<Success> requirePermissionToResume(
-      {bool onPauseStart, bool onPauseReload, bool onPauseExit});
-
   /// The `resume` RPC is used to resume execution of a paused isolate.
   ///
   /// If the `step` parameter is not provided, the program will resume regular
@@ -1020,15 +967,6 @@ abstract class VmServiceInterface {
   /// returned.
   Future<Success> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex});
-
-  /// The `setClientName` RPC is used to set a name to be associated with the
-  /// currently connected VM service client. If the `name` parameter is a
-  /// non-empty string, `name` will become the new name associated with the
-  /// client. If `name` is an empty string, the client's name will be reset to
-  /// its default name.
-  ///
-  /// See [Success].
-  Future<Success> setClientName(String name);
 
   /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
   /// when an exception is thrown.
@@ -1322,9 +1260,6 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
-        case 'getClientName':
-          response = await _serviceImplementation.getClientName();
-          break;
         case 'getCpuSamples':
           response = await _serviceImplementation.getCpuSamples(
             params['isolateId'],
@@ -1428,9 +1363,6 @@ class VmServerConnection {
         case 'getVMTimelineMicros':
           response = await _serviceImplementation.getVMTimelineMicros();
           break;
-        case 'getWebSocketTarget':
-          response = await _serviceImplementation.getWebSocketTarget();
-          break;
         case 'pause':
           response = await _serviceImplementation.pause(
             params['isolateId'],
@@ -1461,23 +1393,11 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
-        case 'requirePermissionToResume':
-          response = await _serviceImplementation.requirePermissionToResume(
-            onPauseStart: params['onPauseStart'],
-            onPauseReload: params['onPauseReload'],
-            onPauseExit: params['onPauseExit'],
-          );
-          break;
         case 'resume':
           response = await _serviceImplementation.resume(
             params['isolateId'],
             step: params['step'],
             frameIndex: params['frameIndex'],
-          );
-          break;
-        case 'setClientName':
-          response = await _serviceImplementation.setClientName(
-            params['name'],
           );
           break;
         case 'setExceptionPauseMode':
@@ -1792,9 +1712,6 @@ class VmService implements VmServiceInterface {
       _call('getClassList', {'isolateId': isolateId});
 
   @override
-  Future<ClientName> getClientName() => _call('getClientName');
-
-  @override
   Future<CpuSamples> getCpuSamples(
           String isolateId, int timeOriginMicros, int timeExtentMicros) =>
       _call('getCpuSamples', {
@@ -1910,9 +1827,6 @@ class VmService implements VmServiceInterface {
   Future<Timestamp> getVMTimelineMicros() => _call('getVMTimelineMicros');
 
   @override
-  Future<WebSocketTarget> getWebSocketTarget() => _call('getWebSocketTarget');
-
-  @override
   Future<Success> pause(String isolateId) =>
       _call('pause', {'isolateId': isolateId});
 
@@ -1950,15 +1864,6 @@ class VmService implements VmServiceInterface {
       _call('requestHeapSnapshot', {'isolateId': isolateId});
 
   @override
-  Future<Success> requirePermissionToResume(
-          {bool onPauseStart, bool onPauseReload, bool onPauseExit}) =>
-      _call('requirePermissionToResume', {
-        if (onPauseStart != null) 'onPauseStart': onPauseStart,
-        if (onPauseReload != null) 'onPauseReload': onPauseReload,
-        if (onPauseExit != null) 'onPauseExit': onPauseExit,
-      });
-
-  @override
   Future<Success> resume(String isolateId,
           {/*StepOption*/ String step, int frameIndex}) =>
       _call('resume', {
@@ -1966,10 +1871,6 @@ class VmService implements VmServiceInterface {
         if (step != null) 'step': step,
         if (frameIndex != null) 'frameIndex': frameIndex,
       });
-
-  @override
-  Future<Success> setClientName(String name) =>
-      _call('setClientName', {'name': name});
 
   @override
   Future<Success> setExceptionPauseMode(
@@ -3072,35 +2973,6 @@ class ClassList extends Response {
   }
 
   String toString() => '[ClassList type: ${type}, classes: ${classes}]';
-}
-
-/// See [getClientName] and [setClientName].
-class ClientName extends Response {
-  static ClientName parse(Map<String, dynamic> json) =>
-      json == null ? null : ClientName._fromJson(json);
-
-  /// The name of the currently connected VM service client.
-  String name;
-
-  ClientName({
-    @required this.name,
-  });
-
-  ClientName._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'];
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    var json = <String, dynamic>{};
-    json['type'] = 'ClientName';
-    json.addAll({
-      'name': name,
-    });
-    return json;
-  }
-
-  String toString() => '[ClientName type: ${type}, name: ${name}]';
 }
 
 /// `CodeRef` is a reference to a `Code` object.
@@ -7170,33 +7042,4 @@ class VM extends Response implements VMRef {
   }
 
   String toString() => '[VM]';
-}
-
-/// See [getWebSocketTarget]
-class WebSocketTarget extends Response {
-  static WebSocketTarget parse(Map<String, dynamic> json) =>
-      json == null ? null : WebSocketTarget._fromJson(json);
-
-  /// The web socket URI that should be used to connect to the service.
-  String uri;
-
-  WebSocketTarget({
-    @required this.uri,
-  });
-
-  WebSocketTarget._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uri = json['uri'];
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    var json = <String, dynamic>{};
-    json['type'] = 'WebSocketTarget';
-    json.addAll({
-      'uri': uri,
-    });
-    return json;
-  }
-
-  String toString() => '[WebSocketTarget type: ${type}, uri: ${uri}]';
 }

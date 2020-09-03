@@ -79,6 +79,10 @@ enum SnapshotKind {
   kAppJIT,
 };
 
+static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
+static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
+static const int INVALID_VM_SERVICE_SERVER_PORT = -1;
+
 class Options {
  public:
   static int ParseArguments(int argc,
