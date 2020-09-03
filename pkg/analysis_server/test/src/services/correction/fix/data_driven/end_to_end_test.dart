@@ -14,6 +14,45 @@ void main() {
 
 @reflectiveTest
 class EndToEndTest extends DataDrivenFixProcessorTest {
+  Future<void> test_addTypeParameter() async {
+    setPackageContent('''
+class C {
+  void m<S, T>(Type t) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add type argument'
+  element:
+    uris:
+      - '$importUri'
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 1
+      name: 'T'
+      value:
+        kind: 'argument'
+        index: 0
+''');
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int>(String);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m<int, String>(String);
+}
+''');
+  }
+
   Future<void> test_rename() async {
     setPackageContent('''
 class New {}

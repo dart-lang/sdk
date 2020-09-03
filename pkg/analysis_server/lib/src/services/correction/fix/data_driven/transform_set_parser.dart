@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:yaml/yaml.dart';
@@ -15,51 +18,31 @@ import 'package:yaml/yaml.dart';
 /// A parser used to read a transform set from a file.
 class TransformSetParser {
   static const String _changesKey = 'changes';
-
   static const String _classKey = 'class';
-
   static const String _constructorKey = 'constructor';
-
   static const String _elementKey = 'element';
-
   static const String _enumConstantKey = 'constant';
-
   static const String _enumKey = 'enum';
-
   static const String _extensionKey = 'extension';
-
   static const String _fieldKey = 'field';
-
   static const String _functionKey = 'function';
-
   static const String _getterKey = 'getter';
-
   static const String _inClassKey = 'inClass';
-
   static const String _inEnumKey = 'inEnum';
-
   static const String _inExtensionKey = 'inExtension';
-
+  static const String _indexKey = 'index';
   static const String _inMixinKey = 'inMixin';
-
   static const String _kindKey = 'kind';
-
   static const String _methodKey = 'method';
-
   static const String _mixinKey = 'mixin';
-
+  static const String _nameKey = 'name';
   static const String _newNameKey = 'newName';
-
   static const String _setterKey = 'setter';
-
   static const String _titleKey = 'title';
-
   static const String _transformsKey = 'transforms';
-
   static const String _typedefKey = 'typedef';
-
   static const String _urisKey = 'uris';
-
+  static const String _valueKey = 'value';
   static const String _versionKey = 'version';
 
   /// A table mapping top-level keys for member elements to the list of keys for
@@ -73,6 +56,8 @@ class TransformSetParser {
     _setterKey: [_inClassKey, _inExtensionKey, _inMixinKey],
   };
 
+  static const String _addTypeParameterKind = 'addTypeParameter';
+  static const String _argumentKind = 'argument';
   static const String _renameKind = 'rename';
 
   static const int currentVersion = 1;
@@ -160,13 +145,63 @@ class TransformSetParser {
     return foundKeys[0];
   }
 
+  /// Translate the [node] into an add-type-parameter change. Return the
+  /// resulting change, or `null` if the [node] does not represent a valid
+  /// add-type-parameter change.
+  Change _translateAddTypeParameterChange(YamlMap node) {
+    _reportUnsupportedKeys(
+        node, const {_indexKey, _kindKey, _nameKey, _valueKey});
+    var index = _translateInteger(node.valueAt(_indexKey));
+    if (index == null) {
+      return null;
+    }
+    var name = _translateString(node.valueAt(_nameKey));
+    if (name == null) {
+      return null;
+    }
+    var value = _translateValueExtractor(node.valueAt(_valueKey));
+    if (value == null) {
+      return null;
+    }
+    return AddTypeParameter(index: index, name: name, value: value);
+  }
+
+  /// Translate the [node] into a value extractor. Return the resulting
+  /// extractor, or `null` if the [node] does not represent a valid value
+  /// extractor.
+  ValueExtractor _translateArgumentExtractor(YamlMap node) {
+    var indexNode = node.valueAt(_indexKey);
+    if (indexNode != null) {
+      _reportUnsupportedKeys(node, const {_indexKey, _kindKey});
+      var index = _translateInteger(indexNode);
+      if (index == null) {
+        // The error has already been reported.
+        return null;
+      }
+      return ArgumentExtractor(PositionalParameterReference(index));
+    }
+    var nameNode = node.valueAt(_nameKey);
+    if (nameNode != null) {
+      _reportUnsupportedKeys(node, const {_nameKey, _kindKey});
+      var name = _translateString(nameNode);
+      if (name == null) {
+        // The error has already been reported.
+        return null;
+      }
+      return ArgumentExtractor(NamedParameterReference(name));
+    }
+    // TODO(brianwilkerson) Report the missing YAML.
+    return null;
+  }
+
   /// Translate the [node] into a change. Return the resulting change, or `null`
   /// if the [node] does not represent a valid change.
   Change _translateChange(YamlNode node) {
     if (node is YamlMap) {
       var kind = _translateString(node.valueAt(_kindKey));
-      // TODO(brianwilkerson) Implement additional change kinds.
-      if (kind == _renameKind) {
+      if (kind == _addTypeParameterKind) {
+        return _translateAddTypeParameterChange(node);
+      } else if (kind == _renameKind) {
         return _translateRenameChange(node);
       }
       // TODO(brianwilkerson) Report the invalid change kind.
@@ -357,6 +392,26 @@ class TransformSetParser {
         set.addTransform(transform);
       }
       return set;
+    } else if (node == null) {
+      // TODO(brianwilkerson) Report the missing YAML.
+      return null;
+    } else {
+      // TODO(brianwilkerson) Report the invalid YAML.
+      return null;
+    }
+  }
+
+  /// Translate the [node] into a value extractor. Return the resulting
+  /// extractor, or `null` if the [node] does not represent a valid value
+  /// extractor.
+  ValueExtractor _translateValueExtractor(YamlNode node) {
+    if (node is YamlMap) {
+      var kind = _translateString(node.valueAt(_kindKey));
+      if (kind == _argumentKind) {
+        return _translateArgumentExtractor(node);
+      }
+      // TODO(brianwilkerson) Report the invalid extractor kind.
+      return null;
     } else if (node == null) {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;

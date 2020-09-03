@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -18,6 +21,66 @@ void main() {
 
 @reflectiveTest
 class TransformSetParserTest extends AbstractTransformSetParserTest {
+  void test_addTypeParameter_fromNamedArgument() {
+    parse('''
+version: 1
+transforms:
+- title: 'Add'
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      value:
+        kind: 'argument'
+        name: 'p'
+''');
+    var transforms = result.transformsFor('A', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as AddTypeParameter;
+    expect(change.index, 0);
+    expect(change.name, 'T');
+    var value = change.value as ArgumentExtractor;
+    var parameter = value.parameter as NamedParameterReference;
+    expect(parameter.name, 'p');
+  }
+
+  void test_addTypeParameter_fromPositionalArgument() {
+    parse('''
+version: 1
+transforms:
+- title: 'Add'
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      value:
+        kind: 'argument'
+        index: 2
+''');
+    var transforms = result.transformsFor('A', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as AddTypeParameter;
+    expect(change.index, 0);
+    expect(change.name, 'T');
+    var value = change.value as ArgumentExtractor;
+    var parameter = value.parameter as PositionalParameterReference;
+    expect(parameter.index, 2);
+  }
+
   void test_element_getter_inMixin() {
     parse('''
 version: 1
