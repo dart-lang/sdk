@@ -4,6 +4,7 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 class Class extends core::Object {
+  static const field core::int staticConstField = #C1;
   static field core::int? staticFieldWithoutInitializer = null;
   static field core::int? _#nonNullableStaticFieldWithInitializer1 = null;
   static field core::int? _#nullableStaticFieldWithInitializer1 = null;
@@ -86,6 +87,7 @@ class Class extends core::Object {
   }
 }
 static field dynamic lastInit;
+static const field core::int constTopLevelField = #C2;
 static field core::int? topLevelFieldWithoutInitializer;
 static field core::int? _#nonNullableTopLevelFieldWithInitializer1 = null;
 static field core::int? _#nullableTopLevelFieldWithInitializer = null;
@@ -170,7 +172,9 @@ static get nullableFinalTopLevelFieldWithInitializer2() → core::int? {
 static method main() → dynamic {
   self::expect(null, self::lastInit);
   self::expect(null, self::topLevelFieldWithoutInitializer);
+  self::expect(324, #C2);
   self::expect(null, self::Class::staticFieldWithoutInitializer);
+  self::expect(123, #C1);
   self::expect(42, self::nonNullableTopLevelFieldWithInitializer1);
   self::expect(42, self::lastInit);
   self::expect(123, self::nullableTopLevelFieldWithInitializer);
@@ -222,4 +226,9 @@ static method throws(() → dynamic f, core::String message) → dynamic {
     return;
   }
   throw "${message}: ${value}";
+}
+
+constants  {
+  #C1 = 123
+  #C2 = 324
 }
