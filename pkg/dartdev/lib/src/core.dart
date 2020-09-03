@@ -55,7 +55,7 @@ abstract class DartdevCommand<int> extends Command {
 
   /// Return whether any Dart experiments were specified by the user.
   bool get wereExperimentsSpecified =>
-      globalResults.wasParsed(experimentFlagName);
+      globalResults?.wasParsed(experimentFlagName) ?? false;
 
   /// Return the list of Dart experiment flags specified by the user.
   List<String> get specifiedExperiments => globalResults[experimentFlagName];
@@ -120,6 +120,9 @@ class Project {
   Project() : dir = Directory.current;
 
   Project.fromDirectory(this.dir);
+
+  bool get hasPubspecFile =>
+      FileSystemEntity.isFileSync(path.join(dir.path, 'pubspec.yaml'));
 
   bool get hasPackageConfigFile => packageConfig != null;
 

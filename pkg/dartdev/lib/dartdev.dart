@@ -20,7 +20,7 @@ import 'src/commands/create.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/pub.dart';
 import 'src/commands/run.dart';
-import 'src/commands/test.dart' hide Runtime;
+import 'src/commands/test.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
 import 'src/sdk.dart';

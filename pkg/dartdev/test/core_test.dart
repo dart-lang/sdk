@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dartdev/src/core.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'utils.dart';
@@ -32,10 +34,19 @@ void _project() {
 
   tearDown(() => p?.dispose());
 
-  test('hasPackageConfigFile negative', () {
+  test('hasPubspecFile positive', () {
     p = project();
     Project coreProj = Project.fromDirectory(p.dir);
-    expect(coreProj.hasPackageConfigFile, isFalse);
+    expect(coreProj.hasPubspecFile, isTrue);
+  });
+
+  test('hasPubspecFile negative', () {
+    p = project();
+    var pubspec = File(path.join(p.dirPath, 'pubspec.yaml'));
+    pubspec.deleteSync();
+
+    Project coreProj = Project.fromDirectory(p.dir);
+    expect(coreProj.hasPubspecFile, isFalse);
   });
 
   test('hasPackageConfigFile positive', () {
@@ -45,6 +56,12 @@ void _project() {
     expect(coreProj.hasPackageConfigFile, isTrue);
     expect(coreProj.packageConfig, isNotNull);
     expect(coreProj.packageConfig.packages, isNotEmpty);
+  });
+
+  test('hasPackageConfigFile negative', () {
+    p = project();
+    Project coreProj = Project.fromDirectory(p.dir);
+    expect(coreProj.hasPackageConfigFile, isFalse);
   });
 }
 
