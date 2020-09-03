@@ -338,7 +338,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool _enableVarianceInLibrary;
   bool _enableNonfunctionTypeAliasesInLibrary;
   bool _enableNonNullableInLibrary;
-  Version _enableNonNullableVersionInLibrary;
+  Version _enableNonNullableVersionCache;
   bool _enableTripleShiftInLibrary;
   bool _enableExtensionMethodsInLibrary;
 
@@ -360,10 +360,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       loader.target.isExperimentEnabledInLibrary(
           ExperimentalFlag.nonNullable, _packageUri ?? importUri);
 
-  Version get enableNonNullableVersionInLibrary =>
-      _enableNonNullableVersionInLibrary ??= loader.target
-          .getExperimentEnabledVersionInLibrary(
-              ExperimentalFlag.nonNullable, _packageUri ?? importUri);
+  Version get _enableNonNullableVersion => _enableNonNullableVersionCache ??=
+      loader.target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
 
   bool get enableTripleShiftInLibrary => _enableTripleShiftInLibrary ??=
       loader.target.isExperimentEnabledInLibrary(
@@ -439,7 +437,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       enableNonNullableInLibrary &&
-      languageVersion.version >= enableNonNullableVersionInLibrary &&
+      languageVersion.version >= _enableNonNullableVersion &&
       !isOptOutTest(library.importUri);
 
   static bool isOptOutTest(Uri uri) {

@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Expression, FunctionNode, TreeNode;
+    show AsyncMarker, Expression, FunctionNode, TreeNode, Version;
 
 import '../fasta_codes.dart';
 
@@ -90,11 +90,13 @@ abstract class StackListenerImpl extends StackListener {
   void reportMissingNonNullableSupport(Token token) {
     assert(!libraryBuilder.isNonNullableByDefault);
     assert(token != null);
+    Version enableNonNullableVersion = libraryBuilder.loader.target
+        .getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
     if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
         addProblem(
-            templateNonNullableOptOutExplicit.withArguments(
-                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            templateNonNullableOptOutExplicit
+                .withArguments(enableNonNullableVersion.toText()),
             token.charOffset,
             token.charCount,
             context: <LocatedMessage>[
@@ -105,19 +107,17 @@ abstract class StackListenerImpl extends StackListener {
             ]);
       } else {
         addProblem(
-            templateNonNullableOptOutImplicit.withArguments(
-                libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+            templateNonNullableOptOutImplicit
+                .withArguments(enableNonNullableVersion.toText()),
             token.charOffset,
             token.charCount);
       }
     } else if (!libraryBuilder.loader.target
         .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
-      if (libraryBuilder.languageVersion.version <
-          libraryBuilder.enableNonNullableVersionInLibrary) {
+      if (libraryBuilder.languageVersion.version < enableNonNullableVersion) {
         addProblem(
             templateExperimentNotEnabledNoFlagInvalidLanguageVersion
-                .withArguments(
-                    libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+                .withArguments(enableNonNullableVersion.toText()),
             token.offset,
             noLength);
       } else {
@@ -125,8 +125,8 @@ abstract class StackListenerImpl extends StackListener {
       }
     } else {
       addProblem(
-          templateExperimentNotEnabled.withArguments('non-nullable',
-              libraryBuilder.enableNonNullableVersionInLibrary.toText()),
+          templateExperimentNotEnabled.withArguments(
+              'non-nullable', enableNonNullableVersion.toText()),
           token.offset,
           noLength);
     }
