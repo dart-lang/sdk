@@ -61,6 +61,14 @@ class SharedCompilerOptions {
   /// runtime can enable synchronous stack trace deobsfuscation.
   final bool inlineSourceMap;
 
+  /// Whether to emit the full compiled kernel.
+  ///
+  /// This is used by expression compiler worker, launched from the debugger
+  /// in webdev and google3 scenarios, for expression evaluation features.
+  /// Full kernel for compiled files is needed to be able to compile
+  /// expressions on demand in the current scope of a breakpoint.
+  final bool emitFullCompiledKernel;
+
   /// Whether to emit a summary file containing API signatures.
   ///
   /// This is required for a modular build process.
@@ -113,6 +121,7 @@ class SharedCompilerOptions {
       this.enableAsserts = true,
       this.replCompile = false,
       this.emitDebugMetadata = false,
+      this.emitFullCompiledKernel = false,
       this.summaryModules = const {},
       this.moduleFormats = const [],
       this.moduleName,
@@ -129,6 +138,8 @@ class SharedCompilerOptions {
             enableAsserts: args['enable-asserts'] as bool,
             replCompile: args['repl-compile'] as bool,
             emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
+            emitFullCompiledKernel:
+                args['experimental-output-compiled-kernel'] as bool,
             summaryModules:
                 _parseCustomSummaryModules(args['summary'] as List<String>),
             moduleFormats: parseModuleFormatOption(args),
@@ -180,6 +191,12 @@ class SharedCompilerOptions {
       ..addFlag('experimental-emit-debug-metadata',
           help: 'Experimental option for compiler development.\n'
               'Output a metadata file for debug tools next to the .js output.',
+          defaultsTo: false,
+          hide: true)
+      ..addFlag('experimental-output-compiled-kernel',
+          help: 'Experimental option for compiler development.\n'
+              'Output a full kernel file for currently compiled module next to '
+              'the .js output.',
           defaultsTo: false,
           hide: true);
   }
@@ -490,6 +507,17 @@ class ParsedArguments {
   /// See also [isBatchOrWorker].
   final bool isBatch;
 
+  /// Whether to run in `--experimental-expression-compiler` mode.
+  ///
+  /// This is a special mode that is optimized for only compiling expressions.
+  ///
+  /// All dependencies must come from precompiled dill files, and those must
+  /// be explicitly invalidated as needed between expression compile requests.
+  /// Invalidation of dill is performed using [updateDeps] from the client (i.e.
+  /// debugger) and should be done every time a dill file changes, for example,
+  /// on hot reload or rebuild.
+  final bool isExpressionCompiler;
+
   /// Whether to run in `--bazel_worker` mode, e.g. for Bazel builds.
   ///
   /// Similar to [isBatch] but with a different protocol.
@@ -507,11 +535,14 @@ class ParsedArguments {
   /// Note that this only makes sense when also reusing results.
   final bool useIncrementalCompiler;
 
-  ParsedArguments._(this.rest,
-      {this.isBatch = false,
-      this.isWorker = false,
-      this.reuseResult = false,
-      this.useIncrementalCompiler = false});
+  ParsedArguments._(
+    this.rest, {
+    this.isBatch = false,
+    this.isWorker = false,
+    this.reuseResult = false,
+    this.useIncrementalCompiler = false,
+    this.isExpressionCompiler = false,
+  });
 
   /// Preprocess arguments to determine whether DDK is used in batch mode or as a
   /// persistent worker.
@@ -530,6 +561,7 @@ class ParsedArguments {
     var isBatch = false;
     var reuseResult = false;
     var useIncrementalCompiler = false;
+    var isExpressionCompiler = false;
 
     Iterable<String> argsToParse = args;
 
@@ -548,6 +580,8 @@ class ParsedArguments {
         reuseResult = true;
       } else if (arg == '--use-incremental-compiler') {
         useIncrementalCompiler = true;
+      } else if (arg == '--experimental-expression-compiler') {
+        isExpressionCompiler = true;
       } else {
         newArgs.add(arg);
       }
@@ -556,7 +590,8 @@ class ParsedArguments {
         isWorker: isWorker,
         isBatch: isBatch,
         reuseResult: reuseResult,
-        useIncrementalCompiler: useIncrementalCompiler);
+        useIncrementalCompiler: useIncrementalCompiler,
+        isExpressionCompiler: isExpressionCompiler);
   }
 
   /// Whether the compiler is running in [isBatch] or [isWorker] mode.

@@ -1,6 +1,6 @@
-// Copyright 2020 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.import 'dart:io' show Platform, File;
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, File;
 
@@ -11,7 +11,6 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/incremental_serializer.dart';
-import 'package:frontend_server/src/expression_compiler.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as p;
@@ -29,8 +28,8 @@ class DevelopmentIncrementalCompiler extends IncrementalCompiler {
       bool outlineOnly,
       IncrementalSerializer incrementalSerializer])
       : super(
-            new CompilerContext(
-                new ProcessedOptions(options: options, inputs: [entryPoint])),
+            CompilerContext(
+                ProcessedOptions(options: options, inputs: [entryPoint])),
             initializeFrom,
             outlineOnly,
             incrementalSerializer);
@@ -39,8 +38,8 @@ class DevelopmentIncrementalCompiler extends IncrementalCompiler {
       this.entryPoint, Component componentToInitializeFrom,
       [bool outlineOnly, IncrementalSerializer incrementalSerializer])
       : super.fromComponent(
-            new CompilerContext(
-                new ProcessedOptions(options: options, inputs: [entryPoint])),
+            CompilerContext(
+                ProcessedOptions(options: options, inputs: [entryPoint])),
             componentToInitializeFrom,
             outlineOnly,
             incrementalSerializer);
@@ -104,6 +103,7 @@ class Module {
   String get package => importUri.toString();
   String get file => fileUri.path;
 
+  @override
   String toString() =>
       'Name: $name, File: $file, Package: $package, path: $path';
 }
@@ -140,13 +140,13 @@ class TestCompiler {
     kernel2jsCompiler.emitModule(component);
 
     // create expression compiler
-    var evaluator = new ExpressionCompiler(
-        compiler, kernel2jsCompiler, component,
+    var evaluator = ExpressionCompiler(compiler, kernel2jsCompiler, component,
         verbose: setup.options.verbose,
-        onDiagnostic: setup.options.onDiagnostic);
+        onDiagnostic: setup.options.onDiagnostic,
+        errors: setup.errors);
 
     // collect all module names and paths
-    Map<Uri, Module> moduleInfo = _collectModules(component);
+    var moduleInfo = _collectModules(component);
 
     var modules =
         moduleInfo.map((k, v) => MapEntry<String, String>(v.name, v.path));
@@ -161,7 +161,7 @@ class TestCompiler {
     var jsExpression = await evaluator.compileExpressionToJs(
         module.package, line, column, modules, scope, module.name, expression);
 
-    if (setup.errors.length > 0) {
+    if (setup.errors.isNotEmpty) {
       jsExpression = setup.errors.toString().replaceAll(
           RegExp(
               r'org-dartlang-debug:synthetic_debug_expression:[0-9]*:[0-9]*:'),
@@ -174,7 +174,7 @@ class TestCompiler {
   }
 
   Map<Uri, Module> _collectModules(Component component) {
-    Map<Uri, Module> modules = <Uri, Module>{};
+    var modules = <Uri, Module>{};
     for (var library in component.libraries) {
       modules[library.fileUri] = Module(library.importUri, library.fileUri);
     }
@@ -239,10 +239,10 @@ class TestDriver {
   }
 
   int _getEvaluationLine(String source) {
-    RegExp placeholderRegExp = RegExp(r'/\* evaluation placeholder \*/');
+    var placeholderRegExp = RegExp(r'/\* evaluation placeholder \*/');
 
     var lines = source.split('\n');
-    for (int line = 0; line < lines.length; line++) {
+    for (var line = 0; line < lines.length; line++) {
       var content = lines[line];
       if (placeholderRegExp.firstMatch(content) != null) {
         return line + 1;
@@ -253,10 +253,10 @@ class TestDriver {
 }
 
 void main() {
-  SetupCompilerOptions options = SetupCompilerOptions();
+  var options = SetupCompilerOptions();
 
   group('Expression compiler tests in extension method:', () {
-    const String source = '''
+    const source = '''
       extension NumberParsing on String {
         int parseInt() {
           var ret = int.parse(this);
@@ -306,7 +306,7 @@ void main() {
   });
 
   group('Expression compiler tests in method:', () {
-    const String source = '''
+    const source = '''
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -559,7 +559,7 @@ void main() {
   });
 
   group('Expression compiler tests in method with no field access:', () {
-    const String source = '''
+    const source = '''
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -720,7 +720,7 @@ void main() {
   });
 
   group('Expression compiler tests in async method:', () {
-    const String source = '''
+    const source = '''
       class C {
         C(int this.field, int this._field);
 
@@ -780,7 +780,7 @@ void main() {
   });
 
   group('Expression compiler tests in global function:', () {
-    const String source = '''
+    const source = '''
       extension NumberParsing on String {
         int parseInt() {
           return int.parse(this);
@@ -1038,7 +1038,7 @@ void main() {
   });
 
   group('Expression compiler tests in closures:', () {
-    const String source = r'''
+    const source = r'''
       int globalFunction() {
       int x = 15;
       var c = C(1, 2);
@@ -1102,7 +1102,7 @@ void main() {
   });
 
   group('Expression compiler tests in method with no type use', () {
-    const String source = '''
+    const source = '''
       abstract class Key {
         const factory Key(String value) = ValueKey;
         const Key.empty();

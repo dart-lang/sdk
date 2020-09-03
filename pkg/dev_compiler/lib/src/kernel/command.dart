@@ -361,7 +361,7 @@ Future<CompilerResult> _compile(List<String> args,
           'the --summarize option is not supported.');
       return CompilerResult(64);
     }
-    // TODO(jmesserly): CFE mutates the Kernel tree, so we can't save the dill
+    // Note: CFE mutates the Kernel tree, so we can't save the dill
     // file if we successfully reused a cached library. If compiler state is
     // unchanged, it means we used the cache.
     //
@@ -374,6 +374,27 @@ Future<CompilerResult> _compile(List<String> args,
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
+    outFiles.add(sink.flush().then((_) => sink.close()));
+  }
+  if (argResults['experimental-output-compiled-kernel'] as bool) {
+    if (outPaths.length > 1) {
+      print(
+          'If multiple output files (found ${outPaths.length}) are specified, '
+          'the --experimental-output-compiled-kernel option is not supported.');
+      return CompilerResult(64);
+    }
+    // Note: CFE mutates the Kernel tree, so we can't save the dill
+    // file if we successfully reused a cached library. If compiler state is
+    // unchanged, it means we used the cache.
+    //
+    // In that case, we need to unbind canonical names, because they could be
+    // bound already from the previous compile.
+    if (identical(compilerState, oldCompilerState)) {
+      compiledLibraries.unbindCanonicalNames();
+    }
+    var sink =
+        File(p.withoutExtension(outPaths.first) + '.full.dill').openWrite();
+    kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {

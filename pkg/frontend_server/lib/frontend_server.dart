@@ -9,7 +9,8 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
+import 'package:dev_compiler/dev_compiler.dart'
+    show DevCompilerTarget, ExpressionCompiler;
 
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
@@ -39,7 +40,6 @@ import 'package:vm/kernel_front_end.dart';
 
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
-import 'src/expression_compiler.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -968,7 +968,8 @@ class FrontendCompiler implements CompilerInterface {
     var evaluator = new ExpressionCompiler(
         _generator.generator, kernel2jsCompiler, component,
         verbose: _compilerOptions.verbose,
-        onDiagnostic: _compilerOptions.onDiagnostic);
+        onDiagnostic: _compilerOptions.onDiagnostic,
+        errors: errors);
 
     var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
         column, jsModules, jsFrameValues, moduleName, expression);

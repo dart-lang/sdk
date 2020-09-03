@@ -1,6 +1,6 @@
-// Copyright 2020 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 import 'dart:io';
@@ -210,6 +210,7 @@ class ExpressionCompiler {
   final IncrementalCompiler _compiler;
   final ProgramCompiler _kernel2jsCompiler;
   final Component _component;
+  final List<String> errors;
   DiagnosticMessageHandler onDiagnostic;
 
   void _log(String message) {
@@ -222,7 +223,7 @@ class ExpressionCompiler {
   }
 
   ExpressionCompiler(this._compiler, this._kernel2jsCompiler, this._component,
-      {this.verbose, this.onDiagnostic});
+      {this.verbose, this.onDiagnostic, this.errors});
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
   /// in [moduleName].
@@ -425,11 +426,15 @@ error.name + ": " + error.message;
         scope.cls?.name,
         scope.procedure.isStatic);
 
-    // TODO(annagrin): The condition below seems to be always false.
-    // Errors are still correctly reported in the frontent_server,
-    // but we end up doing unnesessary work below.
-    // Add communication of error state from compiler here.
-    if (_compiler.context.errors.length > 0) {
+    // TODO: make this code clear and assumptions enforceable
+    // https://github.com/dart-lang/sdk/issues/43273
+    //
+    // We assume here that ExpressionCompiler is always created using
+    // onDisgnostic method that adds to the error list that is passed
+    // to the same invocation of the ExpressionCompiler constructor.
+    // We only use the error list once - below, to detect if the frontend
+    // compilation of the expression has failed.
+    if (errors.isNotEmpty) {
       return null;
     }
 

@@ -23,6 +23,8 @@ dependencies:
   path: any
   source_maps: any
   source_span: any
+  vm:
+    path: ../vm
 
 dev_dependencies:
   analyzer: any

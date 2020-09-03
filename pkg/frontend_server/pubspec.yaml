@@ -7,8 +7,6 @@ environment:
   sdk: "^2.7.0"
 
 dependencies:
-  _fe_analyzer_shared:
-    path: ../_fe_analyzer_shared
   args: ^1.4.4
   dev_compiler:
     path: ../dev_compiler
@@ -23,6 +21,5 @@ dependencies:
     path: ../vm
 
 dev_dependencies:
-  cli_util: any
   mockito: any
   test: any
