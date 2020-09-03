@@ -284,4 +284,7 @@ action("generate_version_cc_file") {
   if (!dart_version_git_info) {
     args += [ "--no_git_hash" ]
   }
+  if (!verify_sdk_hash) {
+    args += [ "--no_sdk_hash" ]
+  }
 }
