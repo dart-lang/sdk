@@ -47,6 +47,7 @@ import '../fasta_codes.dart'
         messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
         messageNonAgnosticConstant,
+        messageNotAConstantExpression,
         noLength,
         templateConstEvalCaseImplementsEqual,
         templateConstEvalDeferredLibrary,
@@ -1822,7 +1823,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (node.receiver is ThisExpression) {
       // Access "this" during instance creation.
       if (instanceBuilder == null) {
-        return reportInvalid(node, 'Instance field access outside constructor');
+        return report(node, messageNotAConstantExpression);
       }
       for (final Field field in instanceBuilder.fields.keys) {
         if (field.name == node.name) {
