@@ -16,29 +16,87 @@ main() {
 
 @reflectiveTest
 class AssignmentToFinalTest extends PubPackageResolutionTest {
-  test_instanceVariable() async {
+  test_prefixedIdentifier_instanceField() async {
+    await assertNoErrorsInCode('''
+class A {
+  var x = 0;
+}
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''');
+  }
+
+  test_prefixedIdentifier_instanceField_final() async {
     await assertErrorsInCode('''
 class A {
-  final v = 0;
+  final x = 0;
 }
-f() {
-  A a = new A();
-  a.v = 1;
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 46, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 71, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 78, 1),
     ]);
   }
 
-  test_instanceVariable_plusEq() async {
+  test_simpleIdentifier_topLevelGetter() async {
     await assertErrorsInCode('''
-class A {
-  final v = 0;
+int get x => 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
 }
-f() {
-  A a = new A();
-  a.v += 1;
-}''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 54, 1),
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 39, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 51, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 56, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_topLevelVariable() async {
+    await assertNoErrorsInCode('''
+var x = 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''');
+  }
+
+  test_simpleIdentifier_topLevelVariable_final() async {
+    await assertErrorsInCode('''
+final x = 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 27, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 48, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
     ]);
   }
 }
@@ -46,131 +104,330 @@ f() {
 @reflectiveTest
 class AssignmentToFinalWithNullSafetyTest extends AssignmentToFinalTest
     with WithNullSafetyMixin {
-  test_field_late_propertyAccess() async {
-    await assertErrorsInCode('''
-class A {
-  late final int a;
-  late final int b = 0;
-  void m() {
-    this.a = 1;
-    this.b = 1;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 92, 1),
-    ]);
-  }
-
-  test_field_late_simpleIdentifier() async {
-    await assertErrorsInCode('''
-class A {
-  late final int a;
-  late final int b = 0;
-  void m() {
-    a = 1;
-    b = 1;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 82, 1),
-    ]);
-  }
-
-  test_field_static_final_late_prefixedIdentifier() async {
-    await assertErrorsInCode('''
-class A {
-  static late final int a;
-  static late final int b = 0;
+  test_prefixedIdentifier_instanceField_abstract() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
 }
 
-void f() {
-  A.a = 1;
-  A.b = 1;
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
 }
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 97, 1),
-    ]);
+''');
   }
 
-  test_field_static_final_late_simpleIdentifier() async {
+  test_prefixedIdentifier_instanceField_abstractFinal() async {
     await assertErrorsInCode('''
-class A {
-  static late final int a;
-  static late final int b = 0;
-  void m() {
-    a = 1;
-    b = 1;
-  }
+abstract class A {
+  abstract final int x;
+}
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
 }
 ''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
     ]);
   }
 
-  test_set_abstract_field_final_invalid() async {
-    await assertErrorsInCode('''
-abstract class A {
-  abstract final int x;
-}
-void f(A a, int x) {
-  a.x = x;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 70, 1),
-    ]);
-  }
-
-  test_set_abstract_field_final_overridden_valid() async {
+  test_prefixedIdentifier_instanceField_external() async {
     await assertNoErrorsInCode('''
 abstract class A {
-  abstract final int x;
+  external int x;
 }
-abstract class B extends A {
-  void set x(int value);
-}
-void f(B b, int x) {
-  b.x = x; // ok because setter provided in derived class
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
 }
 ''');
   }
 
-  test_set_external_field_final_invalid() async {
+  test_prefixedIdentifier_instanceField_externalFinal() async {
     await assertErrorsInCode('''
-class A {
+abstract class A {
   external final int x;
 }
-void f(A a, int x) {
-  a.x = x;
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+    ]);
+  }
+
+  test_prefixedIdentifier_instanceField_lateFinal() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  late final int x;
+}
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''');
+  }
+
+  test_prefixedIdentifier_instanceField_lateFinal_hasInitializer() async {
+    await assertErrorsInCode('''
+abstract class A {
+  late final int x = 0;
+}
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 64, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 75, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 89, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 96, 1),
+    ]);
+  }
+
+  test_prefixedIdentifier_staticField_externalFinal() async {
+    await assertErrorsInCode('''
+abstract class A {
+  external static final int x;
+}
+
+void f() {
+  A.x = 0;
+  A.x += 0;
+  ++A.x;
+  A.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+    ]);
+  }
+
+  test_prefixedIdentifier_staticField_lateFinal() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  static late final int x;
+}
+
+void f() {
+  A.x = 0;
+  A.x += 0;
+  ++A.x;
+  A.x++;
+}
+''');
+  }
+
+  test_prefixedIdentifier_staticField_lateFinal_hasInitializer() async {
+    await assertErrorsInCode('''
+abstract class A {
+  static late final int x = 0;
+}
+
+void f() {
+  A.x = 0;
+  A.x += 0;
+  ++A.x;
+  A.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+    ]);
+  }
+
+  test_propertyAccess_instanceField_lateFinal() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  late final int x;
+}
+
+void f(A a) {
+  (a).x = 0;
+  (a).x += 0;
+  ++(a).x;
+  (a).x++;
+}
+''');
+  }
+
+  test_propertyAccess_instanceField_lateFinal_hasInitializer() async {
+    await assertErrorsInCode('''
+abstract class A {
+  late final int x = 0;
+}
+
+void f(A a) {
+  (a).x = 0;
+  (a).x += 0;
+  ++(a).x;
+  (a).x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 66, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 95, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 104, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_instanceField_lateFinal() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  late final int x;
+
+  void f() {
+    x = 0;
+    x += 0;
+    ++x;
+    x++;
+  }
+}
+''');
+  }
+
+  test_simpleIdentifier_instanceField_lateFinal_hasInitializer() async {
+    await assertErrorsInCode('''
+abstract class A {
+  late final int x = 0;
+
+  void f() {
+    x = 0;
+    x += 0;
+    ++x;
+    x++;
+  }
 }
 ''', [
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 61, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 72, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
     ]);
   }
 
-  test_set_external_field_final_overridden_valid() async {
+  test_simpleIdentifier_staticField_lateFinal() async {
     await assertNoErrorsInCode('''
-class A {
-  external final int x;
-}
-abstract class B extends A {
-  void set x(int value);
-}
-void f(B b, int x) {
-  b.x = x; // ok because setter provided in derived class
+abstract class A {
+  static late final int x;
+
+  void f() {
+    x = 0;
+    x += 0;
+    ++x;
+    x++;
+  }
 }
 ''');
   }
 
-  test_set_external_static_field_final_invalid() async {
+  test_simpleIdentifier_staticField_lateFinal_hasInitializer() async {
     await assertErrorsInCode('''
-class A {
-  external static final int x;
-}
-void f(int x) {
-  A.x = x;
+abstract class A {
+  static late final int x = 0;
+
+  void f() {
+    x = 0;
+    x += 0;
+    ++x;
+    x++;
+  }
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 63, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 68, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 79, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 93, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 100, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_topLevelVariable_external() async {
+    await assertNoErrorsInCode('''
+external int x;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''');
+  }
+
+  test_simpleIdentifier_topLevelVariable_externalFinal() async {
+    await assertErrorsInCode('''
+external final x;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 32, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 41, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 53, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 58, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_topLevelVariable_lateFinal() async {
+    await assertNoErrorsInCode('''
+late final int x;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''');
+  }
+
+  test_simpleIdentifier_topLevelVariable_lateFinal_hasInitializer() async {
+    await assertErrorsInCode('''
+late final int x = 0;
+
+void f() {
+  x = 0;
+  x += 0;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 45, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 57, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 62, 1),
     ]);
   }
 }

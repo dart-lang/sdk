@@ -15,44 +15,103 @@ main() {
 
 @reflectiveTest
 class AssignmentToFinalNoSetterTest extends PubPackageResolutionTest {
-  test_instance_undefined_hasGetter() async {
+  test_prefixedIdentifier_class_instanceGetter() async {
     await assertErrorsInCode('''
-extension E on int {
-  int get foo => 0;
+class A {
+  int get x => 0;
 }
-f() {
-  0.foo = 1;
+
+void f(A a) {
+  a.x = 0;
+  a.x += 0;
+  ++a.x;
+  a.x++;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
-    ]);
-  }
-
-  test_prefixedIdentifier() async {
-    await assertErrorsInCode('''
-class A {
-  int get x => 0;
-}
-main() {
-  A a = new A();
-  a.x = 0;
-}''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 60, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 74, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 81, 1),
     ]);
   }
 
-  test_propertyAccess() async {
+  test_propertyAccess_class_instanceGetter() async {
     await assertErrorsInCode('''
 class A {
   int get x => 0;
 }
-class B {
-  static A a;
+
+void f(A a) {
+  (a).x = 0;
+  (a).x += 0;
+  ++(a).x;
+  (a).x++;
 }
-main() {
-  B.a.x = 0;
-}''', [
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 51, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 64, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 89, 1),
+    ]);
+  }
+
+  test_propertyAccess_extension_instanceGetter() async {
+    await assertErrorsInCode('''
+extension E on int {
+  int get x => 0;
+}
+
+void f() {
+  0.x = 0;
+  0.x += 0;
+  ++0.x;
+  0.x++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 57, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 68, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 82, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 89, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_class_instanceGetter() async {
+    await assertErrorsInCode('''
+class A {
+  int get x => 0;
+
+  void f() {
+    x = 0;
+    x += 0;
+    ++x;
+    x++;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 57, 1),
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 71, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 78, 1),
+    ]);
+  }
+
+  test_simpleIdentifier_class_staticGetter() async {
+    await assertErrorsInCode('''
+class A {
+  static int get x => 0;
+
+  void f() {
+    x = 0;
+    x += 0;
+    ++x;
+    x++;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 64, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 78, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 85, 1),
     ]);
   }
 }

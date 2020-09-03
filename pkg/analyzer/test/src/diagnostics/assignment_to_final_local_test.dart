@@ -125,14 +125,6 @@ f() {
       error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 23, 1),
     ]);
   }
-
-  test_topLevelVariable() async {
-    await assertErrorsInCode('''
-final x = 0;
-f() { x = 1; }''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 19, 1),
-    ]);
-  }
 }
 
 @reflectiveTest
@@ -146,29 +138,5 @@ void f() {
   a;
 }
 ''');
-  }
-
-  test_set_external_variable_final_invalid() async {
-    await assertErrorsInCode('''
-external final int x;
-void f(int value) {
-  x = value;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 44, 1),
-    ]);
-  }
-
-  test_topLevelVariable_late() async {
-    await assertErrorsInCode('''
-late final int a;
-late final int b = 0;
-void f() {
-  a = 1;
-  b = 1;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 62, 1),
-    ]);
   }
 }

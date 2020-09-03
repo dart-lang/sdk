@@ -1671,25 +1671,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
           expression,
         );
-      } else if (variable.setter == null) {
-        if (variable is FieldElement) {
-          if (variable.isSynthetic) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-              highlightedNode,
-              [variable.name, variable.enclosingElement.displayName],
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
-              highlightedNode,
-              [variable.name],
-            );
-          }
-          return;
-        }
+      } else if (variable is FieldElement && variable.isSynthetic) {
         _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+          highlightedNode,
+          [variable.name, variable.enclosingElement.displayName],
+        );
+      } else {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
           highlightedNode,
           [variable.name],
         );

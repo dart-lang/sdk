@@ -265,25 +265,15 @@ class AssignmentExpressionResolver {
           CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
           left,
         );
-      } else if (variable.setter == null) {
-        if (variable is FieldElement) {
-          if (variable.isSynthetic) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-              left,
-              [variable.name, variable.enclosingElement.displayName],
-            );
-          } else {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
-              left,
-              [variable.name],
-            );
-          }
-          return;
-        }
+      } else if (variable is FieldElement && variable.isSynthetic) {
         _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+          left,
+          [variable.name, variable.enclosingElement.displayName],
+        );
+      } else {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
           left,
           [variable.name],
         );
