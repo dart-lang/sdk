@@ -55,10 +55,9 @@ def GetSemanticVersionFormat(no_git_hash):
 
 def FormatVersionString(version,
                         no_git_hash,
+                        no_sdk_hash,
                         version_file=None,
                         git_revision_file=None):
-    use_git_hash = not no_git_hash
-
     semantic_sdk_version = utils.GetSemanticSDKVersion(no_git_hash,
                                                        version_file,
                                                        git_revision_file)
@@ -71,7 +70,8 @@ def FormatVersionString(version,
     version = version.replace('{{SEMANTIC_SDK_VERSION}}', semantic_sdk_version)
 
     git_hash = None
-    if use_git_hash:
+    # If we need SDK hash and git usage is not suppressed then try to get it.
+    if not no_sdk_hash and not no_git_hash:
         git_hash = utils.GetShortGitHash()
     if git_hash is None or len(git_hash) != 10:
         git_hash = '0000000000'
@@ -81,7 +81,7 @@ def FormatVersionString(version,
     version = version.replace('{{CHANNEL}}', channel)
 
     version_time = None
-    if use_git_hash:
+    if not no_git_hash:
         version_time = utils.GetGitTimestamp()
     if version_time == None:
         version_time = 'Unknown timestamp'
@@ -104,6 +104,11 @@ def main():
             default=False,
             help=('Don\'t try to call git to derive things like '
                   'git revision hash.'))
+        parser.add_argument(
+            '--no_sdk_hash',
+            action='store_true',
+            default=False,
+            help='Use null SDK hash to disable SDK verification in the VM')
         parser.add_argument('--output', help='output file name')
         parser.add_argument('-q',
                             '--quiet',
@@ -133,7 +138,8 @@ def main():
             raise 'No version template given! Set either --input or --format.'
 
         version = FormatVersionString(version_template, args.no_git_hash,
-                                      args.version_file, args.git_revision_file)
+                                      args.no_sdk_hash, args.version_file,
+                                      args.git_revision_file)
 
         if args.output:
             with open(args.output, 'w') as fh:

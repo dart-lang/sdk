@@ -1,6 +1,7 @@
 // @dart = 2.8
 dynamic lastInit;
 T init<T>(T value) {}
+const int constTopLevelField = 324;
 int topLevelFieldWithoutInitializer;
 int topLevelFieldWithInitializer1 = init(42);
 int topLevelFieldWithInitializer2 = init(42);
@@ -12,6 +13,7 @@ final int finalTopLevelFieldWithInitializer2 =
         : 87;
 
 class Class {
+  static const int staticConstField = 123;
   static int staticFieldWithoutInitializer;
   static int staticFieldWithInitializer1 = init(55);
   static int staticFieldWithInitializer2 = init(55);

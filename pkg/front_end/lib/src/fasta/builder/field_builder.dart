@@ -177,6 +177,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     } else if (libraryBuilder.isNonNullableByDefault &&
         libraryBuilder.loader.target.backendTarget.useStaticFieldLowering &&
         (isStatic || isTopLevel) &&
+        !isConst &&
         hasInitializer) {
       if (isFinal) {
         _fieldEncoding = new LateFinalFieldWithInitializerEncoding(

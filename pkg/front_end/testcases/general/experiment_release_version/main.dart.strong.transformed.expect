@@ -34,7 +34,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental and requires language version of 2.10 or higher.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental and requires language version of 2.9 or higher.
 // You can enable the experiment using the '--enable-experiment=non-nullable' command line option.
 // int? versioned_2_8_Library; // error
 //    ^
@@ -48,7 +48,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental and requires language version of 2.10 or higher.
+// pkg/front_end/testcases/general/experiment_release_version/versioned_2_9_lib.dart:7:4: Error: This requires the null safety language feature, which is experimental.
 // You can enable the experiment using the '--enable-experiment=non-nullable' command line option.
 // int? versioned_2_9_Library; // error
 //    ^

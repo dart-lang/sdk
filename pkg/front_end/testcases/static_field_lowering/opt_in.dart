@@ -9,6 +9,8 @@ T init<T>(T value) {
   return value;
 }
 
+const int constTopLevelField = 324;
+
 int? topLevelFieldWithoutInitializer;
 
 int nonNullableTopLevelFieldWithInitializer1 = init(42);
@@ -32,6 +34,8 @@ final int? nullableFinalTopLevelFieldWithInitializer2 =
         : 32;
 
 class Class {
+  static const int staticConstField = 123;
+
   static int? staticFieldWithoutInitializer;
 
   static int nonNullableStaticFieldWithInitializer1 = init(55);
@@ -58,7 +62,9 @@ class Class {
 main() {
   expect(null, lastInit);
   expect(null, topLevelFieldWithoutInitializer);
+  expect(324, constTopLevelField);
   expect(null, Class.staticFieldWithoutInitializer);
+  expect(123, Class.staticConstField);
 
   expect(42, nonNullableTopLevelFieldWithInitializer1);
   expect(42, lastInit);

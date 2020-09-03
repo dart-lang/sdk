@@ -56,6 +56,9 @@ class DocumentationValidator {
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43051)
     'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
+    // Produces two diagnostics when it should only produce one (see
+    // https://github.com/dart-lang/sdk/issues/43263)
+    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should

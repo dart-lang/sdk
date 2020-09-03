@@ -352,7 +352,8 @@ class SourceLoader extends Loader {
       // libraries with no corresponding package config we generate a message
       // per library.
       Map<String, List<LibraryBuilder>> libraryByPackage = {};
-      Map<Package, Version> enableNonNullableVersionByPackage = {};
+      Version enableNonNullableVersion =
+          target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
       for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
         Package package =
             target.uriTranslator.getPackage(libraryBuilder.importUri);
@@ -360,11 +361,6 @@ class SourceLoader extends Loader {
         if (package != null &&
             package.languageVersion != null &&
             package.languageVersion is! InvalidLanguageVersion) {
-          Version enableNonNullableVersion =
-              enableNonNullableVersionByPackage[package] ??=
-                  target.getExperimentEnabledVersionInLibrary(
-                      ExperimentalFlag.nonNullable,
-                      new Uri(scheme: 'package', path: package.name));
           Version version = new Version(
               package.languageVersion.major, package.languageVersion.minor);
           if (version < enableNonNullableVersion) {

@@ -351,12 +351,8 @@ class ProcessedOptions {
         allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting);
   }
 
-  Version getExperimentEnabledVersionInLibrary(
-      flags.ExperimentalFlag flag, Uri importUri) {
-    return flags.getExperimentEnabledVersionInLibrary(flag, importUri,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting,
-        experimentEnabledVersionForTesting:
-            _raw.experimentEnabledVersionForTesting,
+  Version getExperimentEnabledVersion(flags.ExperimentalFlag flag) {
+    return flags.getExperimentEnabledVersion(flag,
         experimentReleasedVersionForTesting:
             _raw.experimentReleasedVersionForTesting);
   }
