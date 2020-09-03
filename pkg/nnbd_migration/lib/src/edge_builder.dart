@@ -456,7 +456,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
       var leftType = _dispatch(leftOperand);
-      _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand);
+      _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand, leftType);
       try {
         _guards.add(leftType.node);
         DecoratedType rightType;
@@ -2210,8 +2210,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     if (questionAssignNode != null) {
       _guards.add(destinationType.node);
-      _flowAnalysis
-          .ifNullExpression_rightBegin(questionAssignNode.leftHandSide);
+      _flowAnalysis.ifNullExpression_rightBegin(
+          questionAssignNode.leftHandSide, destinationType);
     }
     DecoratedType sourceType;
     try {

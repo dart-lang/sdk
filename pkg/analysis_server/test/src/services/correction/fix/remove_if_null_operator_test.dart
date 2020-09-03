@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,7 +32,10 @@ int f(int a, int b) => a ?? b;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''');
+''', errorFilter: (e) {
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      return e.errorCode != HintCode.DEAD_CODE;
+    });
   }
 
   Future<void> test_nestedChild() async {
@@ -40,7 +44,10 @@ int f(int a, int b) => a ?? b * 2 + 1;
 ''');
     await assertHasFix('''
 int f(int a, int b) => a;
-''');
+''', errorFilter: (e) {
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      return e.errorCode != HintCode.DEAD_CODE;
+    });
   }
 }
 
