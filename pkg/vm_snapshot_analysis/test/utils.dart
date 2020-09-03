@@ -46,7 +46,7 @@ void main(List<String> args) => input.main(args);
       '-o',
       outputBinary,
       '--packages=$packages',
-      '--extra-gen-snapshot-options=$flag=$sizesJson',
+      '--extra-gen-snapshot-options=--dwarf-stack-traces,$flag=$sizesJson',
       mainDart,
     ]);
 

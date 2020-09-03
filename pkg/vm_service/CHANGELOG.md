@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 5.0.0
+
+- **breaking**: Update to version `4.0.0` of the spec.
+  - Removes `ClientName` and `WebSocketTarget` objects
+  - Removes `getClientName`, `getWebSocketTarget`, `requirePermissionToResume`,
+    and `setClientName` RPCs.
 - Added `isSystemIsolate` property to `IsolateRef` and `Isolate`.
 - Added `isSystemIsolateGroup` property to `IsolateGroupRef` and `IsolateGroup`.
 - Added `serviceIsolates` and `serviceIsolateGroups` properties to `VM`.

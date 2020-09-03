@@ -544,15 +544,23 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   result = Dart_SetDeferredLoadHandler(Loader::DeferredLoadHandler);
   CHECK_RESULT(result);
 
+  int vm_service_server_port = INVALID_VM_SERVICE_SERVER_PORT;
+  if (Options::disable_dart_dev()) {
+    vm_service_server_port = Options::vm_service_server_port();
+  } else if (Options::vm_service_server_port() !=
+             INVALID_VM_SERVICE_SERVER_PORT) {
+    vm_service_server_port = 0;
+  }
+
   // Load embedder specific bits and return.
   if (!VmService::Setup(
-          Options::vm_service_server_ip(), Options::vm_service_server_port(),
-          Options::vm_service_dev_mode(), Options::vm_service_auth_disabled(),
+          Options::disable_dart_dev() ? Options::vm_service_server_ip()
+                                      : DEFAULT_VM_SERVICE_SERVER_IP,
+          vm_service_server_port, Options::vm_service_dev_mode(),
+          Options::vm_service_auth_disabled(),
           Options::vm_write_service_info_filename(), Options::trace_loading(),
           Options::deterministic(), Options::enable_service_port_fallback(),
-          // TODO(bkonyi): uncomment when DDS is re-enabled.
-          // See https://github.com/flutter/flutter/issues/62507
-          /*!Options::disable_dart_dev()*/ false)) {
+          !Options::disable_dart_dev())) {
     *error = Utils::StrDup(VmService::GetErrorMessage());
     return NULL;
   }

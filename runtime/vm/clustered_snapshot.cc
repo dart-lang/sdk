@@ -5553,9 +5553,15 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     name = str.ToCString();
   }
 
-  TraceStartWritingObject(type, obj, name);
+  // CreateArtificalNodeIfNeeded might call TraceStartWritingObject
+  // and these calls don't nest, so we need to call this outside
+  // of the tracing scope created below.
   if (owner != nullptr) {
     CreateArtificalNodeIfNeeded(owner);
+  }
+
+  TraceStartWritingObject(type, obj, name);
+  if (owner != nullptr) {
     AttributePropertyRef(owner, owner_ref_name,
                          /*permit_artificial_ref=*/true);
   }

@@ -12,7 +12,7 @@ final tests = <DDSTest>[
   (VM vm, DartDevelopmentService dds) async {
     final client = WebSocketVM(
       WebSocketVMTarget(
-        dds.remoteVmServiceWsUri.toString(),
+        dds.wsUri.toString(),
       ),
     );
     final result = await client.invokeRpcNoUpgrade('getSupportedProtocols', {});

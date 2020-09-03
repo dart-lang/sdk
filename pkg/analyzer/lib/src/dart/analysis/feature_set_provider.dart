@@ -96,8 +96,16 @@ class FeatureSetProvider {
   }
 
   /// Return the package corresponding to the [uri] or [path], `null` if none.
+  ///
+  /// For `package` and `asset` schemes the package name is retrieved from the
+  /// first path segment of [uri].
+  ///
+  /// For `file` schemes this tries to look up by the normalized [uri] path.
+  ///
+  /// If unable to find a package through other mechanisms mechanisms, or it is
+  /// an unrecognized uri scheme, then the package is looked up by [path].
   Package _findPackage(Uri uri, String path) {
-    if (uri.isScheme('package')) {
+    if (uri.isScheme('package') || uri.isScheme('asset')) {
       var pathSegments = uri.pathSegments;
       if (pathSegments.isNotEmpty) {
         var packageName = pathSegments.first;

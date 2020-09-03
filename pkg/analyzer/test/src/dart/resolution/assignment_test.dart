@@ -1459,7 +1459,7 @@ void f() {
   x = 2;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 30, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1),
     ]);
 
     var assignment = findNode.assignment('x = 2');
@@ -2214,7 +2214,7 @@ class B extends A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 86, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1),
     ]);
 
     var assignment = findNode.assignment('x = 2');
@@ -2416,7 +2416,7 @@ void f() {
   x = 2;
 }
 ''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 31, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1),
     ]);
 
     var assignment = findNode.assignment('x = 2');

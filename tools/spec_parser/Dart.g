@@ -493,10 +493,15 @@ primary
     |    SUPER unconditionalAssignableSelector
     |    constObjectExpression
     |    newExpression
+    |    constructorInvocation
     |    functionPrimary
     |    '(' expression ')'
     |    literal
     |    identifier
+    ;
+
+constructorInvocation
+    :    typeName typeArguments '.' identifier arguments
     ;
 
 literal
@@ -812,12 +817,7 @@ awaitExpression
 
 postfixExpression
     :    assignableExpression postfixOperator
-    |    constructorInvocation selector*
     |    primary selector*
-    ;
-
-constructorInvocation
-    :    typeName typeArguments '.' identifier arguments
     ;
 
 postfixOperator
@@ -841,7 +841,6 @@ incrementOperator
 
 assignableExpression
     :    SUPER unconditionalAssignableSelector
-    |    constructorInvocation assignableSelectorPart
     |    primary assignableSelectorPart
     |    identifier
     ;

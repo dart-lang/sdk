@@ -81,9 +81,18 @@ Future cleanupCallback() async {
 }
 
 Future<void> ddsConnectedCallback() async {
+  final serviceAddress = server!.serverAddress.toString();
+  _notifyServerState(serviceAddress);
+  onServerAddressChange(serviceAddress);
   if (_waitForDdsToAdvertiseService) {
     await server!.outputConnectionInformation();
   }
+}
+
+Future<void> ddsDisconnectedCallback() async {
+  final serviceAddress = server!.serverAddress.toString();
+  _notifyServerState(serviceAddress);
+  onServerAddressChange(serviceAddress);
 }
 
 Future<Uri> createTempDirCallback(String base) async {
@@ -257,6 +266,7 @@ main() {
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
   VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
   VMServiceEmbedderHooks.ddsConnected = ddsConnectedCallback;
+  VMServiceEmbedderHooks.ddsDisconnected = ddsDisconnectedCallback;
   VMServiceEmbedderHooks.deleteDir = deleteDirCallback;
   VMServiceEmbedderHooks.writeFile = writeFileCallback;
   VMServiceEmbedderHooks.writeStreamFile = writeStreamFileCallback;
