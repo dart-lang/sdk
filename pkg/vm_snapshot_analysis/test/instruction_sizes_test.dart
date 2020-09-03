@@ -665,7 +665,7 @@ void main() async {
           expect(findChild(treemap, 'package:input/input.dart'), isNotNull);
         } else {
           expect(childrenNames(findChild(treemap, 'package:input')),
-              equals({'<self>', 'main.dart', 'input.dart'}));
+              equals({'main.dart', 'input.dart'}));
         }
       });
     });

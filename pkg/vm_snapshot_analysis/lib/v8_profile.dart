@@ -412,7 +412,9 @@ class _ProgramInfoBuilder {
       case 'Function':
         if (node.name != '<anonymous signature>') {
           var owner = node['owner_'];
-          if (node['data_'].type == 'ClosureData') {
+
+          // Artificial nodes will not have data_ field.
+          if (node['data_']?.type == 'ClosureData') {
             owner = node['data_']['parent_function_'];
           }
           return makeInfoNode(node.index,
