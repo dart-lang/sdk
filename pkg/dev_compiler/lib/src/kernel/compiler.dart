@@ -2930,11 +2930,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _staticTypeContext.enterLibrary(_currentLibrary);
     _currentClass = cls;
 
-    // emit function with additional information,
-    // such as types that are used in the expression
+    // Emit function with additional information, such as types that are used
+    // in the expression. Note that typeTable can be null if this function is
+    // called from the expression compilation service, since we currently do
+    // not optimize for size of generated javascript in that scenario.
+    // TODO: figure whether or when optimizing for build time vs JavaScript
+    // size on expression evaluation is better.
+    // Issue: https://github.com/dart-lang/sdk/issues/43288
     var fun = _emitFunction(functionNode, name);
-    var items = _typeTable.discharge();
-    var body = js_ast.Block([...items, ...fun.body.statements]);
+    var items = _typeTable?.discharge();
+    var body = js_ast.Block([...?items, ...fun.body.statements]);
 
     return js_ast.Fun(fun.params, body);
   }
@@ -3450,7 +3455,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (fileUri == null) return null;
     try {
       var loc = _component.getLocation(fileUri, offset);
-      if (loc == null) return null;
+      if (loc == null || loc.line < 0) return null;
       return SourceLocation(offset,
           sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1);
     } on StateError catch (_) {
