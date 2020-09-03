@@ -37,7 +37,6 @@ LanguageFeatures/Instantiate-to-bound/nonfunction_typedef/static/*: Skip # Not m
 LanguageFeatures/Instantiate-to-bound/typedef/*: Skip # Not migrated to NNBD
 LanguageFeatures/Instantiate-to-bound/typedef/dynamic/*: Skip # Not migrated to NNBD
 LanguageFeatures/Instantiate-to-bound/typedef/static/*: Skip # Not migrated to NNBD
-LanguageFeatures/Set-literals/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/dynamic/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Not migrated to NNBD
