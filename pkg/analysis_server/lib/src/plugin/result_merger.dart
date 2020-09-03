@@ -284,7 +284,8 @@ class ResultMerger {
         var newIndex = fileMap[target.fileIndex];
         if (target.fileIndex != newIndex) {
           target = NavigationTarget(target.kind, newIndex, target.offset,
-              target.length, target.startLine, target.startColumn);
+              target.length, target.startLine, target.startColumn,
+              codeOffset: target.codeOffset, codeLength: target.codeLength);
         }
         var index = mergedTargets.indexOf(target);
         if (index < 0) {

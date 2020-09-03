@@ -33,6 +33,8 @@ import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart'
+    as server;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' as server;
 import 'package:meta/meta.dart';
 
@@ -538,15 +540,42 @@ List<lsp.DiagnosticTag> getDiagnosticTags(
 bool isDartDocument(lsp.TextDocumentIdentifier doc) =>
     doc?.uri?.endsWith('.dart');
 
-lsp.Location navigationTargetToLocation(String targetFilePath,
-    server.NavigationTarget target, server.LineInfo lineInfo) {
-  if (lineInfo == null) {
+lsp.Location navigationTargetToLocation(
+  String targetFilePath,
+  server.NavigationTarget target,
+  server.LineInfo targetLineInfo,
+) {
+  if (targetLineInfo == null) {
     return null;
   }
 
   return lsp.Location(
     uri: Uri.file(targetFilePath).toString(),
-    range: toRange(lineInfo, target.offset, target.length),
+    range: toRange(targetLineInfo, target.offset, target.length),
+  );
+}
+
+lsp.LocationLink navigationTargetToLocationLink(
+  server.NavigationRegion region,
+  server.LineInfo regionLineInfo,
+  String targetFilePath,
+  server.NavigationTarget target,
+  server.LineInfo targetLineInfo,
+) {
+  if (regionLineInfo == null || targetLineInfo == null) {
+    return null;
+  }
+
+  final nameRange = toRange(targetLineInfo, target.offset, target.length);
+  final codeRange = target.codeOffset != null && target.codeLength != null
+      ? toRange(targetLineInfo, target.codeOffset, target.codeLength)
+      : nameRange;
+
+  return lsp.LocationLink(
+    originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
+    targetUri: Uri.file(targetFilePath).toString(),
+    targetRange: codeRange,
+    targetSelectionRange: nameRange,
   );
 }
 

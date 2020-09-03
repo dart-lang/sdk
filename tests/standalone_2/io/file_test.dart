@@ -1614,6 +1614,9 @@ class FileTest {
 
     Expect.equals("content", absFile.readAsStringSync());
 
+    // An empty file path should be accepted.
+    File('').absolute;
+
     if (Platform.isWindows &&
         tempDirectory.path.startsWith(RegExp(r"^[a-zA-Z]:"))) {
       var driveRelativeFile = File(absFile.path.substring(2));

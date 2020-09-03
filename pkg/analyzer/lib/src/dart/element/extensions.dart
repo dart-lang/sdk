@@ -8,6 +8,23 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 extension ElementExtension on Element {
+  /// Return `true` if this element is an instance member.
+  ///
+  /// Only [MethodElement]s and [PropertyAccessorElement]s are supported.
+  /// We intentionally exclude [ConstructorElement]s - they can only be
+  /// invoked in instance creation expressions, and [FieldElement]s - they
+  /// cannot be invoked directly and are always accessed using corresponding
+  /// [PropertyAccessorElement]s.
+  bool get isInstanceMember {
+    var this_ = this;
+    var enclosing = this_.enclosingElement;
+    if (enclosing is ClassElement || enclosing is ExtensionElement) {
+      return this_ is MethodElement && !this_.isStatic ||
+          this_ is PropertyAccessorElement && !this_.isStatic;
+    }
+    return false;
+  }
+
   /// Return `true` if this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.

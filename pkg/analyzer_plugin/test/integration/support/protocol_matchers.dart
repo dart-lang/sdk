@@ -604,6 +604,8 @@ final Matcher isNavigationRegion = LazyMatcher(() => MatchesJsonObject(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "codeOffset": optional int
+///   "codeLength": optional int
 /// }
 final Matcher isNavigationTarget =
     LazyMatcher(() => MatchesJsonObject('NavigationTarget', {
@@ -613,6 +615,9 @@ final Matcher isNavigationTarget =
           'length': isInt,
           'startLine': isInt,
           'startColumn': isInt
+        }, optionalFields: {
+          'codeOffset': isInt,
+          'codeLength': isInt
         }));
 
 /// Occurrences

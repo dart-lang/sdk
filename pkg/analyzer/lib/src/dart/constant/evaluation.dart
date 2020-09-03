@@ -737,6 +737,10 @@ class ConstantEvaluationEngine {
       if (superConstructor != null) {
         superArguments ??= astFactory.nodeList<Expression>(null);
 
+        if (constructor is ConstructorMember && constructor.isLegacy) {
+          superConstructor = Member.legacy(superConstructor);
+        }
+
         evaluateSuperConstructorCall(node, fieldMap, superConstructor,
             superArguments, initializerVisitor, externalErrorReporter);
       }

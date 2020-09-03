@@ -1941,6 +1941,80 @@ void f(final int x) {
     assertType(assignment.rightHandSide, 'int');
   }
 
+  test_simpleIdentifier_staticGetter_superSetter_simple() async {
+    await assertErrorsInCode('''
+class A {
+  set x(num _) {}
+}
+
+class B extends A {
+  static int get x => 1;
+
+  void f() {
+    x = 2;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
+    ]);
+
+    var assignment = findNode.assignment('x = 2');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.getter('x', of: 'B'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.getter('x', of: 'B'),
+      type: null,
+    );
+  }
+
+  test_simpleIdentifier_staticMethod_superSetter_simple() async {
+    await assertErrorsInCode('''
+class A {
+  set x(num _) {}
+}
+
+class B extends A {
+  static void x() {}
+
+  void f() {
+    x = 2;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
+    ]);
+
+    var assignment = findNode.assignment('x = 2');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.method('x', of: 'B'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.method('x', of: 'B'),
+      type: null,
+    );
+  }
+
   test_simpleIdentifier_superSetter_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2120,6 +2194,45 @@ class C with M1, M2 {
       readElement: findElement.getter('x', of: 'M2'),
       writeElement: findElement.setter('x', of: 'M2'),
       type: 'num',
+    );
+
+    assertType(assignment.rightHandSide, 'int');
+  }
+
+  test_simpleIdentifier_topGetter_superSetter_simple() async {
+    await assertErrorsInCode('''
+class A {
+  set x(num _) {}
+}
+
+int get x => 1;
+
+class B extends A {
+
+  void f() {
+    x = 2;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 86, 1),
+    ]);
+
+    var assignment = findNode.assignment('x = 2');
+    assertAssignment(
+      assignment,
+      readElement: null,
+      readType: null,
+      writeElement: findElement.topGet('x'),
+      writeType: 'dynamic',
+      operatorElement: null,
+      type: 'int',
+    );
+
+    assertSimpleIdentifier(
+      assignment.leftHandSide,
+      readElement: null,
+      writeElement: findElement.topGet('x'),
+      type: null,
     );
 
     assertType(assignment.rightHandSide, 'int');

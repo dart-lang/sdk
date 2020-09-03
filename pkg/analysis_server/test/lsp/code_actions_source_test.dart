@@ -25,14 +25,14 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
@@ -54,14 +54,14 @@ import 'dart:math';
 import 'dart:async';
 import 'dart:convert';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     const expectedContent = '''
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);
@@ -133,7 +133,7 @@ int minified(int x, int y) => min(x, y);
 import 'dart:async';
 import 'dart:math';
 
-Future foo;
+Completer foo;
 int minified(int x, int y) => min(x, y);
     ''';
     await newFile(mainFilePath, content: content);

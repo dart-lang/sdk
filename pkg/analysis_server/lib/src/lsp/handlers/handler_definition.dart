@@ -12,12 +12,13 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 
-class DefinitionHandler
-    extends MessageHandler<TextDocumentPositionParams, List<Location>>
+class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
+        Either2<List<Location>, List<LocationLink>>>
     with LspPluginRequestHandlerMixin {
   DefinitionHandler(LspAnalysisServer server) : super(server);
   @override
@@ -45,13 +46,15 @@ class DefinitionHandler
   }
 
   Future<AnalysisNavigationParams> getServerResult(
-      String path, int offset) async {
-    final collector = NavigationCollectorImpl();
+      bool clientSupportsLocationLink, String path, int offset) async {
+    final collector = NavigationCollectorImpl(
+        collectCodeLocations: clientSupportsLocationLink);
 
     final result = await server.getResolvedUnit(path);
     if (result?.state == ResultState.VALID) {
       computeDartNavigation(
           server.resourceProvider, collector, result.unit, offset, 0);
+      collector.createRegions();
     }
 
     return AnalysisNavigationParams(
@@ -59,24 +62,32 @@ class DefinitionHandler
   }
 
   @override
-  Future<ErrorOr<List<Location>>> handle(
+  Future<ErrorOr<Either2<List<Location>, List<LocationLink>>>> handle(
       TextDocumentPositionParams params, CancellationToken token) async {
+    final definitionCapabilities =
+        server?.clientCapabilities?.textDocument?.definition;
+
+    final clientSupportsLocationLink =
+        definitionCapabilities?.linkSupport == true;
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
 
     return path.mapResult((path) async {
       final lineInfo = server.getLineInfo(path);
-      // If there is no lineInfo, the request canot be translated from LSP line/col
+      // If there is no lineInfo, the request cannot be translated from LSP line/col
       // to server offset/length.
       if (lineInfo == null) {
-        return success(const []);
+        return success(
+          Either2<List<Location>, List<LocationLink>>.t1(const []),
+        );
       }
 
       final offset = toOffset(lineInfo, pos);
 
       return offset.mapResult((offset) async {
         final allResults = [
-          await getServerResult(path, offset),
+          await getServerResult(clientSupportsLocationLink, path, offset),
           ...await getPluginResults(path, offset),
         ];
 
@@ -84,28 +95,84 @@ class DefinitionHandler
         final mergedResults = merger.mergeNavigation(allResults);
         final mergedTargets = mergedResults?.targets ?? [];
 
-        Location toLocation(NavigationTarget target) {
-          final targetFilePath = mergedResults.files[target.fileIndex];
-          final lineInfo = server.getLineInfo(targetFilePath);
-          return navigationTargetToLocation(targetFilePath, target, lineInfo);
+        // Convert and filter the results using the correct type of Location class
+        // depending on the client capabilities.
+        if (clientSupportsLocationLink) {
+          final convertedResults = convert(
+            mergedTargets,
+            (target) => _toLocationLink(mergedResults, lineInfo, target),
+          ).toList();
+
+          final results = _filterResults(
+            convertedResults,
+            params.textDocument.uri,
+            pos.line,
+            (element) => element.targetUri,
+            (element) => element.targetSelectionRange,
+          );
+
+          return success(
+            Either2<List<Location>, List<LocationLink>>.t2(results),
+          );
+        } else {
+          final convertedResults = convert(
+            mergedTargets,
+            (target) => _toLocation(mergedResults, target),
+          ).toList();
+
+          final results = _filterResults(
+            convertedResults,
+            params.textDocument.uri,
+            pos.line,
+            (element) => element.uri,
+            (element) => element.range,
+          );
+
+          return success(
+            Either2<List<Location>, List<LocationLink>>.t1(results),
+          );
         }
-
-        final results = convert(mergedTargets, toLocation).toList();
-
-        // If we fetch navigation on a keyword like `var`, the results will include
-        // both the definition and also the variable name. This will cause the editor
-        // to show the user both options unnecessarily (the variable name is always
-        // adjacent to the var keyword, so providing navigation to it is not useful).
-        // To prevent this, filter the list to only those on different lines (or
-        // different files).
-        final otherResults = results
-            .where((element) =>
-                element.uri != params.textDocument.uri ||
-                element.range.start.line != pos.line)
-            .toList();
-
-        return success(otherResults.isNotEmpty ? otherResults : results);
       });
     });
+  }
+
+  /// Helper that selects the correct results (filtering out at the same
+  /// line/location) generically, handling either type of Location class.
+  List<T> _filterResults<T>(
+    List<T> results,
+    String sourceUri,
+    int sourceLineNumber,
+    String Function(T) uriSelector,
+    Range Function(T) rangeSelector,
+  ) {
+    // If we fetch navigation on a keyword like `var`, the results will include
+    // both the definition and also the variable name. This will cause the editor
+    // to show the user both options unnecessarily (the variable name is always
+    // adjacent to the var keyword, so providing navigation to it is not useful).
+    // To prevent this, filter the list to only those on different lines (or
+    // different files).
+    final otherResults = results
+        .where((element) =>
+            uriSelector(element) != sourceUri ||
+            rangeSelector(element).start.line != sourceLineNumber)
+        .toList();
+
+    return otherResults.isNotEmpty ? otherResults : results;
+  }
+
+  Location _toLocation(
+      AnalysisNavigationParams mergedResults, NavigationTarget target) {
+    final targetFilePath = mergedResults.files[target.fileIndex];
+    final targetLineInfo = server.getLineInfo(targetFilePath);
+    return navigationTargetToLocation(targetFilePath, target, targetLineInfo);
+  }
+
+  LocationLink _toLocationLink(AnalysisNavigationParams mergedResults,
+      LineInfo sourceLineInfo, NavigationTarget target) {
+    final region = mergedResults.regions.first;
+    final targetFilePath = mergedResults.files[target.fileIndex];
+    final targetLineInfo = server.getLineInfo(targetFilePath);
+    return navigationTargetToLocationLink(
+        region, sourceLineInfo, targetFilePath, target, targetLineInfo);
   }
 }

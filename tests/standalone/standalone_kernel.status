@@ -8,6 +8,9 @@ fragmentation_test: Pass, Slow # GC heavy
 fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
+[ $builder_tag == bytecode_interpreter ]
+io/http_big_header_test: SkipSlow # Timeout
+
 [ $compiler == dartkb ]
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
