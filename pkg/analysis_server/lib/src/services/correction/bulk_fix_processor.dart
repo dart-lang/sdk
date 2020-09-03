@@ -37,6 +37,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_operator.dar
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_new.dart';
+import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
@@ -80,6 +81,7 @@ class BulkFixProcessor {
     LintNames.empty_statements: RemoveEmptyStatement.newInstance,
     LintNames.hash_and_equals: CreateMethod.equalsOrHashCode,
     LintNames.no_duplicate_case_values: RemoveDuplicateCase.newInstance,
+    LintNames.non_constant_identifier_names: RenameToCamelCase.newInstance,
     LintNames.null_closures: ReplaceNullWithClosure.newInstance,
     LintNames.omit_local_variable_types: ReplaceWithVar.newInstance,
     LintNames.prefer_adjacent_string_concatenation: RemoveOperator.newInstance,
