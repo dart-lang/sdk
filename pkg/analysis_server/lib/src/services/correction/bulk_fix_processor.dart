@@ -40,6 +40,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
@@ -87,6 +88,7 @@ class BulkFixProcessor {
     LintNames.prefer_adjacent_string_concatenation: RemoveOperator.newInstance,
     LintNames.prefer_conditional_assignment:
         ReplaceWithConditionalAssignment.newInstance,
+    LintNames.prefer_const_declarations: ReplaceFinalWithConst.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
