@@ -16,21 +16,62 @@ import 'package:yaml/yaml.dart';
 class TransformSetParser {
   static const String _changesKey = 'changes';
 
-  static const String _componentsKey = 'components';
+  static const String _classKey = 'class';
+
+  static const String _constructorKey = 'constructor';
 
   static const String _elementKey = 'element';
 
+  static const String _enumConstantKey = 'constant';
+
+  static const String _enumKey = 'enum';
+
+  static const String _extensionKey = 'extension';
+
+  static const String _fieldKey = 'field';
+
+  static const String _functionKey = 'function';
+
+  static const String _getterKey = 'getter';
+
+  static const String _inClassKey = 'inClass';
+
+  static const String _inEnumKey = 'inEnum';
+
+  static const String _inExtensionKey = 'inExtension';
+
+  static const String _inMixinKey = 'inMixin';
+
   static const String _kindKey = 'kind';
 
+  static const String _methodKey = 'method';
+
+  static const String _mixinKey = 'mixin';
+
   static const String _newNameKey = 'newName';
+
+  static const String _setterKey = 'setter';
 
   static const String _titleKey = 'title';
 
   static const String _transformsKey = 'transforms';
 
+  static const String _typedefKey = 'typedef';
+
   static const String _urisKey = 'uris';
 
   static const String _versionKey = 'version';
+
+  /// A table mapping top-level keys for member elements to the list of keys for
+  /// the possible containers of that element.
+  static const Map<String, List<String>> _containerKeyMap = {
+    _constructorKey: [_inClassKey],
+    _enumConstantKey: [_inEnumKey],
+    _fieldKey: [_inClassKey, _inExtensionKey, _inMixinKey],
+    _getterKey: [_inClassKey, _inExtensionKey, _inMixinKey],
+    _methodKey: [_inClassKey, _inExtensionKey, _inMixinKey],
+    _setterKey: [_inClassKey, _inExtensionKey, _inMixinKey],
+  };
 
   static const String _renameKind = 'rename';
 
@@ -91,6 +132,34 @@ class TransformSetParser {
     }
   }
 
+  /// Given a [map] and a set of [validKeys], ensure that only one of those keys
+  /// is in the map and return it. If more than one of the keys is in the map,
+  /// report a diagnostic.
+  String _singleKey(YamlMap map, List<String> validKeys) {
+    if (validKeys == null) {
+      return null;
+    }
+    var foundKeys = <String>[];
+    var keyToNodeMap = <String, YamlNode>{};
+    for (var keyNode in map.nodes.keys) {
+      if (keyNode is YamlScalar) {
+        var key = _translateString(keyNode);
+        if (key != null && validKeys.contains(key)) {
+          foundKeys.add(key);
+          keyToNodeMap[key] = keyNode;
+        }
+      }
+    }
+    if (foundKeys.isEmpty) {
+      return null;
+    }
+    for (var i = 1; i < foundKeys.length; i++) {
+      // var invalidNode = keyToNodeMap[foundKeys[i]];
+      // TODO(brianwilkerson) Report the invalid key.
+    }
+    return foundKeys[0];
+  }
+
   /// Translate the [node] into a change. Return the resulting change, or `null`
   /// if the [node] does not represent a valid change.
   Change _translateChange(YamlNode node) {
@@ -118,14 +187,41 @@ class TransformSetParser {
     if (node is YamlMap) {
       var uris = _translateList(node.valueAt(_urisKey), _translateString);
       if (uris == null) {
+        // TODO(brianwilkerson) Returning here prevents other errors from being
+        //  reported.
         // The error has already been reported.
         return null;
       }
-      var components =
-          _translateList(node.valueAt(_componentsKey), _translateString);
-      if (components == null) {
+      var elementKey = _singleKey(node, [
+        _classKey,
+        _enumConstantKey,
+        _constructorKey,
+        _enumKey,
+        _extensionKey,
+        _fieldKey,
+        _functionKey,
+        _getterKey,
+        _methodKey,
+        _mixinKey,
+        _setterKey,
+        _typedefKey
+      ]);
+      var elementName = _translateString(node.valueAt(elementKey));
+      if (elementName == null) {
         // The error has already been reported.
         return null;
+      }
+      var components = [elementName];
+      var containerKey = _singleKey(node, _containerKeyMap[elementKey]);
+      var containerName = _translateString(node.valueAt(containerKey));
+      if (containerName == null) {
+        if ([_constructorKey, _enumConstantKey, _methodKey, _fieldKey]
+            .contains(elementKey)) {
+          // TODO(brianwilkerson) Report that no container was found.
+          return null;
+        }
+      } else {
+        components.insert(0, containerName);
       }
       return ElementDescriptor(libraryUris: uris, components: components);
     } else if (node == null) {

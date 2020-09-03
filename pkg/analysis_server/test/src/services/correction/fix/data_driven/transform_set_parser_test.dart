@@ -18,6 +18,59 @@ void main() {
 
 @reflectiveTest
 class TransformSetParserTest extends AbstractTransformSetParserTest {
+  void test_element_getter_inMixin() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename g'
+  element:
+    uris: ['test.dart']
+    getter: 'g'
+    inMixin: 'A'
+  changes: []
+''');
+    var transforms = result.transformsFor('g', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename g');
+    expect(transform.changes, isEmpty);
+  }
+
+  void test_element_getter_topLevel() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename g'
+  element:
+    uris: ['test.dart']
+    getter: 'g'
+  changes: []
+''');
+    var transforms = result.transformsFor('g', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename g');
+    expect(transform.changes, isEmpty);
+  }
+
+  void test_element_method_inClass() {
+    parse('''
+version: 1
+transforms:
+- title: 'Rename m'
+  element:
+    uris: ['test.dart']
+    method: 'm'
+    inClass: 'A'
+  changes: []
+''');
+    var transforms = result.transformsFor('m', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename m');
+    expect(transform.changes, isEmpty);
+  }
+
   void test_incomplete() {
     parse('''
 version: 1
@@ -46,8 +99,7 @@ transforms:
   element:
     uris:
       - 'test.dart'
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'

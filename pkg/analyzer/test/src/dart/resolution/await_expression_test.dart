@@ -17,8 +17,6 @@ main() {
 class AwaitExpressionResolutionTest extends PubPackageResolutionTest {
   test_future() async {
     await assertNoErrorsInCode(r'''
-import 'dart:async';
-
 f(Future<int> a) async {
   await a;
 }
@@ -57,8 +55,6 @@ f(FutureOr<int>? a) async {
 
   test_futureQ() async {
     await assertNoErrorsInCode(r'''
-import 'dart:async';
-
 f(Future<int>? a) async {
   await a;
 }

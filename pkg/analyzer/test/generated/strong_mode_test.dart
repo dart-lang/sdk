@@ -87,7 +87,6 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_async_method_propagation() async {
     String code = r'''
-      import "dart:async";
       class A {
         Future f0() => new Future.value(3);
         Future f1() async => new Future.value(3);
@@ -144,8 +143,6 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_async_propagation() async {
     String code = r'''
-      import "dart:async";
-
       Future f0() => new Future.value(3);
       Future f1() async => new Future.value(3);
       Future f2() async => await new Future.value(3);
@@ -3378,14 +3375,13 @@ void test<S>(T pf<T>(T e)) {
 
   test_genericMethod_then() async {
     await assertErrorsInCode(r'''
-import 'dart:async';
 String toString(int x) => x.toString();
 main() {
   Future<int> bar = null;
   var foo = bar.then(toString);
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 102, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
     ]);
 
     expectInitializerType('foo', 'Future<String>');
@@ -3408,14 +3404,13 @@ main() {
   test_genericMethod_then_propagatedType() async {
     // Regression test for https://github.com/dart-lang/sdk/issues/25482.
     await assertErrorsInCode(r'''
-import 'dart:async';
 void main() {
   Future<String> p;
   var foo = p.then((r) => new Future<String>.value(3));
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 3),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 106, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 3),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 85, 1),
     ]);
     // Note: this correctly reports the error
     // CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE when run with the driver;
@@ -3978,7 +3973,6 @@ main() {
 
   test_foreachInference_var_stream() async {
     await resolveTestCode(r'''
-import 'dart:async';
 main() async {
   Stream<int> stream = null;
   await for (var v in stream) {

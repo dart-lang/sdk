@@ -886,15 +886,22 @@ File::Type File::GetType(Namespace* namespc,
     result = kDoesNotExist;
   } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     if (follow_links) {
-      HANDLE dir_handle =
+      HANDLE target_handle =
           CreateFileW(name.wide(), 0,
                       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                       NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-      if (dir_handle == INVALID_HANDLE_VALUE) {
+      if (target_handle == INVALID_HANDLE_VALUE) {
         result = File::kIsLink;
       } else {
-        CloseHandle(dir_handle);
-        result = File::kIsDirectory;
+        BY_HANDLE_FILE_INFORMATION info;
+        if (!GetFileInformationByHandle(target_handle, &info)) {
+          CloseHandle(target_handle);
+          return File::kIsLink;
+        }
+        CloseHandle(target_handle);
+        return ((info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+                   ? File::kIsDirectory
+                   : File::kIsFile;
       }
     } else {
       result = kIsLink;

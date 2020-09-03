@@ -18,8 +18,6 @@ void main() {
 class CheckerTest extends PubPackageResolutionTest {
   test_awaitForInCastsStreamElementToVariable() async {
     await assertErrorsInCode('''
-import 'dart:async';
-
 abstract class MyStream<T> extends Stream<T> {
   factory MyStream() => throw 0;
 }
@@ -41,12 +39,12 @@ main() async {
   await for (int i in new MyStream<num>()) {}
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 181, 1),
-      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 186, 4),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 235, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 309, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 373, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 438, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 159, 1),
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 164, 4),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 213, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 287, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 351, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 416, 1),
     ]);
   }
 
@@ -1008,7 +1006,6 @@ bar() {
 
   test_functionModifiers_async() async {
     await assertErrorsInCode('''
-import 'dart:async';
 import 'dart:math' show Random;
 
 dynamic x;
@@ -1053,13 +1050,13 @@ Future<String> issue_sdk_26404() async {
   return ((1 > 0) ? new Future<String>.value('hello') : "world");
 }
 ''', [
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 224, 27),
-      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 454, 27),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 529, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 548, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 567, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 589, 1),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 593, 7),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 203, 27),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 433, 27),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 508, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 527, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 546, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 568, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 572, 7),
     ]);
   }
 

@@ -36,7 +36,6 @@ f() async* {
 
   test_asyncStar_blockBody_noValue() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Stream<int> f() async* {
   return;
 }

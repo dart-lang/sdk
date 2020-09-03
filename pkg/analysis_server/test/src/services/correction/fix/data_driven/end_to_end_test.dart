@@ -25,8 +25,7 @@ transforms:
   element:
     uris:
       - '$importUri'
-    components:
-      - 'Old'
+    class: 'Old'
   changes:
     - kind: 'rename'
       newName: 'New'

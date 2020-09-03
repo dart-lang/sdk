@@ -409,10 +409,4 @@ class A {
 int f() => A.x;
 ''');
   }
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42957')
-  test_typeLiteral_conditionalAccess() {
-    return super.test_typeLiteral_conditionalAccess();
-  }
 }
