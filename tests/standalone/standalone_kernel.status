@@ -19,7 +19,6 @@ entrypoints_verification_test: Skip # Requires shared objects which the test scr
 io/network_policy_configuration_test: Skip # Can't pass -D params containing quotes to adb.
 io/network_policy_invalid_domain_test: Skip # Can't pass -D params containing quotes to adb.
 io/network_policy_tie_breaker_test: Skip # Can't pass -D params containing quotes to adb.
-io/socket_network_policy_test: Skip # Can't pass -D params containing quotes to adb.
 
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
