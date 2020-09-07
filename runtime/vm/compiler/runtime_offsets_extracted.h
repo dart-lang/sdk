@@ -380,6 +380,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 32;
 static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 8;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     16;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
@@ -887,6 +888,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 16;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     32;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
@@ -1390,6 +1392,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 32;
 static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 8;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     16;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
@@ -1894,6 +1897,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 16;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     32;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
@@ -2397,6 +2401,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 32;
 static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 8;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     16;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
@@ -2898,6 +2903,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 16;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     32;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
@@ -3395,6 +3401,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 32;
 static constexpr dart::compiler::target::word Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 8;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     16;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 12;
@@ -3893,6 +3900,7 @@ static constexpr dart::compiler::target::word Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word TypeArguments_length_offset = 16;
 static constexpr dart::compiler::target::word TypeArguments_nullability_offset =
     32;
 static constexpr dart::compiler::target::word TypeRef_type_offset = 24;
@@ -4427,6 +4435,8 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 32;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word AOT_TypeArguments_length_offset =
+    8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_nullability_offset = 16;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
@@ -4983,6 +4993,8 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypeArguments_length_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_nullability_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
@@ -5544,6 +5556,8 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypeArguments_length_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_nullability_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
@@ -6099,6 +6113,8 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 32;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 33;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word AOT_TypeArguments_length_offset =
+    8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_nullability_offset = 16;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
@@ -6648,6 +6664,8 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypeArguments_length_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_nullability_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
@@ -7202,6 +7220,8 @@ static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 60;
 static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypeArguments_length_offset =
+    16;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_nullability_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;

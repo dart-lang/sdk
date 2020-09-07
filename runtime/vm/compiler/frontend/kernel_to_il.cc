@@ -1752,14 +1752,13 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
 }
 
 BlockEntryInstr* FlowGraphBuilder::BuildPrologue(BlockEntryInstr* normal_entry,
-                                                 PrologueInfo* prologue_info,
-                                                 JoinEntryInstr* nsm) {
+                                                 PrologueInfo* prologue_info) {
   const bool compiling_for_osr = IsCompiledForOsr();
 
   kernel::PrologueBuilder prologue_builder(
       parsed_function_, last_used_block_id_, compiling_for_osr, IsInlining());
   BlockEntryInstr* instruction_cursor =
-      prologue_builder.BuildPrologue(normal_entry, prologue_info, nsm);
+      prologue_builder.BuildPrologue(normal_entry, prologue_info);
 
   last_used_block_id_ = prologue_builder.last_used_block_id();
 
@@ -1835,6 +1834,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     const Function& function) {
   // This function is specialized for a receiver class, a method name, and
   // the arguments descriptor at a call site.
+  const ArgumentsDescriptor descriptor(saved_args_desc_array());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -1845,18 +1845,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       BuildPrologue(normal_entry, &prologue_info);
-
-  // The backend will expect an array of default values for all the named
-  // parameters, even if they are all known to be passed at the call site
-  // because the call site matches the arguments descriptor.  Use null for
-  // the default values.
-  ArgumentsDescriptor descriptor(saved_args_desc_array());
-  ZoneGrowableArray<const Instance*>* default_values =
-      new ZoneGrowableArray<const Instance*>(Z, descriptor.NamedCount());
-  for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
-    default_values->Add(&Object::null_instance());
-  }
-  parsed_function_->set_default_parameter_values(default_values);
 
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
@@ -2153,10 +2141,38 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
   ASSERT(has_saved_args_desc_array());
   const ArgumentsDescriptor descriptor(saved_args_desc_array());
 
-  // Type argument length checking, including checking for delayed type
-  // arguments, is already done in the prologue builder.
+  LocalVariable* temp = parsed_function_->expression_temp_var();
 
   Fragment check_entry;
+  // We only need to check the length of any explicitly provided type arguments.
+  if (descriptor.TypeArgsLen() > 0) {
+    Fragment check_type_args_length;
+    check_type_args_length += LoadLocal(closure);
+    check_type_args_length += LoadNativeField(Slot::Closure_function());
+    check_type_args_length += LoadNativeField(Slot::Function_type_parameters());
+    check_type_args_length += StoreLocal(TokenPosition::kNoSource, temp);
+    TargetEntryInstr *null, *not_null;
+    check_type_args_length += BranchIfNull(&null, &not_null);
+    check_type_args_length.current = not_null;  // Continue in non-error case.
+
+    // The function is not generic.
+    Fragment(null) + Goto(nsm);
+
+    check_type_args_length += LoadLocal(temp);
+    check_type_args_length += LoadNativeField(Slot::TypeArguments_length());
+    check_type_args_length += IntConstant(descriptor.TypeArgsLen());
+    TargetEntryInstr *equal, *not_equal;
+    check_type_args_length += BranchIfEqual(&equal, &not_equal);
+    check_type_args_length.current = equal;  // Continue in non-error case.
+
+    Fragment(not_equal) + Goto(nsm);
+
+    // Type arguments should not be provided if there are delayed type
+    // arguments, as then the closure itself is not generic.
+    check_entry += TestDelayedTypeArgs(closure, /*present=*/Goto(nsm),
+                                       /*absent=*/check_type_args_length);
+  }
+
   check_entry += LoadLocal(vars->has_named_params);
   TargetEntryInstr *has_named, *has_positional;
   check_entry += BranchIfTrue(&has_named, &has_positional);
@@ -2280,6 +2296,7 @@ Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentCheck(
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     const Function& function) {
+  const ArgumentsDescriptor descriptor(saved_args_desc_array());
   // Find the name of the field we should dispatch to.
   const Class& owner = Class::Handle(Z, function.Owner());
   ASSERT(!owner.IsNull());
@@ -2302,36 +2319,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   const bool is_closure_call = (owner.raw() == closure_class.raw()) &&
                                field_name.Equals(Symbols::Call());
 
-  JoinEntryInstr* nsm = nullptr;
-  if (is_dynamic_call && is_closure_call) {
-    // Create a NSM block that can be shared with the prologue builder.
-    nsm = BuildThrowNoSuchMethod();
-    // The whole reason for making this invoke field dispatcher is that
-    // this closure call needs checking, so we shouldn't inline a call to an
-    // unchecked entry that can't tail call NSM.
-    InlineBailout(
-        "kernel::FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher");
-  }
-
-  // Set default parameters & construct argument names array.
-  //
-  // The backend will expect an array of default values for all the named
-  // parameters, even if they are all known to be passed at the call site
-  // because the call site matches the arguments descriptor.  Use null for
-  // the default values.
-  const ArgumentsDescriptor descriptor(saved_args_desc_array());
-  const Array& argument_names =
-      Array::ZoneHandle(Z, Array::New(descriptor.NamedCount(), Heap::kOld));
-  ZoneGrowableArray<const Instance*>* default_values =
-      new ZoneGrowableArray<const Instance*>(Z, descriptor.NamedCount());
-  String& string_handle = String::Handle(Z);
-  for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
-    default_values->Add(&Object::null_instance());
-    string_handle = descriptor.NameAt(i);
-    argument_names.SetAt(i, string_handle);
-  }
-  parsed_function_->set_default_parameter_values(default_values);
-
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
@@ -2340,29 +2327,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
-      BuildPrologue(normal_entry, &prologue_info, nsm);
+      BuildPrologue(normal_entry, &prologue_info);
 
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
-  if (descriptor.TypeArgsLen() > 0) {
-    LocalVariable* type_args = parsed_function_->function_type_arguments();
-    ASSERT(type_args != NULL);
-    body += LoadLocal(type_args);
-  }
-
+  // Build any dynamic closure call checks before pushing arguments to the
+  // final call on the stack to make debugging easier.
   LocalVariable* closure = NULL;
   if (is_closure_call) {
     closure = parsed_function_->ParameterVariable(0);
-
-    // The closure itself is the first argument.
-    body += LoadLocal(closure);
-
     if (is_dynamic_call) {
-      // We should have a throw NSM block from the prologue.
-      ASSERT(nsm != nullptr);
+      // The whole reason for making this invoke field dispatcher is that
+      // this closure call needs checking, so we shouldn't inline a call to an
+      // unchecked entry that can't tail call NSM.
+      InlineBailout(
+          "kernel::FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher");
+
       // Init the variables we'll be using for dynamic call checking.
       body += BuildDynamicCallVarsInit(closure);
+
+      JoinEntryInstr* nsm = BuildThrowNoSuchMethod();
       // Check that the shape of the arguments generally matches what the
       // closure function expects. The only remaining non-type check after this
       // is that the names for optional arguments are valid.
@@ -2372,7 +2357,29 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       // in the closure body to here, using the dynamic versions of
       // AssertSubtype to typecheck the type arguments using the runtime types
       // available in the closure object.
+
+      // TODO(dartbug.com/40813): Move checks that are currently compiled
+      // in the closure body to here, using the dynamic versions of
+      // AssertAssignable to typecheck the parameters using the runtime types
+      // available in the closure object.
+      //
+      // For now, we check that any named arguments have valid names.
+      for (intptr_t pos = descriptor.PositionalCount();
+           pos < descriptor.Count(); pos++) {
+        body += BuildClosureCallNamedArgumentCheck(closure, pos, nsm);
+      }
     }
+  }
+
+  if (descriptor.TypeArgsLen() > 0) {
+    LocalVariable* type_args = parsed_function_->function_type_arguments();
+    ASSERT(type_args != nullptr);
+    body += LoadLocal(type_args);
+  }
+
+  if (is_closure_call) {
+    // The closure itself is the first argument.
+    body += LoadLocal(closure);
   } else {
     // Invoke the getter to get the field value.
     body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -2383,18 +2390,21 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   }
 
   // Push all arguments onto the stack.
-  intptr_t pos = 1;
-  for (; pos < descriptor.Count(); pos++) {
+  for (intptr_t pos = 1; pos < descriptor.Count(); pos++) {
     body += LoadLocal(parsed_function_->ParameterVariable(pos));
-    if (is_closure_call && is_dynamic_call) {
-      // TODO(dartbug.com/40813): Move checks that are currently compiled
-      // in the closure body to here, using the dynamic versions of
-      // AssertAssignable to typecheck the parameters using the runtime types
-      // available in the closure object.
-      //
-      // For now, we check that any named arguments have valid names.
-      body += BuildClosureCallNamedArgumentCheck(closure, pos, nsm);
+  }
+
+  // Construct argument names array if necessary.
+  const Array* argument_names = &Object::null_array();
+  if (descriptor.NamedCount() > 0) {
+    const auto& array_handle =
+        Array::ZoneHandle(Z, Array::New(descriptor.NamedCount(), Heap::kNew));
+    String& string_handle = String::Handle(Z);
+    for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
+      string_handle = descriptor.NameAt(i);
+      array_handle.SetAt(i, string_handle);
     }
+    argument_names = &array_handle;
   }
 
   if (is_closure_call) {
@@ -2403,14 +2413,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += LoadNativeField(Slot::Closure_function());
 
     body += ClosureCall(TokenPosition::kNoSource, descriptor.TypeArgsLen(),
-                        descriptor.Count(), argument_names);
+                        descriptor.Count(), *argument_names);
   } else {
     const intptr_t kNumArgsChecked = 1;
     body +=
         InstanceCall(TokenPosition::kMinSource,
                      is_dynamic_call ? Symbols::DynamicCall() : Symbols::Call(),
                      Token::kILLEGAL, descriptor.TypeArgsLen(),
-                     descriptor.Count(), argument_names, kNumArgsChecked);
+                     descriptor.Count(), *argument_names, kNumArgsChecked);
   }
 
   body += Return(TokenPosition::kNoSource);

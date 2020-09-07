@@ -2689,6 +2689,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
           RangeBoundary::FromConstant(compiler::target::Array::kMaxElements));
       break;
 
+    case Slot::Kind::kTypeArguments_length:
     case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());

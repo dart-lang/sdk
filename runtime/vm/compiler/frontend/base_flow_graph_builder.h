@@ -316,14 +316,7 @@ class BaseFlowGraphBuilder {
 
   void InlineBailout(const char* reason);
 
-  Fragment LoadArgDescriptor() {
-    if (has_saved_args_desc_array()) {
-      return Constant(saved_args_desc_array());
-    }
-    ASSERT(parsed_function_->has_arg_desc_var());
-    return LoadLocal(parsed_function_->arg_desc_var());
-  }
-
+  Fragment LoadArgDescriptor();
   Fragment TestTypeArgsLen(Fragment eq_branch,
                            Fragment neq_branch,
                            intptr_t num_type_args);

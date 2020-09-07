@@ -2875,9 +2875,7 @@ class Function : public Object {
 
   // Whether this function can receive an invocation where the number and names
   // of arguments have not been checked.
-  bool CanReceiveDynamicInvocation() const {
-    return IsFfiTrampoline() || IsDynamicClosureCallDispatcher();
-  }
+  bool CanReceiveDynamicInvocation() const { return IsFfiTrampoline(); }
 
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
@@ -7569,6 +7567,9 @@ class TypeArguments : public Instance {
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
+  static intptr_t length_offset() {
+    return OFFSET_OF(TypeArgumentsLayout, length_);
+  }
   intptr_t Length() const;
   AbstractTypePtr TypeAt(intptr_t index) const;
   AbstractTypePtr TypeAtNullSafe(intptr_t index) const;

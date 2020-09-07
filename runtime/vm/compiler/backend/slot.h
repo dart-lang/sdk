@@ -95,6 +95,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, ArrayLayout, count, Smi, FINAL)                       \
   V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
   V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
+  V(TypeArguments, TypeArgumentsLayout, length, Smi, FINAL)                    \
   V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
   V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
 
