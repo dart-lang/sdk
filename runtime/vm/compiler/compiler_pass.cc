@@ -551,7 +551,7 @@ COMPILER_PASS(FinalizeGraph, {
 
 #if defined(DART_PRECOMPILER)
 COMPILER_PASS(SerializeGraph, {
-  if (state->precompiler == nullptr) return state;
+  if (state->precompiler == nullptr) return false;
   if (auto stream = state->precompiler->il_serialization_stream()) {
     auto file_write = Dart::file_write_callback();
     ASSERT(file_write != nullptr);
