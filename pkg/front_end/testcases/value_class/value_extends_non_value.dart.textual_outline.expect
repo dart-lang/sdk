@@ -1,4 +1,4 @@
-const String valueClass = "valueClass";
+import 'value_class_support_lib.dart';
 
 class Animal {
   final int numberOfLegs;
@@ -11,3 +11,4 @@ class Cat extends Animal {
 }
 
 main() {}
+expect(Object? expected, Object? actual) {}

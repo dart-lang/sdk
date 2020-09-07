@@ -2687,6 +2687,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kString_length:
+    case Slot::Kind::kTypeArguments_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
       return false;
@@ -2789,6 +2790,42 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
         ArgumentsDescriptor desc(Array::Cast(instance));
         *result = Smi::New(desc.TypeArgsLen());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_count:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.Count());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_positional_count:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.PositionalCount());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_size:
+      // If a constant arguments descriptor appears, then either it is from
+      // a invocation dispatcher (which always has tagged arguments and so
+      // [host]Size() ==  [target]Size() == Count()) or the constant should
+      // have the correct Size() in terms of the target architecture if any
+      // spill slots are involved.
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.Size());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kTypeArguments_length:
+      if (instance.IsTypeArguments()) {
+        *result = Smi::New(TypeArguments::Cast(instance).Length());
         return true;
       }
       return false;

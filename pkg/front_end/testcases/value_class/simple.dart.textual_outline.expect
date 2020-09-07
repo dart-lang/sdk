@@ -1,4 +1,4 @@
-const String valueClass = "valueClass";
+import 'value_class_support_lib.dart';
 
 @valueClass
 class Animal {
@@ -6,4 +6,4 @@ class Animal {
 }
 
 main() {}
-expect(expected, actual, [expectNull = false]) {}
+expect(Object? expected, Object? actual) {}

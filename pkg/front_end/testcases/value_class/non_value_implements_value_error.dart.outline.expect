@@ -1,8 +1,11 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "value_class_support_lib.dart" as val;
 import "dart:core" as core;
 
-@self::valueClass
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+@val::valueClass
 class Animal extends core::Object {
   final field core::int numberOfLegs;
   synthetic constructor •() → self::Animal
@@ -13,6 +16,19 @@ class Cat extends core::Object implements self::Animal {
   synthetic constructor •() → self::Cat
     ;
 }
-static const field core::String valueClass = "valueClass";
 static method main() → dynamic
   ;
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    ;
+  static method combine(core::int hash, core::int value) → core::int
+    ;
+  static method finish(core::int hash) → core::int
+    ;
+}
+static const field core::String valueClass = "valueClass";

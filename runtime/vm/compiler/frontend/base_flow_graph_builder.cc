@@ -279,11 +279,31 @@ void BaseFlowGraphBuilder::InlineBailout(const char* reason) {
   }
 }
 
+Fragment BaseFlowGraphBuilder::LoadArgDescriptor() {
+  if (has_saved_args_desc_array()) {
+    const ArgumentsDescriptor descriptor(saved_args_desc_array());
+    // Double-check that compile-time Size() matches runtime size on target.
+    ASSERT_EQUAL(descriptor.Size(),
+                 FlowGraph::ParameterOffsetAt(function_, descriptor.Count(),
+                                              /*last_slot=*/false));
+    return Constant(saved_args_desc_array());
+  }
+  ASSERT(parsed_function_->has_arg_desc_var());
+  return LoadLocal(parsed_function_->arg_desc_var());
+}
+
 Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
                                                Fragment neq_branch,
                                                intptr_t num_type_args) {
   Fragment test;
 
+  // Compile-time arguments descriptor case.
+  if (has_saved_args_desc_array()) {
+    const ArgumentsDescriptor descriptor(saved_args_desc_array_);
+    return descriptor.TypeArgsLen() == num_type_args ? eq_branch : neq_branch;
+  }
+
+  // Runtime arguments descriptor case.
   TargetEntryInstr* eq_entry;
   TargetEntryInstr* neq_entry;
 

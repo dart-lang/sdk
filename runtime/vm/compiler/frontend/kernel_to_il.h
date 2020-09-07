@@ -67,8 +67,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
  private:
   BlockEntryInstr* BuildPrologue(BlockEntryInstr* normal_entry,
-                                 PrologueInfo* prologue_info,
-                                 JoinEntryInstr* nsm = nullptr);
+                                 PrologueInfo* prologue_info);
 
   // Return names of optional named parameters of [function].
   ArrayPtr GetOptionalParameterNames(const Function& function);

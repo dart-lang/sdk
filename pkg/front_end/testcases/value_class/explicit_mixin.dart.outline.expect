@@ -1,8 +1,11 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "value_class_support_lib.dart" as val;
 import "dart:core" as core;
 
-@self::valueClass
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+@val::valueClass
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
@@ -25,12 +28,25 @@ class E = self::B with self::A {
     : super self::B::•()
     ;
 }
-@self::valueClass
+@val::valueClass
 class F = self::B with self::C {
   synthetic constructor •() → self::F
     : super self::B::•()
     ;
 }
-static const field core::String valueClass = "valueClass";
 static method main() → dynamic
   ;
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    ;
+  static method combine(core::int hash, core::int value) → core::int
+    ;
+  static method finish(core::int hash) → core::int
+    ;
+}
+static const field core::String valueClass = "valueClass";

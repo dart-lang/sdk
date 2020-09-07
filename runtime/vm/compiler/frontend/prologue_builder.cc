@@ -45,8 +45,7 @@ bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
 }
 
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
-                                                PrologueInfo* prologue_info,
-                                                JoinEntryInstr* provided_nsm) {
+                                                PrologueInfo* prologue_info) {
   // We always have to build the graph, but we only link it sometimes.
   const bool link = !is_inlining_ && !compiling_for_osr_;
 
@@ -64,8 +63,7 @@ BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
   // NSM in appropriate spots if one was created.
   JoinEntryInstr* nsm = nullptr;
   if (check_shapes) {
-    // If no block for throwing NSM was provided, create a new one.
-    nsm = provided_nsm != nullptr ? provided_nsm : BuildThrowNoSuchMethod();
+    nsm = BuildThrowNoSuchMethod();
     Fragment f = BuildTypeArgumentsLengthCheck(nsm, expect_type_args);
     if (link) prologue += f;
   }
@@ -527,8 +525,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   handling += TestTypeArgsLen(store_null, store_type_args, 0);
 
   const auto& function = parsed_function_->function();
-  if (function.IsClosureFunction() ||
-      function.IsDynamicClosureCallDispatcher(thread_)) {
+  if (function.IsClosureFunction()) {
     LocalVariable* closure = parsed_function_->ParameterVariable(0);
 
     // Currently, delayed type arguments can only be introduced through type

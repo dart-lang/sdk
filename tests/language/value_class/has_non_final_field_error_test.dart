@@ -4,7 +4,7 @@
 
 // It is a compile-time error if a value class has a non-final instance variable.
 
-const String valueClass = "valueClass";
+import 'value_class_support_lib.dart';
 
 @valueClass
 class Animal {
