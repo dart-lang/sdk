@@ -4,7 +4,7 @@
 
 // Value classes are always leaves in the tree of types
 
-const String valueClass = "valueClass";
+import 'value_class_support_lib.dart';
 
 @valueClass
 class Animal {}

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const String valueClass = "valueClass";
+import 'value_class_support_lib.dart';
 
 @valueClass
 class Animal {
@@ -21,11 +21,6 @@ main() {
   expect(false, firstAnimal.hashCode == thirdAnimal.hashCode);
 }
 
-expect(expected, actual, [expectNull = false]) {
-  if (expectNull) {
-    expected = null;
-  }
-  if (expected != actual) {
-    throw 'Mismatch: expected=$expected, actual=$actual';
-  }
+expect(Object? expected, Object? actual) {
+  if (expected != actual) throw 'Expected=$expected, actual=$actual';
 }

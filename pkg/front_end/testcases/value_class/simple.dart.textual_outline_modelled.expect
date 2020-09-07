@@ -1,8 +1,9 @@
+import 'value_class_support_lib.dart';
+
 @valueClass
 class Animal {
   final int numberOfLegs;
 }
 
-const String valueClass = "valueClass";
-expect(expected, actual, [expectNull = false]) {}
+expect(Object? expected, Object? actual) {}
 main() {}

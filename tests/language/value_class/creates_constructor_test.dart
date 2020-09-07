@@ -4,7 +4,7 @@
 
 // A value class will automatically create an empty constructor if there is none yet
 
-const String valueClass = "valueClass";
+import 'value_class_support_lib.dart';
 
 @valueClass
 class Animal {
