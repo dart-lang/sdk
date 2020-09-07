@@ -323,6 +323,12 @@ luci.notifier(
 )
 
 luci.notifier(
+    name = "nightly",
+    on_new_failure = True,
+    notify_emails = ["karlklose@google.com", "athom@google.com"],
+)
+
+luci.notifier(
     name = "dart-fuzz-testing",
     on_success = True,
     on_failure = True,
@@ -692,9 +698,17 @@ def dart_vm_low_priority_builder(name, **kwargs):
         **kwargs
     )
 
+# These lists are used to collect all nightly/weekly builders to give them as
+# properties to the "nightly"/"weekly" builder defined below, which triggers
+# the actual builds using the "cron" recipe.
+#
+# We do not set a schedule on the individual builders because the scheduler
+# doesn't set an input commit when it triggers cron'ed builders, and without
+# an input commit, Milo doesn't know how to show the build on the console.
 nightly_builders = []
+weekly_builders = []
 
-def dart_vm_nightly_builder(name, notifies = None, **kwargs):
+def dart_vm_nightly_builder(name, notifies = "nightly", **kwargs):
     dart_ci_sandbox_builder(
         name,
         notifies = notifies,
@@ -705,8 +719,6 @@ def dart_vm_nightly_builder(name, notifies = None, **kwargs):
         **kwargs
     )
     nightly_builders.append(name)
-
-weekly_builders = []
 
 def weekly_ci_sandbox_builder(name, notifies = None, **kwargs):
     dart_ci_sandbox_builder(
@@ -984,37 +996,45 @@ dart_vm_low_priority_builder(
     "vm-kernel-optcounter-threshold-linux-release-x64",
     category = "vm|misc|o64",
 )
-dart_vm_low_priority_builder(
+
+def dart_vm_sanitizer_builder(name, **kwargs):
+    dart_vm_nightly_builder(
+        name,
+        channels = ["try"],
+        properties = {"bisection_enabled": True},
+        **kwargs
+    )
+
+dart_vm_sanitizer_builder(
     "vm-kernel-asan-linux-release-x64",
     category = "vm|misc|a",
 )
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-msan-linux-release-x64",
     category = "vm|misc|m",
 )
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-tsan-linux-release-x64",
     category = "vm|misc|t",
-    properties = {"bisection_enabled": True},
 )
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-ubsan-linux-release-x64",
     category = "vm|misc|u",
     goma_rbe = False,
 )  # ubsan is not compatible with our sysroot.
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-precomp-asan-linux-release-x64",
     category = "vm|misc|aot|a",
 )
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-precomp-msan-linux-release-x64",
     category = "vm|misc|aot|m",
 )
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-precomp-tsan-linux-release-x64",
     category = "vm|misc|aot|t",
 )
-dart_vm_low_priority_builder(
+dart_vm_sanitizer_builder(
     "vm-kernel-precomp-ubsan-linux-release-x64",
     category = "vm|misc|aot|u",
     goma_rbe = False,
