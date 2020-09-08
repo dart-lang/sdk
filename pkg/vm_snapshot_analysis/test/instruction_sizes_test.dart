@@ -10,6 +10,7 @@ import 'package:vm_snapshot_analysis/instruction_sizes.dart'
 import 'package:vm_snapshot_analysis/program_info.dart';
 import 'package:vm_snapshot_analysis/treemap.dart';
 import 'package:vm_snapshot_analysis/utils.dart';
+import 'package:vm_snapshot_analysis/v8_profile.dart';
 
 import 'utils.dart';
 
@@ -164,6 +165,29 @@ void main(List<String> args) {
   }
   print(tearOff(args.isEmpty ? A() : B()));
   print(C.tornOff);
+}
+"""
+};
+
+final chainOfStaticCalls = {
+  'input.dart': """
+@pragma('vm:never-inline')
+String _private3(dynamic o) {
+  return "";
+}
+
+@pragma('vm:never-inline')
+String _private2(dynamic o) {
+  return _private3(o);
+}
+
+@pragma('vm:never-inline')
+String _private1(dynamic o) {
+  return _private2(o);
+}
+
+void main(List<String> args) {
+  _private1(null);
 }
 """
 };
@@ -666,6 +690,19 @@ void main() async {
         } else {
           expect(childrenNames(findChild(treemap, 'package:input')),
               equals({'main.dart', 'input.dart'}));
+        }
+      });
+    });
+
+    test('dominators', () async {
+      await withV8Profile('dominators', chainOfStaticCalls,
+          (profileJson) async {
+        // Note: computing dominators also verifies that we don't have
+        // unreachable nodes in the snapshot.
+        final infoJson = await loadJson(File(profileJson));
+        final snapshot = Snapshot.fromJson(infoJson);
+        for (var n in snapshot.nodes.skip(1)) {
+          expect(snapshot.dominatorOf(n), isNotNull);
         }
       });
     });

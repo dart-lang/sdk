@@ -2006,6 +2006,25 @@ Fragment FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck(
   // Required named arguments only exist if null_safety is enabled.
   if (!Isolate::Current()->null_safety()) return Fragment();
 
+  if (descriptor.NamedCount() == 0) {
+    static_assert(compiler::target::kNumParameterFlags == 1,
+                  "IL builder assumes only one flag bit per parameter");
+    // No named args were provided, so check for any required named params.
+    // Here, we assume that the only parameter flag saved is the required bit
+    // for named parameters. If this changes, we'll need to check each flag
+    // entry appropriately for any set required bits.
+    Fragment has_any;
+    has_any += LoadLocal(vars->num_max_params);
+    has_any += LoadLocal(vars->parameter_names);
+    has_any += LoadNativeField(Slot::Array_length());
+    TargetEntryInstr *no_required, *has_required;
+    has_any += BranchIfEqual(&no_required, &has_required);
+
+    Fragment(has_required) + Goto(nsm);
+
+    return Fragment(has_any.entry, no_required);
+  }
+
   // Loop over the indexes of the named parameters of the function, checking
   // whether the named parameter at that index is required. If it is, then
   // check whether it matches any of the names in the ArgumentsDescriptor.
@@ -2050,39 +2069,20 @@ Fragment FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck(
 
   Fragment(invalid_index) + Goto(done);
 
-  // Otherwise, we need to retrieve the value. If it's null, then this index
-  // and others that map to the same entry cannot be required (but later ones
-  // may be).
+  // Otherwise, we need to retrieve the value and check the appropriate bit.
   loop_body.current = valid_index;
   loop_body += LoadLocal(vars->parameter_names);
   loop_body += LoadLocal(temp);  // Index into parameter names array.
   loop_body += LoadIndexed(compiler::target::kWordSize);
-  // Store the result so we can use it in the non-null branch. We can reuse
-  // :expr_temp as we don't need the names index once we've gotten the contents.
-  loop_body += StoreLocal(TokenPosition::kNoSource, temp);
-  TargetEntryInstr *null_smi, *flags_smi;
-  loop_body += BranchIfNull(&null_smi, &flags_smi);
-
-  // If it was null, then skip forward to the first named parameter index that
-  // would map to the next parameter names index, since no other indices that
-  // map to the same entry can be set either.
-  Fragment skip_ahead(null_smi);
-  skip_ahead += LoadLocal(vars->current_param_index);
-  skip_ahead += IntConstant(compiler::target::kNumParameterFlagsPerElement);
-  skip_ahead += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
-  skip_ahead += StoreLocal(TokenPosition::kNoSource, vars->current_param_index);
-  skip_ahead += Drop();
-  skip_ahead += Goto(loop);
-
-  // If not null, see if any of the flag bits are set for the given named
-  // parameter. If so, this named parameter is required.
-  loop_body.current = flags_smi;
-  loop_body += LoadLocal(temp);  // Flag bits loaded from parameter names array.
   loop_body += LoadLocal(vars->current_param_index);
   loop_body += IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
   loop_body += SmiBinaryOp(Token::kBIT_AND);
+  if (compiler::target::kNumParameterFlags > 1) {
+    loop_body += IntConstant(compiler::target::kNumParameterFlags);
+    loop_body += SmiBinaryOp(Token::kMUL, /*is_truncating=*/false);
+  }
   loop_body += SmiBinaryOp(Token::kSHR);
-  loop_body += IntConstant(1);
+  loop_body += IntConstant(1 << compiler::target::kRequiredNamedParameterFlag);
   loop_body += SmiBinaryOp(Token::kBIT_AND);
   loop_body += IntConstant(0);
   TargetEntryInstr *not_set, *set;

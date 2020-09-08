@@ -833,12 +833,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
-  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) {
+  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos,
+      [SignatureHelpContext context]) {
     final request = makeRequest(
       Method.textDocument_signatureHelp,
-      TextDocumentPositionParams(
+      SignatureHelpParams(
         textDocument: TextDocumentIdentifier(uri: uri.toString()),
         position: pos,
+        context: context,
       ),
     );
     return expectSuccessfulResponseTo<SignatureHelp>(request);
@@ -1000,6 +1002,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       },
     );
   }
+
+  /// Expects both unregistration and reregistration.
+  Future<ResponseMessage> monitorDynamicReregistration(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) =>
+      monitorDynamicUnregistrations(
+        registrations,
+        () => monitorDynamicRegistrations(registrations, f),
+      );
 
   /// Watches for `client/unregisterCapability` requests and updates
   /// `registrations`.

@@ -2431,11 +2431,11 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
     initializer_fun.set_num_fixed_parameters(1);
     initializer_fun.set_parameter_types(
         Array::Handle(zone, Array::New(1, Heap::kOld)));
-    initializer_fun.set_parameter_names(
-        Array::Handle(zone, Array::New(1, Heap::kOld)));
+    initializer_fun.CreateNameArrayIncludingFlags(Heap::kOld);
     initializer_fun.SetParameterTypeAt(
         0, AbstractType::Handle(zone, field_owner.DeclarationType()));
     initializer_fun.SetParameterNameAt(0, Symbols::This());
+    initializer_fun.TruncateUnusedParameterFlags();
   }
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);

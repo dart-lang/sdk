@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.parser.parser;
 
+import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
+
 import '../messages/codes.dart' as codes;
 
 import '../scanner/scanner.dart' show ErrorToken, Token;
@@ -1130,8 +1132,59 @@ class Parser {
       }
       if (optional('=', next)) {
         equals = next;
-        token = computeType(equals, /* required = */ true)
-            .ensureTypeOrVoid(equals, this);
+        TypeInfo type = computeType(equals, /* required = */ true);
+        if (!type.isFunctionType) {
+          // Recovery: In certain cases insert missing 'Function' and missing
+          // parens.
+          Token skippedType = type.skipType(equals);
+          if (optional('(', skippedType.next) &&
+              skippedType.next.endGroup != null &&
+              optional(';', skippedType.next.endGroup.next)) {
+            // Turn "<return type>? '(' <whatever> ')';"
+            // into "<return type>? Function '(' <whatever> ')';".
+            // Assume the type is meant as the return type.
+            Token functionToken =
+                rewriter.insertSyntheticKeyword(skippedType, Keyword.FUNCTION);
+            reportRecoverableError(functionToken,
+                codes.templateExpectedButGot.withArguments('Function'));
+            type = computeType(equals, /* required = */ true);
+          } else if (type is NoType &&
+              optional('<', skippedType.next) &&
+              skippedType.next.endGroup != null) {
+            // Recover these two:
+            // "<whatever>;" => "Function<whatever>();"
+            // "<whatever>(<whatever>);" => "Function<whatever>(<whatever>);"
+            Token endGroup = skippedType.next.endGroup;
+            bool recover = false;
+            if (optional(';', endGroup.next)) {
+              // Missing parenthesis. Insert them.
+              // Turn "<whatever>;" in to "<whatever>();"
+              // Insert missing 'Function' below.
+              reportRecoverableError(endGroup,
+                  missingParameterMessage(MemberKind.FunctionTypeAlias));
+              rewriter.insertParens(endGroup, /*includeIdentifier =*/ false);
+              recover = true;
+            } else if (optional('(', endGroup.next) &&
+                endGroup.next.endGroup != null &&
+                optional(';', endGroup.next.endGroup.next)) {
+              // "<whatever>(<whatever>);". Insert missing 'Function' below.
+              recover = true;
+            }
+
+            if (recover) {
+              // Assume the '<' indicates type arguments to the function.
+              // Insert 'Function' before them.
+              Token functionToken =
+                  rewriter.insertSyntheticKeyword(equals, Keyword.FUNCTION);
+              reportRecoverableError(functionToken,
+                  codes.templateExpectedButGot.withArguments('Function'));
+              type = computeType(equals, /* required = */ true);
+            }
+          } else {
+            // E.g. "typedef j = foo;" -- don't attempt any recovery.
+          }
+        }
+        token = type.ensureTypeOrVoid(equals, this);
       } else {
         // A rewrite caused the = to disappear
         token = parseFormalParametersRequiredOpt(

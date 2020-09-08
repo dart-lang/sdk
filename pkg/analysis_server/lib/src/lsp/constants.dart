@@ -4,6 +4,19 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 
+/// The characters that will cause the editor to automatically commit the selected
+/// completion item.
+///
+/// For example, pressing `(` at the location of `^` in the code below would
+/// automatically commit the functions name and insert a `(` to avoid either having
+/// to press `<enter>` and then `(` or having `()` included in the completion items
+/// `insertText` (which is incorrect when passing a function around rather than
+/// invoking it).
+///
+///     myLongFunctionName();
+///     print(myLong^)
+const dartCompletionCommitCharacters = ['.', '('];
+
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
 /// TODO(dantup): There are several characters that we want to conditionally
@@ -26,10 +39,11 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 /// for the VS Code implementation of this.
 const dartCompletionTriggerCharacters = ['.', '=', '(', r'$'];
 
-/// TODO(dantup): Signature help triggering is even more sensitive to
-/// bad chars, so we'll need to implement the logic described here:
-/// https://github.com/dart-lang/sdk/issues/34241
-const dartSignatureHelpTriggerCharacters = <String>[];
+/// Characters that refresh signature help only if it's already open on the client.
+const dartSignatureHelpRetriggerCharacters = <String>[','];
+
+/// Characters that automatically trigger signature help when typed in the client.
+const dartSignatureHelpTriggerCharacters = <String>['('];
 
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];

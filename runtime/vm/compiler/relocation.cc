@@ -90,14 +90,8 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   }
   trampolines_by_destination_.Clear();
 
-  // We're done now, so we clear out the targets tables.
-  auto& caller = Code::Handle(zone);
-  if (!is_vm_isolate) {
-    for (intptr_t i = 0; i < code_objects_->length(); ++i) {
-      caller = (*code_objects_)[i];
-      caller.set_static_calls_target_table(Array::empty_array());
-    }
-  }
+  // Don't drop static call targets table yet. Snapshotter will skip it anyway
+  // however we might need it to write information into V8 snapshot profile.
 }
 
 void CodeRelocator::FindInstructionAndCallLimits() {

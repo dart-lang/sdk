@@ -320,8 +320,8 @@ class SafepointRwLock {
   SafepointRwLock() {}
   ~SafepointRwLock() {}
 
-  bool IsCurrentThreadReader() {
 #if defined(DEBUG)
+  bool IsCurrentThreadReader() {
     ThreadId id = OSThread::GetCurrentThreadId();
     if (IsCurrentThreadWriter()) {
       return true;
@@ -332,25 +332,25 @@ class SafepointRwLock {
       }
     }
     return false;
-#else
-    UNREACHABLE();
-#endif
   }
+#endif // defined(DEBUG)
 
   bool IsCurrentThreadWriter() {
-#if defined(DEBUG)
     return writer_id_ == OSThread::GetCurrentThreadId();
-#else
-    UNREACHABLE();
-#endif
   }
 
  private:
   friend class SafepointReadRwLocker;
   friend class SafepointWriteRwLocker;
 
-  void EnterRead() {
+  // returns [true] if read lock was acuired,
+  // returns [false] if the thread didn't have to acquire read lock due
+  // to the thread already holding write lock
+  bool EnterRead() {
     SafepointMonitorLocker ml(&monitor_);
+    if (IsCurrentThreadWriter()) {
+      return false;
+    }
     while (state_ == -1) {
       ml.Wait();
     }
@@ -358,6 +358,7 @@ class SafepointRwLock {
     readers_ids_.Add(OSThread::GetCurrentThreadId());
 #endif
     ++state_;
+    return true;
   }
   void LeaveRead() {
     SafepointMonitorLocker ml(&monitor_);
@@ -381,21 +382,24 @@ class SafepointRwLock {
 
   void EnterWrite() {
     SafepointMonitorLocker ml(&monitor_);
+    if (IsCurrentThreadWriter()) {
+      state_--;
+      return;
+    }
     while (state_ != 0) {
       ml.Wait();
     }
-#if defined(DEBUG)
     writer_id_ = OSThread::GetCurrentThreadId();
-#endif
     state_ = -1;
   }
   void LeaveWrite() {
     SafepointMonitorLocker ml(&monitor_);
-    ASSERT(state_ == -1);
-    state_ = 0;
-#if defined(DEBUG)
+    ASSERT(state_ < 0);
+    state_++;
+    if (state_ < 0) {
+      return;
+    }
     writer_id_ = OSThread::kInvalidThreadId;
-#endif
     ml.NotifyAll();
   }
 
@@ -407,8 +411,8 @@ class SafepointRwLock {
 
 #if defined(DEBUG)
   MallocGrowableArray<ThreadId> readers_ids_;
-  ThreadId writer_id_ = OSThread::kInvalidThreadId;
 #endif
+  ThreadId writer_id_ = OSThread::kInvalidThreadId;
 };
 
 /*
@@ -442,9 +446,17 @@ class SafepointReadRwLocker : public StackResource {
  public:
   SafepointReadRwLocker(ThreadState* thread_state, SafepointRwLock* rw_lock)
       : StackResource(thread_state), rw_lock_(rw_lock) {
-    rw_lock_->EnterRead();
+    ASSERT(rw_lock_ != nullptr);
+    if (!rw_lock_->EnterRead()) {
+      // if lock didn't have to be acquired, it doesn't have to be released.
+      rw_lock_ = nullptr;
+    }
   }
-  ~SafepointReadRwLocker() { rw_lock_->LeaveRead(); }
+  ~SafepointReadRwLocker() {
+    if (rw_lock_ != nullptr) {
+      rw_lock_->LeaveRead();
+    }
+  }
 
  private:
   SafepointRwLock* rw_lock_;

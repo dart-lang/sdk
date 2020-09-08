@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -27,6 +28,41 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
       ),
       isNotNull,
     );
+  }
+
+  Future<void> test_commitCharacter_config() async {
+    final registrations = <Registration>[];
+    // Provide empty config and collect dynamic registrations during
+    // initialization.
+    await provideConfig(
+      () => monitorDynamicRegistrations(
+        registrations,
+        () => initialize(
+            textDocumentCapabilities: withAllSupportedDynamicRegistrations(
+                emptyTextDocumentClientCapabilities),
+            workspaceCapabilities:
+                withDidChangeConfigurationDynamicRegistration(
+                    withConfigurationSupport(
+                        emptyWorkspaceClientCapabilities))),
+      ),
+      {},
+    );
+
+    Registration registration(Method method) =>
+        registrationFor(registrations, method);
+
+    // By default, there should be no commit characters.
+    var reg = registration(Method.textDocument_completion);
+    var options = reg.registerOptions as CompletionRegistrationOptions;
+    expect(options.allCommitCharacters, isNull);
+
+    // When we change config, we should get a re-registration (unregister then
+    // register) for completion which now includes the commit characters.
+    await monitorDynamicReregistration(
+        registrations, () => updateConfig({'previewCommitCharacters': true}));
+    reg = registration(Method.textDocument_completion);
+    options = reg.registerOptions as CompletionRegistrationOptions;
+    expect(options.allCommitCharacters, equals(dartCompletionCommitCharacters));
   }
 
   Future<void> test_completionKinds_default() async {
