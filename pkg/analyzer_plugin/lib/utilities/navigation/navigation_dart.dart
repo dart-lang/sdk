@@ -113,6 +113,10 @@ class _DartNavigationCollector {
       codeLength = codeElement.codeLength;
     }
 
+    if (codeOffset == null || codeLength == null) {
+      return null;
+    }
+
     // Read the declaration so we can get the offset after the doc comments.
     final declaration = codeElement.session
         .getParsedLibrary(location.file)
