@@ -26,6 +26,8 @@ class Cat extends self::Animal {
   synthetic constructor •() → self::Cat
     : super self::Animal::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat;
 }
 class Animal2 extends core::Object {
   final field core::int numberOfLegs = null;
@@ -37,6 +39,8 @@ class Cat2 extends self::Animal2 {
   synthetic constructor •() → self::Cat2
     : super self::Animal2::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat2;
 }
 static method main() → dynamic {}
 

@@ -16,6 +16,8 @@ class Animal extends core::Object {
   synthetic constructor •({required core::int numberOfLegs}) → self::Animal
     : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Animal && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Animal}.{self::Animal::numberOfLegs});
 }
 static method main() → dynamic {}
 

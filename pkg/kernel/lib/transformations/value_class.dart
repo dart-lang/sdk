@@ -7,20 +7,23 @@ library kernel.transformations.value_class;
 import '../ast.dart';
 import '../kernel.dart';
 import '../core_types.dart' show CoreTypes;
+import '../class_hierarchy.dart' show ClassHierarchy;
 
-void transformComponent(Component node, CoreTypes coreTypes) {
+void transformComponent(
+    Component node, CoreTypes coreTypes, ClassHierarchy hierarchy) {
   for (Library library in node.libraries) {
     for (Class cls in library.classes) {
       if (isValueClass(cls)) {
-        transformValueClass(cls, coreTypes);
+        transformValueClass(cls, coreTypes, hierarchy);
       }
     }
   }
 }
 
-void transformValueClass(Class cls, CoreTypes coreTypes) {
+void transformValueClass(
+    Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
   addConstructor(cls, coreTypes);
-  // addEqualsOperator(cls, coreTypes);
+  addEqualsOperator(cls, coreTypes, hierarchy);
   // addHashCode(cls, coreTypes);
   // addCopyWith(cls);
 }
@@ -81,44 +84,77 @@ void addConstructor(Class cls, CoreTypes coreTypes) {
   }
   cls.annotations.removeAt(valueClassAnnotationIndex);
 }
-/*
 
-void addEqualsOperator(Class cls, CoreTypes coreTypes) {
-  Map<String, VariableDeclaration> environment = Map.fromIterable(cls.fields,
-      key: (f) => f.name.name,
-      value: (f) => VariableDeclaration(f.name.name, type: f.type));
-
-  VariableDeclaration other = VariableDeclaration("other");
-
-  var retType = cls.enclosingLibrary.isNonNullableByDefault
+void addEqualsOperator(
+    Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  for (Procedure procedure in cls.procedures) {
+    if (procedure.kind == ProcedureKind.Operator &&
+        procedure.name.name == "==") {
+      // ==operator is already implemented, spec is to do nothing
+      return;
+    }
+  }
+  DartType returnType = cls.enclosingLibrary.isNonNullableByDefault
       ? coreTypes.boolNonNullableRawType
       : coreTypes.boolLegacyRawType;
-  var myType = coreTypes.thisInterfaceType(cls, Nullability.nonNullable);
+  DartType myType = coreTypes.thisInterfaceType(cls, Nullability.nonNullable);
 
-  cls.addMember(Procedure(
+  Constructor superConstructor = null;
+  for (Constructor constructor in cls.superclass.constructors) {
+    if (constructor.name.name == "") {
+      superConstructor = constructor;
+    }
+  }
+  VariableDeclaration other = VariableDeclaration("other",
+      type: coreTypes.objectRawType(Nullability.nonNullable));
+  List<VariableDeclaration> allVariables = superConstructor
+      .function.namedParameters
+      .map<VariableDeclaration>(
+          (f) => VariableDeclaration(f.name, type: f.type))
+      .toList()
+        ..addAll(cls.fields.map<VariableDeclaration>(
+            (f) => VariableDeclaration(f.name.name, type: f.type)));
+
+  Map<VariableDeclaration, Member> targetsEquals = new Map();
+  Map<VariableDeclaration, Member> targets = new Map();
+  for (VariableDeclaration variable in allVariables) {
+    Member target = coreTypes.objectEquals;
+    Member targetEquals = coreTypes.objectEquals;
+    DartType fieldsType = variable.type;
+    if (fieldsType is InterfaceType) {
+      targetEquals =
+          hierarchy.getInterfaceMember(fieldsType.classNode, Name("=="));
+      target = hierarchy.getInterfaceMember(cls, Name(variable.name));
+    }
+    targetsEquals[variable] = targetEquals;
+    targets[variable] = target;
+  }
+
+  Procedure equalsOperator = Procedure(
       Name("=="),
       ProcedureKind.Operator,
       FunctionNode(
-          ReturnStatement(ConditionalExpression(
-              IsExpression(VariableGet(other), myType),
-              cls.fields
-                  .map((f) => MethodInvocation(
-                      PropertyGet(ThisExpression(), f.name, f),
-                      Name('=='),
-                      Arguments([
-                        PropertyGet(VariableGet(other, myType), f.name, f)
-                      ])))
-                  .toList()
-                  .fold(
-                      BoolLiteral(true),
-                      (previousValue, element) =>
-                          LogicalExpression(previousValue, '&&', element)),
-              BoolLiteral(false),
-              retType)),
-          returnType: retType,
-          positionalParameters: [other])));
+          ReturnStatement(allVariables
+              .map((f) => MethodInvocation(
+                  PropertyGet(ThisExpression(), Name(f.name), targets[f]),
+                  Name("=="),
+                  Arguments([
+                    PropertyGet(
+                        VariableGet(other, myType), Name(f.name), targets[f])
+                  ]),
+                  targetsEquals[f]))
+              .fold(
+                  IsExpression(VariableGet(other), myType),
+                  (previousValue, element) =>
+                      LogicalExpression(previousValue, '&&', element))),
+          returnType: returnType,
+          positionalParameters: [other]),
+      fileUri: cls.fileUri)
+    ..fileOffset = cls.fileOffset;
+  cls.addMember(equalsOperator);
 }
 
+/*
 void addHashCode(Class cls, CoreTypes coreTypes) {
   Map<String, VariableDeclaration> environment = Map.fromIterable(cls.fields,
       key: (f) => f.name.name,
@@ -126,7 +162,7 @@ void addHashCode(Class cls, CoreTypes coreTypes) {
 
   VariableDeclaration other = VariableDeclaration("other");
 
-  var retType = cls.enclosingLibrary.isNonNullableByDefault
+  var returnType = cls.enclosingLibrary.isNonNullableByDefault
       ? coreTypes.boolNonNullableRawType
       : coreTypes.boolLegacyRawType;
 

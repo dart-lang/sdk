@@ -44,6 +44,8 @@ class Cat extends self::Animal {
   synthetic constructor •({required core::int numberOfWhiskers, core::int numberOfLegs}) → self::Cat
     : self::Cat::numberOfWhiskers = numberOfWhiskers, super self::Animal::•(numberOfLegs)
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
 }
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:18:22: Error: No named parameter with the name 'numberOfLegs'.

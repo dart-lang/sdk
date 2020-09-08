@@ -8,6 +8,8 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::A;
 }
 class B extends core::Object {
   synthetic constructor •() → self::B
@@ -28,11 +30,15 @@ class E extends self::B implements self::A /*isEliminatedMixin*/  {
   synthetic constructor •() → self::E
     : super self::B::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::A;
 }
 class F extends self::B implements self::C /*isEliminatedMixin*/  {
   synthetic constructor •() → self::F
     : super self::B::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::F;
 }
 static method main() → dynamic {}
 

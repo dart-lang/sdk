@@ -8,6 +8,8 @@ class EmptyClass extends core::Object {
   synthetic constructor •() → self::EmptyClass
     : super core::Object::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::EmptyClass;
 }
 static method main() → dynamic {}
 

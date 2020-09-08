@@ -87,6 +87,8 @@ class Cat extends core::Object implements self::Animal {
   synthetic constructor •({required core::int numberOfLegs, required core::int numberOfWhiskers}) → self::Cat
     : self::Cat::numberOfLegs = numberOfLegs, self::Cat::numberOfWhiskers = numberOfWhiskers, super core::Object::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat && this.{self::Cat::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
 }
 abstract class Animal2 extends core::Object {
   synthetic constructor •() → self::Animal2
@@ -100,6 +102,8 @@ class Cat2 extends core::Object implements self::Animal2 {
   synthetic constructor •({required core::int numberOfLegs, required core::int numberOfWhiskers}) → self::Cat2
     : self::Cat2::numberOfLegs = numberOfLegs, self::Cat2::numberOfWhiskers = numberOfWhiskers, super core::Object::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat2 && this.{self::Cat2::numberOfLegs}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfLegs}) && this.{self::Cat2::numberOfWhiskers}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfWhiskers});
 }
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:30:22: Error: No named parameter with the name 'numberOfLegs'.
