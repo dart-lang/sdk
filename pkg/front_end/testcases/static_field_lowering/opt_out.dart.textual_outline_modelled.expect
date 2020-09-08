@@ -2,6 +2,7 @@
 T init<T>(T value) {}
 
 class Class {
+  int instanceFieldWithInitializer = init(55);
   static const int staticConstField = 123;
   static final int staticFinalFieldWithInitializer1 = init(73);
   static final int staticFinalFieldWithInitializer2 =

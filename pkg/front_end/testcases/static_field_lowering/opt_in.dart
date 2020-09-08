@@ -38,6 +38,9 @@ class Class {
 
   static int? staticFieldWithoutInitializer;
 
+  int nonNullableInstanceFieldWithInitializer = init(55);
+  int? nullableInstanceFieldWithInitializer = init(17);
+
   static int nonNullableStaticFieldWithInitializer1 = init(55);
   static int? nullableStaticFieldWithInitializer1 = init(17);
 
@@ -121,6 +124,11 @@ main() {
 
   throws(() => Class.nullableStaticFinalFieldWithInitializer2,
       'Read nullableStaticFinalFieldWithInitializer2');
+
+  var c = new Class();
+  expect(17, lastInit);
+  expect(55, c.nonNullableInstanceFieldWithInitializer);
+  expect(17, c.nullableInstanceFieldWithInitializer);
 }
 
 expect(expected, actual) {

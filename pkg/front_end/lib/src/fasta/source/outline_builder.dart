@@ -1742,7 +1742,12 @@ class OutlineBuilder extends StackListenerImpl {
     if (fieldInfos == null) return;
     String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFields(
-        documentationComment, metadata, modifiers, type, fieldInfos);
+        documentationComment,
+        metadata,
+        modifiers,
+        /* isTopLevel = */ true,
+        type,
+        fieldInfos);
   }
 
   @override
@@ -1804,7 +1809,12 @@ class OutlineBuilder extends StackListenerImpl {
     if (fieldInfos == null) return;
     String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFields(
-        documentationComment, metadata, modifiers, type, fieldInfos);
+        documentationComment,
+        metadata,
+        modifiers,
+        /* isTopLevel = */ false,
+        type,
+        fieldInfos);
   }
 
   List<FieldInfo> popFieldInfos(int count) {

@@ -14,6 +14,7 @@ final int finalTopLevelFieldWithInitializer2 =
 
 class Class {
   static const int staticConstField = 123;
+  int instanceFieldWithInitializer = init(55);
   static int staticFieldWithoutInitializer;
   static int staticFieldWithInitializer1 = init(55);
   static int staticFieldWithInitializer2 = init(55);

@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 class Class extends core::Object {
   static const field core::int* staticConstField = #C1;
+  field core::int* instanceFieldWithInitializer = self::init<core::int*>(55);
   static field core::int* staticFieldWithoutInitializer = null;
   static field core::int* staticFieldWithInitializer1 = self::init<core::int*>(55);
   static field core::int* staticFieldWithInitializer2 = self::init<core::int*>(55);
@@ -60,6 +61,9 @@ static method main() → dynamic {
   self::expect(73, self::Class::staticFinalFieldWithInitializer1);
   self::expect(73, self::lastInit);
   self::throws(() → core::int* => self::Class::staticFinalFieldWithInitializer2, "Read staticFinalFieldWithInitializer2");
+  self::Class* c = new self::Class::•();
+  self::expect(55, self::lastInit);
+  self::expect(55, c.{self::Class::instanceFieldWithInitializer});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

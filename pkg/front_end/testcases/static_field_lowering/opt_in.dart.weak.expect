@@ -6,6 +6,8 @@ import "dart:_internal" as _in;
 class Class extends core::Object {
   static const field core::int staticConstField = #C1;
   static field core::int? staticFieldWithoutInitializer = null;
+  field core::int nonNullableInstanceFieldWithInitializer = self::init<core::int>(55);
+  field core::int? nullableInstanceFieldWithInitializer = self::init<core::int?>(17);
   static field core::int? _#nonNullableStaticFieldWithInitializer1 = null;
   static field core::int? _#nullableStaticFieldWithInitializer1 = null;
   static field core::bool _#nullableStaticFieldWithInitializer1#isSet = false;
@@ -211,6 +213,10 @@ static method main() → dynamic {
   self::expect(19, self::lastInit);
   self::throws(() → core::int => self::Class::nonNullableStaticFinalFieldWithInitializer2, "Read nonNullableStaticFinalFieldWithInitializer2");
   self::throws(() → core::int? => self::Class::nullableStaticFinalFieldWithInitializer2, "Read nullableStaticFinalFieldWithInitializer2");
+  self::Class c = new self::Class::•();
+  self::expect(17, self::lastInit);
+  self::expect(55, c.{self::Class::nonNullableInstanceFieldWithInitializer});
+  self::expect(17, c.{self::Class::nullableInstanceFieldWithInitializer});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

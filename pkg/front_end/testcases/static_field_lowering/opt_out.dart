@@ -30,6 +30,8 @@ final int finalTopLevelFieldWithInitializer2 =
 class Class {
   static const int staticConstField = 123;
 
+  int instanceFieldWithInitializer = init(55);
+
   static int staticFieldWithoutInitializer;
 
   static int staticFieldWithInitializer1 = init(55);
@@ -79,6 +81,10 @@ main() {
 
   throws(() => Class.staticFinalFieldWithInitializer2,
       'Read staticFinalFieldWithInitializer2');
+
+  var c = new Class();
+  expect(55, lastInit);
+  expect(55, c.instanceFieldWithInitializer);
 }
 
 expect(expected, actual) {

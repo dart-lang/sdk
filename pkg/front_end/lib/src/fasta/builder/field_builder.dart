@@ -101,11 +101,18 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   bool hasBodyBeenBuilt = false;
 
+  // TODO(johnniwinther): [parent] is not trust-worthy for determining
+  //  properties since it is changed after the creation of the builder. For now
+  //  we require it has an argument here. A follow-up should clean up the
+  //  misuse of parent.
+  final bool isTopLevel;
+
   SourceFieldBuilder(
       this.metadata,
       this.type,
       this.name,
       this.modifiers,
+      this.isTopLevel,
       SourceLibraryBuilder libraryBuilder,
       int charOffset,
       int charEndOffset,
