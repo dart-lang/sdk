@@ -1,3 +1,10 @@
+## 2.9.3 - 2020-09-08
+
+This is a patch release that fixes DDC to handle a breaking change in Chrome
+(issue [#43193][]).
+
+[#43193]: https://github.com/dart-lang/sdk/issues/43193
+
 ## 2.9.2 - 2020-08-26
 
 This is a patch release that fixes transient StackOverflow exceptions when
