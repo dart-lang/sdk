@@ -1517,7 +1517,7 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 class CodeSerializationCluster : public SerializationCluster {
  public:
   explicit CodeSerializationCluster(Heap* heap)
-      : SerializationCluster("Code") {}
+      : SerializationCluster("Code"), array_(Array::Handle()) {}
   ~CodeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
@@ -1552,11 +1552,23 @@ class CodeSerializationCluster : public SerializationCluster {
       if (calls_array != Array::null()) {
         // Some Code entries in the static calls target table may only be
         // accessible via here, so push the Code objects.
-        auto const length = Smi::Value(calls_array->ptr()->length_);
-        for (intptr_t i = 0; i < length; i++) {
-          auto const object = calls_array->ptr()->data()[i];
-          if (object->IsHeapObject() && object->IsCode()) {
-            s->Push(object);
+        array_ = calls_array;
+        for (auto entry : StaticCallsTable(array_)) {
+          auto kind = Code::KindField::decode(
+              Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
+          switch (kind) {
+            case Code::kCallViaCode:
+              // Code object in the pool.
+              continue;
+            case Code::kPcRelativeTTSCall:
+              // TTS will be reachable through type object which itself is
+              // in the pool.
+              continue;
+            case Code::kPcRelativeCall:
+            case Code::kPcRelativeTailCall:
+              auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
+              ASSERT(destination->IsHeapObject() && destination->IsCode());
+              s->Push(destination);
           }
         }
       }
@@ -1744,6 +1756,37 @@ class CodeSerializationCluster : public SerializationCluster {
       WriteField(code, deopt_info_array_);
       WriteField(code, static_calls_target_table_);
     }
+
+#if defined(DART_PRECOMPILER)
+    if (FLAG_write_v8_snapshot_profile_to != nullptr &&
+        code->ptr()->static_calls_target_table_ != Array::null()) {
+      // If we are writing V8 snapshot profile then attribute references
+      // going through static calls.
+      array_ = code->ptr()->static_calls_target_table_;
+      intptr_t index = code->ptr()->object_pool_ != ObjectPool::null()
+                           ? code->ptr()->object_pool_->ptr()->length_
+                           : 0;
+      for (auto entry : StaticCallsTable(array_)) {
+        auto kind = Code::KindField::decode(
+            Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
+        switch (kind) {
+          case Code::kCallViaCode:
+            // Code object in the pool.
+            continue;
+          case Code::kPcRelativeTTSCall:
+            // TTS will be reachable through type object which itself is
+            // in the pool.
+            continue;
+          case Code::kPcRelativeCall:
+          case Code::kPcRelativeTailCall:
+            auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
+            ASSERT(destination->IsHeapObject() && destination->IsCode());
+            s->AttributeElementRef(destination, index++);
+        }
+      }
+    }
+#endif  // defined(DART_PRECOMPILER)
+
 #if !defined(PRODUCT)
     WriteField(code, return_address_metadata_);
     if (FLAG_code_comments) {
@@ -1789,6 +1832,7 @@ class CodeSerializationCluster : public SerializationCluster {
 
   GrowableArray<CodePtr> objects_;
   GrowableArray<CodePtr> deferred_objects_;
+  Array& array_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 

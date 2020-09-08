@@ -7,8 +7,9 @@
 library vm_snapshot_analysis.v8_profile;
 
 import 'package:meta/meta.dart';
-import 'package:vm_snapshot_analysis/name.dart';
 
+import 'package:vm_snapshot_analysis/src/dominators.dart' as dominators;
+import 'package:vm_snapshot_analysis/name.dart';
 import 'package:vm_snapshot_analysis/program_info.dart';
 
 /// This class represents snapshot graph.
@@ -34,6 +35,8 @@ class Snapshot {
   /// for the given node index.
   final List<int> _edgesStartIndexForNode;
 
+  List<int> _dominators;
+
   final List strings;
 
   Snapshot._(this.meta, this.nodeCount, this.edgeCount, this._nodes,
@@ -47,6 +50,12 @@ class Snapshot {
 
   /// Return all nodes in the snapshot.
   Iterable<Node> get nodes => Iterable.generate(nodeCount, nodeAt);
+
+  /// Return dominator node for the given node [n].
+  Node dominatorOf(Node n) {
+    _dominators ??= _computeDominators(this);
+    return nodeAt(_dominators[n.index]);
+  }
 
   /// Returns true if the given JSON object is likely to be a serialized
   /// snapshot using V8 heap snapshot format.
@@ -575,3 +584,36 @@ entities
 structure nodes (usually VM internal objects).
 --------------------------------------------------------------------------------
 ''';
+
+/// Compute dominator tree of the graph.
+///
+/// The code for dominator tree computation is taken verbatim from the
+/// native compiler (see runtime/vm/compiler/backend/flow_graph.cc).
+List<int> _computeDominators(Snapshot snap) {
+  final predecessors = List<Object>.filled(snap.nodeCount, null);
+  void addPred(int n, int p) {
+    if (predecessors[n] == null) {
+      predecessors[n] = p;
+    } else if (predecessors[n] is int) {
+      predecessors[n] = <int>[predecessors[n], p];
+    } else {
+      (predecessors[n] as List<int>).add(p);
+    }
+  }
+
+  Iterable<int> predOf(int n) sync* {
+    final ps = predecessors[n];
+    if (ps is int) {
+      yield ps;
+    } else if (ps is List<int>) {
+      yield* ps;
+    }
+  }
+
+  return dominators.computeDominators(
+      size: snap.nodeCount,
+      root: snap.nodes.first.index,
+      succ: (n) => snap.nodeAt(n).edges.map((e) => e.target.index),
+      predOf: predOf,
+      handleEdge: addPred);
+}

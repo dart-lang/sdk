@@ -408,6 +408,9 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         ASSERT(FLAG_precompiled_mode);
         // In precompiled mode, the Dart runtime won't patch static calls
         // anymore, so drop the static call table to save space.
+        // Note: it is okay to drop the table fully even when generating
+        // V8 snapshot profile because code objects are linked through the
+        // pool.
         code.set_static_calls_target_table(Object::empty_array());
       }
     }
