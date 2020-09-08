@@ -77,7 +77,8 @@ bool polyfill(window) => JS('', '''(() => {
     }
     if (typeof $window.MemoryInfo == "undefined") {
       if (typeof $window.performance.memory != "undefined") {
-        $window.MemoryInfo = $window.performance.memory.constructor;
+        $window.MemoryInfo = function () {};
+        $window.MemoryInfo.prototype = $window.performance.memory.__proto__;
       }
     }
     if (typeof $window.Geolocation == "undefined") {
