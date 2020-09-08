@@ -20,6 +20,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_generic_
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
@@ -107,6 +108,7 @@ class BulkFixProcessor {
     LintNames.prefer_is_not_empty: UesIsNotEmpty.newInstance,
     LintNames.prefer_iterable_whereType: ConvertToWhereType.newInstance,
     LintNames.prefer_null_aware_operators: ConvertToNullAware.newInstance,
+    LintNames.prefer_relative_imports: ConvertToRelativeImport.newInstance,
     LintNames.prefer_single_quotes: ConvertToSingleQuotes.newInstance,
     LintNames.prefer_spread_collections: ConvertAddAllToSpread.newInstance,
     LintNames.slash_for_doc_comments: ConvertDocumentationIntoLine.newInstance,
