@@ -5527,8 +5527,7 @@ static void CreateSpecializedFunction(Thread* thread,
   fn.set_num_fixed_parameters(kParamCount);
   fn.set_parameter_types(
       Array::Handle(zone, Array::New(kParamCount, Heap::kOld)));
-  fn.set_parameter_names(
-      Array::Handle(zone, Array::New(kParamCount, Heap::kOld)));
+  fn.CreateNameArrayIncludingFlags(Heap::kOld);
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
                         Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
@@ -5542,6 +5541,7 @@ static void CreateSpecializedFunction(Thread* thread,
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
                         Symbols::start_index_param());
   fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
+  fn.TruncateUnusedParameterFlags();
 
   // Cache the result.
   regexp.set_function(specialization_cid, sticky, fn);

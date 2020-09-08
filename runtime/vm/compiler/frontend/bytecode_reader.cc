@@ -580,17 +580,13 @@ TypePtr BytecodeReaderHelper::ReadFunctionSignature(
   func.set_num_fixed_parameters(num_required_params);
   func.SetNumOptionalParameters(num_params - num_required_params,
                                 !has_optional_named_params);
-  const Array& parameter_types =
-      Array::Handle(Z, Array::New(num_params, Heap::kOld));
-  func.set_parameter_types(parameter_types);
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(Function::NameArrayLengthIncludingFlags(num_params),
-                    Heap::kOld));
-  func.set_parameter_names(parameter_names);
+  func.set_parameter_types(
+      Array::Handle(Z, Array::New(num_params, Heap::kOld)));
+  func.CreateNameArrayIncludingFlags(Heap::kOld);
 
   intptr_t i = 0;
-  parameter_types.SetAt(i, AbstractType::dynamic_type());
-  parameter_names.SetAt(i, Symbols::ClosureParameter());
+  func.SetParameterTypeAt(i, AbstractType::dynamic_type());
+  func.SetParameterNameAt(i, Symbols::ClosureParameter());
   ++i;
 
   AbstractType& type = AbstractType::Handle(Z);
@@ -602,9 +598,9 @@ TypePtr BytecodeReaderHelper::ReadFunctionSignature(
     } else {
       name = Symbols::NotNamed().raw();
     }
-    parameter_names.SetAt(i, name);
+    func.SetParameterNameAt(i, name);
     type ^= ReadObject();
-    parameter_types.SetAt(i, type);
+    func.SetParameterTypeAt(i, type);
   }
   if (has_parameter_flags) {
     intptr_t num_flags = reader_.ReadUInt();
@@ -2261,7 +2257,6 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   Object& script_class = Object::Handle(Z);
   Function& function = Function::Handle(Z);
   Array& parameter_types = Array::Handle(Z);
-  Array& parameter_names = Array::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
   name = cls.ScrubbedName();
@@ -2371,10 +2366,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     parameter_types = Array::New(num_params, Heap::kOld);
     function.set_parameter_types(parameter_types);
-
-    parameter_names = Array::New(
-        Function::NameArrayLengthIncludingFlags(num_params), Heap::kOld);
-    function.set_parameter_names(parameter_names);
+    function.CreateNameArrayIncludingFlags(Heap::kOld);
 
     intptr_t param_index = 0;
     if (!is_static) {
@@ -2398,9 +2390,9 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     for (; param_index < num_params; ++param_index) {
       name ^= ReadObject();
-      parameter_names.SetAt(param_index, name);
+      function.SetParameterNameAt(param_index, name);
       type ^= ReadObject();
-      parameter_types.SetAt(param_index, type);
+      function.SetParameterTypeAt(param_index, type);
     }
 
     type ^= ReadObject();
@@ -3109,6 +3101,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       }
     }
   }
+  function.TruncateUnusedParameterFlags();
 
   if (has_forwarding_stub_target) {
     const intptr_t cp_index = reader_.ReadUInt();

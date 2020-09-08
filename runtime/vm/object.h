@@ -2607,24 +2607,27 @@ class Function : public Object {
   StringPtr ParameterNameAt(intptr_t index) const;
   void SetParameterNameAt(intptr_t index, const String& value) const;
   ArrayPtr parameter_names() const { return raw_ptr()->parameter_names_; }
-  void set_parameter_names(const Array& value) const;
   static intptr_t parameter_names_offset() {
     return OFFSET_OF(FunctionLayout, parameter_names_);
   }
 
-  // The required flags are stored at the end of the parameter_names. The flags
-  // are packed into SMIs, but omitted if they're 0.
-  bool IsRequiredAt(intptr_t index) const;
-  void SetIsRequiredAt(intptr_t index) const;
+  // Sets up the function's parameter name array, including appropriate space
+  // for any possible parameter flags. This may be an overestimate if some
+  // parameters don't have flags, and so TruncateUnusedParameterFlags() should
+  // be called after all parameter flags have been appropriately set.
+  //
+  // Assumes that the number of fixed and optional parameters for the function
+  // has already been set.
+  void CreateNameArrayIncludingFlags(Heap::Space space) const;
 
   // Truncate the parameter names array to remove any unused flag slots. Make
   // sure to only do this after calling SetIsRequiredAt as necessary.
   void TruncateUnusedParameterFlags() const;
 
-  // Returns the length of the parameter names array that is required to store
-  // all the names plus all their flags. This may be an overestimate if some
-  // parameters don't have flags.
-  static intptr_t NameArrayLengthIncludingFlags(intptr_t num_parameters);
+  // The required flags are stored at the end of the parameter_names. The flags
+  // are packed into Smis.
+  bool IsRequiredAt(intptr_t index) const;
+  void SetIsRequiredAt(intptr_t index) const;
 
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
@@ -3768,6 +3771,7 @@ class Function : public Object {
   }
 
  private:
+  void set_parameter_names(const Array& value) const;
   void set_ic_data_array(const Array& value) const;
   void SetInstructionsSafe(const Code& value) const;
 
@@ -3847,6 +3851,7 @@ class Function : public Object {
   friend class Class;
   friend class SnapshotWriter;
   friend class Parser;  // For set_eval_script.
+  friend class ProgramVisitor;  // For set_parameter_names.
   // FunctionLayout::VisitFunctionPointers accesses the private constructor of
   // Function.
   friend class FunctionLayout;

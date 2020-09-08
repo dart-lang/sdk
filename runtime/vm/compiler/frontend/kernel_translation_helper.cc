@@ -735,8 +735,7 @@ void TranslationHelper::SetupFieldAccessorFunction(
   function.set_num_fixed_parameters(parameter_count);
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  function.CreateNameArrayIncludingFlags(Heap::kNew);
 
   intptr_t pos = 0;
   if (is_method) {
@@ -3075,31 +3074,24 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
-  const intptr_t all_count_with_receiver = all_count + 1;
-  const Array& parameter_types =
-      Array::Handle(Z, Array::New(all_count_with_receiver, Heap::kOld));
-  signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(simple ? all_count_with_receiver
-                           : Function::NameArrayLengthIncludingFlags(
-                                 all_count_with_receiver),
-                    Heap::kOld));
-  signature_function.set_parameter_names(parameter_names);
-
-  intptr_t pos = 0;
-  parameter_types.SetAt(pos, AbstractType::dynamic_type());
-  parameter_names.SetAt(pos, H.DartSymbolPlain("_receiver_"));
-  ++pos;
-  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
-    BuildTypeInternal();  // read ith positional parameter.
-    parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
-  }
-
   // The additional first parameter is the receiver type (set to dynamic).
   signature_function.set_num_fixed_parameters(1 + required_count);
   signature_function.SetNumOptionalParameters(
       all_count - required_count, positional_count > required_count);
+
+  signature_function.set_parameter_types(
+      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld)));
+  signature_function.CreateNameArrayIncludingFlags(Heap::kOld);
+
+  intptr_t pos = 0;
+  signature_function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+  signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
+  ++pos;
+  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
+    BuildTypeInternal();  // read ith positional parameter.
+    signature_function.SetParameterTypeAt(pos, result_);
+    signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
+  }
 
   if (!simple) {
     const intptr_t named_count =
@@ -3109,15 +3101,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       const uint8_t flags = helper_->ReadFlags();  // read flags
-      parameter_types.SetAt(pos, result_);
-      parameter_names.SetAt(pos, name);
+      signature_function.SetParameterTypeAt(pos, result_);
+      signature_function.SetParameterNameAt(pos, name);
       if (!apply_legacy_erasure_ &&
           (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
         signature_function.SetIsRequiredAt(pos);
       }
     }
-    signature_function.TruncateUnusedParameterFlags();
   }
+  signature_function.TruncateUnusedParameterFlags();
 
   if (!simple) {
     helper_->SkipOptionalDartType();  // read typedef type.
@@ -3554,10 +3546,7 @@ void TypeTranslator::SetupFunctionParameters(
 
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(Function::NameArrayLengthIncludingFlags(parameter_count),
-                    Heap::kOld));
-  function.set_parameter_names(parameter_names);
+  function.CreateNameArrayIncludingFlags(Heap::kOld);
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());

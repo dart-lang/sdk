@@ -20,6 +20,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
@@ -3520,8 +3521,7 @@ FunctionPtr Class::CreateInvocationDispatcher(const String& target_name,
                                       false);  // Not positional.
   invocation.set_parameter_types(
       Array::Handle(zone, Array::New(desc.Count(), Heap::kOld)));
-  invocation.set_parameter_names(
-      Array::Handle(zone, Array::New(desc.Count(), Heap::kOld)));
+  invocation.CreateNameArrayIncludingFlags(Heap::kOld);
   // Receiver.
   invocation.SetParameterTypeAt(0, Object::dynamic_type());
   invocation.SetParameterNameAt(0, Symbols::This());
@@ -3541,6 +3541,7 @@ FunctionPtr Class::CreateInvocationDispatcher(const String& target_name,
     intptr_t index = i - desc.PositionalCount();
     invocation.SetParameterNameAt(i, String::Handle(zone, desc.NameAt(index)));
   }
+  invocation.TruncateUnusedParameterFlags();
   invocation.set_result_type(Object::dynamic_type());
   invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);
@@ -7434,19 +7435,38 @@ void Function::set_parameter_names(const Array& value) const {
   StorePointer(&raw_ptr()->parameter_names_, value.raw());
 }
 
-intptr_t Function::NameArrayLengthIncludingFlags(intptr_t num_parameters) {
-  return num_parameters +
-         (num_parameters + compiler::target::kNumParameterFlagsPerElement - 1) /
-             compiler::target::kNumParameterFlagsPerElement;
+void Function::CreateNameArrayIncludingFlags(Heap::Space space) const {
+  // Currently, we only store flags for named parameters that are required.
+  const intptr_t num_parameters = NumParameters();
+  intptr_t num_total_slots = num_parameters;
+  if (HasOptionalNamedParameters()) {
+    const intptr_t last_index = (NumOptionalNamedParameters() - 1) /
+                                compiler::target::kNumParameterFlagsPerElement;
+    const intptr_t num_flag_slots = last_index + 1;
+    num_total_slots += num_flag_slots;
+  }
+  auto& array = Array::Handle(Array::New(num_total_slots, space));
+  if (num_total_slots > num_parameters) {
+    // Set flag slots to Smi 0 before handing off.
+    auto& empty_flags_smi = Smi::Handle(Smi::New(0));
+    for (intptr_t i = num_parameters; i < num_total_slots; i++) {
+      array.SetAt(i, empty_flags_smi);
+    }
+  }
+  set_parameter_names(array);
 }
 
 intptr_t Function::GetRequiredFlagIndex(intptr_t index,
                                         intptr_t* flag_mask) const {
+  // If these calculations change, also change
+  // FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck.
   ASSERT(flag_mask != nullptr);
   ASSERT(index >= num_fixed_parameters());
   index -= num_fixed_parameters();
-  *flag_mask = 1 << (static_cast<uintptr_t>(index) %
-                     compiler::target::kNumParameterFlagsPerElement);
+  *flag_mask = (1 << compiler::target::kRequiredNamedParameterFlag)
+               << ((static_cast<uintptr_t>(index) %
+                    compiler::target::kNumParameterFlagsPerElement) *
+                   compiler::target::kNumParameterFlags);
   return NumParameters() +
          index / compiler::target::kNumParameterFlagsPerElement;
 }
@@ -7461,12 +7481,9 @@ bool Function::IsRequiredAt(intptr_t index) const {
   if (flag_index >= parameter_names.Length()) {
     return false;
   }
-  ObjectPtr element = parameter_names.At(flag_index);
-  if (element == Object::null()) {
-    return false;
-  }
-  const intptr_t flag = Smi::Value(Smi::RawCast(element));
-  return (flag & flag_mask) != 0;
+  const intptr_t flags =
+      Smi::Value(Smi::RawCast(parameter_names.At(flag_index)));
+  return (flags & flag_mask) != 0;
 }
 
 void Function::SetIsRequiredAt(intptr_t index) const {
@@ -7474,27 +7491,26 @@ void Function::SetIsRequiredAt(intptr_t index) const {
   const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
   ASSERT(flag_index < parameter_names.Length());
-  intptr_t flag;
-  ObjectPtr element = parameter_names.At(flag_index);
-  if (element == Object::null()) {
-    flag = 0;
-  } else {
-    flag = Smi::Value(Smi::RawCast(element));
-  }
-  parameter_names.SetAt(flag_index, Object::Handle(Smi::New(flag | flag_mask)));
+  const intptr_t flags =
+      Smi::Value(Smi::RawCast(parameter_names.At(flag_index)));
+  parameter_names.SetAt(flag_index, Smi::Handle(Smi::New(flags | flag_mask)));
 }
 
 void Function::TruncateUnusedParameterFlags() const {
-  // Truncate the parameter names array to remove unused flags from the end.
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
   const intptr_t num_params = NumParameters();
-  intptr_t last_required_flag = parameter_names.Length() - 1;
-  for (; last_required_flag >= num_params; --last_required_flag) {
-    if (parameter_names.At(last_required_flag) != Object::null()) {
+  if (parameter_names.Length() == num_params) {
+    // No flag slots to truncate.
+    return;
+  }
+  // Truncate the parameter names array to remove unused flags from the end.
+  intptr_t last_used = parameter_names.Length() - 1;
+  for (; last_used >= num_params; --last_used) {
+    if (Smi::Value(Smi::RawCast(parameter_names.At(last_used))) != 0) {
       break;
     }
   }
-  parameter_names.Truncate(last_required_flag + 1);
+  parameter_names.Truncate(last_used + 1);
 }
 
 void Function::set_type_parameters(const TypeArguments& value) const {
@@ -8867,14 +8883,11 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
-  const int num_required_flags =
-      Array::Handle(zone, parameter_names()).Length() - NumParameters();
   closure_function.set_num_fixed_parameters(num_fixed_params);
   closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
   closure_function.set_parameter_types(
       Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-  closure_function.set_parameter_names(Array::Handle(
-      zone, Array::New(num_params + num_required_flags, Heap::kOld)));
+  closure_function.CreateNameArrayIncludingFlags(Heap::kOld);
   AbstractType& param_type = AbstractType::Handle(zone);
   String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
@@ -8890,6 +8903,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       closure_function.SetIsRequiredAt(i);
     }
   }
+  closure_function.TruncateUnusedParameterFlags();
   closure_function.InheritBinaryDeclarationFrom(*this);
 
   // Change covariant parameter types to either Object? for an opted-in implicit
