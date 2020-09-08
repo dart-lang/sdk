@@ -80,15 +80,20 @@ class ImportOrganizer {
             }
             // Check if the comment is the first comment in the document
             if (firstComment != unit.beginToken.precedingComments) {
-              var previousLine = lineInfo
+              var previousDirectiveLine = lineInfo
                   .getLocation(directive.beginToken.previous.end)
                   .lineNumber;
 
-              // Check if the comment is after the last token of the previous line
-              // Only connect, if it's not on the same line as the last token of the previous line
-              if (lineInfo.getLocation(firstComment.offset).lineNumber !=
-                  previousLine) {
-                offset = firstComment.offset;
+              // Skip over any comments on the same line as the previous directive
+              // as they will be attached to the end of it.
+              var comment = firstComment;
+              while (comment != null &&
+                  previousDirectiveLine ==
+                      lineInfo.getLocation(comment.offset).lineNumber) {
+                comment = comment.next;
+              }
+              if (comment != null) {
+                offset = comment.offset;
               }
             }
           }

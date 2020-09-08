@@ -359,6 +359,32 @@ import 'package:product2.client/entity.dart';
 ''');
   }
 
+  Future<void> test_sort_imports_splits_comments() async {
+    // Here, the comments "b" and "ccc1" will be part of the same list
+    // of comments so need to be split.
+    await _computeUnitAndErrors(r'''
+// copyright
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
+// aaa1
+// aaa2
+import 'a.dart'; // a
+''');
+
+    _assertOrganize(r'''
+// copyright
+// aaa1
+// aaa2
+import 'a.dart'; // a
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
+''');
+  }
+
   Future<void> test_sort_imports_with_library_keepPrecedingComments() async {
     await _computeUnitAndErrors(r'''
 /// Copyright...
