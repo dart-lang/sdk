@@ -106,6 +106,8 @@ class ServerCapabilitiesComputer {
         clientCapabilities.textDocument?.rename?.prepareSupport ?? false;
 
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+    final previewCommitCharacters =
+        _server.clientConfiguration.previewCommitCharacters;
 
     final dynamicRegistrations = ClientDynamicRegistrations(clientCapabilities);
 
@@ -132,6 +134,9 @@ class ServerCapabilitiesComputer {
           ? null
           : CompletionOptions(
               triggerCharacters: dartCompletionTriggerCharacters,
+              allCommitCharacters: previewCommitCharacters
+                  ? dartCompletionCommitCharacters
+                  : null,
               resolveProvider: true,
             ),
       hoverProvider: dynamicRegistrations.hover
@@ -242,6 +247,8 @@ class ServerCapabilitiesComputer {
     final registrations = <Registration>[];
 
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+    final previewCommitCharacters =
+        _server.clientConfiguration.previewCommitCharacters;
 
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable options]) {
@@ -279,6 +286,8 @@ class ServerCapabilitiesComputer {
       CompletionRegistrationOptions(
         documentSelector: allTypes,
         triggerCharacters: dartCompletionTriggerCharacters,
+        allCommitCharacters:
+            previewCommitCharacters ? dartCompletionCommitCharacters : null,
         resolveProvider: true,
       ),
     );

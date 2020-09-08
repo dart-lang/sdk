@@ -10,6 +10,13 @@ class LspClientConfiguration {
   bool get enableSdkFormatter => _settings['enableSdkFormatter'] ?? true;
   int get lineLength => _settings['lineLength'];
 
+  /// A preview flag for enabling commit characters for completions.
+  ///
+  /// This is a temporary setting to allow this feature to be tested without
+  /// defaulting to on for everybody.
+  bool get previewCommitCharacters =>
+      _settings['previewCommitCharacters'] ?? false;
+
   void replace(Map<String, dynamic> newConfig) {
     _settings
       ..clear()

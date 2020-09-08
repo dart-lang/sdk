@@ -1001,6 +1001,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  /// Expects both unregistration and reregistration.
+  Future<ResponseMessage> monitorDynamicReregistration(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) =>
+      monitorDynamicUnregistrations(
+        registrations,
+        () => monitorDynamicRegistrations(registrations, f),
+      );
+
   /// Watches for `client/unregisterCapability` requests and updates
   /// `registrations`.
   Future<ResponseMessage> monitorDynamicUnregistrations(

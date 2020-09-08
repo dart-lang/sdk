@@ -4,6 +4,19 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 
+/// The characters that will cause the editor to automatically commit the selected
+/// completion item.
+///
+/// For example, pressing `(` at the location of `^` in the code below would
+/// automatically commit the functions name and insert a `(` to avoid either having
+/// to press `<enter>` and then `(` or having `()` included in the completion items
+/// `insertText` (which is incorrect when passing a function around rather than
+/// invoking it).
+///
+///     myLongFunctionName();
+///     print(myLong^)
+const dartCompletionCommitCharacters = ['.', '('];
+
 /// Set the characters that will cause the editor to automatically
 /// trigger completion.
 /// TODO(dantup): There are several characters that we want to conditionally
