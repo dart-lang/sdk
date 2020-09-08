@@ -10,8 +10,6 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#include "bin/file.h"
-#include "bin/file_win.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
@@ -48,9 +46,6 @@ const char* Namespace::GetCurrent(Namespace* namespc) {
 }
 
 bool Namespace::SetCurrent(Namespace* namespc, const char* path) {
-  // TODO(zichangguo): "\\?\" prepended long path doesn't work.
-  // https://github.com/dart-lang/sdk/issues/42416
-  path = PrefixLongDirectoryPath(path);
   Utf8ToWideScope system_path(path);
   bool result = SetCurrentDirectoryW(system_path.wide()) != 0;
   return result;

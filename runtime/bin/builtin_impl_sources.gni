@@ -45,7 +45,6 @@ builtin_impl_sources = [
   "file_macos.cc",
   "file_support.cc",
   "file_win.cc",
-  "file_win.h",
   "io_buffer.cc",
   "io_buffer.h",
   "isolate_data.cc",
