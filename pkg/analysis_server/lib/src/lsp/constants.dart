@@ -39,10 +39,11 @@ const dartCompletionCommitCharacters = ['.', '('];
 /// for the VS Code implementation of this.
 const dartCompletionTriggerCharacters = ['.', '=', '(', r'$'];
 
-/// TODO(dantup): Signature help triggering is even more sensitive to
-/// bad chars, so we'll need to implement the logic described here:
-/// https://github.com/dart-lang/sdk/issues/34241
-const dartSignatureHelpTriggerCharacters = <String>[];
+/// Characters that refresh signature help only if it's already open on the client.
+const dartSignatureHelpRetriggerCharacters = <String>[','];
+
+/// Characters that automatically trigger signature help when typed in the client.
+const dartSignatureHelpTriggerCharacters = <String>['('];
 
 /// Characters to trigger formatting when format-on-type is enabled.
 const dartTypeFormattingCharacters = ['}', ';'];

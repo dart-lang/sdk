@@ -146,6 +146,7 @@ class ServerCapabilitiesComputer {
           ? null
           : SignatureHelpOptions(
               triggerCharacters: dartSignatureHelpTriggerCharacters,
+              retriggerCharacters: dartSignatureHelpRetriggerCharacters,
             ),
       definitionProvider: dynamicRegistrations.definition
           ? null
@@ -302,6 +303,7 @@ class ServerCapabilitiesComputer {
       SignatureHelpRegistrationOptions(
         documentSelector: allTypes,
         triggerCharacters: dartSignatureHelpTriggerCharacters,
+        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
       ),
     );
     register(
