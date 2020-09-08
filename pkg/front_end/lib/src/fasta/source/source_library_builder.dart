@@ -747,8 +747,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void addFields(String documentationComment, List<MetadataBuilder> metadata,
-      int modifiers, TypeBuilder type, List<FieldInfo> fieldInfos) {
+  void addFields(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      bool isTopLevel,
+      TypeBuilder type,
+      List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
       bool isConst = modifiers & constMask != 0;
       bool isFinal = modifiers & finalMask != 0;
@@ -765,8 +770,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new Token.eof(startToken.previous.offset).setNext(startToken);
       }
       bool hasInitializer = info.initializerToken != null;
-      addField(documentationComment, metadata, modifiers, type, info.name,
-          info.charOffset, info.charEndOffset, startToken, hasInitializer,
+      addField(
+          documentationComment,
+          metadata,
+          modifiers,
+          isTopLevel,
+          type,
+          info.name,
+          info.charOffset,
+          info.charEndOffset,
+          startToken,
+          hasInitializer,
           constInitializerToken:
               potentiallyNeedInitializerInOutline ? startToken : null);
     }
@@ -1955,6 +1969,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
+      bool isTopLevel,
       TypeBuilder type,
       String name,
       int charOffset,
@@ -2054,6 +2069,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         type,
         name,
         modifiers,
+        isTopLevel,
         this,
         charOffset,
         charEndOffset,

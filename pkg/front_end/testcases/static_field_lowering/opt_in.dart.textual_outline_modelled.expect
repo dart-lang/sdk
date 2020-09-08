@@ -1,6 +1,8 @@
 T init<T>(T value) {}
 
 class Class {
+  int? nullableInstanceFieldWithInitializer = init(17);
+  int nonNullableInstanceFieldWithInitializer = init(55);
   static const int staticConstField = 123;
   static final int? nullableStaticFinalFieldWithInitializer1 = init(19);
   static final int? nullableStaticFinalFieldWithInitializer2 =
