@@ -77,3 +77,20 @@ class W4 extends Widget {
   }
 }
 
+/// see: https://dart-review.googlesource.com/c/sdk/+/161624
+nestedChildren() {
+  Column(
+    children: [ // LINT
+      Column(
+        children: [ // LINT
+          Text('a'),
+        ],
+        crossAxisAlignment: CrossAxisAlignment.center,
+      ),
+      Text('b'),
+      Text('c'),
+      Text('d'),
+    ],
+    crossAxisAlignment: CrossAxisAlignment.center,
+  );
+}
