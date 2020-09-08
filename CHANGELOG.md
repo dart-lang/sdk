@@ -130,9 +130,14 @@ applications (issue [flutter/flutter#63038][]).
 *   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
     `InternetAddress` with `address` starting with '@' and type being
     `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+*   On Windows, file APIs can now handle files and directories identified by
+    long paths (greater than 260 characters). It complies with all restrictions
+    from [Long Path on Windows][]. Note that `Directory.current` does not work
+    with long path.
 
 [#42006]: https://github.com/dart-lang/sdk/issues/42006
 [Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+[Long Path on Windows]: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
 
 #### `dart:html`
 
