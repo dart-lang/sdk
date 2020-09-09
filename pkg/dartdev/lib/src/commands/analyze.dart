@@ -5,14 +5,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
+import '../events.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import 'analyze_impl.dart';
 
 class AnalyzeCommand extends DartdevCommand<int> {
+  static const String cmdName = 'analyze';
+
   /// The maximum length of any of the existing severity labels.
   static const int _severityWidth = 7;
 
@@ -20,7 +24,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
   /// message. The width left for the severity label plus the separator width.
   static const int _bodyIndentWidth = _severityWidth + 3;
 
-  AnalyzeCommand() : super('analyze', "Analyze the project's Dart code.") {
+  AnalyzeCommand() : super(cmdName, "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
@@ -32,7 +36,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
   String get invocation => '${super.invocation} [<directory>]';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     if (argResults.rest.length > 1) {
       usageException('Only one directory is expected.');
     }
@@ -153,4 +157,19 @@ class AnalyzeCommand extends DartdevCommand<int> {
       return 0;
     }
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => AnalyzeUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
+}
+
+/// The [UsageEvent] for the analyze command.
+class AnalyzeUsageEvent extends UsageEvent {
+  AnalyzeUsageEvent(String usagePath,
+      {String label, @required int exitCode, @required List<String> args})
+      : super(AnalyzeCommand.cmdName, usagePath,
+            label: label, args: args, exitCode: exitCode);
 }

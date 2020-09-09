@@ -26,7 +26,6 @@ const String analyticsDisabledNoticeMessage = '''
   ║ `dart --enable-analytics`                                                  ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
-const String _unknownCommand = '<unknown>';
 const String _appName = 'dartdev';
 const String _dartDirectoryName = '.dart';
 const String _settingsFileName = 'dartdev.json';
@@ -40,13 +39,15 @@ Dart programming language (https://dart.dev).
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
 
-Analytics instance;
+Analytics _instance;
+
+Analytics get analyticsInstance => _instance;
 
 /// Create and return an [Analytics] instance, this value is cached and returned
 /// on subsequent calls.
 Analytics createAnalyticsInstance(bool disableAnalytics) {
-  if (instance != null) {
-    return instance;
+  if (_instance != null) {
+    return _instance;
   }
 
   // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
@@ -54,16 +55,16 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
   // a machine is running dartdev so we return analytics shouldn't be set.
   if (disableAnalytics) {
-    instance = DisabledAnalytics(_trackingId, _appName);
-    return instance;
+    _instance = DisabledAnalytics(_trackingId, _appName);
+    return _instance;
   }
 
   var settingsDir = getDartStorageDirectory();
   if (settingsDir == null) {
     // Some systems don't support user home directories; for those, fail
     // gracefully by returning a disabled analytics object.
-    instance = DisabledAnalytics(_trackingId, _appName);
-    return instance;
+    _instance = DisabledAnalytics(_trackingId, _appName);
+    return _instance;
   }
 
   if (!settingsDir.existsSync()) {
@@ -72,8 +73,8 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
     } catch (e) {
       // If we can't create the directory for the analytics settings, fail
       // gracefully by returning a disabled analytics object.
-      instance = DisabledAnalytics(_trackingId, _appName);
-      return instance;
+      _instance = DisabledAnalytics(_trackingId, _appName);
+      return _instance;
     }
   }
 
@@ -85,22 +86,8 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
   }
 
   var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
-  instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
-  return instance;
-}
-
-/// Return the first member from [args] that occurs in [allCommands], otherwise
-/// '<unknown>' is returned.
-///
-/// 'help' is special cased to have 'dart analyze help', 'dart help analyze',
-/// and 'dart analyze --help' all be recorded as a call to 'help' instead of
-/// 'help' and 'analyze'.
-String getCommandStr(List<String> args, List<String> allCommands) {
-  if (args.contains('help') || args.contains('-h') || args.contains('--help')) {
-    return 'help';
-  }
-  return args.firstWhere((arg) => allCommands.contains(arg),
-      orElse: () => _unknownCommand);
+  _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
+  return _instance;
 }
 
 /// The directory used to store the analytics settings file.

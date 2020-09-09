@@ -5,8 +5,10 @@
 import 'dart:async';
 
 import 'package:args/args.dart';
+import 'package:meta/meta.dart';
 
 import '../core.dart';
+import '../events.dart';
 import '../experiments.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
@@ -15,7 +17,9 @@ import '../vm_interop_handler.dart';
 ///
 /// This command largely delegates to `pub run test`.
 class TestCommand extends DartdevCommand<int> {
-  TestCommand() : super('test', 'Run tests in this package.');
+  static const String cmdName = 'test';
+
+  TestCommand() : super(cmdName, 'Run tests in this package.');
 
   @override
   final ArgParser argParser = ArgParser.allowAnything();
@@ -26,7 +30,7 @@ class TestCommand extends DartdevCommand<int> {
   }
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     return _runImpl(argResults.arguments.toList());
   }
 
@@ -69,6 +73,14 @@ class TestCommand extends DartdevCommand<int> {
     VmInteropHandler.run(pubSnapshot, args);
     return 0;
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => TestUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        specifiedExperiments: specifiedExperiments,
+        args: argResults.arguments,
+      );
 
   void _printNoPubspecMessage(bool wasHelpCommand) {
     log.stdout('''
@@ -116,6 +128,20 @@ and https://dart.dev/guides/testing for general information on testing.
 
     log.stdout(_usageHelp);
   }
+}
+
+/// The [UsageEvent] for the test command.
+class TestUsageEvent extends UsageEvent {
+  TestUsageEvent(String usagePath,
+      {String label,
+      @required int exitCode,
+      @required List<String> specifiedExperiments,
+      @required List<String> args})
+      : super(TestCommand.cmdName, usagePath,
+            label: label,
+            exitCode: exitCode,
+            specifiedExperiments: specifiedExperiments,
+            args: args);
 }
 
 const String _terseHelp = 'Run tests in this package.';

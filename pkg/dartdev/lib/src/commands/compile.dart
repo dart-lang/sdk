@@ -6,9 +6,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart2native/generate.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
+import '../events.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
 
@@ -39,12 +41,13 @@ bool checkFile(String sourcePath) {
     stderr.flush();
     return false;
   }
-
   return true;
 }
 
-class CompileJSCommand extends DartdevCommand<int> {
-  CompileJSCommand() : super('js', 'Compile Dart to JavaScript.') {
+class CompileJSCommand extends CompileSubcommandCommand {
+  static const String cmdName = 'js';
+
+  CompileJSCommand() : super(cmdName, 'Compile Dart to JavaScript.') {
     argParser
       ..addOption(
         commonOptions['outputFile'].flag,
@@ -63,7 +66,7 @@ class CompileJSCommand extends DartdevCommand<int> {
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     if (!Sdk.checkArtifactExists(sdk.dart2jsSnapshot)) {
       return 255;
     }
@@ -97,7 +100,10 @@ class CompileJSCommand extends DartdevCommand<int> {
   }
 }
 
-class CompileSnapshotCommand extends DartdevCommand<int> {
+class CompileSnapshotCommand extends CompileSubcommandCommand {
+  static const String jitSnapshotCmdName = 'jit-snapshot';
+  static const String kernelCmdName = 'kernel';
+
   final String commandName;
   final String help;
   final String fileExt;
@@ -121,7 +127,7 @@ class CompileSnapshotCommand extends DartdevCommand<int> {
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     // We expect a single rest argument; the dart entry point.
     if (argResults.rest.length != 1) {
       // This throws.
@@ -157,7 +163,10 @@ class CompileSnapshotCommand extends DartdevCommand<int> {
   }
 }
 
-class CompileNativeCommand extends DartdevCommand<int> {
+class CompileNativeCommand extends CompileSubcommandCommand {
+  static const String exeCmdName = 'exe';
+  static const String aotSnapshotCmdName = 'aot-snapshot';
+
   final String commandName;
   final String format;
   final String help;
@@ -194,7 +203,7 @@ Remove debugging information from the output and save it separately to the speci
   String get invocation => '${super.invocation} <dart entry point>';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     if (!Sdk.checkArtifactExists(genKernel) ||
         !Sdk.checkArtifactExists(genSnapshot)) {
       return 255;
@@ -230,30 +239,64 @@ Remove debugging information from the output and save it separately to the speci
   }
 }
 
-class CompileCommand extends DartdevCommand {
-  CompileCommand() : super('compile', 'Compile Dart to various formats.') {
+abstract class CompileSubcommandCommand extends DartdevCommand<int> {
+  CompileSubcommandCommand(String name, String description,
+      {bool hidden = false})
+      : super(name, description, hidden: hidden);
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => CompileUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
+}
+
+class CompileCommand extends DartdevCommand<int> {
+  static const String cmdName = 'compile';
+
+  CompileCommand() : super(cmdName, 'Compile Dart to various formats.') {
     addSubcommand(CompileJSCommand());
     addSubcommand(CompileSnapshotCommand(
-      commandName: 'jit-snapshot',
+      commandName: CompileSnapshotCommand.jitSnapshotCmdName,
       help: 'to a JIT snapshot.',
       fileExt: 'jit',
       formatName: 'app-jit',
     ));
     addSubcommand(CompileSnapshotCommand(
-      commandName: 'kernel',
+      commandName: CompileSnapshotCommand.kernelCmdName,
       help: 'to a kernel snapshot.',
       fileExt: 'dill',
       formatName: 'kernel',
     ));
     addSubcommand(CompileNativeCommand(
-      commandName: 'exe',
+      commandName: CompileNativeCommand.exeCmdName,
       help: 'to a self-contained executable.',
       format: 'exe',
     ));
     addSubcommand(CompileNativeCommand(
-      commandName: 'aot-snapshot',
+      commandName: CompileNativeCommand.aotSnapshotCmdName,
       help: 'to an AOT snapshot.',
       format: 'aot',
     ));
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => null;
+
+  @override
+  FutureOr<int> runImpl() {
+    // do nothing, this command is never run
+    return 0;
+  }
+}
+
+/// The [UsageEvent] for all compile commands, we could have each compile
+/// event be its own class instance, but for the time being [usagePath] takes
+/// care of the only difference.
+class CompileUsageEvent extends UsageEvent {
+  CompileUsageEvent(String usagePath,
+      {String label, @required int exitCode, @required List<String> args})
+      : super(CompileCommand.cmdName, usagePath,
+            label: label, exitCode: exitCode, args: args);
 }
