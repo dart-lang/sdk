@@ -6,6 +6,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
@@ -58,63 +59,59 @@ class ImportOrganizer {
   /// Organize all [Directive]s.
   void _organizeDirectives() {
     var lineInfo = unit.lineInfo;
+    var hasLibraryDirective = false;
     var directives = <_DirectiveInfo>[];
     for (var directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        hasLibraryDirective = true;
+      }
       if (directive is UriBasedDirective) {
         var priority = getDirectivePriority(directive);
         if (priority != null) {
           var offset = directive.offset;
-          if (directive.beginToken.precedingComments != null) {
-            var firstComment = directive.beginToken.precedingComments;
-            var comment = firstComment;
-            // Don't connect comments that have a blank line between them
-            while (comment.next != null) {
-              var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
-              var nextLine =
-                  lineInfo.getLocation(comment.next.offset).lineNumber;
-              if (nextLine - currentLine > 1) {
-                firstComment = comment.next;
-              }
-
-              comment = comment.next;
-            }
-            // Check if the comment is the first comment in the document
-            if (firstComment != unit.beginToken.precedingComments) {
-              var previousDirectiveLine = lineInfo
-                  .getLocation(directive.beginToken.previous.end)
-                  .lineNumber;
-
-              // Skip over any comments on the same line as the previous directive
-              // as they will be attached to the end of it.
-              var comment = firstComment;
-              while (comment != null &&
-                  previousDirectiveLine ==
-                      lineInfo.getLocation(comment.offset).lineNumber) {
-                comment = comment.next;
-              }
-              if (comment != null) {
-                offset = comment.offset;
-              }
-            }
-          }
-
           var end = directive.end;
-          var line = lineInfo.getLocation(end).lineNumber;
-          Token comment = directive.endToken.next.precedingComments;
-          while (comment != null) {
-            if (lineInfo.getLocation(comment.offset).lineNumber == line) {
-              end = comment.end;
-            }
-            comment = comment.next;
-          }
 
-          var text = code.substring(offset, end);
+          final leadingComment = getLeadingComment(unit, directive, lineInfo);
+          final trailingComment =
+              getTrailingComment(unit, directive, lineInfo, end);
+
+          String leadingCommentText;
+          if (leadingComment != null) {
+            leadingCommentText =
+                code.substring(leadingComment.offset, directive.offset);
+            offset = leadingComment.offset;
+          }
+          String trailingCommentText;
+          if (trailingComment != null) {
+            trailingCommentText =
+                code.substring(directive.end, trailingComment.end);
+            end = trailingComment.end;
+          }
+          String documentationText;
+          if (directive.documentationComment != null) {
+            documentationText = code.substring(
+                directive.documentationComment.offset,
+                directive.documentationComment.end);
+          }
+          String annotationText;
+          if (directive.metadata.beginToken != null) {
+            annotationText = code.substring(
+                directive.metadata.beginToken.offset,
+                directive.metadata.endToken.end);
+          }
+          var text = code.substring(
+              directive.firstTokenAfterCommentAndMetadata.offset,
+              directive.end);
           var uriContent = directive.uri.stringValue;
           directives.add(
             _DirectiveInfo(
               directive,
               priority,
+              leadingCommentText,
+              documentationText,
+              annotationText,
               uriContent,
+              trailingCommentText,
               offset,
               end,
               text,
@@ -129,13 +126,25 @@ class ImportOrganizer {
     }
     var firstDirectiveOffset = directives.first.offset;
     var lastDirectiveEnd = directives.last.end;
+
+    // Without a library directive, the library comment is the comment of the
+    // first directive.
+    _DirectiveInfo libraryDocumentationDirective;
+    if (!hasLibraryDirective && directives.isNotEmpty) {
+      libraryDocumentationDirective = directives.first;
+    }
+
     // sort
     directives.sort();
     // append directives with grouping
     String directivesCode;
     {
       var sb = StringBuffer();
-      _DirectivePriority currentPriority;
+      if (libraryDocumentationDirective?.documentationText != null) {
+        sb.write(libraryDocumentationDirective.documentationText);
+        sb.write(endOfLine);
+      }
+      var currentPriority = directives.first.priority;
       for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
           var directive = directiveInfo.directive;
@@ -144,12 +153,25 @@ class ImportOrganizer {
           }
         }
         if (currentPriority != directiveInfo.priority) {
-          if (sb.length != 0) {
-            sb.write(endOfLine);
-          }
+          sb.write(endOfLine);
           currentPriority = directiveInfo.priority;
         }
+        if (directiveInfo.leadingCommentText != null) {
+          sb.write(directiveInfo.leadingCommentText);
+        }
+        if (directiveInfo != libraryDocumentationDirective &&
+            directiveInfo.documentationText != null) {
+          sb.write(directiveInfo.documentationText);
+          sb.write(endOfLine);
+        }
+        if (directiveInfo.annotationText != null) {
+          sb.write(directiveInfo.annotationText);
+          sb.write(endOfLine);
+        }
         sb.write(directiveInfo.text);
+        if (directiveInfo.trailingCommentText != null) {
+          sb.write(directiveInfo.trailingCommentText);
+        }
         sb.write(endOfLine);
       }
       directivesCode = sb.toString();
@@ -162,7 +184,7 @@ class ImportOrganizer {
   }
 
   static _DirectivePriority getDirectivePriority(UriBasedDirective directive) {
-    var uriContent = directive.uri.stringValue;
+    var uriContent = directive.uri.stringValue ?? '';
     if (directive is ImportDirective) {
       if (uriContent.startsWith('dart:')) {
         return _DirectivePriority.IMPORT_SDK;
@@ -199,26 +221,94 @@ class ImportOrganizer {
       return '\n';
     }
   }
+
+  /// Gets the first comment token considered to be the leading comment for this
+  /// directive.
+  ///
+  /// Leading comments for the first directive in a file are considered library
+  /// comments and not returned unless they contain blank lines, in which case
+  /// only the last part of the comment will be returned.
+  static Token getLeadingComment(
+      CompilationUnit unit, UriBasedDirective directive, LineInfo lineInfo) {
+    if (directive.beginToken.precedingComments == null) {
+      return null;
+    }
+
+    var firstComment = directive.beginToken.precedingComments;
+    var comment = firstComment;
+    // Don't connect comments that have a blank line between them
+    while (comment.next != null) {
+      var currentLine = lineInfo.getLocation(comment.offset).lineNumber;
+      var nextLine = lineInfo.getLocation(comment.next.offset).lineNumber;
+      if (nextLine - currentLine > 1) {
+        firstComment = comment.next;
+      }
+      comment = comment.next;
+    }
+
+    // Check if the comment is the first comment in the document
+    if (firstComment != unit.beginToken.precedingComments) {
+      var previousDirectiveLine =
+          lineInfo.getLocation(directive.beginToken.previous.end).lineNumber;
+
+      // Skip over any comments on the same line as the previous directive
+      // as they will be attached to the end of it.
+      var comment = firstComment;
+      while (comment != null &&
+          previousDirectiveLine ==
+              lineInfo.getLocation(comment.offset).lineNumber) {
+        comment = comment.next;
+      }
+      return comment;
+    }
+    return null;
+  }
+
+  /// Gets the last comment token considered to be the trailing comment for this
+  /// directive.
+  ///
+  /// To be considered a trailing comment, the comment must be on the same line
+  /// as the directive.
+  static Token getTrailingComment(CompilationUnit unit,
+      UriBasedDirective directive, LineInfo lineInfo, int end) {
+    var line = lineInfo.getLocation(end).lineNumber;
+    Token comment = directive.endToken.next.precedingComments;
+    while (comment != null) {
+      if (lineInfo.getLocation(comment.offset).lineNumber == line) {
+        return comment;
+      }
+      comment = comment.next;
+    }
+    return null;
+  }
 }
 
 class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   final UriBasedDirective directive;
   final _DirectivePriority priority;
+  final String leadingCommentText;
+  final String documentationText;
+  final String annotationText;
   final String uri;
+  final String trailingCommentText;
 
-  /// The offset of the first token, usually the keyword.
+  /// The offset of the first token, usually the keyword but may include leading comments.
   final int offset;
 
-  /// The offset after the least token, including the end-of-line comment.
+  /// The offset after the last token, including the end-of-line comment.
   final int end;
 
-  /// The text between [offset] and [end].
+  /// The text excluding comments, documentation and annotations.
   final String text;
 
   _DirectiveInfo(
     this.directive,
     this.priority,
+    this.leadingCommentText,
+    this.documentationText,
+    this.annotationText,
     this.uri,
+    this.trailingCommentText,
     this.offset,
     this.end,
     this.text,
