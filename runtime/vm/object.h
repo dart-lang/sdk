@@ -8387,6 +8387,14 @@ class TypeParameter : public AbstractType {
   bool IsFunctionTypeParameter() const {
     return parameterized_function() != Function::null();
   }
+
+  static intptr_t parameterized_class_id_offset() {
+    return OFFSET_OF(TypeParameterLayout, parameterized_class_id_);
+  }
+  static intptr_t index_offset() {
+    return OFFSET_OF(TypeParameterLayout, index_);
+  }
+
   StringPtr name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;

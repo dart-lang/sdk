@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.0 
+# Dart VM Service Protocol 3.39
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.0_ of the Dart VM Service Protocol. This
+This document describes of _version 3.39_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3834,6 +3834,6 @@ version | comments
 3.36 | Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
 3.37 | Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
 3.38 | Added `isSystemIsolate` property to `@Isolate` and `Isolate`, `isSystemIsolateGroup` property to `@IsolateGroup` and `IsolateGroup`, and properties `systemIsolates` and `systemIsolateGroups` to `VM`.
-4.0 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
+3.39 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

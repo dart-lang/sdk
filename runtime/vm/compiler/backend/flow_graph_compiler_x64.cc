@@ -684,59 +684,19 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   ASSERT(!token_pos.IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
-  compiler::Label is_assignable, runtime_call;
-
-  // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-
   if (locs->in(1).IsConstant()) {
     const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
     ASSERT(dst_type.IsFinalized());
 
     if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
 
-    if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-      GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
-                                                 deopt_id, dst_name, locs);
-      return;
-    }
-
-    if (Instance::NullIsAssignableTo(dst_type)) {
-      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-      __ j(EQUAL, &is_assignable);
-    }
-
-    // The registers RAX, RCX, RDX are preserved across the call.
-    test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
-                                          &runtime_call);
-
+    GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
+                                               deopt_id, dst_name, locs);
+    return;
   } else {
     // TODO(dartbug.com/40813): Handle setting up the non-constant case.
     UNREACHABLE();
   }
-
-  __ Bind(&runtime_call);
-  __ PushObject(Object::null_object());  // Make room for the result.
-  __ pushq(TypeTestABI::kInstanceReg);   // Push the source object.
-  // Push the destination type.
-  if (locs->in(1).IsConstant()) {
-    __ PushObject(locs->in(1).constant());
-  } else {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-  __ pushq(TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ pushq(TypeTestABI::kFunctionTypeArgumentsReg);
-  __ PushObject(dst_name);  // Push the name of the destination.
-  __ LoadUniqueObject(RAX, test_cache);
-  __ pushq(RAX);
-  __ PushImmediate(compiler::Immediate(Smi::RawValue(kTypeCheckFromInline)));
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(7);
-  __ popq(TypeTestABI::kInstanceReg);
-  __ Bind(&is_assignable);
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(

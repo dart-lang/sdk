@@ -15,6 +15,8 @@ dependencies:
   dart2native:
     path: ../dart2native
   dart_style: any
+  meta:
+    path: ../meta
   nnbd_migration:
     path: ../nnbd_migration
   path: ^1.0.0

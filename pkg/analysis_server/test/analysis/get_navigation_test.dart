@@ -43,6 +43,29 @@ main() {
     assertHasTarget('test = 0');
   }
 
+  Future<void> test_comment_outsideReference() async {
+    addTestFile('''
+/// Returns a [String].
+String main() {
+}''');
+    await waitForTasksFinished();
+    var search = 'Returns';
+    await _getNavigation(testFile, testCode.indexOf(search), 1);
+    expect(regions, hasLength(0));
+  }
+
+  Future<void> test_comment_reference() async {
+    addTestFile('''
+/// Returns a [String].
+String main() {
+}''');
+    await waitForTasksFinished();
+    var search = '[String';
+    await _getNavigation(testFile, testCode.indexOf(search), 1);
+    expect(regions, hasLength(1));
+    assertHasRegion('String]');
+  }
+
   Future<void> test_fieldType() async {
     // This test mirrors test_navigation() from
     // test/integration/analysis/get_navigation_test.dart
@@ -95,20 +118,6 @@ main() {
 }''');
     await waitForTasksFinished();
     await _getNavigation(testFile, 0, 17);
-    expect(regions, hasLength(1));
-    assertHasRegionString("'dart:math'");
-    expect(testTargets, hasLength(1));
-    expect(testTargets[0].kind, ElementKind.LIBRARY);
-  }
-
-  Future<void> test_importKeyword() async {
-    addTestFile('''
-import 'dart:math';
-
-main() {
-}''');
-    await waitForTasksFinished();
-    await _getNavigation(testFile, 0, 1);
     expect(regions, hasLength(1));
     assertHasRegionString("'dart:math'");
     expect(testTargets, hasLength(1));

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,6 +11,8 @@ import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
+import 'analytics.dart';
+import 'events.dart';
 import 'experiments.dart';
 import 'sdk.dart';
 import 'utils.dart';
@@ -38,6 +41,55 @@ abstract class DartdevCommand<int> extends Command {
 
   @override
   ArgParser get argParser => _argParser ??= createArgParser();
+
+  /// This method should not be overridden by subclasses, instead classes should
+  /// override [runImpl] and [createUsageEvent]. If analytics is enabled by this
+  /// command and the user, a [sendScreenView] is called to analytics, and then
+  /// after the command is run, an event is sent to analytics.
+  ///
+  /// If analytics is not enabled by this command or the user, then [runImpl] is
+  /// called and the exitCode value is returned.
+  @override
+  FutureOr<int> run() async {
+    var path = usagePath;
+    if (path != null &&
+        analyticsInstance != null &&
+        analyticsInstance.enabled) {
+      // Send the screen view to analytics
+      // ignore: unawaited_futures
+      analyticsInstance.sendScreenView(path);
+
+      // Run this command
+      var exitCode = await runImpl();
+
+      // Send the event to analytics
+      // ignore: unawaited_futures
+      createUsageEvent(exitCode)?.send(analyticsInstance);
+
+      // Finally return the exit code
+      return exitCode;
+    } else {
+      // Analytics is not enabled, run the command and return the exit code
+      return runImpl();
+    }
+  }
+
+  UsageEvent createUsageEvent(int exitCode);
+
+  FutureOr<int> runImpl();
+
+  /// The command name path to send to Google Analytics. Return null to disable
+  /// tracking of the command.
+  String get usagePath {
+    if (parent is DartdevCommand) {
+      final commandParent = parent as DartdevCommand;
+      final parentPath = commandParent.usagePath;
+      // Don't report for parents that return null for usagePath.
+      return parentPath == null ? null : '$parentPath/$name';
+    } else {
+      return name;
+    }
+  }
 
   /// Create the ArgParser instance for this command.
   ///

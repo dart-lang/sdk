@@ -669,67 +669,19 @@ void FlowGraphCompiler::GenerateAssertAssignable(CompileType* receiver_type,
   ASSERT(!TokenPosition(token_pos).IsClassifying());
   ASSERT(CheckAssertAssignableTypeTestingABILocations(*locs));
 
-  compiler::Label is_assignable_fast, is_assignable, runtime_call;
-  // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle(zone());
-
   if (locs->in(1).IsConstant()) {
     const auto& dst_type = AbstractType::Cast(locs->in(1).constant());
     ASSERT(dst_type.IsFinalized());
 
     if (dst_type.IsTopTypeForSubtyping()) return;  // No code needed.
 
-    if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
-      GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
-                                                 deopt_id, dst_name, locs);
-      return;
-    }
-
-    if (Instance::NullIsAssignableTo(dst_type)) {
-      __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
-      __ b(&is_assignable_fast, EQ);
-    }
-
-    __ PushPair(TypeTestABI::kFunctionTypeArgumentsReg,
-                TypeTestABI::kInstantiatorTypeArgumentsReg);
-
-    test_cache = GenerateInlineInstanceof(token_pos, dst_type, &is_assignable,
-                                          &runtime_call);
+    GenerateAssertAssignableViaTypeTestingStub(receiver_type, token_pos,
+                                               deopt_id, dst_name, locs);
+    return;
   } else {
     // TODO(dartbug.com/40813): Handle setting up the non-constant case.
     UNREACHABLE();
   }
-
-  __ Bind(&runtime_call);
-  __ ldp(TypeTestABI::kFunctionTypeArgumentsReg,
-         TypeTestABI::kInstantiatorTypeArgumentsReg,
-         compiler::Address(SP, 0 * kWordSize, compiler::Address::PairOffset));
-  // Make room for the result and push the source object.
-  __ PushPair(TypeTestABI::kInstanceReg, NULL_REG);
-  // Push the destination type and the instantiator type arguments.
-  if (locs->in(1).IsConstant()) {
-    __ LoadObject(TMP, locs->in(1).constant());
-    __ PushPair(TypeTestABI::kInstantiatorTypeArgumentsReg, TMP);
-  } else {
-    // TODO(dartbug.com/40813): Handle setting up the non-constant case.
-    UNREACHABLE();
-  }
-  // Push the function type arguments and the name of the destination.
-  __ LoadObject(TMP, dst_name);
-  __ PushPair(TMP, TypeTestABI::kFunctionTypeArgumentsReg);
-
-  __ LoadUniqueObject(R0, test_cache);
-  __ LoadObject(TMP, Smi::ZoneHandle(zone(), Smi::New(kTypeCheckFromInline)));
-  __ PushPair(TMP, R0);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 7, locs);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(7);
-  __ Pop(TypeTestABI::kInstanceReg);
-  __ Bind(&is_assignable);
-  __ PopPair(TypeTestABI::kFunctionTypeArgumentsReg,
-             TypeTestABI::kInstantiatorTypeArgumentsReg);
-  __ Bind(&is_assignable_fast);
 }
 
 void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(

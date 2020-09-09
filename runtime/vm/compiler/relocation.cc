@@ -434,6 +434,7 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
     // live in the "vm-isolate" - such as `Type::dynamic_type()`).
     if (destination_.InVMIsolateHeap()) {
       auto object_store = thread_->isolate()->object_store();
+
       if (destination_.raw() == StubCode::DefaultTypeTest().raw()) {
         destination_ = object_store->default_tts_stub();
       } else if (destination_.raw() ==
@@ -445,6 +446,12 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
         destination_ = object_store->unreachable_tts_stub();
       } else if (destination_.raw() == StubCode::SlowTypeTest().raw()) {
         destination_ = object_store->slow_tts_stub();
+      } else if (destination_.raw() ==
+                 StubCode::NullableTypeParameterTypeTest().raw()) {
+        destination_ = object_store->nullable_type_parameter_tts_stub();
+      } else if (destination_.raw() ==
+                 StubCode::TypeParameterTypeTest().raw()) {
+        destination_ = object_store->type_parameter_tts_stub();
       } else {
         UNREACHABLE();
       }

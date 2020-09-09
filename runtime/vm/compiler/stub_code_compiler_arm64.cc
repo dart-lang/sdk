@@ -3391,6 +3391,63 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
   __ Ret();
 }
 
+static void BuildTypeParameterTypeTestStub(Assembler* assembler,
+                                           bool allow_null) {
+  Label done;
+
+  if (allow_null) {
+    __ CompareObject(TypeTestABI::kInstanceReg, NullObject());
+    __ BranchIf(EQUAL, &done);
+  }
+
+  Label function_type_param;
+  __ ldr(TypeTestABI::kScratchReg,
+         FieldAddress(TypeTestABI::kDstTypeReg,
+                      TypeParameter::parameterized_class_id_offset()),
+         kUnsignedHalfword);
+  __ cmp(TypeTestABI::kScratchReg, Operand(kFunctionCid));
+  __ BranchIf(EQUAL, &function_type_param);
+
+  auto handle_case = [&](Register tav) {
+    __ CompareObject(tav, NullObject());
+    __ BranchIf(EQUAL, &done);
+    __ ldr(
+        TypeTestABI::kScratchReg,
+        FieldAddress(TypeTestABI::kDstTypeReg, TypeParameter::index_offset()),
+        kUnsignedHalfword);
+    __ add(TypeTestABI::kScratchReg, tav,
+           Operand(TypeTestABI::kScratchReg, LSL, 8));
+    __ ldr(TypeTestABI::kScratchReg,
+           FieldAddress(TypeTestABI::kScratchReg,
+                        target::TypeArguments::InstanceSize()));
+    __ ldr(TypeTestABI::kScratchReg,
+           FieldAddress(TypeTestABI::kScratchReg,
+                        AbstractType::type_test_stub_entry_point_offset()));
+    __ br(TypeTestABI::kScratchReg);
+  };
+
+  // Class type parameter: If dynamic we're done, otherwise dereference type
+  // parameter and tail call.
+  handle_case(TypeTestABI::kInstantiatorTypeArgumentsReg);
+
+  // Function type parameter: If dynamic we're done, otherwise dereference type
+  // parameter and tail call.
+  __ Bind(&function_type_param);
+  handle_case(TypeTestABI::kFunctionTypeArgumentsReg);
+
+  __ Bind(&done);
+  __ Ret();
+}
+
+void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
+    Assembler* assembler) {
+  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/true);
+}
+
+void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
+  BuildTypeParameterTypeTestStub(assembler, /*allow_null=*/false);
+}
+
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 

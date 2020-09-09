@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/src/dart_io_extensions.dart';
 import 'package:test/test.dart';

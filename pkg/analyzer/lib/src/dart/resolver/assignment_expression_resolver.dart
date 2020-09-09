@@ -100,27 +100,6 @@ class AssignmentExpressionResolver {
     _flowAnalysis?.assignmentExpression_afterRight(node);
   }
 
-  /// Set the static type of [node] to be the least upper bound of the static
-  /// types [staticType1] and [staticType2].
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _analyzeLeastUpperBoundTypes(
-      Expression node, DartType staticType1, DartType staticType2) {
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType1 ??= DynamicTypeImpl.instance;
-
-    // TODO(brianwilkerson) Determine whether this can still happen.
-    staticType2 ??= DynamicTypeImpl.instance;
-
-    DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2) ??
-            DynamicTypeImpl.instance;
-
-    staticType = _resolver.toLegacyTypeIfOptOut(staticType);
-
-    _inferenceHelper.recordStaticType(node, staticType);
-  }
-
   void _checkForInvalidAssignment(
     DartType writeType,
     Expression right,
@@ -168,17 +147,6 @@ class AssignmentExpressionResolver {
     }
 
     return true;
-  }
-
-  /// Return the non-nullable variant of the [type] if null safety is enabled,
-  /// otherwise return the type itself.
-  ///
-  // TODO(scheglov) this is duplicate
-  DartType _nonNullable(DartType type) {
-    if (_isNonNullableByDefault) {
-      return _typeSystem.promoteToNonNull(type);
-    }
-    return type;
   }
 
   /// Record that the static type of the given node is the given type.
@@ -348,29 +316,20 @@ class AssignmentExpressionResolver {
       var rightType = node.rightHandSide.staticType;
       _inferenceHelper.recordStaticType(node, rightType);
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
+      var leftType = node.readType;
+
+      // The LHS value will be used only if it is non-null.
       if (_isNonNullableByDefault) {
-        // The static type of a compound assignment using ??= with NNBD is the
-        // least upper bound of the static types of the LHS and RHS after
-        // promoting the LHS/ to non-null (as we know its value will not be used
-        // if null)
-        _analyzeLeastUpperBoundTypes(
-          node,
-          _typeSystem.promoteToNonNull(node.readType),
-          getReadType(node.rightHandSide),
-        );
-      } else {
-        // The static type of a compound assignment using ??= before NNBD is the
-        // least upper bound of the static types of the LHS and RHS.
-        _analyzeLeastUpperBoundTypes(
-          node,
-          node.readType,
-          node.rightHandSide.staticType,
-        );
+        leftType = _typeSystem.promoteToNonNull(leftType);
       }
+
+      var rightType = node.rightHandSide.staticType;
+      var result = _typeSystem.getLeastUpperBound(leftType, rightType);
+
+      _inferenceHelper.recordStaticType(node, result);
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
-      _inferenceHelper.recordStaticType(
-          node, _nonNullable(_typeProvider.boolType));
+      _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
     } else {
       var rightType = node.rightHandSide.staticType;
 

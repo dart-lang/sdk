@@ -868,7 +868,8 @@ abstract class HttpSession implements Map {
 }
 
 /**
- * A MIME/IANA media type used as the value of the [contentTypeHeader] header.
+ * A MIME/IANA media type used as the value of the
+ * [HttpHeaders.contentTypeHeader] header.
  *
  * A [ContentType] is immutable.
  */

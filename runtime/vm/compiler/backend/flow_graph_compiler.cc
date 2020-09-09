@@ -2290,13 +2290,6 @@ bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
   return true;
 }
 
-bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
-                                                    const AbstractType& type) {
-  return FLAG_precompiled_mode ||
-         (optimizing &&
-          (type.IsTypeParameter() || (type.IsType() && type.IsInstantiated())));
-}
-
 FlowGraphCompiler::TypeTestStubKind
 FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
     const TypeParameter& type_param) {

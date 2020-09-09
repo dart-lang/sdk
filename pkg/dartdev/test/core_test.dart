@@ -5,6 +5,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dartdev/src/commands/analyze.dart';
+import 'package:dartdev/src/commands/compile.dart';
+import 'package:dartdev/src/commands/create.dart';
+import 'package:dartdev/src/commands/fix.dart';
+import 'package:dartdev/src/commands/pub.dart';
+import 'package:dartdev/src/commands/run.dart';
+import 'package:dartdev/src/commands/test.dart';
 import 'package:dartdev/src/core.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -12,8 +19,80 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 void main() {
+  group('DartdevCommand', _dartdevCommand);
   group('PackageConfig', _packageConfig);
   group('Project', _project);
+}
+
+void _dartdevCommand() {
+  void _assertDartdevCommandProperties(
+      DartdevCommand command, String name, String usagePath,
+      [int subcommandCount = 0]) {
+    expect(command, isNotNull);
+    expect(command.name, name);
+    expect(command.description, isNotEmpty);
+    expect(command.project, isNotNull);
+    expect(command.argParser, isNotNull);
+    expect(command.usagePath, usagePath);
+    expect(command.subcommands.length, subcommandCount);
+  }
+
+  test('analyze', () {
+    _assertDartdevCommandProperties(AnalyzeCommand(), 'analyze', 'analyze');
+  });
+
+  test('compile', () {
+    _assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 5);
+  });
+
+  test('compile/js', () {
+    _assertDartdevCommandProperties(
+        CompileCommand().subcommands['js'], 'js', 'compile/js');
+  });
+
+  test('compile/jit-snapshot', () {
+    _assertDartdevCommandProperties(
+        CompileCommand().subcommands['jit-snapshot'],
+        'jit-snapshot',
+        'compile/jit-snapshot');
+  });
+
+  test('compile/kernel', () {
+    _assertDartdevCommandProperties(
+        CompileCommand().subcommands['kernel'], 'kernel', 'compile/kernel');
+  });
+
+  test('compile/exe', () {
+    _assertDartdevCommandProperties(
+        CompileCommand().subcommands['exe'], 'exe', 'compile/exe');
+  });
+
+  test('compile/aot-snapshot', () {
+    _assertDartdevCommandProperties(
+        CompileCommand().subcommands['aot-snapshot'],
+        'aot-snapshot',
+        'compile/aot-snapshot');
+  });
+
+  test('create', () {
+    _assertDartdevCommandProperties(CreateCommand(), 'create', 'create');
+  });
+
+  test('fix', () {
+    _assertDartdevCommandProperties(FixCommand(), 'fix', 'fix');
+  });
+
+  test('pub', () {
+    _assertDartdevCommandProperties(PubCommand(), 'pub', 'pub');
+  });
+
+  test('run', () {
+    _assertDartdevCommandProperties(RunCommand(), 'run', 'run');
+  });
+
+  test('test', () {
+    _assertDartdevCommandProperties(TestCommand(), 'test', 'test');
+  });
 }
 
 void _packageConfig() {
