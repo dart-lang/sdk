@@ -523,6 +523,10 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     for (int i = 0; i < nodes2.length; i++) {
       ClassHierarchyNode node = nodes2[i];
       if (node == null) continue;
+      if (node.classBuilder.cls.isAnonymousMixin) {
+        // Never find unnamed mixin application in least upper bound.
+        continue;
+      }
       if (nodes1.contains(node)) {
         DartType candidate1 = getTypeAsInstanceOf(
             type1, node.classBuilder.cls, clientLibrary, coreTypes);

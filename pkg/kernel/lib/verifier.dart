@@ -796,6 +796,21 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
           " type arguments, but the class declares"
           " ${node.classNode.typeParameters.length} parameters.");
     }
+    if (node.classNode.isAnonymousMixin) {
+      if (currentParent is FunctionNode) {
+        TreeNode functionNodeParent = currentParent.parent;
+        if (functionNodeParent is Constructor ||
+            functionNodeParent is Procedure &&
+                functionNodeParent.kind == ProcedureKind.Factory) {
+          if (functionNodeParent.parent == node.classNode) {
+            // We only allow references to anonymous mixins in types as the
+            // return type of its own constructor.
+            return;
+          }
+        }
+      }
+      problem(currentParent, "Type $node references an anonymous mixin class.");
+    }
   }
 
   @override
