@@ -41,9 +41,7 @@ class Bar {
     expect(target.startColumn, 7);
   }
 
-  @failingTest
   Future<void> test_navigation_no_result() async {
-    // This fails - it returns navigation results for a whitespace area (#28799).
     var pathname = sourcePath('test.dart');
     var text = r'''
 //

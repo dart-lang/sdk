@@ -19,7 +19,7 @@ NavigationCollector computeDartNavigation(
     CompilationUnit unit,
     int offset,
     int length) {
-  var dartCollector = _DartNavigationCollector(collector);
+  var dartCollector = _DartNavigationCollector(collector, offset, length);
   var visitor = _DartNavigationComputerVisitor(resourceProvider, dartCollector);
   if (offset == null || length == null) {
     unit.accept(visitor);
@@ -43,8 +43,11 @@ AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
 /// A Dart specific wrapper around [NavigationCollector].
 class _DartNavigationCollector {
   final NavigationCollector collector;
+  final int requestedOffset;
+  final int requestedLength;
 
-  _DartNavigationCollector(this.collector);
+  _DartNavigationCollector(
+      this.collector, this.requestedOffset, this.requestedLength);
 
   void _addRegion(int offset, int length, Element element) {
     if (element is FieldFormalParameterElement) {
@@ -54,6 +57,12 @@ class _DartNavigationCollector {
       return;
     }
     if (element.location == null) {
+      return;
+    }
+    // Discard elements that don't span the offset/range given (if provided).
+    if (requestedOffset != null &&
+        (offset > requestedOffset + (requestedLength ?? 0) ||
+            offset + length < requestedOffset)) {
       return;
     }
     var converter = AnalyzerConverter();
@@ -118,9 +127,13 @@ class _DartNavigationCollector {
     }
 
     // Read the declaration so we can get the offset after the doc comments.
-    final declaration = codeElement.session
-        .getParsedLibrary(location.file)
-        .getElementDeclaration(codeElement);
+    // TODO(dantup): Skip this for parts (getParsedLibrary will throw), but find
+    // a better solution.
+    final declaration = !codeElement.session.getFile(location.file).isPart
+        ? codeElement.session
+            .getParsedLibrary(location.file)
+            .getElementDeclaration(codeElement)
+        : null;
     var node = declaration?.node;
     if (node is VariableDeclaration) {
       node = node.parent;
