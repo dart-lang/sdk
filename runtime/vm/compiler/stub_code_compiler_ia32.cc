@@ -2630,6 +2630,17 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
   __ Breakpoint();
 }
 
+void StubCodeCompiler::GenerateNullableTypeParameterTypeTestStub(
+    Assembler* assembler) {
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
+void StubCodeCompiler::GenerateTypeParameterTypeTestStub(Assembler* assembler) {
+  // Not implemented on ia32.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   // Not implemented on ia32.
   __ Breakpoint();

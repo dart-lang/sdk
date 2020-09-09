@@ -70,6 +70,8 @@ namespace dart {
   V(DefaultNullableTypeTest)                                                   \
   V(TopTypeTypeTest)                                                           \
   V(UnreachableTypeTest)                                                       \
+  V(TypeParameterTypeTest)                                                     \
+  V(NullableTypeParameterTypeTest)                                             \
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
   V(LazySpecializeNullableTypeTest)                                            \

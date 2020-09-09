@@ -212,6 +212,8 @@ class ObjectPointerVisitor;
   RW(Code, default_tts_stub)                                                   \
   RW(Code, default_nullable_tts_stub)                                          \
   RW(Code, top_type_tts_stub)                                                  \
+  RW(Code, nullable_type_parameter_tts_stub)                                   \
+  RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Array, dispatch_table_code_entries)                                       \
@@ -251,6 +253,8 @@ class ObjectPointerVisitor;
   DO(default_tts_stub, DefaultTypeTest)                                        \
   DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
   DO(top_type_tts_stub, TopTypeTypeTest)                                       \
+  DO(nullable_type_parameter_tts_stub, NullableTypeParameterTypeTest)          \
+  DO(type_parameter_tts_stub, TypeParameterTypeTest)                           \
   DO(unreachable_tts_stub, UnreachableTypeTest)                                \
   DO(slow_tts_stub, SlowTypeTest)                                              \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \

@@ -883,6 +883,8 @@ class TypeParameter : public AllStatic {
  public:
   static word InstanceSize();
   static word NextFieldOffset();
+  static word parameterized_class_id_offset();
+  static word index_offset();
 };
 
 class LibraryPrefix : public AllStatic {
