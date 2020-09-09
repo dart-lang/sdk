@@ -114,7 +114,7 @@ abstract class DartDevelopmentService {
   /// Stop accepting requests after gracefully handling existing requests.
   Future<void> shutdown();
 
-  /// Set to `true` if this isntance of [DartDevelopmentService] requires an
+  /// Set to `true` if this instance of [DartDevelopmentService] requires an
   /// authentication code to connect.
   bool get authCodesEnabled;
 
