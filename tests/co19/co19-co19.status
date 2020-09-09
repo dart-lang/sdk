@@ -43,10 +43,9 @@ LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Not migrated to NN
 LanguageFeatures/Simple-bounds/static/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Not migrated to NNBD
 LanguageFeatures/Spread-collections/*: Skip # Not migrated to NNBD
-LanguageFeatures/Super-bounded-types/*: Skip # Not migrated to NNBD
-LanguageFeatures/Triple-Shift/*: Skip # Not migrated to NNBD
+LanguageFeatures/Triple-Shift/*: Skip # Triple shift is not implemented yet
 LanguageFeatures/int-to-double/*: Skip # Not migrated to NNBD
-LanguageFeatures/regression/*: Skip # Not migrated to NNBD
+LanguageFeatures/regression/34560_t02/01: Skip # Type aliases are not fully implemented
 LibTest/html/CanvasRenderingContext2D/*: Skip # Not migrated to NNBD
 LibTest/html/Document/*: Skip # Not migrated to NNBD
 LibTest/html/Element/*: Skip # Not migrated to NNBD
@@ -57,7 +56,6 @@ LibTest/html/IFrameElement/*: Skip # Not migrated to NNBD
 LibTest/html/Node/*: Skip # Not migrated to NNBD
 LibTest/html/Window/*: Skip # Not migrated to NNBD
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195
-Utils/tests/Expect/*: Skip # Not migrated to NNBD
 
 [ $compiler == dart2analyzer ]
 Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # Triple shift is not fully implemented
