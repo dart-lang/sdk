@@ -15,7 +15,7 @@ library;
 //   const A.named2() : x = new Object();
 //                          ^^^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/many_errors.dart:12:24: Error: 'x' is a final instance variable that has already been initialized.
+// pkg/front_end/testcases/general_nnbd_opt_out/many_errors.dart:12:24: Error: 'x' is a final instance variable that was initialized at the declaration.
 //   const A.named2() : x = new Object();
 //                        ^
 // pkg/front_end/testcases/general_nnbd_opt_out/many_errors.dart:8:9: Context: 'x' was initialized here.

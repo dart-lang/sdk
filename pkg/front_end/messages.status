@@ -334,7 +334,6 @@ FieldNonNullableWithoutInitializerWarning/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
-FinalInstanceVariableAlreadyInitialized/example: Fail
 ForInLoopElementTypeNotAssignable/example: Fail
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/part_wrapped_statement: Fail
@@ -550,6 +549,8 @@ NullablePropertyAccessError/analyzerCode: Fail
 NullablePropertyAccessError/example: Fail
 NullablePropertyAccessWarning/analyzerCode: Fail
 NullablePropertyAccessWarning/example: Fail
+NullableSpreadError/analyzerCode: Fail
+NullableSpreadError/example: Fail
 NullableSuperclassError/analyzerCode: Fail
 NullableSuperclassError/example: Fail
 NullableSuperclassWarning/analyzerCode: Fail

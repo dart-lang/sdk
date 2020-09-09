@@ -151,6 +151,7 @@ debugger
 decrease
 decrements
 dectcem
+deduplication
 defaulting
 defintions
 deleting
@@ -163,6 +164,7 @@ detector
 deviation
 dfast
 di
+diagnosticable
 dictionaries
 dictionary
 differences
@@ -216,6 +218,7 @@ exe
 execute
 exercised
 exercises
+existence
 exitcode
 exiting
 expanded

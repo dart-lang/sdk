@@ -8,15 +8,31 @@ import '../ast.dart';
 import '../kernel.dart';
 import '../core_types.dart' show CoreTypes;
 import '../class_hierarchy.dart' show ClassHierarchy;
+import './scanner.dart';
+
+class ValueClassScanner extends ClassScanner<Null> {
+  ValueClassScanner() : super(null);
+
+  bool predicate(Class node) {
+    for (Expression annotation in node.annotations) {
+      if (annotation is ConstantExpression &&
+          annotation.constant is StringConstant) {
+        StringConstant constant = annotation.constant;
+        if (constant.value == 'valueClass') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+}
 
 void transformComponent(
     Component node, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  for (Library library in node.libraries) {
-    for (Class cls in library.classes) {
-      if (isValueClass(cls)) {
-        transformValueClass(cls, coreTypes, hierarchy);
-      }
-    }
+  ValueClassScanner scanner = new ValueClassScanner();
+  ScanResult<Class, Null> valueClasses = scanner.scan(node);
+  for (Class valueClass in valueClasses.targets.keys) {
+    transformValueClass(valueClass, coreTypes, hierarchy);
   }
 }
 
