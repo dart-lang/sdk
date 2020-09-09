@@ -8,6 +8,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
+import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
@@ -88,6 +89,7 @@ class BulkFixProcessor {
     LintNames.prefer_adjacent_string_concatenation: RemoveOperator.newInstance,
     LintNames.prefer_conditional_assignment:
         ReplaceWithConditionalAssignment.newInstance,
+    LintNames.prefer_const_constructors_in_immutables: AddConst.newInstance,
     LintNames.prefer_const_declarations: ReplaceFinalWithConst.newInstance,
     LintNames.prefer_contains: ConvertToContains.newInstance,
     LintNames.prefer_equal_for_default_values:

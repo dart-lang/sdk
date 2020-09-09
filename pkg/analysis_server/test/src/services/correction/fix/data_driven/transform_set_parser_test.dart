@@ -140,8 +140,9 @@ version: 1
 transforms:
 ''');
     expect(result, null);
-    // TODO(brianwilkerson) Report a diagnostic.
-    errorListener.assertErrors([]);
+    errorListener.assertErrors([
+      error(TransformSetErrorCode.invalidValue, 21, 0),
+    ]);
   }
 
   void test_invalidYaml() {

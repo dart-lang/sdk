@@ -81,6 +81,20 @@ class TransformSetParser {
     return _translateTransformSet(map);
   }
 
+  /// Return a textual description of the type of value represented by the
+  /// [node].
+  String _nodeType(YamlNode node) {
+    if (node is YamlScalar) {
+      return node.value.runtimeType.toString();
+    } else if (node is YamlList) {
+      return 'List';
+    } else if (node is YamlMap) {
+      return 'Map';
+    }
+    // We shouldn't get here.
+    return node.runtimeType.toString();
+  }
+
   /// Return the result of parsing the file [content] into a YAML node.
   YamlNode _parseYaml(String content) {
     try {
@@ -106,13 +120,14 @@ class TransformSetParser {
   /// Report any keys in the [map] whose values are not in [validKeys].
   void _reportUnsupportedKeys(YamlMap map, Set<String> validKeys) {
     for (var keyNode in map.nodes.keys) {
-      if (keyNode is YamlScalar) {
-        var key = _translateString(keyNode);
+      if (keyNode is YamlScalar && keyNode.value is String) {
+        var key = keyNode.value as String;
         if (key != null && !validKeys.contains(key)) {
           _reportError(TransformSetErrorCode.unsupportedKey, keyNode, [key]);
         }
       } else {
-        // TODO(brianwilkerson) Report the unsupported key.
+        // TODO(brianwilkerson) Report the invalidKey.
+        //  "Keys must be of type 'String' but found the type '{0}'."
       }
     }
   }
@@ -127,8 +142,8 @@ class TransformSetParser {
     var foundKeys = <String>[];
     var keyToNodeMap = <String, YamlNode>{};
     for (var keyNode in map.nodes.keys) {
-      if (keyNode is YamlScalar) {
-        var key = _translateString(keyNode);
+      if (keyNode is YamlScalar && keyNode.value is String) {
+        var key = keyNode.value as String;
         if (key != null && validKeys.contains(key)) {
           foundKeys.add(key);
           keyToNodeMap[key] = keyNode;
@@ -140,7 +155,7 @@ class TransformSetParser {
     }
     for (var i = 1; i < foundKeys.length; i++) {
       // var invalidNode = keyToNodeMap[foundKeys[i]];
-      // TODO(brianwilkerson) Report the invalid key.
+      // TODO(brianwilkerson) Report the problem.
     }
     return foundKeys[0];
   }
@@ -148,18 +163,18 @@ class TransformSetParser {
   /// Translate the [node] into an add-type-parameter change. Return the
   /// resulting change, or `null` if the [node] does not represent a valid
   /// add-type-parameter change.
-  Change _translateAddTypeParameterChange(YamlMap node) {
+  AddTypeParameter _translateAddTypeParameterChange(YamlMap node) {
     _reportUnsupportedKeys(
         node, const {_indexKey, _kindKey, _nameKey, _valueKey});
-    var index = _translateInteger(node.valueAt(_indexKey));
+    var index = _translateInteger(node.valueAt(_indexKey), _indexKey);
     if (index == null) {
       return null;
     }
-    var name = _translateString(node.valueAt(_nameKey));
+    var name = _translateString(node.valueAt(_nameKey), _nameKey);
     if (name == null) {
       return null;
     }
-    var value = _translateValueExtractor(node.valueAt(_valueKey));
+    var value = _translateValueExtractor(node.valueAt(_valueKey), _valueKey);
     if (value == null) {
       return null;
     }
@@ -173,7 +188,7 @@ class TransformSetParser {
     var indexNode = node.valueAt(_indexKey);
     if (indexNode != null) {
       _reportUnsupportedKeys(node, const {_indexKey, _kindKey});
-      var index = _translateInteger(indexNode);
+      var index = _translateInteger(indexNode, _indexKey);
       if (index == null) {
         // The error has already been reported.
         return null;
@@ -183,7 +198,7 @@ class TransformSetParser {
     var nameNode = node.valueAt(_nameKey);
     if (nameNode != null) {
       _reportUnsupportedKeys(node, const {_nameKey, _kindKey});
-      var name = _translateString(nameNode);
+      var name = _translateString(nameNode, _nameKey);
       if (name == null) {
         // The error has already been reported.
         return null;
@@ -195,10 +210,11 @@ class TransformSetParser {
   }
 
   /// Translate the [node] into a change. Return the resulting change, or `null`
-  /// if the [node] does not represent a valid change.
-  Change _translateChange(YamlNode node) {
+  /// if the [node] does not represent a valid change. If the [node] is not
+  /// valid, use the name of the associated [key] to report the error.
+  Change _translateChange(YamlNode node, String key) {
     if (node is YamlMap) {
-      var kind = _translateString(node.valueAt(_kindKey));
+      var kind = _translateString(node.valueAt(_kindKey), _kindKey);
       if (kind == _addTypeParameterKind) {
         return _translateAddTypeParameterChange(node);
       } else if (kind == _renameKind) {
@@ -210,21 +226,24 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'Map', _nodeType(node)]);
       return null;
     }
   }
 
   /// Translate the [node] into an element descriptor. Return the resulting
   /// descriptor, or `null` if the [node] does not represent a valid element
-  /// descriptor.
-  ElementDescriptor _translateElement(YamlNode node) {
+  /// descriptor. If the [node] is not valid, use the name of the associated
+  /// [key] to report the error.
+  ElementDescriptor _translateElement(YamlNode node, String key) {
     if (node is YamlMap) {
-      var uris = _translateList(node.valueAt(_urisKey), _translateString);
+      var uris =
+          _translateList(node.valueAt(_urisKey), _urisKey, _translateString);
       if (uris == null) {
+        // The error has already been reported.
         // TODO(brianwilkerson) Returning here prevents other errors from being
         //  reported.
-        // The error has already been reported.
         return null;
       }
       var elementKey = _singleKey(node, [
@@ -241,14 +260,15 @@ class TransformSetParser {
         _setterKey,
         _typedefKey
       ]);
-      var elementName = _translateString(node.valueAt(elementKey));
+      var elementName = _translateString(node.valueAt(elementKey), elementKey);
       if (elementName == null) {
         // The error has already been reported.
         return null;
       }
       var components = [elementName];
       var containerKey = _singleKey(node, _containerKeyMap[elementKey]);
-      var containerName = _translateString(node.valueAt(containerKey));
+      var containerName =
+          _translateString(node.valueAt(containerKey), containerKey);
       if (containerName == null) {
         if ([_constructorKey, _enumConstantKey, _methodKey, _fieldKey]
             .contains(elementKey)) {
@@ -263,29 +283,31 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'Map', _nodeType(node)]);
       return null;
     }
   }
 
   /// Translate the [node] into an integer. Return the resulting integer, or
-  /// `null` if the [node] does not represent a valid integer.
-  int _translateInteger(YamlNode node) {
+  /// `null` if the [node] does not represent a valid integer. If the [node] is
+  /// not valid, use the name of the associated [key] to report the error.
+  int _translateInteger(YamlNode node, String key) {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is int) {
         return value;
       }
-      // TODO(brianwilkerson) Report the invalid YAML. For the best UX we
-      //  probably need to pass in the code to report.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'int', _nodeType(node)]);
       return null;
     } else if (node == null) {
       // TODO(brianwilkerson) Report the missing YAML. For the best UX we
       //  probably need to pass in the code to report.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML. For the best UX we
-      //  probably need to pass in the code to report.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'int', _nodeType(node)]);
       return null;
     }
   }
@@ -293,13 +315,14 @@ class TransformSetParser {
   /// Translate the [node] into a list of objects using the [elementTranslator].
   /// Return the resulting list, or `null` if the [node] does not represent a
   /// valid list. If any of the elements of the list can't be translated, they
-  /// will be omitted from the list but the valid elements will be returned.
-  List<R> _translateList<R>(
-      YamlNode node, R Function(YamlNode) elementTranslator) {
+  /// will be omitted from the list, the name of the associated [key] will be
+  /// used to report the error, and the valid elements will be returned.
+  List<R> _translateList<R>(YamlNode node, String key,
+      R Function(YamlNode, String) elementTranslator) {
     if (node is YamlList) {
       var translatedList = <R>[];
       for (var element in node.nodes) {
-        var result = elementTranslator(element);
+        var result = elementTranslator(element, key);
         if (result != null) {
           translatedList.add(result);
         }
@@ -309,16 +332,17 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'List', _nodeType(node)]);
       return null;
     }
   }
 
   /// Translate the [node] into a rename change. Return the resulting change, or
   /// `null` if the [node] does not represent a valid rename change.
-  Change _translateRenameChange(YamlMap node) {
+  Rename _translateRenameChange(YamlMap node) {
     _reportUnsupportedKeys(node, const {_kindKey, _newNameKey});
-    var newName = _translateString(node.valueAt(_newNameKey));
+    var newName = _translateString(node.valueAt(_newNameKey), _newNameKey);
     if (newName == null) {
       return null;
     }
@@ -326,36 +350,38 @@ class TransformSetParser {
   }
 
   /// Translate the [node] into a string. Return the resulting string, or `null`
-  /// if the [node] does not represent a valid string.
-  String _translateString(YamlNode node) {
+  /// if the [node] does not represent a valid string. If the [node] is not
+  /// valid, use the name of the associated [key] to report the error.
+  String _translateString(YamlNode node, String key) {
     if (node is YamlScalar) {
       var value = node.value;
       if (value is String) {
         return value;
       }
-      // TODO(brianwilkerson) Report the invalid YAML. For the best UX we
-      //  probably need to pass in the code to report.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'String', _nodeType(node)]);
       return null;
     } else if (node == null) {
       // TODO(brianwilkerson) Report the missing YAML. For the best UX we
       //  probably need to pass in the code to report.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML. For the best UX we
-      //  probably need to pass in the code to report.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'String', _nodeType(node)]);
       return null;
     }
   }
 
   /// Translate the [node] into a transform. Return the resulting transform, or
-  /// `null` if the [node] does not represent a valid transform.
-  Transform _translateTransform(YamlNode node) {
+  /// `null` if the [node] does not represent a valid transform. If the [node]
+  /// is not valid, use the name of the associated [key] to report the error.
+  Transform _translateTransform(YamlNode node, String key) {
     if (node is YamlMap) {
       _reportUnsupportedKeys(node, const {_changesKey, _elementKey, _titleKey});
-      var title = _translateString(node.valueAt(_titleKey));
-      var element = _translateElement(node.valueAt(_elementKey));
-      var changes =
-          _translateList<Change>(node.valueAt(_changesKey), _translateChange);
+      var title = _translateString(node.valueAt(_titleKey), _titleKey);
+      var element = _translateElement(node.valueAt(_elementKey), _elementKey);
+      var changes = _translateList<Change>(
+          node.valueAt(_changesKey), _changesKey, _translateChange);
       if (changes == null) {
         // The error has already been reported.
         return null;
@@ -365,7 +391,8 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'Map', _nodeType(node)]);
       return null;
     }
   }
@@ -378,12 +405,12 @@ class TransformSetParser {
       var set = TransformSet();
       // TODO(brianwilkerson) Version information is currently being ignored,
       //  but needs to be used to select a translator.
-      var version = _translateInteger(node.valueAt(_versionKey));
+      var version = _translateInteger(node.valueAt(_versionKey), _versionKey);
       if (version != currentVersion) {
         // TODO(brianwilkerson) Report the unsupported version.
       }
-      var transformations =
-          _translateList(node.valueAt(_transformsKey), _translateTransform);
+      var transformations = _translateList(
+          node.valueAt(_transformsKey), _transformsKey, _translateTransform);
       if (transformations == null) {
         // The error has already been reported.
         return null;
@@ -396,17 +423,19 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          ['file', 'Map', _nodeType(node)]);
       return null;
     }
   }
 
   /// Translate the [node] into a value extractor. Return the resulting
   /// extractor, or `null` if the [node] does not represent a valid value
-  /// extractor.
-  ValueExtractor _translateValueExtractor(YamlNode node) {
+  /// extractor. If the [node] is not valid, use the name of the associated
+  /// [key] to report the error.
+  ValueExtractor _translateValueExtractor(YamlNode node, String key) {
     if (node is YamlMap) {
-      var kind = _translateString(node.valueAt(_kindKey));
+      var kind = _translateString(node.valueAt(_kindKey), _kindKey);
       if (kind == _argumentKind) {
         return _translateArgumentExtractor(node);
       }
@@ -416,7 +445,8 @@ class TransformSetParser {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
     } else {
-      // TODO(brianwilkerson) Report the invalid YAML.
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'Map', _nodeType(node)]);
       return null;
     }
   }

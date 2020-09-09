@@ -8,6 +8,8 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::A;
 }
 class B extends core::Object {
   synthetic constructor •() → self::B
@@ -18,6 +20,8 @@ abstract class _C&B&A extends self::B implements self::A /*isAnonymousMixin,isEl
   synthetic constructor •() → self::_C&B&A
     : super self::B::•()
     ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::A;
 }
 class C extends self::_C&B&A {
   synthetic constructor •() → self::C
