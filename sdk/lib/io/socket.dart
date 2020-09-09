@@ -176,8 +176,8 @@ abstract class InternetAddress {
    * valid UTF-8 encoded file path.
    *
    * If [type] is omitted, the [rawAddress] must have a length of either 4 or
-   * 16, in which case the type defaults to [InternetAddress.IPv4] or
-   * [InternetAddress.IPv6] respectively.
+   * 16, in which case the type defaults to [InternetAddressType.IPv4] or
+   * [InternetAddressType.IPv6] respectively.
    */
   external factory InternetAddress.fromRawAddress(Uint8List rawAddress,
       {@Since("2.8") InternetAddressType? type});
@@ -472,24 +472,24 @@ enum _RawSocketOptions {
 /// [RawSocket.setRawOption] to set customize the behaviour of the underlying
 /// socket.
 ///
-/// It allows for fine grained control of the socket options, and its values will
-/// be passed to the underlying platform's implementation of setsockopt and
+/// It allows for fine grained control of the socket options, and its values
+/// will be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
 @Since("2.2")
 class RawSocketOption {
   /// Creates a RawSocketOption for getRawOption andSetRawOption.
   ///
   /// The level and option arguments correspond to level and optname arguments
-  /// on the get/setsockopt native calls.
+  /// on the getsockopt and setsockopt native calls.
   ///
   /// The value argument and its length correspond to the optval and length
   /// arguments on the native call.
   ///
-  /// For a [getRawOption] call, the value parameter will be updated after a
-  /// successful call (although its length will not be changed).
+  /// For a [RawSocket.getRawOption] call, the value parameter will be updated
+  /// after a successful call (although its length will not be changed).
   ///
-  /// For a [setRawOption] call, the value parameter will be used set the
-  /// option.
+  /// For a [RawSocket.setRawOption] call, the value parameter will be used set
+  /// the option.
   const RawSocketOption(this.level, this.option, this.value);
 
   /// Convenience constructor for creating an int based RawSocketOption.
