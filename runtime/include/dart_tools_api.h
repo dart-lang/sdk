@@ -271,23 +271,28 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 /**
  * Usage statistics for a space/generation at a particular moment in time.
  *
- * \param new_space Data for New Space.
+ * \param used Amount of memory used, in bytes.
  *
- * \param old_space Data for Old Space.
+ * \param capacity Memory capacity, in bytes.
+ *
+ * \param external External memory, in bytes.
+ *
+ * \param collections How many times the garbage collector has run in this
+ *   space.
+ *
+ * \param time Cumulative time spent collecting garbage in this space, in
+ *   seconds.
+ *
+ * \param avg_collection_period Average time between garbage collector running
+ *   in this space, in milliseconds.
  */
 typedef struct {
-  /**
-   * \param used_in_words Amount of memory space used, in words.
-   *
-   * \param capacity_in_words Memory space capacity, in words.
-   *
-   * \param external_in_words External memory, in words.
-   */
-  struct {
-    intptr_t used_in_words;
-    intptr_t capacity_in_words;
-    intptr_t external_in_words;
-  } new_space, old_space;
+  intptr_t used;
+  intptr_t capacity;
+  intptr_t external;
+  intptr_t collections;
+  double time;
+  double avg_collection_period;
 } Dart_GCStats;
 
 /**
@@ -297,15 +302,17 @@ typedef struct {
  *
  * \param reason The reason for the GC event. Static lifetime.
  *
- * \param before Memory usage statistics measured before GC was performed.
+ * \param new_space Data for New Space.
  *
- * \param before Memory usage statistics measured after GC was performed.
+ * \param old_space Data for Old Space.
  */
 typedef struct {
   const char* type;
   const char* reason;
-  Dart_GCStats before;
-  Dart_GCStats after;
+  const char* isolate_id;
+
+  Dart_GCStats new_space;
+  Dart_GCStats old_space;
 } Dart_GCEvent;
 
 /**
