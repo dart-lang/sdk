@@ -19,21 +19,23 @@ import 'package:dev_compiler/src/kernel/expression_compiler_worker.dart';
 bool get verbose => false;
 
 class ModuleConfiguration {
-  final String outputPath;
-  final String moduleName;
+  final Uri root;
+  final String outputDir;
   final String libraryUri;
+  final String moduleName;
   final String jsFileName;
   final String fullDillFileName;
 
   ModuleConfiguration(
-      {this.outputPath,
+      {this.root,
+      this.outputDir,
       this.moduleName,
       this.libraryUri,
       this.jsFileName,
       this.fullDillFileName});
 
-  String get jsPath => p.join(outputPath, jsFileName);
-  String get fullDillPath => p.join(outputPath, fullDillFileName);
+  Uri get jsPath => root.resolve('$outputDir/$jsFileName');
+  Uri get fullDillPath => root.resolve('$outputDir/$fullDillFileName');
 }
 
 class TestProjectConfiguration {
@@ -43,36 +45,40 @@ class TestProjectConfiguration {
   TestProjectConfiguration(this.rootDirectory);
 
   ModuleConfiguration get mainModule => ModuleConfiguration(
-      outputPath: outputPath,
+      root: root,
+      outputDir: outputDir,
       moduleName: 'packages/_testPackage/main',
       libraryUri: 'org-dartlang-app:/lib/main.dart',
       jsFileName: 'main.js',
       fullDillFileName: 'main.full.dill');
 
   ModuleConfiguration get testModule => ModuleConfiguration(
-      outputPath: outputPath,
+      root: root,
+      outputDir: outputDir,
       moduleName: 'packages/_testPackage/test_library',
       libraryUri: 'package:_testPackage/test_library.dart',
       jsFileName: 'test_library.js',
       fullDillFileName: 'test_library.full.dill');
 
   ModuleConfiguration get testModule2 => ModuleConfiguration(
-      outputPath: outputPath,
+      root: root,
+      outputDir: outputDir,
       moduleName: 'packages/_testPackage/test_library2',
       libraryUri: 'package:_testPackage/test_library2.dart',
       jsFileName: 'test_library2.js',
       fullDillFileName: 'test_library2.full.dill');
 
-  String get root => rootDirectory.path;
-  String get outputPath => p.join(root, outputDir);
-  String get packagesPath => p.join(root, '.packages');
+  String get rootPath => rootDirectory.path;
+  Uri get root => rootDirectory.uri;
+  Uri get outputPath => root.resolve(outputDir);
+  Uri get packagesPath => root.resolve('.packages');
 
-  String get sdkRoot => computePlatformBinariesLocation().path;
-  String get sdkSummaryPath => p.join(sdkRoot, 'ddc_sdk.dill');
-  String get librariesPath => p.join(sdkRoot, 'lib', 'libraries.json');
+  Uri get sdkRoot => computePlatformBinariesLocation();
+  Uri get sdkSummaryPath => sdkRoot.resolve('ddc_sdk.dill');
+  Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   void createTestProject() {
-    var pubspec = rootDirectory.uri.resolve('pubspec.yaml');
+    var pubspec = root.resolve('pubspec.yaml');
     File.fromUri(pubspec)
       ..createSync()
       ..writeAsStringSync('''
@@ -83,14 +89,14 @@ environment:
   sdk: '>=2.8.0 <3.0.0'
 ''');
 
-    var packages = rootDirectory.uri.resolve('.packages');
+    var packages = root.resolve('.packages');
     File.fromUri(packages)
       ..createSync()
       ..writeAsStringSync('''
 _testPackage:lib/
 ''');
 
-    var main = rootDirectory.uri.resolve('lib/main.dart');
+    var main = root.resolve('lib/main.dart');
     File.fromUri(main)
       ..createSync(recursive: true)
       ..writeAsStringSync('''
@@ -108,7 +114,7 @@ void main() {
 }
 ''');
 
-    var testLibrary = rootDirectory.uri.resolve('lib/test_library.dart');
+    var testLibrary = root.resolve('lib/test_library.dart');
     File.fromUri(testLibrary)
       ..createSync()
       ..writeAsStringSync('''
@@ -127,7 +133,7 @@ class B {
 }
 ''');
 
-    var testLibrary2 = rootDirectory.uri.resolve('lib/test_library2.dart');
+    var testLibrary2 = root.resolve('lib/test_library2.dart');
     File.fromUri(testLibrary2)
       ..createSync()
       ..writeAsStringSync('''
@@ -163,15 +169,15 @@ void main() async {
 
       inputs = [
         {
-          'path': config.mainModule.fullDillPath,
+          'path': config.mainModule.fullDillPath.path,
           'moduleName': config.mainModule.moduleName
         },
         {
-          'path': config.testModule.fullDillPath,
+          'path': config.testModule.fullDillPath.path,
           'moduleName': config.testModule.moduleName
         },
         {
-          'path': config.testModule2.fullDillPath,
+          'path': config.testModule2.fullDillPath.path,
           'moduleName': config.testModule2.moduleName
         },
       ];
@@ -188,12 +194,13 @@ void main() async {
       requestController = StreamController<Map<String, dynamic>>();
       responseController = StreamController<Map<String, dynamic>>();
       worker = await ExpressionCompilerWorker.create(
-        librariesSpecificationUri: Uri.file(config.librariesPath),
+        librariesSpecificationUri: config.librariesPath,
         // We should be able to load everything from dill and not require
-        // source parsing. Webdev and google3 integration currently rely on that.
-        // Make the test fail on source reading by not providing a packages.
+        // source parsing. Webdev and google3 integration currently rely on
+        // that. Make the test fail on source reading by not providing a
+        // packages file.
         packagesFile: null,
-        sdkSummary: Uri.file(config.sdkSummaryPath),
+        sdkSummary: config.sdkSummaryPath,
         fileSystem: fileSystem,
         requestStream: requestController.stream,
         sendResponse: responseController.add,
@@ -360,7 +367,7 @@ void main() async {
 
       inputs = [
         {
-          'path': config.mainModule.fullDillPath,
+          'path': config.mainModule.fullDillPath.path,
           'moduleName': config.mainModule.moduleName
         },
       ];
@@ -377,9 +384,9 @@ void main() async {
       requestController = StreamController<Map<String, dynamic>>();
       responseController = StreamController<Map<String, dynamic>>();
       worker = await ExpressionCompilerWorker.create(
-        librariesSpecificationUri: Uri.file(config.librariesPath),
+        librariesSpecificationUri: config.librariesPath,
         packagesFile: null,
-        sdkSummary: Uri.file(config.sdkSummaryPath),
+        sdkSummary: config.sdkSummaryPath,
         fileSystem: fileSystem,
         requestStream: requestController.stream,
         sendResponse: responseController.add,
@@ -505,7 +512,7 @@ class DDCKernelGenerator {
     var dartdevc =
         p.join(p.dirname(dart), 'snapshots', 'dartdevc.dart.snapshot');
 
-    Directory(config.outputPath)..createSync();
+    Directory.fromUri(config.outputPath)..createSync();
 
     // generate test_library2.full.dill
     var args = [
@@ -513,21 +520,21 @@ class DDCKernelGenerator {
       config.testModule2.libraryUri,
       '--no-summarize',
       '-o',
-      config.testModule2.jsPath,
+      config.testModule2.jsPath.toFilePath(),
       '--source-map',
       '--experimental-emit-debug-metadata',
       '--experimental-output-compiled-kernel',
       '--dart-sdk-summary',
-      config.sdkSummaryPath,
+      config.sdkSummaryPath.path,
       '--multi-root',
-      config.root,
+      '${config.root}',
       '--multi-root-scheme',
       'org-dartlang-app',
       '--packages',
-      config.packagesPath,
+      config.packagesPath.path,
     ];
 
-    var exitCode = await runProcess(dart, args, config.root);
+    var exitCode = await runProcess(dart, args, config.rootPath);
     if (exitCode != 0) {
       return exitCode;
     }
@@ -540,21 +547,21 @@ class DDCKernelGenerator {
       '--summary',
       '${config.testModule2.fullDillPath}=${config.testModule2.moduleName}',
       '-o',
-      config.testModule.jsPath,
+      config.testModule.jsPath.toFilePath(),
       '--source-map',
       '--experimental-emit-debug-metadata',
       '--experimental-output-compiled-kernel',
       '--dart-sdk-summary',
-      config.sdkSummaryPath,
+      config.sdkSummaryPath.path,
       '--multi-root',
-      config.root,
+      '${config.root}',
       '--multi-root-scheme',
       'org-dartlang-app',
       '--packages',
-      config.packagesPath,
+      config.packagesPath.path,
     ];
 
-    exitCode = await runProcess(dart, args, config.root);
+    exitCode = await runProcess(dart, args, config.rootPath);
     if (exitCode != 0) {
       return exitCode;
     }
@@ -569,21 +576,21 @@ class DDCKernelGenerator {
       '--summary',
       '${config.testModule.fullDillPath}=${config.testModule.moduleName}',
       '-o',
-      config.mainModule.jsPath,
+      config.mainModule.jsPath.toFilePath(),
       '--source-map',
       '--experimental-emit-debug-metadata',
       '--experimental-output-compiled-kernel',
       '--dart-sdk-summary',
-      config.sdkSummaryPath,
+      config.sdkSummaryPath.path,
       '--multi-root',
-      config.root,
+      '${config.root}',
       '--multi-root-scheme',
       'org-dartlang-app',
       '--packages',
-      config.packagesPath,
+      config.packagesPath.path,
     ];
 
-    return await runProcess(dart, args, config.root);
+    return await runProcess(dart, args, config.rootPath);
   }
 }
 
@@ -605,9 +612,9 @@ class BazelKernelWorkerGenerator {
       '--target',
       'ddc',
       '--output',
-      config.mainModule.fullDillPath,
+      config.mainModule.fullDillPath.path,
       '--dart-sdk-summary',
-      config.sdkSummaryPath,
+      config.sdkSummaryPath.path,
       '--exclude-non-sources',
       '--source',
       config.mainModule.libraryUri,
@@ -616,7 +623,7 @@ class BazelKernelWorkerGenerator {
       '--source',
       config.testModule2.libraryUri,
       '--multi-root',
-      config.root,
+      '${config.root}',
       '--multi-root-scheme',
       'org-dartlang-app',
       '--packages-file',
@@ -624,7 +631,7 @@ class BazelKernelWorkerGenerator {
       '--verbose'
     ];
 
-    return await runProcess(dart, args, config.root);
+    return await runProcess(dart, args, config.rootPath);
   }
 }
 

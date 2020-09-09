@@ -2558,7 +2558,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           typeArgument.nullability == Nullability.legacy;
       var nullability = nullable
           ? Nullability.nullable
-          : legacy ? Nullability.legacy : Nullability.nonNullable;
+          : legacy
+              ? Nullability.legacy
+              : Nullability.nonNullable;
       return _emitInterfaceType(
           typeArgument.withDeclaredNullability(nullability));
     } else if (typeArgument is NeverType) {
