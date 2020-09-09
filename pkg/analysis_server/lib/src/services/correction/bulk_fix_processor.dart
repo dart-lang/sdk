@@ -96,6 +96,7 @@ class BulkFixProcessor {
     LintNames.prefer_equal_for_default_values:
         ReplaceColonWithEquals.newInstance,
     LintNames.prefer_final_fields: MakeFinal.newInstance,
+    LintNames.prefer_final_locals: MakeFinal.newInstance,
     LintNames.prefer_for_elements_to_map_fromIterable:
         ConvertMapFromIterableToForLiteral.newInstance,
     LintNames.prefer_generic_function_type_aliases:
