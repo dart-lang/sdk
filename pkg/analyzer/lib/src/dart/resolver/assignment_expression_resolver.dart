@@ -170,17 +170,6 @@ class AssignmentExpressionResolver {
     return true;
   }
 
-  /// Return the non-nullable variant of the [type] if null safety is enabled,
-  /// otherwise return the type itself.
-  ///
-  // TODO(scheglov) this is duplicate
-  DartType _nonNullable(DartType type) {
-    if (_isNonNullableByDefault) {
-      return _typeSystem.promoteToNonNull(type);
-    }
-    return type;
-  }
-
   /// Record that the static type of the given node is the given type.
   ///
   /// @param expression the node whose type is to be recorded
@@ -369,8 +358,7 @@ class AssignmentExpressionResolver {
       }
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
-      _inferenceHelper.recordStaticType(
-          node, _nonNullable(_typeProvider.boolType));
+      _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
     } else {
       var rightType = node.rightHandSide.staticType;
 
