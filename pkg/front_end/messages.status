@@ -549,6 +549,8 @@ NullablePropertyAccessError/analyzerCode: Fail
 NullablePropertyAccessError/example: Fail
 NullablePropertyAccessWarning/analyzerCode: Fail
 NullablePropertyAccessWarning/example: Fail
+NullableSpreadError/analyzerCode: Fail
+NullableSpreadError/example: Fail
 NullableSuperclassError/analyzerCode: Fail
 NullableSuperclassError/example: Fail
 NullableSuperclassWarning/analyzerCode: Fail

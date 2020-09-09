@@ -4090,6 +4090,9 @@ NullableOperatorCallError:
 NullableTearoffError:
   template: "Can't tear off method '#name' from a potentially null value."
 
+NullableSpreadError:
+  template: "An expression whose value can be 'null' must be null-checked before it can be dereferenced."
+
 ThrowingNotAssignableToObjectError:
   template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
 

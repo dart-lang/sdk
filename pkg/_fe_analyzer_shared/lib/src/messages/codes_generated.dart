@@ -6831,6 +6831,15 @@ Message _withArgumentsNullableMixinError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNullableSpreadError = messageNullableSpreadError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNullableSpreadError = const MessageCode(
+    "NullableSpreadError",
+    message:
+        r"""An expression whose value can be 'null' must be null-checked before it can be dereferenced.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableSuperclassError =
     const Template<Message Function(String name)>(
         messageTemplate:

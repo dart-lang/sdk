@@ -1328,19 +1328,19 @@ class InferenceVisitor
     return const StatementInferenceResult();
   }
 
-  DartType getSpreadElementType(DartType spreadType, bool isNullAware) {
-    DartType typeBound = inferrer.resolveTypeParameter(spreadType);
-    if (inferrer.coreTypes.isNull(typeBound)) {
+  DartType getSpreadElementType(
+      DartType spreadType, DartType spreadTypeBound, bool isNullAware) {
+    if (inferrer.coreTypes.isNull(spreadTypeBound)) {
       if (inferrer.isNonNullableByDefault) {
         return isNullAware ? const NeverType(Nullability.nonNullable) : null;
       } else {
         return isNullAware ? inferrer.coreTypes.nullType : null;
       }
     }
-    if (typeBound is InterfaceType) {
+    if (spreadTypeBound is InterfaceType) {
       List<DartType> supertypeArguments = inferrer.typeSchemaEnvironment
           .getTypeArgumentsAsInstanceOf(
-              typeBound, inferrer.coreTypes.iterableClass);
+              spreadTypeBound, inferrer.coreTypes.iterableClass);
       if (supertypeArguments == null) {
         return null;
       }
@@ -1377,9 +1377,10 @@ class InferenceVisitor
       DartType spreadType = spreadResult.inferredType;
       inferredSpreadTypes[element.expression] = spreadType;
       Expression replacement = element;
+      DartType spreadTypeBound = inferrer.resolveTypeParameter(spreadType);
+      DartType spreadElementType = getSpreadElementType(
+          spreadType, spreadTypeBound, element.isNullAware);
       if (typeChecksNeeded) {
-        DartType spreadElementType =
-            getSpreadElementType(spreadType, element.isNullAware);
         if (spreadElementType == null) {
           if (inferrer.coreTypes
                   .isNull(inferrer.resolveTypeParameter(spreadType)) &&
@@ -1396,7 +1397,7 @@ class InferenceVisitor
                 element.expression.fileOffset,
                 1);
           }
-        } else if (spreadType is InterfaceType) {
+        } else if (spreadTypeBound is InterfaceType) {
           if (!inferrer.isAssignable(inferredTypeArgument, spreadElementType)) {
             replacement = inferrer.helper.buildProblem(
                 templateSpreadElementTypeMismatch.withArguments(
@@ -1405,13 +1406,18 @@ class InferenceVisitor
                     inferrer.isNonNullableByDefault),
                 element.expression.fileOffset,
                 1);
+          } else if (inferrer.isNonNullableByDefault &&
+              spreadType.isPotentiallyNullable &&
+              spreadType is! DynamicType &&
+              spreadType != inferrer.coreTypes.nullType &&
+              !element.isNullAware) {
+            replacement = inferrer.helper.buildProblem(
+                messageNullableSpreadError, element.expression.fileOffset, 1);
           }
         }
       }
       // Use 'dynamic' for error recovery.
-      element.elementType =
-          getSpreadElementType(spreadType, element.isNullAware) ??
-              const DynamicType();
+      element.elementType = spreadElementType ?? const DynamicType();
       return new ExpressionInferenceResult(element.elementType, replacement);
     } else if (element is IfElement) {
       DartType boolType =
@@ -1802,8 +1808,9 @@ class InferenceVisitor
           spreadType, entry.isNullAware, actualTypes, length);
       DartType actualKeyType = actualTypes[length];
       DartType actualValueType = actualTypes[length + 1];
+      DartType spreadTypeBound = inferrer.resolveTypeParameter(spreadType);
       DartType actualElementType =
-          getSpreadElementType(spreadType, entry.isNullAware);
+          getSpreadElementType(spreadType, spreadTypeBound, entry.isNullAware);
 
       MapEntry replacement = entry;
       if (typeChecksNeeded) {
@@ -1833,7 +1840,7 @@ class InferenceVisitor
                 new NullLiteral())
               ..fileOffset = entry.fileOffset;
           }
-        } else if (spreadType is InterfaceType) {
+        } else if (spreadTypeBound is InterfaceType) {
           Expression keyError;
           Expression valueError;
           if (!inferrer.isAssignable(inferredKeyType, actualKeyType)) {
@@ -1853,6 +1860,14 @@ class InferenceVisitor
                     inferrer.isNonNullableByDefault),
                 entry.expression.fileOffset,
                 1);
+          }
+          if (inferrer.isNonNullableByDefault &&
+              spreadType.isPotentiallyNullable &&
+              spreadType is! DynamicType &&
+              spreadType != inferrer.coreTypes.nullType &&
+              !entry.isNullAware) {
+            keyError = inferrer.helper.buildProblem(
+                messageNullableSpreadError, entry.expression.fileOffset, 1);
           }
           if (keyError != null || valueError != null) {
             keyError ??= new NullLiteral();
@@ -2331,9 +2346,12 @@ class InferenceVisitor
         return new ExpressionInferenceResult(inferredType, setLiteral);
       }
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
-        Expression error = inferrer.helper.buildProblem(
-            messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
-        return new ExpressionInferenceResult(const BottomType(), error);
+        Expression replacement = node;
+        if (!inferrer.isTopLevel) {
+          replacement = inferrer.helper.buildProblem(
+              messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
+        }
+        return new ExpressionInferenceResult(const BottomType(), replacement);
       }
       if (!canBeSet && !canBeMap) {
         Expression replacement = node;

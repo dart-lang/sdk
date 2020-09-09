@@ -793,6 +793,7 @@ deprecate
 deprecated
 depromotes
 depth
+dereferenced
 derivation
 derive
 derived
