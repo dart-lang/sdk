@@ -568,11 +568,6 @@ class FlowGraphCompiler : public ValueObject {
                                 const String& dst_name,
                                 LocationSummary* locs);
 
-  // Returns true if we can use a type testing stub based assert
-  // assignable code pattern for the given type.
-  static bool ShouldUseTypeTestingStubFor(bool optimizing,
-                                          const AbstractType& type);
-
   void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
                                                   TokenPosition token_pos,
                                                   intptr_t deopt_id,
