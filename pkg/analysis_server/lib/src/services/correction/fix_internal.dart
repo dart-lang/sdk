@@ -504,9 +504,11 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
       AddMissingParameter.newInstance,
+      DataDriven.newInstance,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
       AddMissingParameter.newInstance,
+      DataDriven.newInstance,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       DataDriven.newInstance,

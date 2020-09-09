@@ -19,11 +19,24 @@ class ArgumentExtractor extends ValueExtractor {
 
   @override
   String from(AstNode node, CorrectionUtils utils) {
-    if (node is InvocationExpression) {
-      var expression = parameter.argumentFrom(node.argumentList);
+    var argumentList = _getArgumentList(node);
+    if (argumentList != null) {
+      var expression = parameter.argumentFrom(argumentList);
       if (expression != null) {
         return utils.getNodeText(expression);
       }
+    }
+    return null;
+  }
+
+  /// Return the argument list associated with the given [node].
+  ArgumentList _getArgumentList(AstNode node) {
+    if (node is ArgumentList) {
+      return node;
+    } else if (node is InvocationExpression) {
+      return node.argumentList;
+    } else if (node is InstanceCreationExpression) {
+      return node.argumentList;
     }
     return null;
   }
