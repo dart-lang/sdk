@@ -448,10 +448,10 @@ import 'a.dart';
 ''');
     // validate change
     _assertSort(r'''
-/// aaa1
-/// aaa2
 /// Library documentation comment A
 /// Library documentation comment B
+/// aaa1
+/// aaa2
 import 'a.dart';
 import 'b.dart';
 ''');
@@ -473,12 +473,12 @@ import 'a.dart';
     // validate change
     _assertSort(r'''
 /**
- * aaa
- * aaa
- */
-/**
  * Library documentation comment A.
  * Library documentation comment B.
+ */
+/**
+ * aaa
+ * aaa
  */
 import 'a.dart';
 import 'b.dart';
@@ -524,6 +524,32 @@ import 'dart:aaa';
 import 'dart:ccc';
 
 import 'dart:$bbb';
+''');
+  }
+
+  Future<void> test_directives_splits_comments() async {
+    // Here, the comments "b" and "ccc1" will be part of the same list
+    // of comments so need to be split.
+    await _parseTestUnit(r'''
+// copyright
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
+// aaa1
+// aaa2
+import 'a.dart'; // a
+''');
+
+    _assertSort(r'''
+// copyright
+// aaa1
+// aaa2
+import 'a.dart'; // a
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
 ''');
   }
 
