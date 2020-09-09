@@ -3048,7 +3048,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // set or map in some situations, consider always deferring determination
     // until the type resolution phase.
     final int typeArgCount = typeArguments?.length;
-    bool isSet = typeArgCount == 1 ? true : typeArgCount != null ? false : null;
+    bool isSet = typeArgCount == 1
+        ? true
+        : typeArgCount != null
+            ? false
+            : null;
 
     for (int i = 0; i < setOrMapEntries.length; ++i) {
       if (setOrMapEntries[i] is! MapEntry &&
@@ -5852,7 +5856,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         field,
         value,
         new VariableDeclaration.forValue(buildProblem(
-            fasta.templateFinalInstanceVariableAlreadyInitialized
+            fasta.templateConstructorInitializeSameInstanceVariableSeveralTimes
                 .withArguments(name),
             offset,
             noLength)))
@@ -5907,12 +5911,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
         addProblem(
-            fasta.templateFinalInstanceVariableAlreadyInitialized
+            fasta.templateFieldAlreadyInitializedAtDeclaration
                 .withArguments(name),
             assignmentOffset,
             noLength,
             context: [
-              fasta.templateFinalInstanceVariableAlreadyInitializedCause
+              fasta.templateFieldAlreadyInitializedAtDeclarationCause
                   .withArguments(name)
                   .withLocation(uri, builder.charOffset, name.length)
             ]);

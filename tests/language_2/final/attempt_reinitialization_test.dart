@@ -6,7 +6,7 @@ class Foo {
   Foo(this.x);
   //       ^
   // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
-  // [cfe] 'x' is a final instance variable that has already been initialized.
+  // [cfe] 'x' is a final instance variable that was initialized at the declaration.
   final int x = 42;
 }
 
@@ -17,7 +17,7 @@ class CoffeeShop {
       //     ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //              ^
-      // [cfe] 'shopName' is a final instance variable that has already been initialized.
+      // [cfe] 'shopName' is a final instance variable that was initialized at the declaration.
 }
 
 void main() {

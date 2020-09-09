@@ -18,20 +18,20 @@ class A {
   //                         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
   //                           ^
-  // [cfe] Can't have other initializers together with 'this'.
+  // [cfe] A redirecting constructor can't have other initializers.
 
   // Redirecting constructor must not have initializing formal parameters.
   A.illegalFormal(this.x) : this(3);
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
   //                   ^
-  // [cfe] Can't have other initializers together with 'this'.
+  // [cfe] A redirecting constructor can't have other initializers.
 
   // Redirection constructors must not call super constructor.
   A.illegalSuper() : this(3), super(3);
   //                          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.SUPER_IN_REDIRECTING_CONSTRUCTOR
-  // [cfe] Can't have other initializers together with 'this'.
+  // [cfe] A redirecting constructor can't have other initializers.
   //                               ^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   // [cfe] Too many positional arguments: 0 allowed, but 1 found.

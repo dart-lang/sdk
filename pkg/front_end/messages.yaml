@@ -832,21 +832,34 @@ InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."
   analyzerCode: INITIALIZER_FOR_STATIC_FIELD
 
-MoreThanOneSuperOrThisInitializer:
-  template: "Can't have more than one 'super' or 'this' initializer."
-  analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
+MoreThanOneSuperInitializer:
+  template: "Can't have more than one 'super' initializer."
+  analyzerCode: MULTIPLE_SUPER_INITIALIZERS
   script:
     - "class C { C.bad() : super(), super(); }"
+
+RedirectingConstructorWithSuperInitializer:
+  template: "A redirecting constructor can't have a 'super' initializer."
+  analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
+  script:
     - "class C { C(); C.bad() : super(), this(); }"
     - "class C { C(); C.bad() : this(), super(); }"
+
+RedirectingConstructorWithMultipleRedirectInitializers:
+  template: "A redirecting constructor can't have more than one redirection."
+  analyzerCode: MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
+  script:
     - "class C { C(); C.bad() : this(), this(); }"
 
-ThisInitializerNotAlone:
-  template: "Can't have other initializers together with 'this'."
+RedirectingConstructorWithAnotherInitializer:
+  template: "A redirecting constructor can't have other initializers."
+  # also ASSERT_IN_REDIRECTING_CONSTRUCTOR
   analyzerCode: FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
   script:
     - "class C { int x; C(); C.bad() : x = 5, this(); }"
     - "class C { int x; C(); C.bad() : this(), x = 5; }"
+    - "class C { int x; C(); C.bad() : assert(true), this(); }"
+    - "class C { int x; C(); C.bad() : this(), assert(true); }"
 
 SuperInitializerNotLast:
   template: "Can't have initializers after 'super'."
@@ -2801,16 +2814,22 @@ SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
   analyzerCode: CASE_BLOCK_NOT_TERMINATED
 
-FinalInstanceVariableAlreadyInitialized:
-  template: "'#name' is a final instance variable that has already been initialized."
-  # TODO(ahe): Strictly speaking, as of
-  # 3b5874a332b24f326775b3520f32b9a818731aca, this is a compile-time error in
-  # legacy mode.
-  analyzerCode: FINAL_INITIALIZED_MULTIPLE_TIMES
+FieldAlreadyInitializedAtDeclaration:
+  template: "'#name' is a final instance variable that was initialized at the declaration."
+  analyzerCode: FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+  script:
+    - "class C { final int x = 2; C(): this.x = 3 {} }"
 
-FinalInstanceVariableAlreadyInitializedCause:
+FieldAlreadyInitializedAtDeclarationCause:
   template: "'#name' was initialized here."
   severity: CONTEXT
+
+ConstructorInitializeSameInstanceVariableSeveralTimes:
+  template: "'#name' was already initialized by this constructor."
+  analyzerCode: FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+  script:
+    - "class C { final int x; C(): this.x = 1, this.x = 2 {} }"
+    - "class C { int x; C(): this.x = 1, this.x = 2 {} }"
 
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
