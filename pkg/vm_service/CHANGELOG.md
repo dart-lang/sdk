@@ -2,7 +2,7 @@
 
 ## 5.0.0
 
-- **breaking**: Update to version `4.0.0` of the spec.
+- **breaking**: Update to version `3.39.0` of the spec.
   - Removes `ClientName` and `WebSocketTarget` objects
   - Removes `getClientName`, `getWebSocketTarget`, `requirePermissionToResume`,
     and `setClientName` RPCs.
