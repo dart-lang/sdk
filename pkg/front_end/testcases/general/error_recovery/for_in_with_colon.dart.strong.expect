@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/for_in_with_colon.dart:6:13: Error: For-in loops use 'in' rather than a colon.
+// Try replacing the colon with the keyword 'in'.
+//   for(int i : [1, 2, 3]) {
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  for (core::int* i in <core::int*>[1, 2, 3]) {
+    core::print(i);
+  }
+}
