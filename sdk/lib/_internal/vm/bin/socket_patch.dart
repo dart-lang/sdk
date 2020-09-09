@@ -576,149 +576,255 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<ConnectionTask<_NativeSocket>> startConnect(
-      dynamic host, int port, dynamic sourceAddress) {
+      dynamic host, int port, dynamic sourceAddress) async {
     if (host is String) {
       host = escapeLinkLocalAddress(host);
     }
     _throwOnBadPort(port);
-    if (sourceAddress != null && sourceAddress is! _InternetAddress) {
-      if (sourceAddress is String) {
-        sourceAddress = new InternetAddress(sourceAddress);
+    if (sourceAddress is String) {
+      sourceAddress = InternetAddress(sourceAddress);
+    } else if (sourceAddress != null && sourceAddress is! _InternetAddress) {
+      throw ArgumentError(
+          'sourceAddress $sourceAddress must be either String or InternetAddress');
+    }
+
+    // The stream containing Internet addresses
+    final stream = await _lookup(host);
+    var streamSubscription;
+    final completer = Completer<_NativeSocket>();
+    // The first error that occurs.
+    var error = null;
+    // The map contains currently attempted connections.
+    final connecting = HashMap<_NativeSocket, Timer>();
+    // A queue contains Internet addresses that waits for connecting.
+    // `stream` keeps pushing element into queue, and connectNext() consume
+    // them.
+    final queue = <InternetAddress>[];
+    // The flag that stream of addresses is done.
+    var streamClosed = false;
+    // connectNext() will exhaust all elements from the queue. In the case of an
+    // element taking so long that connectNext() has finished trying all
+    // addresses, an explicit call to connectNext() is needed to restart the
+    // process.
+    var tryConnect = true;
+
+    // It will try each element in the `queue` to establish the connection.
+    // There can be multiple Internet addresses are under processing. Whenever
+    // a connection is successfully established (by receiving a write event),
+    // all pending connections stored in the `connecting` will be cancelled.
+    //
+    // 1. Check the status of `queue`, `completer` and `connecting`.
+    //      Return an error if all elements have been tried.
+    //      Reset tryConnect so that next element will be examined if `stream`
+    //      is still open.
+    // 2. Create a socket.
+    //      Try next address by issuing another connectNext() if this failed and
+    //      keep the first error.
+    // 3. Register a timer, if socket creation succeeds, to try next address.
+    // 4. Set up a handler for socket. It will cancel all other pending
+    //    connections and timers if it succeeds. Otherwise, keep the first
+    //    error and issue connectNext().
+    void connectNext() {
+      if (completer.isCompleted) return;
+      if (queue.isEmpty) {
+        if (streamClosed && connecting.isEmpty) {
+          assert(error != null);
+          completer.completeError(error);
+        } else if (!streamClosed) {
+          // If new addresses comes after all elements in the queue have been
+          // processed, issue another connectNext().
+          tryConnect = true;
+        }
+        return;
+      }
+      final _InternetAddress address = queue.removeAt(0) as _InternetAddress;
+      var socket = _NativeSocket.normal(address);
+      var result;
+      if (sourceAddress == null) {
+        if (address.type == InternetAddressType.unix) {
+          result = socket.nativeCreateUnixDomainConnect(
+              address.address, _Namespace._namespace);
+        } else {
+          result = socket.nativeCreateConnect(
+              address._in_addr, port, address._scope_id);
+        }
+      } else {
+        assert(sourceAddress is _InternetAddress);
+        if (address.type == InternetAddressType.unix) {
+          assert(sourceAddress.type == InternetAddressType.unix);
+          result = socket.nativeCreateUnixDomainBindConnect(
+              address.address, sourceAddress.address, _Namespace._namespace);
+        } else {
+          result = socket.nativeCreateBindConnect(address._in_addr, port,
+              sourceAddress._in_addr, address._scope_id);
+        }
+      }
+      if (result is OSError) {
+        // Keep first error, if present.
+        if (error == null) {
+          int errorCode = result.errorCode;
+          if (sourceAddress != null &&
+              errorCode != null &&
+              socket.isBindError(errorCode)) {
+            error = createError(result, "Bind failed", sourceAddress);
+          } else {
+            error = createError(result, "Connection failed", address, port);
+          }
+        }
+        connectNext();
+      } else {
+        // Query the local port for error messages.
+        try {
+          socket.port;
+        } catch (e) {
+          error ??= createError(e, "Connection failed", address, port);
+          connectNext();
+          return;
+        }
+        // Set up timer for when we should retry the next address
+        // (if any).
+        final duration =
+            address.isLoopback ? _retryDurationLoopback : _retryDuration;
+        final timer = Timer(duration, connectNext);
+        setupResourceInfo(socket);
+
+        connecting[socket] = timer;
+        // Setup handlers for receiving the first write event which
+        // indicate that the socket is fully connected.
+        socket.setHandlers(write: () {
+          timer.cancel();
+          connecting.remove(socket);
+          // From 'man 2 connect':
+          // After select(2) indicates writability, use getsockopt(2) to read
+          // the SO_ERROR option at level SOL_SOCKET to determine whether
+          // connect() completed successfully (SO_ERROR is zero) or
+          // unsuccessfully.
+          OSError osError = socket.nativeGetError();
+          if (osError.errorCode != 0) {
+            socket.close();
+            error ??= osError;
+            // No timer is active for triggering next tryConnect(), do it
+            // manually.
+            if (connecting.isEmpty) connectNext();
+            return;
+          }
+          socket.setListening(read: false, write: false);
+          completer.complete(socket);
+          connecting.forEach((s, t) {
+            t.cancel();
+            s.close();
+            s.setHandlers();
+            s.setListening(read: false, write: false);
+          });
+          connecting.clear();
+        }, error: (e, st) {
+          timer.cancel();
+          socket.close();
+          // Keep first error, if present.
+          error ??= e;
+          connecting.remove(socket);
+          if (connecting.isEmpty) connectNext();
+        });
+        socket.setListening(read: false, write: true);
       }
     }
-    return new Future.value(host).then((host) {
-      if (host is _InternetAddress) return [host];
-      return lookup(host).then((addresses) {
+
+    void onCancel() {
+      connecting.forEach((s, t) {
+        t.cancel();
+        s.close();
+        s.setHandlers();
+        s.setListening(read: false, write: false);
+        if (error == null) {
+          error = createError(null,
+              "Connection attempt cancelled, host: ${host}, port: ${port}");
+        }
+      });
+      connecting.clear();
+      if (!completer.isCompleted) {
+        completer.completeError(error! as Object);
+      }
+    }
+
+    // The stream is constructed in the _lookup() and should not emit the error.
+    streamSubscription = stream.listen((address) {
+      queue.add(address);
+      if (tryConnect) {
+        tryConnect = false;
+        connectNext();
+      }
+    }, onError: (e) {
+      streamSubscription.cancel();
+      streamClosed = true;
+      // The error comes from lookup() and we just rethrow the error.
+      throw e;
+    }, onDone: () {
+      streamClosed = true;
+      // In case that stream closes later than connectNext() exhausts all
+      // Internet addresses, check whether an error is thrown.
+      if (queue.isEmpty && connecting.isEmpty && !completer.isCompleted) {
+        completer.completeError(error);
+      }
+    });
+
+    return Future.value(
+        ConnectionTask<_NativeSocket>._(completer.future, onCancel));
+  }
+
+  // The [host] should be either a String or an _InternetAddress.
+  static Future<Stream> _lookup(host) async {
+    if (host is _InternetAddress) {
+      return Stream.value(host);
+    } else {
+      assert(host is String);
+      // If host is an IPv4 or IPv6 literal, bypass the lookup.
+      final inAddr = _InternetAddress._parse(host);
+      if (inAddr != null && inAddr.length == _InternetAddress._IPv4AddrLength) {
+        var addresses = await lookup(host, type: InternetAddressType.IPv4);
         if (addresses.isEmpty) {
           throw createError(null, "Failed host lookup: '$host'");
         }
-        return addresses;
-      });
-    }).then((addresses) {
-      var completer = new Completer<_NativeSocket>();
-      var it = (addresses as List<InternetAddress>).iterator;
-      var error = null;
-      var connecting = new HashMap();
-
-      void connectNext() {
-        if (!it.moveNext()) {
-          if (connecting.isEmpty) {
-            assert(error != null);
-            completer.completeError(error);
-          }
-          return;
+        return Stream.fromIterable(addresses);
+      }
+      if (inAddr != null && inAddr.length == _InternetAddress._IPv6AddrLength) {
+        var addresses = await lookup(host, type: InternetAddressType.IPv6);
+        if (addresses.isEmpty) {
+          throw createError(null, "Failed host lookup: '$host'");
         }
-        final _InternetAddress address = it.current as _InternetAddress;
-        var socket = new _NativeSocket.normal(address);
-        var result;
-        if (sourceAddress == null) {
-          if (address.type == InternetAddressType.unix) {
-            result = socket.nativeCreateUnixDomainConnect(
-                address.address, _Namespace._namespace);
-          } else {
-            result = socket.nativeCreateConnect(
-                address._in_addr, port, address._scope_id);
-          }
-        } else {
-          assert(sourceAddress is _InternetAddress);
-          if (address.type == InternetAddressType.unix) {
-            assert(sourceAddress.type == InternetAddressType.unix);
-            result = socket.nativeCreateUnixDomainBindConnect(
-                address.address, sourceAddress.address, _Namespace._namespace);
-          } else {
-            result = socket.nativeCreateBindConnect(address._in_addr, port,
-                sourceAddress._in_addr, address._scope_id);
-          }
-        }
-        if (result is OSError) {
-          // Keep first error, if present.
-          if (error == null) {
-            int errorCode = result.errorCode;
-            if (sourceAddress != null &&
-                errorCode != null &&
-                socket.isBindError(errorCode)) {
-              error = createError(result, "Bind failed", sourceAddress);
-            } else {
-              error = createError(result, "Connection failed", address, port);
-            }
-          }
-          connectNext();
-        } else {
-          // Query the local port for error messages.
-          try {
-            socket.port;
-          } catch (e) {
-            if (error == null) {
-              error = createError(e, "Connection failed", address, port);
-            }
-            connectNext();
-          }
-          // Set up timer for when we should retry the next address
-          // (if any).
-          var duration =
-              address.isLoopback ? _retryDurationLoopback : _retryDuration;
-          var timer = new Timer(duration, connectNext);
-          setupResourceInfo(socket);
-
-          connecting[socket] = timer;
-          // Setup handlers for receiving the first write event which
-          // indicate that the socket is fully connected.
-          socket.setHandlers(write: () {
-            timer.cancel();
-            connecting.remove(socket);
-            // From 'man 2 connect':
-            // After select(2) indicates writability, use getsockopt(2) to read
-            // the SO_ERROR option at level SOL_SOCKET to determine whether
-            // connect() completed successfully (SO_ERROR is zero) or
-            // unsuccessfully.
-            OSError osError = socket.nativeGetError();
-            if (osError.errorCode != 0) {
-              socket.close();
-              if (error == null) error = osError;
-              if (connecting.isEmpty) connectNext();
-              return;
-            }
-            socket.setListening(read: false, write: false);
-            completer.complete(socket);
-            connecting.forEach((s, t) {
-              t.cancel();
-              s.close();
-              s.setHandlers();
-              s.setListening(read: false, write: false);
-            });
-            connecting.clear();
-          }, error: (e, st) {
-            timer.cancel();
-            socket.close();
-            // Keep first error, if present.
-            if (error == null) error = e;
-            connecting.remove(socket);
-            if (connecting.isEmpty) connectNext();
-          });
-          socket.setListening(read: false, write: true);
-        }
+        return Stream.fromIterable(addresses);
       }
 
-      void onCancel() {
-        connecting.forEach((s, t) {
-          t.cancel();
-          s.close();
-          s.setHandlers();
-          s.setListening(read: false, write: false);
-          if (error == null) {
-            error = createError(null,
-                "Connection attempt cancelled, host: ${host}, port: ${port}");
-          }
-        });
-        connecting.clear();
-        if (!completer.isCompleted) {
-          completer.completeError(error);
+      if (Platform.isIOS) {
+        return _concurrentLookup(host);
+      } else {
+        var addresses = await lookup(host, type: InternetAddressType.any);
+        if (addresses.isEmpty) {
+          throw createError(null, "Failed host lookup: '$host'");
         }
+        return Stream.fromIterable(addresses);
       }
+    }
+  }
 
-      connectNext();
-      return new ConnectionTask<_NativeSocket>._(completer.future, onCancel);
+  static Stream<InternetAddress> _concurrentLookup(String host) {
+    final controller = StreamController<InternetAddress>();
+    // Lookup IPv4 and IPv6 concurrently
+    Future.wait([
+      for (final type in [InternetAddressType.IPv4, InternetAddressType.IPv6])
+        lookup(host, type: type).then((list) {
+          for (final address in list) {
+            controller.add(address);
+          }
+          return list.isNotEmpty;
+        })
+    ]).then((successes) {
+      if (!successes.contains(true)) {
+        // Neither lookup found an address.
+        throw createError(null, "Failed host lookup: '$host'");
+      }
+      controller.close();
     });
+    return controller.stream;
   }
 
   static Future<_NativeSocket> connect(
