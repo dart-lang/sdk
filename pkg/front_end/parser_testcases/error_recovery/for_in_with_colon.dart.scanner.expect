@@ -1,0 +1,11 @@
+main() {
+for(int i : [1, 2, 3]) {
+print(i);
+}
+}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+for[KeywordToken]([BeginToken]int[StringToken] i[StringToken] :[SimpleToken] [[BeginToken]1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] 3[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]i[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

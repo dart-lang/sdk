@@ -6248,7 +6248,7 @@ class Parser {
       token =
           parseVariablesDeclarationRest(token, /* endWithSemicolon = */ false);
       listener.handleForInitializerLocalVariableDeclaration(
-          token, optional('in', token.next));
+          token, optional('in', token.next) || optional(':', token.next));
     } else if (optional(';', token.next)) {
       listener.handleForInitializerEmptyStatement(token.next);
     } else {
