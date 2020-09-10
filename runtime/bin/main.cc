@@ -1240,8 +1240,9 @@ void main(int argc, char** argv) {
 // Note: must read platform only *after* VM flags are parsed because
 // they might affect how the platform is loaded.
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  // Load vm_platform_strong.dill for dart:* source support.
+  dfe.Init();
   if (script_name != nullptr) {
-    dfe.Init();
     uint8_t* application_kernel_buffer = NULL;
     intptr_t application_kernel_buffer_size = 0;
     dfe.ReadScript(script_name, &application_kernel_buffer,
