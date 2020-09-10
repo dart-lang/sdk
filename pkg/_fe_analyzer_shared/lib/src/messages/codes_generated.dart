@@ -295,6 +295,36 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String string,
+        String
+            string2)> templateBinaryOperatorWrittenOut = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Binary operator '#string' is written as '#string2' instead of the written out word.""",
+    tipTemplate: r"""Try replacing '#string' with '#string2'.""",
+    withArguments: _withArgumentsBinaryOperatorWrittenOut);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeBinaryOperatorWrittenOut =
+    const Code<Message Function(String string, String string2)>(
+        "BinaryOperatorWrittenOut", templateBinaryOperatorWrittenOut,
+        index: 112);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBinaryOperatorWrittenOut(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeBinaryOperatorWrittenOut,
+      message:
+          """Binary operator '${string}' is written as '${string2}' instead of the written out word.""",
+      tip: """Try replacing '${string}' with '${string2}'.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
         String name,
         String
             name2)> templateBoundIssueViaCycleNonSimplicity = const Template<

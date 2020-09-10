@@ -72,6 +72,9 @@ class ParserErrorCode extends ErrorCode {
           "The keywords 'await' and 'yield' can't be used as "
               "identifiers in an asynchronous or generator function.");
 
+  static const ParserErrorCode BINARY_OPERATOR_WRITTEN_OUT =
+      _BINARY_OPERATOR_WRITTEN_OUT;
+
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = _BREAK_OUTSIDE_OF_LOOP;
 
   static const ParserErrorCode CATCH_SYNTAX = _CATCH_SYNTAX;

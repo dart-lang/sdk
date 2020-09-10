@@ -406,14 +406,18 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
 
   void doPrint(String s) {
     super.doPrint(s);
-    if (s.startsWith("beginCompilationUnit(") ||
-        s.startsWith("endCompilationUnit(")) {
-      if (indent != 0) {
-        throw "Incorrect indents: '$s' (indent = $indent).\n\n${sb.toString()}";
-      }
-    } else {
-      if (indent <= 0) {
-        throw "Incorrect indents: '$s' (indent = $indent).\n\n${sb.toString()}";
+    if (!annotateLines) {
+      if (s.startsWith("beginCompilationUnit(") ||
+          s.startsWith("endCompilationUnit(")) {
+        if (indent != 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      } else {
+        if (indent <= 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
       }
     }
   }

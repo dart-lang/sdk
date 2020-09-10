@@ -5,7 +5,8 @@
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, scanString;
-import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart'
+    show ReplacementToken, Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -127,6 +128,46 @@ abstract class TokenStreamRewriterTest {
     rewriter.insertToken(a, b);
     expect(a.next, same(b));
     expect(b.next, same(c));
+  }
+
+  void test_replaceNextTokenWithSyntheticToken_1() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(5, 'b');
+    b.precedingComments = new CommentToken.fromSubstring(
+        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
+        canonicalize: true);
+    var c = _makeToken(10, 'c');
+    _link([a, b, c]);
+
+    var rewriter = new TokenStreamRewriterImpl();
+    ReplacementToken replacement =
+        rewriter.replaceNextTokenWithSyntheticToken(a, TokenType.AMPERSAND);
+    expect(b.offset, same(replacement.offset));
+    expect(b.precedingComments, same(replacement.precedingComments));
+    expect(replacement.replacedToken, same(b));
+
+    expect(a.next, same(replacement));
+    expect(replacement.next, same(c));
+    expect(c.next.isEof, true);
+  }
+
+  void test_replaceNextTokenWithSyntheticToken_2() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(5, 'b');
+    b.precedingComments = new CommentToken.fromSubstring(
+        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
+        canonicalize: true);
+    _link([a, b]);
+
+    var rewriter = new TokenStreamRewriterImpl();
+    ReplacementToken replacement =
+        rewriter.replaceNextTokenWithSyntheticToken(a, TokenType.AMPERSAND);
+    expect(b.offset, same(replacement.offset));
+    expect(b.precedingComments, same(replacement.precedingComments));
+    expect(replacement.replacedToken, same(b));
+
+    expect(a.next, same(replacement));
+    expect(replacement.next.isEof, true);
   }
 
   void test_moveSynthetic() {

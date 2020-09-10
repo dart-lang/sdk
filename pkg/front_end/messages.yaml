@@ -3061,6 +3061,14 @@ ColonInPlaceOfIn:
   tip: "Try replacing the colon with the keyword 'in'."
   analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
 
+BinaryOperatorWrittenOut:
+  index: 112
+  template: "Binary operator '#string' is written as '#string2' instead of the written out word."
+  tip: "Try replacing '#string' with '#string2'."
+  analyzerCode: ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT
+  script: >
+    int foo(int x, int y) => x xor y;
+
 ExternalFactoryRedirection:
   index: 85
   template: "A redirecting factory can't be external."

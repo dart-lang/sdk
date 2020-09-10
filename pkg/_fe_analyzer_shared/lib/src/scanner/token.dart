@@ -804,6 +804,32 @@ class SyntheticToken extends SimpleToken {
   Token copy() => new SyntheticToken(type, offset);
 }
 
+/// A token used to replace another token in the stream, while still keeping the
+/// old token around (in [replacedToken]). Automatically sets the offset and
+/// precedingComments from the data available on [replacedToken].
+class ReplacementToken extends SyntheticToken {
+  /// The token that this token replaces. This will normally be the token
+  /// representing what the user actually wrote.
+  final Token replacedToken;
+
+  ReplacementToken(TokenType type, this.replacedToken)
+      : super(type, replacedToken.offset) {
+    precedingComments = replacedToken.precedingComments;
+  }
+
+  @override
+  Token beforeSynthetic;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new ReplacementToken(type, replacedToken);
+}
+
 /**
  * A token that was scanned from the input. Each token knows which tokens
  * precede and follow it, acting as a link in a doubly linked list of tokens.
