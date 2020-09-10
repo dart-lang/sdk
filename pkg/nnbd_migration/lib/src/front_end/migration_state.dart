@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/migration_cli.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/front_end/dartfix_listener.dart';
 import 'package:nnbd_migration/src/front_end/info_builder.dart';
@@ -38,9 +39,14 @@ class MigrationState {
   /// If there have been changes to disk so the migration needs to be rerun.
   bool needsRerun = false;
 
+  final AnalysisResult analysisResult;
+
   /// Initialize a newly created migration state with the given values.
   MigrationState(this.migration, this.includedRoot, this.listener,
-      this.instrumentationListener);
+      this.instrumentationListener,
+      [this.analysisResult]);
+
+  bool get hasErrors => analysisResult?.hasErrors ?? false;
 
   /// If the migration has been applied to disk.
   bool get hasBeenApplied => _hasBeenApplied;
@@ -63,4 +69,6 @@ class MigrationState {
         unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
     pathMapper = PathMapper(provider);
   }
+
+  /*late*/ List<String> previewUrls;
 }
