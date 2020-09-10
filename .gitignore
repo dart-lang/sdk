@@ -61,6 +61,7 @@ compile_commands.json
 .gdb_history
 
 # Clangd files
+.cache/clangd
 .clangd
 
 # Built by chromebot and downloaded from Google Storage

@@ -424,14 +424,8 @@ class WidgetCreatorTracker {
         }
       }
       if (!hasRedirectingInitializer) {
-        constructor.initializers.add(new FieldInitializer(
-          locationField,
-          clazz.enclosingLibrary.isNonNullableByDefault
-              // The parameter is nullable so that it can be optional but the
-              // field is non-nullable so we check it here.
-              ? new NullCheck(new VariableGet(variable))
-              : new VariableGet(variable),
-        ));
+        constructor.initializers.add(
+            new FieldInitializer(locationField, new VariableGet(variable)));
         // TODO(jacobr): add an assert verifying the locationField is not
         // null. Currently, we cannot safely add this assert because we do not
         // handle Widget classes with optional positional arguments. There are
