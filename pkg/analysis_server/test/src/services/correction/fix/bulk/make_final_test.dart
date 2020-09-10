@@ -10,6 +10,7 @@ import 'bulk_fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferFinalFieldsTest);
+    defineReflectiveTests(PreferFinalLocalsTest);
   });
 }
 
@@ -33,6 +34,27 @@ class C {
   final _f2 = 2;
   int get g => _f;
   int get g2 => _f2;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class PreferFinalLocalsTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.prefer_final_locals;
+
+  Future<void> test_singleFile() async {
+    await resolveTestUnit('''
+f() {
+  var x = 0;
+  var y = x;
+}
+''');
+    await assertHasFix('''
+f() {
+  final x = 0;
+  final y = x;
 }
 ''');
   }

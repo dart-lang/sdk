@@ -14,6 +14,45 @@ void main() {
 
 @reflectiveTest
 class EndToEndTest extends DataDrivenFixProcessorTest {
+  Future<void> test_addParameter() async {
+    setPackageContent('''
+class C {
+  void m(int x, int y) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add parameter'
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'addParameter'
+      index: 1
+      name: 'y'
+      style: required_positional
+      argumentValue:
+        kind: 'argument'
+        index: 0
+''');
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0, 0);
+}
+''');
+  }
+
   Future<void> test_addTypeParameter() async {
     setPackageContent('''
 class C {
@@ -49,6 +88,40 @@ import '$importUri';
 
 void f(C c) {
   c.m<int, String>(String);
+}
+''');
+  }
+
+  Future<void> test_removeParameter() async {
+    setPackageContent('''
+class C {
+  void m(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Add argument'
+  element:
+    uris: ['$importUri']
+    method: 'm'
+    inClass: 'C'
+  changes:
+    - kind: 'removeParameter'
+      index: 1
+''');
+    await resolveTestUnit('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0, 1);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.m(0);
 }
 ''');
   }

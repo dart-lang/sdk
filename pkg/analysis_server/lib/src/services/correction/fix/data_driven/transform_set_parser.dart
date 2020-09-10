@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
@@ -17,11 +18,13 @@ import 'package:yaml/yaml.dart';
 
 /// A parser used to read a transform set from a file.
 class TransformSetParser {
+  static const String _argumentValueKey = 'argumentValue';
   static const String _changesKey = 'changes';
   static const String _classKey = 'class';
+  static const String _constantKey = 'constant';
   static const String _constructorKey = 'constructor';
+  static const String _defaultValueKey = 'defaultValue';
   static const String _elementKey = 'element';
-  static const String _enumConstantKey = 'constant';
   static const String _enumKey = 'enum';
   static const String _extensionKey = 'extension';
   static const String _fieldKey = 'field';
@@ -38,6 +41,7 @@ class TransformSetParser {
   static const String _nameKey = 'name';
   static const String _newNameKey = 'newName';
   static const String _setterKey = 'setter';
+  static const String _styleKey = 'style';
   static const String _titleKey = 'title';
   static const String _transformsKey = 'transforms';
   static const String _typedefKey = 'typedef';
@@ -49,21 +53,27 @@ class TransformSetParser {
   /// the possible containers of that element.
   static const Map<String, List<String>> _containerKeyMap = {
     _constructorKey: [_inClassKey],
-    _enumConstantKey: [_inEnumKey],
+    _constantKey: [_inEnumKey],
     _fieldKey: [_inClassKey, _inExtensionKey, _inMixinKey],
     _getterKey: [_inClassKey, _inExtensionKey, _inMixinKey],
     _methodKey: [_inClassKey, _inExtensionKey, _inMixinKey],
     _setterKey: [_inClassKey, _inExtensionKey, _inMixinKey],
   };
 
+  static const String _addParameterKind = 'addParameter';
   static const String _addTypeParameterKind = 'addTypeParameter';
   static const String _argumentKind = 'argument';
+  static const String _removeParameterKind = 'removeParameter';
   static const String _renameKind = 'rename';
 
   static const int currentVersion = 1;
 
   /// The error reporter to which diagnostics will be reported.
   final ErrorReporter errorReporter;
+
+  /// The parameter modifications associated with the current transform, or
+  /// `null` if the current transform does not yet have any such modifications.
+  List<ParameterModification> _parameterModifications;
 
   /// Initialize a newly created parser to report diagnostics to the
   /// [errorReporter].
@@ -160,6 +170,52 @@ class TransformSetParser {
     return foundKeys[0];
   }
 
+  /// Translate the [node] into a add-parameter modification.
+  void _translateAddParameterChange(YamlMap node) {
+    _singleKey(node, [_indexKey, _nameKey]);
+    _reportUnsupportedKeys(node, const {_indexKey, _kindKey, _nameKey});
+    var index = _translateInteger(node.valueAt(_indexKey), _indexKey);
+    if (index == null) {
+      return;
+    }
+    var name = _translateString(node.valueAt(_nameKey), _nameKey);
+    if (name == null) {
+      return;
+    }
+    var style = _translateString(node.valueAt(_styleKey), _styleKey);
+    if (style == null) {
+      return;
+    }
+    var isRequired = style.startsWith('required_');
+    var isPositional = style.endsWith('_positional');
+    // TODO(brianwilkerson) I originally thought we'd need a default value, but
+    //  it seems like we ought to be able to get it from the overridden method,
+    //  so investigate removing this field.
+    var defaultValue = _translateValueExtractor(
+        node.valueAt(_defaultValueKey), _defaultValueKey);
+    if (isRequired && defaultValue != null) {
+      // TODO(brianwilkerson) Report that required parameters can't have a
+      //  default value.
+      return;
+    }
+    var argumentValue = _translateValueExtractor(
+        node.valueAt(_argumentValueKey), _argumentValueKey);
+    // TODO(brianwilkerson) We really ought to require an argument value for
+    //  optional positional parameters too for the case where the added
+    //  parameter is being added before the end of the list and call sites might
+    //  already be providing a value for subsequent parameters. Unfortunately we
+    //  can't know at this point whether there are subsequent parameters in
+    //  order to require it only when it's potentially necessary.
+    if (isRequired && argumentValue == null) {
+      // TODO(brianwilkerson) Report that required parameters must have an
+      //  argument value.
+      return;
+    }
+    _parameterModifications ??= [];
+    _parameterModifications.add(AddParameter(
+        index, name, isRequired, isPositional, defaultValue, argumentValue));
+  }
+
   /// Translate the [node] into an add-type-parameter change. Return the
   /// resulting change, or `null` if the [node] does not represent a valid
   /// add-type-parameter change.
@@ -219,6 +275,12 @@ class TransformSetParser {
         return _translateAddTypeParameterChange(node);
       } else if (kind == _renameKind) {
         return _translateRenameChange(node);
+      } else if (kind == _addParameterKind) {
+        _translateAddParameterChange(node);
+        return null;
+      } else if (kind == _removeParameterKind) {
+        _translateRemoveParameterChange(node);
+        return null;
       }
       // TODO(brianwilkerson) Report the invalid change kind.
       return null;
@@ -248,7 +310,7 @@ class TransformSetParser {
       }
       var elementKey = _singleKey(node, [
         _classKey,
-        _enumConstantKey,
+        _constantKey,
         _constructorKey,
         _enumKey,
         _extensionKey,
@@ -270,7 +332,7 @@ class TransformSetParser {
       var containerName =
           _translateString(node.valueAt(containerKey), containerKey);
       if (containerName == null) {
-        if ([_constructorKey, _enumConstantKey, _methodKey, _fieldKey]
+        if ([_constructorKey, _constantKey, _methodKey, _fieldKey]
             .contains(elementKey)) {
           // TODO(brianwilkerson) Report that no container was found.
           return null;
@@ -338,6 +400,25 @@ class TransformSetParser {
     }
   }
 
+  /// Translate the [node] into a remove-parameter modification.
+  void _translateRemoveParameterChange(YamlMap node) {
+    _singleKey(node, [_indexKey, _nameKey]);
+    _reportUnsupportedKeys(node, const {_indexKey, _kindKey, _nameKey});
+    ParameterReference reference;
+    var index = _translateInteger(node.valueAt(_indexKey), _indexKey);
+    if (index != null) {
+      reference = PositionalParameterReference(index);
+    } else {
+      var name = _translateString(node.valueAt(_nameKey), _nameKey);
+      if (name == null) {
+        return;
+      }
+      reference = NamedParameterReference(name);
+    }
+    _parameterModifications ??= [];
+    _parameterModifications.add(RemoveParameter(reference));
+  }
+
   /// Translate the [node] into a rename change. Return the resulting change, or
   /// `null` if the [node] does not represent a valid rename change.
   Rename _translateRenameChange(YamlMap node) {
@@ -380,11 +461,15 @@ class TransformSetParser {
       _reportUnsupportedKeys(node, const {_changesKey, _elementKey, _titleKey});
       var title = _translateString(node.valueAt(_titleKey), _titleKey);
       var element = _translateElement(node.valueAt(_elementKey), _elementKey);
-      var changes = _translateList<Change>(
+      var changes = _translateList(
           node.valueAt(_changesKey), _changesKey, _translateChange);
       if (changes == null) {
         // The error has already been reported.
         return null;
+      }
+      if (_parameterModifications != null) {
+        changes.add(ModifyParameters(modifications: _parameterModifications));
+        _parameterModifications = null;
       }
       return Transform(title: title, element: element, changes: changes);
     } else if (node == null) {
