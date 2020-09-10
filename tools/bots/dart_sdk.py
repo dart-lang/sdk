@@ -41,13 +41,16 @@ def BuildDartdocAPIDocs(dirname):
     dart_exe = os.path.join(dart_sdk, 'bin', 'dart')
     dartdoc_dart = os.path.join(bot_utils.DART_DIR, 'third_party', 'pkg',
                                 'dartdoc', 'bin', 'dartdoc.dart')
+    footer_text_file = os.path.join(bot_utils.DART_DIR, 'tools', 'bots',
+                                    'dartdoc_footer_text.html')
     footer_file = os.path.join(bot_utils.DART_DIR, 'tools', 'bots',
                                'dartdoc_footer.html')
     url = 'https://api.dartlang.org/stable'
     with bot.BuildStep('Build API docs by dartdoc'):
         bot_utils.run([
             dart_exe, dartdoc_dart, '--sdk-docs', '--output', dirname,
-            '--enable-experiment', 'non-nullable', '--footer', footer_file,
+            '--enable-experiment', 'non-nullable', '--footer-text',
+            footer_text_file, '--footer', footer_file,
             '--rel-canonical-prefix=' + url
         ])
 
