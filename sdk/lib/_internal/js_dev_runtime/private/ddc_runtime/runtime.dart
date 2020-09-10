@@ -11,7 +11,7 @@ import 'dart:collection';
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray, jsNull, JSFunction, NativeError;
-import 'dart:_internal' as internal show Symbol;
+import 'dart:_internal' as internal show LateInitializationErrorImpl, Symbol;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,

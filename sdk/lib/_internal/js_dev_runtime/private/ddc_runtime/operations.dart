@@ -785,22 +785,38 @@ void defineLazy(to, from, bool useOldSemantics) {
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
 defineLazyField(to, name, desc) => JS('', '''(() => {
   const initializer = $desc.get;
+  const final = $desc.set == null;
+  // Tracks if the initializer has been called.
+  let initialized = false;
   let init = initializer;
   let value = null;
-  let executed = false;
+  // Tracks if these local variables have been saved so they can be restored
+  // after a hot restart.
+  let savedLocals = false;
   $desc.get = function() {
     if (init == null) return value;
-    if (!executed) {
+    if (final && initialized) $throwLateInitializationError($name);
+    if (!savedLocals) {
       // Record the field on first execution so we can reset it later if
       // needed (hot restart).
       $_resetFields.push(() => {
         init = initializer;
         value = null;
-        executed = false;
+        savedLocals = false;
+        initialized = false;
       });
-      executed = true;
+      savedLocals = true;
     }
-    value = init();
+    // Must set before calling init in case it is recursive.
+    initialized = true;
+    try {
+      value = init();
+    } catch (e) {
+      // Reset to false so the initializer can be executed again if the
+      // exception was caught.
+      initialized = false;
+      throw e;
+    }
     init = null;
     return value;
   };
@@ -809,7 +825,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     $desc.set = function(x) {
       init = null;
       value = x;
-      // executed is dead since init is set to null
+      // savedLocals and initialized are dead since init is set to null
     };
   }
   return ${defineProperty(to, name, desc)};
