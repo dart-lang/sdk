@@ -5332,6 +5332,9 @@ class InferenceVisitor
       enumFields = expressionType.classNode.fields
           .where((Field field) => field.isConst && field.type == expressionType)
           .toSet();
+      if (expressionType.isPotentiallyNullable) {
+        enumFields.add(null);
+      }
     }
 
     inferrer.flowAnalysis.switchStatement_expressionEnd(node);
@@ -5350,8 +5353,12 @@ class InferenceVisitor
         Expression caseExpression = caseExpressionResult.expression;
         switchCase.expressions[index] = caseExpression..parent = switchCase;
         DartType caseExpressionType = caseExpressionResult.inferredType;
-        if (enumFields != null && caseExpression is StaticGet) {
-          enumFields.remove(caseExpression.target);
+        if (enumFields != null) {
+          if (caseExpression is StaticGet) {
+            enumFields.remove(caseExpression.target);
+          } else if (caseExpression is NullLiteral) {
+            enumFields.remove(null);
+          }
         }
 
         if (!inferrer.isTopLevel) {
