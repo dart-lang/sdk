@@ -679,6 +679,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_TypeParameter) {
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript));
   const auto& class_a = Class::Handle(GetClass(root_library, "A"));
+  ClassFinalizer::FinalizeTypesInClass(class_a);
+
   const auto& fun_generic =
       Function::Handle(GetFunction(root_library, "genericFun"));
 
