@@ -1114,6 +1114,17 @@ class CollectionLiteralParserTest extends FastaParserTestCase {
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
+  void test_binary_operator_written_out_expression() {
+    BinaryExpression expression = parseExpression('x xor y', errors: [
+      expectedError(ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT, 2, 3),
+    ]);
+    SimpleIdentifier lhs = expression.leftOperand;
+    expect(lhs.name, 'x');
+    expect(expression.operator.lexeme, '^');
+    SimpleIdentifier rhs = expression.rightOperand;
+    expect(rhs.name, 'y');
+  }
+
   void test_conditionalExpression_precedence_nullableType_as2() {
     ExpressionStatement statement = parseStatement('x as bool? ? (x + y) : z;');
     ConditionalExpression expression = statement.expression;

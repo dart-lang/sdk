@@ -9,6 +9,7 @@ import '../scanner/token.dart'
         BeginToken,
         CommentToken,
         Keyword,
+        ReplacementToken,
         SimpleToken,
         SyntheticBeginToken,
         SyntheticKeywordToken,
@@ -111,6 +112,27 @@ abstract class TokenStreamRewriter with _TokenStreamMixin {
       _setPrevious(current, previous);
     }
     return current;
+  }
+
+  /// Insert a new simple synthetic token of [newTokenType] after
+  /// [previousToken] instead of the token actually coming after it and return
+  /// the new token.
+  /// The old token will be linked from the new one though, so it's not totally
+  /// gone.
+  ReplacementToken replaceNextTokenWithSyntheticToken(
+      Token previousToken, TokenType newTokenType) {
+    assert(newTokenType is! Keyword,
+        'use an unwritten variation of insertSyntheticKeyword instead');
+
+    // [token] <--> [a] <--> [b]
+    ReplacementToken replacement =
+        new ReplacementToken(newTokenType, previousToken.next);
+    insertToken(previousToken, replacement);
+    // [token] <--> [replacement] <--> [a] <--> [b]
+    _setNext(replacement, replacement.next.next);
+    // [token] <--> [replacement] <--> [b]
+
+    return replacement;
   }
 
   Token _setNext(Token setOn, Token nextToken);
@@ -247,6 +269,12 @@ class TokenStreamGhostWriter
   @override
   void _setPrevious(Token setOn, Token previous) {
     throw new UnimplementedError("_setPrevious");
+  }
+
+  @override
+  ReplacementToken replaceNextTokenWithSyntheticToken(
+      Token previousToken, TokenType newTokenType) {
+    throw new UnimplementedError("replaceWithSyntheticToken");
   }
 }
 

@@ -80,31 +80,32 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
 
-  Fragment BuildDynamicCallVarsInit(LocalVariable* closure);
+  struct ClosureCallInfo;
+
+  // Tests whether the function parameter at the given index is required and
+  // branches to the appropriate fragment. Loads the parameter index to
+  // check from info.vars->current_param_index.
+  Fragment TestClosureFunctionNamedParameterRequired(
+      const ClosureCallInfo& info,
+      Fragment set,
+      Fragment not_set);
 
   // The BuildClosureCall...Check methods differs from the checks built in the
   // PrologueBuilder in that they are built for invoke field dispatchers,
   // where the ArgumentsDescriptor is known at compile time but the specific
   // closure function is retrieved at runtime.
 
-  // Builds checks that all required arguments are provided. Generates an empty
-  // fragment if null safety is not enabled.
-  Fragment BuildClosureCallHasRequiredNamedArgumentsCheck(
-      LocalVariable* closure,
-      JoinEntryInstr* nsm);
+  // Builds checks that the given named arguments have valid argument names
+  // and, in the case of null safe code, that all required named parameters
+  // are provided.
+  Fragment BuildClosureCallNamedArgumentsCheck(const ClosureCallInfo& info);
 
   // Builds checks for checking the arguments of a call are valid for the
-  // function retrieved at runtime from the closure. Checks almost all the
-  // same cases as Function::AreArgumentsValid, leaving only name checking
-  // for optional named arguments to be checked during argument type checking.
-  Fragment BuildClosureCallArgumentsValidCheck(LocalVariable* closure,
-                                               JoinEntryInstr* nsm);
+  // function retrieved at runtime from the closure.
+  Fragment BuildClosureCallArgumentsValidCheck(const ClosureCallInfo& info);
 
-  // Builds checks that the given named argument has a valid argument name.
-  // Returns the empty fragment for positional arguments.
-  Fragment BuildClosureCallNamedArgumentCheck(LocalVariable* closure,
-                                              intptr_t pos,
-                                              JoinEntryInstr* nsm);
+  // Main entry point for building checks.
+  Fragment BuildDynamicClosureCallChecks(LocalVariable* closure);
 
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);

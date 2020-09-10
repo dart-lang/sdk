@@ -31,15 +31,15 @@ main() {
   f(intToObject);
   //^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The top level function has type 'Object Function(int)' that isn't of expected type 'num Function(num)'.
+  // [cfe] The argument type 'Object Function(int)' can't be assigned to the parameter type 'num Function(num)'.
   f(intToNum);
   //^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The top level function has type 'num Function(int)' that isn't of expected type 'num Function(num)'.
+  // [cfe] The argument type 'num Function(int)' can't be assigned to the parameter type 'num Function(num)'.
   f(numToObject);
   //^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] The top level function has type 'Object Function(num)' that isn't of expected type 'num Function(num)'.
+  // [cfe] The argument type 'Object Function(num)' can't be assigned to the parameter type 'num Function(num)'.
 
   // Ok.
   f(numToNum);

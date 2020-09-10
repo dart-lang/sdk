@@ -597,6 +597,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT,
   ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+  ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
   ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
   ParserErrorCode.CATCH_SYNTAX,
   ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,

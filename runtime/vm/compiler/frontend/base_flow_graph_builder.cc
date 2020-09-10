@@ -682,10 +682,15 @@ Fragment BaseFlowGraphBuilder::StoreLocalRaw(TokenPosition position,
   return instructions;
 }
 
-LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
-  char name[64];
+LocalVariable* BaseFlowGraphBuilder::MakeTemporary(const char* suffix) {
+  static constexpr intptr_t kTemporaryNameLength = 64;
+  char name[kTemporaryNameLength];
   intptr_t index = stack_->definition()->temp_index();
-  Utils::SNPrint(name, 64, ":t%" Pd, index);
+  if (suffix != nullptr) {
+    Utils::SNPrint(name, kTemporaryNameLength, ":t_%s", suffix);
+  } else {
+    Utils::SNPrint(name, kTemporaryNameLength, ":t%" Pd, index);
+  }
   const String& symbol_name =
       String::ZoneHandle(Z, Symbols::New(thread_, name));
   LocalVariable* variable =
@@ -705,6 +710,16 @@ LocalVariable* BaseFlowGraphBuilder::MakeTemporary() {
   }
 
   return variable;
+}
+
+Fragment BaseFlowGraphBuilder::DropTemporary(LocalVariable** temp) {
+  ASSERT(temp != nullptr && *temp != nullptr && (*temp)->HasIndex());
+  // Check that the temporary matches the current stack definition.
+  ASSERT_EQUAL(
+      stack_->definition()->temp_index(),
+      -(*temp)->index().value() - parsed_function_->num_stack_locals());
+  *temp = nullptr;  // Clear to avoid inadvertent usage after dropping.
+  return Drop();
 }
 
 void BaseFlowGraphBuilder::SetTempIndex(Definition* definition) {

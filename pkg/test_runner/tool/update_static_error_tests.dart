@@ -19,9 +19,9 @@ import 'package:test_runner/src/update_errors.dart';
 const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";
 
-final _dartPath = _findBinary("dart");
-final _analyzerPath = _findBinary("dartanalyzer");
-final _dart2jsPath = _findBinary("dart2js");
+final _dartPath = _findBinary("dart", "exe");
+final _analyzerPath = _findBinary("dartanalyzer", "bat");
+final _dart2jsPath = _findBinary("dart2js", "bat");
 
 Future<void> main(List<String> args) async {
   var sources = ErrorSource.all.map((e) => e.marker).toList();
@@ -301,8 +301,8 @@ Future<List<StaticError>> runDart2js(
 }
 
 /// Find the most recently-built [binary] in any of the build directories.
-String _findBinary(String binary) {
-  if (Platform.isWindows) binary += ".bat";
+String _findBinary(String name, String windowsExtension) {
+  String binary = Platform.isWindows ? "$name.$windowsExtension" : name;
 
   String newestPath;
   DateTime newestTime;
@@ -310,13 +310,13 @@ String _findBinary(String binary) {
   var buildDirectory = Directory(Platform.isMacOS ? "xcodebuild" : "out");
   if (buildDirectory.existsSync()) {
     for (var config in buildDirectory.listSync()) {
-      var analyzerPath = p.join(config.path, "dart-sdk", "bin", binary);
-      var analyzerFile = File(analyzerPath);
-      if (!analyzerFile.existsSync()) continue;
-      var modified = analyzerFile.lastModifiedSync();
+      var path = p.join(config.path, "dart-sdk", "bin", binary);
+      var file = File(path);
+      if (!file.existsSync()) continue;
+      var modified = file.lastModifiedSync();
 
       if (newestTime == null || modified.isAfter(newestTime)) {
-        newestPath = analyzerPath;
+        newestPath = path;
         newestTime = modified;
       }
     }

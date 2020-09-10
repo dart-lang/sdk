@@ -19,7 +19,7 @@ foo3() async {
   return "String";
   //     ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
-  // [cfe] A value of type 'String' can't be assigned to a variable of type 'FutureOr<int>'.
+  // [cfe] A value of type 'String' can't be returned from an async function with return type 'Future<int>'.
 }
 
 Future<int, String>
@@ -34,7 +34,7 @@ int
 // [error line 33, column 1, length 3]
 // [analyzer] COMPILE_TIME_ERROR.ILLEGAL_ASYNC_RETURN_TYPE
 foo5() async {
-// [error line 36, column 1, length 3]
+// [error line 36, column 1]
 // [cfe] Functions marked 'async' must have a return type assignable to 'Future'.
   return 3;
 }
