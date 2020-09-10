@@ -24,7 +24,9 @@ PSDependencyList _processDependencies(YamlScalar key, YamlNode v) {
   YamlMap depsMap = v;
 
   _PSDependencyList deps = _PSDependencyList(_PSNode(key));
-  depsMap.nodes.forEach((k, v) => deps.add(_PSDependency(k, v)));
+  depsMap.nodes.forEach((k, v) {
+    if (k is YamlScalar) deps.add(_PSDependency(k, v));
+  });
   return deps;
 }
 
@@ -159,25 +161,20 @@ class _PSDependency extends PSDependency {
   @override
   PSGitRepo git;
 
-  factory _PSDependency(dynamic k, YamlNode v) {
-    if (k is! YamlScalar) {
-      return null;
-    }
-    YamlScalar key = k;
-
+  factory _PSDependency(YamlScalar key, YamlNode value) {
     _PSDependency dep = _PSDependency._();
 
     dep.name = _PSNode(key);
 
-    if (v is YamlScalar) {
+    if (value is YamlScalar) {
       // Simple version
-      dep.version = PSEntry(null, _PSNode(v));
-    } else if (v is YamlMap) {
+      dep.version = PSEntry(null, _PSNode(value));
+    } else if (value is YamlMap) {
       // hosted:
       //   name: transmogrify
       //   url: http://your-package-server.com
       //   version: '>=0.4.0 <1.0.0'
-      YamlMap details = v;
+      YamlMap details = value;
       details.nodes.forEach((k, v) {
         if (k is! YamlScalar) {
           return;
