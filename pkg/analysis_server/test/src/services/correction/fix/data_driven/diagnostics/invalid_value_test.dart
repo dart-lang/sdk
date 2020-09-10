@@ -22,12 +22,11 @@ transforms:
 - title: 'Rename A'
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - 'rename'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 123, 8),
+      error(TransformSetErrorCode.invalidValue, 110, 8),
     ]);
   }
 
@@ -52,8 +51,7 @@ transforms:
 - title: 'Rename A'
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -69,8 +67,7 @@ transforms:
 - title: 'Rename A'
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -95,8 +92,7 @@ transforms:
 - title: 0
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -112,8 +108,7 @@ transforms:
 - title: []
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       newName: 'B'
@@ -147,15 +142,14 @@ transforms:
 - title: 'Rename A'
   element:
     uris: ['test.dart']
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'addTypeParameter'
       index: 1
       name: 'T'
       value: 'int'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 192, 5),
+      error(TransformSetErrorCode.invalidValue, 179, 5),
     ]);
   }
 }
