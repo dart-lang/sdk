@@ -70,9 +70,6 @@ transforms:
       index: 0
       name: 'p'
       style: optional_positional
-      defaultValue:
-        kind: 'argument'
-        index: 1
 ''');
     var transforms = result.transformsFor('f', ['test.dart']);
     expect(transforms, hasLength(1));
@@ -87,9 +84,6 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, false);
     expect(modification.isPositional, true);
-    var value = modification.defaultValue as ArgumentExtractor;
-    var parameter = value.parameter as PositionalParameterReference;
-    expect(parameter.index, 1);
   }
 
   void test_addParameter_requiredNamed() {

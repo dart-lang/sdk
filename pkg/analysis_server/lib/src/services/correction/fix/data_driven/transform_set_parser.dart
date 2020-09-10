@@ -23,7 +23,6 @@ class TransformSetParser {
   static const String _classKey = 'class';
   static const String _constantKey = 'constant';
   static const String _constructorKey = 'constructor';
-  static const String _defaultValueKey = 'defaultValue';
   static const String _elementKey = 'element';
   static const String _enumKey = 'enum';
   static const String _extensionKey = 'extension';
@@ -66,6 +65,18 @@ class TransformSetParser {
   static const String _removeParameterKind = 'removeParameter';
   static const String _renameKind = 'rename';
 
+  /// The valid values for the [_styleKey] in an [_addParameterKind] change.
+  static const List<String> validStyles = [
+    'optional_named',
+    'optional_positional',
+    'required_named',
+    'required_positional'
+  ];
+
+  /// The highest file version supported by this parser. The version needs to be
+  /// incremented any time the parser is updated to disallow input that would
+  /// have been valid in the most recently published version of server. This
+  /// includes removing support for keys and adding a new required key.
   static const int currentVersion = 1;
 
   /// The error reporter to which diagnostics will be reported.
@@ -173,7 +184,8 @@ class TransformSetParser {
   /// Translate the [node] into a add-parameter modification.
   void _translateAddParameterChange(YamlMap node) {
     _singleKey(node, [_indexKey, _nameKey]);
-    _reportUnsupportedKeys(node, const {_indexKey, _kindKey, _nameKey});
+    _reportUnsupportedKeys(node,
+        const {_argumentValueKey, _indexKey, _kindKey, _nameKey, _styleKey});
     var index = _translateInteger(node.valueAt(_indexKey), _indexKey);
     if (index == null) {
       return;
@@ -185,19 +197,12 @@ class TransformSetParser {
     var style = _translateString(node.valueAt(_styleKey), _styleKey);
     if (style == null) {
       return;
+    } else if (!validStyles.contains(style)) {
+      // TODO(brianwilkerson) Report the invalid style.
+      return;
     }
     var isRequired = style.startsWith('required_');
     var isPositional = style.endsWith('_positional');
-    // TODO(brianwilkerson) I originally thought we'd need a default value, but
-    //  it seems like we ought to be able to get it from the overridden method,
-    //  so investigate removing this field.
-    var defaultValue = _translateValueExtractor(
-        node.valueAt(_defaultValueKey), _defaultValueKey);
-    if (isRequired && defaultValue != null) {
-      // TODO(brianwilkerson) Report that required parameters can't have a
-      //  default value.
-      return;
-    }
     var argumentValue = _translateValueExtractor(
         node.valueAt(_argumentValueKey), _argumentValueKey);
     // TODO(brianwilkerson) We really ought to require an argument value for
@@ -212,8 +217,8 @@ class TransformSetParser {
       return;
     }
     _parameterModifications ??= [];
-    _parameterModifications.add(AddParameter(
-        index, name, isRequired, isPositional, defaultValue, argumentValue));
+    _parameterModifications.add(
+        AddParameter(index, name, isRequired, isPositional, argumentValue));
   }
 
   /// Translate the [node] into an add-type-parameter change. Return the

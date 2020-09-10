@@ -371,8 +371,8 @@ footer .sdk-version {
 }
 
 .region.added-region {
-  background-color: #263952; /* $dark-selection-color */
-  color: #c0c2c5; /* $dark-editor-text */
+  background-color: #178afd;
+  color: #fff;
 }
 
 .region.removed-region {
@@ -381,12 +381,12 @@ footer .sdk-version {
 }
 
 .region.informative-region {
-  background-color: #178afd; /* $dark-selection-color */
+  background-color: #263952;
   color: #fff;
   display: inline-block;
-  height: 14px;
+  height: 15px;
   position: relative;
-  top: 1px;
+  top: 2px;
 }
 
 .target {

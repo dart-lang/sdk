@@ -2412,6 +2412,9 @@ class _HttpClient implements HttpClient {
     }
 
     bool isSecure = uri.isScheme("https");
+    if (!isSecure && !isInsecureConnectionAllowed(uri.host)) {
+      throw new StateError("Insecure HTTP is not allowed by platform: $uri");
+    }
     int port = uri.port;
     if (port == 0) {
       port =

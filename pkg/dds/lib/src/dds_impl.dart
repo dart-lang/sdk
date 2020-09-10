@@ -205,7 +205,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     }
     final pathSegments = _cleanupPathSegments(uri);
     pathSegments.add(_kSseHandlerPath);
-    return uri.replace(pathSegments: pathSegments);
+    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
   String _getNamespace(_DartDevelopmentServiceClient client) =>

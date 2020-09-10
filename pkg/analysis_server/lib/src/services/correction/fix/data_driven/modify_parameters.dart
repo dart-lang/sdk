@@ -26,10 +26,6 @@ class AddParameter extends ParameterModification {
   /// A flag indicating whether the parameter is a positional parameter.
   final bool isPositional;
 
-  /// The default value of the parameter, or `null` if the parameter doesn't
-  /// have a default value.
-  final ValueExtractor defaultValue;
-
   /// The value of the new argument in invocations of the function, or `null` if
   /// the parameter is optional and no argument needs to be added. The only time
   /// an argument needs to be added for an optional parameter is if the
@@ -41,7 +37,7 @@ class AddParameter extends ParameterModification {
   /// addition of a parameter. If provided, the [argumentValue] will be used as
   /// the value of the new argument in invocations of the function.
   AddParameter(this.index, this.name, this.isRequired, this.isPositional,
-      this.defaultValue, this.argumentValue)
+      this.argumentValue)
       : assert(index >= 0),
         assert(name != null);
 }
