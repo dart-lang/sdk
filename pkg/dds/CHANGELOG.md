@@ -1,3 +1,8 @@
+# 1.3.3
+
+- Fixed issue where `DartDevelopmentService.sseUri` did not return a URI with a
+  `sse` scheme.
+
 # 1.3.2
 
 - Add IPv6 hosting support.
