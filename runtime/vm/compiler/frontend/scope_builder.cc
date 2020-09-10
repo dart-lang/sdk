@@ -441,7 +441,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 #define ADD_VAR(Name, _, __) scope_->AddVariable(vars->Name);
         FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(ADD_VAR);
 #undef ADD_VAR
-        needs_expr_temp_ = true;
       }
       FALL_THROUGH;
     }

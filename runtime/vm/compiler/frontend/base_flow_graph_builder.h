@@ -183,6 +183,9 @@ class BaseFlowGraphBuilder {
   void SetTempIndex(Definition* definition);
 
   Fragment LoadLocal(LocalVariable* variable);
+  Fragment StoreLocal(LocalVariable* variable) {
+    return StoreLocal(TokenPosition::kNoSource, variable);
+  }
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreLocalRaw(TokenPosition position, LocalVariable* variable);
   Fragment LoadContextAt(int depth);
@@ -242,8 +245,8 @@ class BaseFlowGraphBuilder {
   //       goto B3
   //     B3:
   //       LoadLocal(t)
-  //
-  LocalVariable* MakeTemporary();
+  LocalVariable* MakeTemporary(const char* suffix = nullptr);
+  Fragment DropTemporary(LocalVariable** temp);
 
   InputsArray* GetArguments(int count);
 
