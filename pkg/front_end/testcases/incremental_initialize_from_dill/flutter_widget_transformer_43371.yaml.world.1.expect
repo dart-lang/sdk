@@ -7,9 +7,15 @@ library from "package:flutter/src/widgets/framework.dart" as fra {
       ;
   }
   abstract class Widget extends fra::Bar implements wid::_HasCreationLocation /*hasConstConstructor*/  {
+    final field dart.core::Object? key;
     final field wid::_Location? _location /*isNullableByDefault, from null */;
-    const constructor •({wid::_Location? $creationLocationd_0dea112b090073317d4}) → fra::Widget
-      : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+    const constructor •({dart.core::Object? key = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4}) → fra::Widget
+      : fra::Widget::key = key, super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+  abstract class StatelessWidget extends fra::Widget /*hasConstConstructor*/  {
+    const constructor •({dart.core::Object? key = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4}) → fra::StatelessWidget
+      : super fra::Widget::•(key: key, $creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
   }
 }
@@ -37,27 +43,23 @@ library from "org-dartlang-test:///foo.dart" as foo {
   import "package:flutter/src/widgets/framework.dart";
   import "package:flutter/src/widgets/widget_inspector.dart";
 
-  class Foo extends fra::Widget {
-    final field dart.core::String name;
-    constructor •({required dart.core::String name = #C1, wid::_Location? $creationLocationd_0dea112b090073317d4}) → foo::Foo
-      : foo::Foo::name = name, super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+  class Foo extends fra::StatelessWidget /*hasConstConstructor*/  {
+    const constructor •([dart.core::Object* key = #C1]) → foo::Foo*
+      : super fra::StatelessWidget::•(key: key)
       ;
+    abstract member-signature get key() → dart.core::Object*; -> fra::Widget::key
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
 
   import "org-dartlang-test:///foo.dart";
 
-  static field foo::Foo foo = new foo::Foo::•(name: "foo", $creationLocationd_0dea112b090073317d4: #C9);
 }
 constants  {
   #C1 = null
-  #C2 = "org-dartlang-test:///main.dart"
-  #C3 = 2.0
-  #C4 = 15.0
-  #C5 = 19.0
-  #C6 = "name"
-  #C7 = wid::_Location {file:#C1, line:#C3, column:#C5, name:#C6, parameterLocations:#C1}
-  #C8 = <wid::_Location*>[#C7]
-  #C9 = wid::_Location {file:#C2, line:#C3, column:#C4, name:#C1, parameterLocations:#C8}
 }
