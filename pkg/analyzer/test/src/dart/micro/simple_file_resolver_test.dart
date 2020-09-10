@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -214,6 +215,9 @@ import 'a.dart';
 
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
+  @override
+  bool typeToStringWithNullability = false;
+
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 analyzer:
@@ -395,6 +399,44 @@ import 'dart:math';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
+  }
+
+  test_nullSafety_enabled() async {
+    typeToStringWithNullability = true;
+
+    newFile('/workspace/dart/test/BUILD', content: r'''
+dart_package(
+  null_safety = True,
+)
+''');
+
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  if (a != null) {
+    a.isEven;
+  }
+}
+''');
+
+    assertType(
+      findElement.parameter('a').type,
+      'int?',
+    );
+  }
+
+  test_nullSafety_notEnabled() async {
+    typeToStringWithNullability = true;
+
+    await assertErrorsInCode(r'''
+void f(int? a) {}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
+    ]);
+
+    assertType(
+      findElement.parameter('a').type,
+      'int*',
+    );
   }
 
   test_resolve_part_of() async {
