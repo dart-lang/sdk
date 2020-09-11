@@ -49,16 +49,12 @@ static void EnsureIsNewOrRemembered(Assembler* assembler,
   Label done;
   __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
-  if (preserve_registers) {
-    __ EnterCallRuntimeFrame(0);
-  } else {
-    __ ReserveAlignedFrameSpace(0);
-  }
-  // [R0] already contains first argument.
-  __ mov(R1, THR);
-  __ CallRuntime(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
-  if (preserve_registers) {
-    __ LeaveCallRuntimeFrame();
+  {
+    Assembler::CallRuntimeScope scope(
+        assembler, kEnsureRememberedAndMarkingDeferredRuntimeEntry,
+        /*frame_size=*/0, /*preserve_registers=*/preserve_registers);
+    __ mov(R1, THR);
+    scope.Call(/*argument_count=*/2);
   }
 
   __ Bind(&done);
@@ -1973,16 +1969,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&overflow);
-  // Setup frame, push callee-saved registers.
-
-  __ Push(CODE_REG);
-  __ ldr(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0 * target::kWordSize);
-  __ mov(R0, THR);
-  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
-  // Restore callee-saved registers, tear down frame.
-  __ LeaveCallRuntimeFrame();
-  __ Pop(CODE_REG);
+  {
+    Assembler::CallRuntimeScope scope(assembler,
+                                      kStoreBufferBlockProcessRuntimeEntry,
+                                      /*frame_size=*/0, stub_code);
+    __ mov(R0, THR);
+    scope.Call(/*argument_count=*/1);
+  }
   __ ret();
 
   __ Bind(&add_to_mark_stack);
@@ -2020,13 +2013,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ ret();
 
   __ Bind(&marking_overflow);
-  __ Push(CODE_REG);
-  __ ldr(CODE_REG, stub_code);
-  __ EnterCallRuntimeFrame(0 * target::kWordSize);
-  __ mov(R0, THR);
-  __ CallRuntime(kMarkingStackBlockProcessRuntimeEntry, 1);
-  __ LeaveCallRuntimeFrame();
-  __ Pop(CODE_REG);
+  {
+    Assembler::CallRuntimeScope scope(assembler,
+                                      kMarkingStackBlockProcessRuntimeEntry,
+                                      /*frame_size=*/0, stub_code);
+    __ mov(R0, THR);
+    scope.Call(/*argument_count=*/1);
+  }
   __ ret();
 
   __ Bind(&lost_race);
@@ -2059,16 +2052,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
 
     // Card table not yet allocated.
     __ Bind(&remember_card_slow);
-    __ Push(CODE_REG);
-    __ PushPair(R0, R1);
-    __ ldr(CODE_REG, stub_code);
-    __ mov(R0, R1);   // Arg0 = Object
-    __ mov(R1, R25);  // Arg1 = Slot
-    __ EnterCallRuntimeFrame(0);
-    __ CallRuntime(kRememberCardRuntimeEntry, 2);
-    __ LeaveCallRuntimeFrame();
-    __ PopPair(R0, R1);
-    __ Pop(CODE_REG);
+    {
+      Assembler::CallRuntimeScope scope(assembler, kRememberCardRuntimeEntry,
+                                        /*frame_size=*/0, stub_code);
+      __ mov(R0, R1);   // Arg0 = Object
+      __ mov(R1, R25);  // Arg1 = Slot
+      scope.Call(/*argument_count=*/2);
+    }
     __ ret();
   }
 }
