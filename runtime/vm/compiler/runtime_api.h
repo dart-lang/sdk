@@ -233,6 +233,8 @@ class RuntimeEntry : public ValueObject {
 
   word OffsetFromThread() const;
 
+  bool is_leaf() const;
+
  protected:
   RuntimeEntry(const dart::RuntimeEntry* runtime_entry,
                RuntimeEntryCallInternal call)
