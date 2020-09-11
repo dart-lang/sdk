@@ -186,11 +186,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     return Utils::StrDup("VM already initialized or flags not initialized.");
   }
 
-  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
-    return Utils::StrDup(
-        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
-  }
-
   const Snapshot* snapshot = nullptr;
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -209,6 +204,10 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     if (error != nullptr) {
       return error;
     }
+  }
+  if (FLAG_causal_async_stacks && FLAG_lazy_async_stacks) {
+    return Utils::StrDup(
+        "To use --lazy-async-stacks, please disable --causal-async-stacks!");
   }
 
   FrameLayout::Init();
