@@ -30,6 +30,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
 
 import "org-dartlang-testcase:///value_class_support_lib.dart";
 
@@ -46,6 +47,8 @@ class Cat extends self::Animal {
     ;
   operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
     return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_extends_non_value.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
 }
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:18:22: Error: No named parameter with the name 'numberOfLegs'.
@@ -68,11 +71,11 @@ static method expect(core::Object? expected, core::Object? actual) → dynamic {
 }
 
 library /*isNonNullableByDefault*/;
-import self as self2;
+import self as val;
 import "dart:core" as core;
 
 class JenkinsSmiHash extends core::Object {
-  synthetic constructor •() → self2::JenkinsSmiHash
+  synthetic constructor •() → val::JenkinsSmiHash
     : super core::Object::•()
     ;
   static method combine(core::int hash, core::int value) → core::int {

@@ -8,6 +8,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
 
 import "org-dartlang-testcase:///value_class_support_lib.dart";
 
@@ -18,15 +19,17 @@ class Animal extends core::Object {
     ;
   operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
     return other is self::Animal && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Animal}.{self::Animal::numberOfLegs});
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine("org-dartlang-testcase:///non_final_field_error.dartAnimal".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}));
 }
 static method main() → dynamic {}
 
 library /*isNonNullableByDefault*/;
-import self as self2;
+import self as val;
 import "dart:core" as core;
 
 class JenkinsSmiHash extends core::Object {
-  synthetic constructor •() → self2::JenkinsSmiHash
+  synthetic constructor •() → val::JenkinsSmiHash
     : super core::Object::•()
     ;
   static method combine(core::int hash, core::int value) → core::int {
