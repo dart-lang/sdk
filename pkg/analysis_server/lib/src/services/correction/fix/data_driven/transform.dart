@@ -6,10 +6,13 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/change.d
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:meta/meta.dart';
 
-/// The behavior common to all of the data used to construct fixes.
+/// A description of a set of changes to a single element of the API.
 class Transform {
   /// The human-readable title describing the transform.
   final String title;
+
+  /// The date on which the API was changed.
+  final DateTime date;
 
   /// The element being transformed.
   final ElementDescriptor element;
@@ -20,7 +23,10 @@ class Transform {
   /// Initialize a newly created transform to describe a transformation of the
   /// [element].
   Transform(
-      {@required this.title, @required this.element, @required this.changes});
+      {@required this.title,
+      this.date,
+      @required this.element,
+      @required this.changes});
 
   /// Return `true` if this transform can be applied to fix an issue related to
   /// an element with the given [name] in a library that imports the

@@ -23,14 +23,13 @@ transforms:
   element:
     uris:
       - 'test.dart'
-    components:
-      - 'A'
+    class: 'A'
   changes:
     - kind: 'rename'
       oldName: 'A'
       newName: 'B'
 ''', [
-      error(TransformSetErrorCode.unsupportedKey, 150, 7),
+      error(TransformSetErrorCode.unsupportedKey, 137, 7),
     ]);
   }
 }

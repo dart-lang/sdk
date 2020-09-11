@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -307,11 +308,13 @@ class FileResolver {
           );
 
           results = performance.run('analyze', (performance) {
-            return libraryAnalyzer.analyzeSync(
-              completionPath: completionOffset != null ? path : null,
-              completionOffset: completionOffset,
-              performance: performance,
-            );
+            return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+              return libraryAnalyzer.analyzeSync(
+                completionPath: completionOffset != null ? path : null,
+                completionOffset: completionOffset,
+                performance: performance,
+              );
+            });
           });
         });
         UnitAnalysisResult fileResult = results[file];
@@ -366,6 +369,7 @@ class FileResolver {
         resourceProvider,
         byteStore,
         sourceFactory,
+        workspace,
         analysisOptions,
         Uint32List(0),
         // linkedSalt

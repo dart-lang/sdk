@@ -30,9 +30,11 @@ import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
@@ -53,6 +55,24 @@ class FileState {
   /// The [Source] of the file with the [uri].
   final Source source;
 
+  /// The [WorkspacePackage] that contains this file.
+  ///
+  /// It might be `null` if the file is outside of the workspace.
+  final WorkspacePackage workspacePackage;
+
+  /// The [FeatureSet] for all files in the analysis context.
+  ///
+  /// Usually it is the feature set of the latest language version, plus
+  /// possibly additional enabled experiments (from the analysis options file,
+  /// or from SDK allowed experiments).
+  ///
+  /// This feature set is then restricted, with the [_packageLanguageVersion],
+  /// or with a `@dart` language override token in the file header.
+  final FeatureSet _contextFeatureSet;
+
+  /// The language version for the package that contains this file.
+  final Version _packageLanguageVersion;
+
   /// Files that reference this file.
   final List<FileState> referencingFiles = [];
 
@@ -70,7 +90,15 @@ class FileState {
   UnlinkedUnit2 unlinked2;
   LibraryCycle _libraryCycle;
 
-  FileState._(this._fsState, this.path, this.uri, this.source);
+  FileState._(
+    this._fsState,
+    this.path,
+    this.uri,
+    this.source,
+    this.workspacePackage,
+    this._contextFeatureSet,
+    this._packageLanguageVersion,
+  );
 
   List<int> get apiSignature => _apiSignature;
 
@@ -135,14 +163,14 @@ class FileState {
 
   CompilationUnit parse(AnalysisErrorListener errorListener, String content) {
     AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    FeatureSet featureSet =
-        _fsState.featureSetProvider.getFeatureSet(path, uri);
 
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(
-        featureSetForOverriding: featureSet,
-        featureSet: featureSet,
+        featureSetForOverriding: _contextFeatureSet,
+        featureSet: _contextFeatureSet.restrictToVersion(
+          _packageLanguageVersion,
+        ),
       );
     Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
@@ -415,6 +443,7 @@ class FileSystemState {
   final ResourceProvider _resourceProvider;
   final CiderByteStore _byteStore;
   final SourceFactory _sourceFactory;
+  final Workspace _workspace;
   final AnalysisOptions _analysisOptions;
   final Uint32List _linkedSalt;
 
@@ -440,6 +469,7 @@ class FileSystemState {
     this._resourceProvider,
     this._byteStore,
     this._sourceFactory,
+    this._workspace,
     this._analysisOptions,
     this._linkedSalt,
     this.featureSetProvider,
@@ -470,6 +500,21 @@ class FileSystemState {
     }
   }
 
+  FeatureSet contextFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri);
+  }
+
   FileState getFileForPath({
     @required String path,
     @required OperationPerformanceImpl performance,
@@ -482,7 +527,12 @@ class FileSystemState {
       );
 
       var source = _sourceFactory.forUri2(uri);
-      file = FileState._(this, path, uri, source);
+      var workspacePackage = _workspace?.findPackageFor(path);
+      var featureSet = contextFeatureSet(path, uri, workspacePackage);
+      var packageLanguageVersion =
+          featureSetProvider.getLanguageVersion(path, uri);
+      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
+          packageLanguageVersion);
 
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
@@ -508,7 +558,13 @@ class FileSystemState {
       }
       var path = source.fullName;
 
-      file = FileState._(this, path, uri, source);
+      var workspacePackage = _workspace?.findPackageFor(path);
+      var featureSet = contextFeatureSet(path, uri, workspacePackage);
+      var packageLanguageVersion =
+          featureSetProvider.getLanguageVersion(path, uri);
+
+      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
+          packageLanguageVersion);
       _pathToFile[path] = file;
       _uriToFile[uri] = file;
 

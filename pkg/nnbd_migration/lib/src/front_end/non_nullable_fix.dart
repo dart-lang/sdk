@@ -78,7 +78,7 @@ class NonNullableFix {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  Future<void> Function() rerunFunction;
+  Future<MigrationState> Function() rerunFunction;
 
   /// A list of the URLs corresponding to the included roots.
   List<String> previewUrls;
@@ -161,9 +161,7 @@ class NonNullableFix {
 
   Future<MigrationState> rerun() async {
     reset();
-    await rerunFunction();
-    final state = MigrationState(
-        migration, includedRoot, listener, instrumentationListener);
+    var state = await rerunFunction();
     await state.refresh();
     return state;
   }
@@ -185,6 +183,8 @@ class NonNullableFix {
 
   Future<void> startPreviewServer(
       MigrationState state, void Function() applyHook) async {
+    // This method may be called multiple times, for example during a re-run.
+    // But the preview server should only be started once.
     if (_server == null) {
       _server = HttpPreviewServer(
           state, rerun, applyHook, bindAddress, preferredPort);

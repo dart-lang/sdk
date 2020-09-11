@@ -23,6 +23,7 @@ class TransformSetParser {
   static const String _classKey = 'class';
   static const String _constantKey = 'constant';
   static const String _constructorKey = 'constructor';
+  static const String _dateKey = 'date';
   static const String _elementKey = 'element';
   static const String _enumKey = 'enum';
   static const String _extensionKey = 'extension';
@@ -299,6 +300,33 @@ class TransformSetParser {
     }
   }
 
+  /// Translate the [node] into a date. Return the resulting date, or `null`
+  /// if the [node] does not represent a valid date. If the [node] is not
+  /// valid, use the name of the associated [key] to report the error.
+  DateTime _translateDate(YamlNode node, String key) {
+    if (node is YamlScalar) {
+      var value = node.value;
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } on FormatException {
+          // Fall through to report the invalid value.
+        }
+      }
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'Date', _nodeType(node)]);
+      return null;
+    } else if (node == null) {
+      // TODO(brianwilkerson) Report the missing YAML. For the best UX we
+      //  probably need to pass in the code to report.
+      return null;
+    } else {
+      _reportError(TransformSetErrorCode.invalidValue, node,
+          [key, 'Date', _nodeType(node)]);
+      return null;
+    }
+  }
+
   /// Translate the [node] into an element descriptor. Return the resulting
   /// descriptor, or `null` if the [node] does not represent a valid element
   /// descriptor. If the [node] is not valid, use the name of the associated
@@ -463,9 +491,15 @@ class TransformSetParser {
   /// is not valid, use the name of the associated [key] to report the error.
   Transform _translateTransform(YamlNode node, String key) {
     if (node is YamlMap) {
-      _reportUnsupportedKeys(node, const {_changesKey, _elementKey, _titleKey});
+      _reportUnsupportedKeys(
+          node, const {_changesKey, _dateKey, _elementKey, _titleKey});
       var title = _translateString(node.valueAt(_titleKey), _titleKey);
+      var date = _translateDate(node.valueAt(_dateKey), _dateKey);
       var element = _translateElement(node.valueAt(_elementKey), _elementKey);
+      if (element == null) {
+        // The error has already been reported.
+        return null;
+      }
       var changes = _translateList(
           node.valueAt(_changesKey), _changesKey, _translateChange);
       if (changes == null) {
@@ -476,7 +510,8 @@ class TransformSetParser {
         changes.add(ModifyParameters(modifications: _parameterModifications));
         _parameterModifications = null;
       }
-      return Transform(title: title, element: element, changes: changes);
+      return Transform(
+          title: title, date: date, element: element, changes: changes);
     } else if (node == null) {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;
@@ -492,19 +527,23 @@ class TransformSetParser {
   TransformSet _translateTransformSet(YamlNode node) {
     if (node is YamlMap) {
       _reportUnsupportedKeys(node, const {_transformsKey, _versionKey});
-      var set = TransformSet();
+      var version = _translateInteger(node.valueAt(_versionKey), _versionKey);
+      if (version == null) {
+        // The error has already been reported.
+        return null;
+      } else if (version > currentVersion) {
+        // TODO(brianwilkerson) Report that the version is unsupported.
+        return null;
+      }
       // TODO(brianwilkerson) Version information is currently being ignored,
       //  but needs to be used to select a translator.
-      var version = _translateInteger(node.valueAt(_versionKey), _versionKey);
-      if (version != currentVersion) {
-        // TODO(brianwilkerson) Report the unsupported version.
-      }
       var transformations = _translateList(
           node.valueAt(_transformsKey), _transformsKey, _translateTransform);
       if (transformations == null) {
         // The error has already been reported.
         return null;
       }
+      var set = TransformSet();
       for (var transform in transformations) {
         set.addTransform(transform);
       }

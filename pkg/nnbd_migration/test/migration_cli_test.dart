@@ -1106,6 +1106,39 @@ void call_g() => g(null);
     });
   }
 
+  test_lifecycle_preview_rerun_with_new_analysis_errors() async {
+    var origSourceText = 'void f(int i) {}';
+    var projectContents = simpleProject(sourceText: origSourceText);
+    var projectDir = await createProjectDir(projectContents);
+    var cli = _createCli();
+    await runWithPreviewServer(cli, [projectDir], (url) async {
+      await assertPreviewServerResponsive(url);
+      var uri = Uri.parse(url);
+      var testPath =
+          resourceProvider.pathContext.join(projectDir, 'lib', 'test.dart');
+      var newSourceText = 'void f(int? i) {}';
+      resourceProvider.getFile(testPath).writeAsStringSync(newSourceText);
+      // We haven't rerun, so getting the file details from the server should
+      // still yield the original source text, with informational space.
+      expect(await getSourceFromServer(uri, testPath), 'void f(int  i) {}');
+      var response = await http.post(uri.replace(path: 'rerun-migration'),
+          headers: {'Content-Type': 'application/json; charset=UTF-8'});
+      assertHttpSuccess(response);
+      var body = jsonDecode(response.body);
+      expect(body['success'], isFalse);
+      expect(body['errors'], hasLength(1));
+      var error = body['errors'].single;
+      expect(error['severity'], equals('error'));
+      expect(
+          error['message'],
+          equals(
+              "This requires the 'non-nullable' language feature to be enabled"));
+      expect(error['location'],
+          equals(resourceProvider.pathContext.join('lib', 'test.dart:1:11')));
+      expect(error['code'], equals('experiment_not_enabled'));
+    });
+  }
+
   test_lifecycle_preview_serves_only_from_project_dir() async {
     var crazyFunctionName = 'crazyFunctionNameThatHasNeverBeenSeenBefore';
     var projectContents =

@@ -277,7 +277,7 @@ class LibraryAnalyzer {
         typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         analysisOptions: _context.analysisOptions,
-        workspacePackage: null, // TODO(scheglov) implement it
+        workspacePackage: _library.workspacePackage,
       ),
     );
 

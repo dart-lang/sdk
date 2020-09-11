@@ -51,8 +51,12 @@ void main() {
     rerunMigrationButton.onClick.listen((event) async {
       try {
         document.body.classes..add('rerunning');
-        await doPost('/rerun-migration');
-        window.location.reload();
+        var response = await doPost('/rerun-migration');
+        if (response['success'] as bool) {
+          window.location.reload();
+        } else {
+          handleRerunFailure(response['errors'] as List<Object>);
+        }
       } catch (e, st) {
         handleError('Failed to rerun migration', e, st);
       } finally {
@@ -168,7 +172,7 @@ Future<T> doGet<T>(String path,
       ..open('GET', pathWithQueryParameters(path, queryParameters), async: true)
       ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'));
 
-/// Perform a GET request on the path, return the json decoded response.
+/// Perform a POST request on the path, return the JSON-decoded response.
 Future<Map<String, Object>> doPost(String path, [Object body]) => doRequest(
     HttpRequest()
       ..open('POST', pathWithQueryParameters(path, {}), async: true)
@@ -288,6 +292,22 @@ void handleAddHintLinkClick(MouseEvent event) async {
   }
 }
 
+void handleRerunFailure(List<Object> errors) {
+  final popupPane = document.querySelector('.popup-pane');
+  popupPane.querySelector('h2').innerText = 'Failed to rerun from sources';
+  popupPane.querySelector('p').innerText =
+      'Sources contain static analysis errors:';
+  popupPane.querySelector('pre').innerText = errors.cast<Map>().map((error) {
+    return '${error['severity']} - ${error['message']} '
+        'at ${error['location']} - (${error['code']})';
+  }).join('\n');
+  popupPane.querySelector('a.bottom').style.display = 'none';
+  popupPane.style.display = 'initial';
+
+  // TODO(srawlins): I think we should lock down the entire web UI, except for
+  //  the "Rerun from source" button.
+}
+
 void handleError(String header, Object exception, Object stackTrace) {
   String subheader;
   if (exception is Map<String, Object> &&
@@ -303,8 +323,10 @@ void handleError(String header, Object exception, Object stackTrace) {
   popupPane.querySelector('h2').innerText = header;
   popupPane.querySelector('p').innerText = subheader;
   popupPane.querySelector('pre').innerText = stackTrace.toString();
-  (popupPane.querySelector('a.bottom') as AnchorElement).href =
-      getGitHubErrorUri(header, subheader, stackTrace).toString();
+  var bottom = popupPane.querySelector('a.bottom') as AnchorElement;
+  bottom
+    ..href = getGitHubErrorUri(header, subheader, stackTrace).toString()
+    ..style.display = 'initial';
   popupPane..style.display = 'initial';
   logError('$header: $exception', stackTrace);
 }
