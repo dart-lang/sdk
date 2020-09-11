@@ -123,11 +123,11 @@ f(C c) {
     // Referencing `.call` on a `Function` type works similarly to referencing
     // it on `dynamic`--the reference is accepted at compile time, and all type
     // checking is deferred until runtime.
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 f(Function f) {
   return f.call;
 }
-''', []);
+''');
   }
 
   test_ifElement_inList_notPromoted() async {

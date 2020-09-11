@@ -776,11 +776,11 @@ main(int? x) {
   }
 
   test_plus_int_never() async {
-    await assertErrorsInCode('''
+    await assertNoErrorsInCode('''
 f(int a, Never b) {
   a + b;
 }
-''', []);
+''');
 
     assertBinaryExpression(findNode.binary('a + b'),
         element: numElement.getMethod('+'), type: 'num');
