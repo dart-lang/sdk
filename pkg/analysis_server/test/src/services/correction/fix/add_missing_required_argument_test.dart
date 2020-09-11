@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingRequiredArgumentTest);
+    defineReflectiveTests(AddMissingRequiredArgumentWithNullSafetyTest);
   });
 }
 
@@ -72,7 +74,7 @@ class MyWidget extends Widget {
 }
 
 build() {
-  return new MyWidget(a: 1, b: null,);
+  return new MyWidget(a: 1, b: 0,);
 }
 ''');
   }
@@ -99,7 +101,7 @@ class A {
 }
 
 void f() {
-  A a = new A.named(a: null);
+  A a = new A.named(a: 0);
   print(a);
 }
 ''');
@@ -126,7 +128,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(a: null);
+  A a = new A(a: 0);
   print(a);
 }
 ''');
@@ -290,7 +292,7 @@ import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
 main() {
-  test(a: 3, bcd: null);
+  test(a: 3, bcd: 0);
 }
 ''');
   }
@@ -310,7 +312,7 @@ import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
 main() {
-  test(a: null);
+  test(a: 0);
 }
 ''', errorFilter: (error) => error.message.contains("'a'"));
   }
@@ -330,7 +332,7 @@ import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
 main() {
-  test(bcd: null);
+  test(bcd: 0);
 }
 ''', errorFilter: (error) => error.message.contains("'bcd'"));
   }
@@ -362,7 +364,7 @@ class MyWidget extends Widget {
 
 build() {
   return new MyWidget(
-    foo: null,
+    foo: '',
     child: null,
   );
 }
@@ -396,7 +398,7 @@ class MyWidget extends Widget {
 
 build() {
   return new MyWidget(
-    foo: null,
+    foo: '',
     children: null,
   );
 }
@@ -418,10 +420,10 @@ import 'package:meta/meta.dart';
 
 test({@required int abc}) {}
 main() {
-  test(abc: null);
+  test(abc: 0);
 }
 ''');
-    assertLinkedGroup(change.linkedEditGroups[0], ['null);']);
+    assertLinkedGroup(change.linkedEditGroups[0], ['0);']);
   }
 
   Future<void> test_single_normal() async {
@@ -439,7 +441,7 @@ import 'package:meta/meta.dart';
 
 test(String x, {@required int abc}) {}
 main() {
-  test("foo", abc: null);
+  test("foo", abc: 0);
 }
 ''');
   }
@@ -459,7 +461,71 @@ import 'package:meta/meta.dart';
 
 test({@Required("Really who doesn't need an abc?") int abc}) {}
 main() {
-  test(abc: null);
+  test(abc: 0);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
+
+  Future<void> test_nonNullable_supported() async {
+    await resolveTestUnit('''
+void f({required int x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required int x}) {}
+void g() {
+  f(x: 0);
+}
+''');
+  }
+
+  Future<void> test_nonNullable_unsupported() async {
+    await resolveTestUnit('''
+void f({required DateTime d}) {}
+void g() {
+  f();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_nullable_supported() async {
+    await resolveTestUnit('''
+void f({required int? x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required int? x}) {}
+void g() {
+  f(x: 0);
+}
+''');
+  }
+
+  Future<void> test_nullable_unsupported() async {
+    await resolveTestUnit('''
+void f({required DateTime? x}) {}
+void g() {
+  f();
+}
+''');
+    await assertHasFix('''
+void f({required DateTime? x}) {}
+void g() {
+  f(x: null);
 }
 ''');
   }

@@ -168,11 +168,24 @@ protocol.Element createLocalElement(
       returnType: nameForType(id, returnType));
 }
 
-DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
-  if (param != null) {
-    var type = param.type;
-    if (type is InterfaceType && type.isDartCoreList) {
-      return DefaultArgument('[]', cursorPosition: 1);
+/// Return a default argument value for the given [parameter].
+DefaultArgument getDefaultStringParameterValue(ParameterElement parameter) {
+  if (parameter != null) {
+    var type = parameter.type;
+    if (type is InterfaceType) {
+      if (type.isDartCoreBool) {
+        return DefaultArgument('false');
+      } else if (type.isDartCoreDouble) {
+        return DefaultArgument('0.0');
+      } else if (type.isDartCoreInt) {
+        return DefaultArgument('0');
+      } else if (type.isDartCoreList) {
+        return DefaultArgument('[]', cursorPosition: 1);
+      } else if (type.isDartCoreMap) {
+        return DefaultArgument('{}', cursorPosition: 1);
+      } else if (type.isDartCoreString) {
+        return DefaultArgument("''", cursorPosition: 1);
+      }
     } else if (type is FunctionType) {
       var params = type.parameters
           .map((p) => '${getTypeString(p.type)}${p.name}')
@@ -181,9 +194,6 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement param) {
       var text = '($params) {  }';
       return DefaultArgument(text, cursorPosition: text.length - 2);
     }
-
-    // TODO(pq): support map literals
-
   }
 
   return null;

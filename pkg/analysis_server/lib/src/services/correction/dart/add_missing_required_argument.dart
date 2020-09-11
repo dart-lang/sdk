@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -43,7 +44,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
     }
 
     if (targetElement is ExecutableElement) {
-      // Format: "Missing required argument 'foo"
+      // Format: "Missing required argument 'foo'."
       var messageParts = diagnostic.problemMessage.message.split("'");
       if (messageParts.length < 2) {
         return;
@@ -78,6 +79,15 @@ class AddMissingRequiredArgument extends CorrectionProducer {
           }
         }
       }
+      var defaultValue = getDefaultStringParameterValue(missingParameter);
+      if (defaultValue == null &&
+          libraryElement.isNonNullableByDefault &&
+          missingParameter.type.nullabilitySuffix == NullabilitySuffix.none) {
+        // In a library opted in to Null Safety we don't want to propose an
+        // argument value of `null` for a parameter whose type doesn't allow
+        // `null`.
+        return;
+      }
 
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
@@ -87,7 +97,6 @@ class AddMissingRequiredArgument extends CorrectionProducer {
 
           builder.write('$_missingParameterName: ');
 
-          var defaultValue = getDefaultStringParameterValue(missingParameter);
           // Use defaultValue.cursorPosition if it's not null.
           if (defaultValue?.cursorPosition != null) {
             builder.write(
