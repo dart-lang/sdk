@@ -263,6 +263,26 @@ void f<X extends num, Y extends X>(Y y) {
     ]);
   }
 
+  test_propertyAccess_functionClass_call() async {
+    await assertNoErrorsInCode('''
+void f(Function a) {
+  return (a).call;
+}
+''');
+  }
+
+  test_propertyAccess_functionType_call() async {
+    await assertNoErrorsInCode('''
+class A {
+  void staticMethod() {}
+}
+
+void f(A a) {
+  return a.staticMethod.call;
+}
+''');
+  }
+
   test_proxy_annotation_fakeProxy() async {
     await assertErrorsInCode(r'''
 library L;

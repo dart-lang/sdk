@@ -1628,6 +1628,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [StaticWarningCode.ASSIGNMENT_TO_FINAL], and
   /// [StaticWarningCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
+    // TODO(scheglov) Check SimpleIdentifier(s) as all other nodes.
+    if (expression is! SimpleIdentifier) return;
+
     // Already handled in the assignment resolver.
     if (expression is SimpleIdentifier &&
         expression.parent is AssignmentExpression) {

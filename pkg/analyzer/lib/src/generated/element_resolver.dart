@@ -9,12 +9,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
+import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -23,7 +23,6 @@ import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:meta/meta.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -91,9 +90,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
 
-  /// The type representing the type 'Type'.
-  InterfaceType _typeType;
-
   /// Whether constant evaluation errors should be reported during resolution.
   @Deprecated('This field is no longer used')
   final bool reportConstEvaluationErrors;
@@ -116,7 +112,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _extensionResolver = _resolver.extensionResolver,
         _typePropertyResolver = _resolver.typePropertyResolver {
     _dynamicType = _typeProvider.dynamicType;
-    _typeType = _typeProvider.typeType;
     _methodInvocationResolver = MethodInvocationResolver(
       _resolver,
       migratableAstInfoProvider,
@@ -577,81 +572,69 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // Otherwise, the prefix is really an expression that happens to be a simple
     // identifier and this is really equivalent to a property access node.
     //
-    _resolvePropertyAccess(
-      node,
-      prefix,
-      identifier,
-      isCascaded: false,
-      isNullAware: false,
-    );
+    {
+      var hasRead = identifier.inGetterContext();
+      var hasWrite = identifier.inSetterContext();
+
+      var resolver = PropertyElementResolver(_resolver);
+      var result = resolver.resolvePrefixedIdentifier(
+        node: node,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+
+      if (hasRead) {
+        _resolver.setReadElement(node, result.readElement);
+      }
+
+      if (hasWrite) {
+        _resolver.setWriteElement(node, result.writeElement);
+      }
+
+      if (hasWrite) {
+        identifier.staticElement = result.writeElement;
+        if (hasRead) {
+          identifier.auxiliaryElements = AuxiliaryElements(
+            result.readElement,
+          );
+        }
+      } else if (hasRead) {
+        identifier.staticElement = result.readElement;
+      }
+    }
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    Expression target = node.realTarget;
-    if (target is SuperExpression &&
-        SuperContext.of(target) != SuperContext.valid) {
-      return;
-    } else if (target is ExtensionOverride) {
-      if (target.parent is CascadeExpression) {
-        // Report this error and recover by treating it like a non-cascade.
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
-          target.extensionName,
+    var propertyName = node.propertyName;
+    var hasRead = propertyName.inGetterContext();
+    var hasWrite = propertyName.inSetterContext();
+
+    var resolver = PropertyElementResolver(_resolver);
+    var result = resolver.resolvePropertyAccess(
+      node: node,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+
+    if (hasRead) {
+      _resolver.setReadElement(node, result.readElement);
+    }
+
+    if (hasWrite) {
+      _resolver.setWriteElement(node, result.writeElement);
+    }
+
+    if (hasWrite) {
+      propertyName.staticElement = result.writeElement;
+      if (hasRead) {
+        propertyName.auxiliaryElements = AuxiliaryElements(
+          result.readElement,
         );
       }
-      ExtensionElement element = target.extensionName.staticElement;
-      SimpleIdentifier propertyName = node.propertyName;
-      String memberName = propertyName.name;
-      ExecutableElement member;
-      var result = _extensionResolver.getOverrideMember(target, memberName);
-      if (propertyName.inSetterContext()) {
-        _resolver.setWriteElement(node, result.setter);
-        member = result.setter;
-        if (member == null) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-              propertyName,
-              [memberName, element.name]);
-        }
-        if (propertyName.inGetterContext()) {
-          _resolver.setReadElement(node, result.getter);
-          ExecutableElement getter = result.getter;
-          if (getter == null) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-                propertyName,
-                [memberName, element.name]);
-          }
-          propertyName.auxiliaryElements = AuxiliaryElements(getter);
-        }
-      } else if (propertyName.inGetterContext()) {
-        _resolver.setReadElement(node, result.getter);
-        member = result.getter;
-        if (member == null) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-              propertyName,
-              [memberName, element.name]);
-        }
-      }
-      if (member != null && member.isStatic) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-            propertyName);
-      }
-
-      propertyName.staticElement = member;
-      return;
+    } else if (hasRead) {
+      propertyName.staticElement = result.readElement;
     }
-    SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(
-      node,
-      target,
-      propertyName,
-      isCascaded: node.isCascaded,
-      isNullAware: node.isNullAware,
-    );
   }
 
   @override
@@ -884,20 +867,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// If the [element] is not static, report the error on the [identifier].
-  void _checkForStaticAccessToInstanceMember(
-    SimpleIdentifier identifier,
-    ExecutableElement element,
-  ) {
-    if (element.isStatic) return;
-
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
-      identifier,
-      [identifier.name],
-    );
   }
 
   /// Check that the given index [expression] was resolved, otherwise a
@@ -1281,311 +1250,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// annotations in the element model representing annotations to the node.
   void _resolveMetadataForParameter(NormalFormalParameter node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  void _resolvePropertyAccess(
-    Expression node,
-    Expression target,
-    SimpleIdentifier propertyName, {
-    @required bool isCascaded,
-    @required bool isNullAware,
-  }) {
-    DartType staticType = _getStaticType(target);
-
-    //
-    // If this property access is of the form 'E.m' where 'E' is an extension,
-    // then look for the member in the extension. This does not apply to
-    // conditional property accesses (i.e. 'C?.m').
-    //
-    if (target is Identifier && target.staticElement is ExtensionElement) {
-      ExtensionElement extension = target.staticElement;
-      String memberName = propertyName.name;
-
-      if (propertyName.inGetterContext()) {
-        ExecutableElement element;
-        element ??= extension.getGetter(memberName);
-        element ??= extension.getMethod(memberName);
-        if (element != null) {
-          element = _resolver.toLegacyElement(element);
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-            propertyName,
-            [memberName, extension.name],
-          );
-        }
-      }
-
-      if (propertyName.inSetterContext()) {
-        var element = extension.getSetter(memberName);
-        if (element != null) {
-          element = _resolver.toLegacyElement(element);
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-            propertyName,
-            [memberName, extension.name],
-          );
-        }
-      }
-
-      return;
-    }
-
-    //
-    // If this property access is of the form 'C.m' where 'C' is a class,
-    // then we don't call resolveProperty(...) which walks up the class
-    // hierarchy, instead we just look for the member in the type only.  This
-    // does not apply to conditional property accesses (i.e. 'C?.m').
-    //
-    ClassElement typeReference = getTypeReference(target);
-    if (typeReference != null) {
-      if (isCascaded) {
-        typeReference = _typeType.element;
-      }
-
-      if (propertyName.inGetterContext()) {
-        ExecutableElement element;
-
-        if (element == null) {
-          var getter = typeReference.getGetter(propertyName.name);
-          if (getter != null && getter.isAccessibleIn(_definingLibrary)) {
-            element = getter;
-          }
-        }
-
-        if (element == null) {
-          var method = typeReference.getMethod(propertyName.name);
-          if (method != null && method.isAccessibleIn(_definingLibrary)) {
-            element = method;
-          }
-        }
-
-        element = _resolver.toLegacyElement(element);
-        _resolver.setReadElement(node, element);
-
-        if (element != null) {
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          var code = typeReference.isEnum
-              ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
-              : CompileTimeErrorCode.UNDEFINED_GETTER;
-          _errorReporter.reportErrorForNode(
-            code,
-            propertyName,
-            [propertyName.name, typeReference.name],
-          );
-        }
-      }
-
-      if (propertyName.inSetterContext()) {
-        ExecutableElement element;
-
-        var setter = typeReference.getSetter(propertyName.name);
-        setter = _resolver.toLegacyElement(setter);
-
-        _resolver.setWriteElement(node, setter);
-
-        if (setter != null) {
-          element = setter;
-          if (!setter.isAccessibleIn(_definingLibrary)) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.PRIVATE_SETTER,
-              propertyName,
-              [propertyName.name, typeReference.name],
-            );
-          }
-        }
-
-        if (element != null) {
-          propertyName.staticElement = element;
-          _checkForStaticAccessToInstanceMember(propertyName, element);
-        } else {
-          var getter = typeReference.getGetter(propertyName.name);
-          if (getter != null) {
-            propertyName.staticElement = getter;
-            _resolver.setWriteElement(node, getter);
-            // The error will be reported in ErrorVerifier.
-          } else {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_SETTER,
-              propertyName,
-              [propertyName.name, typeReference.name],
-            );
-          }
-        }
-      }
-
-      return;
-    }
-
-    if (target is SuperExpression) {
-      if (staticType is InterfaceTypeImpl) {
-        if (propertyName.inGetterContext()) {
-          var name = Name(_definingLibrary.source.uri, propertyName.name);
-          var element = _resolver.inheritance
-              .getMember2(staticType.element, name, forSuper: true);
-          _resolver.setReadElement(node, element);
-
-          if (element != null) {
-            element = _resolver.toLegacyElement(element);
-            propertyName.staticElement = element;
-          } else {
-            // We were not able to find the concrete dispatch target.
-            // But we would like to give the user at least some resolution.
-            // So, we retry simply looking for an inherited member.
-            var element =
-                _resolver.inheritance.getInherited2(staticType.element, name);
-            if (element != null) {
-              propertyName.staticElement = element;
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                propertyName,
-                [element.kind.displayName, propertyName.name],
-              );
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
-                propertyName,
-                [propertyName.name, staticType],
-              );
-            }
-          }
-        }
-
-        if (propertyName.inSetterContext()) {
-          var element = staticType.lookUpSetter2(
-            propertyName.name,
-            _definingLibrary,
-            concrete: true,
-            inherited: true,
-          );
-          _resolver.setWriteElement(node, element);
-
-          if (element != null) {
-            element = _resolver.toLegacyElement(element);
-            propertyName.staticElement = element;
-          } else {
-            // We were not able to find the concrete dispatch target.
-            // But we would like to give the user at least some resolution.
-            // So, we retry without the "concrete" requirement.
-            var element = staticType.lookUpSetter2(
-              propertyName.name,
-              _definingLibrary,
-              inherited: true,
-            );
-            if (element != null) {
-              propertyName.staticElement = element;
-              ClassElementImpl receiverSuperClass =
-                  staticType.element.supertype.element;
-              if (!receiverSuperClass.hasNoSuchMethod) {
-                _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                  propertyName,
-                  [element.kind.displayName, propertyName.name],
-                );
-              }
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
-                propertyName,
-                [propertyName.name, staticType],
-              );
-            }
-          }
-        }
-      }
-
-      return;
-    }
-
-    if (staticType == null || staticType.isDynamic) {
-      return;
-    }
-
-    if (isNullAware) {
-      staticType = _typeSystem.promoteToNonNull(staticType);
-    }
-
-    if (staticType.isVoid) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        propertyName,
-      );
-      return;
-    }
-
-    var result = _typePropertyResolver.resolve(
-      receiver: target,
-      receiverType: staticType,
-      name: propertyName.name,
-      receiverErrorNode: target,
-      nameErrorNode: propertyName,
-    );
-
-    if (propertyName.inGetterContext()) {
-      _resolver.setReadElement(node, result.getter);
-      var shouldReportUndefinedGetter = false;
-      if (result.isSingle) {
-        var getter = result.getter;
-        if (getter != null) {
-          propertyName.staticElement = getter;
-        } else {
-          shouldReportUndefinedGetter = true;
-        }
-      } else if (result.isNone) {
-        if (staticType is FunctionType &&
-            propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-          // Referencing `.call` on a `Function` type is OK.
-        } else if (staticType is InterfaceType &&
-            staticType.isDartCoreFunction &&
-            propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-          // Referencing `.call` on a `Function` type is OK.
-        } else if (staticType is NeverTypeImpl) {
-          shouldReportUndefinedGetter = false;
-        } else {
-          shouldReportUndefinedGetter = true;
-        }
-      }
-      if (shouldReportUndefinedGetter) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_GETTER,
-          propertyName,
-          [propertyName.name, staticType],
-        );
-      }
-    }
-
-    if (propertyName.inSetterContext()) {
-      _resolver.setWriteElement(node, result.setter);
-      if (result.isSingle) {
-        var setter = result.setter;
-        if (setter != null) {
-          propertyName.staticElement = setter;
-          propertyName.auxiliaryElements = AuxiliaryElements(result.getter);
-        } else {
-          var getter = result.getter;
-          propertyName.staticElement = getter;
-          _resolver.setWriteElement(node, getter);
-          // A more specific error will be reported in ErrorVerifier.
-        }
-      } else if (result.isNone) {
-        if (staticType is NeverTypeImpl) {
-          // OK
-        } else {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_SETTER,
-            propertyName,
-            [propertyName.name, staticType],
-          );
-        }
-      }
-    }
   }
 
   /// Resolve the given simple [identifier] if possible. Return the element to
