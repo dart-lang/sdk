@@ -126,7 +126,7 @@ class TextDocumentOpenHandler
       );
       server.onOverlayCreated(path, doc.text);
 
-      final driver = server.contextManager.getDriverFor(path);
+      final driver = server.getAnalysisDriver(path);
       // If the file did not exist, and is "overlay only", it still should be
       // analyzed. Add it to driver to which it should have been added.
 

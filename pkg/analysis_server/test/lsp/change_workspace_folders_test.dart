@@ -192,6 +192,43 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_changeWorkspaceFolders_openFileOutsideRoot() async {
+    // When a file is opened that is outside of the analysis roots, the first
+    // analysis driver will be used (see [AbstractAnalysisServer.getAnalysisDriver]).
+    // This means as long as there is already an analysis root, the implicit root
+    // will be the original root and not the path of the opened file.
+    // For example, Go-to-Definition into a file in PubCache must *not* result in
+    // the pub cache folder being added as an analysis root, it should be analyzed
+    // by the existing project's driver.
+    final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
+    await newFile(workspace1FilePath);
+    final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
+    final workspace2FileUri = Uri.file(workspace2FilePath);
+    await newFile(workspace2FilePath);
+
+    await initialize(workspaceFolders: [workspaceFolder1Uri]);
+
+    // Expect explicit root for the workspace folder.
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    // Open a file in workspaceFolder2 (which is not in the analysis roots).
+    await openFile(workspace2FileUri, '');
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+
+    // Closing the file should not result in the project being removed.
+    await closeFile(workspace2FileUri);
+    expect(
+      server.contextManager.includedPaths,
+      unorderedEquals([workspaceFolder1Path]),
+    );
+  }
+
   Future<void> test_changeWorkspaceFolders_remove() async {
     await initialize(
       workspaceFolders: [workspaceFolder1Uri, workspaceFolder2Uri],
