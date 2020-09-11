@@ -278,6 +278,10 @@ word RuntimeEntry::OffsetFromThread() const {
   return target::Thread::OffsetFromThread(runtime_entry_);
 }
 
+bool RuntimeEntry::is_leaf() const {
+  return runtime_entry_->is_leaf();
+}
+
 namespace target {
 
 const word kOldPageSize = dart::kOldPageSize;
