@@ -239,6 +239,11 @@ class ClosureDataBuilder {
             }
             break;
           case VariableUseKind.localReturnType:
+            // SSA requires the element type of generators.
+            if (usage.localFunction.function.asyncMarker !=
+                ir.AsyncMarker.Sync) {
+              return true;
+            }
             if (rtiNeed.localFunctionNeedsSignature(usage.localFunction)) {
               return true;
             }
