@@ -810,6 +810,29 @@ main() {
       });
     });
 
+    test('forEach_bodyBegin() pushes conservative join state', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int');
+      var forStatement = _Statement();
+      h.assignedVariables(
+          (vars) => vars.nest(forStatement, () => vars.write(x)));
+      h.run((flow) {
+        h.declare(x, initialized: false);
+        expect(flow.isUnassigned(x), true);
+        flow.forEach_bodyBegin(forStatement, null, _Type('int'));
+        // Since a write to x occurs somewhere in the loop, x should no longer
+        // be considered unassigned.
+        expect(flow.isUnassigned(x), false);
+        flow.handleBreak(forStatement);
+        flow.write(x, _Type('int'));
+        flow.forEach_end();
+        // Even though the write to x is unreachable (since it occurs after a
+        // break), x should still be considered "possibly assigned" because of
+        // the conservative join done at the top of the loop.
+        expect(flow.isUnassigned(x), false);
+      });
+    });
+
     test('forEach_end() restores state before loop', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
