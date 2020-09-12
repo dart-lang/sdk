@@ -38,7 +38,6 @@ Uint8List buildSdkSummary({
     resourceProvider,
     resourceProvider.getFolder(sdkPath),
   );
-  sdk.analysisOptions = AnalysisOptionsImpl();
 
   // Append libraries from the embedder.
   if (embedderYamlPath != null) {

@@ -1035,7 +1035,7 @@ class ContextManagerImpl implements ContextManager {
   /// given [folder].
   SourceFactory _createSourceFactory(AnalysisOptions options, Folder folder) {
     var builder = callbacks.createContextBuilder(folder, options);
-    return builder.createSourceFactory(folder.path, options);
+    return builder.createSourceFactory(folder.path);
   }
 
   /// Clean up and destroy the context associated with the given folder.
@@ -1398,7 +1398,7 @@ class ContextManagerImpl implements ContextManager {
         callbacks.createContextBuilder(info.folder, defaultContextOptions);
     var options = builder.getAnalysisOptions(contextRoot,
         contextRoot: driver.contextRoot);
-    var factory = builder.createSourceFactory(contextRoot, options);
+    var factory = builder.createSourceFactory(contextRoot);
     driver.configure(analysisOptions: options, sourceFactory: factory);
     callbacks.analysisOptionsUpdated(driver);
   }

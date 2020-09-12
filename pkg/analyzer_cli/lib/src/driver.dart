@@ -439,7 +439,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } else {
         // The embedder uri resolver has mappings, use it instead of the default
         // Dart SDK uri resolver.
-        embedderSdk.analysisOptions = analysisOptions;
         resolvers.add(DartUriResolver(embedderSdk));
       }
     }
@@ -648,10 +647,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
         sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
         var dartSdkPath = options.dartSdkPath;
-        var dartSdk = FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(dartSdkPath));
-        dartSdk.analysisOptions = analysisOptions;
-        sdk = dartSdk;
+        sdk = FolderBasedDartSdk(
+          resourceProvider,
+          resourceProvider.getFolder(dartSdkPath),
+        );
       }
     }
   }

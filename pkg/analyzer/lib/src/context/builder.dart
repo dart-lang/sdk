@@ -114,7 +114,7 @@ class ContextBuilder {
     if (builderOptions.librarySummaryPaths != null) {
       summaryData = SummaryDataStore(builderOptions.librarySummaryPaths);
     }
-    final sf = createSourceFactory(path, options, summaryData: summaryData);
+    final sf = createSourceFactory(path, summaryData: summaryData);
 
     AnalysisDriver driver = AnalysisDriver(
       analysisDriverScheduler,
@@ -198,11 +198,11 @@ class ContextBuilder {
     }
   }
 
-  SourceFactory createSourceFactory(String rootPath, AnalysisOptions options,
+  SourceFactory createSourceFactory(String rootPath,
       {SummaryDataStore summaryData}) {
     Workspace workspace =
         ContextBuilder.createWorkspace(resourceProvider, rootPath, this);
-    DartSdk sdk = findSdk(workspace, options);
+    DartSdk sdk = findSdk(workspace);
     if (summaryData != null && sdk is SummaryBasedDartSdk) {
       summaryData.addBundle(null, sdk.bundle);
     }
@@ -220,10 +220,8 @@ class ContextBuilder {
   }
 
   /// Return the SDK that should be used to analyze code. Use the given
-  /// [workspace] and [analysisOptions] to locate the SDK.
-  ///
-  /// TODO(scheglov) Remove [analysisOptions]?
-  DartSdk findSdk(Workspace workspace, AnalysisOptions analysisOptions) {
+  /// [workspace] to locate the SDK.
+  DartSdk findSdk(Workspace workspace) {
     String summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
       return SummaryBasedDartSdk(summaryPath, true,
@@ -235,12 +233,10 @@ class ContextBuilder {
       String sdkPath = sdkManager.defaultSdkDirectory;
       SdkDescription description = SdkDescription(sdkPath);
       folderSdk = sdkManager.getSdk(description, () {
-        var sdk = FolderBasedDartSdk(
+        return FolderBasedDartSdk(
           resourceProvider,
           resourceProvider.getFolder(sdkPath),
         );
-        sdk.analysisOptions = analysisOptions;
-        return sdk;
       });
     }
 
