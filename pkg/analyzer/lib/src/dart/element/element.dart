@@ -1919,6 +1919,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 
 /// A concrete implementation of a [ConstructorElement].
 class ConstructorElementImpl extends ExecutableElementImpl
+    with ConstructorElementMixin
     implements ConstructorElement {
   /// The constructor to which this constructor is redirecting.
   ConstructorElement _redirectedConstructor;
@@ -2005,23 +2006,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     // This property is updated in ConstantEvaluationEngine even for
     // resynthesized constructors, so we don't have the usual assert here.
     _isCycleFree = isCycleFree;
-  }
-
-  @override
-  bool get isDefaultConstructor {
-    // unnamed
-    String name = this.name;
-    if (name != null && name.isNotEmpty) {
-      return false;
-    }
-    // no required parameters
-    for (ParameterElement parameter in parameters) {
-      if (parameter.isNotOptional) {
-        return false;
-      }
-    }
-    // OK, can be used as default constructor
-    return true;
   }
 
   @override
@@ -2161,6 +2145,26 @@ class ConstructorElementImpl extends ExecutableElementImpl
       computeConstants(library.typeProvider, library.typeSystem,
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
+  }
+}
+
+/// Common implementation for methods defined in [ConstructorElement].
+mixin ConstructorElementMixin implements ConstructorElement {
+  @override
+  bool get isDefaultConstructor {
+    // unnamed
+    var name = this.name;
+    if (name != null && name.isNotEmpty) {
+      return false;
+    }
+    // no required parameters
+    for (ParameterElement parameter in parameters) {
+      if (parameter.isNotOptional) {
+        return false;
+      }
+    }
+    // OK, can be used as default constructor
+    return true;
   }
 }
 

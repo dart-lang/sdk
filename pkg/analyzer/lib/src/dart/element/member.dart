@@ -19,7 +19,9 @@ import 'package:meta/meta.dart';
 
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
-class ConstructorMember extends ExecutableMember implements ConstructorElement {
+class ConstructorMember extends ExecutableMember
+    with ConstructorElementMixin
+    implements ConstructorElement {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
   ConstructorMember(
@@ -44,9 +46,6 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 
   @override
   bool get isConstantEvaluated => declaration.isConstantEvaluated;
-
-  @override
-  bool get isDefaultConstructor => declaration.isDefaultConstructor;
 
   @override
   bool get isFactory => declaration.isFactory;
@@ -787,25 +786,15 @@ class ParameterMember extends VariableMember
   @override
   bool get isInitializingFormal => declaration.isInitializingFormal;
 
-  @override
-  bool get isOptionalNamed {
-    if (isLegacy) {
-      return super.isNamed;
-    }
-    return super.isOptionalNamed;
-  }
-
-  @override
-  bool get isRequiredNamed {
-    if (isLegacy) {
-      return false;
-    }
-    return super.isRequiredNamed;
-  }
-
   @deprecated
   @override
-  ParameterKind get parameterKind => declaration.parameterKind;
+  ParameterKind get parameterKind {
+    var kind = declaration.parameterKind;
+    if (isLegacy && kind == ParameterKind.NAMED_REQUIRED) {
+      return ParameterKind.NAMED;
+    }
+    return kind;
+  }
 
   @override
   List<ParameterElement> get parameters {

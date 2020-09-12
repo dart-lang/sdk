@@ -3503,6 +3503,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // try to find default generative super constructor
     ConstructorElement superUnnamedConstructor =
         superElement.unnamedConstructor;
+    superUnnamedConstructor =
+        _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor);
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
@@ -4309,6 +4311,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     ConstructorElement superUnnamedConstructor =
         superElement.unnamedConstructor;
+    superUnnamedConstructor =
+        _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor);
     if (superUnnamedConstructor != null) {
       if (superUnnamedConstructor.isFactory) {
         _errorReporter.reportErrorForNode(
