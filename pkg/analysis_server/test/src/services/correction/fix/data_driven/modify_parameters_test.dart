@@ -873,11 +873,15 @@ void h() {
 
 abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
   Transform _modify(List<String> originalComponents,
-          List<ParameterModification> modifications, {String newName}) =>
+          List<ParameterModification> modifications,
+          {String newName}) =>
       Transform(
           title: 'title',
           element: ElementDescriptor(
-              libraryUris: [importUri], components: originalComponents),
+              libraryUris: [importUri],
+              // The kind isn't important to these tests.
+              kind: '',
+              components: originalComponents),
           changes: [
             ModifyParameters(modifications: modifications),
             if (newName != null) Rename(newName: newName),

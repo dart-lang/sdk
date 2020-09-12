@@ -528,6 +528,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
       AddSuperConstructorInvocation.newInstance,
     ],

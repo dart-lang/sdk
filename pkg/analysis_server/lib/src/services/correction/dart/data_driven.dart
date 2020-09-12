@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
@@ -82,6 +83,9 @@ class DataDrivenFix extends CorrectionProducer {
   final Transform _transform;
 
   DataDrivenFix(this._transform);
+
+  /// Return a description of the element that was changed.
+  ElementDescriptor get element => _transform.element;
 
   @override
   List<Object> get fixArguments => [_transform.title];

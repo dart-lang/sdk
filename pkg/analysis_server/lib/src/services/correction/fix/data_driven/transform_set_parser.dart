@@ -373,7 +373,8 @@ class TransformSetParser {
       } else {
         components.insert(0, containerName);
       }
-      return ElementDescriptor(libraryUris: uris, components: components);
+      return ElementDescriptor(
+          libraryUris: uris, kind: elementKey, components: components);
     } else if (node == null) {
       // TODO(brianwilkerson) Report the missing YAML.
       return null;

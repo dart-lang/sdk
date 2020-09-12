@@ -459,7 +459,10 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
       Transform(
           title: 'title',
           element: ElementDescriptor(
-              libraryUris: [importUri], components: components ?? ['C', 'm']),
+              libraryUris: [importUri],
+              // The kind isn't important to these tests.
+              kind: '',
+              components: components ?? ['C', 'm']),
           changes: [
             AddTypeParameter(
                 extendedType: extendedType,
