@@ -125,6 +125,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
+      signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);
