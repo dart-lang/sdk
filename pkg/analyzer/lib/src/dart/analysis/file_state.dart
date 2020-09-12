@@ -115,7 +115,7 @@ class FileState {
   final FeatureSet _contextFeatureSet;
 
   /// The language version for the package that contains this file.
-  final Version _packageLanguageVersion;
+  final Version packageLanguageVersion;
 
   int id = fileObjectId++;
   int refreshId;
@@ -156,7 +156,7 @@ class FileState {
     this.source,
     this.workspacePackage,
     this._contextFeatureSet,
-    this._packageLanguageVersion,
+    this.packageLanguageVersion,
   ) : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
@@ -166,7 +166,7 @@ class FileState {
         workspacePackage = null,
         _exists = true,
         _contextFeatureSet = null,
-        _packageLanguageVersion = null {
+        packageLanguageVersion = null {
     _apiSignature = Uint8List(16);
     _libraryCycle = LibraryCycle.external();
   }
@@ -375,7 +375,7 @@ class FileState {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
       signature.addFeatureSet(_contextFeatureSet);
-      signature.addLanguageVersion(_packageLanguageVersion);
+      signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(_contentHash);
       signature.addBool(_exists);
       contentSignature = signature.toByteList();
@@ -510,7 +510,7 @@ class FileState {
     unit.lineInfo = LineInfo(const <int>[0]);
 
     unit.languageVersion = LibraryLanguageVersion(
-      package: _packageLanguageVersion,
+      package: packageLanguageVersion,
       override: null,
     );
 
@@ -561,7 +561,7 @@ class FileState {
       ..configureFeatures(
         featureSetForOverriding: _contextFeatureSet,
         featureSet: _contextFeatureSet.restrictToVersion(
-          _packageLanguageVersion,
+          packageLanguageVersion,
         ),
       );
     Token token = scanner.tokenize(reportScannerErrors: false);
@@ -640,7 +640,7 @@ $content
 
     var unitImpl = unit as CompilationUnitImpl;
     unitImpl.languageVersion = LibraryLanguageVersion(
-      package: _packageLanguageVersion,
+      package: packageLanguageVersion,
       override: overrideVersion,
     );
   }
