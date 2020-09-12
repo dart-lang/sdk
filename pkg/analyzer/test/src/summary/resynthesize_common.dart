@@ -10335,6 +10335,20 @@ dynamic d;
 ''');
   }
 
+  test_type_inference_assignmentExpression_references_onTopLevelVariable() async {
+    var library = await checkLibrary('''
+var a = () {
+  b += 0;
+  return 0;
+};
+var b = 0;
+''');
+    checkElementText(library, '''
+int Function() a;
+int b;
+''');
+  }
+
   test_type_inference_based_on_loadLibrary() async {
     addLibrarySource('/a.dart', '');
     var library = await checkLibrary('''

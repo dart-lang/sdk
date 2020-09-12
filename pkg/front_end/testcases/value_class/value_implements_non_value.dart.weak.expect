@@ -71,6 +71,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
 
 import "org-dartlang-testcase-sdk:///pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart";
 import "org-dartlang-testcase:///value_class_support_lib.dart";
@@ -89,6 +90,8 @@ class Cat extends core::Object implements self::Animal {
     ;
   operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
     return other is self::Cat && this.{self::Cat::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_implements_non_value.dartCat".{core::String::hashCode}, this.{self::Cat::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
 }
 abstract class Animal2 extends core::Object {
   synthetic constructor •() → self::Animal2
@@ -104,6 +107,8 @@ class Cat2 extends core::Object implements self::Animal2 {
     ;
   operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
     return other is self::Cat2 && this.{self::Cat2::numberOfLegs}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfLegs}) && this.{self::Cat2::numberOfWhiskers}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfWhiskers});
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_implements_non_value.dartCat2".{core::String::hashCode}, this.{self::Cat2::numberOfLegs}.{core::num::hashCode}), this.{self::Cat2::numberOfWhiskers}.{core::num::hashCode}));
 }
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:30:22: Error: No named parameter with the name 'numberOfLegs'.
@@ -201,11 +206,11 @@ static method main() → dynamic {
 }
 
 library /*isNonNullableByDefault*/;
-import self as self3;
+import self as val;
 import "dart:core" as core;
 
 class JenkinsSmiHash extends core::Object {
-  synthetic constructor •() → self3::JenkinsSmiHash
+  synthetic constructor •() → val::JenkinsSmiHash
     : super core::Object::•()
     ;
   static method combine(core::int hash, core::int value) → core::int {

@@ -446,7 +446,7 @@ void main(Never x) {
       writeElement: null,
       writeType: 'dynamic',
       operatorElement: null,
-      type: 'int',
+      type: 'dynamic',
     );
   }
 

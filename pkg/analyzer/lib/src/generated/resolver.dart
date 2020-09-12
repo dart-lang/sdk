@@ -664,6 +664,22 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void startNullAwarePropertyAccess(
+    PropertyAccess node,
+  ) {
+    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
+        _isNonNullableByDefault) {
+      var target = node.target;
+      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
+        // `?.` to access static methods is equivalent to `.`, so do nothing.
+      } else {
+        _flowAnalysis.flow.nullAwareAccess_rightBegin(
+            target, node.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
+    }
+  }
+
   /// If in a legacy library, return the legacy view on the [element].
   /// Otherwise, return the original element.
   T toLegacyElement<T extends Element>(T element) {
@@ -1642,16 +1658,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     var target = node.target;
     target?.accept(this);
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
-        _isNonNullableByDefault) {
-      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
-        // `?.` to access static methods is equivalent to `.`, so do nothing.
-      } else {
-        _flowAnalysis.flow.nullAwareAccess_rightBegin(
-            target, node.realTarget.staticType ?? typeProvider.dynamicType);
-        _unfinishedNullShorts.add(node.nullShortingTermination);
-      }
-    }
+    startNullAwarePropertyAccess(node);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }

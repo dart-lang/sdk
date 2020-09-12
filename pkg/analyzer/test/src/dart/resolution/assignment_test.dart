@@ -352,7 +352,6 @@ void f(int a, int b, double c) {
 ''', [
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 1),
     ]);
 
     var assignment = findNode.assignment('= c');
@@ -362,11 +361,8 @@ void f(int a, int b, double c) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'double',
+      operatorElement: null,
+      type: 'dynamic',
     );
 
     assertElement(findNode.simple('a +'), findElement.parameter('a'));
@@ -382,7 +378,6 @@ void f(int a, int b, double c) {
 ''', [
       error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
       error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 46, 1),
     ]);
 
     var assignment = findNode.assignment('= c');
@@ -392,11 +387,8 @@ void f(int a, int b, double c) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'double',
+      operatorElement: null,
+      type: 'dynamic',
     );
   }
 
@@ -461,11 +453,8 @@ void f(num x, int y) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'num',
+      operatorElement: null,
+      type: 'dynamic',
     );
 
     assertSimpleIdentifier(
@@ -555,11 +544,8 @@ void f(num x, int y) {
       readType: 'dynamic',
       writeElement: null,
       writeType: 'dynamic',
-      operatorElement: elementMatcher(
-        numElement.getMethod('+'),
-        isLegacy: isNullSafetySdkAndLegacyLibrary,
-      ),
-      type: 'num',
+      operatorElement: null,
+      type: 'dynamic',
     );
 
     assertSimpleIdentifier(

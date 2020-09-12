@@ -24,7 +24,7 @@ class A {
 f() {
   A.v = 1;
 }''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 42, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1),
     ]);
   }
 
@@ -36,7 +36,7 @@ class A {
 f() {
   A.v += 1;
 }''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 42, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1),
     ]);
   }
 

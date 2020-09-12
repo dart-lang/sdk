@@ -181,7 +181,7 @@ _returnNamedNullCalledTwice({/*[null|exact=JSDouble]*/ a}) => a;
 /*member: _field1:[null]*/
 dynamic _field1;
 
-/*member: invokeStaticFieldUninitialized:[null|subclass=Object]*/
+/*member: invokeStaticFieldUninitialized:[empty]*/
 invokeStaticFieldUninitialized() => _field1();
 
 ////////////////////////////////////////////////////////////////////////////////

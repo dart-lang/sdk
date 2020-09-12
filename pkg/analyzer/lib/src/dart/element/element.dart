@@ -6967,21 +6967,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  DartType get returnTypeInternal {
-    var returnType = variable.type;
-
-    // While performing inference during linking, the first step is to collect
-    // dependencies. During this step we resolve the expression, but we might
-    // reference elements that don't have their types inferred yet. So, here
-    // we give some type. A better solution would be to infer recursively, but
-    // we are not doing this yet.
-    if (returnType == null) {
-      assert(linkedContext.isLinking);
-      return DynamicTypeImpl.instance;
-    }
-
-    return returnType;
-  }
+  DartType get returnTypeInternal => variable.type;
 
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
@@ -7138,7 +7124,19 @@ abstract class PropertyInducingElementImpl
   DartType get typeInternal {
     if (linkedNode != null) {
       if (_type != null) return _type;
-      return _type = linkedContext.getType(linkedNode);
+      _type = linkedContext.getType(linkedNode);
+
+      // While performing inference during linking, the first step is to collect
+      // dependencies. During this step we resolve the expression, but we might
+      // reference elements that don't have their types inferred yet. So, here
+      // we give some type. A better solution would be to infer recursively, but
+      // we are not doing this yet.
+      if (_type == null) {
+        assert(linkedContext.isLinking);
+        return DynamicTypeImpl.instance;
+      }
+
+      return _type;
     }
     if (isSynthetic && _type == null) {
       if (getter != null) {

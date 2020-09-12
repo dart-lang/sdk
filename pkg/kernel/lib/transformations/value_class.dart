@@ -27,6 +27,22 @@ class ValueClassScanner extends ClassScanner<Null> {
   }
 }
 
+class JenkinsClassScanner extends ClassScanner<Procedure> {
+  JenkinsClassScanner(Scanner<Procedure, TreeNode> next) : super(next);
+
+  bool predicate(Class node) {
+    return node.name == "JenkinsSmiHash";
+  }
+}
+
+class HashCombineMethodsScanner extends ProcedureScanner<Null> {
+  HashCombineMethodsScanner() : super(null);
+
+  bool predicate(Procedure node) {
+    return node.name.name == "combine" || node.name.name == "finish";
+  }
+}
+
 void transformComponent(
     Component node, CoreTypes coreTypes, ClassHierarchy hierarchy) {
   ValueClassScanner scanner = new ValueClassScanner();
@@ -40,7 +56,7 @@ void transformValueClass(
     Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
   addConstructor(cls, coreTypes);
   addEqualsOperator(cls, coreTypes, hierarchy);
-  // addHashCode(cls, coreTypes);
+  addHashCode(cls, coreTypes, hierarchy);
   // addCopyWith(cls);
 }
 
@@ -170,34 +186,90 @@ void addEqualsOperator(
   cls.addMember(equalsOperator);
 }
 
-/*
-void addHashCode(Class cls, CoreTypes coreTypes) {
-  Map<String, VariableDeclaration> environment = Map.fromIterable(cls.fields,
-      key: (f) => f.name.name,
-      value: (f) => VariableDeclaration(f.name.name, type: f.type));
+void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  for (Procedure procedure in cls.procedures) {
+    if (procedure.kind == ProcedureKind.Getter &&
+        procedure.name.name == "hashCode") {
+      // hashCode getter is already implemented, spec is to do nothing
+      return;
+    }
+  }
+  DartType returnType = cls.enclosingLibrary.isNonNullableByDefault
+      ? coreTypes.intNonNullableRawType
+      : coreTypes.intLegacyRawType;
 
-  VariableDeclaration other = VariableDeclaration("other");
+  Constructor superConstructor = null;
+  for (Constructor constructor in cls.superclass.constructors) {
+    if (constructor.name.name == "") {
+      superConstructor = constructor;
+    }
+  }
 
-  var returnType = cls.enclosingLibrary.isNonNullableByDefault
-      ? coreTypes.boolNonNullableRawType
-      : coreTypes.boolLegacyRawType;
+  Procedure hashCombine, hashFinish;
+  HashCombineMethodsScanner hashCombineMethodsScanner =
+      new HashCombineMethodsScanner();
+  JenkinsClassScanner jenkinsScanner =
+      new JenkinsClassScanner(hashCombineMethodsScanner);
+  ScanResult<Class, Procedure> hashMethodsResult =
+      jenkinsScanner.scan(cls.enclosingLibrary.enclosingComponent);
+  for (Class clazz in hashMethodsResult.targets.keys) {
+    for (Procedure procedure in hashMethodsResult.targets[clazz].targets.keys) {
+      if (procedure.name.name == "combine") hashCombine = procedure;
+      if (procedure.name.name == "finish") hashFinish = procedure;
+    }
+  }
 
+  List<VariableDeclaration> allVariables = superConstructor
+      .function.namedParameters
+      .map<VariableDeclaration>(
+          (f) => VariableDeclaration(f.name, type: f.type))
+      .toList()
+        ..addAll(cls.fields.map<VariableDeclaration>(
+            (f) => VariableDeclaration(f.name.name, type: f.type)));
+
+  Map<VariableDeclaration, Member> targetsHashcode = new Map();
+  Map<VariableDeclaration, Member> targets = new Map();
+  for (VariableDeclaration variable in allVariables) {
+    Member target = coreTypes.objectEquals;
+    Member targetHashcode = coreTypes.objectEquals;
+    DartType fieldsType = variable.type;
+    if (fieldsType is InterfaceType) {
+      targetHashcode =
+          hierarchy.getInterfaceMember(fieldsType.classNode, Name("hashCode"));
+      target = hierarchy.getInterfaceMember(cls, Name(variable.name));
+    }
+    targetsHashcode[variable] = targetHashcode;
+    targets[variable] = target;
+  }
   cls.addMember(Procedure(
       Name("hashCode"),
       ProcedureKind.Getter,
-      FunctionNode(ReturnStatement(cls.fields
-          .map((f) => DirectPropertyGet(
-              VariableGet(environment[f.name.name]),
-              Procedure(Name("hashCode"), ProcedureKind.Getter,
-                  null) // TODO(jlcontreras): Add ref to the real hashCode getter, dont create a new one
-              ))
-          .toList()
-          .fold(
-              IntLiteral(0),
-              (previousValue, element) => MethodInvocation(
-                  previousValue, Name("*"), Arguments([element])))))));
+      FunctionNode(
+          ReturnStatement(StaticInvocation(
+              hashFinish,
+              Arguments([
+                allVariables
+                    .map((f) => (PropertyGet(
+                        PropertyGet(ThisExpression(), Name(f.name), targets[f]),
+                        Name("hashCode"),
+                        targetsHashcode[f])))
+                    .fold(
+                        PropertyGet(
+                            StringLiteral(
+                                cls.enclosingLibrary.importUri.toString() +
+                                    cls.name),
+                            Name("hashCode"),
+                            hierarchy.getInterfaceMember(
+                                coreTypes.stringClass, Name("hashCode"))),
+                        (previousValue, element) => StaticInvocation(
+                            hashCombine, Arguments([previousValue, element])))
+              ]))),
+          returnType: returnType),
+      fileUri: cls.fileUri)
+    ..fileOffset = cls.fileOffset);
 }
 
+/*
 void addCopyWith(Class cls) {
   Map<String, VariableDeclaration> environment = Map.fromIterable(cls.fields,
       key: (f) => f.name.name,
@@ -228,16 +300,3 @@ void addCopyWith(Class cls) {
               cls.fields.map((f) => environment[f.name.name]).toList())));
 }
 */
-
-bool isValueClass(Class cls) {
-  for (Expression annotation in cls.annotations) {
-    if (annotation is ConstantExpression &&
-        annotation.constant is StringConstant) {
-      StringConstant constant = annotation.constant;
-      if (constant.value == 'valueClass') {
-        return true;
-      }
-    }
-  }
-  return false;
-}

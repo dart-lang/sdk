@@ -26,11 +26,11 @@ f(var x, var y) {
   }
 
   test_using_and_no_error() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(var x, var y) {
   return x & y;
 }
-''', []);
+''');
   }
 
   test_using_or() async {
@@ -44,11 +44,11 @@ f(var x, var y) {
   }
 
   test_using_or_no_error() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(var x, var y) {
   return x | y;
 }
-''', []);
+''');
   }
 
   test_using_shl() async {
@@ -62,11 +62,11 @@ f(var x) {
   }
 
   test_using_shl_no_error() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(var x) {
   return x << 2;
 }
-''', []);
+''');
   }
 
   test_using_shr() async {
@@ -80,11 +80,11 @@ f(var x) {
   }
 
   test_using_shr_no_error() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(var x) {
   return x >> 2;
 }
-''', []);
+''');
   }
 
   test_using_xor() async {
@@ -98,10 +98,10 @@ f(var x, var y) {
   }
 
   test_using_xor_no_error() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 f(var x, var y) {
   return x ^ y;
 }
-''', []);
+''');
   }
 }
