@@ -500,16 +500,6 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     buf.writeln('</div>');
 
-    buf.writeln('<div class="column one-half">');
-    var sdk = driver?.sourceFactory?.dartSdk;
-    AnalysisOptionsImpl sdkOptions = sdk?.context?.analysisOptions;
-    if (sdkOptions != null) {
-      h3('SDK analysis options');
-      p(describe(sdkOptions), raw: true);
-    }
-
-    buf.writeln('</div>');
-
     buf.writeln('</div>');
 
     h3('Lints');

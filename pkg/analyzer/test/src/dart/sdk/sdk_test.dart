@@ -5,7 +5,6 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -133,24 +132,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     expect(sdk.sdkLibraries, contains(predicate((SdkLibrary library) {
       return library.shortName == uri;
     })));
-  }
-
-  void test_analysisOptions_afterContextCreation() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.context;
-    expect(() {
-      sdk.analysisOptions = AnalysisOptionsImpl();
-    }, throwsStateError);
-  }
-
-  void test_analysisOptions_beforeContextCreation() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.analysisOptions = AnalysisOptionsImpl();
-    sdk.context;
-    // cannot change "analysisOptions" in the context
-    expect(() {
-      sdk.context.analysisOptions = AnalysisOptionsImpl();
-    }, throwsStateError);
   }
 
   void test_creation() {
