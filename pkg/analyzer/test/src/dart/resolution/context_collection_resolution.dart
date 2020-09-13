@@ -127,7 +127,7 @@ abstract class ContextResolutionTest
     with ResourceProviderMixin, ResolutionTest {
   static bool _lintRulesAreRegistered = false;
 
-  static final ByteStore _byteStore = MemoryByteStore();
+  final ByteStore _byteStore = MemoryByteStore();
 
   Map<String, String> _declaredVariables = {};
   AnalysisContextCollection _analysisContextCollection;
