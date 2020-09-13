@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -31,9 +30,6 @@ abstract class DartSdk {
   /// Return the content of the `allowed_experiments.json` file, or `null`
   /// if the file cannot be read, e.g. does not exist.
   String get allowedExperimentsJson;
-
-  /// Return the analysis context used for all of the sources in this [DartSdk].
-  AnalysisContext get context;
 
   /// Return the language version of this SDK, or throws an exception.
   ///
