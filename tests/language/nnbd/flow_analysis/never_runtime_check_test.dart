@@ -49,7 +49,15 @@ main() {
   });
 
   Expect.throws(() {
+    isPromoteToNever_noIf(null);
+  });
+
+  Expect.throws(() {
     isNotPromoteToNever(null);
+  });
+
+  Expect.throws(() {
+    isNotPromoteToNever_noIf(null);
   });
 
   Expect.throws(() {
@@ -57,7 +65,15 @@ main() {
   });
 
   Expect.throws(() {
+    equalNullPromoteToNever_noIf(() => null);
+  });
+
+  Expect.throws(() {
     notEqualNullPromoteToNever(() => null);
+  });
+
+  Expect.throws(() {
+    notEqualNullPromoteToNever_noIf(() => null);
   });
 
   Expect.throws(() {
@@ -65,7 +81,15 @@ main() {
   });
 
   Expect.throws(() {
+    nullEqualPromoteToNever_noIf(() => null);
+  });
+
+  Expect.throws(() {
     nullNotEqualPromoteToNever(() => null);
+  });
+
+  Expect.throws(() {
+    nullNotEqualPromoteToNever_noIf(() => null);
   });
 
   Expect.throws(() {
@@ -81,8 +105,27 @@ main() {
     ifNullAssignStatic(() => throw "should not reach");
   }, (error) => error != "should not reach");
 
+  C.staticField = null;
+  Expect.throws(() {
+    ifNullAssignStaticGetter_nullableSetter(() => throw "should not reach");
+  }, (error) => error != "should not reach");
+
   Expect.throws(() {
     ifNullAssignField(C(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignGetter_nullableSetter(C(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignGetter_implicitExtension(
+        E(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignGetter_explicitExtension(
+        E(null), () => throw "should not reach");
   }, (error) => error != "should not reach");
 
   Expect.throws(() {
@@ -90,7 +133,33 @@ main() {
   }, (error) => error != "should not reach");
 
   Expect.throws(() {
+    ifNullAssignIndex_nullAware(<int>[null], () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignIndex_nullableSetter(C(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignIndex_implicitExtension(
+        E(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignIndex_explicitExtension(
+        E(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
     ifNullAssignSuper(D(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignSuper_nullableSetter(D(null), () => throw "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    ifNullAssignSuperIndex(D(null), () => throw "should not reach");
   }, (error) => error != "should not reach");
 
   Expect.throws(() {
@@ -107,6 +176,66 @@ main() {
 
   Expect.throws(() {
     unnecessaryNullAwareAccess(() => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_methodOnObject(() => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_cascaded_methodOnObject(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_methodOnExtension(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_cascaded_methodOnExtension(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_methodOnExtension_explicit(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_getter(() => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_cascaded(() => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_cascaded_getter(() => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_getterOnObject(() => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_cascaded_getterOnObject(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_getterOnExtension(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_cascaded_getterOnExtension(
+        () => null, "should not reach");
+  }, (error) => error != "should not reach");
+
+  Expect.throws(() {
+    unnecessaryNullAwareAccess_getterOnExtension_explicit(
+        () => null, "should not reach");
   }, (error) => error != "should not reach");
 
   Expect.throws(() {

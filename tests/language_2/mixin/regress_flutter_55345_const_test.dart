@@ -34,4 +34,5 @@ main() {
     },
     'abc'
   ]);
+  // No compile time or runtime errors.
 }

@@ -564,16 +564,17 @@ class TransformSetParser {
       }
       // TODO(brianwilkerson) Version information is currently being ignored,
       //  but needs to be used to select a translator.
-      var transformations = _translateList(
+      var transforms = _translateList(
           node.valueAt(_transformsKey),
           ErrorContext(key: _transformsKey, parentNode: node),
           _translateTransform);
-      if (transformations == null) {
+      if (transforms == null) {
         // The error has already been reported.
         return null;
       }
+      transforms.sort((first, second) => first.date.compareTo(second.date));
       var set = TransformSet();
-      for (var transform in transformations) {
+      for (var transform in transforms) {
         set.addTransform(transform);
       }
       return set;

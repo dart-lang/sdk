@@ -626,22 +626,26 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
-            ASSERT(super_type_arg.IsTypeRef());
-            AbstractType& ref_super_type_arg =
-                AbstractType::Handle(TypeRef::Cast(super_type_arg).type());
-            if (FLAG_trace_type_finalization) {
-              THR_Print("Instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+            AbstractType& unfinalized_type = AbstractType::Handle();
+            if (super_type_arg.IsTypeRef()) {
+              unfinalized_type = TypeRef::Cast(super_type_arg).type();
+            } else {
+              ASSERT(super_type_arg.IsType());
+              unfinalized_type = super_type_arg.raw();
             }
-            CheckRecursiveType(cls, ref_super_type_arg, pending_types);
-            pending_types->Add(ref_super_type_arg);
+            if (FLAG_trace_type_finalization) {
+              THR_Print("Instantiated unfinalized '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
+            }
+            CheckRecursiveType(cls, unfinalized_type, pending_types);
+            pending_types->Add(unfinalized_type);
             const Class& super_cls =
-                Class::Handle(ref_super_type_arg.type_class());
+                Class::Handle(unfinalized_type.type_class());
             const TypeArguments& super_args =
-                TypeArguments::Handle(ref_super_type_arg.arguments());
+                TypeArguments::Handle(unfinalized_type.arguments());
             // Mark as finalized before finalizing to avoid cycles.
-            ref_super_type_arg.SetIsFinalized();
+            unfinalized_type.SetIsFinalized();
             // Although the instantiator is different between cls and super_cls,
             // we still need to pass the current instantiation trail as to avoid
             // divergence. Finalizing the type arguments of super_cls may indeed
@@ -652,9 +656,9 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
                 pending_types, trail);
             if (FLAG_trace_type_finalization) {
-              THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+              THR_Print("Finalized instantiated '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
             }
           }
         }
