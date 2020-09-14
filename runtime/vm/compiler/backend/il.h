@@ -6497,32 +6497,38 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeInstr);
 };
 
-class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
+class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
  public:
   InstantiateTypeArgumentsInstr(TokenPosition token_pos,
-                                const TypeArguments& type_arguments,
-                                const Class& instantiator_class,
-                                const Function& function,
                                 Value* instantiator_type_arguments,
                                 Value* function_type_arguments,
+                                Value* type_arguments,
+                                const Class& instantiator_class,
+                                const Function& function,
                                 intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        type_arguments_(type_arguments),
         instantiator_class_(instantiator_class),
         function_(function) {
-    ASSERT(type_arguments.IsZoneHandle());
+    // These asserts hold for current uses.
+    ASSERT(type_arguments->BindsToConstant());
+    // Note: Non-dynamic uses never provide a null TypeArguments value.
+    ASSERT(!type_arguments->BoundConstant().IsNull());
+    ASSERT(type_arguments->BoundConstant().IsTypeArguments());
     ASSERT(instantiator_class.IsZoneHandle());
+    ASSERT(!instantiator_class.IsNull());
     ASSERT(function.IsZoneHandle());
+    ASSERT(!function.IsNull());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
+    SetInputAt(2, type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstantiateTypeArguments)
 
   Value* instantiator_type_arguments() const { return inputs_[0]; }
   Value* function_type_arguments() const { return inputs_[1]; }
-  const TypeArguments& type_arguments() const { return type_arguments_; }
+  Value* type_arguments() const { return inputs_[2]; }
   const Class& instantiator_class() const { return instantiator_class_; }
   const Function& function() const { return function_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -6537,12 +6543,18 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 
   const Code& GetStub() const {
     bool with_runtime_check;
-    if (type_arguments().CanShareInstantiatorTypeArguments(
-            instantiator_class(), &with_runtime_check)) {
+    ASSERT(!instantiator_class().IsNull());
+    ASSERT(!function().IsNull());
+    ASSERT(type_arguments()->BindsToConstant());
+    ASSERT(type_arguments()->BoundConstant().IsTypeArguments());
+    const auto& type_args =
+        TypeArguments::Cast(type_arguments()->BoundConstant());
+    if (type_args.CanShareInstantiatorTypeArguments(instantiator_class(),
+                                                    &with_runtime_check)) {
       ASSERT(with_runtime_check);
       return StubCode::InstantiateTypeArgumentsMayShareInstantiatorTA();
-    } else if (type_arguments().CanShareFunctionTypeArguments(
-                   function(), &with_runtime_check)) {
+    } else if (type_args.CanShareFunctionTypeArguments(function(),
+                                                       &with_runtime_check)) {
       ASSERT(with_runtime_check);
       return StubCode::InstantiateTypeArgumentsMayShareFunctionTA();
     }
@@ -6553,7 +6565,6 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 
  private:
   const TokenPosition token_pos_;
-  const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
   const Function& function_;
 

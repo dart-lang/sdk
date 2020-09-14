@@ -523,8 +523,8 @@ void RegisterTypeArgumentsUse(const Function& function,
   //      type_arguments <- Constant(#TypeArguments: [ ... ])
   //
   //   Case b)
-  //      type_arguments <- InstantiateTypeArguments(
-  //          <type-expr-with-parameters>, ita, fta)
+  //      type_arguments <- InstantiateTypeArguments(ita, fta, uta)
+  //      (where uta may or may not be a constant TypeArguments object)
   //
   //   Case c)
   //      type_arguments <- LoadField(vx)
@@ -543,8 +543,10 @@ void RegisterTypeArgumentsUse(const Function& function,
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
-    const TypeArguments& ta = instantiate->type_arguments();
-    ASSERT(!ta.IsNull());
+    ASSERT(instantiate->type_arguments()->BindsToConstant());
+    ASSERT(!instantiate->type_arguments()->BoundConstant().IsNull());
+    const auto& ta =
+        TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
     Definition* instance = load_field->instance()->definition();

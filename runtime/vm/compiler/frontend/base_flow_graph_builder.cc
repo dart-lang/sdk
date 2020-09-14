@@ -941,15 +941,20 @@ Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
 }
 
 Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
-    const TypeArguments& type_arguments) {
+    const TypeArguments& type_arguments_value) {
+  Fragment instructions;
+  instructions += Constant(type_arguments_value);
+
+  Value* type_arguments = Pop();
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();
   const Class& instantiator_class = Class::ZoneHandle(Z, function_.Owner());
   InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, instantiator_class, function_,
-      instantiator_type_args, function_type_args, GetNextDeoptId());
+      TokenPosition::kNoSource, instantiator_type_args, function_type_args,
+      type_arguments, instantiator_class, function_, GetNextDeoptId());
   Push(instr);
-  return Fragment(instr);
+  instructions += Fragment(instr);
+  return instructions;
 }
 
 Fragment BaseFlowGraphBuilder::LoadClassId() {
