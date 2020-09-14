@@ -192,16 +192,15 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    operatorType = operatorFromCompoundAssignment(operatorType);
-    var methodName = operatorType.lexeme;
-    // TODO(brianwilkerson) Change the [methodNameNode] from the left hand
-    //  side to the operator.
+    var binaryOperatorType = operatorFromCompoundAssignment(operatorType);
+    var methodName = binaryOperatorType.lexeme;
+
     var result = _typePropertyResolver.resolve(
       receiver: leftHandSide,
       receiverType: leftType,
       name: methodName,
       receiverErrorNode: leftHandSide,
-      nameErrorNode: leftHandSide,
+      nameErrorEntity: operator,
     );
     node.staticElement = result.getter;
     if (_shouldReportInvalidMember(leftType, result)) {

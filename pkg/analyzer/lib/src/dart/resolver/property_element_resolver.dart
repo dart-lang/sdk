@@ -174,7 +174,7 @@ class PropertyElementResolver {
       receiverType: targetType,
       name: propertyName.name,
       receiverErrorNode: target,
-      nameErrorNode: propertyName,
+      nameErrorEntity: propertyName,
     );
 
     if (targetType is DynamicTypeImpl || targetType is NeverTypeImpl) {

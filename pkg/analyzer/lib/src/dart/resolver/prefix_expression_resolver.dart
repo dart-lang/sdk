@@ -192,7 +192,7 @@ class PrefixExpressionResolver {
         receiverType: readType,
         name: methodName,
         receiverErrorNode: operand,
-        nameErrorNode: operand,
+        nameErrorEntity: operand,
       );
       node.staticElement = result.getter;
       if (_shouldReportInvalidMember(readType, result)) {

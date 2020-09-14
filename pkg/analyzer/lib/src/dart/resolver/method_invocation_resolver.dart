@@ -638,7 +638,7 @@ class MethodInvocationResolver {
       receiverType: receiverType,
       name: name,
       receiverErrorNode: receiverErrorNode,
-      nameErrorNode: nameNode,
+      nameErrorEntity: nameNode,
     );
 
     if (result.isAmbiguous) {

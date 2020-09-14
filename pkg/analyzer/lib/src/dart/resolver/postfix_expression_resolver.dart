@@ -158,7 +158,7 @@ class PostfixExpressionResolver {
       receiverType: receiverType,
       name: methodName,
       receiverErrorNode: operand,
-      nameErrorNode: operand,
+      nameErrorEntity: operand,
     );
     node.staticElement = result.getter;
     if (_shouldReportInvalidMember(receiverType, result)) {
