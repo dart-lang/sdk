@@ -49,6 +49,8 @@ class Cat extends self::Animal {
     return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///value_extends_non_value.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
+  method /*isNullableByDefault*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
+    return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
 }
 static method main() → dynamic {
   self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_extends_non_value.dart:18:22: Error: No named parameter with the name 'numberOfLegs'.

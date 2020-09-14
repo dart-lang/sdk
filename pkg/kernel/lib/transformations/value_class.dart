@@ -54,19 +54,7 @@ void transformComponent(
 
 void transformValueClass(
     Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  addConstructor(cls, coreTypes);
-  addEqualsOperator(cls, coreTypes, hierarchy);
-  addHashCode(cls, coreTypes, hierarchy);
-  // addCopyWith(cls);
-}
-
-void addConstructor(Class cls, CoreTypes coreTypes) {
-  Constructor superConstructor = null;
-  for (Constructor constructor in cls.superclass.constructors) {
-    if (constructor.name.name == "") {
-      superConstructor = constructor;
-    }
-  }
+  List<VariableDeclaration> allVariables = queryAllInstanceVariables(cls);
   Constructor syntheticConstructor = null;
   for (Constructor constructor in cls.constructors) {
     if (constructor.isSynthetic) {
@@ -74,6 +62,21 @@ void addConstructor(Class cls, CoreTypes coreTypes) {
     }
   }
 
+  addConstructor(cls, coreTypes, syntheticConstructor);
+  addEqualsOperator(cls, coreTypes, hierarchy, allVariables.toList());
+  addHashCode(cls, coreTypes, hierarchy, allVariables.toList());
+  addCopyWith(
+      cls, coreTypes, hierarchy, allVariables.toList(), syntheticConstructor);
+}
+
+void addConstructor(
+    Class cls, CoreTypes coreTypes, Constructor syntheticConstructor) {
+  Constructor superConstructor = null;
+  for (Constructor constructor in cls.superclass.constructors) {
+    if (constructor.name.name == "") {
+      superConstructor = constructor;
+    }
+  }
   List<VariableDeclaration> superParameters = superConstructor
       .function.namedParameters
       .map<VariableDeclaration>((e) => VariableDeclaration(e.name, type: e.type)
@@ -117,8 +120,8 @@ void addConstructor(Class cls, CoreTypes coreTypes) {
   cls.annotations.removeAt(valueClassAnnotationIndex);
 }
 
-void addEqualsOperator(
-    Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    List<VariableDeclaration> allVariables) {
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Operator &&
         procedure.name.name == "==") {
@@ -131,21 +134,8 @@ void addEqualsOperator(
       : coreTypes.boolLegacyRawType;
   DartType myType = coreTypes.thisInterfaceType(cls, Nullability.nonNullable);
 
-  Constructor superConstructor = null;
-  for (Constructor constructor in cls.superclass.constructors) {
-    if (constructor.name.name == "") {
-      superConstructor = constructor;
-    }
-  }
   VariableDeclaration other = VariableDeclaration("other",
       type: coreTypes.objectRawType(Nullability.nonNullable));
-  List<VariableDeclaration> allVariables = superConstructor
-      .function.namedParameters
-      .map<VariableDeclaration>(
-          (f) => VariableDeclaration(f.name, type: f.type))
-      .toList()
-        ..addAll(cls.fields.map<VariableDeclaration>(
-            (f) => VariableDeclaration(f.name.name, type: f.type)));
 
   Map<VariableDeclaration, Member> targetsEquals = new Map();
   Map<VariableDeclaration, Member> targets = new Map();
@@ -186,7 +176,8 @@ void addEqualsOperator(
   cls.addMember(equalsOperator);
 }
 
-void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    List<VariableDeclaration> allVariables) {
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Getter &&
         procedure.name.name == "hashCode") {
@@ -197,13 +188,6 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
   DartType returnType = cls.enclosingLibrary.isNonNullableByDefault
       ? coreTypes.intNonNullableRawType
       : coreTypes.intLegacyRawType;
-
-  Constructor superConstructor = null;
-  for (Constructor constructor in cls.superclass.constructors) {
-    if (constructor.name.name == "") {
-      superConstructor = constructor;
-    }
-  }
 
   Procedure hashCombine, hashFinish;
   HashCombineMethodsScanner hashCombineMethodsScanner =
@@ -218,14 +202,6 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
       if (procedure.name.name == "finish") hashFinish = procedure;
     }
   }
-
-  List<VariableDeclaration> allVariables = superConstructor
-      .function.namedParameters
-      .map<VariableDeclaration>(
-          (f) => VariableDeclaration(f.name, type: f.type))
-      .toList()
-        ..addAll(cls.fields.map<VariableDeclaration>(
-            (f) => VariableDeclaration(f.name.name, type: f.type)));
 
   Map<VariableDeclaration, Member> targetsHashcode = new Map();
   Map<VariableDeclaration, Member> targets = new Map();
@@ -269,17 +245,21 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
     ..fileOffset = cls.fileOffset);
 }
 
-/*
-void addCopyWith(Class cls) {
-  Map<String, VariableDeclaration> environment = Map.fromIterable(cls.fields,
-      key: (f) => f.name.name,
-      value: (f) => VariableDeclaration(f.name.name, type: f.type));
-
-  Constructor syntheticConstructor = null;
-  for (Constructor constructor in cls.constructors) {
-    if (constructor.isSynthetic) {
-      syntheticConstructor = constructor;
+void addCopyWith(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
+    List<VariableDeclaration> allVariables, Constructor syntheticConstructor) {
+  Map<VariableDeclaration, Member> targetsEquals = new Map();
+  Map<VariableDeclaration, Member> targets = new Map();
+  for (VariableDeclaration variable in allVariables) {
+    Member target = coreTypes.objectEquals;
+    Member targetEquals = coreTypes.objectEquals;
+    DartType fieldsType = variable.type;
+    if (fieldsType is InterfaceType) {
+      targetEquals =
+          hierarchy.getInterfaceMember(fieldsType.classNode, Name("=="));
+      target = hierarchy.getInterfaceMember(cls, Name(variable.name));
     }
+    targetsEquals[variable] = targetEquals;
+    targets[variable] = target;
   }
 
   cls.addMember(Procedure(
@@ -288,15 +268,26 @@ void addCopyWith(Class cls) {
       FunctionNode(
           ReturnStatement(ConstructorInvocation(
               syntheticConstructor,
-              Arguments(cls.fields
-                  .map((f) => ConditionalExpression(
-                      MethodInvocation(VariableGet(environment[f.name.name]),
-                          Name('=='), Arguments([NullLiteral()])),
-                      PropertyGet(ThisExpression(), f.name, f),
-                      VariableGet(environment[f.name.name]),
-                      f.type))
-                  .toList()))),
-          namedParameters:
-              cls.fields.map((f) => environment[f.name.name]).toList())));
+              Arguments([],
+                  named: allVariables
+                      .map((f) => NamedExpression(f.name, VariableGet(f)))
+                      .toList()))),
+          namedParameters: allVariables),
+      fileUri: cls.fileUri)
+    ..fileOffset = cls.fileOffset);
 }
-*/
+
+List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
+  Constructor superConstructor = null;
+  for (Constructor constructor in cls.superclass.constructors) {
+    if (constructor.name.name == "") {
+      superConstructor = constructor;
+    }
+  }
+  return superConstructor.function.namedParameters
+      .map<VariableDeclaration>(
+          (f) => VariableDeclaration(f.name, type: f.type))
+      .toList()
+        ..addAll(cls.fields.map<VariableDeclaration>(
+            (f) => VariableDeclaration(f.name.name, type: f.type)));
+}
