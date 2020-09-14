@@ -10,7 +10,7 @@ class ElementDescriptor {
   final List<String> libraryUris;
 
   /// The kind of element that was changed.
-  final String kind;
+  final String _kind;
 
   /// The components that uniquely identify the element within its library.
   final List<String> components;
@@ -21,8 +21,12 @@ class ElementDescriptor {
   /// element is represented by the key used in the data file.
   ElementDescriptor(
       {@required this.libraryUris,
-      @required this.kind,
-      @required this.components});
+      @required String kind,
+      @required this.components})
+      : _kind = kind;
+
+  /// Return `true` if the described element is a constructor.
+  bool get isConstructor => _kind == 'constructor';
 
   /// Return `true` if this descriptor matches an element with the given [name]
   /// in a library that imports the [importedUris].

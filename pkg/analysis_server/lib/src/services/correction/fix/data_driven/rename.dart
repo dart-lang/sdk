@@ -21,7 +21,7 @@ class Rename extends Change<SimpleIdentifier> {
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix,
       SimpleIdentifier nameNode) {
-    if (fix.element.kind == 'constructor') {
+    if (fix.element.isConstructor) {
       var parent = nameNode.parent;
       if (parent is ConstructorName) {
         if (nameNode != null && newName.isEmpty) {
