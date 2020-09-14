@@ -27,6 +27,7 @@ class TransformSetParserTest extends AbstractTransformSetParserTest {
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -62,6 +63,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -91,6 +93,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -126,6 +129,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -161,6 +165,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-03
   element:
     uris:
       - 'test.dart'
@@ -191,6 +196,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Add'
+  date: 2020-09-03
   element:
     uris:
       - 'test.dart'
@@ -239,6 +245,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename g'
+  date: 2020-09-02
   element:
     uris: ['test.dart']
     getter: 'g'
@@ -257,6 +264,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename g'
+  date: 2020-09-02
   element:
     uris: ['test.dart']
     getter: 'g'
@@ -274,6 +282,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename m'
+  date: 2020-09-02
   element:
     uris: ['test.dart']
     method: 'm'
@@ -313,6 +322,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Remove'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -338,6 +348,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Remove'
+  date: 2020-09-09
   element:
     uris: ['test.dart']
     function: 'f'
@@ -363,6 +374,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-08-21
   element:
     uris:
       - 'test.dart'

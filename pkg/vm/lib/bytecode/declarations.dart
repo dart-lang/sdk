@@ -533,6 +533,7 @@ class FunctionDeclaration {
   static const hasCustomScriptFlag = 1 << 22;
   static const hasAttributesFlag = 1 << 23;
   static const isExtensionMemberFlag = 1 << 24;
+  static const hasParameterFlagsFlag = 1 << 25;
 
   final int flags;
   final ObjectHandle name;
@@ -542,6 +543,8 @@ class FunctionDeclaration {
   final TypeParametersDeclaration typeParameters;
   final int numRequiredParameters;
   final List<ParameterDeclaration> parameters;
+  // Only contains the required flag for parameters when present.
+  final List<int> parameterFlags;
   final ObjectHandle returnType;
   final ObjectHandle nativeName;
   final Code code;
@@ -557,6 +560,7 @@ class FunctionDeclaration {
       this.typeParameters,
       this.numRequiredParameters,
       this.parameters,
+      this.parameterFlags,
       this.returnType,
       this.nativeName,
       this.code,
@@ -583,6 +587,10 @@ class FunctionDeclaration {
     }
     for (var param in parameters) {
       param.write(writer);
+    }
+    if ((flags & hasParameterFlagsFlag) != 0) {
+      writer.writePackedUInt30(parameterFlags.length);
+      parameterFlags.forEach((flags) => writer.writePackedUInt30(flags));
     }
     writer.writePackedObject(returnType);
     if ((flags & isNativeFlag) != 0) {
@@ -624,6 +632,10 @@ class FunctionDeclaration {
 
     final parameters = new List<ParameterDeclaration>.generate(
         numParameters, (_) => new ParameterDeclaration.read(reader));
+    final parameterFlags = ((flags & hasParameterFlagsFlag) != 0)
+        ? List<int>.generate(
+            reader.readPackedUInt30(), (_) => reader.readPackedUInt30())
+        : null;
     final returnType = reader.readPackedObject();
     final nativeName =
         ((flags & isNativeFlag) != 0) ? reader.readPackedObject() : null;
@@ -643,6 +655,7 @@ class FunctionDeclaration {
         typeParameters,
         numRequiredParameters,
         parameters,
+        parameterFlags,
         returnType,
         nativeName,
         code,
@@ -725,6 +738,9 @@ class FunctionDeclaration {
       sb.write('    type-params $typeParameters\n');
     }
     sb.write('    parameters $parameters (required: $numRequiredParameters)\n');
+    if ((flags & hasParameterFlagsFlag) != 0) {
+      sb.write('    parameter-flags $parameterFlags\n');
+    }
     sb.write('    return-type $returnType\n');
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
@@ -820,6 +836,8 @@ class Code extends BytecodeDeclaration {
   final LocalVariableTable localVariables;
   final List<ObjectHandle> nullableFields;
   final List<ClosureDeclaration> closures;
+  // Contains all parameter flags except for the required flags, which are
+  // kept instead in the FunctionDeclaration and ClosureDeclaration.
   final List<int> parameterFlags;
   final int forwardingStubTargetCpIndex;
   final int defaultFunctionTypeArgsCpIndex;
@@ -983,6 +1001,7 @@ class ClosureDeclaration {
   final int numRequiredParams;
   final int numNamedParams;
   final List<NameAndType> parameters;
+  // Only contains the required flag for parameters when present.
   final List<int> parameterFlags;
   final ObjectHandle returnType;
   ObjectHandle attributes;
@@ -1105,6 +1124,21 @@ class ClosureDeclaration {
         attributes);
   }
 
+  void _writeParamsToBuffer(
+      StringBuffer sb, List<NameAndType> params, List<int> flags) {
+    assert(flags == null || (params.length == flags.length));
+    for (int i = 0; i < params.length; i++) {
+      if (i != 0) {
+        sb.write(', ');
+      }
+      // We only store the required flag for ClosureDeclarations.
+      if (flags != null && flags[i] != 0) {
+        sb.write('required ');
+      }
+      sb.write(params[i]);
+    }
+  }
+
   @override
   String toString() {
     final StringBuffer sb = new StringBuffer();
@@ -1125,16 +1159,22 @@ class ClosureDeclaration {
       sb.write(' <${typeParams.join(', ')}>');
     }
     sb.write(' (');
-    sb.write(parameters.sublist(0, numRequiredParams).join(', '));
+    final requiredFlags = (flags & hasParameterFlagsFlag) != 0
+        ? parameterFlags.sublist(0, numRequiredParams)
+        : null;
+    _writeParamsToBuffer(
+        sb, parameters.sublist(0, numRequiredParams), requiredFlags);
     if (numRequiredParams != parameters.length) {
       if (numRequiredParams > 0) {
         sb.write(', ');
       }
-      if (numNamedParams > 0) {
-        sb.write('{ ${parameters.sublist(numRequiredParams).join(', ')} }');
-      } else {
-        sb.write('[ ${parameters.sublist(numRequiredParams).join(', ')} ]');
-      }
+      sb.write(numNamedParams > 0 ? '{ ' : '[ ');
+      final optionalFlags = (flags & hasParameterFlagsFlag) != 0
+          ? parameterFlags.sublist(numRequiredParams)
+          : null;
+      _writeParamsToBuffer(
+          sb, parameters.sublist(numRequiredParams), optionalFlags);
+      sb.write(numNamedParams > 0 ? ' }' : ' ]');
     }
     sb.write(') -> ');
     sb.writeln(returnType);

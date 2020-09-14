@@ -2982,7 +2982,7 @@ void InstantiateTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
-  const intptr_t kNumInputs = 2;
+  const intptr_t kNumInputs = 3;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
@@ -2990,6 +2990,8 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary(
                       InstantiationABI::kInstantiatorTypeArgumentsReg));
   locs->set_in(1, Location::RegisterLocation(
                       InstantiationABI::kFunctionTypeArgumentsReg));
+  locs->set_in(2, Location::RegisterLocation(
+                      InstantiationABI::kUninstantiatedTypeArgumentsReg));
   locs->set_out(
       0, Location::RegisterLocation(InstantiationABI::kResultTypeArgumentsReg));
   return locs;
@@ -3001,17 +3003,21 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   const Register function_type_args_reg = locs()->in(1).reg();
   const Register result_reg = locs()->out(0).reg();
 
+  compiler::Label type_arguments_instantiated;
+  ASSERT(!instantiator_class().IsNull());
+  ASSERT(type_arguments()->BindsToConstant());
+  const auto& type_args =
+      TypeArguments::Cast(type_arguments()->BoundConstant());
   // 'instantiator_type_args_reg' is a TypeArguments object (or null).
   // 'function_type_args_reg' is a TypeArguments object (or null).
 
   // If both the instantiator and function type arguments are null and if the
   // type argument vector instantiated from null becomes a vector of dynamic,
   // then use null as the type arguments.
-  compiler::Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
+  const intptr_t len = type_args.Length();
   const bool can_function_type_args_be_null =
       function_type_arguments()->CanBe(Object::null_object());
-  if (type_arguments().IsRawWhenInstantiatedFromRaw(len) &&
+  if (type_args.IsRawWhenInstantiatedFromRaw(len) &&
       can_function_type_args_be_null) {
     compiler::Label non_null_type_args;
     ASSERT(result_reg != instantiator_type_args_reg &&
@@ -3026,8 +3032,6 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ Bind(&non_null_type_args);
   }
   // Lookup cache in stub before calling runtime.
-  __ LoadObject(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                type_arguments());
   compiler->GenerateStubCall(token_pos(), GetStub(),
                              PcDescriptorsLayout::kOther, locs());
   __ Bind(&type_arguments_instantiated);

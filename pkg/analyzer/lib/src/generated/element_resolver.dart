@@ -418,7 +418,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         receiverType: targetType,
         name: getterMethodName,
         receiverErrorNode: target,
-        nameErrorNode: target,
+        nameErrorEntity: target,
       );
     }
 
@@ -761,7 +761,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         receiverType: enclosingType,
         name: node.name,
         receiverErrorNode: node,
-        nameErrorNode: node,
+        nameErrorEntity: node,
       );
       node.auxiliaryElements = AuxiliaryElements(
         result.getter,
@@ -1275,7 +1275,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             receiverType: enclosingClass.thisType,
             name: identifier.name,
             receiverErrorNode: identifier,
-            nameErrorNode: identifier,
+            nameErrorEntity: identifier,
           );
           setter = result.setter;
         }
@@ -1316,7 +1316,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           receiverType: enclosingType,
           name: identifier.name,
           receiverErrorNode: identifier,
-          nameErrorNode: identifier,
+          nameErrorEntity: identifier,
         );
         if (identifier.inSetterContext() ||
             identifier.parent is CommentReference) {

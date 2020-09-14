@@ -20,13 +20,14 @@ class InvalidValueTest extends AbstractTransformSetParserTest {
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-09-08
   element:
     uris: ['test.dart']
     class: 'A'
   changes:
     - 'rename'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 110, 8),
+      error(TransformSetErrorCode.invalidValue, 129, 8),
     ]);
   }
 
@@ -35,12 +36,13 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-09-08
   element: 5
   changes:
     - kind: 'rename'
       newName: 'B'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 54, 1),
+      error(TransformSetErrorCode.invalidValue, 73, 1),
     ]);
   }
 
@@ -90,6 +92,7 @@ transforms: 3
 version: 1
 transforms:
 - title: 0
+  date: 2020-09-08
   element:
     uris: ['test.dart']
     class: 'A'
@@ -106,6 +109,7 @@ transforms:
 version: 1
 transforms:
 - title: []
+  date: 2020-09-08
   element:
     uris: ['test.dart']
     class: 'A'
@@ -140,6 +144,7 @@ transforms:
 version: 1
 transforms:
 - title: 'Rename A'
+  date: 2020-09-08
   element:
     uris: ['test.dart']
     class: 'A'
@@ -149,7 +154,7 @@ transforms:
       name: 'T'
       value: 'int'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 179, 5),
+      error(TransformSetErrorCode.invalidValue, 198, 5),
     ]);
   }
 }

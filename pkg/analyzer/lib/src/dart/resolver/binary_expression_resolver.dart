@@ -339,7 +339,7 @@ class BinaryExpressionResolver {
       receiverType: leftType,
       name: methodName,
       receiverErrorNode: leftOperand,
-      nameErrorNode: node,
+      nameErrorEntity: node,
     );
 
     node.staticElement = result.getter;

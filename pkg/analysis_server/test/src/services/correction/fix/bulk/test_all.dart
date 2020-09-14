@@ -6,6 +6,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_await_test.dart' as add_await;
 import 'add_const_test.dart' as add_const;
+import 'add_diagnostic_property_reference_test.dart'
+    as add_diagnostic_property_reference;
 import 'add_override_test.dart' as add_override;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
@@ -59,6 +61,7 @@ void main() {
   defineReflectiveSuite(() {
     add_await.main();
     add_const.main();
+    add_diagnostic_property_reference.main();
     add_override.main();
     convert_documentation_into_line.main();
     convert_map_from_iterable_to_for_literal.main();

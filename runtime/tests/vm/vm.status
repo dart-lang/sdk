@@ -67,12 +67,6 @@ dart_2/appjit_cha_deopt_test: SkipSlow
 dart_2/regress_40462_test: SkipSlow
 dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 
-[ $builder_tag == vm_nnbd ]
-dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
-
-[ $builder_tag != vm_nnbd ]
-dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
-
 [ $compiler == app_jitk ]
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
@@ -375,9 +369,15 @@ dart_2/thread_priority_windows_test: SkipByDesign
 dart/thread_priority_linux_test: SkipByDesign
 dart_2/thread_priority_linux_test: SkipByDesign
 
-[ $builder_tag == bytecode_interpreter || $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkb && $compiler != dartkp ]
+[ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd || $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkb && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
 dart_2/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
+
+[ $builder_tag == bytecode_interpreter_nnbd || $builder_tag == bytecode_mixed_nnbd || $builder_tag == vm_nnbd ]
+dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
+
+[ $builder_tag != bytecode_interpreter_nnbd || $builder_tag != bytecode_mixed_nnbd || $builder_tag != vm_nnbd ]
+dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 
 [ $builder_tag == crossword || $builder_tag == crossword_ast ]
 dart/bytecode_with_ast_in_aot_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot

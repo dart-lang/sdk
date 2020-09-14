@@ -8,9 +8,6 @@ fragmentation_test: Pass, Slow # GC heavy
 fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
 
-[ $builder_tag == bytecode_interpreter ]
-io/http_big_header_test: SkipSlow # Timeout
-
 [ $compiler == dartkb ]
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
@@ -113,6 +110,9 @@ io/socket_close_test: Skip # Timeout
 io/socket_many_connections_test: Skip # Timeout
 io/web_socket_compression_test: Skip # Timeout
 io/web_socket_test: Skip # Timeout
+
+[ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd ]
+io/http_big_header_test: SkipSlow # Timeout
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe.

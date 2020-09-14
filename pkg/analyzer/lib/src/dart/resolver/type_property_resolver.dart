@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -24,8 +25,8 @@ class TypePropertyResolver {
   final ExtensionMemberResolver _extensionResolver;
 
   Expression _receiver;
+  SyntacticEntity _nameErrorEntity;
   String _name;
-  AstNode _nameErrorNode;
 
   ResolutionResult _result = ResolutionResult.none;
 
@@ -43,18 +44,18 @@ class TypePropertyResolver {
   /// The [receiverErrorNode] is the node to report nullable dereference,
   /// if the [receiverType] is potentially nullable.
   ///
-  /// The [nameErrorNode] is used to report the ambiguous extension issue.
+  /// The [nameErrorEntity] is used to report the ambiguous extension issue.
   ResolutionResult resolve({
     @required Expression receiver,
     @required DartType receiverType,
     @required String name,
     @required AstNode receiverErrorNode,
-    @required Expression nameErrorNode,
+    @required SyntacticEntity nameErrorEntity,
   }) {
     assert(receiverType != null);
     _receiver = receiver;
     _name = name;
-    _nameErrorNode = nameErrorNode;
+    _nameErrorEntity = nameErrorEntity;
     _result = ResolutionResult.none;
 
     receiverType = _resolveTypeParameter(receiverType);
@@ -95,7 +96,7 @@ class TypePropertyResolver {
   }
 
   void _lookupExtension(DartType type) {
-    _result = _extensionResolver.findExtension(type, _name, _nameErrorNode);
+    _result = _extensionResolver.findExtension(type, _nameErrorEntity, _name);
   }
 
   void _lookupInterfaceType(InterfaceType type) {
@@ -139,8 +140,6 @@ class TypePropertyResolver {
   void _lookupType(DartType type) {
     if (type is InterfaceType) {
       _lookupInterfaceType(type);
-    } else if (type is FunctionType) {
-      _lookupInterfaceType(_typeProvider.functionType);
     }
   }
 

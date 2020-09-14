@@ -5,12 +5,14 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'invalid_value_test.dart' as invalid_value;
+import 'missing_key_test.dart' as missing_key;
 import 'unsupported_key_test.dart' as unsupported_key;
 import 'yaml_syntax_error_test.dart' as yaml_syntax_error;
 
 void main() {
   defineReflectiveSuite(() {
     invalid_value.main();
+    missing_key.main();
     unsupported_key.main();
     yaml_syntax_error.main();
   });

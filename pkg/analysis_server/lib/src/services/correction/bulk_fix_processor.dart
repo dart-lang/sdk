@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
+import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_conditional_expression_to_if_element.dart';
@@ -79,6 +80,8 @@ class BulkFixProcessor {
     LintNames.await_only_futures: RemoveAwait.newInstance,
     LintNames.curly_braces_in_flow_control_structures:
         UseCurlyBraces.newInstance,
+    LintNames.diagnostic_describe_all_properties:
+        AddDiagnosticPropertyReference.newInstance,
     LintNames.empty_catches: RemoveEmptyCatch.newInstance,
     LintNames.empty_constructor_bodies: RemoveEmptyConstructorBody.newInstance,
     LintNames.empty_statements: RemoveEmptyStatement.newInstance,

@@ -58,7 +58,7 @@ class LexicalLookup {
       receiverType: thisType,
       name: id,
       receiverErrorNode: node,
-      nameErrorNode: node,
+      nameErrorEntity: node,
     );
 
     if (setter) {
