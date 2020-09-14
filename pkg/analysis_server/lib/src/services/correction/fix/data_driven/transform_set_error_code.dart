@@ -20,6 +20,13 @@ class TransformSetErrorCode extends ErrorCode {
 
   /**
    * Parameters:
+   * 0: the missing key
+   */
+  static const TransformSetErrorCode missingKey =
+      TransformSetErrorCode('missingKey', "Missing the required key '{0}'.");
+
+  /**
+   * Parameters:
    * 0: the unsupported key
    */
   static const TransformSetErrorCode unsupportedKey =

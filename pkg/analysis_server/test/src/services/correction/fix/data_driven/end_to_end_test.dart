@@ -24,6 +24,7 @@ class C {
 version: 1
 transforms:
 - title: 'Add parameter'
+  date: 2020-09-09
   element:
     uris: ['$importUri']
     method: 'm'
@@ -63,6 +64,7 @@ class C {
 version: 1
 transforms:
 - title: 'Add type argument'
+  date: 2020-09-03
   element:
     uris:
       - '$importUri'
@@ -102,6 +104,7 @@ class C {
 version: 1
 transforms:
 - title: 'Add argument'
+  date: 2020-09-09
   element:
     uris: ['$importUri']
     method: 'm'
@@ -134,6 +137,7 @@ class New {}
 version: 1
 transforms:
 - title: 'Rename to New'
+  date: 2020-09-01
   element:
     uris:
       - '$importUri'
