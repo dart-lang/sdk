@@ -11,8 +11,7 @@ main() async {
   // Start GC pressure from helper isolate.
   final exitPort = ReceivePort();
   final exitFuture = exitPort.first;
-  final isolate =
-      await Isolate.spawn(runSplay, null, onExit: exitPort.sendPort);
+  final isolate = await Isolate.spawn(run, null, onExit: exitPort.sendPort);
 
   // Measure event loop latency.
   const tickDuration = const Duration(milliseconds: 1);
@@ -28,7 +27,7 @@ main() async {
   stats.report('EventLoopLatencyJson');
 }
 
-void runSplay(dynamic msg) async {
+void run(dynamic msg) {
   while (true) {
     JsonRoundTripBenchmark().run();
   }
