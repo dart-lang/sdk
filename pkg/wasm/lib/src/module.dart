@@ -22,6 +22,24 @@ class WasmModule {
   WasmInstance instantiate(WasmImports imports) {
     return WasmInstance(_module, imports);
   }
+
+  /// Returns a description of all of the module's imports and exports, for
+  /// debugging.
+  String describe() {
+    var description = StringBuffer();
+    var runtime = WasmRuntime();
+    var imports = runtime.importDescriptors(_module);
+    for (var imp in imports) {
+      var kind = wasmerImpExpKindName(imp.kind);
+      description.write('import $kind: ${imp.moduleName}::${imp.name}\n');
+    }
+    var exports = runtime.exportDescriptors(_module);
+    for (var exp in exports) {
+      var kind = wasmerImpExpKindName(exp.kind);
+      description.write('export $kind: ${exp.name}\n');
+    }
+    return description.toString();
+  }
 }
 
 /// WasmImports holds all the imports for a WasmInstance.
@@ -43,22 +61,25 @@ class WasmImports {
 class WasmInstance {
   Pointer<WasmerModule> _module;
   Pointer<WasmerInstance> _instance;
-  List<WasmFunction> _functions;
+  Map<String, WasmFunction> _functions;
 
   WasmInstance(this._module, WasmImports imports) {
     var runtime = WasmRuntime();
     _instance = runtime.instantiate(_module, imports._imports, imports.length);
-    _functions = [];
+    _functions = {};
     var exps = runtime.exports(_instance);
     for (var e in exps) {
       var kind = runtime.exportKind(e);
+      String name = runtime.exportName(e);
       if (kind == WasmerImpExpKindFunction) {
         var f = runtime.exportToFunction(e);
-        _functions.add(
-            WasmFunction(f, runtime.getArgTypes(f), runtime.getReturnType(f)));
+        _functions[name] =
+            WasmFunction(f, runtime.getArgTypes(f), runtime.getReturnType(f));
       }
     }
   }
 
-  List<dynamic> get functions => _functions;
+  dynamic lookupFunction(String name) {
+    return _functions[name];
+  }
 }

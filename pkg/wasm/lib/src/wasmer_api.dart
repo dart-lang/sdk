@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:typed_data';
 
@@ -24,6 +25,21 @@ const int WasmerImpExpKindGlobal = 1;
 const int WasmerImpExpKindMemory = 2;
 const int WasmerImpExpKindTable = 3;
 
+String wasmerImpExpKindName(int kind) {
+  switch (kind) {
+    case WasmerImpExpKindFunction:
+      return "function";
+    case WasmerImpExpKindGlobal:
+      return "global";
+    case WasmerImpExpKindMemory:
+      return "memory";
+    case WasmerImpExpKindTable:
+      return "table";
+    default:
+      return "unknown";
+  }
+}
+
 // wasmer_module_t
 class WasmerModule extends Struct {}
 
@@ -36,8 +52,20 @@ class WasmerExports extends Struct {}
 // wasmer_export_t
 class WasmerExport extends Struct {}
 
+// wasmer_export_descriptors_t
+class WasmerExportDescriptors extends Struct {}
+
+// wasmer_export_descriptor_t
+class WasmerExportDescriptor extends Struct {}
+
 // wasmer_export_func_t
 class WasmerExportFunc extends Struct {}
+
+// wasmer_import_descriptors_t
+class WasmerImportDescriptors extends Struct {}
+
+// wasmer_import_descriptor_t
+class WasmerImportDescriptor extends Struct {}
 
 // wasmer_import_t
 class WasmerImport extends Struct {
@@ -69,6 +97,7 @@ class WasmerByteArray extends Struct {
   int length;
 
   Uint8List get list => bytes.asTypedList(length);
+  String get string => utf8.decode(list);
 }
 
 // wasmer_value_t
@@ -130,10 +159,89 @@ typedef NativeWasmerExportsGetFn = Pointer<WasmerExport> Function(
 typedef WasmerExportsGetFn = Pointer<WasmerExport> Function(
     Pointer<WasmerExports>, int);
 
-// wasmer_export_name
-typedef NativeWasmerExportNameFn = WasmerByteArray Function(
-    Pointer<WasmerExport>);
-typedef WasmerExportNameFn = WasmerByteArray Function(Pointer<WasmerExport>);
+// wasmer_export_descriptors
+typedef NativeWasmerExportDescriptorsFn = Void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerExportDescriptors>>);
+typedef WasmerExportDescriptorsFn = void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerExportDescriptors>>);
+
+// wasmer_export_descriptors_destroy
+typedef NativeWasmerExportDescriptorsDestroyFn = Void Function(
+    Pointer<WasmerExportDescriptors>);
+typedef WasmerExportDescriptorsDestroyFn = void Function(
+    Pointer<WasmerExportDescriptors>);
+
+// wasmer_export_descriptors_len
+typedef NativeWasmerExportDescriptorsLenFn = Int32 Function(
+    Pointer<WasmerExportDescriptors>);
+typedef WasmerExportDescriptorsLenFn = int Function(
+    Pointer<WasmerExportDescriptors>);
+
+// wasmer_export_descriptors_get
+typedef NativeWasmerExportDescriptorsGetFn = Pointer<WasmerExportDescriptor>
+    Function(Pointer<WasmerExportDescriptors>, Int32);
+typedef WasmerExportDescriptorsGetFn = Pointer<WasmerExportDescriptor> Function(
+    Pointer<WasmerExportDescriptors>, int);
+
+// wasmer_export_descriptor_kind
+typedef NativeWasmerExportDescriptorKindFn = Uint32 Function(
+    Pointer<WasmerExportDescriptor>);
+typedef WasmerExportDescriptorKindFn = int Function(
+    Pointer<WasmerExportDescriptor>);
+
+// wasmer_export_descriptor_name_ptr
+typedef NativeWasmerExportDescriptorNamePtrFn = Void Function(
+    Pointer<WasmerExportDescriptor>, Pointer<WasmerByteArray>);
+typedef WasmerExportDescriptorNamePtrFn = void Function(
+    Pointer<WasmerExportDescriptor>, Pointer<WasmerByteArray>);
+
+// wasmer_import_descriptors
+typedef NativeWasmerImportDescriptorsFn = Void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerImportDescriptors>>);
+typedef WasmerImportDescriptorsFn = void Function(
+    Pointer<WasmerModule>, Pointer<Pointer<WasmerImportDescriptors>>);
+
+// wasmer_import_descriptors_destroy
+typedef NativeWasmerImportDescriptorsDestroyFn = Void Function(
+    Pointer<WasmerImportDescriptors>);
+typedef WasmerImportDescriptorsDestroyFn = void Function(
+    Pointer<WasmerImportDescriptors>);
+
+// wasmer_import_descriptors_len
+typedef NativeWasmerImportDescriptorsLenFn = Int32 Function(
+    Pointer<WasmerImportDescriptors>);
+typedef WasmerImportDescriptorsLenFn = int Function(
+    Pointer<WasmerImportDescriptors>);
+
+// wasmer_import_descriptors_get
+typedef NativeWasmerImportDescriptorsGetFn = Pointer<WasmerImportDescriptor>
+    Function(Pointer<WasmerImportDescriptors>, Int32);
+typedef WasmerImportDescriptorsGetFn = Pointer<WasmerImportDescriptor> Function(
+    Pointer<WasmerImportDescriptors>, int);
+
+// wasmer_import_descriptor_kind
+typedef NativeWasmerImportDescriptorKindFn = Uint32 Function(
+    Pointer<WasmerImportDescriptor>);
+typedef WasmerImportDescriptorKindFn = int Function(
+    Pointer<WasmerImportDescriptor>);
+
+// wasmer_import_descriptor_module_name_ptr
+typedef NativeWasmerImportDescriptorModuleNamePtrFn = Void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+typedef WasmerImportDescriptorModuleNamePtrFn = void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+
+// wasmer_import_descriptor_name_ptr
+typedef NativeWasmerImportDescriptorNamePtrFn = Void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+typedef WasmerImportDescriptorNamePtrFn = void Function(
+    Pointer<WasmerImportDescriptor>, Pointer<WasmerByteArray>);
+
+// wasmer_export_name_ptr
+typedef NativeWasmerExportNamePtrFn = Void Function(
+    Pointer<WasmerExport>, Pointer<WasmerByteArray>);
+typedef WasmerExportNamePtrFn = void Function(
+    Pointer<WasmerExport>, Pointer<WasmerByteArray>);
 
 // wasmer_export_kind
 typedef NativeWasmerExportKindFn = Uint32 Function(Pointer<WasmerExport>);

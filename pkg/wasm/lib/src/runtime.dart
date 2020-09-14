@@ -10,6 +10,19 @@ import 'package:ffi/ffi.dart';
 import 'package:path/path.dart' as path;
 import 'wasmer_api.dart';
 
+class WasmImportDescriptor {
+  int kind;
+  String moduleName;
+  String name;
+  WasmImportDescriptor(this.kind, this.moduleName, this.name);
+}
+
+class WasmExportDescriptor {
+  int kind;
+  String name;
+  WasmExportDescriptor(this.kind, this.name);
+}
+
 class WasmRuntime {
   static WasmRuntime _inst;
 
@@ -26,6 +39,20 @@ class WasmRuntime {
   WasmerExportFuncParamsArityFn _export_func_params_arity;
   WasmerExportFuncParamsFn _export_func_params;
   WasmerExportFuncCallFn _export_func_call;
+  WasmerExportNamePtrFn _export_name_ptr;
+  WasmerExportDescriptorsFn _export_descriptors;
+  WasmerExportDescriptorsDestroyFn _export_descriptors_destroy;
+  WasmerExportDescriptorsLenFn _export_descriptors_len;
+  WasmerExportDescriptorsGetFn _export_descriptors_get;
+  WasmerExportDescriptorKindFn _export_descriptor_kind;
+  WasmerExportDescriptorNamePtrFn _export_descriptor_name_ptr;
+  WasmerImportDescriptorModuleNamePtrFn _import_descriptor_module_name_ptr;
+  WasmerImportDescriptorNamePtrFn _import_descriptor_name_ptr;
+  WasmerImportDescriptorsFn _import_descriptors;
+  WasmerImportDescriptorsDestroyFn _import_descriptors_destroy;
+  WasmerImportDescriptorsLenFn _import_descriptors_len;
+  WasmerImportDescriptorsGetFn _import_descriptors_get;
+  WasmerImportDescriptorKindFn _import_descriptor_kind;
 
   factory WasmRuntime() {
     if (_inst == null) {
@@ -35,8 +62,8 @@ class WasmRuntime {
   }
 
   static String _getLibName() {
-    if (Platform.isMacOS) return "libwasmer.dylib";
-    if (Platform.isLinux) return "libwasmer.so";
+    if (Platform.isMacOS) return "libwasmer_wrapper.dylib";
+    if (Platform.isLinux) return "libwasmer_wrapper.so";
     throw Exception("Wasm not currently supported on this platform");
   }
 
@@ -103,6 +130,47 @@ class WasmRuntime {
         WasmerExportFuncParamsFn>('wasmer_export_func_params');
     _export_func_call = _lib.lookupFunction<NativeWasmerExportFuncCallFn,
         WasmerExportFuncCallFn>('wasmer_export_func_call');
+    _export_descriptors = _lib.lookupFunction<NativeWasmerExportDescriptorsFn,
+        WasmerExportDescriptorsFn>('wasmer_export_descriptors');
+    _export_descriptors_destroy = _lib.lookupFunction<
+        NativeWasmerExportDescriptorsDestroyFn,
+        WasmerExportDescriptorsDestroyFn>('wasmer_export_descriptors_destroy');
+    _export_descriptors_len = _lib.lookupFunction<
+        NativeWasmerExportDescriptorsLenFn,
+        WasmerExportDescriptorsLenFn>('wasmer_export_descriptors_len');
+    _export_descriptors_get = _lib.lookupFunction<
+        NativeWasmerExportDescriptorsGetFn,
+        WasmerExportDescriptorsGetFn>('wasmer_export_descriptors_get');
+    _export_descriptor_kind = _lib.lookupFunction<
+        NativeWasmerExportDescriptorKindFn,
+        WasmerExportDescriptorKindFn>('wasmer_export_descriptor_kind');
+    _export_name_ptr =
+        _lib.lookupFunction<NativeWasmerExportNamePtrFn, WasmerExportNamePtrFn>(
+            'wasmer_export_name_ptr');
+    _export_descriptor_name_ptr = _lib.lookupFunction<
+        NativeWasmerExportDescriptorNamePtrFn,
+        WasmerExportDescriptorNamePtrFn>('wasmer_export_descriptor_name_ptr');
+    _import_descriptors = _lib.lookupFunction<NativeWasmerImportDescriptorsFn,
+        WasmerImportDescriptorsFn>('wasmer_import_descriptors');
+    _import_descriptors_destroy = _lib.lookupFunction<
+        NativeWasmerImportDescriptorsDestroyFn,
+        WasmerImportDescriptorsDestroyFn>('wasmer_import_descriptors_destroy');
+    _import_descriptors_len = _lib.lookupFunction<
+        NativeWasmerImportDescriptorsLenFn,
+        WasmerImportDescriptorsLenFn>('wasmer_import_descriptors_len');
+    _import_descriptors_get = _lib.lookupFunction<
+        NativeWasmerImportDescriptorsGetFn,
+        WasmerImportDescriptorsGetFn>('wasmer_import_descriptors_get');
+    _import_descriptor_kind = _lib.lookupFunction<
+        NativeWasmerImportDescriptorKindFn,
+        WasmerImportDescriptorKindFn>('wasmer_import_descriptor_kind');
+    _import_descriptor_module_name_ptr = _lib.lookupFunction<
+            NativeWasmerImportDescriptorModuleNamePtrFn,
+            WasmerImportDescriptorModuleNamePtrFn>(
+        'wasmer_import_descriptor_module_name_ptr');
+    _import_descriptor_name_ptr = _lib.lookupFunction<
+        NativeWasmerImportDescriptorNamePtrFn,
+        WasmerImportDescriptorNamePtrFn>('wasmer_import_descriptor_name_ptr');
   }
 
   Pointer<WasmerModule> compile(Uint8List data) {
@@ -123,6 +191,49 @@ class WasmRuntime {
     }
 
     return modulePtr;
+  }
+
+  String _callStringWrapperFunction(Function fn, dynamic arg) {
+    var strPtr = allocate<WasmerByteArray>();
+    fn(arg, strPtr);
+    var str = strPtr.ref.string;
+    free(strPtr);
+    return str;
+  }
+
+  List<WasmExportDescriptor> exportDescriptors(Pointer<WasmerModule> module) {
+    var exportsPtrPtr = allocate<Pointer<WasmerExportDescriptors>>();
+    _export_descriptors(module, exportsPtrPtr);
+    Pointer<WasmerExportDescriptors> exportsPtr = exportsPtrPtr.value;
+    free(exportsPtrPtr);
+    var n = _export_descriptors_len(exportsPtr);
+    var exps = <WasmExportDescriptor>[];
+    for (var i = 0; i < n; ++i) {
+      var exp = _export_descriptors_get(exportsPtr, i);
+      exps.add(WasmExportDescriptor(_export_descriptor_kind(exp),
+          _callStringWrapperFunction(_export_descriptor_name_ptr, exp)));
+    }
+    _export_descriptors_destroy(exportsPtr);
+    return exps;
+  }
+
+  List<WasmImportDescriptor> importDescriptors(Pointer<WasmerModule> module) {
+    var importsPtrPtr = allocate<Pointer<WasmerImportDescriptors>>();
+    _import_descriptors(module, importsPtrPtr);
+    Pointer<WasmerImportDescriptors> importsPtr = importsPtrPtr.value;
+    free(importsPtrPtr);
+
+    var n = _import_descriptors_len(importsPtr);
+    var imps = <WasmImportDescriptor>[];
+    for (var i = 0; i < n; ++i) {
+      var imp = _import_descriptors_get(importsPtr, i);
+      imps.add(WasmImportDescriptor(
+          _import_descriptor_kind(imp),
+          _callStringWrapperFunction(_import_descriptor_module_name_ptr, imp),
+          _callStringWrapperFunction(_import_descriptor_name_ptr, imp)));
+    }
+    _import_descriptors_destroy(importsPtr);
+    return imps;
   }
 
   Pointer<WasmerInstance> instantiate(Pointer<WasmerModule> module,
@@ -155,6 +266,10 @@ class WasmRuntime {
 
   int exportKind(Pointer<WasmerExport> export) {
     return _export_kind(export);
+  }
+
+  String exportName(Pointer<WasmerExport> export) {
+    return _callStringWrapperFunction(_export_name_ptr, export);
   }
 
   Pointer<WasmerExportFunc> exportToFunction(Pointer<WasmerExport> export) {
