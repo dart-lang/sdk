@@ -2837,6 +2837,7 @@ const MessageCode messageExpectedHexDigit = const MessageCode(
 const Template<Message Function(Token token)> templateExpectedIdentifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected an identifier, but got '#lexeme'.""",
+        tipTemplate: r"""Try inserting an identifier before '#lexeme'.""",
         withArguments: _withArgumentsExpectedIdentifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2850,6 +2851,36 @@ Message _withArgumentsExpectedIdentifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedIdentifier,
       message: """Expected an identifier, but got '${lexeme}'.""",
+      tip: """Try inserting an identifier before '${lexeme}'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        Token
+            token)> templateExpectedIdentifierButGotKeyword = const Template<
+        Message Function(
+            Token token)>(
+    messageTemplate:
+        r"""'#lexeme' can't be used as an identifier because it's a keyword.""",
+    tipTemplate:
+        r"""Try renaming this to be an identifier that isn't a keyword.""",
+    withArguments: _withArgumentsExpectedIdentifierButGotKeyword);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedIdentifierButGotKeyword =
+    const Code<Message Function(Token token)>("ExpectedIdentifierButGotKeyword",
+        templateExpectedIdentifierButGotKeyword,
+        index: 113);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedIdentifierButGotKeyword(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedIdentifierButGotKeyword,
+      message:
+          """'${lexeme}' can't be used as an identifier because it's a keyword.""",
+      tip: """Try renaming this to be an identifier that isn't a keyword.""",
       arguments: {'token': token});
 }
 

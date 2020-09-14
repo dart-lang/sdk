@@ -3,6 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/rasta/issue_000032.dart:7:1: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // }
 // ^
 //

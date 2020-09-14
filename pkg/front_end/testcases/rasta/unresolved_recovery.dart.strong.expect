@@ -26,7 +26,8 @@ library;
 //   on Exception catch (e) { }
 //      ^^^^^^^^^
 //
-// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:16: Error: Expected an identifier, but got 'catch'.
+// pkg/front_end/testcases/rasta/unresolved_recovery.dart:20:16: Error: 'catch' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
 //   on Exception catch (e) { }
 //                ^^^^^
 //

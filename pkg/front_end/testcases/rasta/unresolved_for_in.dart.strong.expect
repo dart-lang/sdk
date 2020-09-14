@@ -19,6 +19,7 @@ library;
 //          ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //     for (1 in x) {
 //          ^
 //
@@ -69,6 +70,7 @@ library;
 //        ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //   for (1 in arguments) {
 //        ^
 //

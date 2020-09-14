@@ -494,8 +494,16 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  tip: "Try inserting an identifier before '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  script: "do() {} main() {}"
+  script: "var = 42;"
+
+ExpectedIdentifierButGotKeyword:
+  template: "'#lexeme' can't be used as an identifier because it's a keyword."
+  tip: "Try renaming this to be an identifier that isn't a keyword."
+  index: 113
+  analyzerCode: ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  script: "var default = 42;"
 
 EqualityCannotBeEqualityOperand:
   index: 1

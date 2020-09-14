@@ -29,7 +29,7 @@ class MyFuture<T extends core::Object* = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#whenComplete, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
   no-such-method-forwarder method asStream() → asy::Stream<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#asStream, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic} asy::Stream<self::MyFuture::T*>*;
-  no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<self::MyFuture::T*>onTimeout}) → asy::Future<self::MyFuture::T*>*
+  no-such-method-forwarder method timeout(core::Duration* timeLimit, {generic-covariant-impl () →* FutureOr<self::MyFuture::T*>* onTimeout}) → asy::Future<self::MyFuture::T*>*
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))) as{TypeError,ForDynamic} asy::Future<self::MyFuture::T*>*;
 }
 static field asy::Future<dynamic>* f;

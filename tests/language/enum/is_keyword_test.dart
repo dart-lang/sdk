@@ -8,6 +8,6 @@
 main() {
   var enum;
   //  ^^^^
-  // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-  // [cfe] Expected an identifier, but got 'enum'.
+  // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  // [cfe] 'enum' can't be used as an identifier because it's a keyword.
 }

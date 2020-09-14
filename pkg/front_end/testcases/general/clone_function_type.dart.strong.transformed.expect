@@ -3,26 +3,32 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:22:51: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // class Fm1<Z> extends Object with Am1<Function({int}), Z> {}
 //                                                   ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:46:45: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // class Qm1<Z> = Object with Am1<Function({int}), Z>;
 //                                             ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:77:51: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // class Fm2<Z> extends Object with Am2<Function({int}), Z> {}
 //                                                   ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:105:45: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // class Qm2<Z> = Object with Am2<Function({int}), Z>;
 //                                             ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:134:28: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // typedef TdF = Function({int});
 //                            ^
 //
 // pkg/front_end/testcases/general/clone_function_type.dart:190:34: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
 // class Ef1<X extends Function({int})> {
 //                                  ^
 //

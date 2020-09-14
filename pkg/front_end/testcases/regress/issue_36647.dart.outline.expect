@@ -32,7 +32,8 @@ library;
 // class xxx xx XXX extends XXX {
 //                  ^^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:18: Error: Expected an identifier, but got 'extends'.
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:18: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
 // class xxx xx XXX extends XXX {
 //                  ^^^^^^^
 //

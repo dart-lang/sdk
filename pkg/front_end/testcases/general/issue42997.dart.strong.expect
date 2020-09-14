@@ -23,6 +23,7 @@ library;
 //                        ^^^^^^
 //
 // pkg/front_end/testcases/general/issue42997.dart:12:30: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
 //     for (PropertyState<Object, Object>> state in _states) ;
 //                              ^
 //
