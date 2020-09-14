@@ -2020,17 +2020,17 @@ class CacheStorage extends Interceptor {
 
   Future keys() => promiseToFuture(JS("", "#.keys()", this));
 
-  Future<_Response> match(/*RequestInfo*/ request, [Map? options]) {
+  Future match(/*RequestInfo*/ request, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<_Response>(
+    return promiseToFuture(
         JS("creates:_Response;", "#.match(#, #)", this, request, options_dict));
   }
 
-  Future<_Cache> open(String cacheName) => promiseToFuture<_Cache>(
-      JS("creates:_Cache;", "#.open(#)", this, cacheName));
+  Future open(String cacheName) =>
+      promiseToFuture(JS("creates:_Cache;", "#.open(#)", this, cacheName));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3235,12 +3235,12 @@ class CookieStore extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<Map<String, dynamic>?> getAll([Map? options]) {
+  Future getAll([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFutureAsMap(JS("", "#.getAll(#)", this, options_dict));
+    return promiseToFuture(JS("", "#.getAll(#)", this, options_dict));
   }
 
   Future set(String name, String value, [Map? options]) {
@@ -3319,21 +3319,21 @@ class CredentialsContainer extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<Credential> create([Map? options]) {
+  Future create([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<Credential>(
+    return promiseToFuture(
         JS("creates:Credential;", "#.create(#)", this, options_dict));
   }
 
-  Future<Credential> get([Map? options]) {
+  Future get([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<Credential>(
+    return promiseToFuture(
         JS("creates:Credential;", "#.get(#)", this, options_dict));
   }
 
@@ -3343,9 +3343,8 @@ class CredentialsContainer extends Interceptor {
   Future requireUserMediation() =>
       promiseToFuture(JS("", "#.requireUserMediation()", this));
 
-  Future<Credential> store(Credential credential) =>
-      promiseToFuture<Credential>(
-          JS("creates:Credential;", "#.store(#)", this, credential));
+  Future store(Credential credential) => promiseToFuture(
+      JS("creates:Credential;", "#.store(#)", this, credential));
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20863,8 +20862,8 @@ class MediaKeySystemAccess extends Interceptor {
 
   String? get keySystem native;
 
-  Future<MediaKeys> createMediaKeys() => promiseToFuture<MediaKeys>(
-      JS("creates:MediaKeys;", "#.createMediaKeys()", this));
+  Future createMediaKeys() =>
+      promiseToFuture(JS("creates:MediaKeys;", "#.createMediaKeys()", this));
 
   Map getConfiguration() {
     return convertNativeToDart_Dictionary(_getConfiguration_1())!;
@@ -20887,8 +20886,8 @@ class MediaKeys extends Interceptor {
   @JSName('createSession')
   MediaKeySession _createSession([String? sessionType]) native;
 
-  Future<String> getStatusForPolicy(MediaKeysPolicy policy) =>
-      promiseToFuture<String>(JS("", "#.getStatusForPolicy(#)", this, policy));
+  Future getStatusForPolicy(MediaKeysPolicy policy) =>
+      promiseToFuture(JS("", "#.getStatusForPolicy(#)", this, policy));
 
   Future setServerCertificate(/*BufferSource*/ serverCertificate) =>
       promiseToFuture(
@@ -21354,12 +21353,12 @@ class MediaStreamTrack extends EventTarget {
 
   String? get readyState native;
 
-  Future<Map<String, dynamic>?> applyConstraints([Map? constraints]) {
+  Future applyConstraints([Map? constraints]) {
     var constraints_dict = null;
     if (constraints != null) {
       constraints_dict = convertDartToNative_Dictionary(constraints);
     }
-    return promiseToFutureAsMap(
+    return promiseToFuture(
         JS("", "#.applyConstraints(#)", this, constraints_dict));
   }
 
@@ -22759,8 +22758,8 @@ class Navigator extends NavigatorConcurrentHardware
       promiseToFuture<RelatedApplication>(JS(
           "creates:RelatedApplication;", "#.getInstalledRelatedApps()", this));
 
-  Future<List<VRDisplay>> getVRDisplays() => promiseToFuture<List<VRDisplay>>(
-      JS("creates:VRDisplay;", "#.getVRDisplays()", this));
+  Future getVRDisplays() =>
+      promiseToFuture(JS("creates:VRDisplay;", "#.getVRDisplays()", this));
 
   @Unstable()
   void registerProtocolHandler(String scheme, String url, String title) native;
@@ -22790,9 +22789,9 @@ class Navigator extends NavigatorConcurrentHardware
         JS("", "#.requestMIDIAccess(#)", this, options_dict));
   }
 
-  Future<MediaKeySystemAccess> requestMediaKeySystemAccess(
+  Future requestMediaKeySystemAccess(
           String keySystem, List<Map> supportedConfigurations) =>
-      promiseToFuture<MediaKeySystemAccess>(JS(
+      promiseToFuture(JS(
           "creates:MediaKeySystemAccess;",
           "#.requestMediaKeySystemAccess(#, #)",
           this,
@@ -31238,13 +31237,12 @@ class VRSession extends EventTarget {
 
   Future end() => promiseToFuture(JS("", "#.end()", this));
 
-  Future<VRFrameOfReference> requestFrameOfReference(String type,
-      [Map? options]) {
+  Future requestFrameOfReference(String type, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<VRFrameOfReference>(JS("creates:VRFrameOfReference;",
+    return promiseToFuture(JS("creates:VRFrameOfReference;",
         "#.requestFrameOfReference(#, #)", this, type, options_dict));
   }
 
@@ -32886,12 +32884,12 @@ class Window extends EventTarget
    */
   bool confirm([String? message]) native;
 
-  Future<_Response> fetch(/*RequestInfo*/ input, [Map? init]) {
+  Future fetch(/*RequestInfo*/ input, [Map? init]) {
     var init_dict = null;
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
     }
-    return promiseToFuture<_Response>(
+    return promiseToFuture(
         JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
   }
 
@@ -33956,12 +33954,12 @@ class WorkerGlobalScope extends EventTarget
 
   WorkerGlobalScope get self native;
 
-  Future<_Response> fetch(/*RequestInfo*/ input, [Map? init]) {
+  Future fetch(/*RequestInfo*/ input, [Map? init]) {
     var init_dict = null;
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
     }
-    return promiseToFuture<_Response>(
+    return promiseToFuture(
         JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
   }
 

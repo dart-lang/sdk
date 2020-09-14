@@ -1133,7 +1133,6 @@ promise_operations = monitored.Dict(
             "type": "List<dynamic>"
         },
         "ServiceWorkerGlobalScope.fetch": {
-            "type": "_Response",
             "creates": "_Response"
         },
         "ServiceWorkerRegistration.unregister": {
@@ -1165,62 +1164,39 @@ promise_operations = monitored.Dict(
             "creates": "AudioBuffer"
         },
         "CacheStorage.match": {
-            "type": "_Response",
             "creates": "_Response"
         },
         "CacheStorage.open": {
-            "type": "_Cache",
             "creates": "_Cache"
         },
-        "CookieStore.getAll": {
-            "type": "dictionary"
-        },
         "CredentialsContainer.create": {
-            "type": "Credential",
             "creates": "Credential"
         },
         "CredentialsContainer.get": {
-            "type": "Credential",
             "creates": "Credential"
         },
         "CredentialsContainer.store": {
-            "type": "Credential",
             "creates": "Credential"
         },
         "FetchEvent.preloadResponse": {
-            "type": "_Response",
             "creates": "_Response"
         },
-        "MediaKeys.getStatusForPolicy": {
-            # Actual return value is MediaKeyStatus, which is an IDL enum of
-            # strings.
-            "type": "String"
-        },
         "MediaKeySystemAccess.createMediaKeys": {
-            "type": "MediaKeys",
             "creates": "MediaKeys"
         },
-        "MediaStreamTrack.applyConstraints": {
-            "type": "dictionary"
-        },
         "Navigator.getVRDisplays": {
-            "type": "List<VRDisplay>",
             "creates": "VRDisplay"
         },
         "Navigator.requestMediaKeySystemAccess": {
-            "type": "MediaKeySystemAccess",
             "creates": "MediaKeySystemAccess"
         },
         "VRSession.requestFrameOfReference": {
-            "type": "VRFrameOfReference",
             "creates": "VRFrameOfReference"
         },
         "Window.fetch": {
-            "type": "_Response",
             "creates": "_Response"
         },
         "WorkerGlobalScope.fetch": {
-            "type": "_Response",
             "creates": "_Response"
         },
     })
@@ -1598,10 +1574,11 @@ class Dart2JSBackend(HtmlDartGenerator):
                 promiseCall = 'promiseToFuture'
                 type_description = ''
                 if promiseFound is not (None):
+                    paramType = promiseFound.get('type')
                     if 'maplike' in promiseFound:
                         promiseCall = 'promiseToFuture<dynamic>'
                         promiseType = 'Future'
-                    elif promiseFound['type'] == 'dictionary':
+                    elif paramType == 'dictionary':
                         # It's a dictionary so return as a Map.
                         promiseCall = 'promiseToFutureAsMap'
                         output_conversion = self._OutputConversion("Dictionary",
@@ -1610,8 +1587,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                             else ''
                         promiseType = 'Future<Map<String, dynamic>' + \
                             nullability + '>'
-                    else:
-                        paramType = promiseFound['type']
+                    elif paramType:
                         promiseCall = 'promiseToFuture<%s>' % paramType
                         promiseType = 'Future<%s>' % paramType
 
@@ -1925,12 +1901,12 @@ class Dart2JSBackend(HtmlDartGenerator):
             promiseCall = 'promiseToFuture'
             type_description = ''
             if promiseFound is not (None):
-                paramType = promiseFound['type']
+                paramType = promiseFound.get('type')
                 if 'maplike' in promiseFound:
                     if paramType == 'dictionary':
                         promiseCall = 'promiseToFuture<dynamic>'
                         promiseType = 'Future'
-                    else:
+                    elif paramType:
                         promiseCall = 'promiseToFuture<%s>' % paramType
                         promiseType = 'Future<%s>' % paramType
                 elif paramType == 'dictionary':
@@ -1942,7 +1918,7 @@ class Dart2JSBackend(HtmlDartGenerator):
                         else ''
                     promiseType = 'Future<Map<String, dynamic>' + \
                         nullability + '>'
-                else:
+                elif paramType:
                     promiseCall = 'promiseToFuture<%s>' % paramType
                     promiseType = 'Future<%s>' % paramType
 
