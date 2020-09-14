@@ -139,8 +139,6 @@ class TypePropertyResolver {
   void _lookupType(DartType type) {
     if (type is InterfaceType) {
       _lookupInterfaceType(type);
-    } else if (type is FunctionType) {
-      _lookupInterfaceType(_typeProvider.functionType);
     }
   }
 
