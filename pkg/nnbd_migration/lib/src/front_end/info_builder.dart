@@ -313,6 +313,17 @@ class InfoBuilder {
     var content = result.content;
     unitInfo.diskContent = content;
     var regions = unitInfo.regions;
+
+    // There are certain rare conditions involving generated code in a bazel
+    // workspace that can cause a source file to get processed more than once by
+    // the migration tool (sometimes with a correct URI, sometimes with an
+    // incorrect URI that corresponds to a file path in the `bazel-out`
+    // directory).  That can cause this method to get called twice for the same
+    // unit.  To avoid this creating user-visible problems, we need to ensure
+    // that any regions left over from the previous invocation are cleared out
+    // before we re-populate the region list.
+    regions.clear();
+
     var lineInfo = result.unit.lineInfo;
     var insertions = <int, List<AtomicEdit>>{};
     var hintsSeen = <HintComment>{};
