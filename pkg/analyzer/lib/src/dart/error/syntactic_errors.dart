@@ -185,6 +185,9 @@ class ParserErrorCode extends ErrorCode {
       correction:
           "This appears to be incomplete code. Try removing it or completing it.");
 
+  static const ParserErrorCode EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD =
+      _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD;
+
   static const ParserErrorCode EXPECTED_INSTEAD = _EXPECTED_INSTEAD;
 
   static const ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = ParserErrorCode(

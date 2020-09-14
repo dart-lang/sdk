@@ -6479,6 +6479,8 @@ class Parser {
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
     if (!identifier.isIdentifier) {
+      // TODO(jensj): This should probably (sometimes) be
+      // templateExpectedIdentifierButGotKeyword instead.
       reportRecoverableErrorWithToken(
           identifier, codes.templateExpectedIdentifier);
     } else if (identifier != token) {

@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/error_recovery/keyword_named_class_methods:12:7: Expected an identifier, but got 'assert'.
+parser/error_recovery/keyword_named_class_methods:12:7: 'assert' can't be used as an identifier because it's a keyword.
   int assert(int x) {
       ^^^^^^
 
@@ -8,7 +8,7 @@ parser/error_recovery/keyword_named_class_methods:14:12: `assert` can't be used 
     return assert(x-1) + 1;
            ^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:27:7: Expected an identifier, but got 'break'.
+parser/error_recovery/keyword_named_class_methods:27:7: 'break' can't be used as an identifier because it's a keyword.
   int break(int x) {
       ^^^^^
 
@@ -28,31 +28,31 @@ parser/error_recovery/keyword_named_class_methods:29:12: Expected ';' after this
     return break(x-1) + 1;
            ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:32:7: Expected an identifier, but got 'case'.
+parser/error_recovery/keyword_named_class_methods:32:7: 'case' can't be used as an identifier because it's a keyword.
   int case(int x) {
       ^^^^
 
-parser/error_recovery/keyword_named_class_methods:34:12: Expected an identifier, but got 'case'.
+parser/error_recovery/keyword_named_class_methods:34:12: 'case' can't be used as an identifier because it's a keyword.
     return case(x-1) + 1;
            ^^^^
 
-parser/error_recovery/keyword_named_class_methods:37:7: Expected an identifier, but got 'catch'.
+parser/error_recovery/keyword_named_class_methods:37:7: 'catch' can't be used as an identifier because it's a keyword.
   int catch(int x) {
       ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:39:12: Expected an identifier, but got 'catch'.
+parser/error_recovery/keyword_named_class_methods:39:12: 'catch' can't be used as an identifier because it's a keyword.
     return catch(x-1) + 1;
            ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:42:7: Expected an identifier, but got 'class'.
+parser/error_recovery/keyword_named_class_methods:42:7: 'class' can't be used as an identifier because it's a keyword.
   int class(int x) {
       ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:44:12: Expected an identifier, but got 'class'.
+parser/error_recovery/keyword_named_class_methods:44:12: 'class' can't be used as an identifier because it's a keyword.
     return class(x-1) + 1;
            ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:47:7: Expected an identifier, but got 'const'.
+parser/error_recovery/keyword_named_class_methods:47:7: 'const' can't be used as an identifier because it's a keyword.
   int const(int x) {
       ^^^^^
 
@@ -60,7 +60,7 @@ parser/error_recovery/keyword_named_class_methods:49:17: Expected an identifier,
     return const(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_class_methods:52:7: Expected an identifier, but got 'continue'.
+parser/error_recovery/keyword_named_class_methods:52:7: 'continue' can't be used as an identifier because it's a keyword.
   int continue(int x) {
       ^^^^^^^^
 
@@ -80,15 +80,15 @@ parser/error_recovery/keyword_named_class_methods:54:12: Expected ';' after this
     return continue(x-1) + 1;
            ^^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:62:7: Expected an identifier, but got 'default'.
+parser/error_recovery/keyword_named_class_methods:62:7: 'default' can't be used as an identifier because it's a keyword.
   int default(int x) {
       ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:64:12: Expected an identifier, but got 'default'.
+parser/error_recovery/keyword_named_class_methods:64:12: 'default' can't be used as an identifier because it's a keyword.
     return default(x-1) + 1;
            ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:72:7: Expected an identifier, but got 'do'.
+parser/error_recovery/keyword_named_class_methods:72:7: 'do' can't be used as an identifier because it's a keyword.
   int do(int x) {
       ^^
 
@@ -116,7 +116,7 @@ parser/error_recovery/keyword_named_class_methods:75:3: Expected ';' after this.
   }
   ^
 
-parser/error_recovery/keyword_named_class_methods:82:7: Expected an identifier, but got 'else'.
+parser/error_recovery/keyword_named_class_methods:82:7: 'else' can't be used as an identifier because it's a keyword.
   int else(int x) {
       ^^^^
 
@@ -140,27 +140,27 @@ parser/error_recovery/keyword_named_class_methods:84:12: Unexpected token ';'.
     return else(x-1) + 1;
            ^^^^
 
-parser/error_recovery/keyword_named_class_methods:87:7: Expected an identifier, but got 'enum'.
+parser/error_recovery/keyword_named_class_methods:87:7: 'enum' can't be used as an identifier because it's a keyword.
   int enum(int x) {
       ^^^^
 
-parser/error_recovery/keyword_named_class_methods:89:12: Expected an identifier, but got 'enum'.
+parser/error_recovery/keyword_named_class_methods:89:12: 'enum' can't be used as an identifier because it's a keyword.
     return enum(x-1) + 1;
            ^^^^
 
-parser/error_recovery/keyword_named_class_methods:97:7: Expected an identifier, but got 'extends'.
+parser/error_recovery/keyword_named_class_methods:97:7: 'extends' can't be used as an identifier because it's a keyword.
   int extends(int x) {
       ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:99:12: Expected an identifier, but got 'extends'.
+parser/error_recovery/keyword_named_class_methods:99:12: 'extends' can't be used as an identifier because it's a keyword.
     return extends(x-1) + 1;
            ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:117:7: Expected an identifier, but got 'false'.
+parser/error_recovery/keyword_named_class_methods:117:7: 'false' can't be used as an identifier because it's a keyword.
   int false(int x) {
       ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:122:7: Expected an identifier, but got 'final'.
+parser/error_recovery/keyword_named_class_methods:122:7: 'final' can't be used as an identifier because it's a keyword.
   int final(int x) {
       ^^^^^
 
@@ -200,15 +200,15 @@ parser/error_recovery/keyword_named_class_methods:124:23: '+' is not a prefix op
     return final(x-1) + 1;
                       ^
 
-parser/error_recovery/keyword_named_class_methods:127:7: Expected an identifier, but got 'finally'.
+parser/error_recovery/keyword_named_class_methods:127:7: 'finally' can't be used as an identifier because it's a keyword.
   int finally(int x) {
       ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:129:12: Expected an identifier, but got 'finally'.
+parser/error_recovery/keyword_named_class_methods:129:12: 'finally' can't be used as an identifier because it's a keyword.
     return finally(x-1) + 1;
            ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:132:7: Expected an identifier, but got 'for'.
+parser/error_recovery/keyword_named_class_methods:132:7: 'for' can't be used as an identifier because it's a keyword.
   int for(int x) {
       ^^^
 
@@ -236,7 +236,7 @@ parser/error_recovery/keyword_named_class_methods:134:21: '+' is not a prefix op
     return for(x-1) + 1;
                     ^
 
-parser/error_recovery/keyword_named_class_methods:152:7: Expected an identifier, but got 'if'.
+parser/error_recovery/keyword_named_class_methods:152:7: 'if' can't be used as an identifier because it's a keyword.
   int if(int x) {
       ^^
 
@@ -252,15 +252,15 @@ parser/error_recovery/keyword_named_class_methods:154:20: '+' is not a prefix op
     return if(x-1) + 1;
                    ^
 
-parser/error_recovery/keyword_named_class_methods:167:7: Expected an identifier, but got 'in'.
+parser/error_recovery/keyword_named_class_methods:167:7: 'in' can't be used as an identifier because it's a keyword.
   int in(int x) {
       ^^
 
-parser/error_recovery/keyword_named_class_methods:169:12: Expected an identifier, but got 'in'.
+parser/error_recovery/keyword_named_class_methods:169:12: 'in' can't be used as an identifier because it's a keyword.
     return in(x-1) + 1;
            ^^
 
-parser/error_recovery/keyword_named_class_methods:182:7: Expected an identifier, but got 'is'.
+parser/error_recovery/keyword_named_class_methods:182:7: 'is' can't be used as an identifier because it's a keyword.
   int is(int x) {
       ^^
 
@@ -276,7 +276,7 @@ parser/error_recovery/keyword_named_class_methods:184:14: Expected ';' after thi
     return is(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_class_methods:207:7: Expected an identifier, but got 'new'.
+parser/error_recovery/keyword_named_class_methods:207:7: 'new' can't be used as an identifier because it's a keyword.
   int new(int x) {
       ^^^
 
@@ -284,19 +284,19 @@ parser/error_recovery/keyword_named_class_methods:209:15: Expected an identifier
     return new(x-1) + 1;
               ^
 
-parser/error_recovery/keyword_named_class_methods:212:7: Expected an identifier, but got 'null'.
+parser/error_recovery/keyword_named_class_methods:212:7: 'null' can't be used as an identifier because it's a keyword.
   int null(int x) {
       ^^^^
 
-parser/error_recovery/keyword_named_class_methods:252:7: Expected an identifier, but got 'rethrow'.
+parser/error_recovery/keyword_named_class_methods:252:7: 'rethrow' can't be used as an identifier because it's a keyword.
   int rethrow(int x) {
       ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:254:12: Expected an identifier, but got 'rethrow'.
+parser/error_recovery/keyword_named_class_methods:254:12: 'rethrow' can't be used as an identifier because it's a keyword.
     return rethrow(x-1) + 1;
            ^^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:257:7: Expected an identifier, but got 'return'.
+parser/error_recovery/keyword_named_class_methods:257:7: 'return' can't be used as an identifier because it's a keyword.
   int return(int x) {
       ^^^^^^
 
@@ -304,11 +304,11 @@ parser/error_recovery/keyword_named_class_methods:259:12: Unexpected token 'retu
     return return(x-1) + 1;
            ^^^^^^
 
-parser/error_recovery/keyword_named_class_methods:282:7: Expected an identifier, but got 'super'.
+parser/error_recovery/keyword_named_class_methods:282:7: 'super' can't be used as an identifier because it's a keyword.
   int super(int x) {
       ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:287:7: Expected an identifier, but got 'switch'.
+parser/error_recovery/keyword_named_class_methods:287:7: 'switch' can't be used as an identifier because it's a keyword.
   int switch(int x) {
       ^^^^^^
 
@@ -328,7 +328,7 @@ parser/error_recovery/keyword_named_class_methods:289:24: '+' is not a prefix op
     return switch(x-1) + 1;
                        ^
 
-parser/error_recovery/keyword_named_class_methods:297:7: Expected an identifier, but got 'this'.
+parser/error_recovery/keyword_named_class_methods:297:7: 'this' can't be used as an identifier because it's a keyword.
   int this(int x) {
       ^^^^
 
@@ -340,15 +340,15 @@ parser/error_recovery/keyword_named_class_methods:297:11: Expected an identifier
   int this(int x) {
           ^
 
-parser/error_recovery/keyword_named_class_methods:302:7: Expected an identifier, but got 'throw'.
+parser/error_recovery/keyword_named_class_methods:302:7: 'throw' can't be used as an identifier because it's a keyword.
   int throw(int x) {
       ^^^^^
 
-parser/error_recovery/keyword_named_class_methods:307:7: Expected an identifier, but got 'true'.
+parser/error_recovery/keyword_named_class_methods:307:7: 'true' can't be used as an identifier because it's a keyword.
   int true(int x) {
       ^^^^
 
-parser/error_recovery/keyword_named_class_methods:312:7: Expected an identifier, but got 'try'.
+parser/error_recovery/keyword_named_class_methods:312:7: 'try' can't be used as an identifier because it's a keyword.
   int try(int x) {
       ^^^
 
@@ -368,7 +368,7 @@ parser/error_recovery/keyword_named_class_methods:314:12: A try block must be fo
     return try(x-1) + 1;
            ^^^
 
-parser/error_recovery/keyword_named_class_methods:322:7: Expected an identifier, but got 'var'.
+parser/error_recovery/keyword_named_class_methods:322:7: 'var' can't be used as an identifier because it's a keyword.
   int var(int x) {
       ^^^
 
@@ -408,7 +408,7 @@ parser/error_recovery/keyword_named_class_methods:324:21: '+' is not a prefix op
     return var(x-1) + 1;
                     ^
 
-parser/error_recovery/keyword_named_class_methods:327:7: Expected an identifier, but got 'void'.
+parser/error_recovery/keyword_named_class_methods:327:7: 'void' can't be used as an identifier because it's a keyword.
   int void(int x) {
       ^^^^
 
@@ -448,7 +448,7 @@ parser/error_recovery/keyword_named_class_methods:329:22: '+' is not a prefix op
     return void(x-1) + 1;
                      ^
 
-parser/error_recovery/keyword_named_class_methods:332:7: Expected an identifier, but got 'while'.
+parser/error_recovery/keyword_named_class_methods:332:7: 'while' can't be used as an identifier because it's a keyword.
   int while(int x) {
       ^^^^^
 
@@ -464,11 +464,11 @@ parser/error_recovery/keyword_named_class_methods:334:23: '+' is not a prefix op
     return while(x-1) + 1;
                       ^
 
-parser/error_recovery/keyword_named_class_methods:337:7: Expected an identifier, but got 'with'.
+parser/error_recovery/keyword_named_class_methods:337:7: 'with' can't be used as an identifier because it's a keyword.
   int with(int x) {
       ^^^^
 
-parser/error_recovery/keyword_named_class_methods:339:12: Expected an identifier, but got 'with'.
+parser/error_recovery/keyword_named_class_methods:339:12: 'with' can't be used as an identifier because it's a keyword.
     return with(x-1) + 1;
            ^^^^
 
@@ -608,7 +608,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(assert)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'assert'., null, {token: assert}], assert, assert)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'assert' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: assert}], assert, assert)
             handleIdentifier(assert, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -781,7 +781,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(break)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'break'., null, {token: break}], break, break)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'break' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: break}], break, break)
             handleIdentifier(break, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -814,7 +814,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'break'., null, {token: break}], break, break)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'break'., Try inserting an identifier before 'break'., {token: break}], break, break)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(break)
                 handleNoArguments(break)
@@ -846,7 +846,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(case)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'case'., null, {token: case}], case, case)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'case' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: case}], case, case)
             handleIdentifier(case, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -879,7 +879,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'case'., null, {token: case}], case, case)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'case' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: case}], case, case)
                 handleIdentifier(case, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -906,7 +906,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(catch)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'catch'., null, {token: catch}], catch, catch)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'catch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: catch}], catch, catch)
             handleIdentifier(catch, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -939,7 +939,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'catch'., null, {token: catch}], catch, catch)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'catch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: catch}], catch, catch)
                 handleIdentifier(catch, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -966,7 +966,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(class)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'class'., null, {token: class}], class, class)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'class' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: class}], class, class)
             handleIdentifier(class, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -999,7 +999,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'class'., null, {token: class}], class, class)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'class' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: class}], class, class)
                 handleIdentifier(class, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -1026,7 +1026,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(const)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'const'., null, {token: const}], const, const)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'const' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: const}], const, const)
             handleIdentifier(const, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1060,7 +1060,7 @@ beginCompilationUnit(class)
               endIfStatement(if, null)
               beginReturnStatement(return)
                 beginConstExpression(const)
-                  handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
+                  handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {token: (}], (, ()
                   handleIdentifier(, constructorReference)
                   beginConstructorReference()
                     handleNoTypeArguments(()
@@ -1090,7 +1090,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(continue)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'continue'., null, {token: continue}], continue, continue)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'continue' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: continue}], continue, continue)
             handleIdentifier(continue, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1123,7 +1123,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'continue'., null, {token: continue}], continue, continue)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'continue'., Try inserting an identifier before 'continue'., {token: continue}], continue, continue)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(continue)
                 handleNoArguments(continue)
@@ -1213,7 +1213,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(default)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'default'., null, {token: default}], default, default)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: default}], default, default)
             handleIdentifier(default, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1246,7 +1246,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'default'., null, {token: default}], default, default)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'default' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: default}], default, default)
                 handleIdentifier(default, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -1331,7 +1331,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(do)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'do'., null, {token: do}], do, do)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'do' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: do}], do, do)
             handleIdentifier(do, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1364,7 +1364,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'do'., null, {token: do}], do, do)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'do'., Try inserting an identifier before 'do'., {token: do}], do, do)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(do)
                 handleNoArguments(do)
@@ -1388,7 +1388,7 @@ beginCompilationUnit(class)
                 endDoWhileStatementBody(;)
                 handleRecoverableError(Message[ExpectedButGot, Expected 'while' before this., null, {string: while}], }, })
                 handleRecoverableError(Message[ExpectedToken, Expected to find '('., null, {string: (}], }, })
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., null, {token: }}], }, })
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '}'., Try inserting an identifier before '}'., {token: }}], }, })
                 handleIdentifier(, expression)
                 handleNoTypeArguments())
                 handleNoArguments())
@@ -1464,7 +1464,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(else)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., null, {token: else}], else, else)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'else' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: else}], else, else)
             handleIdentifier(else, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1497,14 +1497,14 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., null, {token: else}], else, else)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., Try inserting an identifier before 'else'., {token: else}], else, else)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(else)
                 handleNoArguments(else)
                 handleSend(, else)
                 handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], else, else)
               endReturnStatement(true, return, ;)
-              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., null, {token: else}], else, else)
+              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'else'., Try inserting an identifier before 'else'., {token: else}], else, else)
               handleIdentifier(, expression)
               handleNoTypeArguments(else)
               handleNoArguments(else)
@@ -1534,7 +1534,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(enum)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'enum'., null, {token: enum}], enum, enum)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: enum}], enum, enum)
             handleIdentifier(enum, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1567,7 +1567,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'enum'., null, {token: enum}], enum, enum)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: enum}], enum, enum)
                 handleIdentifier(enum, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -1652,7 +1652,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(extends)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extends'., null, {token: extends}], extends, extends)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: extends}], extends, extends)
             handleIdentifier(extends, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1685,7 +1685,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'extends'., null, {token: extends}], extends, extends)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'extends' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: extends}], extends, extends)
                 handleIdentifier(extends, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -1886,7 +1886,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(false)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'false'., null, {token: false}], false, false)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'false' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: false}], false, false)
             handleIdentifier(false, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1945,7 +1945,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(final)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., null, {token: final}], final, final)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'final' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: final}], final, final)
             handleIdentifier(final, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -1978,7 +1978,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., null, {token: final}], final, final)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'final'., Try inserting an identifier before 'final'., {token: final}], final, final)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(final)
                 handleNoArguments(final)
@@ -1989,7 +1989,7 @@ beginCompilationUnit(class)
               endMetadataStar(0)
               handleNoType(final)
               beginVariablesDeclaration((, null, final)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {token: (}], (, ()
                 handleIdentifier(, localVariableDeclaration)
                 beginInitializedIdentifier()
                   handleNoVariableInitializer()
@@ -2005,7 +2005,7 @@ beginCompilationUnit(class)
               endBinaryExpression(-)
               handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
               handleExpressionStatement(;)
-              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., null, {token: )}], ), ))
+              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., Try inserting an identifier before ')'., {token: )}], ), ))
               handleIdentifier(, expression)
               handleNoTypeArguments())
               handleNoArguments())
@@ -2032,7 +2032,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(finally)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'finally'., null, {token: finally}], finally, finally)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'finally' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: finally}], finally, finally)
             handleIdentifier(finally, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -2065,7 +2065,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'finally'., null, {token: finally}], finally, finally)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'finally' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: finally}], finally, finally)
                 handleIdentifier(finally, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -2092,7 +2092,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(for)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'for'., null, {token: for}], for, for)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'for' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: for}], for, for)
             handleIdentifier(for, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -2125,7 +2125,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'for'., null, {token: for}], for, for)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'for'., Try inserting an identifier before 'for'., {token: for}], for, for)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(for)
                 handleNoArguments(for)
@@ -2142,7 +2142,7 @@ beginCompilationUnit(class)
                 endBinaryExpression(-)
                 handleForInitializerExpressionStatement(1, false)
                 handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., null, {token: )}], ), ))
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., Try inserting an identifier before ')'., {token: )}], ), ))
                 handleIdentifier(, expression)
                 handleNoTypeArguments())
                 handleNoArguments())
@@ -2346,7 +2346,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(if)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., null, {token: if}], if, if)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'if' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: if}], if, if)
             handleIdentifier(if, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -2379,7 +2379,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., null, {token: if}], if, if)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'if'., Try inserting an identifier before 'if'., {token: if}], if, if)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(if)
                 handleNoArguments(if)
@@ -2533,7 +2533,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(in)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'in'., null, {token: in}], in, in)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'in' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: in}], in, in)
             handleIdentifier(in, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -2566,7 +2566,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'in'., null, {token: in}], in, in)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'in' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: in}], in, in)
                 handleIdentifier(in, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -2709,7 +2709,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(is)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'is'., null, {token: is}], is, is)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'is' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: is}], is, is)
             handleIdentifier(is, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -2742,7 +2742,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'is'., null, {token: is}], is, is)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'is'., Try inserting an identifier before 'is'., {token: is}], is, is)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(is)
                 handleNoArguments(is)
@@ -3010,7 +3010,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(new)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'new'., null, {token: new}], new, new)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: new}], new, new)
             handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -3044,7 +3044,7 @@ beginCompilationUnit(class)
               endIfStatement(if, null)
               beginReturnStatement(return)
                 beginNewExpression(new)
-                  handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
+                  handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {token: (}], (, ()
                   handleIdentifier(, constructorReference)
                   beginConstructorReference()
                     handleNoTypeArguments(()
@@ -3074,7 +3074,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(null)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'null'., null, {token: null}], null, null)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'null' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: null}], null, null)
             handleIdentifier(null, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -3539,7 +3539,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(rethrow)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'rethrow'., null, {token: rethrow}], rethrow, rethrow)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'rethrow' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: rethrow}], rethrow, rethrow)
             handleIdentifier(rethrow, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -3572,7 +3572,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'rethrow'., null, {token: rethrow}], rethrow, rethrow)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'rethrow' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: rethrow}], rethrow, rethrow)
                 handleIdentifier(rethrow, expression)
                 handleNoTypeArguments(()
                 beginArguments(()
@@ -3599,7 +3599,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(return)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'return'., null, {token: return}], return, return)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'return' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: return}], return, return)
             handleIdentifier(return, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -3887,7 +3887,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(super)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'super'., null, {token: super}], super, super)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: super}], super, super)
             handleIdentifier(super, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -3946,7 +3946,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(switch)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'switch'., null, {token: switch}], switch, switch)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'switch' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: switch}], switch, switch)
             handleIdentifier(switch, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -3979,7 +3979,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'switch'., null, {token: switch}], switch, switch)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'switch'., Try inserting an identifier before 'switch'., {token: switch}], switch, switch)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(switch)
                 handleNoArguments(switch)
@@ -4076,7 +4076,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(this)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'this'., null, {token: this}], this, this)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: this}], this, this)
             handleIdentifier(this, fieldDeclaration)
             handleNoFieldInitializer(()
             handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], this, this)
@@ -4087,7 +4087,7 @@ beginCompilationUnit(class)
         beginMember()
           beginMethod(null, null, null, null, null, ()
             handleNoType(;)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
+            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {token: (}], (, ()
             handleIdentifier(, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4146,7 +4146,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(throw)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'throw'., null, {token: throw}], throw, throw)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'throw' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: throw}], throw, throw)
             handleIdentifier(throw, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4202,7 +4202,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(true)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'true'., null, {token: true}], true, true)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'true' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: true}], true, true)
             handleIdentifier(true, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4261,7 +4261,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(try)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'try'., null, {token: try}], try, try)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'try' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: try}], try, try)
             handleIdentifier(try, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4294,7 +4294,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'try'., null, {token: try}], try, try)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'try'., Try inserting an identifier before 'try'., {token: try}], try, try)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(try)
                 handleNoArguments(try)
@@ -4387,7 +4387,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(var)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., null, {token: var}], var, var)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'var' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: var}], var, var)
             handleIdentifier(var, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4420,7 +4420,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., null, {token: var}], var, var)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'var'., Try inserting an identifier before 'var'., {token: var}], var, var)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(var)
                 handleNoArguments(var)
@@ -4431,7 +4431,7 @@ beginCompilationUnit(class)
               endMetadataStar(0)
               handleNoType(var)
               beginVariablesDeclaration((, null, var)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {token: (}], (, ()
                 handleIdentifier(, localVariableDeclaration)
                 beginInitializedIdentifier()
                   handleNoVariableInitializer()
@@ -4447,7 +4447,7 @@ beginCompilationUnit(class)
               endBinaryExpression(-)
               handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
               handleExpressionStatement(;)
-              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., null, {token: )}], ), ))
+              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., Try inserting an identifier before ')'., {token: )}], ), ))
               handleIdentifier(, expression)
               handleNoTypeArguments())
               handleNoArguments())
@@ -4474,7 +4474,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(void)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'void'., null, {token: void}], void, void)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'void' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: void}], void, void)
             handleIdentifier(void, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4507,7 +4507,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'void'., null, {token: void}], void, void)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'void'., Try inserting an identifier before 'void'., {token: void}], void, void)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(void)
                 handleNoArguments(void)
@@ -4518,7 +4518,7 @@ beginCompilationUnit(class)
               endMetadataStar(0)
               handleVoidKeyword(void)
               beginVariablesDeclaration((, null, null)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., null, {token: (}], (, ()
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '('., Try inserting an identifier before '('., {token: (}], (, ()
                 handleIdentifier(, localVariableDeclaration)
                 beginInitializedIdentifier()
                   handleNoVariableInitializer()
@@ -4534,7 +4534,7 @@ beginCompilationUnit(class)
               endBinaryExpression(-)
               handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], 1, 1)
               handleExpressionStatement(;)
-              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., null, {token: )}], ), ))
+              handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got ')'., Try inserting an identifier before ')'., {token: )}], ), ))
               handleIdentifier(, expression)
               handleNoTypeArguments())
               handleNoArguments())
@@ -4561,7 +4561,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(while)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'while'., null, {token: while}], while, while)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'while' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: while}], while, while)
             handleIdentifier(while, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4594,7 +4594,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'while'., null, {token: while}], while, while)
+                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'while'., Try inserting an identifier before 'while'., {token: while}], while, while)
                 handleIdentifier(, expression)
                 handleNoTypeArguments(while)
                 handleNoArguments(while)
@@ -4632,7 +4632,7 @@ beginCompilationUnit(class)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(with)
             handleType(int, null)
-            handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'with'., null, {token: with}], with, with)
+            handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: with}], with, with)
             handleIdentifier(with, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
@@ -4665,7 +4665,7 @@ beginCompilationUnit(class)
                 endThenStatement(;)
               endIfStatement(if, null)
               beginReturnStatement(return)
-                handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got 'with'., null, {token: with}], with, with)
+                handleRecoverableError(Message[ExpectedIdentifierButGotKeyword, 'with' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {token: with}], with, with)
                 handleIdentifier(with, expression)
                 handleNoTypeArguments(()
                 beginArguments(()

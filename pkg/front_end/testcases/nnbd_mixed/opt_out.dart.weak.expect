@@ -116,10 +116,12 @@ library;
 // ^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got '.'.
+// Try inserting an identifier before '.'.
 //   c?..f;
 //      ^
 //
 // pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
 //   c?..f;
 //      ^
 //
@@ -168,6 +170,7 @@ static method errors() → dynamic {
   core::String* t = s!;
   dynamic c;
   invalid-expression "pkg/front_end/testcases/nnbd_mixed/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
   c?..f;
      ^".f;
   let final dynamic #t3 = c in #t3.{core::Object::==}(null) ?{dynamic} null : #t3.[](0);

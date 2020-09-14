@@ -633,6 +633,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXPECTED_CLASS_MEMBER,
   ParserErrorCode.EXPECTED_ELSE_OR_COMMA,
   ParserErrorCode.EXPECTED_EXECUTABLE,
+  ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
   ParserErrorCode.EXPECTED_INSTEAD,
   ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
   ParserErrorCode.EXPECTED_STRING_LITERAL,

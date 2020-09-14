@@ -3,10 +3,12 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:34:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
 //     for (super.superInstanceField in []) {}
 //          ^^^^^
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/for_in_without_declaration.dart:35:10: Error: Expected an identifier, but got 'super'.
+// Try inserting an identifier before 'super'.
 //     for (super.untypedSuperInstanceField in []) {}
 //          ^^^^^
 //
