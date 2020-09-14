@@ -1218,12 +1218,13 @@ class FlowModel<Variable, Type> {
   /// are assumed to be unpromoted and already assigned, so joining another
   /// state with this one will have no effect on it.
   FlowModel(bool reachable)
-      : this._(
+      : this.withInfo(
           reachable,
           const {},
         );
 
-  FlowModel._(this.reachable, this.variableInfo)
+  @visibleForTesting
+  FlowModel.withInfo(this.reachable, this.variableInfo)
       : _freshVariableInfo = new VariableModel.fresh() {
     assert(() {
       for (VariableModel<Variable, Type> value in variableInfo.values) {
@@ -1285,7 +1286,7 @@ class FlowModel<Variable, Type> {
 
     FlowModel<Variable, Type> result = newVariableInfo == null
         ? this
-        : new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+        : new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
 
     return result;
   }
@@ -1307,6 +1308,41 @@ class FlowModel<Variable, Type> {
   /// Gets the info for the given [variable], creating it if it doesn't exist.
   VariableModel<Variable, Type> infoFor(Variable variable) =>
       variableInfo[variable] ?? _freshVariableInfo;
+
+  /// Builds a [FlowModel] based on `this`, but extending the `tested` set to
+  /// include types from [other].  This is used at the bottom of certain kinds
+  /// of loops, to ensure that types tested within the body of the loop are
+  /// consistently treated as "of interest" in code that follows the loop,
+  /// regardless of the type of loop.
+  @visibleForTesting
+  FlowModel<Variable, Type> inheritTested(
+      TypeOperations<Variable, Type> typeOperations,
+      FlowModel<Variable, Type> other) {
+    Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
+        <Variable, VariableModel<Variable, Type>>{};
+    Map<Variable, VariableModel<Variable, Type>> otherVariableInfo =
+        other.variableInfo;
+    bool changed = false;
+    for (MapEntry<Variable, VariableModel<Variable, Type>> entry
+        in variableInfo.entries) {
+      Variable variable = entry.key;
+      VariableModel<Variable, Type> variableModel = entry.value;
+      VariableModel<Variable, Type> otherVariableModel =
+          otherVariableInfo[variable];
+      VariableModel<Variable, Type> newVariableModel =
+          otherVariableModel == null
+              ? variableModel
+              : VariableModel.inheritTested(
+                  typeOperations, variableModel, otherVariableModel.tested);
+      newVariableInfo[variable] = newVariableModel;
+      if (!identical(newVariableModel, variableModel)) changed = true;
+    }
+    if (changed) {
+      return new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
+    } else {
+      return this;
+    }
+  }
 
   /// Updates the state to indicate that variables that are not definitely
   /// unassigned in the [other], are also not definitely unassigned in the
@@ -1335,7 +1371,7 @@ class FlowModel<Variable, Type> {
 
     if (newVariableInfo == null) return this;
 
-    return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+    return new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
   }
 
   /// Updates the state to reflect a control path that is known to have
@@ -1409,7 +1445,7 @@ class FlowModel<Variable, Type> {
   FlowModel<Variable, Type> setReachable(bool reachable) {
     if (this.reachable == reachable) return this;
 
-    return new FlowModel<Variable, Type>._(reachable, variableInfo);
+    return new FlowModel<Variable, Type>.withInfo(reachable, variableInfo);
   }
 
   @override
@@ -1586,7 +1622,7 @@ class FlowModel<Variable, Type> {
     Map<Variable, VariableModel<Variable, Type>> newVariableInfo =
         new Map<Variable, VariableModel<Variable, Type>>.from(variableInfo);
     newVariableInfo[variable] = model;
-    return new FlowModel<Variable, Type>._(reachable, newVariableInfo);
+    return new FlowModel<Variable, Type>.withInfo(reachable, newVariableInfo);
   }
 
   /// Forms a new state to reflect a control flow path that might have come from
@@ -1675,7 +1711,8 @@ class FlowModel<Variable, Type> {
       return second;
     }
 
-    return new FlowModel<Variable, Type>._(newReachable, newVariableInfo);
+    return new FlowModel<Variable, Type>.withInfo(
+        newReachable, newVariableInfo);
   }
 
   /// Determines whether the given "variableInfo" maps are equivalent.
@@ -2139,6 +2176,22 @@ class VariableModel<Variable, Type> {
     return promotedTypes;
   }
 
+  /// Builds a [VariableModel] based on [model], but extending the [tested] set
+  /// to include types from [tested].  This is used at the bottom of certain
+  /// kinds of loops, to ensure that types tested within the body of the loop
+  /// are consistently treated as "of interest" in code that follows the loop,
+  /// regardless of the type of loop.
+  @visibleForTesting
+  static VariableModel<Variable, Type> inheritTested<Variable, Type>(
+      TypeOperations<Variable, Type> typeOperations,
+      VariableModel<Variable, Type> model,
+      List<Type> tested) {
+    List<Type> newTested = joinTested(tested, model.tested, typeOperations);
+    if (identical(newTested, model.tested)) return model;
+    return new VariableModel<Variable, Type>(model.promotedTypes, newTested,
+        model.assigned, model.unassigned, model.writeCaptured);
+  }
+
   /// Joins two variable models.  See [FlowModel.join] for details.
   static VariableModel<Variable, Type> join<Variable, Type>(
       TypeOperations<Variable, Type> typeOperations,
@@ -2583,7 +2636,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     FlowModel<Variable, Type> breakState = context._breakModel;
     FlowModel<Variable, Type> falseCondition = context._conditionInfo.ifFalse;
 
-    _current = _join(falseCondition, breakState);
+    _current = _join(falseCondition, breakState)
+        .inheritTested(typeOperations, _current);
   }
 
   @override
@@ -2996,7 +3050,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   void whileStatement_end() {
     _WhileContext<Variable, Type> context =
         _stack.removeLast() as _WhileContext<Variable, Type>;
-    _current = _join(context._conditionInfo.ifFalse, context._breakModel);
+    _current = _join(context._conditionInfo.ifFalse, context._breakModel)
+        .inheritTested(typeOperations, _current);
   }
 
   @override

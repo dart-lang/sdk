@@ -3408,6 +3408,47 @@ main() {
       });
     });
   });
+  group('inheritTested', () {
+    var x = _Var('x', _Type('Object?'));
+    var intType = _Type('int');
+    var stringType = _Type('String');
+    const emptyMap = const <_Var, VariableModel<_Var, _Type>>{};
+
+    VariableModel<_Var, _Type> model(List<_Type> typesOfInterest) =>
+        VariableModel<_Var, _Type>(null, typesOfInterest, true, false, false);
+
+    test('inherits types of interest from other', () {
+      var h = _Harness();
+      var m1 = FlowModel.withInfo(true, {
+        x: model([intType])
+      });
+      var m2 = FlowModel.withInfo(true, {
+        x: model([stringType])
+      });
+      expect(m1.inheritTested(h, m2).variableInfo[x].tested,
+          _matchOfInterestSet(['int', 'String']));
+    });
+
+    test('handles variable missing from other', () {
+      var h = _Harness();
+      var m1 = FlowModel.withInfo(true, {
+        x: model([intType])
+      });
+      var m2 = FlowModel.withInfo(true, emptyMap);
+      expect(m1.inheritTested(h, m2), same(m1));
+    });
+
+    test('returns identical model when no changes', () {
+      var h = _Harness();
+      var m1 = FlowModel.withInfo(true, {
+        x: model([intType])
+      });
+      var m2 = FlowModel.withInfo(true, {
+        x: model([intType])
+      });
+      expect(m1.inheritTested(h, m2), same(m1));
+    });
+  });
 }
 
 /// Returns the appropriate matcher for expecting an assertion error to be
