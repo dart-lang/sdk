@@ -2,11 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $builder_tag == bytecode_interpreter ]
-LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
-LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
-LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
-
 [ $compiler == dartkb ]
 LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
 LibTest/isolate/Isolate/pause_A01_t01: Skip # Issue 37699
@@ -347,6 +342,11 @@ LibTest/core/List/List_class_A01_t03: Slow, Pass
 
 [ $runtime != vm && ($compiler == dartk || $compiler == dartkb) ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
+
+[ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
 
 [ $compiler == dartk || $compiler == dartkb ]
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash

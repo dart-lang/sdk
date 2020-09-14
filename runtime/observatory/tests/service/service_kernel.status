@@ -201,7 +201,7 @@ valid_source_locations_test: Skip # Issue 34736, too slow.
 [ $arch != simarm && $arch != simarm64 && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
-[ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
+[ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd || $builder_tag == bytecode_mixed || $builder_tag == bytecode_mixed_nnbd) ]
 *: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
 
 [ $mode == debug && $system == windows ]
