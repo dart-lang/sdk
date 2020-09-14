@@ -27,14 +27,29 @@ class PropertyElementResolver {
 
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
 
-  PropertyElementResolverResult resolve2({
-    @required Expression target,
-    @required bool isCascaded,
-    @required bool isNullAware,
-    @required SimpleIdentifier propertyName,
+  PropertyElementResolverResult resolvePrefixedIdentifier({
+    @required PrefixedIdentifier node,
     @required bool hasRead,
     @required bool hasWrite,
   }) {
+    return _resolve(
+      target: node.prefix,
+      isCascaded: false,
+      isNullAware: false,
+      propertyName: node.identifier,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+  }
+
+  PropertyElementResolverResult resolvePropertyAccess({
+    @required PropertyAccess node,
+    @required bool hasRead,
+    @required bool hasWrite,
+  }) {
+    var target = node.realTarget;
+    var propertyName = node.propertyName;
+
     if (target is ExtensionOverride) {
       return _resolveTargetExtensionOverride(
         target: target,
@@ -44,6 +59,63 @@ class PropertyElementResolver {
       );
     }
 
+    if (target is SuperExpression) {
+      return _resolveTargetSuperExpression(
+        target: target,
+        propertyName: propertyName,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+    }
+
+    return _resolve(
+      target: target,
+      isCascaded: node.target == null,
+      isNullAware: node.isNullAware,
+      propertyName: propertyName,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+  }
+
+  void _checkExtensionOverrideStaticMember(
+    SimpleIdentifier propertyName,
+    ExecutableElement element,
+  ) {
+    if (element != null && element.isStatic) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+        propertyName,
+      );
+    }
+  }
+
+  /// If the [element] is not static, report the error on the [identifier].
+  void _checkForStaticAccessToInstanceMember(
+    SimpleIdentifier identifier,
+    ExecutableElement element,
+  ) {
+    if (element.isStatic) return;
+
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+      identifier,
+      [identifier.name],
+    );
+  }
+
+  bool _isAccessible(ExecutableElement element) {
+    return element.isAccessibleIn(_definingLibrary);
+  }
+
+  PropertyElementResolverResult _resolve({
+    @required Expression target,
+    @required bool isCascaded,
+    @required bool isNullAware,
+    @required SimpleIdentifier propertyName,
+    @required bool hasRead,
+    @required bool hasWrite,
+  }) {
     //
     // If this property access is of the form 'C.m' where 'C' is a class,
     // then we don't call resolveProperty(...) which walks up the class
@@ -80,15 +152,6 @@ class PropertyElementResolver {
           hasWrite: hasWrite,
         );
       }
-    }
-
-    if (target is SuperExpression) {
-      return _resolveTargetSuperExpression(
-        target: target,
-        propertyName: propertyName,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
     }
 
     var targetType = target.staticType;
@@ -152,66 +215,6 @@ class PropertyElementResolver {
       writeElementRequested: result.setter,
       writeElementRecovery: result.getter,
     );
-  }
-
-  PropertyElementResolverResult resolvePrefixedIdentifier({
-    @required PrefixedIdentifier node,
-    @required bool hasRead,
-    @required bool hasWrite,
-  }) {
-    return resolve2(
-      target: node.prefix,
-      isCascaded: false,
-      isNullAware: false,
-      propertyName: node.identifier,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-  }
-
-  PropertyElementResolverResult resolvePropertyAccess({
-    @required PropertyAccess node,
-    @required bool hasRead,
-    @required bool hasWrite,
-  }) {
-    return resolve2(
-      target: node.realTarget,
-      isCascaded: node.target == null,
-      isNullAware: node.isNullAware,
-      propertyName: node.propertyName,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-  }
-
-  void _checkExtensionOverrideStaticMember(
-    SimpleIdentifier propertyName,
-    ExecutableElement element,
-  ) {
-    if (element != null && element.isStatic) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-        propertyName,
-      );
-    }
-  }
-
-  /// If the [element] is not static, report the error on the [identifier].
-  void _checkForStaticAccessToInstanceMember(
-    SimpleIdentifier identifier,
-    ExecutableElement element,
-  ) {
-    if (element.isStatic) return;
-
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
-      identifier,
-      [identifier.name],
-    );
-  }
-
-  bool _isAccessible(ExecutableElement element) {
-    return element.isAccessibleIn(_definingLibrary);
   }
 
   PropertyElementResolverResult _resolveTargetClassElement({
