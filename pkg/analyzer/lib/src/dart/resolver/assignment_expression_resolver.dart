@@ -161,21 +161,22 @@ class AssignmentExpressionResolver {
     }
   }
 
-  void _resolve1(AssignmentExpressionImpl node, DartType leftType) {
-    Token operator = node.operator;
-    TokenType operatorType = operator.type;
-    Expression leftHandSide = node.leftHandSide;
+  void _resolve1(AssignmentExpressionImpl node) {
+    var leftHandSide = node.leftHandSide;
+    var operator = node.operator;
+    var operatorType = operator.type;
 
+    var leftType = node.readType;
     if (identical(leftType, NeverTypeImpl.instance)) {
       return;
     }
 
     _assignmentShared.checkFinalAlreadyAssigned(leftHandSide);
 
-    // For any compound assignments to a void or nullable variable, report it.
-    // Example: `y += voidFn()`, not allowed.
+    // Values of the type void cannot be used.
+    // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
-      if (leftType != null && leftType.isVoid) {
+      if (leftType.isVoid) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.USE_OF_VOID_RESULT,
           operator,
@@ -184,31 +185,31 @@ class AssignmentExpressionResolver {
       }
     }
 
-    if (operatorType != TokenType.AMPERSAND_AMPERSAND_EQ &&
-        operatorType != TokenType.BAR_BAR_EQ &&
-        operatorType != TokenType.EQ &&
-        operatorType != TokenType.QUESTION_QUESTION_EQ) {
-      operatorType = operatorFromCompoundAssignment(operatorType);
-      if (leftHandSide != null) {
-        String methodName = operatorType.lexeme;
-        // TODO(brianwilkerson) Change the [methodNameNode] from the left hand
-        //  side to the operator.
-        var result = _typePropertyResolver.resolve(
-          receiver: leftHandSide,
-          receiverType: leftType,
-          name: methodName,
-          receiverErrorNode: leftHandSide,
-          nameErrorNode: leftHandSide,
-        );
-        node.staticElement = result.getter;
-        if (_shouldReportInvalidMember(leftType, result)) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.UNDEFINED_OPERATOR,
-            operator,
-            [methodName, leftType],
-          );
-        }
-      }
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND_EQ ||
+        operatorType == TokenType.BAR_BAR_EQ ||
+        operatorType == TokenType.EQ ||
+        operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      return;
+    }
+
+    operatorType = operatorFromCompoundAssignment(operatorType);
+    var methodName = operatorType.lexeme;
+    // TODO(brianwilkerson) Change the [methodNameNode] from the left hand
+    //  side to the operator.
+    var result = _typePropertyResolver.resolve(
+      receiver: leftHandSide,
+      receiverType: leftType,
+      name: methodName,
+      receiverErrorNode: leftHandSide,
+      nameErrorNode: leftHandSide,
+    );
+    node.staticElement = result.getter;
+    if (_shouldReportInvalidMember(leftType, result)) {
+      _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        operator,
+        [methodName, leftType],
+      );
     }
   }
 
@@ -270,7 +271,7 @@ class AssignmentExpressionResolver {
 
   void _resolve3(AssignmentExpressionImpl node, Expression left,
       TokenType operator, Expression right) {
-    _resolve1(node, node.readType);
+    _resolve1(node);
 
     {
       var leftType = node.writeType;
