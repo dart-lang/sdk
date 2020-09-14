@@ -74,7 +74,7 @@ class MyWidget extends Widget {
 }
 
 build() {
-  return new MyWidget(a: 1, b: 0,);
+  return new MyWidget(a: 1, b: null,);
 }
 ''');
   }
@@ -101,7 +101,7 @@ class A {
 }
 
 void f() {
-  A a = new A.named(a: 0);
+  A a = new A.named(a: null);
   print(a);
 }
 ''');
@@ -128,7 +128,7 @@ main() {
 import 'package:test/a.dart';
 
 main() {
-  A a = new A(a: 0);
+  A a = new A(a: null);
   print(a);
 }
 ''');
@@ -292,7 +292,7 @@ import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
 main() {
-  test(a: 3, bcd: 0);
+  test(a: 3, bcd: null);
 }
 ''');
   }
@@ -312,7 +312,7 @@ import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
 main() {
-  test(a: 0);
+  test(a: null);
 }
 ''', errorFilter: (error) => error.message.contains("'a'"));
   }
@@ -332,7 +332,7 @@ import 'package:meta/meta.dart';
 
 test({@required int a, @required int bcd}) {}
 main() {
-  test(bcd: 0);
+  test(bcd: null);
 }
 ''', errorFilter: (error) => error.message.contains("'bcd'"));
   }
@@ -420,10 +420,10 @@ import 'package:meta/meta.dart';
 
 test({@required int abc}) {}
 main() {
-  test(abc: 0);
+  test(abc: null);
 }
 ''');
-    assertLinkedGroup(change.linkedEditGroups[0], ['0);']);
+    assertLinkedGroup(change.linkedEditGroups[0], ['null);']);
   }
 
   Future<void> test_single_normal() async {
@@ -441,7 +441,7 @@ import 'package:meta/meta.dart';
 
 test(String x, {@required int abc}) {}
 main() {
-  test("foo", abc: 0);
+  test("foo", abc: null);
 }
 ''');
   }
@@ -461,7 +461,7 @@ import 'package:meta/meta.dart';
 
 test({@Required("Really who doesn't need an abc?") int abc}) {}
 main() {
-  test(abc: 0);
+  test(abc: null);
 }
 ''');
   }
@@ -475,7 +475,7 @@ class AddMissingRequiredArgumentWithNullSafetyTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
-  Future<void> test_nonNullable_supported() async {
+  Future<void> test_nonNullable() async {
     await resolveTestUnit('''
 void f({required int x}) {}
 void g() {
@@ -485,22 +485,12 @@ void g() {
     await assertHasFix('''
 void f({required int x}) {}
 void g() {
-  f(x: 0);
+  f(x: null);
 }
 ''');
   }
 
-  Future<void> test_nonNullable_unsupported() async {
-    await resolveTestUnit('''
-void f({required DateTime d}) {}
-void g() {
-  f();
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_nullable_supported() async {
+  Future<void> test_nullable() async {
     await resolveTestUnit('''
 void f({required int? x}) {}
 void g() {
@@ -509,21 +499,6 @@ void g() {
 ''');
     await assertHasFix('''
 void f({required int? x}) {}
-void g() {
-  f(x: 0);
-}
-''');
-  }
-
-  Future<void> test_nullable_unsupported() async {
-    await resolveTestUnit('''
-void f({required DateTime? x}) {}
-void g() {
-  f();
-}
-''');
-    await assertHasFix('''
-void f({required DateTime? x}) {}
 void g() {
   f(x: null);
 }

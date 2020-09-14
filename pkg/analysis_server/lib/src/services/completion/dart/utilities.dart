@@ -173,13 +173,7 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement parameter) {
   if (parameter != null) {
     var type = parameter.type;
     if (type is InterfaceType) {
-      if (type.isDartCoreBool) {
-        return DefaultArgument('false');
-      } else if (type.isDartCoreDouble) {
-        return DefaultArgument('0.0');
-      } else if (type.isDartCoreInt) {
-        return DefaultArgument('0');
-      } else if (type.isDartCoreList) {
+      if (type.isDartCoreList) {
         return DefaultArgument('[]', cursorPosition: 1);
       } else if (type.isDartCoreMap) {
         return DefaultArgument('{}', cursorPosition: 1);
