@@ -13,6 +13,8 @@ class A extends core::Object {
     return other is self::A;
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartA".{core::String::hashCode});
+  method /*isNullableByDefault*/ copyWith() → dynamic
+    return new self::A::•();
 }
 class B extends core::Object {
   synthetic constructor •() → self::B
@@ -42,6 +44,8 @@ class F = self::B with self::C {
     return other is self::F;
   get /*isNullableByDefault*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartF".{core::String::hashCode});
+  method /*isNullableByDefault*/ copyWith() → dynamic
+    return new self::F::•();
 }
 static method main() → dynamic {}
 

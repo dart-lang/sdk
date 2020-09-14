@@ -64,6 +64,7 @@ import '../problems.dart' show unhandled;
 
 import '../scope.dart' show Scope;
 
+import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../source/source_loader.dart' show SourceLoader;
@@ -354,7 +355,7 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   }
 
   void registerOverrideCheck(
-      ClassBuilder classBuilder, ClassMember a, ClassMember b) {
+      SourceClassBuilder classBuilder, ClassMember a, ClassMember b) {
     _overrideChecks.add(new DelayedOverrideCheck(classBuilder, a, b));
   }
 
@@ -1719,14 +1720,17 @@ class ClassHierarchyNodeBuilder {
 
     void registerOverrideCheck(
         ClassMember member, ClassMember overriddenMember) {
-      if (overriddenMember.hasDeclarations &&
-          classBuilder == overriddenMember.classBuilder) {
-        for (int i = 0; i < overriddenMember.declarations.length; i++) {
+      if (classBuilder is SourceClassBuilder) {
+        if (overriddenMember.hasDeclarations &&
+            classBuilder == overriddenMember.classBuilder) {
+          for (int i = 0; i < overriddenMember.declarations.length; i++) {
+            hierarchy.registerOverrideCheck(
+                classBuilder, member, overriddenMember.declarations[i]);
+          }
+        } else {
           hierarchy.registerOverrideCheck(
-              classBuilder, member, overriddenMember.declarations[i]);
+              classBuilder, member, overriddenMember);
         }
-      } else {
-        hierarchy.registerOverrideCheck(classBuilder, member, overriddenMember);
       }
     }
 
@@ -1960,6 +1964,7 @@ class ClassHierarchyNodeBuilder {
 
       void checkMemberVsSetter(
           ClassMember member, ClassMember overriddenMember) {
+        if (classBuilder is! SourceClassBuilder) return;
         if (overriddenMember.isStatic) return;
         if (member == overriddenMember) return;
         if (member.isDuplicate || overriddenMember.isDuplicate) {
@@ -2572,7 +2577,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
 }
 
 class DelayedOverrideCheck {
-  final ClassBuilder classBuilder;
+  final SourceClassBuilder classBuilder;
   final ClassMember declaredMember;
   final ClassMember overriddenMember;
 
@@ -2802,11 +2807,13 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return combinedMemberSignatureResult;
     }
     if (!classBuilder.isAbstract) {
-      for (int i = 0; i < declarations.length; i++) {
-        if (concreteMember != declarations[i]) {
-          new DelayedOverrideCheck(
-                  classBuilder, concreteMember, declarations[i])
-              .check(hierarchy);
+      if (classBuilder is SourceClassBuilder) {
+        for (int i = 0; i < declarations.length; i++) {
+          if (concreteMember != declarations[i]) {
+            new DelayedOverrideCheck(
+                    classBuilder, concreteMember, declarations[i])
+                .check(hierarchy);
+          }
         }
       }
     }
@@ -3166,9 +3173,11 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
       _isChecked = true;
       if (!classBuilder.isAbstract &&
           !hierarchy.nodes[classBuilder.cls].hasNoSuchMethod) {
-        new DelayedOverrideCheck(
-                classBuilder, concreteImplementation, abstractMember)
-            .check(hierarchy);
+        if (classBuilder is SourceClassBuilder) {
+          new DelayedOverrideCheck(
+                  classBuilder, concreteImplementation, abstractMember)
+              .check(hierarchy);
+        }
       }
 
       ProcedureKind kind = ProcedureKind.Method;
