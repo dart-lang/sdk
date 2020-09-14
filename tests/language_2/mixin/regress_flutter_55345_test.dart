@@ -15,8 +15,8 @@ class StateA extends State {}
 
 class StateB extends State<int> {}
 
-StateA? a = StateA();
-StateB? b = StateB();
+StateA a = StateA();
+StateB b = StateB();
 
 List<T> foo<T>(T x) {
   print(T);
@@ -34,8 +34,12 @@ T Function<S extends T>(T) bar<T>(T x) {
 }
 
 main() {
+  State x1 = a ?? b;
+  print(x1);
+
   var x2 = a ?? b;
   var x3 = foo(x2);
   var x4 = bar(x3);
   x4(x3);
+  // No compile time or runtime errors.
 }
