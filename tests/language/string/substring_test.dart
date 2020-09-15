@@ -13,7 +13,7 @@ main() {
     // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
     //                            ^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+    // [cfe] The argument type 'double' can't be assigned to the parameter type 'int?'.
     Expect.fail("Should have thrown an exception");
   } on TypeError catch (e) {
     // OK.
