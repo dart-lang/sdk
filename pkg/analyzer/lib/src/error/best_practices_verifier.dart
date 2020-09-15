@@ -323,6 +323,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _checkForReturnOfDoNotStore(node.expression);
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     bool wasInDeprecatedMember = _inDeprecatedMember;
     if (_hasDeprecatedAnnotation(node.metadata)) {
@@ -363,22 +369,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
         var expression = field.initializer;
 
-        Element element;
-        if (expression is PropertyAccess) {
-          element = expression.propertyName.staticElement;
-          // Tear-off.
-          if (element is FunctionElement || element is MethodElement) {
-            element = null;
-          }
-        } else if (expression is MethodInvocation) {
-          element = expression.methodName.staticElement;
-        } else if (expression is Identifier) {
-          element = expression.staticElement;
-          // Tear-off.
-          if (element is FunctionElement || element is MethodElement) {
-            element = null;
-          }
-        }
+        var element = _getElement(expression);
         if (element != null) {
           if (element is PropertyAccessorElement && element.isSynthetic) {
             element = (element as PropertyAccessorElement).variable;
@@ -623,6 +614,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       RedirectingConstructorInvocation node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
     super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    _checkForReturnOfDoNotStore(node.expression);
+    super.visitReturnStatement(node);
   }
 
   @override
@@ -1298,6 +1295,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForReturnOfDoNotStore(Expression expression) {
+    var element = _getElement(expression);
+    if (element != null && element.hasOrInheritsDoNotStore) {
+      var parent = expression.thisOrAncestorMatching(
+          (e) => e is FunctionDeclaration || e is MethodDeclaration);
+      if (parent is Declaration && !parent.declaredElement.hasDoNotStore) {
+        _errorReporter.reportErrorForNode(
+          HintCode.RETURN_OF_DO_NOT_STORE,
+          expression,
+          [element.name, parent.declaredElement.displayName],
+        );
+      }
+    }
+  }
+
   /// Generate a hint for `noSuchMethod` methods that do nothing except of
   /// calling another `noSuchMethod` that is not defined by `Object`.
   ///
@@ -1439,6 +1451,31 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           reportNode,
           [displayName]);
     }
+  }
+
+  Element _getElement(Expression expression) {
+    Element element;
+    if (expression is PropertyAccess) {
+      element = expression.propertyName.staticElement;
+      // Tear-off.
+      if (element is FunctionElement || element is MethodElement) {
+        element = null;
+      }
+    } else if (expression is MethodInvocation) {
+      element = expression.methodName.staticElement;
+    } else if (expression is Identifier) {
+      element = expression.staticElement;
+      // Tear-off.
+      if (element is FunctionElement || element is MethodElement) {
+        element = null;
+      }
+    }
+    if (element != null) {
+      if (element is PropertyAccessorElement && element.isSynthetic) {
+        element = (element as PropertyAccessorElement).variable;
+      }
+    }
+    return element;
   }
 
   bool _isLibraryInWorkspacePackage(LibraryElement library) {

@@ -22650,8 +22650,13 @@ static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
     int32_t ch = T1::CharAt(str1, pos);
     pos++;
 
+    if ((str2_pos < str2_len) && (ch == T2::CharAt(str2, str2_pos))) {
+      str2_pos++;
+      continue;
+    }
+
     if (ch == Library::kPrivateKeySeparator) {
-      // Consume a private key separator.
+      // Consume a private key separator if str1 has it but str2 does not.
       while ((pos < len) && (T1::CharAt(str1, pos) != '.') &&
              (T1::CharAt(str1, pos) != '&')) {
         pos++;
@@ -22659,10 +22664,8 @@ static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2) {
       // Resume matching characters.
       continue;
     }
-    if ((str2_pos == str2_len) || (ch != T2::CharAt(str2, str2_pos))) {
-      return false;
-    }
-    str2_pos++;
+
+    return false;
   }
 
   // We have reached the end of mangled_name string.

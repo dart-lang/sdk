@@ -5542,7 +5542,13 @@ TEST_CASE(DartAPI_New) {
       "  factory MyInterface.named(value) = MyExtraHop.hop;\n"
       "  factory MyInterface.multiply(value) = MyClass.multiply;\n"
       "  MyInterface.notfound(value);\n"
-      "}\n";
+      "}\n"
+      "\n"
+      "class _MyClass {\n"
+      "  _MyClass._() : foo = 7 {}\n"
+      "  var foo;\n"
+      "}\n"
+      "\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle type =
@@ -5551,6 +5557,10 @@ TEST_CASE(DartAPI_New) {
   Dart_Handle intf =
       Dart_GetNonNullableType(lib, NewString("MyInterface"), 0, NULL);
   EXPECT_VALID(intf);
+  Dart_Handle private_type =
+      Dart_GetNonNullableType(lib, NewString("_MyClass"), 0, NULL);
+  EXPECT_VALID(private_type);
+
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
   Dart_Handle bad_args[1];
@@ -5640,6 +5650,14 @@ TEST_CASE(DartAPI_New) {
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(-11, int_value);
+
+  // Invoke a hidden named constructor on a hidden type.
+  result = Dart_New(private_type, NewString("_"), 0, NULL);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
 
   // Allocate object and invoke a hidden named constructor.
   obj = Dart_Allocate(type);

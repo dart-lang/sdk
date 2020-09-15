@@ -1555,6 +1555,16 @@ class HintCode extends AnalyzerErrorCode {
           "receiver");
 
   /**
+   * Users should not return values marked `@doNotStore` from functions,
+   * methods or getters not marked `@doNotStore`.
+   */
+  static const HintCode RETURN_OF_DO_NOT_STORE = HintCode(
+      'RETURN_OF_DO_NOT_STORE',
+      "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
+          "'{1}' is also annotated.",
+      correction: "Annotate '{1}' with 'doNotStore'.");
+
+  /**
    * No parameters.
    */
   // #### Description
