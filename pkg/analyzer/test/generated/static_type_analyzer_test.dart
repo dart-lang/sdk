@@ -709,7 +709,10 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void _assertType(
       InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
-    expect(actualType.getDisplayString(), expectedType.getDisplayString());
+    expect(
+      actualType.getDisplayString(withNullability: false),
+      expectedType.getDisplayString(withNullability: false),
+    );
     expect(actualType.element, expectedType.element);
     List<DartType> expectedArguments = expectedType.typeArguments;
     int length = expectedArguments.length;
@@ -739,8 +742,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
 
-    _definingLibrary = LibraryElementImpl(
-        context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
+    _definingLibrary =
+        LibraryElementImpl(context, null, null, -1, 0, featureSet);
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;

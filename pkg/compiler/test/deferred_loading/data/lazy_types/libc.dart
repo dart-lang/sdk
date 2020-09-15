@@ -6,20 +6,20 @@
 
 import 'lib.dart' as lib;
 
-/*member: isFoo:OutputUnit(6, {libC})*/
+/*member: isFoo:OutputUnit(2, {libC})*/
 bool isFoo(o) => lib.isFoo(o);
 
-/*member: isFunFunFoo:OutputUnit(6, {libC})*/
+/*member: isFunFunFoo:OutputUnit(2, {libC})*/
 bool isFunFunFoo(o) => lib.isFunFunFoo(o);
 
-/*member: createB2:OutputUnit(6, {libC})*/
+/*member: createB2:OutputUnit(2, {libC})*/
 createB2() => new lib.B2();
 
-/*member: createC3:OutputUnit(6, {libC})*/
+/*member: createC3:OutputUnit(2, {libC})*/
 createC3() => new lib.C3();
 
-/*member: createD3:OutputUnit(6, {libC})*/
+/*member: createD3:OutputUnit(2, {libC})*/
 createD3() => new lib.D3();
 
-/*member: createDooFunFunFoo:OutputUnit(6, {libC})*/
+/*member: createDooFunFunFoo:OutputUnit(2, {libC})*/
 createDooFunFunFoo() => lib.createDooFunFunFoo();

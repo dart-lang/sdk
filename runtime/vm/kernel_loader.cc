@@ -1947,7 +1947,16 @@ void KernelLoader::LoadProcedure(const Library& library,
   ProcedureHelper procedure_helper(&helper_);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
-  if (procedure_helper.IsRedirectingFactoryConstructor()) {
+  // CFE adds 'member signature' abstract functions to a legacy class deriving
+  // or implementing an opted-in interface. The signature of these functions is
+  // legacy erased and used as the target of interface calls. They are used for
+  // static reasoning about the program by CFE, but not really needed by the VM.
+  // In certain situations (e.g. issue 162073826), a large number of these
+  // additional functions can cause strain on the VM. They are therefore skipped
+  // in jit mode and their associated origin function is used instead as
+  // interface call target.
+  if (procedure_helper.IsRedirectingFactoryConstructor() ||
+      (!FLAG_precompiled_mode && procedure_helper.IsMemberSignature())) {
     helper_.SetOffset(procedure_end);
     return;
   }
@@ -2268,7 +2277,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
-    T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
+    T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
   }
 }
@@ -2422,11 +2431,11 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
     initializer_fun.set_num_fixed_parameters(1);
     initializer_fun.set_parameter_types(
         Array::Handle(zone, Array::New(1, Heap::kOld)));
-    initializer_fun.set_parameter_names(
-        Array::Handle(zone, Array::New(1, Heap::kOld)));
+    initializer_fun.CreateNameArrayIncludingFlags(Heap::kOld);
     initializer_fun.SetParameterTypeAt(
         0, AbstractType::Handle(zone, field_owner.DeclarationType()));
     initializer_fun.SetParameterNameAt(0, Symbols::This());
+    initializer_fun.TruncateUnusedParameterFlags();
   }
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);

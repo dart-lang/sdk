@@ -6,23 +6,23 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
+import '../events.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import 'analyze_impl.dart';
 
-class FixCommand extends DartdevCommand {
-  FixCommand()
-      : super(
-          'fix', 'Fix Dart source code.',
-          // Experimental.
-          hidden: true,
-        );
+class FixCommand extends DartdevCommand<int> {
+  static const String cmdName = 'fix';
+
+  // This command is hidden as its currently experimental.
+  FixCommand() : super(cmdName, 'Fix Dart source code.', hidden: true);
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     log.stdout('\n*** The `fix` command is provisional and subject to change '
         'or removal in future releases. ***\n');
 
@@ -80,7 +80,21 @@ class FixCommand extends DartdevCommand {
       }
       log.stdout('Done.');
     }
-
     return 0;
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => FixUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
+}
+
+/// The [UsageEvent] for the fix command.
+class FixUsageEvent extends UsageEvent {
+  FixUsageEvent(String usagePath,
+      {String label, @required int exitCode, @required List<String> args})
+      : super(FixCommand.cmdName, usagePath,
+            label: label, exitCode: exitCode, args: args);
 }

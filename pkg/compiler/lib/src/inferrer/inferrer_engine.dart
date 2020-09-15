@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart' as ir;
 import '../../compiler_new.dart';
 import '../closure.dart';
 import '../common.dart';
+import '../common/metrics.dart';
 import '../common/names.dart';
 import '../compiler.dart';
 import '../common_elements.dart';
@@ -67,12 +68,13 @@ class InferrerEngine {
 
   final FunctionEntity mainElement;
 
-  final Map<Local, TypeInformation> _defaultTypeOfParameter =
-      new Map<Local, TypeInformation>();
+  final Map<Local, TypeInformation> _defaultTypeOfParameter = {};
 
-  final WorkQueue _workQueue = new WorkQueue();
+  final WorkQueue _workQueue = WorkQueue();
 
-  final Set<MemberEntity> _analyzedElements = new Set<MemberEntity>();
+  final _InferrerEngineMetrics metrics = _InferrerEngineMetrics();
+
+  final Set<MemberEntity> _analyzedElements = {};
 
   /// The maximum number of times we allow a node in the graph to
   /// change types. If a node reaches that limit, we give up
@@ -309,13 +311,17 @@ class InferrerEngine {
   }
 
   void runOverAllElements() {
-    _analyzeAllElements();
+    metrics.time.measure(_runOverAllElements);
+  }
+
+  void _runOverAllElements() {
+    metrics.analyze.measure(_analyzeAllElements);
     TypeGraphDump dump =
         debug.PRINT_GRAPH ? new TypeGraphDump(_compilerOutput, this) : null;
 
     dump?.beforeAnalysis();
     _buildWorkQueue();
-    _refine();
+    metrics.refine1.measure(_refine);
 
     // Try to infer element types of lists and compute their escape information.
     types.allocatedLists.values.forEach((TypeInformation info) {
@@ -424,7 +430,7 @@ class InferrerEngine {
     }
 
     _workQueue.addAll(seenTypes);
-    _refine();
+    metrics.refine2.measure(_refine);
 
     if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((_info) {
@@ -483,6 +489,7 @@ class InferrerEngine {
     }
     dump?.afterAnalysis();
 
+    metrics.overallRefineCount.add(_overallRefineCount);
     _reporter.log('Inferred $_overallRefineCount types.');
 
     _processLoopInformation();
@@ -501,7 +508,9 @@ class InferrerEngine {
       // it is in the graph.
       types.withMember(member, () => analyze(member));
     });
+    metrics.elementsInGraph.add(_addedInGraph);
     _reporter.log('Added $_addedInGraph elements in inferencing graph.');
+    metrics.allTypesCount.add(types.allTypes.length);
   }
 
   /// Returns the body node for [member].
@@ -703,6 +712,7 @@ class InferrerEngine {
         _overallRefineCount++;
         info.refineCount++;
         if (info.refineCount > _MAX_CHANGE_COUNT) {
+          metrics.exceededMaxChangeCount.add();
           if (debug.ANOMALY_WARN) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
@@ -1185,6 +1195,30 @@ class InferrerEngine {
   /// Returns `true` if inference of parameter types is disabled for [member].
   bool assumeDynamic(MemberEntity member) {
     return closedWorld.annotationsData.hasAssumeDynamic(member);
+  }
+}
+
+class _InferrerEngineMetrics extends MetricsBase {
+  final time = DurationMetric('time');
+  final analyze = DurationMetric('time.analyze');
+  final refine1 = DurationMetric('time.refine1');
+  final refine2 = DurationMetric('time.refine2');
+  final elementsInGraph = CountMetric('count.elementsInGraph');
+  final allTypesCount = CountMetric('count.allTypes');
+  final exceededMaxChangeCount = CountMetric('count.exceededMaxChange');
+  final overallRefineCount = CountMetric('count.overallRefines');
+
+  _InferrerEngineMetrics() {
+    primary = [time];
+    secondary = [
+      analyze,
+      refine1,
+      refine2,
+      elementsInGraph,
+      allTypesCount,
+      exceededMaxChangeCount,
+      overallRefineCount
+    ];
   }
 }
 

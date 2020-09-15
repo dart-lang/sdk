@@ -16,6 +16,7 @@
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/frontend/bytecode_reader.h"
@@ -334,6 +335,9 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   Class& invocation_mirror_class = Class::Handle(core_lib.LookupClass(
       String::Handle(core_lib.PrivateName(Symbols::InvocationMirror()))));
   ASSERT(!invocation_mirror_class.IsNull());
+  Thread* thread = Thread::Current();
+  const auto& error = invocation_mirror_class.EnsureIsFinalized(thread);
+  ASSERT(error == Error::null());
   const String& function_name =
       String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
   const Function& allocation_function = Function::Handle(
@@ -362,7 +366,6 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
-    Thread* thread = Thread::Current();
     function = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(thread->zone(),
                       thread->isolate()->object_store()->object_class()),
@@ -430,6 +433,32 @@ ArrayPtr ArgumentsDescriptor::GetArgumentNames() const {
     names.SetAt(index, name);
   }
   return names.raw();
+}
+
+void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer) const {
+  buffer->Printf("%" Pd " arg%s", Count(), Count() == 1 ? "" : "s");
+  if (TypeArgsLen() > 0) {
+    buffer->Printf(", %" Pd " type arg%s", TypeArgsLen(),
+                   TypeArgsLen() == 1 ? "" : "s");
+  }
+  if (NamedCount() > 0) {
+    buffer->AddString(", names [");
+    auto& str = String::Handle();
+    for (intptr_t i = 0; i < NamedCount(); i++) {
+      if (i != 0) {
+        buffer->AddString(", ");
+      }
+      str = NameAt(i);
+      buffer->Printf("'%s'", str.ToCString());
+    }
+    buffer->Printf("]");
+  }
+}
+
+const char* ArgumentsDescriptor::ToCString() const {
+  ZoneTextBuffer buf(Thread::Current()->zone());
+  PrintTo(&buf);
+  return buf.buffer();
 }
 
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
@@ -616,6 +645,9 @@ ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
   const int kNumArguments = 1;  // Receiver.
   ArgumentsDescriptor args_desc(Array::Handle(
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
+  const Class& receiver_class = Class::Handle(receiver.clazz());
+  const auto& error = receiver_class.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver, Symbols::toString(), args_desc));
   ASSERT(!function.IsNull());

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C {
-  dynamic operator []=(dynamic index, dynamic value) {}
+  operator []=(dynamic index, dynamic value) {}
 }
 
 abstract class I {

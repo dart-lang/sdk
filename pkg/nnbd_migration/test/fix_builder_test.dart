@@ -280,7 +280,6 @@ _f(_C/*!*/ x, int/*!*/ y) => x += y;
     visitSubexpression(findNode.assignment('+='), '_D');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
   Future<void> test_assignmentExpression_compound_rhs_nullable_check() async {
     await analyze('''
 abstract class _C {
@@ -1125,7 +1124,7 @@ class C<T extends num/*?*/> {
 }
 ''');
     var assignment = findNode.assignment('+=');
-    visitSubexpression(assignment, 'T',
+    visitSubexpression(assignment, 'num',
         changes: {assignment: isNullableSource});
   }
 

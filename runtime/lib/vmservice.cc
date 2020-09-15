@@ -29,47 +29,10 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
       : IsolateVisitor(),
         register_function_(Function::Handle(thread->zone())),
         service_isolate_(thread->isolate()) {
-    ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    // Get library.
-    const String& library_url = Symbols::DartVMService();
-    ASSERT(!library_url.IsNull());
-    const Library& library =
-        Library::Handle(Library::LookupLibrary(thread, library_url));
-    ASSERT(!library.IsNull());
-    // Get function.
-    const String& function_name =
-        String::Handle(String::New("_registerIsolate"));
-    ASSERT(!function_name.IsNull());
-    register_function_ = library.LookupFunctionAllowPrivate(function_name);
-    ASSERT(!register_function_.IsNull());
   }
 
   virtual void VisitIsolate(Isolate* isolate) {
-    ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    if (!FLAG_show_invisible_isolates && IsVMInternalIsolate(isolate)) {
-      // We do not register the service (and descendants), the vm-isolate, or
-      // the kernel isolate.
-      return;
-    }
-    // Setup arguments for call.
-    Dart_Port port_id = isolate->main_port();
-    const Integer& port_int = Integer::Handle(Integer::New(port_id));
-    ASSERT(!port_int.IsNull());
-    const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));
-    const String& name = String::Handle(String::New(isolate->name()));
-    ASSERT(!name.IsNull());
-    const Array& args = Array::Handle(Array::New(3));
-    ASSERT(!args.IsNull());
-    args.SetAt(0, port_int);
-    args.SetAt(1, send_port);
-    args.SetAt(2, name);
-    const Object& r =
-        Object::Handle(DartEntry::InvokeFunction(register_function_, args));
-    if (FLAG_trace_service) {
-      OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
-                   name.ToCString(), port_id);
-    }
-    ASSERT(!r.IsError());
+    ServiceIsolate::RegisterRunningIsolate(isolate);
   }
 
  private:

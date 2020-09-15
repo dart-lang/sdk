@@ -67,7 +67,7 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
 import '../builder/variable_builder.dart';
-import '../builder/void_type_builder.dart';
+import '../builder/void_type_declaration_builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -1763,6 +1763,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (left is Generator) {
         push(left.buildBinaryOperation(token, name, right));
       } else {
+        if (left is ProblemBuilder) {
+          ProblemBuilder problem = left;
+          left = buildProblem(problem.message, problem.charOffset, noLength);
+        }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left, name, right));
       }
@@ -2065,6 +2069,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Name n = new Name(name, libraryBuilder.nameOrigin);
       if (!isQualified && isDeclarationInstanceContext) {
         assert(declaration == null);
+        if (inLateFieldInitializer) {
+          // Implicit access on 'this' is allowed in a late field initializer.
+          return new ThisPropertyAccessGenerator(this, token, n);
+        }
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
@@ -3040,7 +3048,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // set or map in some situations, consider always deferring determination
     // until the type resolution phase.
     final int typeArgCount = typeArguments?.length;
-    bool isSet = typeArgCount == 1 ? true : typeArgCount != null ? false : null;
+    bool isSet = typeArgCount == 1
+        ? true
+        : typeArgCount != null
+            ? false
+            : null;
 
     for (int i = 0; i < setOrMapEntries.length; ++i) {
       if (setOrMapEntries[i] is! MapEntry &&
@@ -3240,8 +3252,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new NamedTypeBuilder(name.name,
-          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
+      result = new NamedTypeBuilder(
+          name.name,
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable),
+          /* arguments = */ null,
+          name.fileUri,
+          name.charOffset)
         ..bind(new InvalidTypeDeclarationBuilder(
             name.name,
             name.message.withLocation(
@@ -3310,7 +3326,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(new UnresolvedType(
         new NamedTypeBuilder(
             "void", const NullabilityBuilder.nullable(), null, uri, offset)
-          ..bind(new VoidTypeBuilder(const VoidType(), libraryBuilder, offset)),
+          ..bind(new VoidTypeDeclarationBuilder(
+              const VoidType(), libraryBuilder, offset)),
         offset,
         uri));
   }
@@ -3767,7 +3784,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     Object receiver = pop();
-    bool isNullAware = optional('?.[', openSquareBracket) || question != null;
+    bool isNullAware = question != null;
     if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
       reportMissingNonNullableSupport(openSquareBracket);
     }
@@ -4296,7 +4313,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (type is TypeAliasBuilder) {
       errorName = debugName(type.name, name);
       TypeAliasBuilder aliasBuilder = type;
-      int numberOfTypeParameters = aliasBuilder.typeVariables?.length ?? 0;
+      int numberOfTypeParameters = aliasBuilder.typeVariablesCount;
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
           numberOfTypeParameters != numberOfTypeArguments) {
@@ -4319,7 +4336,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           typeArgumentBuilders.add(unresolvedType?.builder);
         }
       } else {
-        if (aliasBuilder.typeVariables?.isNotEmpty ?? false) {
+        if (aliasBuilder.typeVariablesCount > 0) {
           // Raw generic type alias used for instance creation, needs inference.
           ClassBuilder classBuilder;
           if (type is ClassBuilder) {
@@ -4531,11 +4548,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginThenControlFlow(Token token) {
+  void handleThenControlFlow(Token token) {
     Expression condition = popForValue();
     enterThenForTypePromotion(condition);
     push(condition);
-    super.beginThenControlFlow(token);
+    super.handleThenControlFlow(token);
   }
 
   @override
@@ -5839,7 +5856,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         field,
         value,
         new VariableDeclaration.forValue(buildProblem(
-            fasta.templateFinalInstanceVariableAlreadyInitialized
+            fasta.templateConstructorInitializeSameInstanceVariableSeveralTimes
                 .withArguments(name),
             offset,
             noLength)))
@@ -5894,12 +5911,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
         addProblem(
-            fasta.templateFinalInstanceVariableAlreadyInitialized
+            fasta.templateFieldAlreadyInitializedAtDeclaration
                 .withArguments(name),
             assignmentOffset,
             noLength,
             context: [
-              fasta.templateFinalInstanceVariableAlreadyInitializedCause
+              fasta.templateFieldAlreadyInitializedAtDeclarationCause
                   .withArguments(name)
                   .withLocation(uri, builder.charOffset, name.length)
             ]);
@@ -6028,7 +6045,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (message == null) return unresolved;
       return new UnresolvedType(
           new NamedTypeBuilder(
-              typeParameter.name, builder.nullabilityBuilder, null)
+              typeParameter.name,
+              builder.nullabilityBuilder,
+              /* arguments = */ null,
+              unresolved.fileUri,
+              unresolved.charOffset)
             ..bind(
                 new InvalidTypeDeclarationBuilder(typeParameter.name, message)),
           unresolved.charOffset,
@@ -6500,7 +6521,7 @@ class FormalParameters {
       [List<TypeVariableBuilder> typeParameters]) {
     return new UnresolvedType(
         new FunctionTypeBuilder(returnType?.builder, typeParameters, parameters,
-            nullabilityBuilder),
+            nullabilityBuilder, uri, charOffset),
         charOffset,
         uri);
   }

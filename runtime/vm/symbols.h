@@ -108,6 +108,12 @@ class ObjectPointerVisitor;
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
+  V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
+  V(DynamicCallHasNamedVar, ":dyn_call_has_named")                             \
+  V(DynamicCallMaxParamsVar, ":dyn_call_max_params")                           \
+  V(DynamicCallNumFixedVar, ":dyn_call_num_fixed")                             \
+  V(DynamicCallNumOptVar, ":dyn_call_num_opt")                                 \
+  V(DynamicCallParameterNamesVar, ":dyn_call_parameter_names")                 \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \

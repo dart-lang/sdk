@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -509,7 +510,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameter(String name,
-      {ExecutableElement methodBeingCopied,
+      {bool isCovariant = false,
+      bool isRequiredNamed = false,
+      ExecutableElement methodBeingCopied,
       String nameGroupName,
       DartType type,
       String typeGroupName}) {
@@ -535,6 +538,24 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
 
+    if (isCovariant) {
+      write('covariant ');
+    }
+    if (isRequiredNamed) {
+      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
+      if (library.featureSet.isEnabled(Feature.non_nullable)) {
+        write('required ');
+      } else {
+        var result = dartFileEditBuilder
+            .importLibraryElement(Uri.parse('package:meta/meta.dart'));
+        var prefix = result.prefix;
+        if (prefix != null) {
+          write('@$prefix.required ');
+        } else {
+          write('@required ');
+        }
+      }
+    }
     if (type != null) {
       var hasType = writeType();
       if (name.isNotEmpty) {
@@ -612,6 +633,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       var groupPrefix =
           methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
       writeParameter(name,
+          isCovariant: parameter.isCovariant,
+          isRequiredNamed: parameter.isRequiredNamed,
           methodBeingCopied: methodBeingCopied,
           nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
@@ -1390,7 +1413,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var isLastExistingDart = false;
         var isLastExistingPackage = false;
         for (var existingImport in importDirectives) {
-          var existingUri = existingImport.uriContent;
+          var existingUri = existingImport.uriContent ?? '';
 
           var isExistingDart = existingUri.startsWith('dart:');
           var isExistingPackage = existingUri.startsWith('package:');

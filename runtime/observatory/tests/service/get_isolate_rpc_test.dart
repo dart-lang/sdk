@@ -16,6 +16,7 @@ var tests = <VMTest>[
     expect(result['type'], equals('Isolate'));
     expect(result['id'], startsWith('isolates/'));
     expect(result['number'], isA<String>());
+    expect(result['isSystemIsolate'], isFalse);
     expect(result['_originNumber'], equals(result['number']));
     expect(result['startTime'], isPositive);
     expect(result['livePorts'], isPositive);

@@ -40,24 +40,12 @@ class AnalysisContextImpl implements AnalysisContext {
     throw StateError('Cannot be changed.');
   }
 
-  @Deprecated('Use LibraryElement.typeProvider')
-  @override
-  TypeProvider get typeProvider {
-    return _synchronousSession.typeProvider;
-  }
-
   TypeProviderImpl get typeProviderLegacy {
     return _synchronousSession.typeProviderLegacy;
   }
 
   TypeProviderImpl get typeProviderNonNullableByDefault {
     return _synchronousSession.typeProviderNonNullableByDefault;
-  }
-
-  @Deprecated('Use LibraryElement.typeSystem')
-  @override
-  TypeSystemImpl get typeSystem {
-    return _synchronousSession.typeSystem;
   }
 
   TypeSystemImpl get typeSystemLegacy {

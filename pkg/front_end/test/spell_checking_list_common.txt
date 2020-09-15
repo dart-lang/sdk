@@ -276,6 +276,7 @@ behavior
 behaviors
 behind
 being
+believes
 belong
 belongs
 below
@@ -446,6 +447,10 @@ clashing
 class
 classes
 classic
+classification
+classifications
+classifies
+classify
 clause
 clauses
 clean
@@ -788,6 +793,7 @@ deprecate
 deprecated
 depromotes
 depth
+dereferenced
 derivation
 derive
 derived

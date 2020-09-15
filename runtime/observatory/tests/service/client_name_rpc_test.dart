@@ -66,4 +66,5 @@ var tests = <VMTest>[
 main(args) async => runVMTests(
       args,
       tests,
+      enableService: false,
     );

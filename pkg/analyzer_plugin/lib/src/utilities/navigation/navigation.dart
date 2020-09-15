@@ -33,32 +33,46 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
 
 /// A concrete implementation of [NavigationCollector].
 class NavigationCollectorImpl implements NavigationCollector {
+  /// Whether the collector is collecting target code locations. Computers can
+  /// skip computing these if this is false.
+  @override
+  final bool collectCodeLocations;
+
   /// A list of navigation regions.
   final List<NavigationRegion> regions = <NavigationRegion>[];
+
   final Map<SourceRange, List<int>> regionMap = <SourceRange, List<int>>{};
 
   /// All the unique targets referenced by [regions].
   final List<NavigationTarget> targets = <NavigationTarget>[];
+
   final Map<Pair<ElementKind, Location>, int> targetMap =
       <Pair<ElementKind, Location>, int>{};
 
   /// All the unique files referenced by [targets].
   final List<String> files = <String>[];
+
   final Map<String, int> fileMap = <String, int>{};
+
+  NavigationCollectorImpl({this.collectCodeLocations = false});
 
   @override
   void addRange(
-      SourceRange range, ElementKind targetKind, Location targetLocation) {
-    addRegion(range.offset, range.length, targetKind, targetLocation);
+      SourceRange range, ElementKind targetKind, Location targetLocation,
+      {Location targetCodeLocation}) {
+    addRegion(range.offset, range.length, targetKind, targetLocation,
+        targetCodeLocation: targetCodeLocation);
   }
 
   @override
   void addRegion(
-      int offset, int length, ElementKind targetKind, Location targetLocation) {
+      int offset, int length, ElementKind targetKind, Location targetLocation,
+      {Location targetCodeLocation}) {
     var range = SourceRange(offset, length);
     // add new target
     var targets = regionMap.putIfAbsent(range, () => <int>[]);
-    var targetIndex = _addTarget(targetKind, targetLocation);
+    var targetIndex =
+        _addTarget(targetKind, targetLocation, targetCodeLocation);
     targets.add(targetIndex);
   }
 
@@ -82,7 +96,7 @@ class NavigationCollectorImpl implements NavigationCollector {
     return index;
   }
 
-  int _addTarget(ElementKind kind, Location location) {
+  int _addTarget(ElementKind kind, Location location, Location codeLocation) {
     var pair = Pair<ElementKind, Location>(kind, location);
     var index = targetMap[pair];
     if (index == null) {
@@ -90,7 +104,9 @@ class NavigationCollectorImpl implements NavigationCollector {
       var fileIndex = _addFile(file);
       index = targets.length;
       var target = NavigationTarget(kind, fileIndex, location.offset,
-          location.length, location.startLine, location.startColumn);
+          location.length, location.startLine, location.startColumn,
+          codeOffset: collectCodeLocations ? codeLocation?.offset : null,
+          codeLength: collectCodeLocations ? codeLocation?.length : null);
       targets.add(target);
       targetMap[pair] = index;
     }

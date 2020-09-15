@@ -93,11 +93,23 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     expect(package, isNull);
   }
 
+  void test_packagesAvailableTo() {
+    GnWorkspace workspace = _buildStandardGnWorkspace();
+    newFile('/ws/some/code/BUILD.gn');
+    var libraryPath = newFile('/ws/some/code/lib/code.dart').path;
+    var package = workspace.findPackageFor(libraryPath);
+    var packageMap = package.packagesAvailableTo(libraryPath);
+    expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
+  }
+
   GnWorkspace _buildStandardGnWorkspace() {
     newFolder('/ws/.jiri_root');
     String buildDir = convertPath('out/debug-x87_128');
     newFile('/ws/.fx-build-dir', content: '$buildDir\n');
-    newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages');
+    newFile('/ws/out/debug-x87_128/dartlang/gen/some/code/foo.packages',
+        content: '''
+p1:file:///some/path/lib/
+workspace:lib/''');
     newFolder('/ws/some/code');
     var gnWorkspace =
         GnWorkspace.find(resourceProvider, convertPath('/ws/some/code'));

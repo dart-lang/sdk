@@ -4,4 +4,4 @@ class Foo {
 class Bar extends Foo {
   factory Bar() => null;
 }
-main() { }
+main() {}

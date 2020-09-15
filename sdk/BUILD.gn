@@ -48,7 +48,6 @@ declare_args() {
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
 # ........dds.dart.snapshot
-# ........dartdev.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
@@ -62,11 +61,6 @@ declare_args() {
 # ...........packages
 # ..........resources/
 # ..........templates/
-# ......model/
-# ........lexeme/
-# ..........idx2word.json
-# ..........model.tflite
-# ..........word2idx.json
 # ....include/
 # ......dart_api.h
 # ......dart_native_api.h
@@ -79,6 +73,7 @@ declare_args() {
 # ........dart2js_server_platform.dill
 # ........dart2js_platform_strong.dill
 # ........dart2js_server_platform_strong.dill
+# ........dartdev.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -121,10 +116,6 @@ _platform_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdev",
-    "../utils/dartdev:dartdev",
   ],
   [
     "dartdoc",
@@ -170,10 +161,6 @@ _full_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dartdev",
-    "../utils/dartdev:dartdev",
   ],
   [
     "dartdevc",
@@ -331,16 +318,6 @@ if (is_win) {
 }
 
 if (target_cpu == "x64") {
-  copy_tree_specs += [
-    {
-      target = "copy_language_model"
-      visibility = [ ":create_common_sdk" ]
-      deps = [ ":copy_libraries" ]
-      source = "../pkg/analysis_server/language_model"
-      dest = "$root_out_dir/dart-sdk/bin/model"
-      ignore_patterns = "{}"
-    },
-  ]
   if (is_linux || is_android || is_fuchsia) {
     copy_tree_specs += [
       {
@@ -605,6 +582,22 @@ copy("copy_analysis_summaries") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
+copy("copy_wasmer") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../third_party/wasmer:wasmer_lib",
+  ]
+  outputs = [ "$root_out_dir/dart-sdk/bin/third_party/wasmer/{{source_file_part}}" ]
+  if (is_win) {
+    sources = [ "$target_out_dir/../third_party/wasmer/wasmer.dll" ]
+  } else if (is_mac) {
+    sources = [ "$target_out_dir/../third_party/wasmer/libwasmer.dylib" ]
+  } else {
+    sources = [ "$target_out_dir/../third_party/wasmer/libwasmer.so" ]
+  }
+}
+
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -613,6 +606,16 @@ copy("copy_vm_dill_files") {
     "../runtime/vm:kernel_platform_files",
   ]
   sources = [ "$root_out_dir/vm_platform_strong.dill" ]
+  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
+}
+
+copy("copy_dartdev_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/dartdev:dartdev",
+  ]
+  sources = [ "$root_out_dir/dartdev.dill" ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
@@ -890,6 +893,7 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
@@ -912,10 +916,15 @@ group("create_common_sdk") {
     public_deps += [ ":copy_7zip" ]
   }
   if (target_cpu == "x64") {
-    public_deps += [
-      ":copy_language_model",
-      ":copy_libtensorflowlite_c",
-    ]
+    public_deps += [ ":copy_libtensorflowlite_c" ]
+  }
+
+  # CIPD only has versions of the Rust compiler for linux and mac x64 hosts.
+  # We also disallow cross-compialtion (it may be possible in future, but it
+  # isn't ready yet).
+  if (host_cpu == "x64" && (host_os == "linux" || host_os == "mac") &&
+      host_cpu == current_cpu && host_os == current_os && dart_enable_wasm) {
+    public_deps += [ ":copy_wasmer" ]
   }
 }
 

@@ -11,9 +11,10 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Expression, FunctionNode, TreeNode;
+    show AsyncMarker, Expression, FunctionNode, TreeNode, Version;
 
 import '../fasta_codes.dart';
 
@@ -89,9 +90,15 @@ abstract class StackListenerImpl extends StackListener {
   void reportMissingNonNullableSupport(Token token) {
     assert(!libraryBuilder.isNonNullableByDefault);
     assert(token != null);
+    Version enableNonNullableVersion = libraryBuilder.loader.target
+        .getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
     if (libraryBuilder.enableNonNullableInLibrary) {
       if (libraryBuilder.languageVersion.isExplicit) {
-        addProblem(messageNonNullableOptOut, token.charOffset, token.charCount,
+        addProblem(
+            templateNonNullableOptOutExplicit
+                .withArguments(enableNonNullableVersion.toText()),
+            token.charOffset,
+            token.charCount,
             context: <LocatedMessage>[
               messageNonNullableOptOutComment.withLocation(
                   libraryBuilder.languageVersion.fileUri,
@@ -99,11 +106,27 @@ abstract class StackListenerImpl extends StackListener {
                   libraryBuilder.languageVersion.charCount)
             ]);
       } else {
-        addProblem(messageNonNullableOptOut, token.charOffset, token.charCount);
+        addProblem(
+            templateNonNullableOptOutImplicit
+                .withArguments(enableNonNullableVersion.toText()),
+            token.charOffset,
+            token.charCount);
+      }
+    } else if (!libraryBuilder.loader.target
+        .isExperimentEnabledGlobally(ExperimentalFlag.nonNullable)) {
+      if (libraryBuilder.languageVersion.version < enableNonNullableVersion) {
+        addProblem(
+            templateExperimentNotEnabledNoFlagInvalidLanguageVersion
+                .withArguments(enableNonNullableVersion.toText()),
+            token.offset,
+            noLength);
+      } else {
+        addProblem(messageExperimentNotEnabledNoFlag, token.offset, noLength);
       }
     } else {
       addProblem(
-          templateExperimentNotEnabled.withArguments('non-nullable', '2.9'),
+          templateExperimentNotEnabled.withArguments(
+              'non-nullable', enableNonNullableVersion.toText()),
           token.offset,
           noLength);
     }

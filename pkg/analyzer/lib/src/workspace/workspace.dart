@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -39,10 +39,10 @@ abstract class Workspace {
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a Workspace.
 abstract class WorkspacePackage {
-  /// Return the [FeatureSet] for all files in the package.
+  /// Return the experiments enabled for all files in the package.
   ///
-  /// Return `null` if this package does not have a feature set override.
-  FeatureSet get featureSet => null;
+  /// Return `null` if this package does not have enabled experiments.
+  List<String> get enabledExperiments => null;
 
   String get root;
 
@@ -62,6 +62,11 @@ abstract class WorkspacePackage {
       return source.fullName;
     }
   }
+
+  /// Return a map from the names of packages to the absolute and normalized
+  /// path of the root of those packages for all of the packages that could
+  /// validly be imported by the library with the given [libraryPath].
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath);
 }
 
 /// An interface for a workspace that contains a default analysis options file.

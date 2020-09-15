@@ -89,6 +89,8 @@ class Flags {
   static const String verbose = '--verbose';
   static const String progress = '--show-internal-progress';
   static const String version = '--version';
+  static const String reportMetrics = '--report-metrics';
+  static const String reportAllMetrics = '--report-all-metrics';
 
   static const String dillDependencies = '--dill-dependencies';
   static const String readData = '--read-data';
@@ -106,6 +108,7 @@ class Flags {
   static const String noSoundNullSafety = '--no-sound-null-safety';
 
   static const String newDeferredSplit = '--new-deferred-split';
+  static const String noNewDeferredSplit = '--no-new-deferred-split';
   static const String reportInvalidInferredDeferredTypes =
       '--report-invalid-deferred-types';
   static const String deferClassTypes = '--defer-class-types';

@@ -46,6 +46,8 @@ class ArgumentsDescriptor : public ValueObject {
   bool MatchesNameAt(intptr_t i, const String& other) const;
   // Returns array of argument names in the arguments order.
   ArrayPtr GetArgumentNames() const;
+  void PrintTo(BaseTextBuffer* buffer) const;
+  const char* ToCString() const;
 
   // Generated code support.
   static intptr_t type_args_len_offset() {

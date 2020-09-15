@@ -48,10 +48,10 @@ static method b() → asy::Future<(core::int*) →* core::int*>* /* originally a
   return :async_completer.{asy::Completer::future};
 }
 static method c() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<(core::int*) →* core::int*>*) →* core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
     core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
-    return (core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = (core::int* x) → core::int* => x;
@@ -64,10 +64,10 @@ static method c() → core::Iterable<(core::int*) →* core::int*>* /* originall
   return new core::_SyncIterable::•<(core::int*) →* core::int*>(:sync_op_gen);
 }
 static method d() → core::Iterable<(core::int*) →* core::int*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<(core::int*) →* core::int*>*) →* core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
     core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
-    return (core::_SyncIterator<(core::int*) →* core::int*>* :iterator) → core::bool* yielding {
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_yieldEachIterable} = <(core::int*) →* core::int*>[(core::int* x) → core::int* => x];

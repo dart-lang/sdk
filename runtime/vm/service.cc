@@ -986,8 +986,7 @@ void Service::SendEvent(const char* stream_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(FLAG_show_invisible_isolates ||
-         !Isolate::IsVMInternalIsolate(isolate));
+  ASSERT(!Isolate::IsSystemIsolate(isolate));
 
   if (FLAG_trace_service) {
     OS::PrintErr(
@@ -1341,10 +1340,10 @@ int64_t Service::CurrentRSS() {
     return -1;
   }
   Dart_EmbedderInformation info = {
-    0,  // version
-    NULL,  // name
-    0,  // max_rss
-    0  // current_rss
+      0,     // version
+      NULL,  // name
+      0,     // max_rss
+      0      // current_rss
   };
   embedder_information_callback_(&info);
   ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
@@ -1356,10 +1355,10 @@ int64_t Service::MaxRSS() {
     return -1;
   }
   Dart_EmbedderInformation info = {
-    0,  // version
-    NULL,  // name
-    0,  // max_rss
-    0  // current_rss
+      0,     // version
+      NULL,  // name
+      0,     // max_rss
+      0      // current_rss
   };
   embedder_information_callback_(&info);
   ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
@@ -1401,7 +1400,8 @@ void Service::ScheduleExtensionHandler(const Instance& handler,
 }
 
 static const MethodParameter* get_isolate_params[] = {
-    ISOLATE_PARAMETER, NULL,
+    ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetIsolate(Thread* thread, JSONStream* js) {
@@ -2158,7 +2158,8 @@ static bool PrintInboundReferences(Thread* thread,
 }
 
 static const MethodParameter* get_inbound_references_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetInboundReferences(Thread* thread, JSONStream* js) {
@@ -2275,7 +2276,8 @@ static bool PrintRetainingPath(Thread* thread,
 }
 
 static const MethodParameter* get_retaining_path_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetRetainingPath(Thread* thread, JSONStream* js) {
@@ -2315,7 +2317,9 @@ static bool GetRetainingPath(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_retained_size_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new IdParameter("targetId", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("targetId", true),
+    NULL,
 };
 
 static bool GetRetainedSize(Thread* thread, JSONStream* js) {
@@ -2353,7 +2357,9 @@ static bool GetRetainedSize(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_reachable_size_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new IdParameter("targetId", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("targetId", true),
+    NULL,
 };
 
 static bool GetReachableSize(Thread* thread, JSONStream* js) {
@@ -2525,7 +2531,8 @@ static bool Invoke(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* evaluate_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool IsAlpha(char c) {
@@ -3034,8 +3041,10 @@ static bool EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* evaluate_in_frame_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new UIntParameter("frameIndex", true),
-    new MethodParameter("expression", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new UIntParameter("frameIndex", true),
+    new MethodParameter("expression", true),
+    NULL,
 };
 
 static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
@@ -3083,7 +3092,8 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 };
 
 static const MethodParameter* get_instances_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetInstances(Thread* thread, JSONStream* js) {
@@ -3379,7 +3389,9 @@ static bool AddBreakpointWithScriptUri(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* add_breakpoint_at_entry_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new IdParameter("functionId", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("functionId", true),
+    NULL,
 };
 
 static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
@@ -3407,7 +3419,9 @@ static bool AddBreakpointAtEntry(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* add_breakpoint_at_activation_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new IdParameter("objectId", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("objectId", true),
+    NULL,
 };
 
 static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
@@ -3434,7 +3448,8 @@ static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* remove_breakpoint_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool RemoveBreakpoint(Thread* thread, JSONStream* js) {
@@ -3562,7 +3577,8 @@ static bool HandleDartMetric(Thread* thread, JSONStream* js, const char* id) {
 }
 
 static const MethodParameter* get_isolate_metric_list_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetIsolateMetricList(Thread* thread, JSONStream* js) {
@@ -3587,7 +3603,8 @@ static bool GetIsolateMetricList(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_isolate_metric_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetIsolateMetric(Thread* thread, JSONStream* js) {
@@ -3617,7 +3634,8 @@ static bool GetIsolateMetric(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_vm_metric_list_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetVMMetricList(Thread* thread, JSONStream* js) {
@@ -3625,7 +3643,8 @@ static bool GetVMMetricList(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_vm_metric_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetVMMetric(Thread* thread, JSONStream* js) {
@@ -3698,7 +3717,8 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_vm_timeline_flags_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
@@ -3716,7 +3736,8 @@ static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_vm_timeline_micros_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetVMTimelineMicros(Thread* thread, JSONStream* js) {
@@ -3727,7 +3748,8 @@ static bool GetVMTimelineMicros(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* clear_vm_timeline_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
@@ -3743,8 +3765,10 @@ static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_vm_timeline_params[] = {
-    NO_ISOLATE_PARAMETER, new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false), NULL,
+    NO_ISOLATE_PARAMETER,
+    new Int64Parameter("timeOriginMicros", false),
+    new Int64Parameter("timeExtentMicros", false),
+    NULL,
 };
 
 static bool GetVMTimeline(Thread* thread, JSONStream* js) {
@@ -3790,7 +3814,8 @@ static const Debugger::ResumeAction step_enum_values[] = {
 static const MethodParameter* resume_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new EnumParameter("step", false, step_enum_names),
-    new UIntParameter("frameIndex", false), NULL,
+    new UIntParameter("frameIndex", false),
+    NULL,
 };
 
 static bool Resume(Thread* thread, JSONStream* js) {
@@ -3876,7 +3901,8 @@ static bool Kill(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* pause_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool Pause(Thread* thread, JSONStream* js) {
@@ -3905,7 +3931,8 @@ static bool EnableProfiler(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_tag_profile_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetTagProfile(Thread* thread, JSONStream* js) {
@@ -4063,7 +4090,8 @@ static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_heap_map_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetHeapMap(Thread* thread, JSONStream* js) {
@@ -4125,71 +4153,73 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
       JSONArray(&profiler, "children");
     }
 
-  {
-    JSONObject timeline(&vm_children);
-    timeline.AddProperty("name", "Timeline");
-    timeline.AddProperty(
-        "description",
-        "Timeline events from dart:developer and Dart_TimelineEvent");
-    intptr_t size = Timeline::recorder()->Size();
-    vm_size += size;
-    timeline.AddProperty64("size", size);
-    JSONArray(&timeline, "children");
-  }
-
-  {
-    JSONObject zone(&vm_children);
-    zone.AddProperty("name", "Zone");
-    zone.AddProperty("description", "Arena allocation in the Dart VM");
-    intptr_t size = Zone::Size();
-    vm_size += size;
-    zone.AddProperty64("size", size);
-    JSONArray(&zone, "children");
-  }
-
-  {
-    JSONObject semi(&vm_children);
-    semi.AddProperty("name", "SemiSpace Cache");
-    semi.AddProperty("description", "Cached heap regions");
-    intptr_t size = SemiSpace::CachedSize();
-    vm_size += size;
-    semi.AddProperty64("size", size);
-    JSONArray(&semi, "children");
-  }
-
-  IsolateGroup::ForEach([&vm_children, &vm_size](IsolateGroup* isolate_group) {
-    // Note: new_space()->CapacityInWords() includes memory that hasn't been
-    // allocated from the OS yet.
-    int64_t capacity = (isolate_group->heap()->new_space()->UsedInWords() +
-                        isolate_group->heap()->old_space()->CapacityInWords()) *
-                       kWordSize;
-    int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
-    int64_t free = capacity - used;
-
-    JSONObject group(&vm_children);
-    group.AddPropertyF("name", "IsolateGroup %s",
-                       isolate_group->source()->name);
-    group.AddProperty("description", "Dart heap capacity");
-    vm_size += capacity;
-    group.AddProperty64("size", capacity);
-    JSONArray group_children(&group, "children");
-
     {
-      JSONObject jsused(&group_children);
-      jsused.AddProperty("name", "Used");
-      jsused.AddProperty("description", "");
-      jsused.AddProperty64("size", used);
-      JSONArray(&jsused, "children");
+      JSONObject timeline(&vm_children);
+      timeline.AddProperty("name", "Timeline");
+      timeline.AddProperty(
+          "description",
+          "Timeline events from dart:developer and Dart_TimelineEvent");
+      intptr_t size = Timeline::recorder()->Size();
+      vm_size += size;
+      timeline.AddProperty64("size", size);
+      JSONArray(&timeline, "children");
     }
 
     {
-      JSONObject jsfree(&group_children);
-      jsfree.AddProperty("name", "Free");
-      jsfree.AddProperty("description", "");
-      jsfree.AddProperty64("size", free);
-      JSONArray(&jsfree, "children");
+      JSONObject zone(&vm_children);
+      zone.AddProperty("name", "Zone");
+      zone.AddProperty("description", "Arena allocation in the Dart VM");
+      intptr_t size = Zone::Size();
+      vm_size += size;
+      zone.AddProperty64("size", size);
+      JSONArray(&zone, "children");
     }
-  });
+
+    {
+      JSONObject semi(&vm_children);
+      semi.AddProperty("name", "SemiSpace Cache");
+      semi.AddProperty("description", "Cached heap regions");
+      intptr_t size = SemiSpace::CachedSize();
+      vm_size += size;
+      semi.AddProperty64("size", size);
+      JSONArray(&semi, "children");
+    }
+
+    IsolateGroup::ForEach(
+        [&vm_children, &vm_size](IsolateGroup* isolate_group) {
+          // Note: new_space()->CapacityInWords() includes memory that hasn't
+          // been allocated from the OS yet.
+          int64_t capacity =
+              (isolate_group->heap()->new_space()->UsedInWords() +
+               isolate_group->heap()->old_space()->CapacityInWords()) *
+              kWordSize;
+          int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+          int64_t free = capacity - used;
+
+          JSONObject group(&vm_children);
+          group.AddPropertyF("name", "IsolateGroup %s",
+                             isolate_group->source()->name);
+          group.AddProperty("description", "Dart heap capacity");
+          vm_size += capacity;
+          group.AddProperty64("size", capacity);
+          JSONArray group_children(&group, "children");
+
+          {
+            JSONObject jsused(&group_children);
+            jsused.AddProperty("name", "Used");
+            jsused.AddProperty("description", "");
+            jsused.AddProperty64("size", used);
+            JSONArray(&jsused, "children");
+          }
+
+          {
+            JSONObject jsfree(&group_children);
+            jsfree.AddProperty("name", "Free");
+            jsfree.AddProperty("description", "");
+            jsfree.AddProperty64("size", free);
+            JSONArray(&jsfree, "children");
+          }
+        });
   }  // vm_children
 
   vm.AddProperty("name", "Dart VM");
@@ -4273,7 +4303,8 @@ void Service::SendExtensionEvent(Isolate* isolate,
 }
 
 static const MethodParameter* get_persistent_handles_params[] = {
-    ISOLATE_PARAMETER, NULL,
+    ISOLATE_PARAMETER,
+    NULL,
 };
 
 template <typename T>
@@ -4361,7 +4392,8 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_ports_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetPorts(Thread* thread, JSONStream* js) {
@@ -4389,8 +4421,10 @@ static bool RespondWithMalformedObject(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_object_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new UIntParameter("offset", false),
-    new UIntParameter("count", false), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new UIntParameter("offset", false),
+    new UIntParameter("count", false),
+    NULL,
 };
 
 static bool GetObject(Thread* thread, JSONStream* js) {
@@ -4461,7 +4495,8 @@ static bool GetObject(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_object_store_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetObjectStore(Thread* thread, JSONStream* js) {
@@ -4482,7 +4517,8 @@ static bool GetIsolateObjectStore(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_class_list_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetClassList(Thread* thread, JSONStream* js) {
@@ -4493,7 +4529,8 @@ static bool GetClassList(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_type_arguments_list_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
@@ -4529,7 +4566,8 @@ static bool GetTypeArgumentsList(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_version_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetVersion(Thread* thread, JSONStream* js) {
@@ -4550,7 +4588,23 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (FLAG_show_invisible_isolates || !IsVMInternalIsolate(isolate)) {
+    if (!IsSystemIsolate(isolate)) {
+      jsarr_->AddValue(isolate);
+    }
+  }
+
+ private:
+  JSONArray* jsarr_;
+};
+
+class SystemServiceIsolateVisitor : public IsolateVisitor {
+ public:
+  explicit SystemServiceIsolateVisitor(JSONArray* jsarr) : jsarr_(jsarr) {}
+  virtual ~SystemServiceIsolateVisitor() {}
+
+  void VisitIsolate(Isolate* isolate) {
+    if (IsSystemIsolate(isolate) &&
+        !Dart::VmIsolateNameEquals(isolate->name())) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -4560,16 +4614,17 @@ class ServiceIsolateVisitor : public IsolateVisitor {
 };
 
 static const MethodParameter* get_vm_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
-void Service::PrintJSONForEmbedderInformation(JSONObject *jsobj) {
+void Service::PrintJSONForEmbedderInformation(JSONObject* jsobj) {
   if (embedder_information_callback_ != NULL) {
     Dart_EmbedderInformation info = {
-      0,  // version
-      NULL,  // name
-      -1,  // max_rss
-      -1  // current_rss
+        0,     // version
+        NULL,  // name
+        -1,    // max_rss
+        -1     // current_rss
     };
     embedder_information_callback_(&info);
     ASSERT(info.version == DART_EMBEDDER_INFORMATION_CURRENT_VERSION);
@@ -4612,15 +4667,26 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
     Isolate::VisitIsolates(&visitor);
   }
   {
+    JSONArray jsarr(&jsobj, "systemIsolates");
+    SystemServiceIsolateVisitor visitor(&jsarr);
+    Isolate::VisitIsolates(&visitor);
+  }
+  {
     JSONArray jsarr_isolate_groups(&jsobj, "isolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
-      bool has_internal = false;
-      isolate_group->ForEachIsolate([&has_internal](Isolate* isolate) {
-        if (Isolate::IsVMInternalIsolate(isolate)) {
-          has_internal = true;
-        }
-      });
-      if (FLAG_show_invisible_isolates || !has_internal) {
+      if (!isolate_group->is_system_isolate_group()) {
+        jsarr_isolate_groups.AddValue(isolate_group);
+      }
+    });
+  }
+  {
+    JSONArray jsarr_isolate_groups(&jsobj, "systemIsolateGroups");
+    IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
+      // Don't surface the vm-isolate since it's not a "real" isolate.
+      if (Dart::VmIsolateNameEquals(isolate_group->source()->name)) {
+        return;
+      }
+      if (isolate_group->is_system_isolate_group()) {
         jsarr_isolate_groups.AddValue(isolate_group);
       }
     });
@@ -4638,17 +4704,23 @@ static bool GetVM(Thread* thread, JSONStream* js) {
 }
 
 static const char* exception_pause_mode_names[] = {
-    "All", "None", "Unhandled", NULL,
+    "All",
+    "None",
+    "Unhandled",
+    NULL,
 };
 
 static Dart_ExceptionPauseInfo exception_pause_mode_values[] = {
-    kPauseOnAllExceptions, kNoPauseOnExceptions, kPauseOnUnhandledExceptions,
+    kPauseOnAllExceptions,
+    kNoPauseOnExceptions,
+    kPauseOnUnhandledExceptions,
     kInvalidExceptionPauseInfo,
 };
 
 static const MethodParameter* set_exception_pause_mode_params[] = {
     ISOLATE_PARAMETER,
-    new EnumParameter("mode", true, exception_pause_mode_names), NULL,
+    new EnumParameter("mode", true, exception_pause_mode_names),
+    NULL,
 };
 
 static bool SetExceptionPauseMode(Thread* thread, JSONStream* js) {
@@ -4674,7 +4746,8 @@ static bool SetExceptionPauseMode(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_flag_list_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetFlagList(Thread* thread, JSONStream* js) {
@@ -4683,7 +4756,8 @@ static bool GetFlagList(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* set_flags_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool SetFlag(Thread* thread, JSONStream* js) {
@@ -4763,8 +4837,10 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* set_library_debuggable_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new IdParameter("libraryId", true),
-    new BoolParameter("isDebuggable", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("libraryId", true),
+    new BoolParameter("isDebuggable", true),
+    NULL,
 };
 
 static bool SetLibraryDebuggable(Thread* thread, JSONStream* js) {
@@ -4785,7 +4861,9 @@ static bool SetLibraryDebuggable(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* set_name_params[] = {
-    ISOLATE_PARAMETER, new MethodParameter("name", true), NULL,
+    ISOLATE_PARAMETER,
+    new MethodParameter("name", true),
+    NULL,
 };
 
 static bool SetName(Thread* thread, JSONStream* js) {
@@ -4800,7 +4878,9 @@ static bool SetName(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* set_vm_name_params[] = {
-    NO_ISOLATE_PARAMETER, new MethodParameter("name", true), NULL,
+    NO_ISOLATE_PARAMETER,
+    new MethodParameter("name", true),
+    NULL,
 };
 
 static bool SetVMName(Thread* thread, JSONStream* js) {
@@ -4816,8 +4896,10 @@ static bool SetVMName(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* set_trace_class_allocation_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new IdParameter("classId", true),
-    new BoolParameter("enable", true), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new IdParameter("classId", true),
+    new BoolParameter("enable", true),
+    NULL,
 };
 
 static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
@@ -4842,7 +4924,8 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* get_default_classes_aliases_params[] = {
-    NO_ISOLATE_PARAMETER, NULL,
+    NO_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool GetDefaultClassesAliases(Thread* thread, JSONStream* js) {

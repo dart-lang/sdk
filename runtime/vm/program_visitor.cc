@@ -261,6 +261,16 @@ void ProgramVisitor::WalkProgram(Zone* zone,
       walker.AddToWorklist(function);
       ASSERT(!function.HasImplicitClosureFunction());
     }
+    // TODO(dartbug.com/43049): Use a more general solution and remove manual
+    // tracking through object_store->ffi_callback_functions.
+    const auto& ffi_callback_entries = GrowableObjectArray::Handle(
+        zone, object_store->ffi_callback_functions());
+    if (!ffi_callback_entries.IsNull()) {
+      for (intptr_t i = 0; i < ffi_callback_entries.Length(); i++) {
+        function ^= ffi_callback_entries.At(i);
+        walker.AddToWorklist(function);
+      }
+    }
   }
 
   if (visitor->IsCodeVisitor()) {
@@ -368,8 +378,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         if (target_.IsNull()) {
           target_ =
               Code::RawCast(view.Get<Code::kSCallTableCodeOrTypeTarget>());
-          ASSERT(!Code::Cast(target_).IsFunctionCode());
-          // Allocation stub or AllocateContext or AllocateArray or ...
+          ASSERT(!target_.IsNull());  // Already bound.
           continue;
         }
 
@@ -383,7 +392,7 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         // directly.
         //
         // In precompiled mode, the binder runs after tree shaking, during which
-        // all targets have been compiled, and so the binder replace all static
+        // all targets have been compiled, and so the binder replaces all static
         // calls with direct calls to the target.
         //
         // Cf. runtime entry PatchStaticCall called from CallStaticFunction
@@ -399,6 +408,9 @@ void ProgramVisitor::BindStaticCalls(Zone* zone, Isolate* isolate) {
         ASSERT(FLAG_precompiled_mode);
         // In precompiled mode, the Dart runtime won't patch static calls
         // anymore, so drop the static call table to save space.
+        // Note: it is okay to drop the table fully even when generating
+        // V8 snapshot profile because code objects are linked through the
+        // pool.
         code.set_static_calls_target_table(Object::empty_array());
       }
     }
@@ -1314,7 +1326,7 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
   void VisitCode(const Code& code) {
     intptr_t id;
     if (code.IsFunctionCode()) {
-      func_ ^= code.owner();
+      func_ ^= code.function();
       cls_ = func_.Owner();
       lib_ = cls_.library();
       unit_ = lib_.loading_unit();
@@ -1402,29 +1414,36 @@ class ProgramHashVisitor : public CodeVisitor {
 
   void VisitClass(const Class& cls) {
     str_ = cls.Name();
-    Hash(str_);
+    VisitInstance(str_);
   }
 
   void VisitFunction(const Function& function) {
     str_ = function.name();
-    Hash(str_);
+    VisitInstance(str_);
   }
 
   void VisitCode(const Code& code) {
     pool_ = code.object_pool();
-    for (intptr_t i = 0; i < pool_.Length(); i++) {
-      if (pool_.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
-        obj_ = pool_.ObjectAt(i);
-        if (obj_.IsInstance()) {
-          Hash(Instance::Cast(obj_));
-        }
-      }
-    }
+    VisitPool(pool_);
+
     instr_ = code.instructions();
     hash_ = CombineHashes(hash_, instr_.Hash());
   }
 
-  void Hash(const Instance& instance) {
+  void VisitPool(const ObjectPool& pool) {
+    if (pool.IsNull()) return;
+
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
+        obj_ = pool.ObjectAt(i);
+        if (obj_.IsInstance()) {
+          VisitInstance(Instance::Cast(obj_));
+        }
+      }
+    }
+  }
+
+  void VisitInstance(const Instance& instance) {
     hash_ = CombineHashes(hash_, instance.CanonicalizeHash());
   }
 
@@ -1445,6 +1464,8 @@ uint32_t ProgramVisitor::Hash(Thread* thread) {
 
   ProgramHashVisitor visitor(zone);
   WalkProgram(zone, thread->isolate(), &visitor);
+  visitor.VisitPool(ObjectPool::Handle(
+      zone, thread->isolate()->object_store()->global_object_pool()));
   return visitor.hash();
 }
 

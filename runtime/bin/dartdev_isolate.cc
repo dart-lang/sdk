@@ -62,7 +62,7 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
 
   // First assume we're in dart-sdk/bin.
   char* snapshot_path =
-      Utils::SCreate("%ssnapshots/dartdev.dart.snapshot", dir_prefix.get());
+      Utils::SCreate("%s../lib/_internal/dartdev.dill", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     return Utils::CreateCStringUniquePtr(snapshot_path);
   }
@@ -70,13 +70,11 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
 
   // If we're not in dart-sdk/bin, we might be in one of the $SDK/out/*
   // directories. Try to use a snapshot rom a previously built SDK.
-  snapshot_path = Utils::SCreate("%sdartdev.dart.snapshot", dir_prefix.get());
+  snapshot_path = Utils::SCreate("%sdartdev.dill", dir_prefix.get());
   if (File::Exists(nullptr, snapshot_path)) {
     return Utils::CreateCStringUniquePtr(snapshot_path);
   }
   free(snapshot_path);
-
-  Syslog::PrintErr("Could not find DartDev snapshot.\n");
   return Utils::CreateCStringUniquePtr(nullptr);
 }
 
@@ -171,14 +169,6 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   MonitorLocker locker_(DartDevRunner::monitor_);
   DartDevRunner* runner = reinterpret_cast<DartDevRunner*>(args);
 
-  // TODO(bkonyi): bring up DartDev from kernel instead of a app-jit snapshot.
-  // See https://github.com/dart-lang/sdk/issues/42804
-  auto dartdev_path = DartDevIsolate::TryResolveDartDevSnapshotPath();
-  if (dartdev_path == nullptr) {
-    ProcessError("Failed to find DartDev snapshot.", kErrorExitCode);
-    return;
-  }
-
   // Hardcode flags to match those used to generate the DartDev snapshot.
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
@@ -186,14 +176,17 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   flags.null_safety = false;
   flags.use_field_guards = true;
   flags.use_osr = true;
+  flags.is_system_isolate = true;
 
   char* error;
   Dart_Isolate dartdev_isolate = runner->create_isolate_(
-      dartdev_path.get(), "dartdev", nullptr, runner->packages_file_, &flags,
-      NULL /* callback_data */, const_cast<char**>(&error));
+      DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, nullptr,
+      runner->packages_file_, &flags, /* callback_data */ nullptr,
+      const_cast<char**>(&error));
 
   if (dartdev_isolate == nullptr) {
     ProcessError(error, kErrorExitCode);
+    free(error);
     return;
   }
 
@@ -216,7 +209,8 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   }
 
   // Create a SendPort that DartDev can use to communicate its results over.
-  send_port_id = Dart_NewNativePort("dartdev", DartDevResultCallback, false);
+  send_port_id =
+      Dart_NewNativePort(DART_DEV_ISOLATE_NAME, DartDevResultCallback, false);
   ASSERT(send_port_id != ILLEGAL_PORT);
   Dart_Handle send_port = Dart_NewSendPort(send_port_id);
   CHECK_RESULT(send_port);
@@ -247,7 +241,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
 
 void DartDevIsolate::DartDevRunner::ProcessError(const char* msg,
                                                  int32_t exit_code) {
-  Syslog::PrintErr("%s\n", msg);
+  Syslog::PrintErr("%s.\n", msg);
   Process::SetGlobalExitCode(exit_code);
   result_ = DartDevIsolate::DartDev_Result_Exit;
   DartDevRunner::monitor_->Notify();

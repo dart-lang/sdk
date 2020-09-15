@@ -1,0 +1,73 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class TestMixin<R extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  method test(generic-covariant-impl asy::Future<self::TestMixin::R%> fetch) → asy::Future<self::TestMixin::T%> async {
+    final self::TestMixin::R% response = await fetch;
+    self::TestMixin::T% result;
+    if(response is{ForNonNullableByDefault} self::Response<dynamic>) {
+      result = response{self::TestMixin::R% & self::Response<dynamic> /* '%' & '!' = '!' */}.{self::Response::data} as{TypeError,ForDynamic,ForNonNullableByDefault} self::TestMixin::T%;
+    }
+    else
+      if(response is{ForNonNullableByDefault} self::PagingResponse<dynamic>) {
+        result = response{self::TestMixin::R% & self::PagingResponse<dynamic> /* '%' & '!' = '!' */}.{self::PagingResponse::data}.{self::PagingResponseData::data} as{ForNonNullableByDefault} self::TestMixin::T%;
+      }
+      else
+        if(response is{ForNonNullableByDefault} self::TestMixin::T%) {
+          result = response{self::TestMixin::R% & self::TestMixin::T% /* '%' & '%' = '%' */};
+        }
+        else {
+          throw core::Exception::•("Invalid response type");
+        }
+    return result;
+  }
+}
+class PagingResponse<T extends core::Object? = dynamic> extends core::Object {
+  final field self::PagingResponseData<self::PagingResponse::T%> data;
+  constructor •(self::PagingResponseData<self::PagingResponse::T%> data) → self::PagingResponse<self::PagingResponse::T%>
+    : self::PagingResponse::data = data, super core::Object::•()
+    ;
+}
+class PagingResponseData<T extends core::Object? = dynamic> extends core::Object {
+  final field core::List<self::PagingResponseData::T%> data;
+  constructor •(core::List<self::PagingResponseData::T%> data) → self::PagingResponseData<self::PagingResponseData::T%>
+    : self::PagingResponseData::data = data, super core::Object::•()
+    ;
+}
+class Response<T extends core::Object? = dynamic> extends core::Object {
+  final field self::Response::T% data;
+  constructor •(self::Response::T% data) → self::Response<self::Response::T%>
+    : self::Response::data = data, super core::Object::•()
+    ;
+}
+abstract class _Class1&Object&TestMixin = core::Object with self::TestMixin<self::Response<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class1&Object&TestMixin
+    : super core::Object::•()
+    ;
+}
+class Class1 extends self::_Class1&Object&TestMixin {
+  synthetic constructor •() → self::Class1
+    : super self::_Class1&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::Response<core::String> response = new self::Response::•<core::String>("test");
+    this.{self::TestMixin::test}(asy::Future::value<self::Response<core::String>>(response));
+  }
+}
+abstract class _Class2&Object&TestMixin = core::Object with self::TestMixin<self::PagingResponse<core::String>, core::String> /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Class2&Object&TestMixin
+    : super core::Object::•()
+    ;
+}
+class Class2 extends self::_Class2&Object&TestMixin {
+  synthetic constructor •() → self::Class2
+    : super self::_Class2&Object&TestMixin::•()
+    ;
+  method _test() → dynamic {
+    final self::PagingResponse<core::String> response = new self::PagingResponse::•<core::String>(new self::PagingResponseData::•<core::String>(<core::String>["test"]));
+    this.{self::TestMixin::test}(asy::Future::value<self::PagingResponse<core::String>>(response));
+  }
+}
+static method main() → dynamic {}

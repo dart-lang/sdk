@@ -74,7 +74,7 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
 
   @override
   AbstractBool isJsIndexableAndIterable(covariant WrappedAbstractValue value) =>
-      _abstractValueDomain.isJsIndexableAndIterable(unwrapOrNull(value));
+      _abstractValueDomain.isJsIndexableAndIterable(value._abstractValue);
 
   @override
   AbstractBool isJsIndexable(covariant WrappedAbstractValue value) =>
@@ -313,6 +313,10 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
   @override
   AbstractBool isBoolean(covariant WrappedAbstractValue value) =>
       _abstractValueDomain.isBoolean(value._abstractValue);
+
+  @override
+  AbstractBool isTruthy(covariant WrappedAbstractValue value) =>
+      _abstractValueDomain.isTruthy(value._abstractValue);
 
   @override
   AbstractBool isDoubleOrNull(covariant WrappedAbstractValue value) =>

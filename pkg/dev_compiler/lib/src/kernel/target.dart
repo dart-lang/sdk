@@ -34,6 +34,9 @@ class DevCompilerTarget extends Target {
   @override
   bool get supportsLateFields => false;
 
+  @override
+  bool get useStaticFieldLowering => false;
+
   // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
   //  calls encoded with an explicit property get or disallows getter calls.
   @override

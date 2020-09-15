@@ -1,0 +1,25 @@
+class Class1 {
+  int operator []=(a, b) {}
+  int set setter1(_) {}
+}
+
+class Class2 {
+  dynamic operator []=(a, b) {}
+  dynamic set setter2(_) {}
+}
+
+class Class3 {
+  void operator []=(a, b) {}
+  void set setter3(_) {}
+}
+
+class Class4 {
+  operator []=(a, b) {}
+  set setter4(_) {}
+}
+
+dynamic set setter2(_) {}
+int set setter1(_) {}
+main() {}
+set setter4(_) {}
+void set setter3(_) {}

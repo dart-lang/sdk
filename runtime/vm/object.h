@@ -900,6 +900,7 @@ enum class Nullability : int8_t {
   kNullable = 0,
   kNonNullable = 1,
   kLegacy = 2,
+  // Adjust kNullabilityBitSize in clustered_snapshot.cc if adding new values.
 };
 
 // Equality kind between types.
@@ -2402,10 +2403,10 @@ class ICData : public CallSiteData {
   friend class CallSiteResetter;
   friend class CallTargets;
   friend class Class;
-  friend class Deserializer;
+  friend class VMDeserializationRoots;
   friend class ICDataTestTask;
   friend class Interpreter;
-  friend class Serializer;
+  friend class VMSerializationRoots;
   friend class SnapshotWriter;
 };
 
@@ -2594,6 +2595,9 @@ class Function : public Object {
   void SetParameterTypeAt(intptr_t index, const AbstractType& value) const;
   ArrayPtr parameter_types() const { return raw_ptr()->parameter_types_; }
   void set_parameter_types(const Array& value) const;
+  static intptr_t parameter_types_offset() {
+    return OFFSET_OF(FunctionLayout, parameter_types_);
+  }
 
   // Parameter names are valid for all valid parameter indices, and are not
   // limited to named optional parameters. If there are parameter flags (eg
@@ -2603,21 +2607,27 @@ class Function : public Object {
   StringPtr ParameterNameAt(intptr_t index) const;
   void SetParameterNameAt(intptr_t index, const String& value) const;
   ArrayPtr parameter_names() const { return raw_ptr()->parameter_names_; }
-  void set_parameter_names(const Array& value) const;
+  static intptr_t parameter_names_offset() {
+    return OFFSET_OF(FunctionLayout, parameter_names_);
+  }
 
-  // The required flags are stored at the end of the parameter_names. The flags
-  // are packed into SMIs, but omitted if they're 0.
-  bool IsRequiredAt(intptr_t index) const;
-  void SetIsRequiredAt(intptr_t index) const;
+  // Sets up the function's parameter name array, including appropriate space
+  // for any possible parameter flags. This may be an overestimate if some
+  // parameters don't have flags, and so TruncateUnusedParameterFlags() should
+  // be called after all parameter flags have been appropriately set.
+  //
+  // Assumes that the number of fixed and optional parameters for the function
+  // has already been set.
+  void CreateNameArrayIncludingFlags(Heap::Space space) const;
 
   // Truncate the parameter names array to remove any unused flag slots. Make
   // sure to only do this after calling SetIsRequiredAt as necessary.
   void TruncateUnusedParameterFlags() const;
 
-  // Returns the length of the parameter names array that is required to store
-  // all the names plus all their flags. This may be an overestimate if some
-  // parameters don't have flags.
-  static intptr_t NameArrayLengthIncludingFlags(intptr_t num_parameters);
+  // The required flags are stored at the end of the parameter_names. The flags
+  // are packed into Smis.
+  bool IsRequiredAt(intptr_t index) const;
+  void SetIsRequiredAt(intptr_t index) const;
 
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
@@ -2625,6 +2635,9 @@ class Function : public Object {
     return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
+  static intptr_t type_parameters_offset() {
+    return OFFSET_OF(FunctionLayout, type_parameters_);
+  }
   intptr_t NumTypeParameters(Thread* thread) const;
   intptr_t NumTypeParameters() const {
     return NumTypeParameters(Thread::Current());
@@ -2745,6 +2758,11 @@ class Function : public Object {
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
+  // Enclosed generated closure function of this local function.
+  // This will only work after the closure function has been allocated in the
+  // isolate's object_store.
+  FunctionPtr GetGeneratedClosure() const;
+
   // Enclosing outermost function of this local function.
   FunctionPtr GetOutermostFunction() const;
 
@@ -2773,6 +2791,20 @@ class Function : public Object {
     return kind() == FunctionLayout::kInvokeFieldDispatcher;
   }
 
+  bool IsDynamicInvokeFieldDispatcher() const {
+    return IsInvokeFieldDispatcher() &&
+           IsDynamicInvocationForwarderName(name());
+  }
+
+  // Performs all the checks that don't require the current thread first, to
+  // avoid retrieving it unless they all pass. If you have a handle on the
+  // current thread, call the version that takes one instead.
+  bool IsDynamicClosureCallDispatcher() const {
+    if (!IsDynamicInvokeFieldDispatcher()) return false;
+    return IsDynamicClosureCallDispatcher(Thread::Current());
+  }
+  bool IsDynamicClosureCallDispatcher(Thread* thread) const;
+
   bool IsDynamicInvocationForwarder() const {
     return kind() == FunctionLayout::kDynamicInvocationForwarder;
   }
@@ -2800,6 +2832,10 @@ class Function : public Object {
   InstancePtr ImplicitStaticClosure() const;
 
   InstancePtr ImplicitInstanceClosure(const Instance& receiver) const;
+
+  // Returns the target of the implicit closure or null if the target is now
+  // invalid (e.g., mismatched argument shapes after a reload).
+  FunctionPtr ImplicitClosureTarget(Zone* zone) const;
 
   intptr_t ComputeClosureHash() const;
 
@@ -2842,10 +2878,7 @@ class Function : public Object {
 
   // Whether this function can receive an invocation where the number and names
   // of arguments have not been checked.
-  bool CanReceiveDynamicInvocation() const {
-    return (IsClosureFunction() && ClosureBodiesContainNonCovariantChecks()) ||
-           IsFfiTrampoline();
-  }
+  bool CanReceiveDynamicInvocation() const { return IsFfiTrampoline(); }
 
   bool HasThisParameter() const {
     return IsDynamicFunction(/*allow_abstract=*/true) ||
@@ -2953,22 +2986,28 @@ class Function : public Object {
 
   uint32_t packed_fields() const { return raw_ptr()->packed_fields_; }
   void set_packed_fields(uint32_t packed_fields) const;
+  static intptr_t packed_fields_offset() {
+    return OFFSET_OF(FunctionLayout, packed_fields_);
+  }
+  // Reexported so they can be used by the flow graph builders.
+  using PackedHasNamedOptionalParameters =
+      FunctionLayout::PackedHasNamedOptionalParameters;
+  using PackedNumFixedParameters = FunctionLayout::PackedNumFixedParameters;
+  using PackedNumOptionalParameters =
+      FunctionLayout::PackedNumOptionalParameters;
 
   bool HasOptionalParameters() const {
-    return FunctionLayout::PackedNumOptionalParameters::decode(
-               raw_ptr()->packed_fields_) > 0;
+    return PackedNumOptionalParameters::decode(raw_ptr()->packed_fields_) > 0;
   }
   bool HasOptionalNamedParameters() const {
     return HasOptionalParameters() &&
-           FunctionLayout::PackedHasNamedOptionalParameters::decode(
-               raw_ptr()->packed_fields_);
+           PackedHasNamedOptionalParameters::decode(raw_ptr()->packed_fields_);
   }
   bool HasOptionalPositionalParameters() const {
     return HasOptionalParameters() && !HasOptionalNamedParameters();
   }
   intptr_t NumOptionalParameters() const {
-    return FunctionLayout::PackedNumOptionalParameters::decode(
-        raw_ptr()->packed_fields_);
+    return PackedNumOptionalParameters::decode(raw_ptr()->packed_fields_);
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;
@@ -3732,6 +3771,7 @@ class Function : public Object {
   }
 
  private:
+  void set_parameter_names(const Array& value) const;
   void set_ic_data_array(const Array& value) const;
   void SetInstructionsSafe(const Code& value) const;
 
@@ -3811,6 +3851,7 @@ class Function : public Object {
   friend class Class;
   friend class SnapshotWriter;
   friend class Parser;  // For set_eval_script.
+  friend class ProgramVisitor;  // For set_parameter_names.
   // FunctionLayout::VisitFunctionPointers accesses the private constructor of
   // Function.
   friend class FunctionLayout;
@@ -7066,8 +7107,8 @@ class SubtypeTestCache : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
-  friend class Serializer;
-  friend class Deserializer;
+  friend class VMSerializationRoots;
+  friend class VMDeserializationRoots;
 };
 
 class LoadingUnit : public Object {
@@ -7531,6 +7572,9 @@ class TypeArguments : public Instance {
   // Hash value for a type argument vector consisting solely of dynamic types.
   static const intptr_t kAllDynamicHash = 1;
 
+  static intptr_t length_offset() {
+    return OFFSET_OF(TypeArgumentsLayout, length_);
+  }
   intptr_t Length() const;
   AbstractTypePtr TypeAt(intptr_t index) const;
   AbstractTypePtr TypeAtNullSafe(intptr_t index) const;
@@ -8343,6 +8387,14 @@ class TypeParameter : public AbstractType {
   bool IsFunctionTypeParameter() const {
     return parameterized_function() != Function::null();
   }
+
+  static intptr_t parameterized_class_id_offset() {
+    return OFFSET_OF(TypeParameterLayout, parameterized_class_id_);
+  }
+  static intptr_t index_offset() {
+    return OFFSET_OF(TypeParameterLayout, index_);
+  }
+
   StringPtr name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
@@ -9565,6 +9617,9 @@ class Array : public Instance {
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
+
+  // Position of element type in type arguments.
+  static const intptr_t kElementTypeTypeArgPos = 0;
 
   virtual TypeArgumentsPtr GetTypeArguments() const {
     return raw_ptr()->type_arguments_;

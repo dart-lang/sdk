@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -400,8 +402,19 @@ mixin ElementsTypesMixin {
     AnalysisContext analysisContext,
     AnalysisSessionImpl analysisSession,
   }) {
-    var library = LibraryElementImpl(analysisContext, analysisSession, uriStr,
-        -1, 0, typeSystem.isNonNullableByDefault);
+    var library = LibraryElementImpl(
+      analysisContext,
+      analysisSession,
+      uriStr,
+      -1,
+      0,
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: typeSystem.isNonNullableByDefault
+            ? [EnableString.non_nullable]
+            : [],
+      ),
+    );
     library.typeSystem = typeSystem;
     library.typeProvider = typeSystem.typeProvider;
 

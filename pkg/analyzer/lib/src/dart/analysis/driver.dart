@@ -34,14 +34,8 @@ import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        AnalysisEngine,
-        AnalysisOptions,
-        AnalysisOptionsImpl,
-        PerformanceStatistics;
+    show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -91,7 +85,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 108;
+  static const int DATA_VERSION = 110;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -593,7 +587,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [path] must be absolute and normalized.
   FileResult getFileSync(String path) {
     _throwIfNotAbsolutePath(path);
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fileTracker.getFile(path);
     return FileResultImpl(
         _currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
@@ -825,7 +819,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<SourceKind> getSourceKind(String path) async {
     _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fileTracker.verifyApiSignature(path);
+      FileState file = _fileTracker.getFile(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;
@@ -913,7 +907,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// resolved unit).
   ParsedUnitResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fileTracker.getFile(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return ParsedUnitResultImpl(currentSession, file.path, file.uri,
@@ -1259,9 +1253,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      List<int> bytes = DriverPerformance.cache.makeCurrentWhile(() {
-        return _byteStore.get(key);
-      });
+      List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, signature, bytes);
       }
@@ -2038,13 +2030,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
       this._index)
       : super(session, path, uri, exists, content, lineInfo, isPart, unit,
             errors);
-}
-
-class DriverPerformance {
-  static final PerformanceTag driver =
-      PerformanceStatistics.analyzer.createChild('driver');
-
-  static final PerformanceTag cache = driver.createChild('cache');
 }
 
 /// An object that watches for the creation and removal of analysis drivers.

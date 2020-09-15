@@ -1,0 +1,47 @@
+dynamic lastInit;
+T init<T>(T value) {}
+const int constTopLevelField = 324;
+int? topLevelFieldWithoutInitializer;
+int nonNullableTopLevelFieldWithInitializer1 = init(42);
+int? nullableTopLevelFieldWithInitializer = init(123);
+int nonNullableTopLevelFieldWithInitializer2 = init(42);
+int? nullableTopLevelFieldWithInitializer2 = init(123);
+final int nonNullableFinalTopLevelFieldWithInitializer1 = init(87);
+final int? nullableFinalTopLevelFieldWithInitializer1 = init(32);
+int nonNullableFinalTopLevelFieldWithInitializer2Init = 0;
+final int nonNullableFinalTopLevelFieldWithInitializer2 =
+    nonNullableFinalTopLevelFieldWithInitializer2Init++ == 0
+        ? nonNullableFinalTopLevelFieldWithInitializer2 + 1
+        : 87;
+int nullableFinalTopLevelFieldWithInitializer2Init = 0;
+final int? nullableFinalTopLevelFieldWithInitializer2 =
+    nullableFinalTopLevelFieldWithInitializer2Init++ == 0
+        ? nullableFinalTopLevelFieldWithInitializer2! + 1
+        : 32;
+
+class Class {
+  static const int staticConstField = 123;
+  static int? staticFieldWithoutInitializer;
+  int nonNullableInstanceFieldWithInitializer = init(55);
+  int? nullableInstanceFieldWithInitializer = init(17);
+  static int nonNullableStaticFieldWithInitializer1 = init(55);
+  static int? nullableStaticFieldWithInitializer1 = init(17);
+  static int nonNullableStaticFieldWithInitializer2 = init(55);
+  static int? nullableStaticFieldWithInitializer2 = init(17);
+  static final int nonNullableStaticFinalFieldWithInitializer1 = init(73);
+  static final int? nullableStaticFinalFieldWithInitializer1 = init(19);
+  static int nonNullableStaticFinalFieldWithInitializer2Init = 0;
+  static final int nonNullableStaticFinalFieldWithInitializer2 =
+      nonNullableStaticFinalFieldWithInitializer2Init++ == 0
+          ? nonNullableStaticFinalFieldWithInitializer2 + 1
+          : 87;
+  static int nullableStaticFinalFieldWithInitializer2Init = 0;
+  static final int? nullableStaticFinalFieldWithInitializer2 =
+      nullableStaticFinalFieldWithInitializer2Init++ == 0
+          ? nullableStaticFinalFieldWithInitializer2! + 1
+          : 32;
+}
+
+main() {}
+expect(expected, actual) {}
+throws(f(), String message) {}

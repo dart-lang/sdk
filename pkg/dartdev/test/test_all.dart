@@ -17,6 +17,8 @@ import 'commands/pub_test.dart' as pub;
 import 'commands/run_test.dart' as run;
 import 'commands/test_test.dart' as test;
 import 'core_test.dart' as core;
+import 'events_test.dart' as events;
+import 'experiments_test.dart' as experiments;
 import 'sdk_test.dart' as sdk;
 import 'utils_test.dart' as utils;
 
@@ -25,6 +27,8 @@ void main() {
     analytics.main();
     analyze.main();
     create.main();
+    events.main();
+    experiments.main();
     fix.main();
     flag.main();
     format.main();

@@ -146,7 +146,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
   /// flag to produce the same or better results than the current unsound
   /// implementation.
-  bool newDeferredSplit = false;
+  bool newDeferredSplit = true; // default value.
+  bool _newDeferredSplit = false;
+  bool _noNewDeferredSplit = false;
 
   /// Show errors when a deferred type is inferred as a return type of a closure
   /// or in a type parameter. Those cases cause the compiler today to behave
@@ -158,7 +160,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool reportInvalidInferredDeferredTypes = false;
 
   /// Whether to defer load class types.
-  bool deferClassTypes = false; // default value.
+  bool deferClassTypes = true; // default value.
   bool _deferClassTypes = false;
   bool _noDeferClassTypes = false;
 
@@ -250,6 +252,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// operate with a stronger guarantee.
   bool enableNullAssertions = false;
 
+  /// Whether to generate code asserting that non-nullable return values of
+  /// `@Native` methods are checked for being non-null.
+  bool enableNativeReturnNullAssertions = false;
+
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -339,6 +345,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// On top of --verbose, enable more verbose printing, like progress messages
   /// during each phase of compilation.
   bool showInternalProgress = false;
+
+  /// Enable printing of metrics at end of compilation.
+  // TODO(sra): Add command-line filtering of metrics.
+  bool reportPrimaryMetrics = false;
+
+  /// Enable printing of more metrics at end of compilation.
+  // TODO(sra): Add command-line filtering of metrics.
+  bool reportSecondaryMetrics = false;
 
   /// Track allocations in the JS output.
   ///
@@ -431,7 +445,8 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
-      ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      .._newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      .._noNewDeferredSplit = _hasOption(options, Flags.noNewDeferredSplit)
       ..reportInvalidInferredDeferredTypes =
           _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
       .._deferClassTypes = _hasOption(options, Flags.deferClassTypes)
@@ -496,6 +511,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..verbose = _hasOption(options, Flags.verbose)
+      ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
+      ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
@@ -541,6 +558,10 @@ class CompilerOptions implements DiagnosticOptions {
     if (_deferClassTypes && _noDeferClassTypes) {
       throw ArgumentError("'${Flags.deferClassTypes}' incompatible with "
           "'${Flags.noDeferClassTypes}'");
+    }
+    if (_newDeferredSplit && _noNewDeferredSplit) {
+      throw ArgumentError("'${Flags.newDeferredSplit}' incompatible with "
+          "'${Flags.noNewDeferredSplit}'");
     }
   }
 
@@ -606,6 +627,14 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_deferClassTypes) deferClassTypes = true;
     if (_noDeferClassTypes) deferClassTypes = false;
+
+    if (enableNullAssertions) {
+      // TODO(sra): Add a command-line flag to control this independently.
+      enableNativeReturnNullAssertions = true;
+    }
+
+    if (_newDeferredSplit) newDeferredSplit = true;
+    if (_noNewDeferredSplit) newDeferredSplit = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

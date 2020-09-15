@@ -591,7 +591,7 @@ class SdkLibrariesReader {
   LibraryMap readFromSource(Source source, String libraryFileContents) {
     // TODO(paulberry): initialize the feature set appropriately based on the
     // version of the SDK we are reading, and enable flags.
-    var featureSet = FeatureSet.fromEnableFlags([]);
+    var featureSet = FeatureSet.latestLanguageVersion();
 
     var parseResult = parseString(
       content: libraryFileContents,

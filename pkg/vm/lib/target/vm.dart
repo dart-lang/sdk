@@ -54,6 +54,9 @@ class VmTarget extends Target {
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
 
   @override
+  bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
+
+  @override
   bool get supportsExplicitGetterCalls =>
       !flags.forceNoExplicitGetterCallsForTesting;
 

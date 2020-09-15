@@ -4,6 +4,6 @@
 
 // @dart = 2.7
 
-/*class: C3:OutputUnit(1, {lib1, lib2})*/
+/*class: C3:OutputUnit(1, {lib1, lib2}), type=OutputUnit(1, {lib1, lib2})*/
 /*member: C3.:OutputUnit(1, {lib1, lib2})*/
 class C3 {}

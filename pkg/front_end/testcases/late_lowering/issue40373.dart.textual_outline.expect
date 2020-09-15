@@ -5,5 +5,5 @@ class C {
   late ;
   final p2 = this.pi;
 }
-main() { }
-expect(expected, actual) { }
+main() {}
+expect(expected, actual) {}

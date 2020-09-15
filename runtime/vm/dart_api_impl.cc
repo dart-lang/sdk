@@ -653,23 +653,29 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     intptr_t* field_values) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid >= kNumPredefinedCids) {
-      TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
-          ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
-      if (native_fields == TypedData::null()) {
-        memset(field_values, 0, (num_fields * sizeof(field_values[0])));
-      } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
-        intptr_t* native_values =
-            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
-        memmove(field_values, native_values,
-                (num_fields * sizeof(field_values[0])));
-      }
-      return true;
-    }
+  intptr_t cid = raw_obj->GetClassIdMayBeSmi();
+  int class_num_fields = arguments->thread()
+                             ->isolate()
+                             ->class_table()
+                             ->At(cid)
+                             ->ptr()
+                             ->num_native_fields_;
+  if (num_fields != class_num_fields) {
+    // No native fields or mismatched native field count.
+    return false;
   }
-  return false;
+  TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
+      ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
+  if (native_fields == TypedData::null()) {
+    // Native fields not initialized.
+    memset(field_values, 0, (num_fields * sizeof(field_values[0])));
+    return true;
+  }
+  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length_));
+  intptr_t* native_values =
+      reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
+  memmove(field_values, native_values, (num_fields * sizeof(field_values[0])));
+  return true;
 }
 
 void Api::SetWeakHandleReturnValue(NativeArguments* args,
@@ -1426,20 +1432,18 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       group->RunWithLockedGroup([&]() {
         // Ensure no other old space GC tasks are running and "occupy" the old
         // space.
+        SafepointOperationScope safepoint_scope(thread);
         {
           auto old_space = group->heap()->old_space();
           MonitorLocker ml(old_space->tasks_lock());
           while (old_space->tasks() > 0) {
-            ml.WaitWithSafepointCheck(thread);
+            ml.Wait();
           }
           old_space->set_tasks(1);
         }
 
         // Merge the heap from [spawning_group] to [group].
-        {
-          SafepointOperationScope safepoint_scope(thread);
-          group->heap()->MergeFrom(isolate->group()->heap());
-        }
+        group->heap()->MergeFrom(isolate->group()->heap());
 
         spawning_group->UnregisterIsolate(isolate);
         const bool shutdown_group =
@@ -1885,6 +1889,17 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   }
   TransitionNativeToVM transition(T);
   return Api::NewHandle(T, I->sticky_error());
+}
+
+DART_EXPORT void Dart_HintFreed(intptr_t size) {
+  if (size < 0) {
+    FATAL1("%s requires a non-negative size", CURRENT_FUNC);
+  }
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  API_TIMELINE_BEGIN_END(T);
+  TransitionNativeToVM transition(T);
+  T->heap()->HintFreed(size);
 }
 
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
@@ -2817,6 +2832,11 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
   if (klass.IsNull()) {
     return Api::NewError(
         "cls_type must be a Type object which represents a Class");
+  }
+
+  const auto& error = klass.EnsureIsFinalized(Thread::Current());
+  if (error != Error::null()) {
+    return Api::NewHandle(T, error);
   }
 
   const String& func_name = Api::UnwrapStringHandle(Z, function_name);
@@ -4321,8 +4341,10 @@ static ObjectPtr ResolveConstructor(const char* current_func,
                                     const String& constr_name,
                                     int num_args) {
   // The constructor must be present in the interface.
-  const Function& constructor =
-      Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
+  Function& constructor = Function::Handle();
+  if (cls.EnsureIsFinalized(Thread::Current()) == Error::null()) {
+    constructor = cls.LookupFunctionAllowPrivate(constr_name);
+  }
   if (constructor.IsNull() ||
       (!constructor.IsGenerativeConstructor() && !constructor.IsFactory())) {
     const String& lookup_class_name = String::Handle(cls.Name());
@@ -6357,6 +6379,10 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
+DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback) {
+  Isolate::Current()->heap()->SetGCEventCallback(callback);
+}
+
 DART_EXPORT char* Dart_SetFileModifiedCallback(
     Dart_FileModifiedCallback file_modified_callback) {
 #if !defined(PRODUCT)
@@ -6734,14 +6760,20 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
   for (intptr_t id = 1; id < loading_units.Length(); id++) {
     void* write_callback_data = nullptr;
     void* write_debug_callback_data = nullptr;
-    next_callback(next_callback_data, id, &write_callback_data,
-                  &write_debug_callback_data);
+    {
+      TransitionVMToNative transition(T);
+      next_callback(next_callback_data, id, &write_callback_data,
+                    &write_debug_callback_data);
+    }
     CreateAppAOTSnapshot(write_callback, write_callback_data, strip, as_elf,
                          write_debug_callback_data, &data, data[id],
                          program_hash);
-    close_callback(write_callback_data);
-    if (write_debug_callback_data != nullptr) {
-      close_callback(write_debug_callback_data);
+    {
+      TransitionVMToNative transition(T);
+      close_callback(write_callback_data);
+      if (write_debug_callback_data != nullptr) {
+        close_callback(write_debug_callback_data);
+      }
     }
   }
 }
@@ -6788,11 +6820,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
-  if (FLAG_use_bare_instructions) {
-    return Api::NewError(
-        "Splitting is not compatible with --use_bare_instructions.");
-  }
-
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   CHECK_NULL(next_callback);
@@ -6870,11 +6897,6 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
-  if (FLAG_use_bare_instructions) {
-    return Api::NewError(
-        "Splitting is not compatible with --use_bare_instructions.");
-  }
-
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   CHECK_NULL(next_callback);
@@ -6885,6 +6907,37 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
         write_callback, close_callback);
 
   return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+
+  const GrowableObjectArray& result =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(Z, T->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(Z);
+  LoadingUnit& unit = LoadingUnit::Handle(Z);
+  String& uri = String::Handle(Z);
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    unit = lib.loading_unit();
+    if (unit.IsNull() || (unit.id() != loading_unit_id)) {
+      continue;
+    }
+    uri = lib.url();
+    result.Add(uri);
+  }
+
+  return Api::NewHandle(T, Array::MakeFixedLength(result));
 #endif
 }
 

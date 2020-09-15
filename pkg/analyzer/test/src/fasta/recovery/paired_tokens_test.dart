@@ -247,9 +247,9 @@ f(x) => l[x];
 
   void test_indexOperator_nullAware() {
     testRecovery('''
-f(x) => l?.[x
+f(x) => l?[x
 ''', [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN], '''
-f(x) => l?.[x];
+f(x) => l?[x];
 ''',
         featureSet: FeatureSet.forTesting(
             sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]));

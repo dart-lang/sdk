@@ -523,6 +523,7 @@ class ProcedureHelper {
     kAnnotations,
     kForwardingStubSuperTarget,
     kForwardingStubInterfaceTarget,
+    kMemberSignatureTarget,
     kFunction,
     kEnd,
   };
@@ -1200,6 +1201,7 @@ class KernelReaderHelper {
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
+  NameIndex ReadInterfaceMemberNameReference();
   StringIndex ReadNameAsStringIndex();
   const String& ReadNameAsMethodName();
   const String& ReadNameAsGetterName();
@@ -1209,6 +1211,7 @@ class KernelReaderHelper {
   void SkipStringReference();
   void SkipConstantReference();
   void SkipCanonicalNameReference();
+  void SkipInterfaceMemberNameReference();
   void SkipDartType();
   void SkipOptionalDartType();
   void SkipInterfaceType(bool simple);

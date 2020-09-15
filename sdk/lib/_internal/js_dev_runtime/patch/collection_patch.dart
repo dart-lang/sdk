@@ -307,9 +307,9 @@ class _HashSet<E> extends _InternalSet<E>
 
 // Used for DDC const sets.
 class _ImmutableSet<E> extends _HashSet<E> {
-  _ImmutableSet.from(JSArray entries) {
+  _ImmutableSet.from(JSArray<E> entries) {
     var map = _map;
-    for (Object key in entries) {
+    for (var key in entries) {
       if (key == null) {
         // Convert undefined to null, if needed.
         JS('', '# = null', key);

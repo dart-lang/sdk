@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -22,11 +21,6 @@ class InvalidUseOfVisibleForTemplateMemberTest
   void setUp() {
     super.setUp();
 
-    var metaPath = '/packages/meta';
-    PackagesContent.addMetaPackageFiles(
-      getFolder(metaPath),
-    );
-
     var angularMetaPath = '/packages/angular_meta';
     newFile('$angularMetaPath/lib/angular_meta.dart', content: r'''
 library angular.meta;
@@ -38,10 +32,11 @@ class _VisibleForTemplate {
 }
 ''');
 
-    writeTestPackageConfig({
-      'meta': metaPath,
-      'angular_meta': angularMetaPath,
-    });
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'angular_meta', rootPath: angularMetaPath),
+      meta: true,
+    );
   }
 
   test_export() async {

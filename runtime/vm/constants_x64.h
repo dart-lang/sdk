@@ -148,11 +148,12 @@ struct TypeTestABI {
   static const Register kInstantiatorTypeArgumentsReg = RDX;
   static const Register kFunctionTypeArgumentsReg = RCX;
   static const Register kSubtypeTestCacheReg = R9;
+  static const Register kScratchReg = RSI;
 
   static const intptr_t kAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg) |
-      (1 << kSubtypeTestCacheReg);
+      (1 << kSubtypeTestCacheReg) | (1 << kScratchReg);
 
   // For call to InstanceOfStub.
   static const Register kResultReg = RAX;

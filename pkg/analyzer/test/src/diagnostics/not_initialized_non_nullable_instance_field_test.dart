@@ -87,6 +87,23 @@ class A {
 ''');
   }
 
+  test_external_field_non_nullable() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+''');
+  }
+
+  test_external_field_non_nullable_with_constructor() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+  A();
+}
+''');
+  }
+
   test_fieldFormal() async {
     await assertNoErrorsInCode('''
 class A {

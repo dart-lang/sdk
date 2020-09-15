@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
@@ -500,22 +499,30 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
       AddMissingParameter.newInstance,
+      DataDriven.newInstance,
     ],
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
       AddMissingParameter.newInstance,
+      DataDriven.newInstance,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.INVALID_OVERRIDE: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
@@ -537,6 +544,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NOT_A_TYPE: [
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
       ImportLibrary.forType,
     ],
@@ -545,37 +555,61 @@ class FixProcessor extends BaseProcessor {
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_CLASS: [
+      DataDriven.newInstance,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      DataDriven.newInstance,
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_GETTER: [
+      DataDriven.newInstance,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      DataDriven.newInstance,
       ImportLibrary.forExtension,
       ImportLibrary.forFunction,
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_METHOD: [
+      DataDriven.newInstance,
       ImportLibrary.forFunction,
       ImportLibrary.forType,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_SETTER: [
+      DataDriven.newInstance,
+      // TODO(brianwilkerson) Support ImportLibrary
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
+      DataDriven.newInstance,
+    ],
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.newInstance,
     ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.newInstance,
     ],
     HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [

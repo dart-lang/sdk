@@ -18,9 +18,9 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     this.extendsKeyword = extendsKeyword;
-    super.handleClassExtends(extendsKeyword);
+    super.handleClassExtends(extendsKeyword, typeCount);
   }
 
   @override

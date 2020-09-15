@@ -1,0 +1,27 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue_43084_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+typedef Bar<X extends core::Object* = dynamic> = self2::Foo<X*>*;
+class Foo<X extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self2::Foo<self2::Foo::X*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

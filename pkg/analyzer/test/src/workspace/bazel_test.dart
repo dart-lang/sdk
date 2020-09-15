@@ -696,6 +696,13 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     expect(package.workspace, equals(workspace));
   }
 
+  void test_packagesAvailableTo() {
+    _setUpPackage();
+    var packageMap =
+        package.packagesAvailableTo(convertPath('/ws/some/code/lib/code.dart'));
+    expect(packageMap, isEmpty);
+  }
+
   /// Create new files and directories from [paths].
   void _addResources(List<String> paths) {
     for (String path in paths) {

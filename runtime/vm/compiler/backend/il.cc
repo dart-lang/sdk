@@ -453,6 +453,12 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
   ASSERT(CompilerState::Current().is_aot());
+  if (type.IsNullable()) {
+    // 'is' test for nullable types should accept null cid in addition to the
+    // class range. In most cases it is not possible to extend class range to
+    // include kNullCid.
+    return false;
+  }
   if (CanUseSubtypeRangeCheckFor(type)) {
     const Class& type_class =
         Class::Handle(thread()->zone(), type.type_class());
@@ -471,6 +477,80 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
   }
   return false;
 }
+
+// The set of supported non-integer unboxed representations.
+// Format: (unboxed representations suffix, boxed class type)
+#define FOR_EACH_NON_INT_BOXED_REPRESENTATION(M)                               \
+  M(Double, Double)                                                            \
+  M(Float, Double)                                                             \
+  M(Float32x4, Float32x4)                                                      \
+  M(Float64x2, Float64x2)                                                      \
+  M(Int32x4, Int32x4)
+
+#define BOXING_IN_SET_CASE(unboxed, boxed)                                     \
+  case kUnboxed##unboxed:                                                      \
+    return true;
+#define BOXING_VALUE_OFFSET_CASE(unboxed, boxed)                               \
+  case kUnboxed##unboxed:                                                      \
+    return compiler::target::boxed::value_offset();
+#define BOXING_CID_CASE(unboxed, boxed)                                        \
+  case kUnboxed##unboxed:                                                      \
+    return k##boxed##Cid;
+
+bool Boxing::Supports(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    return true;
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_IN_SET_CASE)
+    default:
+      return false;
+  }
+}
+
+bool Boxing::RequiresAllocation(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    return (kBitsPerByte * RepresentationUtils::ValueSize(rep)) >
+           compiler::target::kSmiBits;
+  }
+  return true;
+}
+
+intptr_t Boxing::ValueOffset(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep) &&
+      Boxing::RequiresAllocation(rep) &&
+      RepresentationUtils::ValueSize(rep) <= sizeof(int64_t)) {
+    return compiler::target::Mint::value_offset();
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_VALUE_OFFSET_CASE)
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+// Note that not all boxes require allocation (e.g., Smis).
+intptr_t Boxing::BoxCid(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    if (!Boxing::RequiresAllocation(rep)) {
+      return kSmiCid;
+    } else if (RepresentationUtils::ValueSize(rep) <= sizeof(int64_t)) {
+      return kMintCid;
+    }
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_CID_CASE)
+    default:
+      UNREACHABLE();
+      return kIllegalCid;
+  }
+}
+
+#undef BOXING_CID_CASE
+#undef BOXING_VALUE_OFFSET_CASE
+#undef BOXING_IN_SET_CASE
+#undef FOR_EACH_NON_INT_BOXED_REPRESENTATION
 
 #if defined(DEBUG)
 void Instruction::CheckField(const Field& field) const {
@@ -876,18 +956,20 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   return mask;
 }
 
-bool LoadFieldInstr::IsUnboxedLoad() const {
-  return slot().IsDartField() &&
+bool LoadFieldInstr::IsUnboxedDartFieldLoad() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
-bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return slot().IsDartField() &&
+bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation LoadFieldInstr::representation() const {
-  if (IsUnboxedLoad()) {
+  if (slot().representation() != kTagged) {
+    return slot().representation();
+  } else if (IsUnboxedDartFieldLoad()) {
     const Field& field = slot().field();
     const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
@@ -898,11 +980,8 @@ Representation LoadFieldInstr::representation() const {
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        if (field.is_non_nullable_integer()) {
-          return kUnboxedInt64;
-        } else {
-          UNREACHABLE();
-        }
+        UNREACHABLE();
+        break;
     }
   }
   return kTagged;
@@ -2215,28 +2294,42 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     Value* left,
     Value* right,
     intptr_t deopt_id,
-    bool can_overflow,
-    bool is_truncating,
-    Range* range,
     SpeculativeMode speculative_mode) {
-  BinaryIntegerOpInstr* op = NULL;
+  BinaryIntegerOpInstr* op = nullptr;
+  Range* right_range = nullptr;
+  switch (op_kind) {
+    case Token::kMOD:
+    case Token::kTRUNCDIV:
+      if (representation != kTagged) break;
+      FALL_THROUGH;
+    case Token::kSHR:
+    case Token::kSHL:
+      if (auto const const_def = right->definition()->AsConstant()) {
+        right_range = new Range();
+        const_def->InferRange(nullptr, right_range);
+      }
+      break;
+    default:
+      break;
+  }
   switch (representation) {
     case kTagged:
-      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id);
+      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id, right_range);
       break;
     case kUnboxedInt32:
       if (!BinaryInt32OpInstr::IsSupported(op_kind, left, right)) {
-        return NULL;
+        return nullptr;
       }
       op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedUint32:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
         if (speculative_mode == kNotSpeculative) {
-          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
+                                      right_range);
         } else {
-          op =
-              new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
+          op = new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id,
+                                                 right_range);
         }
       } else {
         op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
@@ -2245,9 +2338,11 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case kUnboxedInt64:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
         if (speculative_mode == kNotSpeculative) {
-          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id);
+          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
+                                     right_range);
         } else {
-          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id);
+          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id,
+                                                right_range);
         }
       } else {
         op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
@@ -2255,9 +2350,28 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       break;
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 
+  ASSERT(op->representation() == representation);
+  return op;
+}
+
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
+    Representation representation,
+    Token::Kind op_kind,
+    Value* left,
+    Value* right,
+    intptr_t deopt_id,
+    bool can_overflow,
+    bool is_truncating,
+    Range* range,
+    SpeculativeMode speculative_mode) {
+  BinaryIntegerOpInstr* op = BinaryIntegerOpInstr::Make(
+      representation, op_kind, left, right, deopt_id, speculative_mode);
+  if (op == nullptr) {
+    return nullptr;
+  }
   if (!Range::IsUnknown(range)) {
     op->set_range(*range);
   }
@@ -2267,7 +2381,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     op->mark_truncating();
   }
 
-  ASSERT(op->representation() == representation);
   return op;
 }
 
@@ -2574,6 +2687,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kString_length:
+    case Slot::Kind::kTypeArguments_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
       return false;
@@ -2601,6 +2715,10 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kFunction_packed_fields:
+    case Slot::Kind::kFunction_parameter_names:
+    case Slot::Kind::kFunction_parameter_types:
+    case Slot::Kind::kFunction_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
@@ -2672,6 +2790,42 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
         ArgumentsDescriptor desc(Array::Cast(instance));
         *result = Smi::New(desc.TypeArgsLen());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_count:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.Count());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_positional_count:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.PositionalCount());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_size:
+      // If a constant arguments descriptor appears, then either it is from
+      // a invocation dispatcher (which always has tagged arguments and so
+      // [host]Size() ==  [target]Size() == Count()) or the constant should
+      // have the correct Size() in terms of the target architecture if any
+      // spill slots are involved.
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.Size());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kTypeArguments_length:
+      if (instance.IsTypeArguments()) {
+        *result = Smi::New(TypeArguments::Cast(instance).Length());
         return true;
       }
       return false;
@@ -5212,6 +5366,7 @@ void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
+  ASSERT(box_cid != kSmiCid);  // Should never reach here with Smi-able ints.
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
@@ -5242,6 +5397,11 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (SpeculativeModeOfInputs() == kNotSpeculative) {
+    if (BoxCid() == kSmiCid) {
+      // Since the representation fits in a Smi, we can extract it directly.
+      ASSERT_EQUAL(value()->Type()->ToCid(), kSmiCid);
+      return EmitSmiConversion(compiler);
+    }
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
@@ -5274,14 +5434,15 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const intptr_t value_cid = value()->Type()->ToCid();
     const intptr_t box_cid = BoxCid();
 
-    if (value_cid == box_cid) {
-      EmitLoadFromBox(compiler);
-    } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+    if (box_cid == kSmiCid || (CanConvertSmi() && (value_cid == kSmiCid))) {
+      ASSERT_EQUAL(value_cid, kSmiCid);
       EmitSmiConversion(compiler);
     } else if (representation() == kUnboxedInt32 && value()->Type()->IsInt()) {
       EmitLoadInt32FromBoxOrSmi(compiler);
     } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
       EmitLoadInt64FromBoxOrSmi(compiler);
+    } else if (value_cid == box_cid) {
+      EmitLoadFromBox(compiler);
     } else {
       ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);

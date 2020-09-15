@@ -369,7 +369,7 @@ class ConstantEvaluationEngine {
           // that we won't be confused by incorrect code.
           if ((field.isFinal || field.isConst) &&
               !field.isStatic &&
-              field.initializer != null) {
+              field.hasInitializer) {
             callback(field);
           }
         }
@@ -736,6 +736,10 @@ class ConstantEvaluationEngine {
           superclass.lookUpConstructor(superName, constructor.library);
       if (superConstructor != null) {
         superArguments ??= astFactory.nodeList<Expression>(null);
+
+        if (constructor is ConstructorMember && constructor.isLegacy) {
+          superConstructor = Member.legacy(superConstructor);
+        }
 
         evaluateSuperConstructorCall(node, fieldMap, superConstructor,
             superArguments, initializerVisitor, externalErrorReporter);

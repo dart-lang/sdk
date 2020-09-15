@@ -15,16 +15,9 @@ class Foo {
   Foo() : x = 0;
 //^^^
 // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
-//^^^
-// [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
 
-  // fields can't be declared external
   external var x01;
-//^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXTERNAL_FIELD
   external int x02;
-//^^^^^^^^
-// [analyzer] SYNTACTIC_ERROR.EXTERNAL_FIELD
 
   external f11() { }
   //             ^
@@ -74,13 +67,13 @@ class Foo {
 }
 
 external int t06(int i) { return 1; }
-// [error line 76, column 1, length 8]
+// [error line 69, column 1, length 8]
 // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
 // [cfe] An external or native method can't have a body.
 //                      ^
 // [cfe] An external or native method can't have a body.
 external int t07(int i) => i + 1;
-// [error line 82, column 1, length 8]
+// [error line 75, column 1, length 8]
 // [analyzer] SYNTACTIC_ERROR.EXTERNAL_METHOD_WITH_BODY
 // [cfe] An external or native method can't have a body.
 //                         ^

@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /// A consistent view of the results of analyzing one or more files.
@@ -32,21 +28,6 @@ abstract class AnalysisSession {
   /// Return the [ResourceProvider] that is used to access the file system.
   ResourceProvider get resourceProvider;
 
-  /// Return the source factory used to resolve URIs.
-  ///
-  /// Deprecated: Use the methods on [uriConverter] instead.
-  @deprecated
-  SourceFactory get sourceFactory;
-
-  /// Return a type provider that is consistent with the results returned by
-  /// this session.
-  @Deprecated('Use LibraryElement.typeProvider')
-  Future<TypeProvider> get typeProvider;
-
-  /// Return the type system being used by this session.
-  @Deprecated('Use LibraryElement.typeSystem')
-  Future<TypeSystem> get typeSystem;
-
   /// Return the URI converter used to convert between URI's and file paths.
   UriConverter get uriConverter;
 
@@ -65,20 +46,6 @@ abstract class AnalysisSession {
   /// the library with the given [uri].
   Future<LibraryElement> getLibraryByUri(String uri);
 
-  /// Return a future that will complete with information about the results of
-  /// parsing the file with the given absolute, normalized [path].
-  ///
-  /// Deprecated: Use [getParsedUnit] instead.
-  @deprecated
-  Future<ParseResult> getParsedAst(String path);
-
-  /// Return information about the results of parsing the file with the given
-  /// absolute, normalized [path].
-  ///
-  /// Deprecated: Use [getParsedUnit] instead.
-  @deprecated
-  ParseResult getParsedAstSync(String path);
-
   /// Return information about the results of parsing units of the library file
   /// with the given absolute, normalized [path].
   ///
@@ -95,13 +62,6 @@ abstract class AnalysisSession {
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
   ParsedUnitResult getParsedUnit(String path);
-
-  /// Return a future that will complete with information about the results of
-  /// resolving the file with the given absolute, normalized [path].
-  ///
-  /// Deprecated: Use [getResolvedUnit] instead.
-  @deprecated
-  Future<ResolveResult> getResolvedAst(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the given absolute,

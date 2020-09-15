@@ -4,8 +4,6 @@
 
 library services.completion.dart.sorter.common;
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;

@@ -164,16 +164,6 @@ f([String x = '0']) {
 ''');
   }
 
-  test_dynamic() async {
-    await assertErrorsInCode(r'''
-main() {
-  dynamic = 1;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 21, 1),
-    ]);
-  }
-
   test_functionExpressionInvocation() async {
     await assertErrorsInCode('''
 class C {

@@ -538,9 +538,10 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   if (receiver_maybe_null) {
     const Class& null_class =
         Class::Handle(zone(), isolate()->object_store()->null_class());
-    const Function& target = Function::Handle(
-        zone(),
-        Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name));
+    Function& target = Function::Handle(zone());
+    if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
+      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
+    }
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
     }

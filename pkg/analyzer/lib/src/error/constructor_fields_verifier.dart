@@ -80,7 +80,7 @@ class ConstructorFieldsVerifier {
     _fieldMap.forEach((FieldElement field, _InitState state) {
       if (state != _InitState.notInit) return;
       if (field.isLate) return;
-      if (field.isAbstract) return;
+      if (field.isAbstract || field.isExternal) return;
 
       if (field.isFinal) {
         notInitFinalFields.add(field);
@@ -98,9 +98,9 @@ class ConstructorFieldsVerifier {
     _initialFieldMap = <FieldElement, _InitState>{};
     for (var field in element.fields) {
       if (!field.isSynthetic) {
-        _initialFieldMap[field] = field.initializer == null
-            ? _InitState.notInit
-            : _InitState.initInDeclaration;
+        _initialFieldMap[field] = field.hasInitializer
+            ? _InitState.initInDeclaration
+            : _InitState.notInit;
       }
     }
   }

@@ -3,9 +3,10 @@ abstract class A {
   abstract final int finalInstanceField;
   abstract covariant num covariantInstanceField;
 }
+
 mixin B {
   abstract int instanceField;
   abstract final int finalInstanceField;
   abstract covariant num covariantInstanceField;
 }
-main() { }
+main() {}

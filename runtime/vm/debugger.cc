@@ -317,12 +317,12 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return !Isolate::IsVMInternalIsolate(isolate_) &&
+  return !Isolate::IsSystemIsolate(isolate_) &&
          Service::isolate_stream.enabled();
 }
 
 bool Debugger::NeedsDebugEvents() {
-  ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
+  ASSERT(!Isolate::IsSystemIsolate(isolate_));
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
 
@@ -1856,7 +1856,7 @@ Debugger::~Debugger() {
 void Debugger::Shutdown() {
   // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
   // them. Then, assert here that isolate_ is not one of those isolates.
-  if (Isolate::IsVMInternalIsolate(isolate_)) {
+  if (Isolate::IsSystemIsolate(isolate_)) {
     return;
   }
   while (breakpoint_locations_ != NULL) {
@@ -2207,6 +2207,8 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   class StackTrace& async_stack_trace = StackTrace::Handle(zone);
   Array& async_code_array = Array::Handle(zone);
   Array& async_pc_offset_array = Array::Handle(zone);
+
+  // Extract the eagerly recorded async stack from the current thread.
   StackTraceUtils::ExtractAsyncStackTraceInfo(
       thread, &async_function, &async_stack_trace, &async_code_array,
       &async_pc_offset_array);
@@ -3724,6 +3726,16 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
   return bpt_location->AddPerClosure(this, closure, for_over_await);
 }
 
+Breakpoint* Debugger::SetBreakpointAtAsyncOp(const Function& async_op) {
+  const Script& script = Script::Handle(async_op.script());
+  BreakpointLocation* bpt_location =
+      SetBreakpoint(script, async_op.token_pos(), async_op.end_token_pos(), -1,
+                    -1 /* no line/col */, async_op);
+  auto bpt = bpt_location->AddSingleShot(this);
+  bpt->set_is_synthetic_async(true);
+  return bpt;
+}
+
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
@@ -4457,6 +4469,37 @@ ErrorPtr Debugger::PauseStepping() {
   // grows towards lower addresses.
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != NULL);
+
+  // Since lazy async stacks doesn't use the _asyncStackTraceHelper runtime
+  // entry, we need to manually set a synthetic breakpoint for async_op before
+  // we enter it.
+  if (FLAG_lazy_async_stacks) {
+    // async and async* functions always contain synthetic async_ops.
+    if ((frame->function().IsAsyncFunction() ||
+         frame->function().IsAsyncGenerator())) {
+      ASSERT(!frame->GetSavedCurrentContext().IsNull());
+      ASSERT(frame->GetSavedCurrentContext().num_variables() >
+             Context::kAsyncCompleterIndex);
+
+      const Object& jump_var = Object::Handle(
+          frame->GetSavedCurrentContext().At(Context::kAsyncCompleterIndex));
+
+      // Only set breakpoint when entering async_op the first time.
+      // :async_completer_var should be uninitialised at this point:
+      if (jump_var.IsNull()) {
+        const Function& async_op =
+            Function::Handle(frame->function().GetGeneratedClosure());
+        if (!async_op.IsNull()) {
+          SetBreakpointAtAsyncOp(async_op);
+          // After setting the breakpoint we stop stepping and continue the
+          // debugger until the next breakpoint, to step over all the
+          // synthetic code.
+          Continue();
+          return Error::null();
+        }
+      }
+    }
+  }
 
   if (FLAG_async_debugger) {
     if ((async_stepping_fp_ != 0) && (top_frame_awaiter_ != Object::null())) {

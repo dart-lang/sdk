@@ -72,6 +72,14 @@ abstract class _TestFileBase {
   /// is skipped on configurations that are not purely front end.
   bool get isStaticErrorTest => expectedErrors.isNotEmpty;
 
+  /// If the test contains any web-specific (`[web]`) static error expectations,
+  /// then it's a "web static error test".
+  ///
+  /// These tests exist to validate that a Dart web compiler reports the right
+  /// expected errors.
+  bool get isWebStaticErrorTest =>
+      expectedErrors.any((error) => error.hasError(ErrorSource.web));
+
   /// If the tests has no static error expectations, or all of the expectations
   /// are warnings, then the test tests runtime semantics.
   ///

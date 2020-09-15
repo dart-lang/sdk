@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-/*class: C:OutputUnit(main, {})*/
+/*class: C:OutputUnit(main, {}), type=OutputUnit(main, {})*/
 class C {
   const C(this.x);
 

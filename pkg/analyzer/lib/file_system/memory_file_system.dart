@@ -306,7 +306,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
 
   @override
   int get modificationStamp {
-    int stamp = _provider._pathToTimestamp[path];
+    int stamp = provider._pathToTimestamp[path];
     if (stamp == null) {
       throw FileSystemException(path, "File does not exist");
     }
@@ -370,7 +370,7 @@ class _MemoryFile extends _MemoryResource implements File {
       : super(provider, path);
 
   @override
-  bool get exists => _provider._pathToResource[path] is _MemoryFile;
+  bool get exists => provider._pathToResource[path] is _MemoryFile;
 
   @override
   int get lengthSync {
@@ -379,7 +379,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   int get modificationStamp {
-    int stamp = _provider._pathToTimestamp[path];
+    int stamp = provider._pathToTimestamp[path];
     if (stamp == null) {
       throw FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -396,13 +396,13 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   Source createSource([Uri uri]) {
-    uri ??= _provider.pathContext.toUri(path);
+    uri ??= provider.pathContext.toUri(path);
     return FileSource(this, uri);
   }
 
   @override
   void delete() {
-    _provider.deleteFile(path);
+    provider.deleteFile(path);
   }
 
   @override
@@ -412,7 +412,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   Uint8List readAsBytesSync() {
-    Uint8List content = _provider._pathToBytes[path];
+    Uint8List content = provider._pathToBytes[path];
     if (content == null) {
       throw FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -421,7 +421,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   String readAsStringSync() {
-    Uint8List content = _provider._pathToBytes[path];
+    Uint8List content = provider._pathToBytes[path];
     if (content == null) {
       throw FileSystemException(path, 'File "$path" does not exist.');
     }
@@ -430,7 +430,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   File renameSync(String newPath) {
-    return _provider._renameFileSync(this, newPath);
+    return provider._renameFileSync(this, newPath);
   }
 
   @override
@@ -438,12 +438,12 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   void writeAsBytesSync(List<int> bytes) {
-    _provider._setFileContent(this, bytes);
+    provider._setFileContent(this, bytes);
   }
 
   @override
   void writeAsStringSync(String content) {
-    _provider._setFileContent(this, utf8.encode(content));
+    provider._setFileContent(this, utf8.encode(content));
   }
 }
 
@@ -453,19 +453,19 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       : super(provider, path);
 
   @override
-  bool get exists => _provider._pathToResource[path] is _MemoryFolder;
+  bool get exists => provider._pathToResource[path] is _MemoryFolder;
 
   @override
   String canonicalizePath(String relPath) {
-    relPath = _provider.pathContext.normalize(relPath);
-    String childPath = _provider.pathContext.join(path, relPath);
-    childPath = _provider.pathContext.normalize(childPath);
+    relPath = provider.pathContext.normalize(relPath);
+    String childPath = provider.pathContext.join(path, relPath);
+    childPath = provider.pathContext.normalize(childPath);
     return childPath;
   }
 
   @override
   bool contains(String path) {
-    return _provider.pathContext.isWithin(this.path, path);
+    return provider.pathContext.isWithin(this.path, path);
   }
 
   @override
@@ -480,39 +480,39 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   void create() {
-    _provider.newFolder(path);
+    provider.newFolder(path);
   }
 
   @override
   void delete() {
-    _provider.deleteFolder(path);
+    provider.deleteFolder(path);
   }
 
   @override
   Resource getChild(String relPath) {
     String childPath = canonicalizePath(relPath);
-    return _provider._pathToResource[childPath] ??
-        _MemoryFile(_provider, childPath);
+    return provider._pathToResource[childPath] ??
+        _MemoryFile(provider, childPath);
   }
 
   @override
   _MemoryFile getChildAssumingFile(String relPath) {
     String childPath = canonicalizePath(relPath);
-    _MemoryResource resource = _provider._pathToResource[childPath];
+    _MemoryResource resource = provider._pathToResource[childPath];
     if (resource is _MemoryFile) {
       return resource;
     }
-    return _MemoryFile(_provider, childPath);
+    return _MemoryFile(provider, childPath);
   }
 
   @override
   _MemoryFolder getChildAssumingFolder(String relPath) {
     String childPath = canonicalizePath(relPath);
-    _MemoryResource resource = _provider._pathToResource[childPath];
+    _MemoryResource resource = provider._pathToResource[childPath];
     if (resource is _MemoryFolder) {
       return resource;
     }
-    return _MemoryFolder(_provider, childPath);
+    return _MemoryFolder(provider, childPath);
   }
 
   @override
@@ -521,8 +521,8 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       throw FileSystemException(path, 'Folder does not exist.');
     }
     List<Resource> children = <Resource>[];
-    _provider._pathToResource.forEach((resourcePath, resource) {
-      if (_provider.pathContext.dirname(resourcePath) == path) {
+    provider._pathToResource.forEach((resourcePath, resource) {
+      if (provider.pathContext.dirname(resourcePath) == path) {
         children.add(resource);
       }
     });
@@ -541,28 +541,30 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   Folder resolveSymbolicLinksSync() => this;
 
   @override
-  Uri toUri() => _provider.pathContext.toUri(path + '/');
+  Uri toUri() => provider.pathContext.toUri(path + '/');
 }
 
 /// An in-memory implementation of [Resource].
 abstract class _MemoryResource implements Resource {
-  final MemoryResourceProvider _provider;
+  @override
+  final MemoryResourceProvider provider;
+
   @override
   final String path;
 
-  _MemoryResource(this._provider, this.path);
+  _MemoryResource(this.provider, this.path);
 
   Stream<WatchEvent> get changes {
     StreamController<WatchEvent> streamController =
         StreamController<WatchEvent>();
-    if (!_provider._pathToWatchers.containsKey(path)) {
-      _provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
+    if (!provider._pathToWatchers.containsKey(path)) {
+      provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
     }
-    _provider._pathToWatchers[path].add(streamController);
+    provider._pathToWatchers[path].add(streamController);
     streamController.done.then((_) {
-      _provider._pathToWatchers[path].remove(streamController);
-      if (_provider._pathToWatchers[path].isEmpty) {
-        _provider._pathToWatchers.remove(path);
+      provider._pathToWatchers[path].remove(streamController);
+      if (provider._pathToWatchers[path].isEmpty) {
+        provider._pathToWatchers.remove(path);
       }
     });
     return streamController.stream;
@@ -573,15 +575,15 @@ abstract class _MemoryResource implements Resource {
 
   @override
   Folder get parent {
-    String parentPath = _provider.pathContext.dirname(path);
+    String parentPath = provider.pathContext.dirname(path);
     if (parentPath == path) {
       return null;
     }
-    return _provider.getFolder(parentPath);
+    return provider.getFolder(parentPath);
   }
 
   @override
-  String get shortName => _provider.pathContext.basename(path);
+  String get shortName => provider.pathContext.basename(path);
 
   @override
   bool operator ==(Object other) {
@@ -595,5 +597,5 @@ abstract class _MemoryResource implements Resource {
   String toString() => path;
 
   @override
-  Uri toUri() => _provider.pathContext.toUri(path);
+  Uri toUri() => provider.pathContext.toUri(path);
 }

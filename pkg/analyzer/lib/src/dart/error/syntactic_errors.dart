@@ -29,6 +29,13 @@ class ParserErrorCode extends ErrorCode {
       'ABSTRACT_ENUM', "Enums can't be declared to be 'abstract'.",
       correction: "Try removing the keyword 'abstract'.");
 
+  static const ParserErrorCode ABSTRACT_EXTERNAL_FIELD =
+      _ABSTRACT_EXTERNAL_FIELD;
+
+  static const ParserErrorCode ABSTRACT_LATE_FIELD = _ABSTRACT_LATE_FIELD;
+
+  static const ParserErrorCode ABSTRACT_STATIC_FIELD = _ABSTRACT_STATIC_FIELD;
+
   static const ParserErrorCode ABSTRACT_STATIC_METHOD = ParserErrorCode(
       'ABSTRACT_STATIC_METHOD',
       "Static methods can't be declared to be 'abstract'.",
@@ -47,6 +54,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ABSTRACT_TYPEDEF = ParserErrorCode(
       'ABSTRACT_TYPEDEF', "Typedefs can't be declared to be 'abstract'.",
       correction: "Try removing the keyword 'abstract'.");
+
+  static const ParserErrorCode ANNOTATION_ON_TYPE_ARGUMENT =
+      _ANNOTATION_ON_TYPE_ARGUMENT;
 
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       _ANNOTATION_WITH_TYPE_ARGUMENTS;
@@ -75,16 +85,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode CONFLICTING_MODIFIERS = _CONFLICTING_MODIFIERS;
 
-  // TODO(danrubel): Remove this unused error code
-  static const ParserErrorCode CONST_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;
-
-  // TODO(danrubel): Remove this unused error code
-  static const ParserErrorCode CONST_AND_COVARIANT = _CONFLICTING_MODIFIERS;
-
   static const ParserErrorCode CONST_AND_FINAL = _CONST_AND_FINAL;
-
-  // TODO(danrubel): Remove this unused error code
-  static const ParserErrorCode CONST_AND_VAR = _CONFLICTING_MODIFIERS;
 
   static const ParserErrorCode CONST_CLASS = _CONST_CLASS;
 
@@ -112,11 +113,6 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode CONTINUE_WITHOUT_LABEL_IN_CASE =
       _CONTINUE_WITHOUT_LABEL_IN_CASE;
-
-  // TODO(danrubel): Remove this unused error code
-  static const ParserErrorCode COVARIANT_AFTER_FINAL = _MODIFIER_OUT_OF_ORDER;
-
-  static const ParserErrorCode COVARIANT_AFTER_VAR = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode COVARIANT_AND_STATIC = _COVARIANT_AND_STATIC;
 
@@ -290,12 +286,6 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
       _EXTENSION_DECLARES_INSTANCE_FIELD;
 
-  static const ParserErrorCode EXTERNAL_AFTER_CONST = _MODIFIER_OUT_OF_ORDER;
-
-  static const ParserErrorCode EXTERNAL_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;
-
-  static const ParserErrorCode EXTERNAL_AFTER_STATIC = _MODIFIER_OUT_OF_ORDER;
-
   static const ParserErrorCode EXTERNAL_CLASS = _EXTERNAL_CLASS;
 
   static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY =
@@ -318,6 +308,8 @@ class ParserErrorCode extends ErrorCode {
       'EXTERNAL_GETTER_WITH_BODY', "External getters can't have a body.",
       correction: "Try removing the body of the getter, or "
           "removing the keyword 'external'.");
+
+  static const ParserErrorCode EXTERNAL_LATE_FIELD = _EXTERNAL_LATE_FIELD;
 
   static const ParserErrorCode EXTERNAL_METHOD_WITH_BODY =
       _EXTERNAL_METHOD_WITH_BODY;
@@ -539,8 +531,6 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode MISSING_CATCH_OR_FINALLY =
       _MISSING_CATCH_OR_FINALLY;
-
-  static const ParserErrorCode MISSING_CLASS_BODY = _EXPECTED_BODY;
 
   static const ParserErrorCode MISSING_CLOSING_PARENTHESIS = ParserErrorCode(
       'MISSING_CLOSING_PARENTHESIS', "The closing parenthesis is missing.",
@@ -789,12 +779,6 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try moving the setter outside the method or function.");
 
   static const ParserErrorCode STACK_OVERFLOW = _STACK_OVERFLOW;
-
-  static const ParserErrorCode STATIC_AFTER_CONST = _MODIFIER_OUT_OF_ORDER;
-
-  static const ParserErrorCode STATIC_AFTER_FINAL = _MODIFIER_OUT_OF_ORDER;
-
-  static const ParserErrorCode STATIC_AFTER_VAR = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode STATIC_CONSTRUCTOR = _STATIC_CONSTRUCTOR;
 

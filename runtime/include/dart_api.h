@@ -621,6 +621,7 @@ typedef struct {
   bool load_vmservice_library;
   bool copy_parent_code;
   bool null_safety;
+  bool is_system_isolate;
 } Dart_IsolateFlags;
 
 /**
@@ -1139,6 +1140,18 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
  * there is one.
  */
 DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
+
+/**
+ * Notifies the VM that the embedder expects |size| bytes of memory have become
+ * unreachable. The VM may use this hint to adjust the garbage collector's
+ * growth policy.
+ *
+ * Multiple calls are interpreted as increasing, not replacing, the estimate of
+ * unreachable memory.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_HintFreed(intptr_t size);
 
 /**
  * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
@@ -3672,6 +3685,8 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             const uint8_t* buffer,
                                             intptr_t size);
 typedef void (*Dart_StreamingCloseCallback)(void* callback_data);
+
+DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id);
 
 // On Darwin systems, 'dlsym' adds an '_' to the beginning of the symbol name.
 // Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual

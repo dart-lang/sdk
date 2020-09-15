@@ -214,7 +214,7 @@ linter:
     // Invert a subset of the options to ensure that the default options are
     // being returned.
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
-    defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
+    defaultOptions.implicitCasts = !defaultOptions.implicitCasts;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
@@ -759,7 +759,6 @@ environment:
   void _expectEqualOptions(
       AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
-    expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.hint, expected.hint);
     expect(actual.lint, expected.lint);
@@ -767,7 +766,6 @@ environment:
       actual.lintRules.map((l) => l.name),
       unorderedEquals(expected.lintRules.map((l) => l.name)),
     );
-    expect(actual.strongMode, expected.strongMode);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.strictInference, expected.strictInference);

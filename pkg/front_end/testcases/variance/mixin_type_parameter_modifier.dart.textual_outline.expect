@@ -1,5 +1,3 @@
-class A {
-}
-mixin B<inout X, out Y, in Z> on A {
-}
-main() { }
+class A {}
+mixin B<inout X, out Y, in Z> on A {}
+main() {}

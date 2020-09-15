@@ -568,11 +568,6 @@ class FlowGraphCompiler : public ValueObject {
                                 const String& dst_name,
                                 LocationSummary* locs);
 
-  // Returns true if we can use a type testing stub based assert
-  // assignable code pattern for the given type.
-  static bool ShouldUseTypeTestingStubFor(bool optimizing,
-                                          const AbstractType& type);
-
   void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
                                                   TokenPosition token_pos,
                                                   intptr_t deopt_id,
@@ -1140,6 +1135,10 @@ class FlowGraphCompiler : public ValueObject {
 #else
   bool CanCallDart() const { return true; }
 #endif
+
+  bool CanPcRelativeCall(const Function& target) const;
+  bool CanPcRelativeCall(const Code& target) const;
+  bool CanPcRelativeCall(const AbstractType& target) const;
 
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {

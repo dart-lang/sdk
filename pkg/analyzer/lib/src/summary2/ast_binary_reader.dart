@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -363,7 +364,9 @@ class AstBinaryReader {
       directives: _readNodeList(data.compilationUnit_directives),
       declarations: _readNodeList(data.compilationUnit_declarations),
       endToken: null,
-      featureSet: null,
+      featureSet: ExperimentStatus.fromStorage(
+        data.compilationUnit_featureSet,
+      ),
     );
     LazyCompilationUnit(node, data);
     return node;
@@ -653,6 +656,8 @@ class AstBinaryReader {
           AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
       covariantKeyword:
           AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
+      externalKeyword:
+          AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
       fieldList: _readNode(data.fieldDeclaration_fields),
       metadata: _readNodeListLazy(data.annotatedNode_metadata),
       semicolon: _Tokens.SEMICOLON,
@@ -1546,6 +1551,8 @@ class AstBinaryReader {
         _readNodeListLazy(data.annotatedNode_metadata),
         _readNode(data.topLevelVariableDeclaration_variableList),
         _Tokens.SEMICOLON,
+        externalKeyword:
+            AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
       );
       LazyTopLevelVariableDeclaration.setData(node, data);
       return node;

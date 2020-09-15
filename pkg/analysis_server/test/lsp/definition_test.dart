@@ -46,13 +46,33 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));
     await openFile(referencedFileUri, withoutMarkers(referencedContents));
-    final res =
-        await getDefinition(mainFileUri, positionFromMarker(mainContents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(mainContents));
 
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(rangeFromMarkers(referencedContents)));
     expect(loc.uri, equals(referencedFileUri.toString()));
+  }
+
+  Future<void> test_comment_adjacentReference() async {
+    /// Computing Dart navigation locates a node at the provided offset then
+    /// returns all navigation regions inside it. This test ensures we filter
+    /// out any regions that are in the same target node (the comment) but do
+    /// not span the requested offset.
+    final contents = '''
+    /// Te^st
+    ///
+    /// References [String].
+    main() {}
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(contents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(contents));
+
+    expect(res, hasLength(0));
   }
 
   Future<void> test_fromPlugins() async {
@@ -69,7 +89,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     newFile(pluginAnalyzedFilePath);
     await initialize();
-    final res = await getDefinition(
+    final res = await getDefinitionAsLocation(
         pluginAnalyzedFileUri, lsp.Position(line: 0, character: 0));
 
     expect(res, hasLength(1));
@@ -82,12 +102,151 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(pluginAnalyzedFileUri.toString()));
   }
 
+  Future<void> test_locationLink_field() async {
+    final mainContents = '''
+    import 'referenced.dart';
+
+    main() {
+      Icons.[[ad^d]]();
+    }
+    ''';
+
+    final referencedContents = '''
+    void unrelatedFunction() {}
+
+    class Icons {
+      /// `targetRange` should not include the dartDoc but should include the full
+      /// function body. `targetSelectionRange` will be just the name.
+      [[String add = "Test"]];
+    }
+
+    void otherUnrelatedFunction() {}
+    ''';
+
+    final referencedFileUri =
+        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+
+    await initialize(
+        textDocumentCapabilities:
+            withLocationLinkSupport(emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(referencedFileUri, withoutMarkers(referencedContents));
+    final res = await getDefinitionAsLocationLinks(
+        mainFileUri, positionFromMarker(mainContents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
+    expect(loc.targetUri, equals(referencedFileUri.toString()));
+    expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
+    expect(
+      loc.targetSelectionRange,
+      equals(rangeOfString(referencedContents, 'add')),
+    );
+  }
+
+  Future<void> test_locationLink_function() async {
+    final mainContents = '''
+    import 'referenced.dart';
+
+    main() {
+      [[fo^o]]();
+    }
+    ''';
+
+    final referencedContents = '''
+    void unrelatedFunction() {}
+
+    /// `targetRange` should not include the dartDoc but should include the full
+    /// function body. `targetSelectionRange` will be just the name.
+    [[void foo() {
+      // Contents of function
+    }]]
+
+    void otherUnrelatedFunction() {}
+    ''';
+
+    final referencedFileUri =
+        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+
+    await initialize(
+        textDocumentCapabilities:
+            withLocationLinkSupport(emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(referencedFileUri, withoutMarkers(referencedContents));
+    final res = await getDefinitionAsLocationLinks(
+        mainFileUri, positionFromMarker(mainContents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
+    expect(loc.targetUri, equals(referencedFileUri.toString()));
+    expect(loc.targetRange, equals(rangeFromMarkers(referencedContents)));
+    expect(
+      loc.targetSelectionRange,
+      equals(rangeOfString(referencedContents, 'foo')),
+    );
+  }
+
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 
-    final res = await getDefinition(pubspecFileUri, startOfDocPos);
+    final res = await getDefinitionAsLocation(pubspecFileUri, startOfDocPos);
     expect(res, isEmpty);
+  }
+
+  /// Failing due to incorrect range because _DartNavigationCollector._getCodeLocation
+  /// does not handle parts.
+  @failingTest
+  Future<void> test_part() async {
+    final mainContents = '''
+    import 'lib.dart';
+
+    main() {
+      Icons.[[ad^d]]();
+    }
+    ''';
+
+    final libContents = '''
+    part 'part.dart';
+    ''';
+
+    final partContents = '''
+    part of 'lib.dart';
+
+    void unrelatedFunction() {}
+
+    class Icons {
+      /// `targetRange` should not include the dartDoc but should include the full
+      /// function body. `targetSelectionRange` will be just the name.
+      [[String add = "Test"]];
+    }
+
+    void otherUnrelatedFunction() {}
+    ''';
+
+    final libFileUri = Uri.file(join(projectFolderPath, 'lib', 'lib.dart'));
+    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+
+    await initialize(
+        textDocumentCapabilities:
+            withLocationLinkSupport(emptyTextDocumentClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(mainContents));
+    await openFile(libFileUri, withoutMarkers(libContents));
+    await openFile(partFileUri, withoutMarkers(partContents));
+    final res = await getDefinitionAsLocationLinks(
+        mainFileUri, positionFromMarker(mainContents));
+
+    expect(res, hasLength(1));
+    var loc = res.single;
+    expect(loc.originSelectionRange, equals(rangeFromMarkers(mainContents)));
+    expect(loc.targetUri, equals(partFileUri.toString()));
+    expect(loc.targetRange, equals(rangeFromMarkers(partContents)));
+    expect(
+      loc.targetSelectionRange,
+      equals(rangeOfString(partContents, 'add')),
+    );
   }
 
   Future<void> test_sameLine() async {
@@ -97,7 +256,8 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -114,7 +274,8 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -131,7 +292,8 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     newFile(mainFilePath, content: withoutMarkers(contents));
     await initialize();
-    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
     var loc = res.single;
@@ -148,7 +310,8 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(contents));
-    final res = await getDefinition(mainFileUri, positionFromMarker(contents));
+    final res = await getDefinitionAsLocation(
+        mainFileUri, positionFromMarker(contents));
 
     expect(res, hasLength(1));
     var loc = res.single;

@@ -10,4 +10,4 @@ class C {
   C.named ()=> null;
   get bar => 1;
 }
-main() { }
+main() {}

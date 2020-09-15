@@ -414,11 +414,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
       var leftType = _dispatch(leftOperand);
       _graph.connectDummy(leftType.node, DummyOrigin(source, node));
-      _flowAnalysis.equalityOp_rightBegin(leftOperand);
+      _flowAnalysis.equalityOp_rightBegin(leftOperand, leftType);
       var rightType = _dispatch(rightOperand);
       _graph.connectDummy(rightType.node, DummyOrigin(source, node));
       bool notEqual = operatorType == TokenType.BANG_EQ;
-      _flowAnalysis.equalityOp_end(node, rightOperand, notEqual: notEqual);
+      _flowAnalysis.equalityOp_end(node, rightOperand, rightType,
+          notEqual: notEqual);
 
       void buildNullConditionInfo(NullLiteral nullLiteral,
           Expression otherOperand, NullabilityNode otherNode) {
@@ -455,7 +456,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
       var leftType = _dispatch(leftOperand);
-      _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand);
+      _flowAnalysis.ifNullExpression_rightBegin(node.leftOperand, leftType);
       try {
         _guards.add(leftType.node);
         DecoratedType rightType;
@@ -836,6 +837,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } finally {
         _flowAnalysis = null;
         _assignedVariables = null;
+      }
+      var declaredElement = node.declaredElement;
+      if (declaredElement is PropertyAccessorElement) {
+        if (declaredElement.isGetter) {
+          var setter = declaredElement.correspondingSetter;
+          if (setter != null) {
+            _handleGetterSetterCorrespondence(
+                node, null, declaredElement, setter.declaration);
+          }
+        } else {
+          assert(declaredElement.isSetter);
+          var getter = declaredElement.correspondingGetter;
+          if (getter != null) {
+            _handleGetterSetterCorrespondence(
+                node, null, getter.declaration, declaredElement);
+          }
+        }
       }
     }
     return null;
@@ -2192,8 +2210,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     if (questionAssignNode != null) {
       _guards.add(destinationType.node);
-      _flowAnalysis
-          .ifNullExpression_rightBegin(questionAssignNode.leftHandSide);
+      _flowAnalysis.ifNullExpression_rightBegin(
+          questionAssignNode.leftHandSide, destinationType);
     }
     DecoratedType sourceType;
     try {
@@ -2339,6 +2357,63 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               in overriddenElements ?? <ExecutableElement>[]) {
             _handleExecutableOverriddenDeclaration(node, returnType, parameters,
                 enclosingElement, overriddenElement);
+          }
+          if (declaredElement is PropertyAccessorElement) {
+            if (declaredElement.isGetter) {
+              var setters = [declaredElement.correspondingSetter];
+              if (setters[0] == null && !declaredElement.isStatic) {
+                // No corresponding setter in this class; look for inherited
+                // setters.
+                var getterName = declaredElement.name;
+                var setterName = '$getterName=';
+                var inheritedMembers = _inheritanceManager.getOverridden2(
+                    enclosingElement,
+                    Name(enclosingElement.library.source.uri, setterName));
+                if (inheritedMembers != null) {
+                  setters = [
+                    for (var setter in inheritedMembers)
+                      if (setter is PropertyAccessorElement) setter
+                  ];
+                }
+              }
+              for (var setter in setters) {
+                if (setter != null) {
+                  _handleGetterSetterCorrespondence(
+                      node,
+                      declaredElement.isStatic ? null : enclosingElement,
+                      declaredElement,
+                      setter.declaration);
+                }
+              }
+            } else {
+              assert(declaredElement.isSetter);
+              assert(declaredElement.name.endsWith('='));
+              var getters = [declaredElement.correspondingGetter];
+              if (getters[0] == null && !declaredElement.isStatic) {
+                // No corresponding getter in this class; look for inherited
+                // getters.
+                var setterName = declaredElement.name;
+                var getterName = setterName.substring(0, setterName.length - 1);
+                var inheritedMembers = _inheritanceManager.getOverridden2(
+                    enclosingElement,
+                    Name(enclosingElement.library.source.uri, getterName));
+                if (inheritedMembers != null) {
+                  getters = [
+                    for (var getter in inheritedMembers)
+                      if (getter is PropertyAccessorElement) getter
+                  ];
+                }
+              }
+              for (var getter in getters) {
+                if (getter != null) {
+                  _handleGetterSetterCorrespondence(
+                      node,
+                      declaredElement.isStatic ? null : enclosingElement,
+                      getter.declaration,
+                      declaredElement);
+                }
+              }
+            }
           }
         }
       }
@@ -2563,6 +2638,48 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.forEach_end();
       }
     });
+  }
+
+  void _handleGetterSetterCorrespondence(Declaration node, ClassElement class_,
+      PropertyAccessorElement getter, PropertyAccessorElement setter) {
+    DecoratedType getType;
+    if (getter.isSynthetic) {
+      var field = getter.variable;
+      if (field == null || field.isSynthetic) return;
+      getType = _variables.decoratedElementType(field);
+    } else {
+      getType = _variables.decoratedElementType(getter).returnType;
+    }
+    DecoratedType setType;
+    if (setter.isSynthetic) {
+      var field = setter.variable;
+      if (field == null || field.isSynthetic) return;
+      setType = _variables.decoratedElementType(field);
+    } else {
+      setType =
+          _variables.decoratedElementType(setter).positionalParameters.single;
+    }
+    Map<TypeParameterElement, DecoratedType> getterSubstitution = const {};
+    Map<TypeParameterElement, DecoratedType> setterSubstitution = const {};
+    if (class_ != null) {
+      var getterClass = getter.enclosingElement as ClassElement;
+      if (!identical(class_, getterClass)) {
+        getterSubstitution = _decoratedClassHierarchy
+            .getDecoratedSupertype(class_, getterClass)
+            .asSubstitution;
+      }
+      var setterClass = setter.enclosingElement as ClassElement;
+      if (!identical(class_, setterClass)) {
+        setterSubstitution = _decoratedClassHierarchy
+            .getDecoratedSupertype(class_, setterClass)
+            .asSubstitution;
+      }
+    }
+    _checkAssignment(
+        GetterSetterCorrespondenceOrigin(source, node), FixReasonTarget.root,
+        source: getType.substitute(getterSubstitution),
+        destination: setType.substitute(setterSubstitution),
+        hard: true);
   }
 
   /// Instantiate [type] with [argumentTypes], assigning [argumentTypes] to
@@ -3254,6 +3371,13 @@ mixin _AssignmentChecker {
         // Nothing else to do.
         return;
       }
+    } else if (destinationType.isDartCoreNull) {
+      // There's not really much we can infer from trying to assign a type to
+      // Null.  We could say that the source of the assignment must be nullable,
+      // but that's not really useful because the nullability won't propagate
+      // anywhere.  Besides, the code is probably erroneous (e.g. the user is
+      // trying to store a value into a `List<Null>`).  So do nothing.
+      return;
     } else if (destinationType is TypeParameterType) {
       if (source.type is! TypeParameterType) {
         // Assume an assignment to the type parameter's bound.

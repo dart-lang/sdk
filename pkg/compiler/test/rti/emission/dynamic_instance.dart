@@ -6,7 +6,7 @@
 
 import 'package:expect/expect.dart';
 
-/*class: B:checkedInstance,checks=[],onlyForRti,typeArgument*/
+/*class: B:checkedInstance,typeArgument*/
 class B {}
 
 /*class: C:checks=[],instance*/

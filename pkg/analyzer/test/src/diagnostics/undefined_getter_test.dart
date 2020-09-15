@@ -374,9 +374,39 @@ int f(A a) => a.x;
 ''');
   }
 
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42957')
-  test_typeLiteral_conditionalAccess() {
-    return super.test_typeLiteral_conditionalAccess();
+  test_get_from_external_field_final_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+int f(A a) => a.x;
+''');
+  }
+
+  test_get_from_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+int f(A a) => a.x;
+''');
+  }
+
+  test_get_from_external_static_field_final_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static final int x;
+}
+int f() => A.x;
+''');
+  }
+
+  test_get_from_external_static_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static int x;
+}
+int f() => A.x;
+''');
   }
 }

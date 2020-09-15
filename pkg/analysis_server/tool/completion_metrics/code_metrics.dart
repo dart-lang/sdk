@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -565,6 +564,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'metadata': node.metadata,
       'abstractKeyword': node.abstractKeyword,
       'covariantKeyword': node.covariantKeyword,
+      'externalKeyword': node.externalKeyword,
       'staticKeyword': node.staticKeyword,
       'fields': node.fields,
     });
@@ -1195,6 +1195,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
+      'externalKeyword': node.externalKeyword,
       'variables': node.variables,
     });
     super.visitTopLevelVariableDeclaration(node);

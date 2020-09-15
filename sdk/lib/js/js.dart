@@ -229,5 +229,5 @@ external F allowInterop<F extends Function>(F f);
 ///
 /// See [allowInterop].
 ///
-/// When called from Dart, [null] will be passed as the first argument.
+/// When called from Dart, `null` will be passed as the first argument.
 external Function allowInteropCaptureThis(Function f);

@@ -34,5 +34,5 @@ errors() {
   var t = s!;
   dynamic c;
   c?..f;
-  c?.[0];
+  c?[0];
 }

@@ -144,9 +144,7 @@ class FileState {
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
       );
-    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize(reportScannerErrors: false);
-    });
+    Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;

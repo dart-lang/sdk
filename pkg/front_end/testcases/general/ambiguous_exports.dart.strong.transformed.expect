@@ -9,8 +9,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-export "org-dartlang-testcase:///hello.dart";
-export "org-dartlang-testcase:///map.dart";
+export "org-dartlang-testcase:///hello.dart" show main;
+export "org-dartlang-testcase:///map.dart" show main;
 
 static const field dynamic _exports# = #C1 /* from null */;
 

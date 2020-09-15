@@ -367,13 +367,6 @@ vms.ClassList assertClassList(vms.ClassList obj) {
   return obj;
 }
 
-vms.ClientName assertClientName(vms.ClientName obj) {
-  assertNotNull(obj);
-  assertString(obj.type);
-  assertString(obj.name);
-  return obj;
-}
-
 vms.CodeRef assertCodeRef(vms.CodeRef obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -656,6 +649,7 @@ vms.IsolateRef assertIsolateRef(vms.IsolateRef obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolate);
   return obj;
 }
 
@@ -672,6 +666,7 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolate);
   assertInt(obj.startTime);
   assertBool(obj.runnable);
   assertInt(obj.livePorts);
@@ -689,6 +684,7 @@ vms.IsolateGroupRef assertIsolateGroupRef(vms.IsolateGroupRef obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolateGroup);
   return obj;
 }
 
@@ -706,6 +702,7 @@ vms.IsolateGroup assertIsolateGroup(vms.IsolateGroup obj) {
   assertString(obj.id);
   assertString(obj.number);
   assertString(obj.name);
+  assertBool(obj.isSystemIsolateGroup);
   assertListOfIsolateRef(obj.isolates);
   return obj;
 }
@@ -1193,12 +1190,7 @@ vms.VM assertVM(vms.VM obj) {
   assertInt(obj.startTime);
   assertListOfIsolateRef(obj.isolates);
   assertListOfIsolateGroupRef(obj.isolateGroups);
-  return obj;
-}
-
-vms.WebSocketTarget assertWebSocketTarget(vms.WebSocketTarget obj) {
-  assertNotNull(obj);
-  assertString(obj.type);
-  assertString(obj.uri);
+  assertListOfIsolateRef(obj.systemIsolates);
+  assertListOfIsolateGroupRef(obj.systemIsolateGroups);
   return obj;
 }

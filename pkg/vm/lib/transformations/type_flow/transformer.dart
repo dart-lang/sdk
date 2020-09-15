@@ -19,7 +19,7 @@ import 'analysis.dart';
 import 'calls.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
-import 'table_selector.dart';
+import 'table_selector_assigner.dart';
 import 'types.dart';
 import 'unboxing_info.dart';
 import 'utils.dart';
@@ -94,12 +94,13 @@ Component transformComponent(
           component, typeFlowAnalysis, hierarchy, treeShaker.fieldMorpher)
       .visitComponent(component);
 
-  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis);
+  final tableSelectorAssigner = new TableSelectorAssigner(component);
 
-  _makePartition(component, typeFlowAnalysis, unboxingInfo);
+  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
+    ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
-  new AnnotateKernel(
-          component, typeFlowAnalysis, treeShaker.fieldMorpher, unboxingInfo)
+  new AnnotateKernel(component, typeFlowAnalysis, treeShaker.fieldMorpher,
+          tableSelectorAssigner, unboxingInfo)
       .visitComponent(component);
 
   treeShaker.finalizeSignatures();
@@ -155,7 +156,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   Constant _nullConstant;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.fieldMorpher,
-      this._unboxingInfo)
+      this._tableSelectorAssigner, this._unboxingInfo)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag],
         _inferredTypeMetadata = new InferredTypeMetadataRepository(),
@@ -163,7 +164,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _tableSelectorAssigner = new TableSelectorAssigner(component),
         _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
@@ -498,86 +498,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   }
 }
 
-// Partition the methods in order to idenfity parameters and return values
-// that are unboxing candidates
-void _makePartition(Component component, TypeFlowAnalysis typeFlowAnalysis,
-    UnboxingInfoManager unboxingInfo) {
-  // Traverses all the members and creates the partition graph.
-  // Currently unboxed parameters and return value are not supported for
-  // closures, therefore they do not exist in this graph
-  for (bool registering in const [true, false]) {
-    for (Library library in component.libraries) {
-      for (Class cls in library.classes) {
-        for (Member member in cls.members) {
-          if (registering) {
-            unboxingInfo.registerMember(member);
-          } else {
-            unboxingInfo.linkWithSuperClasses(member);
-          }
-        }
-      }
-      if (registering) {
-        for (Member member in library.members) {
-          unboxingInfo.registerMember(member);
-        }
-      }
-    }
-  }
-  unboxingInfo.finishGraph();
-
-  for (Library library in component.libraries) {
-    for (Class cls in library.classes) {
-      for (Member member in cls.members) {
-        _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
-      }
-    }
-    for (Member member in library.members) {
-      _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
-    }
-  }
-}
-
-void _updateUnboxingInfoOfMember(Member member,
-    TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoManager unboxingInfo) {
-  if (typeFlowAnalysis.isMemberUsed(member)) {
-    if (member is Procedure || member is Constructor) {
-      final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-      assertx(argTypes != null);
-
-      final int firstParamIndex =
-          numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
-
-      final positionalParams = member.function.positionalParameters;
-      assertx(argTypes.positionalCount ==
-          firstParamIndex + positionalParams.length);
-
-      for (int i = 0; i < positionalParams.length; i++) {
-        final inferredType = argTypes.values[firstParamIndex + i];
-        unboxingInfo.applyToArg(member, i, inferredType);
-      }
-
-      final names = argTypes.names;
-      for (int i = 0; i < names.length; i++) {
-        final inferredType =
-            argTypes.values[firstParamIndex + positionalParams.length + i];
-        unboxingInfo.applyToArg(
-            member, positionalParams.length + i, inferredType);
-      }
-
-      final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
-      unboxingInfo.applyToReturn(member, resultType);
-    } else if (member is Field) {
-      final fieldValue = typeFlowAnalysis.getFieldValue(member).value;
-      if (member.hasSetter) {
-        unboxingInfo.applyToArg(member, 0, fieldValue);
-      }
-      unboxingInfo.applyToReturn(member, fieldValue);
-    } else {
-      assertx(false);
-    }
-  }
-}
-
 /// Tree shaking based on results of type flow analysis (TFA).
 ///
 /// TFA provides information about allocated classes and reachable member
@@ -704,6 +624,12 @@ class TreeShaker {
               .adjustInstanceCallTarget(m.forwardingStubInterfaceTarget,
                   isSetter: m.isSetter);
           addUsedMember(m.forwardingStubInterfaceTarget);
+        }
+        if (m.memberSignatureOrigin != null) {
+          m.memberSignatureOrigin = fieldMorpher.adjustInstanceCallTarget(
+              m.memberSignatureOrigin,
+              isSetter: m.isSetter);
+          addUsedMember(m.memberSignatureOrigin);
         }
       } else if (m is Constructor) {
         func = m.function;

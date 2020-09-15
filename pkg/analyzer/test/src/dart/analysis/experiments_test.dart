@@ -4,6 +4,8 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart';
+import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,13 +19,41 @@ main() {
 class ExperimentsTest {
   var knownFeatures = <String, ExperimentalFeature>{};
 
+  void assertLatestSdkLanguageVersion(ExperimentStatus status) {
+    expect(
+      getSdkLanguageVersion(status),
+      ExperimentStatus.latestSdkLanguageVersion,
+    );
+  }
+
+  void assertSdkLanguageVersion(ExperimentStatus status, String expectedStr) {
+    var actual = getSdkLanguageVersion(status);
+    expect('${actual.major}.${actual.minor}', expectedStr);
+  }
+
   ExperimentStatus fromStrings(List<String> flags) {
     return overrideKnownFeatures(
         knownFeatures, () => ExperimentStatus.fromStrings(flags));
   }
 
+  ExperimentStatus fromStrings2({
+    @required Version sdkLanguageVersion,
+    @required List<String> flags,
+  }) {
+    return overrideKnownFeatures(knownFeatures, () {
+      return ExperimentStatus.fromStrings2(
+        sdkLanguageVersion: sdkLanguageVersion,
+        flags: flags,
+      );
+    });
+  }
+
   List<bool> getFlags(ExperimentStatus status) {
     return getExperimentalFlags_forTesting(status);
+  }
+
+  Version getSdkLanguageVersion(ExperimentStatus status) {
+    return getSdkLanguageVersion_forTesting(status);
   }
 
   List<ConflictingFlagLists> getValidateCombinationResult(
@@ -46,6 +76,400 @@ class ExperimentsTest {
     expect(currentVersion.build, isEmpty);
   }
 
+  test_fromStrings2_experimentalReleased_shouldBe_requested() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.2.0'),
+    );
+    knownFeatures['b'] = ExperimentalFeature(
+      index: 1,
+      enableString: 'b',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'b',
+      experimentalReleaseVersion: Version.parse('1.4.0'),
+      releaseVersion: null,
+    );
+    knownFeatures['c'] = ExperimentalFeature(
+      index: 2,
+      enableString: 'c',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'c',
+      experimentalReleaseVersion: Version.parse('1.4.0'),
+      releaseVersion: null,
+    );
+    overrideKnownFeatures(knownFeatures, () {
+      // Only experiments that are explicitly requested can be enabled.
+      var status = fromStrings2(
+        sdkLanguageVersion: Version.parse('1.5.0'),
+        flags: ['b'],
+      );
+      assertSdkLanguageVersion(status, '1.5');
+      expect(getFlags(status), [true, true, false]);
+    });
+  }
+
+  test_fromStrings2_flags_conflicting_disable_then_enable() {
+    // Enable takes precedence because it's last
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['no-a', 'a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
+  }
+
+  test_fromStrings2_flags_conflicting_enable_then_disable() {
+    // Disable takes precedence because it's last
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['a', 'no-a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
+  }
+
+  test_fromStrings2_flags_disable_disabled_feature() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['no-a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
+  }
+
+  test_fromStrings2_flags_disable_enabled_feature() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['no-a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
+  }
+
+  test_fromStrings2_flags_empty() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    knownFeatures['b'] = ExperimentalFeature(
+      index: 1,
+      enableString: 'b',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'b',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: [],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false, true]);
+  }
+
+  test_fromStrings2_flags_enable_disabled_feature() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
+  }
+
+  test_fromStrings2_flags_enable_enabled_feature() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
+  }
+
+  test_fromStrings2_flags_illegal_use_of_expired_disable() {
+    // Expired flags are ignored even if they would fail validation.
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: true,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['no-a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
+  }
+
+  test_fromStrings2_flags_illegal_use_of_expired_enable() {
+    // Expired flags are ignored even if they would fail validation.
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: true,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
+  }
+
+  test_fromStrings2_flags_unnecessary_use_of_expired_disable() {
+    // Expired flags are ignored.
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: false,
+      isExpired: true,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['no-a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
+  }
+
+  test_fromStrings2_flags_unnecessary_use_of_expired_enable() {
+    // Expired flags are ignored.
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: true,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
+  }
+
+  test_fromStrings2_flags_unrecognized() {
+    // Unrecognized flags are ignored.
+    var status = fromStrings2(
+      sdkLanguageVersion: ExperimentStatus.latestSdkLanguageVersion,
+      flags: ['a'],
+    );
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), <Object>[]);
+  }
+
+  test_fromStrings2_sdkLanguage_allows_experimental() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.2.0'),
+    );
+    knownFeatures['b'] = ExperimentalFeature(
+      index: 1,
+      enableString: 'b',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'b',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    knownFeatures['c'] = ExperimentalFeature(
+      index: 2,
+      enableString: 'c',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'c',
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
+    );
+    overrideKnownFeatures(knownFeatures, () {
+      var status = fromStrings2(
+        sdkLanguageVersion: Version.parse('1.5.0'),
+        flags: ['b', 'c'],
+      );
+      assertSdkLanguageVersion(status, '1.5');
+      expect(getFlags(status), [true, true, true]);
+
+      // Restricting to the SDK version does not change anything.
+      var status2 = status.restrictToVersion(Version.parse('1.5.0'));
+      assertSdkLanguageVersion(status2, '1.5');
+      expect(getFlags(status2), [true, true, true]);
+
+      // Restricting to the previous version disables the experiments.
+      var status3 = status.restrictToVersion(Version.parse('1.4.0'));
+      assertSdkLanguageVersion(status3, '1.5');
+      expect(getFlags(status3), [true, false, false]);
+    });
+  }
+
+  test_fromStrings2_sdkLanguage_allows_experimentalReleased() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.2.0'),
+    );
+    knownFeatures['b'] = ExperimentalFeature(
+      index: 1,
+      enableString: 'b',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'b',
+      experimentalReleaseVersion: Version.parse('1.4.0'),
+      releaseVersion: null,
+    );
+    knownFeatures['c'] = ExperimentalFeature(
+      index: 2,
+      enableString: 'c',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'c',
+      experimentalReleaseVersion: Version.parse('1.5.0'),
+      releaseVersion: null,
+    );
+    knownFeatures['d'] = ExperimentalFeature(
+      index: 3,
+      enableString: 'd',
+      isEnabledByDefault: false,
+      isExpired: false,
+      documentation: 'd',
+      experimentalReleaseVersion: Version.parse('1.6.0'),
+      releaseVersion: null,
+    );
+    overrideKnownFeatures(knownFeatures, () {
+      var status = fromStrings2(
+        sdkLanguageVersion: Version.parse('1.5.0'),
+        flags: ['b', 'c', 'd'],
+      );
+      assertSdkLanguageVersion(status, '1.5');
+      expect(getFlags(status), [true, true, true, true]);
+
+      // Restricting to the SDK version does not change anything.
+      var status2 = status.restrictToVersion(Version.parse('1.5.0'));
+      assertSdkLanguageVersion(status2, '1.5');
+      expect(getFlags(status2), [true, true, true, true]);
+
+      // Restricting to a version disables some experiments.
+      var status3 = status.restrictToVersion(Version.parse('1.4.0'));
+      assertSdkLanguageVersion(status3, '1.5');
+      expect(getFlags(status3), [true, true, false, false]);
+    });
+  }
+
+  test_fromStrings2_sdkLanguage_restricts_released() {
+    knownFeatures['a'] = ExperimentalFeature(
+      index: 0,
+      enableString: 'a',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'a',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.6.0'),
+    );
+    knownFeatures['b'] = ExperimentalFeature(
+      index: 1,
+      enableString: 'b',
+      isEnabledByDefault: true,
+      isExpired: false,
+      documentation: 'b',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.1.0'),
+    );
+    var status = fromStrings2(
+      sdkLanguageVersion: Version.parse('1.5.0'),
+      flags: [],
+    );
+    assertSdkLanguageVersion(status, '1.5');
+    expect(getFlags(status), [false, true]);
+  }
+
   test_fromStrings_conflicting_flags_disable_then_enable() {
     // Enable takes precedence because it's last
     knownFeatures['a'] = ExperimentalFeature(
@@ -54,9 +478,12 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
-    expect(getFlags(fromStrings(['no-a', 'a'])), [true]);
+    var status = fromStrings(['no-a', 'a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
   }
 
   test_fromStrings_conflicting_flags_enable_then_disable() {
@@ -67,9 +494,12 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
-    expect(getFlags(fromStrings(['a', 'no-a'])), [false]);
+    var status = fromStrings(['a', 'no-a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
   }
 
   test_fromStrings_default_values() {
@@ -79,7 +509,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -87,9 +518,12 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
-    expect(getFlags(fromStrings([])), [false, true]);
+    var status = fromStrings([]);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false, true]);
   }
 
   test_fromStrings_disable_disabled_feature() {
@@ -99,9 +533,12 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
-    expect(getFlags(fromStrings(['no-a'])), [false]);
+    var status = fromStrings(['no-a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
   }
 
   test_fromStrings_disable_enabled_feature() {
@@ -111,9 +548,12 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
-    expect(getFlags(fromStrings(['no-a'])), [false]);
+    var status = fromStrings(['no-a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
   }
 
   test_fromStrings_enable_disabled_feature() {
@@ -123,9 +563,12 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
-    expect(getFlags(fromStrings(['a'])), [true]);
+    var status = fromStrings(['a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
   }
 
   test_fromStrings_enable_enabled_feature() {
@@ -135,9 +578,12 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
-    expect(getFlags(fromStrings(['a'])), [true]);
+    var status = fromStrings(['a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
   }
 
   test_fromStrings_illegal_use_of_expired_flag_disable() {
@@ -148,9 +594,12 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
-    expect(getFlags(fromStrings(['no-a'])), [true]);
+    var status = fromStrings(['no-a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
   }
 
   test_fromStrings_illegal_use_of_expired_flag_enable() {
@@ -161,9 +610,12 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
-    expect(getFlags(fromStrings(['a'])), [false]);
+    var status = fromStrings(['a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
   }
 
   test_fromStrings_unnecessary_use_of_expired_flag_disable() {
@@ -174,9 +626,12 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
-    expect(getFlags(fromStrings(['no-a'])), [false]);
+    var status = fromStrings(['no-a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [false]);
   }
 
   test_fromStrings_unnecessary_use_of_expired_flag_enable() {
@@ -187,14 +642,19 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
-    expect(getFlags(fromStrings(['a'])), [true]);
+    var status = fromStrings(['a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), [true]);
   }
 
   test_fromStrings_unrecognized_flag() {
     // Unrecognized flags are ignored.
-    expect(getFlags(fromStrings(['a'])), <Object>[]);
+    var status = fromStrings(['a']);
+    assertLatestSdkLanguageVersion(status);
+    expect(getFlags(status), <Object>[]);
   }
 
   test_validateFlagCombination_disable_then_enable() {
@@ -204,7 +664,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -212,7 +673,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['c'] = ExperimentalFeature(
       index: 2,
@@ -220,7 +682,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'c',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult =
         getValidateCombinationResult(['a', 'no-c'], ['no-b', 'c']);
@@ -237,7 +700,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -245,7 +709,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['c'] = ExperimentalFeature(
       index: 2,
@@ -253,7 +718,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'c',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult =
         getValidateCombinationResult(['a', 'c'], ['no-b', 'no-c']);
@@ -270,7 +736,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['b'] = ExperimentalFeature(
       index: 1,
@@ -278,7 +745,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'b',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     knownFeatures['c'] = ExperimentalFeature(
       index: 2,
@@ -286,7 +754,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'c',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getValidateCombinationResult(['a', 'c'], ['no-b', 'c']), isEmpty);
   }
@@ -298,7 +767,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['no-a', 'a']);
     expect(validationResult, hasLength(1));
@@ -318,7 +788,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['a', 'no-a']);
     expect(validationResult, hasLength(1));
@@ -338,7 +809,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     expect(getValidationResult(['no-a', 'no-a']), isEmpty);
   }
@@ -350,7 +822,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: false,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     expect(getValidationResult(['a', 'a']), isEmpty);
   }
@@ -362,7 +835,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     var validationResult = getValidationResult(['no-a']);
     expect(validationResult, hasLength(1));
@@ -380,7 +854,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['a']);
     expect(validationResult, hasLength(1));
@@ -398,7 +873,8 @@ class ExperimentsTest {
       isEnabledByDefault: false,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: null,
+      experimentalReleaseVersion: null,
+      releaseVersion: null,
     );
     var validationResult = getValidationResult(['no-a']);
     expect(validationResult, hasLength(1));
@@ -416,7 +892,8 @@ class ExperimentsTest {
       isEnabledByDefault: true,
       isExpired: true,
       documentation: 'a',
-      firstSupportedVersion: '1.0.0',
+      experimentalReleaseVersion: null,
+      releaseVersion: Version.parse('1.0.0'),
     );
     var validationResult = getValidationResult(['a']);
     expect(validationResult, hasLength(1));

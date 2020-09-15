@@ -44,6 +44,7 @@ void main() {
   testStreamsIndependent();
   asyncTest(testStreamNonOverlap);
   asyncTest(testRepeatLatest);
+  asyncTest(testIncorrectUse);
   asyncEnd();
 }
 
@@ -137,4 +138,80 @@ Future<void> testRepeatLatest() async {
   c.add(3);
   var l3 = await f3;
   Expect.listEquals([2, 3], l3);
+}
+
+// Test that errors are thrown when required,
+// and use after cancel is ignored.
+Future<void> testIncorrectUse() async {
+  {
+    var lock = Completer();
+    var lock2 = Completer();
+    var stream = Stream.multi((c) async {
+      c.add(2);
+      await lock.future;
+      Expect.isTrue(!c.hasListener);
+      c.add(2);
+      c.addError("Error");
+      c.close();
+      // No adding after close.
+      Expect.throws<StateError>(() => c.add(3));
+      Expect.throws<StateError>(() => c.addSync(3));
+      Expect.throws<StateError>(() => c.addError("E"));
+      Expect.throws<StateError>(() => c.addErrorSync("E"));
+      Expect.throws<StateError>(() => c.addStream(Stream.empty()));
+      lock2.complete();
+    });
+    await for (var v in stream) {
+      Expect.equals(2, v);
+      break; // Cancels subscription.
+    }
+    lock.complete();
+    await lock2.future;
+  }
+
+  {
+    var lock = Completer();
+    var lock2 = Completer();
+    var stream = Stream.multi((c) async {
+      c.add(2);
+      await lock.future;
+      Expect.isTrue(!c.hasListener);
+      c.addSync(2);
+      c.addErrorSync("Error");
+      c.closeSync();
+      // No adding after close.
+      Expect.throws<StateError>(() => c.add(3));
+      Expect.throws<StateError>(() => c.addSync(3));
+      Expect.throws<StateError>(() => c.addError("E"));
+      Expect.throws<StateError>(() => c.addErrorSync("E"));
+      Expect.throws<StateError>(() => c.addStream(Stream.empty()));
+      lock2.complete();
+    });
+    await for (var v in stream) {
+      Expect.equals(2, v);
+      break; // Cancels subscription.
+    }
+    lock.complete();
+    await lock2.future;
+  }
+
+  {
+    var stream = Stream.multi((c) async {
+      var c2 = StreamController();
+      c.addStream(c2.stream);
+      // Now adding stream, cannot add events at the same time (for now!).
+      Expect.throws<StateError>(() => c.add(1));
+      Expect.throws<StateError>(() => c.addSync(1));
+      Expect.throws<StateError>(() => c.addError("Error"));
+      Expect.throws<StateError>(() => c.addErrorSync("Error"));
+      Expect.throws<StateError>(() => c.close());
+      Expect.throws<StateError>(() => c.closeSync());
+      await c2.close();
+      c.add(42);
+      c.close();
+    });
+    await for (var v in stream) {
+      Expect.equals(42, v);
+    }
+  }
 }

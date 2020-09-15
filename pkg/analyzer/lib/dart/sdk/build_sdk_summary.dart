@@ -158,15 +158,43 @@ class _Builder {
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = allowedExperiments.forSdkLibrary(libraryName);
-        return FeatureSet.fromEnableFlags(experiments);
+        return FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: languageVersion,
+          flags: experiments,
+        );
       }
     }
     throw StateError('Expected a valid dart: URI: $uri');
   }
 
+  String _getContent(Source source) {
+    var uriStr = '${source.uri}';
+    var content = source.contents.data;
+
+    // https://github.com/google/json_serializable.dart/issues/692
+    // SDK 2.9 was released with the syntax that we later decided to remove.
+    // But the current analyzer still says that it supports SDK 2.9, so we
+    // have to be able to handle this code. We do this by rewriting it into
+    // the syntax that we support now.
+    if (uriStr == 'dart:core/uri.dart') {
+      return content.replaceAll(
+        'String? charsetName = parameters?.["charset"];',
+        'String? charsetName = parameters? ["charset"];',
+      );
+    }
+    if (uriStr == 'dart:_http/http_headers.dart') {
+      return content.replaceAll(
+        'return _originalHeaderNames?.[name] ?? name;',
+        'return _originalHeaderNames? [name] ?? name;',
+      );
+    }
+
+    return content;
+  }
+
   CompilationUnit _parse(Source source) {
     var result = parseString(
-      content: source.contents.data,
+      content: _getContent(source),
       featureSet: _featureSet(source.uri),
       throwIfDiagnostics: false,
     );

@@ -6,7 +6,9 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:meta/meta.dart';
@@ -26,31 +28,47 @@ class DataDriven extends MultiCorrectionProducer {
       //  invalid suggestions.
       importedUris.add(importElement.uri);
     }
-    for (var set in _availableTransformSets) {
+    for (var set in _availableTransformSetsForLibrary(library)) {
       for (var transform in set.transformsFor(name, importedUris)) {
         yield DataDrivenFix(transform);
       }
     }
   }
 
-  List<TransformSet> get _availableTransformSets {
-    if (transformSetsForTests != null) {
-      return transformSetsForTests;
-    }
-    // TODO(brianwilkerson) This data needs to be cached somewhere and updated
-    //  when the `package_config.json` file for an analysis context is modified.
-    return <TransformSet>[];
-  }
-
-  /// Return the name that was changed.
+  /// Return the name of the element that was changed.
   String get _name {
     var node = this.node;
     if (node is SimpleIdentifier) {
       return node.name;
     } else if (node is ConstructorName) {
       return node.name.name;
+    } else if (node is NamedType) {
+      return node.name.name;
+    } else if (node is TypeArgumentList) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.methodName.name;
+      } else if (parent is ExtensionOverride) {
+        return parent.extensionName.name;
+      }
+    } else if (node is ArgumentList) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.methodName.name;
+      } else if (parent is ExtensionOverride) {
+        return parent.extensionName.name;
+      }
     }
     return null;
+  }
+
+  /// Return the transform sets that are available for fixing issues in the
+  /// given [library].
+  List<TransformSet> _availableTransformSetsForLibrary(LibraryElement library) {
+    if (transformSetsForTests != null) {
+      return transformSetsForTests;
+    }
+    return TransformSetManager.instance.forLibrary(library);
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.

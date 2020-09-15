@@ -2,6 +2,17 @@
 
 ### Core libraries
 
+#### `dart:io`
+
+*   Adds `Abort` method to class `HttpClientRequest`, which allows users
+    to cancel outgoing HTTP requests and stop following IO operations.
+*   A validation check is added to `path` of class `Cookie`. Having characters
+    ranging from 0x00 to 0x1f and 0x3b (";") will lead to a `FormatException`.
+*   The `HttpClient` and `HttpServer` clasess now have a 1 MiB limit for the
+    total size of the HTTP headers when parsing a request or response, instead
+    of the former 8 KiB limit for each header name and value. This limit cannot
+    be configured at this time.
+
 #### `dart:typed_data`
 
 *   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
@@ -9,10 +20,37 @@
 
 ### Dart VM
 
+*   **Breaking Change** [#42982][]: `dart_api_dl.cc` is renamed to
+    `dart_api_dl.c` and changed to a pure C file.
 *   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
     referred object cannot be accessed through them.
 
+### Dart2JS
+
+*   Adds support for deferred loading of types seperately from classes. This
+    enables dart2js to make better optimization choices when deferred loading.
+    This work is necessary to address unsoundness in the deferred loading
+    algorithm. Currently, fixing this unsoundness would result in code bloat,
+    but loading types seperately from classes will allow us to fix the
+    unsoundness with only a minimal regression. To explicitly disable
+    deferred loading of types, pass `--no-defer-class-types`. See the original
+    post on the [unsoundness in the deferred loading algorithm][].
+*   Enables a new sound deferred splitting algorithm. To explicitly disable
+    the new deferred splitting algorithm, pass `--no-new-deferred-split'.
+    See the original post on the
+    [unsoundness in the deferred loading algorithm][].
+
+
+[#42982]: https://github.com/dart-lang/sdk/issues/42982
+[unsoundness in the deferred loading algorithm]: https://github.com/dart-lang/sdk/blob/302ad7ab2cd2de936254850550aad128ae76bbb7/CHANGELOG.md#dart2js-3
+
 ### Tools
+
+#### dartfmt
+
+* Don't crash when non-ASCII whitespace is trimmed.
+* Split all conditional expressions (`?:`) when they are nested.
+* Handle `external` and `abstract` fields and variables.
 
 #### Linter
 
@@ -28,6 +66,35 @@ Updated the Linter to `0.1.118`, which includes:
 * Updated `public_member_api_docs` to check mixins.
 * Updated `unnecessary_statements` to skip `as` expressions.
 * Fixed `prefer_relative_imports` to work with path dependencies.
+
+#### Pub
+
+* `pub run` and `pub global run` accepts a `--(no-)-sound-null-safety` flag,
+  that is passed to the VM.
+* Fix: Avoid multiple recompilation of binaries in global packages.
+* Fix: Avoid exponential behaviour of error reporting from the solver.
+* Fix: Refresh binstubs after recompile in global run.
+
+## 2.9.3 - 2020-09-08
+
+This is a patch release that fixes DDC to handle a breaking change in Chrome
+(issue [#43193][]).
+
+[#43193]: https://github.com/dart-lang/sdk/issues/43193
+
+## 2.9.2 - 2020-08-26
+
+This is a patch release that fixes transient StackOverflow exceptions when
+building Flutter applications (issue [flutter/flutter#63560][]).
+
+[flutter/flutter#63560]: https://github.com/flutter/flutter/issues/63560
+
+## 2.9.1 - 2020-08-12
+
+This is a patch release that fixes unhandled exceptions in some Flutter
+applications (issue [flutter/flutter#63038][]).
+
+[flutter/flutter#63038]: https://github.com/flutter/flutter/issues/63038
 
 ## 2.9.0 - 2020-08-05
 
@@ -149,8 +216,6 @@ Updated the Linter to `0.1.117`, which includes:
   experiments in the Dart VM (and language).
 * Warn when publishing the first null-safe version of a package.
 * `pub outdated`:
-  * Introduce `--mode=null-safety` flag that will report which of your
-    dependencies you can upgrade to fully support null safety.
   * If the current version of a dependency is a prerelease
     version, use prereleases for latest if there is no newer stable.
   * Don't require a `pubspec.lock` file. When the lockfile is missing, the

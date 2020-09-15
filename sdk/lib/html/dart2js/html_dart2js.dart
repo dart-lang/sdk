@@ -8,7 +8,7 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
- * For information on writing web apps with Dart, see https://webdev.dartlang.org.
+ * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
  */
@@ -1937,13 +1937,13 @@ class ButtonElement extends HtmlElement {
 
   set formAction(String? value) native;
 
-  String get formEnctype native;
+  String? get formEnctype native;
 
-  set formEnctype(String value) native;
+  set formEnctype(String? value) native;
 
-  String get formMethod native;
+  String? get formMethod native;
 
-  set formMethod(String value) native;
+  set formMethod(String? value) native;
 
   bool get formNoValidate native;
 
@@ -2120,15 +2120,15 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   /// The height of this canvas element in CSS pixels.
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   /// The width of this canvas element in CSS pixels.
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   MediaStream captureStream([num? frameRate]) native;
 
@@ -15994,9 +15994,9 @@ class FieldSetElement extends HtmlElement {
    */
   FieldSetElement.created() : super.created();
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   @Returns('HtmlCollection')
   @Creates('HtmlCollection')
@@ -17965,19 +17965,12 @@ class HtmlOptionsCollection extends HtmlCollection {
   * as the requested resource.
   * In the example above, the myData.json file must be co-located with the
   * app that uses it.
-  * You might be able to
-  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#a-note-on-cors-and-httprequest)
-  * by using CORS headers or JSONP.
   *
   * ## Other resources
   *
-  * * [Fetch Data Dynamically](https://www.dartlang.org/docs/tutorials/fetchdata/),
-  * a tutorial from _A Game of Darts_,
-  * shows two different ways to use HttpRequest to get a JSON file.
-  * * [Get Input from a Form](https://www.dartlang.org/docs/tutorials/forms/),
-  * another tutorial from _A Game of Darts_,
-  * shows using HttpRequest with a custom server.
-  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+  * * [Fetch data dynamically](https://dart.dev/tutorials/web/fetch-data/),
+  * a tutorial shows how to load data from a static file or from a server.
+  * * [Dart article on using HttpRequests](https://dart.dev/guides/libraries/library-tour#using-http-resources-with-httprequest)
   * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
   * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
@@ -21740,34 +21733,34 @@ class MeterElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  num get high native;
+  num? get high native;
 
-  set high(num value) native;
+  set high(num? value) native;
 
   @Unstable()
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node>? get labels native;
 
-  num get low native;
+  num? get low native;
 
-  set low(num value) native;
+  set low(num? value) native;
 
-  num get max native;
+  num? get max native;
 
-  set max(num value) native;
+  set max(num? value) native;
 
-  num get min native;
+  num? get min native;
 
-  set min(num value) native;
+  set min(num? value) native;
 
-  num get optimum native;
+  num? get optimum native;
 
-  set optimum(num value) native;
+  set optimum(num? value) native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28945,18 +28938,13 @@ class StaticRange extends Interceptor {
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
  *     window.localStorage.clear();
  *     assert(window.localStorage.length == 0);
  *
- * For more examples of using this API, see
- * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
- * For details on using the Map API, see the
- * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
- * section of the library tour.
  */
 @Unstable()
 @Native("Storage")
@@ -29170,9 +29158,9 @@ class StyleElement extends HtmlElement {
 
   StyleSheet? get sheet native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

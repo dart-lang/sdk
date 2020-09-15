@@ -25,26 +25,23 @@ static void SetEdgeWeight(BlockEntryInstr* block,
                           BlockEntryInstr* successor,
                           const Array& edge_counters,
                           intptr_t entry_count) {
-  TargetEntryInstr* target = successor->AsTargetEntry();
-  if (target != NULL) {
+  ASSERT(entry_count != 0);
+  if (auto target = successor->AsTargetEntry()) {
     // If this block ends in a goto, the edge count of this edge is the same
     // as the count on the single outgoing edge. This is true as long as the
     // block does not throw an exception.
     intptr_t count = GetEdgeCount(edge_counters, target->preorder_number());
-    if ((count >= 0) && (entry_count != 0)) {
+    if (count >= 0) {
       double weight =
           static_cast<double>(count) / static_cast<double>(entry_count);
       target->set_edge_weight(weight);
     }
-  } else {
-    GotoInstr* jump = block->last_instruction()->AsGoto();
-    if (jump != NULL) {
-      intptr_t count = GetEdgeCount(edge_counters, block->preorder_number());
-      if ((count >= 0) && (entry_count != 0)) {
-        double weight =
-            static_cast<double>(count) / static_cast<double>(entry_count);
-        jump->set_edge_weight(weight);
-      }
+  } else if (auto jump = block->last_instruction()->AsGoto()) {
+    intptr_t count = GetEdgeCount(edge_counters, block->preorder_number());
+    if (count >= 0) {
+      double weight =
+          static_cast<double>(count) / static_cast<double>(entry_count);
+      jump->set_edge_weight(weight);
     }
   }
 }
@@ -82,6 +79,9 @@ void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
   const intptr_t entry_count =
       GetEdgeCount(edge_counters, entry->preorder_number());
   graph_entry->set_entry_count(entry_count);
+  if (entry_count == 0) {
+    return;  // Nothing to do.
+  }
 
   for (BlockIterator it = flow_graph->reverse_postorder_iterator(); !it.Done();
        it.Advance()) {

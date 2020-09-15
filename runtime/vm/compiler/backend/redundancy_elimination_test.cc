@@ -33,7 +33,7 @@ static Dart_NativeFunction NoopNativeLookup(Dart_Handle name,
                                             bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = false;
-  return reinterpret_cast<Dart_NativeFunction>(&NoopNative);
+  return NoopNative;
 }
 
 // Flatten all non-captured LocalVariables from the given scope and its children

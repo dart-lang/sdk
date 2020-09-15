@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:meta/meta.dart';
@@ -35,12 +36,12 @@ import 'package:meta/meta.dart';
 /// way for a possible future where we may wish to make the type system
 /// pluggable.
 // TODO(brianwilkerson) Rename this class to TypeSystemImpl.
-abstract class TypeSystem implements public.TypeSystem {
+abstract class TypeSystem2 implements public.TypeSystem {
   /// If `true`, then NNBD type rules should be used.
   /// If `false`, then legacy type rules should be used.
   final bool isNonNullableByDefault;
 
-  TypeSystem({@required this.isNonNullableByDefault});
+  TypeSystem2({@required this.isNonNullableByDefault});
 
   /// The provider of types for the system
   TypeProvider get typeProvider;
@@ -170,12 +171,15 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNonNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return false;
+    } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
+      return isNonNullable(type.promotedBound);
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
-    } else if (type.isDartAsyncFutureOr) {
-      return isNonNullable((type as InterfaceType).typeArguments[0]);
+    } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
+      return isNonNullable(type.typeArguments[0]);
     } else if (type is TypeParameterType) {
-      return isNonNullable(type.bound);
+      var bound = type.element.bound;
+      return bound != null && isNonNullable(bound);
     }
     return true;
   }
@@ -184,6 +188,8 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return true;
+    } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
+      return isNullable(type.promotedBound);
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return true;
     } else if (type.isDartAsyncFutureOr) {
@@ -313,7 +319,25 @@ abstract class TypeSystem implements public.TypeSystem {
   /// left operand has the type [leftType] and whose right operand has the type
   /// [rightType], given that resolution has so far produced the [currentType].
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType);
+      DartType rightType, DartType currentType, MethodElement operatorElement);
+
+  /// Determines the context type for the parameters of a method invocation
+  /// where the type of the target is [targetType], the method being invoked is
+  /// [methodElement], the context surrounding the method invocation is
+  /// [invocationContext], and the context type produced so far by resolution is
+  /// [currentType].
+  DartType refineNumericInvocationContext(DartType targetType,
+      Element methodElement, DartType invocationContext, DartType currentType);
+
+  /// Determines the type of a method invocation where the type of the target is
+  /// [targetType], the method being invoked is [methodElement], the types of
+  /// the arguments passed to the method are [argumentTypes], and the type
+  /// produced so far by resolution is [currentType].
+  DartType refineNumericInvocationType(
+      DartType targetType,
+      MethodElement methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType);
 
   @override
   DartType resolveToBound(DartType type) {
@@ -394,7 +418,7 @@ abstract class TypeSystem implements public.TypeSystem {
 }
 
 /// The [public.TypeSystem] implementation.
-class TypeSystemImpl extends TypeSystem {
+class TypeSystemImpl extends TypeSystem2 {
   /// False if implicit casts should always be disallowed.
   ///
   /// This affects the behavior of [isAssignableTo].
@@ -406,7 +430,7 @@ class TypeSystemImpl extends TypeSystem {
   bool strictInference;
 
   @override
-  final TypeProvider typeProvider;
+  final TypeProviderImpl typeProvider;
 
   /// The cached instance of `Object?`.
   InterfaceTypeImpl _objectQuestion;
@@ -430,8 +454,9 @@ class TypeSystemImpl extends TypeSystem {
     @required this.implicitCasts,
     @required bool isNonNullableByDefault,
     @required this.strictInference,
-    @required this.typeProvider,
-  }) : super(isNonNullableByDefault: isNonNullableByDefault) {
+    @required TypeProvider typeProvider,
+  })  : typeProvider = typeProvider as TypeProviderImpl,
+        super(isNonNullableByDefault: isNonNullableByDefault) {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
     _leastUpperBoundHelper = LeastUpperBoundHelper(this);
     _subtypeHelper = SubtypeHelper(this);
@@ -1346,89 +1371,42 @@ class TypeSystemImpl extends TypeSystem {
 
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
-    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
-      if (rightType == leftType || rightType.isDartCoreInt) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.PLUS_EQ ||
-            operator == TokenType.MINUS_EQ ||
-            operator == TokenType.STAR_EQ ||
-            operator == TokenType.PLUS_PLUS ||
-            operator == TokenType.MINUS_MINUS) {
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(leftType as TypeImpl);
-          }
-          return leftType;
-        }
-      }
-      if (rightType.isDartCoreDouble) {
-        if (operator == TokenType.PLUS ||
-            operator == TokenType.MINUS ||
-            operator == TokenType.STAR ||
-            operator == TokenType.SLASH) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(doubleType);
-          }
-          return doubleType;
-        }
-      }
+      DartType rightType, DartType currentType, MethodElement operatorElement) {
+    if (isNonNullableByDefault) {
+      if (operatorElement == null) return currentType;
+      return _refineNumericInvocationTypeNullSafe(
+          leftType, operatorElement, [rightType], currentType);
+    } else {
+      return _refineBinaryExpressionTypeLegacy(
+          leftType, operator, rightType, currentType);
+    }
+  }
+
+  @override
+  DartType refineNumericInvocationContext(DartType targetType,
+      Element methodElement, DartType invocationContext, DartType currentType) {
+    if (methodElement is MethodElement && isNonNullableByDefault) {
+      return _refineNumericInvocationContextNullSafe(
+          targetType, methodElement, invocationContext, currentType);
+    } else {
+      // No special rules apply.
       return currentType;
     }
-    // bool
-    if (operator == TokenType.AMPERSAND_AMPERSAND ||
-        operator == TokenType.BAR_BAR ||
-        operator == TokenType.EQ_EQ ||
-        operator == TokenType.BANG_EQ) {
-      if (isNonNullableByDefault) {
-        return promoteToNonNull(typeProvider.boolType);
-      }
-      return typeProvider.boolType;
+  }
+
+  @override
+  DartType refineNumericInvocationType(
+      DartType targetType,
+      Element methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType) {
+    if (methodElement is MethodElement && isNonNullableByDefault) {
+      return _refineNumericInvocationTypeNullSafe(
+          targetType, methodElement, argumentTypes, currentType);
+    } else {
+      // No special rules apply.
+      return currentType;
     }
-    if (leftType.isDartCoreInt) {
-      // int op double
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ) {
-        if (rightType.isDartCoreDouble) {
-          InterfaceTypeImpl doubleType = typeProvider.doubleType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(doubleType);
-          }
-          return doubleType;
-        }
-      }
-      // int op int
-      if (operator == TokenType.MINUS ||
-          operator == TokenType.PERCENT ||
-          operator == TokenType.PLUS ||
-          operator == TokenType.STAR ||
-          operator == TokenType.TILDE_SLASH ||
-          operator == TokenType.MINUS_EQ ||
-          operator == TokenType.PERCENT_EQ ||
-          operator == TokenType.PLUS_EQ ||
-          operator == TokenType.STAR_EQ ||
-          operator == TokenType.TILDE_SLASH_EQ ||
-          operator == TokenType.PLUS_PLUS ||
-          operator == TokenType.MINUS_MINUS) {
-        if (rightType.isDartCoreInt) {
-          InterfaceTypeImpl intType = typeProvider.intType;
-          if (isNonNullableByDefault) {
-            return promoteToNonNull(intType);
-          }
-          return intType;
-        }
-      }
-    }
-    // default
-    return currentType;
   }
 
   /// Replaces all covariant occurrences of `dynamic`, `void`, and `Object` or
@@ -1515,6 +1493,297 @@ class TypeSystemImpl extends TypeSystem {
       var typeParameterImpl = typeParameter as TypeParameterElementImpl;
       return typeParameterImpl.defaultType;
     }).toList();
+  }
+
+  DartType _refineBinaryExpressionTypeLegacy(DartType leftType,
+      TokenType operator, DartType rightType, DartType currentType) {
+    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
+      if (rightType == leftType || rightType.isDartCoreInt) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.PLUS_EQ ||
+            operator == TokenType.MINUS_EQ ||
+            operator == TokenType.STAR_EQ ||
+            operator == TokenType.PLUS_PLUS ||
+            operator == TokenType.MINUS_MINUS) {
+          return leftType;
+        }
+      }
+      if (rightType.isDartCoreDouble) {
+        if (operator == TokenType.PLUS ||
+            operator == TokenType.MINUS ||
+            operator == TokenType.STAR ||
+            operator == TokenType.SLASH) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          return doubleType;
+        }
+      }
+      return currentType;
+    }
+    // bool
+    if (operator == TokenType.AMPERSAND_AMPERSAND ||
+        operator == TokenType.BAR_BAR ||
+        operator == TokenType.EQ_EQ ||
+        operator == TokenType.BANG_EQ) {
+      return typeProvider.boolType;
+    }
+    if (leftType.isDartCoreInt) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        if (rightType.isDartCoreDouble) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
+          return doubleType;
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH ||
+          operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ ||
+          operator == TokenType.PLUS_PLUS ||
+          operator == TokenType.MINUS_MINUS) {
+        if (rightType.isDartCoreInt) {
+          InterfaceTypeImpl intType = typeProvider.intType;
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
+  }
+
+  DartType _refineNumericInvocationContextNullSafe(
+      DartType targetType,
+      MethodElement methodElement,
+      DartType invocationContext,
+      DartType currentType) {
+    // If the method being invoked comes from an extension, don't refine the
+    // type because we can only make guarantees about methods defined in the
+    // SDK, and the numeric methods we refine are all instance methods.
+    if (methodElement.enclosingElement is ExtensionElement) {
+      return currentType;
+    }
+
+    // Sometimes the analyzer represents the unknown context as `null`.
+    invocationContext ??= UnknownInferredType.instance;
+
+    // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2 or
+    // e1.remainder(e2)...
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
+      // ...where C is the context type of e and T is the static type of e1, and
+      // where T is a non-Never subtype of num...
+      // Notes:
+      // - We don't have to check for Never because if T is Never, the method
+      //   element will fail to resolve so we'll never reach here.
+      // - We actually check against `num?` rather than `num`.  It's equivalent
+      //   from the standpoint of correctness (since it's illegal to call these
+      //   methods on nullable types, and that's checked for elsewhere), but
+      //   better from the standpoint of error recovery (since it allows e.g.
+      //   `int? + int` to resolve to `int` rather than `num`).
+      var c = invocationContext;
+      var t = targetType;
+      assert(!t.isBottom);
+      var numType = typeProvider.numType;
+      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+        // Then:
+        // - If int <: C, not num <: C, and T <: int, then the context type of
+        //   e2 is int.
+        // (Note: as above, we check the type of T against `int?`, because it's
+        // equivalent and leads to better error recovery.)
+        var intType = typeProvider.intType;
+        if (isSubtypeOf(intType, c) &&
+            !isSubtypeOf(numType, c) &&
+            isSubtypeOf(t, typeProvider.intTypeQuestion)) {
+          return intType;
+        }
+        // - If double <: C, not num <: C, and not T <: double, then the context
+        //   type of e2 is double.
+        // (Note: as above, we check the type of T against `double?`, because
+        // it's equivalent and leads to better error recovery.)
+        var doubleType = typeProvider.doubleType;
+        if (isSubtypeOf(doubleType, c) &&
+            !isSubtypeOf(numType, c) &&
+            !isSubtypeOf(t, typeProvider.doubleTypeQuestion)) {
+          return doubleType;
+        }
+        // Otherwise, the context type of e2 is num.
+        return numType;
+      }
+    }
+    // If e is an expression of the form e1.clamp(e2, e3)...
+    if (methodElement.name == 'clamp') {
+      // ...where C is the context type of e and T is the static type of e1
+      // where T is a non-Never subtype of num...
+      // Notes:
+      // - We don't have to check for Never because if T is Never, the method
+      //   element will fail to resolve so we'll never reach here.
+      // - We actually check against `num?` rather than `num`.  It's
+      //   equivalent from the standpoint of correctness (since it's illegal
+      //   to call `num.clamp` on a nullable type or to pass it a nullable
+      //   type as an argument, and that's checked for elsewhere), but better
+      //   from the standpoint of error recovery (since it allows e.g.
+      //   `int?.clamp(e2, e3)` to give the same context to `e2` and `e3` that
+      //   `int.clamp(e2, e3` would).
+      var c = invocationContext;
+      var t = targetType;
+      assert(!t.isBottom);
+      var numType = typeProvider.numType;
+      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+        // Then:
+        // - If int <: C, not num <: C, and T <: int, then the context type of
+        //   e2 and e3 is int.
+        // (Note: as above, we check the type of T against `int?`, because it's
+        // equivalent and leads to better error recovery.)
+        var intType = typeProvider.intType;
+        if (isSubtypeOf(intType, c) &&
+            !isSubtypeOf(numType, c) &&
+            isSubtypeOf(t, typeProvider.intTypeQuestion)) {
+          return intType;
+        }
+        // - If double <: C, not num <: C, and T <: double, then the context
+        //   type of e2 and e3 is double.
+        var doubleType = typeProvider.doubleType;
+        if (isSubtypeOf(doubleType, c) &&
+            !isSubtypeOf(numType, c) &&
+            isSubtypeOf(t, typeProvider.doubleTypeQuestion)) {
+          return doubleType;
+        }
+        // - Otherwise the context type of e2 an e3 is num.
+        return numType;
+      }
+    }
+    // No special rules apply.
+    return currentType;
+  }
+
+  DartType _refineNumericInvocationTypeNullSafe(
+      DartType targetType,
+      MethodElement methodElement,
+      List<DartType> argumentTypes,
+      DartType currentType) {
+    // If the method being invoked comes from an extension, don't refine the
+    // type because we can only make guarantees about methods defined in the
+    // SDK, and the numeric methods we refine are all instance methods.
+    if (methodElement.enclosingElement is ExtensionElement) {
+      return currentType;
+    }
+
+    // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
+    // e1 % e2 or e1.remainder(e2)...
+    if (const {'+', '-', '*', '%', 'remainder'}.contains(methodElement.name)) {
+      // ...where the static type of e1 is a non-Never type T and T <: num...
+      // Notes:
+      // - We don't have to check for Never because if T is Never, the method
+      //   element will fail to resolve so we'll never reach here.
+      // - We actually check against `num?` rather than `num`.  It's equivalent
+      //   from the standpoint of correctness (since it's illegal to call these
+      //   methods on nullable types, and that's checked for elsewhere), but
+      //   better from the standpoint of error recovery (since it allows e.g.
+      //   `int? + int` to resolve to `int` rather than `num`).
+      var t = targetType;
+      assert(!t.isBottom);
+      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+        // ...and where the static type of e2 is S and S is assignable to num.
+        // (Note: we don't have to check that S is assignable to num because
+        // this is required by the signature of the method.)
+        if (argumentTypes.length == 1) {
+          var s = argumentTypes[0];
+          // Then:
+          // - If T <: double then the static type of e is double. This includes
+          //   S being dynamic or Never.
+          // (Note: as above, we check against `double?` because it's equivalent
+          // and leads to better error recovery.)
+          var doubleType = typeProvider.doubleType;
+          var doubleTypeQuestion = typeProvider.doubleTypeQuestion;
+          if (isSubtypeOf(t, doubleTypeQuestion)) {
+            return doubleType;
+          }
+          // - If S <: double and not S <: Never, then the static type of e is
+          //   double.
+          // (Again, we check against `double?` for error recovery.)
+          if (!s.isBottom && isSubtypeOf(s, doubleTypeQuestion)) {
+            return doubleType;
+          }
+          // - If T <: int, S <: int and not S <: Never, then the static type of
+          //   e is int.
+          // (As above, we check against `int?` for error recovery.)
+          var intTypeQuestion = typeProvider.intTypeQuestion;
+          if (!s.isBottom &&
+              isSubtypeOf(t, intTypeQuestion) &&
+              isSubtypeOf(s, intTypeQuestion)) {
+            return typeProvider.intType;
+          }
+          // - Otherwise the static type of e is num.
+          return typeProvider.numType;
+        }
+      }
+    }
+    // Let e be a normal invocation of the form e1.clamp(e2, e3)...
+    if (methodElement.name == 'clamp') {
+      // ...where the static types of e1, e2 and e3 are T1, T2 and T3
+      // respectively...
+      var t1 = targetType;
+      if (argumentTypes.length == 2) {
+        var t2 = argumentTypes[0];
+        var t3 = argumentTypes[1];
+        // ...and where T1, T2, and T3 are all non-Never subtypes of num.
+        // Notes:
+        // - We don't have to check T1 for Never because if T1 is Never, the
+        //   method element will fail to resolve so we'll never reach here.
+        // - We actually check against `num?` rather than `num`.  It's
+        //   equivalent from the standpoint of correctness (since it's illegal
+        //   to call `num.clamp` on a nullable type or to pass it a nullable
+        //   type as an argument, and that's checked for elsewhere), but better
+        //   from the standpoint of error recovery (since it allows e.g.
+        //   `int?.clamp(int, int)` to resolve to `int` rather than `num`).
+        // - We don't check that T2 and T3 are subtypes of num because the
+        //   signature of `num.clamp` requires it.
+        var numTypeQuestion = typeProvider.numTypeQuestion;
+        if (isSubtypeOf(t1, numTypeQuestion) && !t2.isBottom && !t3.isBottom) {
+          assert(!t1.isBottom);
+          assert(isSubtypeOf(t2, numTypeQuestion));
+          assert(isSubtypeOf(t3, numTypeQuestion));
+          // Then:
+          // - If T1, T2 and T3 are all subtypes of int, the static type of e is
+          //   int.
+          // (Note: as above, we check against `int?` because it's equivalent
+          // and leads to better error recovery.)
+          var intTypeQuestion = typeProvider.intTypeQuestion;
+          if (isSubtypeOf(t1, intTypeQuestion) &&
+              isSubtypeOf(t2, intTypeQuestion) &&
+              isSubtypeOf(t3, intTypeQuestion)) {
+            return typeProvider.intType;
+          }
+          // If T1, T2 and T3 are all subtypes of double, the static type of e
+          // is double.
+          // (As above, we check against `double?` for error recovery.)
+          var doubleTypeQuestion = typeProvider.doubleTypeQuestion;
+          if (isSubtypeOf(t1, doubleTypeQuestion) &&
+              isSubtypeOf(t2, doubleTypeQuestion) &&
+              isSubtypeOf(t3, doubleTypeQuestion)) {
+            return typeProvider.doubleType;
+          }
+          // Otherwise the static type of e is num.
+          return typeProvider.numType;
+        }
+      }
+    }
+    // No special rules apply.
+    return currentType;
   }
 }
 

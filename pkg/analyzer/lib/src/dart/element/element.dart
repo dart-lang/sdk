@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -209,20 +210,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
     }
     return InterfaceTypeImpl(
       element: this,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  @override
-  InterfaceType instantiateToBounds({
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    var typeArguments = typeParameters.map((typeParameter) {
-      return (typeParameter as TypeParameterElementImpl).defaultType;
-    }).toList();
-    return instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -469,9 +456,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// The superclass of the class, or `null` for [Object].
   InterfaceType _supertype;
 
-  /// The type defined by the class.
-  InterfaceType _type;
-
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
   List<InterfaceType> _mixins;
@@ -687,16 +671,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     return definingClass != null && !definingClass.isDartCoreObject;
   }
 
-  @Deprecated('It was used internally, should not be part of API')
-  @override
-  bool get hasReferenceToSuper => hasModifier(Modifier.REFERENCES_SUPER);
-
-  /// Set whether this class references 'super'.
-  /// TODO(scheglov) Remove it.
-  set hasReferenceToSuper(bool isReferencedSuper) {
-    setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
-  }
-
   @override
   bool get hasStaticMember {
     for (MethodElement method in methods) {
@@ -769,12 +743,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   set isMixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
-
-  @override
-  bool get isOrInheritsProxy => false;
-
-  @override
-  bool get isProxy => false;
 
   @override
   bool get isSimplyBounded {
@@ -907,22 +875,6 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   set supertype(InterfaceType supertype) {
     _supertype = supertype;
-  }
-
-  @override
-  @deprecated
-  InterfaceType get type {
-    if (_type == null) {
-      var typeArguments = typeParameters
-          .map((e) => e.instantiate(nullabilitySuffix: _noneOrStarSuffix))
-          .toList();
-      _type = InterfaceTypeImpl(
-        element: this,
-        typeArguments: typeArguments,
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-    }
-    return _type;
   }
 
   /// Set the type parameters defined for this class to the given
@@ -1815,11 +1767,21 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   EvaluationResultImpl get evaluationResult {
     if (_evaluationResult == null) {
       Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
+        'index': DartObjectImpl(
+          library.typeSystem,
+          library.typeProvider.intType,
+          IntState(_index),
+        ),
+        // TODO(brianwilkerson) There shouldn't be a field with the same name as
+        //  the constant, but we can't remove it until a version of dartdoc that
+        //  doesn't depend on it has been published and pulled into the SDK. The
+        //  map entry below should be removed when
+        //  https://github.com/dart-lang/dartdoc/issues/2318 has been resolved.
         name: DartObjectImpl(
           library.typeSystem,
           library.typeProvider.intType,
           IntState(_index),
-        )
+        ),
       };
       DartObjectImpl value = DartObjectImpl(
         library.typeSystem,
@@ -1830,6 +1792,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
     }
     return _evaluationResult;
   }
+
+  @override
+  bool get hasInitializer => false;
 
   @override
   String get name {
@@ -2176,7 +2141,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       parameters: parameters,
       returnType: returnType,
       nullabilitySuffix: _noneOrStarSuffix,
-      element: this,
     );
   }
 
@@ -2317,9 +2281,6 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   ElementKind get kind => ElementKind.DYNAMIC;
 
   @override
-  DartType get type => DynamicTypeImpl.instance;
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => null;
 }
 
@@ -2335,6 +2296,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark an element as being
   /// deprecated.
   static const String _DEPRECATED_VARIABLE_NAME = "deprecated";
+
+  /// The name of the top-level variable used to mark an element as not to be
+  /// stored.
+  static const String _DO_NOT_STORE_VARIABLE_NAME = "doNotStore";
 
   /// The name of the top-level variable used to mark a method as being a
   /// factory.
@@ -2369,6 +2334,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of `meta` library, used to define analysis annotations.
   static const String _META_LIB_NAME = "meta";
 
+  /// The name of `meta_meta` library, used to define annotations for other
+  /// annotations.
+  static const String _META_META_LIB_NAME = "meta_meta";
+
   /// The name of the top-level variable used to mark a method as requiring
   /// overriders to call super.
   static const String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
@@ -2401,6 +2370,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   /// The name of the top-level variable used to mark a class as being sealed.
   static const String _SEALED_VARIABLE_NAME = "sealed";
+
+  /// The name of the class used to annotate a class as an annotation with a
+  /// specific set of target element kinds.
+  static const String _TARGET_CLASS_NAME = 'Target';
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
@@ -2436,6 +2409,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   List<AnalysisError> get constantEvaluationErrors =>
       evaluationResult?.errors ?? const <AnalysisError>[];
 
+  @Deprecated('Use computeConstantValue() instead')
   @override
   DartObject get constantValue => evaluationResult?.value;
 
@@ -2462,6 +2436,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isDoNotStore =>
+      element is PropertyAccessorElement &&
+      element.name == _DO_NOT_STORE_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isFactory =>
@@ -2551,6 +2531,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element.library?.name == _META_LIB_NAME;
 
   @override
+  bool get isTarget =>
+      element is ConstructorElement &&
+      element.enclosingElement.name == _TARGET_CLASS_NAME &&
+      element.library?.name == _META_META_LIB_NAME;
+
+  @override
   bool get isVisibleForTemplate =>
       element is PropertyAccessorElement &&
       element.name == _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME &&
@@ -2580,7 +2566,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
       computeConstants(library.typeProvider, library.typeSystem,
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
-    return constantValue;
+    return evaluationResult?.value;
   }
 
   @override
@@ -2720,6 +2706,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isDeprecated) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasDoNotStore {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDoNotStore) {
         return true;
       }
     }
@@ -3038,16 +3036,6 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    var ancestor = _enclosingElement;
-    while (ancestor != null && !predicate(ancestor)) {
-      ancestor = ancestor.enclosingElement;
-    }
-    return ancestor as E;
-  }
-
   /// Return the child of this element that is uniquely identified by the given
   /// [identifier], or `null` if there is no such child.
   ElementImpl getChild(String identifier) => null;
@@ -3125,7 +3113,7 @@ abstract class ElementImpl implements Element {
 
   @override
   String toString() {
-    return getDisplayString(withNullability: false);
+    return getDisplayString(withNullability: true);
   }
 
   @override
@@ -3310,9 +3298,6 @@ class ElementLocationImpl implements ElementLocation {
 
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
-  /// The type defined by the enum.
-  InterfaceType _type;
-
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(String name, int offset) : super(name, offset);
@@ -3396,10 +3381,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   @override
   bool get hasNonFinalField => false;
 
-  @Deprecated('It was used internally, should not be part of API')
-  @override
-  bool get hasReferenceToSuper => false;
-
   @override
   bool get hasStaticMember => true;
 
@@ -3414,12 +3395,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get isMixinApplication => false;
-
-  @override
-  bool get isOrInheritsProxy => false;
-
-  @override
-  bool get isProxy => false;
 
   @override
   bool get isSimplyBounded => true;
@@ -3462,20 +3437,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   InterfaceType get supertype => library.typeProvider.objectType;
-
-  @override
-  @deprecated
-  InterfaceType get type {
-    if (_type == null) {
-      var typeArguments = const <DartType>[];
-      _type = InterfaceTypeImpl(
-        element: this,
-        typeArguments: typeArguments,
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-    }
-    return _type;
-  }
 
   @override
   List<TypeParameterElement> get typeParameters =>
@@ -3766,7 +3727,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
@@ -4297,6 +4257,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
       !isSynthetic;
 
   @override
+  bool get isExternal {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isExternal(linkedNode);
+    }
+    return hasModifier(Modifier.EXTERNAL);
+  }
+
+  @override
   bool get isStatic {
     if (linkedNode != null) {
       return enclosingUnit.linkedContext.isStatic(linkedNode);
@@ -4561,7 +4529,6 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
@@ -4616,12 +4583,9 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 /// Clients may not extend, implement or mix-in this class.
 class GenericTypeAliasElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements GenericTypeAliasElement, ElementImplWithFunctionType {
+    implements GenericTypeAliasElement {
   /// The element representing the generic function type.
   GenericFunctionTypeElementImpl _function;
-
-  /// The type of function defined by this type alias.
-  FunctionType _type;
 
   /// Initialize a newly created type alias element to have the given [name].
   GenericTypeAliasElementImpl(String name, int offset) : super(name, offset);
@@ -4746,48 +4710,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
     return super.nameOffset;
   }
 
-  @override
-  List<ParameterElement> get parameters =>
-      function?.parameters ?? const <ParameterElement>[];
-
-  @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
-
-  @override
-  DartType get returnTypeInternal {
-    if (function == null) {
-      return DynamicTypeImpl.instance;
-    }
-    return function?.returnType;
-  }
-
-  @override
-  @deprecated
-  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
-
-  set type(FunctionType type) {
-    _type = type;
-  }
-
-  @override
-  @deprecated
-  FunctionType get typeInternal {
-    _type ??= FunctionTypeImpl.synthetic(
-      function.returnType,
-      typeParameters,
-      function.parameters,
-      element: this,
-      typeArguments: typeParameters.map((e) {
-        return e.instantiate(
-          nullabilitySuffix: NullabilitySuffix.star,
-        );
-      }).toList(),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    return _type;
-  }
-
   /// Set the type parameters defined for this type to the given
   /// [typeParameters].
   set typeParameters(List<TypeParameterElement> typeParameters) {
@@ -4845,32 +4767,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
       nullabilitySuffix: resultNullability,
       element: this,
       typeArguments: typeArguments,
-    );
-  }
-
-  @override
-  @deprecated
-  FunctionType instantiate2({
-    @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  @override
-  FunctionType instantiateToBounds({
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    var typeArguments = typeParameters.map((typeParameter) {
-      return (typeParameter as TypeParameterElementImpl).defaultType;
-    }).toList();
-    return instantiate(
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -5177,7 +5073,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   final LinkedUnitContext linkedContext;
 
-  final bool isNonNullableByDefaultInternal;
+  @override
+  final FeatureSet featureSet;
 
   /// The compilation unit that defines this library.
   CompilationUnitElement _definingCompilationUnit;
@@ -5214,9 +5111,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// computed yet.
   Namespace _publicNamespace;
 
-  /// A bit-encoded form of the capabilities associated with this library.
-  int _resolutionCapabilities = 0;
-
   /// The cached list of prefixes.
   List<PrefixElement> _prefixes;
 
@@ -5226,7 +5120,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(this.context, this.session, String name, int offset,
-      this.nameLength, this.isNonNullableByDefaultInternal)
+      this.nameLength, this.featureSet)
       : linkedContext = null,
         super(name, offset);
 
@@ -5239,14 +5133,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       this.linkedContext,
       Reference reference,
       CompilationUnit linkedNode)
-      : isNonNullableByDefaultInternal = linkedContext.isNNBD,
+      : featureSet = linkedNode.featureSet,
         super.forLinkedNode(null, reference, linkedNode) {
     _name = name;
     _nameOffset = offset;
-    setResolutionCapability(
-        LibraryResolutionCapability.resolvedTypeNames, true);
-    setResolutionCapability(
-        LibraryResolutionCapability.constantExpressions, true);
   }
 
   @override
@@ -5476,6 +5366,10 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   bool get isNonNullableByDefault =>
       ElementTypeProvider.current.isLibraryNonNullableByDefault(this);
 
+  bool get isNonNullableByDefaultInternal {
+    return featureSet.isEnabled(Feature.non_nullable);
+  }
+
   /// Return `true` if the receiver directly or indirectly imports the
   /// 'dart:html' libraries.
   bool get isOrImportsBrowserLibrary {
@@ -5527,18 +5421,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       override: null,
     );
     return _languageVersion;
-  }
-
-  @Deprecated("Use 'languageVersion'")
-  @override
-  int get languageVersionMajor {
-    return languageVersion.effective.major;
-  }
-
-  @Deprecated("Use 'languageVersion'")
-  @override
-  int get languageVersionMinor {
-    return languageVersion.effective.minor;
   }
 
   @override
@@ -5695,14 +5577,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
-  /// Set whether the library has the given [capability] to
-  /// correspond to the given [value].
-  void setResolutionCapability(
-      LibraryResolutionCapability capability, bool value) {
-    _resolutionCapabilities =
-        BooleanArray.set(_resolutionCapabilities, capability.index, value);
-  }
-
   @override
   T toLegacyElementIfOptOut<T extends Element>(T element) {
     if (isNonNullableByDefault) return element;
@@ -5764,28 +5638,14 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return null;
   }
-
-  /// Return `true` if the [library] has the given [capability].
-  static bool hasResolutionCapability(
-      LibraryElement library, LibraryResolutionCapability capability) {
-    return library is LibraryElementImpl &&
-        BooleanArray.get(library._resolutionCapabilities, capability.index);
-  }
-}
-
-/// Enum of possible resolution capabilities that a [LibraryElementImpl] has.
-enum LibraryResolutionCapability {
-  /// All elements have their types resolved.
-  resolvedTypeNames,
-
-  /// All (potentially) constants expressions are set into corresponding
-  /// elements.
-  constantExpressions,
 }
 
 /// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
+  @override
+  bool hasInitializer;
+
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   LocalVariableElementImpl(String name, int offset) : super(name, offset);
@@ -6056,20 +5916,17 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that a class is a mixin application.
   static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 14);
 
-  /// Indicates that a class contains an explicit reference to 'super'.
-  static const Modifier REFERENCES_SUPER = Modifier('REFERENCES_SUPER', 15);
-
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 16);
+  static const Modifier SETTER = Modifier('SETTER', 15);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 17);
+  static const Modifier STATIC = Modifier('STATIC', 16);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 17);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -6087,7 +5944,6 @@ class Modifier implements Comparable<Modifier> {
     IMPLICIT_TYPE,
     LATE,
     MIXIN_APPLICATION,
-    REFERENCES_SUPER,
     SETTER,
     STATIC,
     SYNTHETIC
@@ -6153,6 +6009,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasDeprecated => false;
+
+  @override
+  bool get hasDoNotStore => false;
 
   @override
   bool get hasFactory => false;
@@ -6238,15 +6097,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   Source get source => null;
 
   @override
-  DartType get type => DynamicTypeImpl.instance;
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
-
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  @override
-  E getAncestor<E extends Element>(Predicate<Element> predicate) => null;
 
   @override
   String getDisplayString({@required bool withNullability}) {
@@ -6330,11 +6182,6 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   ElementKind get kind => ElementKind.NEVER;
 
   @override
-  DartType get type {
-    throw StateError('Should not be accessed.');
-  }
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => null;
 
   DartType instantiate({
@@ -6402,24 +6249,26 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     super.hasImplicitType = hasImplicitType;
   }
 
+  bool get hasInitializer {
+    return linkedNode != null && linkedContext.hasInitializer(linkedNode);
+  }
+
+  @deprecated
   @override
   FunctionElement get initializer {
-    if (_initializer == null) {
-      if (linkedNode != null) {
-        if (linkedContext.hasInitializer(linkedNode)) {
-          _initializer = FunctionElementImpl('', -1)
-            ..isSynthetic = true
-            .._type = FunctionTypeImpl(
-              typeFormals: const [],
-              parameters: const [],
-              returnType: type,
-              nullabilitySuffix: NullabilitySuffix.star,
-            )
-            ..enclosingElement = this;
-        }
-      }
+    if (hasInitializer) {
+      return FunctionElementImpl('', -1)
+        ..enclosingElement = this
+        ..isSynthetic = true
+        ..returnType = type
+        .._type = FunctionTypeImpl(
+          typeFormals: const [],
+          parameters: const [],
+          returnType: type,
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
     }
-    return super.initializer;
+    return null;
   }
 
   @override
@@ -6448,38 +6297,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       return linkedContext.setVariableType(linkedNode, type);
     }
     _type = type;
-  }
-
-  /// Return the error reported during type inference for this variable, or
-  /// `null` if this variable is not a subject of type inference, or there was
-  /// no error.
-  TopLevelInferenceError get typeInferenceError {
-    if (linkedNode != null) {
-      return linkedContext.getTypeInferenceError(linkedNode);
-    }
-
-    // We don't support type inference errors without linking.
-    return null;
-  }
-
-  bool get _hasInitializer {
-    return linkedNode != null && linkedContext.hasInitializer(linkedNode);
-  }
-
-  /// Return `true` if this variable needs the setter.
-  bool get _hasSetter {
-    if (isConst) {
-      return false;
-    }
-
-    if (isLate) {
-      if (isFinal) {
-        return !_hasInitializer;
-      }
-      return true;
-    }
-
-    return !isFinal;
   }
 }
 
@@ -6573,6 +6390,11 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  bool get hasDefaultValue {
+    return defaultValueCode != null;
+  }
+
+  @override
   bool get hasImplicitType {
     if (linkedNode != null) {
       return linkedContext.hasImplicitType(linkedNode);
@@ -6602,28 +6424,6 @@ class ParameterElementImpl extends VariableElementImpl
       return;
     }
     _inheritsCovariant = value;
-  }
-
-  @override
-  FunctionElement get initializer {
-    if (_initializer != null) return _initializer;
-
-    if (linkedNode != null) {
-      if (linkedContext.hasDefaultValue(linkedNode)) {
-        _initializer = FunctionElementImpl('', -1)
-          ..enclosingElement = this
-          ..isSynthetic = true;
-      }
-    }
-
-    return super.initializer;
-  }
-
-  /// Set the function representing this variable's initializer to the given
-  /// [function].
-  @override
-  set initializer(FunctionElement function) {
-    super.initializer = function;
   }
 
   @override
@@ -7195,7 +6995,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     var type = FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
@@ -7265,7 +7064,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
   FunctionType get typeInternal {
     if (_type != null) return _type;
 
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
     var type = FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
@@ -7298,6 +7096,10 @@ abstract class PropertyInducingElementImpl
   @override
   PropertyAccessorElement setter;
 
+  /// This field is set during linking, and performs type inference for
+  /// this property. After linking this field is always `null`.
+  PropertyInducingElementTypeInference typeInference;
+
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
   PropertyInducingElementImpl(String name, int offset) : super(name, offset);
@@ -7320,6 +7122,18 @@ abstract class PropertyInducingElementImpl
   @override
   DartType get type => ElementTypeProvider.current.getFieldType(this);
 
+  /// Return the error reported during type inference for this variable, or
+  /// `null` if this variable is not a subject of type inference, or there was
+  /// no error.
+  TopLevelInferenceError get typeInferenceError {
+    if (linkedNode != null) {
+      return linkedContext.getTypeInferenceError(linkedNode);
+    }
+
+    // We don't support type inference errors without linking.
+    return null;
+  }
+
   @override
   DartType get typeInternal {
     if (linkedNode != null) {
@@ -7340,6 +7154,25 @@ abstract class PropertyInducingElementImpl
     }
     return super.typeInternal;
   }
+
+  /// Return `true` if this variable needs the setter.
+  bool get _hasSetter {
+    if (isConst) {
+      return false;
+    }
+
+    if (isLate) {
+      return !isFinal || !hasInitializer;
+    }
+
+    return !isFinal;
+  }
+}
+
+/// Instances of this class are set for fields and top-level variables
+/// to perform top-level type inference during linking.
+abstract class PropertyInducingElementTypeInference {
+  void perform();
 }
 
 /// A concrete implementation of a [ShowElementCombinator].
@@ -7465,6 +7298,14 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   TopLevelVariableElement get declaration => this;
 
   @override
+  bool get isExternal {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.isExternal(linkedNode);
+    }
+    return hasModifier(Modifier.EXTERNAL);
+  }
+
+  @override
   bool get isStatic => true;
 
   @override
@@ -7482,9 +7323,6 @@ class TypeParameterElementImpl extends ElementImpl
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
   DartType _defaultType;
-
-  /// The type defined by this type parameter.
-  TypeParameterType _type;
 
   /// The type representing the bound associated with this parameter, or `null`
   /// if this parameter does not have an explicit bound.
@@ -7590,23 +7428,6 @@ class TypeParameterElementImpl extends ElementImpl
     }
 
     return super.nameOffset;
-  }
-
-  @override
-  @deprecated
-  TypeParameterType get type {
-    // Note: TypeParameterElement.type has nullability suffix `star` regardless
-    // of whether it appears in a migrated library.  This is because for type
-    // parameters of synthetic function types, the ancestor chain is broken and
-    // we can't find the enclosing library to tell whether it is migrated.
-    return _type ??= TypeParameterTypeImpl(
-      element: this,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  set type(TypeParameterType type) {
-    _type = type;
   }
 
   Variance get variance {
@@ -7755,10 +7576,6 @@ abstract class VariableElementImpl extends ElementImpl
   /// The type of this variable.
   DartType _type;
 
-  /// A synthetic function representing this variable's initializer, or `null
-  ///` if this variable does not have an initializer.
-  FunctionElement _initializer;
-
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   VariableElementImpl(String name, int offset) : super(name, offset);
@@ -7780,6 +7597,7 @@ abstract class VariableElementImpl extends ElementImpl
   /// initializers.
   Expression get constantInitializer => null;
 
+  @Deprecated('Use computeConstantValue() instead')
   @override
   DartObject get constantValue => evaluationResult?.value;
 
@@ -7811,17 +7629,9 @@ abstract class VariableElementImpl extends ElementImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
   }
 
+  @deprecated
   @override
-  FunctionElement get initializer => _initializer;
-
-  /// Set the function representing this variable's initializer to the given
-  /// [function].
-  set initializer(FunctionElement function) {
-    if (function != null) {
-      (function as FunctionElementImpl).enclosingElement = this;
-    }
-    _initializer = function;
-  }
+  FunctionElement get initializer => null;
 
   @override
   bool get isConst {
@@ -7882,6 +7692,7 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    _initializer?.accept(visitor);
+    // ignore: deprecated_member_use_from_same_package
+    initializer?.accept(visitor);
   }
 }

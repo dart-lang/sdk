@@ -352,6 +352,8 @@ class SourceLoader extends Loader {
       // libraries with no corresponding package config we generate a message
       // per library.
       Map<String, List<LibraryBuilder>> libraryByPackage = {};
+      Version enableNonNullableVersion =
+          target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
       for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
         Package package =
             target.uriTranslator.getPackage(libraryBuilder.importUri);
@@ -1448,6 +1450,28 @@ class _StreamIterator {
 /// A minimal implementation of dart:collection that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartCollectionSource = """
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  factory LinkedHashMap(
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey}) => null;
+}
+
+class _InternalLinkedHashMap<K, V> {
+  _InternalLinkedHashMap();
+}
+
+abstract class LinkedHashSet<E> implements Set<E> {
+  factory LinkedHashSet(
+      {bool Function(E, E)? equals,
+      int Function(E)? hashCode,
+      bool Function(dynamic)? isValidKey}) => null;
+}
+
+class _CompactLinkedHashSet<E> {
+  _CompactLinkedHashSet();
+}
+
 class _UnmodifiableSet {
   final Map _map;
   const _UnmodifiableSet(this._map);

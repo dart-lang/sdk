@@ -14,28 +14,27 @@ final List<String> targetNames = targets.keys.toList();
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool forceLateLoweringForTesting;
+  final bool forceStaticFieldLoweringForTesting;
   final bool forceNoExplicitGetterCallsForTesting;
   final bool enableNullSafety;
 
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.forceLateLoweringForTesting = false,
+      this.forceStaticFieldLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
       this.enableNullSafety = false});
 
   bool operator ==(other) {
-    if (other is! TargetFlags) return false;
-    TargetFlags o = other;
-    if (trackWidgetCreation != o.trackWidgetCreation) return false;
-    if (forceLateLoweringForTesting != o.forceLateLoweringForTesting) {
-      return false;
-    }
-    if (forceNoExplicitGetterCallsForTesting !=
-        o.forceNoExplicitGetterCallsForTesting) {
-      return false;
-    }
-    if (enableNullSafety != o.enableNullSafety) return false;
-    return true;
+    if (identical(this, other)) return true;
+    return other is TargetFlags &&
+        trackWidgetCreation == other.trackWidgetCreation &&
+        forceLateLoweringForTesting == other.forceLateLoweringForTesting &&
+        forceStaticFieldLoweringForTesting ==
+            other.forceStaticFieldLoweringForTesting &&
+        forceNoExplicitGetterCallsForTesting ==
+            other.forceNoExplicitGetterCallsForTesting &&
+        enableNullSafety == other.enableNullSafety;
   }
 
   int get hashCode {
@@ -43,6 +42,8 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceLateLoweringForTesting.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceStaticFieldLoweringForTesting.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceNoExplicitGetterCallsForTesting.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
@@ -281,6 +282,10 @@ abstract class Target {
   /// details.
   bool get supportsLateFields;
 
+  /// Whether static fields with initializers in nnbd libraries should be
+  /// encoded using the late field lowering.
+  bool get useStaticFieldLowering;
+
   /// Whether calls to getters and fields should be encoded as a .call
   /// invocation on a property get.
   ///
@@ -342,6 +347,9 @@ class NoneTarget extends Target {
 
   @override
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
+  bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
 
   @override
   bool get supportsExplicitGetterCalls =>

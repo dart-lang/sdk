@@ -53,6 +53,12 @@ class DocumentationValidator {
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
+    // Produces two diagnostics when it should only produce one (see
+    // https://github.com/dart-lang/sdk/issues/43051)
+    'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
+    // Produces two diagnostics when it should only produce one (see
+    // https://github.com/dart-lang/sdk/issues/43263)
+    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
   ];
 
   /// The prefix used on directive lines to specify the experiments that should
@@ -416,14 +422,14 @@ class _SnippetTest extends PubPackageResolutionTest {
   }
 
   void _createAuxiliaryFiles(Map<String, String> auxiliaryFiles) {
-    Map<String, String> packageNameToRootPath = {};
+    var packageConfigBuilder = PackageConfigFileBuilder();
     for (String uriStr in auxiliaryFiles.keys) {
       if (uriStr.startsWith('package:')) {
         Uri uri = Uri.parse(uriStr);
 
         String packageName = uri.pathSegments[0];
         String packageRootPath = '/packages/$packageName';
-        packageNameToRootPath[packageName] = convertPath(packageRootPath);
+        packageConfigBuilder.add(name: packageName, rootPath: packageRootPath);
 
         String pathInLib = uri.pathSegments.skip(1).join('/');
         newFile(
@@ -437,6 +443,6 @@ class _SnippetTest extends PubPackageResolutionTest {
         );
       }
     }
-    writeTestPackageConfigWith(packageNameToRootPath, meta: true);
+    writeTestPackageConfig(packageConfigBuilder, meta: true);
   }
 }

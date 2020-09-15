@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -116,8 +115,6 @@ class FileResolver {
       resetTimeout: libraryContextResetTimeout,
     );
   }
-
-  FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
 
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file

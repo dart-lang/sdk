@@ -87,19 +87,6 @@ class DynamicTypeImpl extends TypeImpl implements DynamicType {
   }
 
   @override
-  @deprecated
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
-  }
-
-  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     // The dynamic type is always nullable.
     return this;
@@ -147,10 +134,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         typeArguments = typeArguments ?? const <DartType>[],
         nullabilitySuffix = nullabilitySuffix,
         super(element);
-
-  @deprecated
-  @override
-  List<TypeParameterElement> get boundTypeParameters => typeFormals;
 
   @override
   FunctionTypedElement get element {
@@ -235,9 +218,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  List<TypeParameterElement> get typeParameters => const [] /*TODO(paulberry)*/;
-
-  @override
   bool operator ==(Object other) {
     if (identical(other, this)) {
       return true;
@@ -314,27 +294,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       nullabilitySuffix: nullabilitySuffix,
     );
   }
-
-  @override
-  @deprecated
-  FunctionType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    if (argumentTypes.length != parameterTypes.length) {
-      throw ArgumentError("argumentTypes.length (${argumentTypes.length}) != "
-          "parameterTypes.length (${parameterTypes.length})");
-    }
-
-    var substitution = Substitution.fromPairs(
-      parameterTypes.map<TypeParameterElement>((t) => t.element).toList(),
-      argumentTypes,
-    );
-    return substitution.substituteType(this);
-  }
-
-  @override
-  @deprecated
-  FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
-      substitute2(argumentTypes, typeArguments);
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
@@ -804,10 +763,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element.name == "Symbol" && element.library.isDartCore;
   }
 
-  @Deprecated('Use isDartCoreObject')
-  @override
-  bool get isObject => element.supertype == null && !element.isMixin;
-
   @override
   List<MethodElement> get methods {
     if (_methods == null) {
@@ -846,9 +801,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<InterfaceType> constraints = element.superclassConstraints;
     return _instantiateSuperTypes(constraints);
   }
-
-  @override
-  List<TypeParameterElement> get typeParameters => element.typeParameters;
 
   InheritanceManager3 get _inheritanceManager =>
       (element.library.session as AnalysisSessionImpl).inheritanceManager;
@@ -915,11 +867,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement getSetter(String setterName) =>
       PropertyAccessorMember.from(element.getSetter(setterName), this);
-
-  @override
-  @deprecated
-  InterfaceTypeImpl instantiate(List<DartType> argumentTypes) =>
-      substitute2(argumentTypes, typeArguments);
 
   @override
   ConstructorElement lookUpConstructor(
@@ -1358,34 +1305,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  @deprecated
-  InterfaceTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    if (argumentTypes.length != parameterTypes.length) {
-      throw ArgumentError(
-          "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
-    }
-    if (argumentTypes.isEmpty || typeArguments.isEmpty) {
-      return this;
-    }
-
-    List<DartType> newTypeArguments =
-        TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
-
-    return InterfaceTypeImpl(
-      element: element,
-      typeArguments: newTypeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @deprecated
-  @override
-  InterfaceTypeImpl substitute4(List<DartType> argumentTypes) =>
-      instantiate(argumentTypes);
-
-  @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+  InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
     return InterfaceTypeImpl(
@@ -1666,12 +1586,6 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   }
 
   @override
-  @deprecated
-  NeverTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
-      this;
-
-  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     switch (nullabilitySuffix) {
       case NullabilitySuffix.question:
@@ -1758,10 +1672,6 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDynamic => false;
 
-  @Deprecated('Use isDartCoreObject')
-  @override
-  bool get isObject => false;
-
   @override
   bool get isVoid => false;
 
@@ -1777,7 +1687,7 @@ abstract class TypeImpl implements DartType {
   @override
   String getDisplayString({
     bool skipAllDynamicArguments = false,
-    bool withNullability = false,
+    @required bool withNullability,
   }) {
     var builder = ElementDisplayStringBuilder(
       skipAllDynamicArguments: skipAllDynamicArguments,
@@ -1790,16 +1700,9 @@ abstract class TypeImpl implements DartType {
   @override
   DartType resolveToBound(DartType objectType) => this;
 
-  /// Return the type resulting from substituting the given [argumentTypes] for
-  /// the given [parameterTypes] in this type.
-  @override
-  @deprecated
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
-
   @override
   String toString() {
-    return getDisplayString(withNullability: false);
+    return getDisplayString(withNullability: true);
   }
 
   /// Return the same type, but with the given [nullabilitySuffix].
@@ -1835,23 +1738,6 @@ abstract class TypeImpl implements DartType {
       }
     }
     return true;
-  }
-
-  /// Return a list containing the results of using the given [argumentTypes]
-  /// and [parameterTypes] to perform a substitution on all of the given
-  /// [types].
-  @deprecated
-  static List<DartType> substitute(List<DartType> types,
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = types.length;
-    if (length == 0) {
-      return types;
-    }
-    List<DartType> newTypes = List<DartType>(length);
-    for (int i = 0; i < length; i++) {
-      newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
-    }
-    return newTypes;
   }
 }
 
@@ -1977,55 +1863,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  @deprecated
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      var parameterType = parameterTypes[i];
-      if (parameterType is TypeParameterTypeImpl && parameterType == this) {
-        TypeImpl argumentType = argumentTypes[i];
-
-        // TODO(scheglov) It should not happen, but sometimes arguments are
-        //  null.
-        if (argumentType == null) {
-          return argumentType;
-        }
-
-        // TODO(scheglov) Proposed substitution rules for nullability.
-        NullabilitySuffix resultNullability;
-        NullabilitySuffix parameterNullability =
-            parameterType.nullabilitySuffix;
-        NullabilitySuffix argumentNullability = argumentType.nullabilitySuffix;
-        if (parameterNullability == NullabilitySuffix.none) {
-          if (argumentNullability == NullabilitySuffix.question ||
-              nullabilitySuffix == NullabilitySuffix.question) {
-            resultNullability = NullabilitySuffix.question;
-          } else if (argumentNullability == NullabilitySuffix.star ||
-              nullabilitySuffix == NullabilitySuffix.star) {
-            resultNullability = NullabilitySuffix.star;
-          } else {
-            resultNullability = NullabilitySuffix.none;
-          }
-        } else if (parameterNullability == NullabilitySuffix.star) {
-          if (argumentNullability == NullabilitySuffix.question ||
-              nullabilitySuffix == NullabilitySuffix.question) {
-            resultNullability = NullabilitySuffix.question;
-          } else {
-            resultNullability = argumentNullability;
-          }
-        } else {
-          // We should never be substituting for `T?`.
-          throw StateError('Tried to substitute for T?');
-        }
-
-        return argumentType.withNullability(resultNullability);
-      }
-    }
-    return this;
-  }
-
-  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return TypeParameterTypeImpl(
@@ -2033,22 +1870,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       nullabilitySuffix: nullabilitySuffix,
       promotedBound: promotedBound,
     );
-  }
-
-  /// Return a list containing the type parameter types defined by the given
-  /// array of type parameter elements ([typeParameters]).
-  @deprecated
-  static List<TypeParameterType> getTypes(
-      List<TypeParameterElement> typeParameters) {
-    int count = typeParameters.length;
-    if (count == 0) {
-      return const <TypeParameterType>[];
-    }
-    List<TypeParameterType> types = List<TypeParameterType>(count);
-    for (int i = 0; i < count; i++) {
-      types[i] = typeParameters[i].type;
-    }
-    return types;
   }
 }
 
@@ -2093,12 +1914,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVoidType();
   }
-
-  @override
-  @deprecated
-  VoidTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
-      this;
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {

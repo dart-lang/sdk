@@ -602,8 +602,7 @@ class MultiRootInputProvider extends SourceFileProvider {
   final List<Uri> roots;
   final String markerScheme;
 
-  MultiRootInputProvider(this.markerScheme, List<String> searchPaths)
-      : roots = searchPaths.map(Uri.base.resolve).toList();
+  MultiRootInputProvider(this.markerScheme, this.roots);
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,

@@ -26,6 +26,16 @@ main() {
     ]);
   }
 
+  test_dynamic() async {
+    await assertErrorsInCode(r'''
+void f() {
+  dynamic = 1;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 7),
+    ]);
+  }
+
   test_enum() async {
     await assertErrorsInCode('''
 enum E { e }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -88,6 +89,88 @@ void f(String? s) {
 @reflectiveTest
 class InvalidNullAwareOperatorTest extends PubPackageResolutionTest
     with WithNullSafetyMixin {
+  test_extensionOverride_assignmentExpression_indexExpression() async {
+    await assertErrorsInCode('''
+extension E on int {
+  operator[]=(int index, bool _) {}
+}
+
+void f(int? a, int b) {
+  E(a)?[0] = true;
+  E(b)?[0] = true;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 109, 2),
+    ]);
+  }
+
+  test_extensionOverride_assignmentExpression_propertyAccess() async {
+    await assertErrorsInCode('''
+extension E on int {
+  set foo(bool _) {}
+}
+
+void f(int? a, int b) {
+  E(a)?.foo = true;
+  E(b)?.foo = true;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 95, 2),
+    ]);
+  }
+
+  test_extensionOverride_indexExpression() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool operator[](int index) => true;
+}
+
+void f(int? a, int b) {
+  E(a)?[0];
+  E(b)?[0];
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 104, 2),
+    ]);
+    assertType(findNode.index('E(a)'), 'bool?');
+    assertType(findNode.index('E(b)'), 'bool?');
+  }
+
+  test_extensionOverride_methodInvocation() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool foo() => true;
+}
+
+void f(int? a, int b) {
+  E(a)?.foo();
+  E(b)?.foo();
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
+    ]);
+
+    assertType(findNode.methodInvocation('E(a)'), 'bool?');
+    assertType(findNode.methodInvocation('E(b)'), 'bool?');
+  }
+
+  test_extensionOverride_propertyAccess() async {
+    await assertErrorsInCode('''
+extension E on int {
+  bool get foo => true;
+}
+
+void f(int? a, int b) {
+  E(a)?.foo;
+  E(b)?.foo;
+}
+''', [
+      error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 91, 2),
+    ]);
+    assertType(findNode.propertyAccess('E(a)'), 'bool?');
+    assertType(findNode.propertyAccess('E(b)'), 'bool?');
+  }
+
   test_getter_class() async {
     await assertNoErrorsInCode('''
 class C {
@@ -381,6 +464,23 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 31, 1),
+    ]);
+  }
+
+  test_super() async {
+    await assertErrorsInCode('''
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void bar() {
+    super?.foo();
+  }
+}
+''', [
+      error(ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER, 73,
+          2),
     ]);
   }
 }

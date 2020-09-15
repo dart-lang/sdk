@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-import "package:expect/expect.dart";
+import "package:expect/expect.dart" show Expect;
 
 static method test(dynamic f) → dynamic
   ;

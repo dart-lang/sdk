@@ -1432,11 +1432,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return thisType;
   }
 
-  void handleCondition(ir.Node node) {
+  TypeInformation handleCondition(ir.Node node) {
     bool oldAccumulateIsChecks = _accumulateIsChecks;
     _accumulateIsChecks = true;
-    visit(node, conditionContext: true);
+    TypeInformation result = visit(node, conditionContext: true);
     _accumulateIsChecks = oldAccumulateIsChecks;
+    return result;
   }
 
   void _potentiallyAddIsCheck(ir.IsExpression node) {
@@ -1500,6 +1501,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     LocalState stateAfterOperandWhenFalse = _stateAfterWhenFalse;
     _setStateAfter(
         _state, stateAfterOperandWhenFalse, stateAfterOperandWhenTrue);
+    // TODO(sra): Improve precision on constant and bool-conversion-to-constant
+    // inputs.
     return _types.boolType;
   }
 
@@ -1508,11 +1511,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (node.operator == '&&') {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
-      handleCondition(node.left);
+      TypeInformation leftInfo = handleCondition(node.left);
       LocalState stateAfterLeftWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterLeftWhenFalse = _stateAfterWhenFalse;
       _state = new LocalState.childPath(stateAfterLeftWhenTrue);
-      handleCondition(node.right);
+      TypeInformation rightInfo = handleCondition(node.right);
       LocalState stateAfterRightWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterRightWhenFalse = _stateAfterWhenFalse;
       LocalState stateAfterWhenTrue = stateAfterRightWhenTrue;
@@ -1522,15 +1525,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       LocalState after = stateBefore.mergeDiamondFlow(
           _inferrer, stateAfterWhenTrue, stateAfterWhenFalse);
       _setStateAfter(after, stateAfterWhenTrue, stateAfterWhenFalse);
+      // Constant-fold result.
+      if (_types.isLiteralFalse(leftInfo)) return leftInfo;
+      if (_types.isLiteralTrue(leftInfo)) {
+        if (_types.isLiteralFalse(rightInfo)) return rightInfo;
+        if (_types.isLiteralTrue(rightInfo)) return rightInfo;
+      }
+      // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
     } else if (node.operator == '||') {
       LocalState stateBefore = _state;
       _state = new LocalState.childPath(stateBefore);
-      handleCondition(node.left);
+      TypeInformation leftInfo = handleCondition(node.left);
       LocalState stateAfterLeftWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterLeftWhenFalse = _stateAfterWhenFalse;
       _state = new LocalState.childPath(stateAfterLeftWhenFalse);
-      handleCondition(node.right);
+      TypeInformation rightInfo = handleCondition(node.right);
       LocalState stateAfterRightWhenTrue = _stateAfterWhenTrue;
       LocalState stateAfterRightWhenFalse = _stateAfterWhenFalse;
       LocalState stateAfterWhenTrue = new LocalState.childPath(stateBefore)
@@ -1540,6 +1550,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       LocalState stateAfter = stateBefore.mergeDiamondFlow(
           _inferrer, stateAfterWhenTrue, stateAfterWhenFalse);
       _setStateAfter(stateAfter, stateAfterWhenTrue, stateAfterWhenFalse);
+      // Constant-fold result.
+      if (_types.isLiteralTrue(leftInfo)) return leftInfo;
+      if (_types.isLiteralFalse(leftInfo)) {
+        if (_types.isLiteralTrue(rightInfo)) return rightInfo;
+        if (_types.isLiteralFalse(rightInfo)) return rightInfo;
+      }
+      // TODO(sra): Add a selector/mux node to improve precision.
       return _types.boolType;
     }
     failedAt(CURRENT_ELEMENT_SPANNABLE,

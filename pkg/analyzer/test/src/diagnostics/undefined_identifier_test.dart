@@ -57,6 +57,18 @@ f() {
     ]);
   }
 
+  test_forStatement_ForPartsWithDeclarations_initializer() async {
+    await assertErrorsInCode('''
+void f() {
+  for (var x = x;;) {
+    x;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
+    ]);
+  }
+
   test_forStatement_inBody() async {
     await assertNoErrorsInCode('''
 f() {
@@ -176,4 +188,27 @@ main(int p) {
 
 @reflectiveTest
 class UndefinedIdentifierWithNullSafetyTest extends UndefinedIdentifierTest
-    with WithNullSafetyMixin {}
+    with WithNullSafetyMixin {
+  test_get_from_external_variable_final_valid() async {
+    await assertNoErrorsInCode('''
+external final int x;
+int f() => x;
+''');
+  }
+
+  test_get_from_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+int f() => x;
+''');
+  }
+
+  test_set_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+void f(int value) {
+  x = value;
+}
+''');
+  }
+}

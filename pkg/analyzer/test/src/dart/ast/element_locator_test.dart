@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,11 +17,6 @@ main() {
 
 @reflectiveTest
 class ElementLocatorTest extends PubPackageResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions {
-    return AnalysisOptionsImpl()..hint = false;
-  }
-
   test_locate_AssignmentExpression() async {
     await resolveTestCode(r'''
 int x = 0;

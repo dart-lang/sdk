@@ -37,7 +37,6 @@ linter:
     - prefer_asserts_in_initializer_lists
     - prefer_const_constructors
     - prefer_const_declarations
-    - prefer_expression_function_bodies
     - prefer_function_declarations_over_variables
     - prefer_initializing_formals
     - prefer_inlined_adds

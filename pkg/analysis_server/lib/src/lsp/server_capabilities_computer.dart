@@ -92,7 +92,7 @@ class ServerCapabilitiesComputer {
   final LspAnalysisServer _server;
 
   /// Map from method name to current registration data.
-  Map<String, Registration> _currentRegistrations = {};
+  Map<String, Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
   ServerCapabilitiesComputer(this._server);
@@ -106,6 +106,8 @@ class ServerCapabilitiesComputer {
         clientCapabilities.textDocument?.rename?.prepareSupport ?? false;
 
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+    final previewCommitCharacters =
+        _server.clientConfiguration.previewCommitCharacters;
 
     final dynamicRegistrations = ClientDynamicRegistrations(clientCapabilities);
 
@@ -132,6 +134,9 @@ class ServerCapabilitiesComputer {
           ? null
           : CompletionOptions(
               triggerCharacters: dartCompletionTriggerCharacters,
+              allCommitCharacters: previewCommitCharacters
+                  ? dartCompletionCommitCharacters
+                  : null,
               resolveProvider: true,
             ),
       hoverProvider: dynamicRegistrations.hover
@@ -141,6 +146,7 @@ class ServerCapabilitiesComputer {
           ? null
           : SignatureHelpOptions(
               triggerCharacters: dartSignatureHelpTriggerCharacters,
+              retriggerCharacters: dartSignatureHelpRetriggerCharacters,
             ),
       definitionProvider: dynamicRegistrations.definition
           ? null
@@ -242,6 +248,8 @@ class ServerCapabilitiesComputer {
     final registrations = <Registration>[];
 
     final enableFormatter = _server.clientConfiguration.enableSdkFormatter;
+    final previewCommitCharacters =
+        _server.clientConfiguration.previewCommitCharacters;
 
     /// Helper for creating registrations with IDs.
     void register(bool condition, Method method, [ToJsonable options]) {
@@ -279,6 +287,8 @@ class ServerCapabilitiesComputer {
       CompletionRegistrationOptions(
         documentSelector: allTypes,
         triggerCharacters: dartCompletionTriggerCharacters,
+        allCommitCharacters:
+            previewCommitCharacters ? dartCompletionCommitCharacters : null,
         resolveProvider: true,
       ),
     );
@@ -293,6 +303,7 @@ class ServerCapabilitiesComputer {
       SignatureHelpRegistrationOptions(
         documentSelector: allTypes,
         triggerCharacters: dartSignatureHelpTriggerCharacters,
+        retriggerCharacters: dartSignatureHelpRetriggerCharacters,
       ),
     );
     register(
@@ -373,7 +384,7 @@ class ServerCapabilitiesComputer {
     // compute a diff of old and new registrations to send the unregister or
     // another register request. We assume that we'll only ever have one
     // registration per LSP method name.
-    for (final entry in _currentRegistrations.entries) {
+    for (final entry in currentRegistrations.entries) {
       final method = entry.key;
       final registration = entry.value;
 
@@ -393,7 +404,7 @@ class ServerCapabilitiesComputer {
       }
     }
 
-    _currentRegistrations = newRegistrationsByMethod;
+    currentRegistrations = newRegistrationsByMethod;
 
     if (removedRegistrations.isNotEmpty) {
       await _server.sendRequest(Method.client_unregisterCapability,

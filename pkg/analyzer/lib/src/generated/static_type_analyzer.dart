@@ -12,12 +12,10 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
@@ -49,9 +47,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
 
-  /// True if inference failures should be reported, otherwise false.
-  bool _strictInference;
-
   /// The object providing promoted or declared types of variables.
   LocalVariableTypeProvider _localVariableTypeProvider;
 
@@ -67,9 +62,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _localVariableTypeProvider = _resolver.localVariableTypeProvider;
-    AnalysisOptionsImpl analysisOptions =
-        _resolver.definingLibrary.context.analysisOptions;
-    _strictInference = analysisOptions.strictInference;
   }
 
   /// Is `true` if the library being analyzed is non-nullable by default.
@@ -102,14 +94,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   ///
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
+  ///
+  /// TODO(scheglov) this is duplication
   void recordStaticType(Expression expression, DartType type) {
     if (_migrationResolutionHooks != null) {
+      // TODO(scheglov) type cannot be null
       type = _migrationResolutionHooks.modifyExpressionType(
-          expression, type ?? _dynamicType);
+        expression,
+        type ?? DynamicTypeImpl.instance,
+      );
     }
 
+    // TODO(scheglov) type cannot be null
     if (type == null) {
-      expression.staticType = _dynamicType;
+      expression.staticType = DynamicTypeImpl.instance;
     } else {
       expression.staticType = type;
       if (_typeSystem.isBottom(type)) {
@@ -577,11 +575,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     recordStaticType(node, _typeProvider.bottomType);
   }
 
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _inferLocalVariableType(node, node.initializer);
-  }
-
   /// Set the static type of [node] to be the least upper bound of the static
   /// types of subexpressions [expr1] and [expr2].
   void _analyzeLeastUpperBound(
@@ -742,39 +735,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       );
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;
-    }
-  }
-
-  /// Given a local variable declaration and its initializer, attempt to infer
-  /// a type for the local variable declaration based on the initializer.
-  /// Inference is only done if an explicit type is not present, and if
-  /// inferring a type improves the type.
-  void _inferLocalVariableType(
-      VariableDeclaration node, Expression initializer) {
-    AstNode parent = node.parent;
-    if (initializer != null) {
-      if (parent is VariableDeclarationList && parent.type == null) {
-        DartType type = initializer.staticType;
-        if (type != null && !type.isDartCoreNull) {
-          VariableElement element = node.declaredElement;
-          if (element is LocalVariableElementImpl) {
-            var initializerType = initializer.staticType;
-            var inferredType = demoteType(
-              _resolver.definingLibrary,
-              initializerType,
-            );
-            element.type = inferredType;
-          }
-        }
-      }
-    } else if (_strictInference) {
-      if (parent is VariableDeclarationList && parent.type == null) {
-        _resolver.errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
-          node,
-          [node.name.name],
-        );
-      }
     }
   }
 

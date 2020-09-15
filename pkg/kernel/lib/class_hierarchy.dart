@@ -635,8 +635,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
       ++i2;
       ++i1;
+      if (next.classNode.isAnonymousMixin) {
+        // Never find unnamed mixin application in least upper bound.
+        continue;
+      }
       if (next.depth != currentDepth) {
-        if (numCandidatesAtThisDepth == 1) return candidate;
+        if (numCandidatesAtThisDepth == 1) {
+          return candidate;
+        }
         currentDepth = next.depth;
         numCandidatesAtThisDepth = 0;
         candidate = null;

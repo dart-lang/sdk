@@ -38,6 +38,10 @@ class A {
 
   factory A.factory7({required int i}) = A.constructor7; // ok
 
+  factory A.factory8([int i]) => new A.constructor3(); // error
+
+  factory A.factory9({int i}) => new A.constructor4(); // error
+
   method3([int i]) {} // error
 
   method4({int i}) {} // error
@@ -94,6 +98,10 @@ class C implements B {
   factory C.factory6({int? i}) = C.constructor6; // ok
 
   factory C.factory7({required int i}) = C.constructor7; // ok
+
+  factory C.factory8([int i]) => new C.constructor3(); // error
+
+  factory C.factory9({int i}) => new C.constructor4(); // error
 
   method3([i]) {} // error
 

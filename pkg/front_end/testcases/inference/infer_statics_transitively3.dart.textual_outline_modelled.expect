@@ -1,7 +1,7 @@
 library test;
 
-import 'infer_statics_transitively3_a.dart' show a1, A;
-import 'infer_statics_transitively3_a.dart' as p show a2, A;
+import 'infer_statics_transitively3_a.dart' as p show A, a2;
+import 'infer_statics_transitively3_a.dart' show A, a1;
 
 const t1 = 1;
 const t2 = t1;

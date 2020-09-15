@@ -62,10 +62,6 @@
  * and where both the keys and the values are strings.
  *
  * * [dart:web_sql]&mdash;a database that can be queried with SQL.
- * 
- * For a tutorial about using the indexed_db library with Dart,
- * check out
- * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).
  *
  * MDN provides [API
  * documentation](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).

@@ -6,15 +6,15 @@
 
 import 'dart:async';
 
-/*class: global#Future:checks=[],onlyForRti,typeArgument*/
+/*class: global#Future:typeArgument*/
 
 /*class: A:checkedInstance,checks=[],instance*/
 class A<T> {}
 
-/*class: B:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*class: B:checkedTypeArgument,typeArgument*/
 class B {}
 
-/*class: C:checks=[],onlyForRti,typeArgument*/
+/*class: C:typeArgument*/
 class C {}
 
 @pragma('dart2js:noInline')

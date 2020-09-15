@@ -54,7 +54,7 @@ String pathToJSIdentifier(String path) {
 
 /// Escape [name] to make it into a valid identifier.
 String _toJSIdentifier(String name) {
-  if (name.length == 0) return r'$';
+  if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
   StringBuffer buffer;

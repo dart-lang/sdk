@@ -84,10 +84,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
-  /// The flag specifying if currently visited class references 'super'
-  /// expression.
-  bool _hasReferenceToSuper = false;
-
   factory ResolutionVisitor({
     @required CompilationUnitElementImpl unitElement,
     @required AnalysisErrorListener errorListener,
@@ -241,13 +237,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _resolveWithClause(withClause);
         _resolveImplementsClause(node.implementsClause);
 
-        _hasReferenceToSuper = false;
-
         _defineElements(element.accessors);
         _defineElements(element.methods);
         node.members.accept(this);
-
-        element.hasReferenceToSuper = _hasReferenceToSuper;
       });
     });
 
@@ -377,14 +369,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
       _withElementWalker(null, () {
-        var offset = defaultValue.offset;
-        var initializer = FunctionElementImpl.forOffset(offset);
-        element.initializer = initializer;
-
-        initializer.hasImplicitReturnType = true;
-        initializer.isSynthetic = true;
-
-        _withElementHolder(ElementHolder(initializer), () {
+        _withElementHolder(ElementHolder(element), () {
           defaultValue.accept(this);
         });
       });
@@ -905,12 +890,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
-    _hasReferenceToSuper = true;
-    super.visitSuperExpression(node);
-  }
-
-  @override
   void visitSwitchCase(SwitchCase node) {
     _buildLabelElements(node.labels, false, true);
 
@@ -976,19 +955,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       VariableDeclarationList varList = node.parent;
       localElement.hasImplicitType = varList.type == null;
+      localElement.hasInitializer = initializerNode != null;
       localElement.type = varList.type?.type ?? _dynamicType;
     }
 
     if (initializerNode != null) {
       _withElementWalker(null, () {
-        var offset = initializerNode.offset;
-        var initializer = FunctionElementImpl.forOffset(offset);
-        element.initializer = initializer;
-
-        initializer.hasImplicitReturnType = true;
-        initializer.isSynthetic = true;
-
-        _withElementHolder(ElementHolder(initializer), () {
+        _withElementHolder(ElementHolder(element), () {
           initializerNode.accept(this);
         });
       });

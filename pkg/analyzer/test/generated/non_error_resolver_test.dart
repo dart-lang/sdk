@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -127,7 +125,6 @@ class Future {
 }
 ''');
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'lib.dart';
 main() {
   print(Future.zero);
@@ -291,7 +288,6 @@ f(A a) {
 
   test_assert_with_message_await() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 f() async {
   assert(false, await g());
 }
@@ -449,19 +445,17 @@ dynamic f() async {}
 
   test_async_expression_function_type() async {
     await assertErrorsInCode('''
-import 'dart:async';
 typedef Future<int> F(int i);
 main() {
   F f = (int i) async => i;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 64, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
     ]);
   }
 
   test_async_flattened() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 typedef Future<int> CreatesFutureInt();
 main() {
   CreatesFutureInt createFutureInt = () async => f();
@@ -474,7 +468,6 @@ Future<int> f() => null;
 
   test_async_future_dynamic_with_return() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<dynamic> f() async {
   return;
 }
@@ -483,7 +476,6 @@ Future<dynamic> f() async {
 
   test_async_future_dynamic_with_return_value() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<dynamic> f() async {
   return 5;
 }
@@ -492,14 +484,12 @@ Future<dynamic> f() async {
 
   test_async_future_dynamic_without_return() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<dynamic> f() async {}
 ''');
   }
 
   test_async_future_int_with_return_future_int() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<int> f() async {
   return new Future<int>.value(5);
 }
@@ -508,7 +498,6 @@ Future<int> f() async {
 
   test_async_future_int_with_return_value() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<int> f() async {
   return 5;
 }
@@ -517,7 +506,6 @@ Future<int> f() async {
 
   test_async_future_null_with_return() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<Null> f() async {
   return;
 }
@@ -526,14 +514,12 @@ Future<Null> f() async {
 
   test_async_future_null_without_return() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<Null> f() async {}
 ''');
   }
 
   test_async_future_object_with_return_value() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future<Object> f() async {
   return 5;
 }
@@ -542,7 +528,6 @@ Future<Object> f() async {
 
   test_async_future_with_return() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future f() async {
   return;
 }
@@ -551,7 +536,6 @@ Future f() async {
 
   test_async_future_with_return_value() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future f() async {
   return 5;
 }
@@ -560,7 +544,6 @@ Future f() async {
 
   test_async_future_without_return() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Future f() async {}
 ''');
   }
@@ -611,25 +594,23 @@ f(list) async* {
 
   test_await_flattened() async {
     await assertErrorsInCode('''
-import 'dart:async';
 Future<Future<int>> ffi() => null;
 f() async {
   Future<int> b = await ffi();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
     ]);
   }
 
   test_await_simple() async {
     await assertErrorsInCode('''
-import 'dart:async';
 Future<int> fi() => null;
 f() async {
   int a = await fi();
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
     ]);
   }
 
@@ -1103,7 +1084,6 @@ main() {
 
   test_empty_generator_async() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
 Stream<int> f() async* {
 }
 ''');
@@ -2151,8 +2131,6 @@ class B extends A {
 
   test_issue_24191() async {
     await assertNoErrorsInCode('''
-import 'dart:async';
-
 abstract class S extends Stream {}
 f(S s) async {
   await for (var v in s) {

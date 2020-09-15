@@ -1,10 +1,9 @@
 library test;
 
-@Foo(const [])
-typedef void F();
-
 class Foo {
   const Foo(List<String> l);
 }
 
 main() {}
+@Foo(const [])
+typedef void F();

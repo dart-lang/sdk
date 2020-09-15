@@ -32,6 +32,8 @@ class B implements A {
 }
 
 class C = Object with A;
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
 
 // Has a generative constructor: default.
 abstract class D {

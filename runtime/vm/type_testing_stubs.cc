@@ -91,10 +91,11 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
+  auto isolate = Isolate::Current();
+
   if (type.IsTypeRef()) {
-    return Isolate::Current()->null_safety()
-               ? StubCode::DefaultTypeTest().raw()
-               : StubCode::DefaultNullableTypeTest().raw();
+    return isolate->null_safety() ? StubCode::DefaultTypeTest().raw()
+                                  : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -109,8 +110,16 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
+  if (type.IsTypeParameter()) {
+    const bool nullable = Instance::NullIsAssignableTo(type);
+    if (nullable) {
+      return StubCode::NullableTypeParameterTypeTest().raw();
+    } else {
+      return StubCode::TypeParameterTypeTest().raw();
+    }
+  }
 
-  if (type.IsType() || type.IsTypeParameter()) {
+  if (type.IsType()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (should_specialize) {
@@ -144,7 +153,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
-  if (type.IsTypeRef()) {
+  if (type.IsTypeRef() || type.IsTypeParameter()) {
     return TypeTestingStubGenerator::DefaultCodeForType(
         type, /*lazy_specialize=*/false);
   }

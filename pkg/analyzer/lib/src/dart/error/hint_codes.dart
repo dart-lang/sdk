@@ -15,12 +15,20 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
  */
 class HintCode extends AnalyzerErrorCode {
   /**
+   * Users should not assign values marked `@doNotStore`.
+   */
+  static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
+      'ASSIGNMENT_OF_DO_NOT_STORE',
+      "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field.",
+      correction: "Try removing the assignment.");
+
+  /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
    */
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
       'CAN_BE_NULL_AFTER_NULL_AWARE',
-      "The target expression uses '?.', so its value can be null.",
+      "The receiver uses '?.', so its value can be null.",
       correction: "Replace the '.' with a '?.' in the invocation.");
 
   /**
@@ -560,6 +568,15 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try specifying the type of the parameter.");
 
   /**
+   * Parameters:
+   * 0: the name of the annotation
+   * 1: the list of valid targets
+   */
+  static const HintCode INVALID_ANNOTATION_TARGET = HintCode(
+      'INVALID_ANNOTATION_TARGET',
+      "The annotation '{0}' can only be used on {1}");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
@@ -993,46 +1010,6 @@ class HintCode extends AnalyzerErrorCode {
       "The member '{0}' is annotated with '{1}', but this annotation is only "
           "meaningful on declarations of public members.",
       hasPublishedDocs: true);
-
-  /**
-   * Hint for the `x is double` type checks.
-   */
-  static const HintCode IS_DOUBLE = HintCode(
-      'IS_DOUBLE',
-      "When compiled to JS, this test might return true when the left hand "
-          "side is an int.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is int` type checks.
-   */
-  // TODO(brianwilkerson) This hint isn't being generated. Decide whether to
-  //  generate it or remove it.
-  static const HintCode IS_INT = HintCode(
-      'IS_INT',
-      "When compiled to JS, this test might return true when the left hand "
-          "side is a double.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is! double` type checks.
-   */
-  static const HintCode IS_NOT_DOUBLE = HintCode(
-      'IS_NOT_DOUBLE',
-      "When compiled to JS, this test might return false when the left hand "
-          "side is an int.",
-      correction: "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is! int` type checks.
-   */
-  // TODO(brianwilkerson) This hint isn't being generated. Decide whether to
-  //  generate it or remove it.
-  static const HintCode IS_NOT_INT = HintCode(
-      'IS_NOT_INT',
-      "When compiled to JS, this test might return false when the left hand "
-          "side is a double.",
-      correction: "Try testing for 'num' instead.");
 
   /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
@@ -1573,10 +1550,9 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode RECEIVER_OF_TYPE_NEVER = HintCode(
       'RECEIVER_OF_TYPE_NEVER',
-      'The receiver expression is of type Never, and will never complete '
-          'with a value.',
-      correction: 'Try checking for throw expressions or type errors in the'
-          ' target expression');
+      "The receiver is of type 'Never', and will never complete with a value.",
+      correction: "Try checking for throw expressions or type errors in the "
+          "receiver");
 
   /**
    * No parameters.

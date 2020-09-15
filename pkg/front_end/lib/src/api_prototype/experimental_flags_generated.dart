@@ -92,6 +92,34 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.variance: false,
 };
 
+const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 10),
+  ExperimentalFlag.constantUpdate2018: const Version(2, 4),
+  ExperimentalFlag.controlFlowCollections: const Version(2, 2),
+  ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.nonNullable: const Version(2, 10),
+  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 10),
+  ExperimentalFlag.setLiterals: const Version(2, 2),
+  ExperimentalFlag.spreadCollections: const Version(2, 2),
+  ExperimentalFlag.tripleShift: const Version(2, 10),
+  ExperimentalFlag.valueClass: const Version(2, 10),
+  ExperimentalFlag.variance: const Version(2, 10),
+};
+
+const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 10),
+  ExperimentalFlag.constantUpdate2018: const Version(2, 4),
+  ExperimentalFlag.controlFlowCollections: const Version(2, 2),
+  ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.nonNullable: const Version(2, 10),
+  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 10),
+  ExperimentalFlag.setLiterals: const Version(2, 2),
+  ExperimentalFlag.spreadCollections: const Version(2, 2),
+  ExperimentalFlag.tripleShift: const Version(2, 10),
+  ExperimentalFlag.valueClass: const Version(2, 10),
+  ExperimentalFlag.variance: const Version(2, 10),
+};
+
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
   ExperimentalFlag.nonNullable,

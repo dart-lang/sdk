@@ -3709,6 +3709,8 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  EXPECT(error == Error::null());
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
@@ -3716,6 +3718,8 @@ static FunctionPtr GetFunction(const Class& cls, const char* name) {
 }
 
 static FunctionPtr GetStaticFunction(const Class& cls, const char* name) {
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  EXPECT(error == Error::null());
   const Function& result = Function::Handle(
       cls.LookupStaticFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());

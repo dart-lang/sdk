@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -131,6 +132,29 @@ class B {}''');
 class ResolutionCopierTest with ElementsTypesMixin {
   @override
   final TypeProvider typeProvider = TestTypeProvider();
+
+  void test_topLevelVariableDeclaration_external() {
+    TopLevelVariableDeclaration fromNode =
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
+            isExternal: false);
+    TopLevelVariableElement element = TopLevelVariableElementImpl('x', -1);
+    fromNode.variables.variables[0].name.staticElement = element;
+    TopLevelVariableDeclaration toNode1 =
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
+            isExternal: false);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes matched so resolution data should have been copied.
+    expect(toNode1.variables.variables[0].declaredElement, same(element));
+    TopLevelVariableDeclaration toNode2 =
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration('x')],
+            isExternal: true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes didn't match so resolution data should not have been copied.
+    expect(toNode2.variables.variables[0].declaredElement, isNull);
+  }
 
   void test_visitAdjacentStrings() {
     AdjacentStrings createNode() => astFactory.adjacentStrings([
@@ -315,6 +339,26 @@ class ResolutionCopierTest with ElementsTypesMixin {
     FieldDeclaration toNode2 = AstTestFactory.fieldDeclaration(
         false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
         isAbstract: true);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes didn't match so resolution data should not have been copied.
+    expect(toNode2.fields.variables[0].declaredElement, isNull);
+  }
+
+  void test_visitFieldDeclaration_external() {
+    FieldDeclaration fromNode = AstTestFactory.fieldDeclaration(
+        false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
+        isExternal: false);
+    FieldElement element = FieldElementImpl('x', -1);
+    fromNode.fields.variables[0].name.staticElement = element;
+    FieldDeclaration toNode1 = AstTestFactory.fieldDeclaration(
+        false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
+        isExternal: false);
+    ResolutionCopier.copyResolutionData(fromNode, toNode1);
+    // Nodes matched so resolution data should have been copied.
+    expect(toNode1.fields.variables[0].declaredElement, same(element));
+    FieldDeclaration toNode2 = AstTestFactory.fieldDeclaration(
+        false, Keyword.VAR, null, [AstTestFactory.variableDeclaration('x')],
+        isExternal: true);
     ResolutionCopier.copyResolutionData(fromNode, toNode1);
     // Nodes didn't match so resolution data should not have been copied.
     expect(toNode2.fields.variables[0].declaredElement, isNull);
@@ -663,7 +707,8 @@ class ResolutionCopierTest with ElementsTypesMixin {
 
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
-    LibraryElement element = LibraryElementImpl(null, null, 'lib', -1, 0, true);
+    LibraryElement element = LibraryElementImpl(
+        null, null, 'lib', -1, 0, FeatureSet.latestLanguageVersion());
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -673,7 +718,8 @@ class ResolutionCopierTest with ElementsTypesMixin {
   void test_visitPartOfDirective() {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
-    LibraryElement element = LibraryElementImpl(null, null, 'lib', -1, 0, true);
+    LibraryElement element = LibraryElementImpl(
+        null, null, 'lib', -1, 0, FeatureSet.latestLanguageVersion());
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));

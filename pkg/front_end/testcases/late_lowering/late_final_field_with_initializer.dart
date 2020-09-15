@@ -2,6 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class B {
+  final int x;
+
+  B(this.x);
+}
+
+class C extends B {
+  late final y = x + 1;
+
+  C(int x) : super(x);
+
+  method() => x;
+}
+
 int? lateTopLevelField1Init;
 int initLateTopLevelField1(int value) {
   return lateTopLevelField1Init = value;
@@ -97,6 +111,7 @@ main() {
   expect(87, Extension.lateExtensionField1Init);
 
   Extension.staticMethod();
+  expect(2, C(1).y);
 }
 
 expect(expected, actual) {

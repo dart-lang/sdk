@@ -349,6 +349,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     safelyRecordKeywordCompletion(node.abstractKeyword);
     safelyRecordKeywordCompletion(node.covariantKeyword);
+    safelyRecordKeywordCompletion(node.externalKeyword);
     safelyRecordKeywordCompletion(node.staticKeyword);
     return super.visitFieldDeclaration(node);
   }
@@ -662,6 +663,12 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   void visitThrowExpression(ThrowExpression node) {
     safelyRecordKeywordCompletion(node.throwKeyword);
     return super.visitThrowExpression(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    safelyRecordKeywordCompletion(node.externalKeyword);
+    return super.visitTopLevelVariableDeclaration(node);
   }
 
   @override

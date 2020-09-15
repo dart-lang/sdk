@@ -806,6 +806,7 @@ class ClassLayout : public ObjectLayout {
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
   friend class CidRewriteVisitor;
+  friend class Api;
 };
 
 class PatchClassLayout : public ObjectLayout {
@@ -988,11 +989,12 @@ class FunctionLayout : public ObjectLayout {
     uint64_t bitmap_;
   };
 
-  static constexpr intptr_t kMaxFixedParametersBits = 15;
-  static constexpr intptr_t kMaxOptionalParametersBits = 14;
+  static constexpr intptr_t kMaxFixedParametersBits = 14;
+  static constexpr intptr_t kMaxOptionalParametersBits = 13;
 
  private:
   friend class Class;
+  friend class UnitDeserializationRoots;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
@@ -1063,6 +1065,10 @@ class FunctionLayout : public ObjectLayout {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerWord * sizeof(decltype(packed_fields_)),
                 "FunctionLayout::packed_fields_ bitfields don't align.");
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    compiler::target::kSmiBits,
+                "In-place mask for number of optional parameters cannot fit in "
+                "a Smi on the target architecture");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1521,6 +1527,8 @@ class CodeLayout : public ObjectLayout {
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
+  friend class UnitSerializationRoots;
+  friend class UnitDeserializationRoots;
   friend class CallSiteResetter;
 };
 
@@ -2135,15 +2143,16 @@ class LibraryPrefixLayout : public InstanceLayout {
 
   VISIT_FROM(ObjectPtr, name_)
   StringPtr name_;       // Library prefix name.
-  LibraryPtr importer_;  // Library which declares this prefix.
   ArrayPtr imports_;     // Libraries imported with this prefix.
-  VISIT_TO(ObjectPtr, imports_)
+  LibraryPtr importer_;  // Library which declares this prefix.
+  VISIT_TO(ObjectPtr, importer_)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
-      case Snapshot::kFull:
-      case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&imports_);
+      case Snapshot::kFull:
+      case Snapshot::kFullJIT:
+        return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
@@ -2190,9 +2199,12 @@ class AbstractTypeLayout : public InstanceLayout {
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
+    // Adjust kTypeStateBitSize if more are added.
   };
 
  protected:
+  static constexpr intptr_t kTypeStateBitSize = 2;
+
   uword type_test_stub_entry_point_;  // Accessed from generated code.
   CodePtr type_test_stub_;  // Must be the last field, since subclasses use it
                             // in their VISIT_FROM.
@@ -2237,17 +2249,6 @@ class TypeRefLayout : public AbstractTypeLayout {
 };
 
 class TypeParameterLayout : public AbstractTypeLayout {
- public:
-  enum {
-    kFinalizedBit = 0,
-    kGenericCovariantImplBit,
-    kDeclarationBit,
-  };
-  class FinalizedBit : public BitField<uint8_t, bool, kFinalizedBit, 1> {};
-  class GenericCovariantImplBit
-      : public BitField<uint8_t, bool, kGenericCovariantImplBit, 1> {};
-  class DeclarationBit : public BitField<uint8_t, bool, kDeclarationBit, 1> {};
-
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -2262,6 +2263,13 @@ class TypeParameterLayout : public AbstractTypeLayout {
   int16_t index_;
   uint8_t flags_;
   int8_t nullability_;
+
+  using FinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
+  using GenericCovariantImplBit =
+      BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
+  using DeclarationBit =
+      BitField<decltype(flags_), bool, GenericCovariantImplBit::kNextBit, 1>;
+  static constexpr intptr_t kFlagsBitSize = DeclarationBit::kNextBit;
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2587,6 +2595,7 @@ class ArrayLayout : public InstanceLayout {
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
+  friend class ReversePc;
 
   friend class OldPage;
 };
@@ -2608,6 +2617,7 @@ class GrowableObjectArrayLayout : public InstanceLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
+  friend class ReversePc;
 };
 
 class LinkedHashMapLayout : public InstanceLayout {

@@ -12,6 +12,7 @@ import 'package:args/args.dart';
 import 'package:smith/smith.dart';
 
 import 'bot_results.dart';
+import 'src/options.dart';
 
 const int deflakingCount = 5;
 
@@ -343,10 +344,7 @@ Future<void> runTests(List<String> args) async {
   }
 
   if (options["list-configurations"] as bool) {
-    var process = await Process.start(
-        "python", ["tools/test.py", "--list-configurations"],
-        mode: ProcessStartMode.inheritStdio, runInShell: Platform.isWindows);
-    exitCode = await process.exitCode;
+    listConfigurations({"system": "all"});
     return;
   }
 

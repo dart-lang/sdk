@@ -20,6 +20,10 @@ runTestCase(Uri source) async {
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 
+  // Disrupt the import order as a way of simulating issue 42985.
+  final reversed = component.libraries.reversed.toList();
+  component.libraries.setAll(0, reversed);
+
   component = transformComponent(component);
 
   // Remove core libraries so the expected output isn't enormous and broken by

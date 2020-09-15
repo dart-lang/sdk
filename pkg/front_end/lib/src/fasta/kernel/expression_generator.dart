@@ -272,8 +272,13 @@ abstract class Generator {
   /// create a [TypeBuilder] for a valid type.
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
-    NamedTypeBuilder result =
-        new NamedTypeBuilder(token.lexeme, nullabilityBuilder, null);
+    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
+    NamedTypeBuilder result = new NamedTypeBuilder(
+        token.lexeme,
+        nullabilityBuilder,
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
@@ -2858,8 +2863,13 @@ class DeferredAccessGenerator extends Generator {
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
-    NamedTypeBuilder result =
-        new NamedTypeBuilder(name, nullabilityBuilder, null);
+    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
+    NamedTypeBuilder result = new NamedTypeBuilder(
+        name,
+        nullabilityBuilder,
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(message));
@@ -3896,8 +3906,13 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
-    NamedTypeBuilder result =
-        new NamedTypeBuilder(_plainNameForRead, nullabilityBuilder, null);
+    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
+    NamedTypeBuilder result = new NamedTypeBuilder(
+        _plainNameForRead,
+        nullabilityBuilder,
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
     _helper.libraryBuilder.addProblem(
@@ -3998,8 +4013,13 @@ class ParserErrorGenerator extends Generator {
 
   TypeBuilder buildTypeWithResolvedArguments(
       NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
-    NamedTypeBuilder result =
-        new NamedTypeBuilder(token.lexeme, nullabilityBuilder, null);
+    // TODO(johnniwinther): Could we use a FixedTypeBuilder(InvalidType()) here?
+    NamedTypeBuilder result = new NamedTypeBuilder(
+        token.lexeme,
+        nullabilityBuilder,
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null);
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
     result.bind(result.buildInvalidTypeDeclarationBuilder(
         message.withLocation(_uri, fileOffset, noLength)));

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/member.dart'
     show ConstructorMember, Member;
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
@@ -32,12 +33,14 @@ import 'package:analyzer/src/dart/resolver/for_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/function_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
+import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
 import 'package:analyzer/src/dart/resolver/yield_statement_resolver.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -45,19 +48,15 @@ import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:meta/meta.dart';
-
-export 'package:analyzer/dart/element/type_provider.dart';
-export 'package:analyzer/src/dart/constant/constant_verifier.dart';
-export 'package:analyzer/src/dart/element/type_system.dart';
-export 'package:analyzer/src/dart/resolver/exit_detector.dart';
-export 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// Maintains and manages contextual type information used for
 /// inferring types.
@@ -153,6 +152,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
+  final MigrationResolutionHooks migrationResolutionHooks;
+
   /// Helper for checking expression that should have the `bool` type.
   BoolExpressionVerifier boolExpressionVerifier;
 
@@ -175,6 +176,7 @@ class ResolverVisitor extends ScopedVisitor {
   ForResolver _forResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
+  VariableDeclarationResolver _variableDeclarationResolver;
   YieldStatementResolver _yieldStatementResolver;
 
   NullSafetyDeadCodeVerifier nullSafetyDeadCodeVerifier;
@@ -206,6 +208,9 @@ class ResolverVisitor extends ScopedVisitor {
   /// The mixin declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a mixin.
   MixinDeclaration _enclosingMixinDeclaration;
+
+  /// The helper for tracking if the current location has access to `this`.
+  final ThisAccessTracker _thisAccessTracker = ThisAccessTracker.unit();
 
   InferenceContext inferenceContext;
 
@@ -290,9 +295,14 @@ class ResolverVisitor extends ScopedVisitor {
       this._migratableAstInfoProvider,
       MigrationResolutionHooks migrationResolutionHooks)
       : _featureSet = featureSet,
+        migrationResolutionHooks = migrationResolutionHooks,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _promoteManager = TypePromotionManager(typeSystem);
+
+    var analysisOptions =
+        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
+
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -343,6 +353,11 @@ class ResolverVisitor extends ScopedVisitor {
     _prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
+    );
+    _variableDeclarationResolver = VariableDeclarationResolver(
+      resolver: this,
+      flowAnalysis: _flowAnalysis,
+      strictInference: analysisOptions.strictInference,
     );
     _yieldStatementResolver = YieldStatementResolver(
       resolver: this,
@@ -429,6 +444,54 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void checkReadOfNotAssignedLocalVariable(SimpleIdentifier node) {
+    if (_flowAnalysis?.flow == null) {
+      return;
+    }
+
+    if (!node.inGetterContext()) {
+      return;
+    }
+
+    var element = node.staticElement;
+    if (element is VariableElement) {
+      var assigned = _flowAnalysis.isDefinitelyAssigned(node, element);
+      var unassigned = _flowAnalysis.isDefinitelyUnassigned(node, element);
+
+      if (element.isLate) {
+        if (unassigned) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
+            node,
+            [node.name],
+          );
+        }
+        return;
+      }
+
+      if (!assigned) {
+        if (element.isFinal) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL,
+            node,
+            [node.name],
+          );
+          return;
+        }
+
+        if (typeSystem.isPotentiallyNonNullable(element.type)) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+            node,
+            [node.name],
+          );
+          return;
+        }
+      }
+    }
+  }
+
   void checkUnreachableNode(AstNode node) {
     nullSafetyDeadCodeVerifier.visitNode(node);
   }
@@ -452,6 +515,16 @@ class ResolverVisitor extends ScopedVisitor {
       return element;
     }
     return null;
+  }
+
+  /// Return the result of lexical lookup for the [node], not `null`.
+  ///
+  /// Implements `16.35 Lexical Lookup` from the language specification.
+  LexicalLookupResult lexicalLookup({
+    @required SimpleIdentifier node,
+    @required bool setter,
+  }) {
+    return LexicalLookup(this).perform(node: node, setter: setter);
   }
 
   /// If we reached a null-shorting termination, and the [node] has null
@@ -514,9 +587,81 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void setReadElement(Expression node, Element element) {
+    DartType readType = DynamicTypeImpl.instance;
+    if (node is IndexExpression) {
+      if (element is MethodElement) {
+        readType = element.returnType;
+      }
+    } else if (node is PrefixedIdentifier ||
+        node is PropertyAccess ||
+        node is SimpleIdentifier) {
+      if (element is PropertyAccessorElement && element.isGetter) {
+        readType = element.returnType;
+      } else if (element is VariableElement) {
+        readType = localVariableTypeProvider.getType(node);
+      }
+    }
+
+    var parent = node.parent;
+    if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
+      parent.readElement = element;
+      parent.readType = readType;
+    } else if (parent is PostfixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.readElement = element;
+      parent.readType = readType;
+    } else if (parent is PrefixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.readElement = element;
+      parent.readType = readType;
+    }
+  }
+
   @visibleForTesting
   void setThisInterfaceType(InterfaceType thisType) {
     _thisType = thisType;
+  }
+
+  void setWriteElement(Expression node, Element element) {
+    DartType writeType = DynamicTypeImpl.instance;
+    if (node is IndexExpression) {
+      if (element is MethodElement) {
+        var parameters = element.parameters;
+        if (parameters.length == 2) {
+          writeType = parameters[1].type;
+        }
+      }
+    } else if (node is PrefixedIdentifier ||
+        node is PropertyAccess ||
+        node is SimpleIdentifier) {
+      if (element is PropertyAccessorElement && element.isSetter) {
+        if (element.isSynthetic) {
+          writeType = element.variable.type;
+        } else {
+          var parameters = element.parameters;
+          if (parameters.length == 1) {
+            writeType = parameters[0].type;
+          }
+        }
+      } else if (element is VariableElement) {
+        writeType = element.type;
+      }
+    }
+
+    var parent = node.parent;
+    if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
+      parent.writeElement = element;
+      parent.writeType = writeType;
+    } else if (parent is PostfixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.writeElement = element;
+      parent.writeType = writeType;
+    } else if (parent is PrefixExpressionImpl &&
+        parent.operator.type.isIncrementOperator) {
+      parent.writeElement = element;
+      parent.writeType = writeType;
+    }
   }
 
   /// If in a legacy library, return the legacy view on the [element].
@@ -578,13 +723,25 @@ class ResolverVisitor extends ScopedVisitor {
           positional.skip(normalCount).take(optionalCount);
       Iterable<Expression> named =
           arguments.skipWhile((l) => l is! NamedExpression);
+      var parent = node.parent;
+      DartType targetType;
+      Element methodElement;
+      DartType invocationContext;
+      if (parent is MethodInvocation) {
+        targetType = parent.realTarget?.staticType;
+        methodElement = parent.methodName.staticElement;
+        invocationContext = InferenceContext.getContext(parent);
+      }
 
       //TODO(leafp): Consider using the parameter elements here instead.
       //TODO(leafp): Make sure that the parameter elements are getting
       // setup correctly with inference.
       int index = 0;
       for (Expression argument in required) {
-        InferenceContext.setType(argument, normalParameterTypes[index++]);
+        InferenceContext.setType(
+            argument,
+            typeSystem.refineNumericInvocationContext(targetType, methodElement,
+                invocationContext, normalParameterTypes[index++]));
       }
       index = 0;
       for (Expression argument in optional) {
@@ -661,8 +818,10 @@ class ResolverVisitor extends ScopedVisitor {
   void visitBlockFunctionBody(BlockFunctionBody node) {
     try {
       inferenceContext.pushFunctionBodyContext(node);
+      _thisAccessTracker.enterFunctionBody(node);
       super.visitBlockFunctionBody(node);
     } finally {
+      _thisAccessTracker.exitFunctionBody(node);
       inferenceContext.popFunctionBodyContext(node);
     }
   }
@@ -691,7 +850,8 @@ class ResolverVisitor extends ScopedVisitor {
     node.target.accept(this);
 
     if (node.isNullAware && _isNonNullableByDefault) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(
+          node.target, node.target.staticType ?? typeProvider.dynamicType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
 
@@ -946,10 +1106,6 @@ class ResolverVisitor extends ScopedVisitor {
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement;
 
-    if (element.initializer != null && node.defaultValue != null) {
-      (element.initializer as FunctionElementImpl).returnType =
-          node.defaultValue.staticType;
-    }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
     if (element is ConstVariableElement &&
@@ -1021,12 +1177,14 @@ class ResolverVisitor extends ScopedVisitor {
     if (resolveOnlyCommentInFunctionBody) {
       return;
     }
+
     try {
       inferenceContext.pushFunctionBodyContext(node);
       InferenceContext.setType(
         node.expression,
         inferenceContext.bodyContext.contextType,
       );
+      _thisAccessTracker.enterFunctionBody(node);
 
       super.visitExpressionFunctionBody(node);
 
@@ -1034,23 +1192,13 @@ class ResolverVisitor extends ScopedVisitor {
 
       inferenceContext.bodyContext.addReturnExpression(node.expression);
     } finally {
+      _thisAccessTracker.exitFunctionBody(node);
       inferenceContext.popFunctionBodyContext(node);
     }
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    //
-    // Resolve the metadata in the library scope
-    // and associate the annotations with the element.
-    //
-    if (node.metadata != null) {
-      node.metadata.accept(this);
-      ElementResolver.resolveMetadata(node);
-    }
-    //
-    // Continue the extension resolution.
-    //
     try {
       _thisType = node.declaredElement.extendedType;
       super.visitExtensionDeclaration(node);
@@ -1071,6 +1219,16 @@ class ResolverVisitor extends ScopedVisitor {
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _thisAccessTracker.enterFieldDeclaration(node);
+    try {
+      super.visitFieldDeclaration(node);
+    } finally {
+      _thisAccessTracker.exitFieldDeclaration(node);
+    }
   }
 
   @override
@@ -1290,7 +1448,8 @@ class ResolverVisitor extends ScopedVisitor {
     node.target?.accept(this);
     if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
         _isNonNullableByDefault) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(
+          node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
     node.accept(elementResolver);
@@ -1377,12 +1536,18 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    node.target?.accept(this);
+    var target = node.target;
+    target?.accept(this);
 
     if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
         _isNonNullableByDefault) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
+      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
+        // `?.` to access static methods is equivalent to `.`, so do nothing.
+      } else {
+        _flowAnalysis.flow.nullAwareAccess_rightBegin(
+            target, node.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
     }
 
     node.typeArguments?.accept(this);
@@ -1475,11 +1640,17 @@ class ResolverVisitor extends ScopedVisitor {
     // We visit the target, but do not visit the property name because it needs
     // to be visited in the context of the property access node.
     //
-    node.target?.accept(this);
+    var target = node.target;
+    target?.accept(this);
     if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
         _isNonNullableByDefault) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
+      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
+        // `?.` to access static methods is equivalent to `.`, so do nothing.
+      } else {
+        _flowAnalysis.flow.nullAwareAccess_rightBegin(
+            target, node.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -1533,23 +1704,7 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    if (_flowAnalysis != null) {
-      if (_flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          node,
-          [node.name],
-        );
-      }
-      if (_flowAnalysis.isReadOfDefinitelyUnassignedLateLocal(node)) {
-        errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
-          node,
-          [node.name],
-        );
-      }
-    }
+    checkReadOfNotAssignedLocalVariable(node);
 
     super.visitSimpleIdentifier(node);
   }
@@ -1702,29 +1857,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var grandParent = node.parent.parent;
-    bool isTopLevel = grandParent is FieldDeclaration ||
-        grandParent is TopLevelVariableDeclaration;
-    InferenceContext.setTypeFromNode(node.initializer, node);
-    if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
-    }
-    super.visitVariableDeclaration(node);
-    if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_exit();
-    }
-    VariableElement element = node.declaredElement;
-    if (element.initializer != null && node.initializer != null) {
-      var initializer = element.initializer as FunctionElementImpl;
-      initializer.returnType = node.initializer.staticType;
-    }
-    // Note: in addition to cloning the initializers for const variables, we
-    // have to clone the initializers for non-static final fields (because if
-    // they occur in a class with a const constructor, they will be needed to
-    // evaluate the const constructor).
-    if (element is ConstVariableElement) {
-      (element as ConstVariableElement).constantInitializer =
-          _createCloner().cloneNode(node.initializer);
+    _variableDeclarationResolver.resolve(node);
+
+    if (node.parent.parent is ForParts) {
+      _define(node.declaredElement);
     }
   }
 
@@ -1800,8 +1936,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (executable is MethodElement ||
         executable is FunctionElement &&
             executable.enclosingElement is CompilationUnitElement) {
-      return LibraryElementImpl.hasResolutionCapability(
-          definingLibrary, LibraryResolutionCapability.constantExpressions);
+      return true;
     }
     return false;
   }
@@ -1885,8 +2020,14 @@ class ResolverVisitor extends ScopedVisitor {
     if (function is PropertyAccess &&
         _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
         _isNonNullableByDefault) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(function);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
+      var target = function.target;
+      if (target is SimpleIdentifier && target.staticElement is ClassElement) {
+        // `?.` to access static methods is equivalent to `.`, so do nothing.
+      } else {
+        _flowAnalysis.flow.nullAwareAccess_rightBegin(function,
+            function.realTarget.staticType ?? typeProvider.dynamicType);
+        _unfinishedNullShorts.add(node.nullShortingTermination);
+      }
     }
 
     _functionExpressionInvocationResolver.resolve(node);
@@ -2007,7 +2148,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      TypeSystem typeSystem,
+      TypeSystemImpl typeSystem,
       FeatureSet featureSet,
       MigrationResolutionHooks migrationResolutionHooks)
       : _migrationResolutionHooks = migrationResolutionHooks,
@@ -2421,7 +2562,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     } else if (parent is FunctionTypeAlias) {
       nameScope = FormalParameterScope(
         nameScope,
-        parent.declaredElement.parameters,
+        parent.declaredElement.function.parameters,
       );
     } else if (parent is MethodDeclaration) {
       nameScope = FormalParameterScope(

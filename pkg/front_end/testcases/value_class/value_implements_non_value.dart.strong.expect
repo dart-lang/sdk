@@ -1,0 +1,226 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:30:22: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+//                      ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat implements Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:31:23: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+//                       ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat implements Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:32:22: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
+//                      ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat implements Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:40:25: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat2 firstCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 10);
+//                         ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:23:7: Context: The class 'Cat2' has a constructor that takes no arguments.
+// class Cat2 implements Animal2 {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:41:26: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat2 secondCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 10);
+//                          ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:23:7: Context: The class 'Cat2' has a constructor that takes no arguments.
+// class Cat2 implements Animal2 {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:42:25: Error: No named parameter with the name 'numberOfLegs'.
+//   Cat2 thirdCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 0);
+//                         ^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:23:7: Context: The class 'Cat2' has a constructor that takes no arguments.
+// class Cat2 implements Animal2 {
+//       ^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:9:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:14:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:15:13: Error: Final field 'numberOfWhiskers' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfWhiskers;
+//             ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:24:13: Error: Final field 'numberOfLegs' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfLegs;
+//             ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/value_class/value_implements_non_value.dart:25:13: Error: Final field 'numberOfWhiskers' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfWhiskers;
+//             ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase-sdk:///pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart";
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int numberOfLegs = null;
+  synthetic constructor •() → self::Animal
+    : super core::Object::•()
+    ;
+}
+class Cat extends core::Object implements self::Animal {
+  final field core::int numberOfLegs = null;
+  final field core::int numberOfWhiskers = null;
+  synthetic constructor •({required core::int numberOfLegs, required core::int numberOfWhiskers}) → self::Cat
+    : self::Cat::numberOfLegs = numberOfLegs, self::Cat::numberOfWhiskers = numberOfWhiskers, super core::Object::•()
+    ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat && this.{self::Cat::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
+}
+abstract class Animal2 extends core::Object {
+  synthetic constructor •() → self::Animal2
+    : super core::Object::•()
+    ;
+  abstract get numberOfLegs() → core::int;
+}
+class Cat2 extends core::Object implements self::Animal2 {
+  final field core::int numberOfLegs = null;
+  final field core::int numberOfWhiskers = null;
+  synthetic constructor •({required core::int numberOfLegs, required core::int numberOfWhiskers}) → self::Cat2
+    : self::Cat2::numberOfLegs = numberOfLegs, self::Cat2::numberOfWhiskers = numberOfWhiskers, super core::Object::•()
+    ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat2 && this.{self::Cat2::numberOfLegs}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfLegs}) && this.{self::Cat2::numberOfWhiskers}.{core::num::==}(other{self::Cat2}.{self::Cat2::numberOfWhiskers});
+}
+static method main() → dynamic {
+  self::Cat firstCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:30:22: Error: No named parameter with the name 'numberOfLegs'.
+  Cat firstCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+                     ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+  self::Cat secondCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:31:23: Error: No named parameter with the name 'numberOfLegs'.
+  Cat secondCat = Cat(numberOfLegs: 4, numberOfWhiskers: 10);
+                      ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+  self::Cat thirdCat = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:32:22: Error: No named parameter with the name 'numberOfLegs'.
+  Cat thirdCat = Cat(numberOfLegs: 4, numberOfWhiskers: 0);
+                     ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+  self::expect(true, firstCat.{core::Object::==}(secondCat));
+  self::expect(false, firstCat.{core::Object::==}(thirdCat));
+  self::expect(true, firstCat.{core::Object::hashCode}.{core::num::==}(secondCat.{core::Object::hashCode}));
+  self::expect(false, firstCat.{core::Object::hashCode}.{core::num::==}(thirdCat.{core::Object::hashCode}));
+  self::Cat2 firstCat2 = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:40:25: Error: No named parameter with the name 'numberOfLegs'.
+  Cat2 firstCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 10);
+                        ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat2;
+  self::Cat2 secondCat2 = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:41:26: Error: No named parameter with the name 'numberOfLegs'.
+  Cat2 secondCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 10);
+                         ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat2;
+  self::Cat2 thirdCat2 = invalid-expression "pkg/front_end/testcases/value_class/value_implements_non_value.dart:42:25: Error: No named parameter with the name 'numberOfLegs'.
+  Cat2 thirdCat2 = Cat2(numberOfLegs: 4, numberOfWhiskers: 0);
+                        ^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat2;
+  self::expect(true, firstCat2.{core::Object::==}(secondCat2));
+  self::expect(false, firstCat2.{core::Object::==}(thirdCat2));
+  self::expect(true, firstCat2.{core::Object::hashCode}.{core::num::==}(secondCat2.{core::Object::hashCode}));
+  self::expect(false, firstCat2.{core::Object::hashCode}.{core::num::==}(thirdCat2.{core::Object::hashCode}));
+}
+static method expect(core::Object? expected, core::Object? actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected=${expected}, actual=${actual}";
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart:1:1: Error: A library can't opt out of null safety by default, when using sound null safety.
+// // @dart=2.4
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart:3:7: Error: Can't use 'late' as a name here.
+// class late {
+//       ^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart:7:7: Error: Can't use 'required' as a name here.
+// class required {
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart:12:8: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   late l = late();
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart:13:3: Error: Can't have modifier 'required' here.
+// Try removing 'required'.
+//   required r = required();
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/nnbd_opt_out_language_version.dart:13:12: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   required r = required();
+//            ^
+//
+import self as self2;
+import "dart:core" as core;
+
+class late extends core::Object {
+  synthetic constructor •() → self2::late
+    : super core::Object::•()
+    ;
+  get g() → core::int
+    return 1;
+}
+class required extends core::Object {
+  synthetic constructor •() → self2::required
+    : super core::Object::•()
+    ;
+  get g() → core::int
+    return 2;
+}
+class C extends core::Object {
+  field self2::late l = new self2::late::•();
+  field self2::required r = new self2::required::•();
+  synthetic constructor •() → self2::C
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  if(!new self2::C::•().{self2::C::l}.{self2::late::g}.{core::num::==}(1))
+    throw "Expected 1";
+  if(!new self2::C::•().{self2::C::r}.{self2::required::g}.{core::num::==}(2))
+    throw "Expected 2";
+}
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → self3::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C1;
+
+constants  {
+  #C1 = "valueClass"
+}

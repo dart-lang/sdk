@@ -6,6 +6,8 @@ import 'package:analysis_server_client/protocol.dart';
 
 import '../util.dart';
 
+// TODO(devoncarew): This is only referenced from tests.
+
 /// Perform the indicated source edits to the given source, returning the
 /// resulting transformed text.
 String applyEdits(SourceFileEdit sourceFileEdit, String source) {

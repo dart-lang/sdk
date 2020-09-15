@@ -1,3 +1,8 @@
+# 1.3.2
+
+- Add IPv6 hosting support.
+- Fix handling of requests that are outstanding when a client channel is closed.
+
 # 1.3.1
 
 - Fixed issue where an exception could be thrown during startup if the target

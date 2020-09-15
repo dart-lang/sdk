@@ -908,7 +908,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = node.inputs.last; // Drop interceptor.
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
@@ -919,7 +919,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
     result.sideEffects.setDependsOnSomething();
     result.sideEffects.clearAllSideEffects();
     result.setUseGvn();
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
+  }
+
+  HInstruction maybeAddNativeReturnNullCheck(
+      HInstruction node, HInstruction replacement, FunctionEntity method) {
+    if (_options.enableNativeReturnNullAssertions) {
+      if (method.library.isNonNullableByDefault) {
+        FunctionType type =
+            _closedWorld.elementEnvironment.getFunctionType(method);
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+          node.block.addBefore(node, replacement);
+          replacement = HNullCheck(replacement,
+              _abstractValueDomain.excludeNull(replacement.instructionType),
+              sticky: true);
+        }
+      }
+    }
+    return replacement;
   }
 
   // Try to 'inline' an instance setter call to a known native or js-interop
@@ -1025,14 +1043,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = inputs[1];
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method,
         [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
         nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
   }
 
   @override
@@ -1200,6 +1219,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIf(HIf node) {
     HInstruction condition = node.condition;
     if (condition.isConstant()) return node;
+
+    AbstractBool isTruthy =
+        _abstractValueDomain.isTruthy(condition.instructionType);
+    if (isTruthy.isDefinitelyTrue) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(true, _closedWorld));
+    } else if (isTruthy.isDefinitelyFalse) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(false, _closedWorld));
+    }
+
     bool isNegated = condition is HNot;
 
     if (isNegated) {
@@ -1219,6 +1249,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     simplifyCondition(node.thenBlock, condition, !isNegated);
     simplifyCondition(node.elseBlock, condition, isNegated);
+    return node;
+  }
+
+  /// Returns [node] after replacing condition.
+  HInstruction _replaceHIfCondition(HIf node, HInstruction newCondition) {
+    HInstruction condition = node.condition;
+    node.inputs[0] = newCondition;
+    condition.usedBy.remove(node);
+    newCondition.usedBy.add(node);
     return node;
   }
 
@@ -1852,7 +1891,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       node.checkedTypeExpression = recipe.type;
     }
 
-    if (node.isRedundant(_closedWorld, useNullSafety: _options.useNullSafety)) {
+    if (node.isRedundant(_closedWorld, _options)) {
       return node.checkedInput;
     }
 
@@ -1877,7 +1916,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
-    if (node.isRedundant(_closedWorld, useNullSafety: _options.useNullSafety)) {
+    if (node.isRedundant(_closedWorld, _options)) {
       return node.checkedInput;
     }
     return node;
@@ -1891,8 +1930,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       node.dartType = recipe.type;
     }
 
-    AbstractBool result =
-        node.evaluate(_closedWorld, useNullSafety: _options.useNullSafety);
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -1928,8 +1966,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result =
-        node.evaluate(_closedWorld, useNullSafety: _options.useNullSafety);
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }

@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [PrefixExpression]s.
@@ -58,19 +57,38 @@ class PrefixExpressionResolver {
 
     node.operand.accept(_resolver);
 
-    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
+    var operand = node.operand;
+    if (operand is SimpleIdentifier) {
+      var element = operand.staticElement;
+      // ElementResolver does not set it.
+      if (element is VariableElement) {
+        _resolver.setReadElement(operand, element);
+        _resolver.setWriteElement(operand, element);
+      }
+    }
+
+    if (node.readElement == null || node.readType == null) {
+      _resolver.setReadElement(operand, null);
+    }
+    if (node.writeElement == null || node.writeType == null) {
+      _resolver.setWriteElement(operand, null);
+    }
+
+    if (operator.isIncrementOperator) {
+      _assignmentShared.checkFinalAlreadyAssigned(node.operand);
+    }
 
     _resolve1(node);
     _resolve2(node);
   }
 
   /// Check that the result [type] of a prefix or postfix `++` or `--`
-  /// expression is assignable to the write type of the [operand].
+  /// expression is assignable to the write type of the operand.
   ///
   /// TODO(scheglov) this is duplicate
   void _checkForInvalidAssignmentIncDec(
-      AstNode node, Expression operand, DartType type) {
-    var operandWriteType = _getStaticType(operand);
+      PrefixExpressionImpl node, DartType type) {
+    var operandWriteType = node.writeType;
     if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
@@ -119,31 +137,6 @@ class PrefixExpressionResolver {
     }
   }
 
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getStaticType(Expression expression, {bool read = false}) {
-    if (read) {
-      var type = getReadType(
-        expression,
-      );
-      return _resolveTypeParameter(type);
-    } else {
-      if (expression is SimpleIdentifier && expression.inSetterContext()) {
-        var element = expression.staticElement;
-        if (element is PromotableElement) {
-          // We're writing to the element so ignore promotions.
-          return element.type;
-        } else {
-          return expression.staticType;
-        }
-      } else {
-        return expression.staticType;
-      }
-    }
-  }
-
   /// Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
   /// return the type itself.
   ///
@@ -184,9 +177,9 @@ class PrefixExpressionResolver {
         node.staticElement = member;
         return;
       }
-      DartType staticType = _getStaticType(operand, read: true);
 
-      if (identical(staticType, NeverTypeImpl.instance)) {
+      var readType = node.readType ?? operand.staticType;
+      if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.errorReporter.reportErrorForNode(
           HintCode.RECEIVER_OF_TYPE_NEVER,
           operand,
@@ -196,24 +189,24 @@ class PrefixExpressionResolver {
 
       var result = _typePropertyResolver.resolve(
         receiver: operand,
-        receiverType: staticType,
+        receiverType: readType,
         name: methodName,
         receiverErrorNode: operand,
         nameErrorNode: operand,
       );
       node.staticElement = result.getter;
-      if (_shouldReportInvalidMember(staticType, result)) {
+      if (_shouldReportInvalidMember(readType, result)) {
         if (operand is SuperExpression) {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
             operator,
-            [methodName, staticType],
+            [methodName, readType],
           );
         } else {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.UNDEFINED_OPERATOR,
             operator,
-            [methodName, staticType],
+            [methodName, readType],
           );
         }
       }
@@ -232,11 +225,10 @@ class PrefixExpressionResolver {
       if (operand is ExtensionOverride) {
         // No special handling for incremental operators.
       } else if (operator.isIncrementOperator) {
-        var operandReadType = _getStaticType(operand, read: true);
-        if (operandReadType.isDartCoreInt) {
+        if (node.readType.isDartCoreInt) {
           staticType = _nonNullable(_typeProvider.intType);
         } else {
-          _checkForInvalidAssignmentIncDec(node, operand, staticType);
+          _checkForInvalidAssignmentIncDec(node, staticType);
         }
         if (operand is SimpleIdentifier) {
           var element = operand.staticElement;
@@ -263,13 +255,6 @@ class PrefixExpressionResolver {
 
     _flowAnalysis?.flow?.logicalNot_end(node, operand);
   }
-
-  /// If the given [type] is a type parameter, resolve it to the type that should
-  /// be used when looking up members. Otherwise, return the original type.
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _resolveTypeParameter(DartType type) =>
-      type?.resolveToBound(_typeProvider.objectType);
 
   /// Return `true` if we should report an error for the lookup [result] on
   /// the [type].

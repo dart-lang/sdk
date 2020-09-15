@@ -389,6 +389,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       Keyword.ABSTRACT,
       Keyword.CONST,
       Keyword.COVARIANT,
+      Keyword.EXTERNAL,
       Keyword.FINAL
     ];
     if (isEnabled(ExperimentalFeatures.non_nullable)) {

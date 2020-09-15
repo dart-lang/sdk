@@ -301,10 +301,14 @@ void FlowGraphTypePropagator::CheckNonNullSelector(
     // Nothing to do if type is already non-nullable.
     return;
   }
+  Thread* thread = Thread::Current();
   const Class& null_class =
-      Class::Handle(Isolate::Current()->object_store()->null_class());
-  const Function& target = Function::Handle(Resolver::ResolveDynamicAnyArgs(
-      Thread::Current()->zone(), null_class, function_name));
+      Class::Handle(thread->isolate()->object_store()->null_class());
+  Function& target = Function::Handle();
+  if (Error::Handle(null_class.EnsureIsFinalized(thread)).IsNull()) {
+    target = Resolver::ResolveDynamicAnyArgs(thread->zone(), null_class,
+                                             function_name);
+  }
   if (target.IsNull()) {
     // If the selector is not defined on Null, we can propagate non-nullness.
     CompileType* type = TypeOf(receiver);
@@ -1339,10 +1343,36 @@ CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   return is_nullable ? type : type.CopyNonNullable();
 }
 
+static CompileType ComputeListFactoryType(CompileType* inferred_type,
+                                          Value* type_args_value) {
+  ASSERT(inferred_type != nullptr);
+  const intptr_t cid = inferred_type->ToNullableCid();
+  ASSERT(cid != kDynamicCid);
+  if ((cid == kGrowableObjectArrayCid || cid == kArrayCid ||
+       cid == kImmutableArrayCid) &&
+      type_args_value->BindsToConstant()) {
+    const auto& type_args =
+        type_args_value->BoundConstant().IsNull()
+            ? TypeArguments::null_type_arguments()
+            : TypeArguments::Cast(type_args_value->BoundConstant());
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(cid));
+    Type& type = Type::ZoneHandle(Type::New(
+        cls, type_args, TokenPosition::kNoSource, Nullability::kNonNullable));
+    ASSERT(type.IsInstantiated());
+    type.SetIsFinalized();
+    return CompileType(CompileType::kNonNullable, cid, &type);
+  }
+  return *inferred_type;
+}
+
 CompileType StaticCallInstr::ComputeType() const {
   // TODO(alexmarkov): calculate type of StaticCallInstr eagerly
   // (in optimized mode) and avoid keeping separate result_type.
-  CompileType* inferred_type = result_type();
+  CompileType* const inferred_type = result_type();
+  if (is_known_list_constructor()) {
+    return ComputeListFactoryType(inferred_type, ArgumentValueAt(0));
+  }
   if ((inferred_type != NULL) &&
       (inferred_type->ToNullableCid() != kDynamicCid)) {
     return *inferred_type;
@@ -1700,6 +1730,71 @@ CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
 }
 
+static AbstractTypePtr ExtractElementTypeFromArrayType(
+    const AbstractType& array_type) {
+  if (array_type.IsTypeParameter()) {
+    return ExtractElementTypeFromArrayType(
+        AbstractType::Handle(TypeParameter::Cast(array_type).bound()));
+  }
+  if (!array_type.IsType()) {
+    return Object::dynamic_type().raw();
+  }
+  const intptr_t cid = array_type.type_class_id();
+  if (cid == kGrowableObjectArrayCid || cid == kArrayCid ||
+      cid == kImmutableArrayCid ||
+      array_type.type_class() ==
+          Isolate::Current()->object_store()->list_class()) {
+    const auto& type_args = TypeArguments::Handle(array_type.arguments());
+    return type_args.TypeAtNullSafe(Array::kElementTypeTypeArgPos);
+  }
+  return Object::dynamic_type().raw();
+}
+
+static AbstractTypePtr GetElementTypeFromArray(Value* array) {
+  // Sometimes type of definition may contain a static type
+  // which is useful to extract element type, but reaching type
+  // only has a cid. So try out type of definition, if any.
+  if (array->definition()->HasType()) {
+    auto& elem_type = AbstractType::Handle(ExtractElementTypeFromArrayType(
+        *(array->definition()->Type()->ToAbstractType())));
+    if (!elem_type.IsDynamicType()) {
+      return elem_type.raw();
+    }
+  }
+  return ExtractElementTypeFromArrayType(*(array->Type()->ToAbstractType()));
+}
+
+static CompileType ComputeArrayElementType(Value* array) {
+  // 1. Try to extract element type from array value.
+  auto& elem_type = AbstractType::Handle(GetElementTypeFromArray(array));
+  if (!elem_type.IsDynamicType()) {
+    return CompileType::FromAbstractType(elem_type);
+  }
+
+  // 2. Array value may be loaded from GrowableObjectArray.data.
+  // Unwrap and try again.
+  if (auto* load_field = array->definition()->AsLoadField()) {
+    if (load_field->slot().IsIdentical(Slot::GrowableObjectArray_data())) {
+      array = load_field->instance();
+      elem_type = GetElementTypeFromArray(array);
+      if (!elem_type.IsDynamicType()) {
+        return CompileType::FromAbstractType(elem_type);
+      }
+    }
+  }
+
+  // 3. If array was loaded from a Dart field, use field's static type.
+  // Unlike propagated type (which could be cid), static type may contain
+  // type arguments which can be used to figure out element type.
+  if (auto* load_field = array->definition()->AsLoadField()) {
+    if (load_field->slot().IsDartField()) {
+      elem_type =
+          ExtractElementTypeFromArrayType(load_field->slot().static_type());
+    }
+  }
+  return CompileType::FromAbstractType(elem_type);
+}
+
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
@@ -1708,7 +1803,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
         // The original call knew something.
         return *result_type_;
       }
-      return CompileType::Dynamic();
+      return ComputeArrayElementType(array());
 
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
@@ -1748,6 +1843,15 @@ CompileType LoadIndexedInstr::ComputeType() const {
       UNIMPLEMENTED();
       return CompileType::Dynamic();
   }
+}
+
+bool LoadIndexedInstr::RecomputeType() {
+  if ((class_id_ == kArrayCid) || (class_id_ == kImmutableArrayCid)) {
+    // Array element type computation depends on computed
+    // types of other instructions and may change over time.
+    return UpdateType(ComputeType());
+  }
+  return false;
 }
 
 }  // namespace dart

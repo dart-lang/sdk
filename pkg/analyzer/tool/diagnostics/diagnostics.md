@@ -1907,7 +1907,7 @@ values are returned by an iterator.
 ### export_legacy_symbol
 
 _The symbol '{0}' is defined in a legacy library, and can't be re-exported from
-a non-nullable by default library._
+a library with null safety enabled._
 
 #### Description
 
@@ -2214,7 +2214,7 @@ extension._
 #### Description
 
 The analyzer produces this diagnostic when an extension override is the
-target of the invocation of a static member. Similar to static members in
+receiver of the invocation of a static member. Similar to static members in
 classes, the static members of an extension should be accessed using the
 name of the extension, not an extension override.
 
@@ -2286,8 +2286,8 @@ void f() {
 {% endprettify %}
 
 If there's a different extension that's valid for the type of the argument,
-then either replace the name of the extension or unwrap the target so that
-the correct extension is found.
+then either replace the name of the extension or unwrap the argument so
+that the correct extension is found.
 
 ### extension_override_without_access
 
@@ -2330,7 +2330,7 @@ void f(int i) {
 }
 {% endprettify %}
 
-If you don't want to invoke a member, then unwrap the target:
+If you don't want to invoke a member, then unwrap the argument:
 
 {% prettify dart tag=pre+code %}
 extension E on int {
@@ -2344,14 +2344,14 @@ void f(int i) {
 
 ### extension_override_with_cascade
 
-_Extension overrides have no value so they can't be used as the target of a
+_Extension overrides have no value so they can't be used as the receiver of a
 cascade expression._
 
 #### Description
 
 The analyzer produces this diagnostic when an extension override is used as
-the target of a cascade expression. The value of a cascade expression
-`e..m` is the value of the target `e`, but extension overrides aren't
+the receiver of a cascade expression. The value of a cascade expression
+`e..m` is the value of the receiver `e`, but extension overrides aren't
 expressions and don't have a value.
 
 #### Examples
@@ -2364,7 +2364,7 @@ extension E on int {
   void m() {}
 }
 f() {
-  E(3)[!..!]m();
+  [!E!](3)..m();
 }
 {% endprettify %}
 
@@ -2509,6 +2509,9 @@ class C {
 {% endprettify %}
 
 ### field_initializer_not_assignable
+
+_The initializer type '{0}' can't be assigned to the field type '{1}' in a const
+constructor._
 
 _The initializer type '{0}' can't be assigned to the field type '{1}'._
 
@@ -3442,16 +3445,15 @@ var x;
 
 ### invalid_null_aware_operator
 
-_The target expression can't be null because of short-circuiting, so the
-null-aware operator '{0}' can't be used._
+_The receiver can't be null because of short-circuiting, so the null-aware
+operator '{0}' can't be used._
 
-_The target expression can't be null, so the null-aware operator '{0}' can't be
-used._
+_The receiver can't be null, so the null-aware operator '{0}' can't be used._
 
 #### Description
 
 The analyzer produces this diagnostic when a null-aware operator (`?.`,
-`?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+`?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
 non-nullable.
 
 #### Example
@@ -7643,7 +7645,7 @@ void f(C c) {
 {% endprettify %}
 
 If a subclass adds a parameter with the name in question, then cast the
-target to the subclass:
+receiver to the subclass:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -7805,20 +7807,26 @@ import 'dart:math' show min;
 var x = min(0, 1);
 {% endprettify %}
 
-### undefined_super_method
+### undefined_super_member
+
+_The getter '{0}' isn't defined in a superclass of '{1}'._
 
 _The method '{0}' isn't defined in a superclass of '{1}'._
 
+_The operator '{0}' isn't defined in a superclass of '{1}'._
+
+_The setter '{0}' isn't defined in a superclass of '{1}'._
+
 #### Description
 
-The analyzer produces this diagnostic when an inherited method is
-referenced using `super`, but there’s no method with that name in the
+The analyzer produces this diagnostic when an inherited member is
+referenced using `super`, but there’s no member with that name in the
 superclass chain.
 
 #### Examples
 
 The following code produces this diagnostic because `Object` doesn't define
-a member named `n`:
+a method named `n`:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -7828,15 +7836,26 @@ class C {
 }
 {% endprettify %}
 
+The following code produces this diagnostic because `Object` doesn't define
+a getter named `g`:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m() {
+    super.[!g!];
+  }
+}
+{% endprettify %}
+
 #### Common fixes
 
-If the inherited method you intend to invoke has a different name, then
-make the name of the invoked method  match the inherited method.
+If the inherited member you intend to invoke has a different name, then
+make the name of the invoked member match the inherited member.
 
-If the method you intend to invoke is defined in the same class, then
+If the member you intend to invoke is defined in the same class, then
 remove the `super.`.
 
-If not, then either add the method to one of the superclasses or remove the
+If not, then either add the member to one of the superclasses or remove the
 invocation.
 
 ### unnecessary_cast
@@ -7875,7 +7894,7 @@ void f(num n) {
 
 ### unnecessary_non_null_assertion
 
-_The '!' will have no effect because the target expression can't be null._
+_The '!' will have no effect because the receiver can't be null._
 
 #### Description
 
@@ -8522,3 +8541,7 @@ class C<E> {}
 
 void f(C<int> x) {}
 {% endprettify %}
+
+### undefined_super_method
+
+See [undefined_super_member](#undefined-super-member).

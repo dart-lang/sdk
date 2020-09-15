@@ -617,7 +617,10 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
   copy_args_prologue = Fragment(copy_args_prologue.entry, prologue_entry);
 
   ASSERT(throw_no_such_method_ == nullptr);
-  throw_no_such_method_ = B->BuildThrowNoSuchMethod();
+  if (function().CanReceiveDynamicInvocation()) {
+    // We only pass a non-nullptr NSM block if argument shape checks are needed.
+    throw_no_such_method_ = B->BuildThrowNoSuchMethod();
+  }
 
   PrologueBuilder prologue_builder(parsed_function(), B->last_used_block_id_,
                                    B->IsCompiledForOsr(), B->IsInlining());
@@ -670,43 +673,45 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
   const intptr_t expected_num_type_args = DecodeOperandA().value();
   LocalVariable* type_args_var = LocalVariableAt(DecodeOperandE().value());
 
-  if (throw_no_such_method_ == nullptr) {
+  const bool check_lengths = function().CanReceiveDynamicInvocation();
+
+  if (check_lengths && throw_no_such_method_ == nullptr) {
     throw_no_such_method_ = B->BuildThrowNoSuchMethod();
   }
 
   Fragment setup_type_args;
-  JoinEntryInstr* done = B->BuildJoinEntry();
 
   // Type args are always optional, so length can always be zero.
-  // If expect_type_args, a non-zero length must match the declaration length.
-  TargetEntryInstr *then, *fail;
-  setup_type_args += B->LoadArgDescriptor();
-  setup_type_args +=
-      B->LoadNativeField(Slot::ArgumentsDescriptor_type_args_len());
-
+  // If expect_type_args and lengths are being checked, a non-zero length must
+  // match the declaration length.
   if (expected_num_type_args != 0) {
-    JoinEntryInstr* join2 = B->BuildJoinEntry();
+    JoinEntryInstr* done = B->BuildJoinEntry();
 
+    TargetEntryInstr *then, *otherwise;
+    setup_type_args += B->LoadArgDescriptor();
+    setup_type_args +=
+        B->LoadNativeField(Slot::ArgumentsDescriptor_type_args_len());
     LocalVariable* len = B->MakeTemporary();
-
-    TargetEntryInstr* otherwise;
     setup_type_args += B->LoadLocal(len);
     setup_type_args += B->IntConstant(0);
     setup_type_args += B->BranchIfEqual(&then, &otherwise);
 
-    TargetEntryInstr* then2;
-    Fragment check_len(otherwise);
-    check_len += B->LoadLocal(len);
-    check_len += B->IntConstant(expected_num_type_args);
-    check_len += B->BranchIfEqual(&then2, &fail);
+    JoinEntryInstr* join2 = B->BuildJoinEntry();
 
-    Fragment null_type_args(then);
-    null_type_args += B->NullConstant();
-    null_type_args += B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
-    null_type_args += B->Drop();
-    null_type_args += B->Goto(join2);
+    Fragment store_type_args(otherwise);
+    if (check_lengths) {
+      Fragment check_length;
+      check_length += B->LoadLocal(len);
+      check_length += B->IntConstant(expected_num_type_args);
+      TargetEntryInstr *then2, *fail;
+      check_length += B->BranchIfEqual(&then2, &fail);
+      check_length.current = then2;  // Continue in the non-error case.
 
-    Fragment store_type_args(then2);
+      Fragment(fail) + B->Goto(throw_no_such_method_);
+
+      store_type_args += check_length;
+    }
+
     store_type_args += B->LoadArgDescriptor();
     store_type_args += B->LoadNativeField(Slot::ArgumentsDescriptor_count());
     store_type_args += B->LoadFpRelativeSlot(
@@ -718,16 +723,27 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
     store_type_args += B->Drop();
     store_type_args += B->Goto(join2);
 
+    Fragment null_type_args(then);
+    null_type_args += B->NullConstant();
+    null_type_args += B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
+    null_type_args += B->Drop();
+    null_type_args += B->Goto(join2);
+
     Fragment(join2) + B->Drop() + B->Goto(done);
-    Fragment(fail) + B->Goto(throw_no_such_method_);
-  } else {
+
+    setup_type_args.current = done;
+  } else if (check_lengths) {
+    TargetEntryInstr *then, *fail;
+    setup_type_args += B->LoadArgDescriptor();
+    setup_type_args +=
+        B->LoadNativeField(Slot::ArgumentsDescriptor_type_args_len());
     setup_type_args += B->IntConstant(0);
     setup_type_args += B->BranchIfEqual(&then, &fail);
-    Fragment(then) + B->Goto(done);
+    setup_type_args.current = then;  // Continue in the non-error case.
+
     Fragment(fail) + B->Goto(throw_no_such_method_);
   }
 
-  setup_type_args = Fragment(setup_type_args.entry, done);
   ASSERT(IsStackEmpty());
 
   if (expected_num_type_args != 0) {

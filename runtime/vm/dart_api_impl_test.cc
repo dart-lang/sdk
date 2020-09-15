@@ -538,7 +538,7 @@ static Dart_NativeFunction CurrentStackTraceNativeLookup(
     bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
-  return reinterpret_cast<Dart_NativeFunction>(&CurrentStackTraceNative);
+  return CurrentStackTraceNative;
 }
 
 TEST_CASE(DartAPI_CurrentStackTraceInfo) {
@@ -687,7 +687,7 @@ static Dart_NativeFunction PropagateError_native_lookup(
     bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
-  return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
+  return PropagateErrorNative;
 }
 
 TEST_CASE(DartAPI_PropagateCompileTimeError) {
@@ -4995,7 +4995,7 @@ static Dart_NativeFunction native_field_lookup(Dart_Handle name,
                                                bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = false;
-  return reinterpret_cast<Dart_NativeFunction>(&NativeFieldLookup);
+  return NativeFieldLookup;
 }
 
 TEST_CASE(DartAPI_InjectNativeFields2) {
@@ -5139,6 +5139,15 @@ void TestNativeFieldsAccess_access(Dart_NativeArguments args) {
   EXPECT_EQ(0, field_values[1]);
 }
 
+void TestNativeFieldsAccess_invalidAccess(Dart_NativeArguments args) {
+  intptr_t field_values[kTestNumNativeFields];
+  Dart_Handle result = Dart_GetNativeFieldsOfArgument(
+      args, 0, kTestNumNativeFields, field_values);
+  EXPECT_ERROR(result,
+               "Dart_GetNativeFieldsOfArgument: "
+               "expected 0 'num_fields' but was passed in 2");
+}
+
 static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
                                                          int argument_count,
                                                          bool* auto_scope) {
@@ -5152,10 +5161,12 @@ static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
   if (strcmp(function_name, "TestNativeFieldsAccess_init") == 0) {
-    return reinterpret_cast<Dart_NativeFunction>(&TestNativeFieldsAccess_init);
+    return TestNativeFieldsAccess_init;
   } else if (strcmp(function_name, "TestNativeFieldsAccess_access") == 0) {
-    return reinterpret_cast<Dart_NativeFunction>(
-        &TestNativeFieldsAccess_access);
+    return TestNativeFieldsAccess_access;
+  } else if (strcmp(function_name, "TestNativeFieldsAccess_invalidAccess") ==
+             0) {
+    return TestNativeFieldsAccess_invalidAccess;
   } else {
     return NULL;
   }
@@ -5178,10 +5189,15 @@ TEST_CASE(DartAPI_TestNativeFieldsAccess) {
           "  int%s accessNativeFlds(int%s i) native "
           "'TestNativeFieldsAccess_access';\n"
           "}\n"
+          "class NoNativeFields {\n"
+          "  int neitherATypedDataNorNull = 0;\n"
+          "  invalidAccess() native 'TestNativeFieldsAccess_invalidAccess';\n"
+          "}\n"
           "NativeFields testMain() {\n"
           "  NativeFields obj = new NativeFields(10, 20);\n"
           "  obj.initNativeFlds();\n"
           "  obj.accessNativeFlds(null);\n"
+          "  new NoNativeFields().invalidAccess();\n"
           "  return obj;\n"
           "}\n",
           nullable_tag, nullable_tag, nullable_tag, nullable_tag),
@@ -6394,7 +6410,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
-  return reinterpret_cast<Dart_NativeFunction>(&ExceptionNative);
+  return ExceptionNative;
 }
 
 TEST_CASE(DartAPI_ThrowException) {
@@ -6557,9 +6573,9 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
   if (strcmp(function_name, "NativeArgument_Create") == 0) {
-    return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCreate);
+    return NativeArgumentCreate;
   } else if (strcmp(function_name, "NativeArgument_Access") == 0) {
-    return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentAccess);
+    return NativeArgumentAccess;
   }
   return NULL;
 }
@@ -6618,7 +6634,7 @@ static Dart_NativeFunction gnac_lookup(Dart_Handle name,
                                        bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
   *auto_setup_scope = true;
-  return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCounter);
+  return NativeArgumentCounter;
 }
 
 TEST_CASE(DartAPI_GetNativeArgumentCount) {
@@ -8768,7 +8784,39 @@ TEST_CASE(DartAPI_TimelineAsync) {
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
-void NotifyIdleShortNative(Dart_NativeArguments args) {
+static void HintFreedNative(Dart_NativeArguments args) {
+  int64_t size = 0;
+  EXPECT_VALID(Dart_GetNativeIntegerArgument(args, 0, &size));
+  Dart_HintFreed(size);
+}
+
+static Dart_NativeFunction HintFreed_native_lookup(Dart_Handle name,
+                                                   int argument_count,
+                                                   bool* auto_setup_scope) {
+  return HintFreedNative;
+}
+
+TEST_CASE(DartAPI_HintFreed) {
+  const char* kScriptChars =
+      "void hintFreed(int size) native 'Test_nativeFunc';\n"
+      "void main() {\n"
+      "  var v;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "    var t = [];\n"
+      "    for (var j = 0; j < 10000; j++) {\n"
+      "      t.add(List.filled(100, null));\n"
+      "    }\n"
+      "    v = t;\n"
+      "    hintFreed(100 * 10000 * 4);\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kScriptChars, &HintFreed_native_lookup);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+static void NotifyIdleShortNative(Dart_NativeArguments args) {
   Dart_NotifyIdle(Dart_TimelineGetMicros() + 10 * kMicrosecondsPerMillisecond);
 }
 
@@ -8776,7 +8824,7 @@ static Dart_NativeFunction NotifyIdleShort_native_lookup(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleShortNative);
+  return NotifyIdleShortNative;
 }
 
 TEST_CASE(DartAPI_NotifyIdleShort) {
@@ -8799,7 +8847,7 @@ TEST_CASE(DartAPI_NotifyIdleShort) {
   EXPECT_VALID(result);
 }
 
-void NotifyIdleLongNative(Dart_NativeArguments args) {
+static void NotifyIdleLongNative(Dart_NativeArguments args) {
   Dart_NotifyIdle(Dart_TimelineGetMicros() + 100 * kMicrosecondsPerMillisecond);
 }
 
@@ -8807,7 +8855,7 @@ static Dart_NativeFunction NotifyIdleLong_native_lookup(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyIdleLongNative);
+  return NotifyIdleLongNative;
 }
 
 TEST_CASE(DartAPI_NotifyIdleLong) {
@@ -8830,7 +8878,7 @@ TEST_CASE(DartAPI_NotifyIdleLong) {
   EXPECT_VALID(result);
 }
 
-void NotifyLowMemoryNative(Dart_NativeArguments args) {
+static void NotifyLowMemoryNative(Dart_NativeArguments args) {
   Dart_NotifyLowMemory();
 }
 
@@ -8838,7 +8886,7 @@ static Dart_NativeFunction NotifyLowMemory_native_lookup(
     Dart_Handle name,
     int argument_count,
     bool* auto_setup_scope) {
-  return reinterpret_cast<Dart_NativeFunction>(&NotifyLowMemoryNative);
+  return NotifyLowMemoryNative;
 }
 
 TEST_CASE(DartAPI_NotifyLowMemory) {

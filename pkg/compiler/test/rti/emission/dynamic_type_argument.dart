@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 /*class: A:checkedInstance,checks=[],instance*/
 class A<T> {}
 
-/*class: B:checkedTypeArgument,checks=[],onlyForRti,typeArgument*/
+/*class: B:checkedTypeArgument,typeArgument*/
 class B {}
 
 /*class: C:checks=[],instance*/
@@ -21,10 +21,10 @@ class C {
   method2<T>() => new A<T>();
 }
 
-/*class: D:checks=[],onlyForRti,typeArgument*/
+/*class: D:typeArgument*/
 class D extends B {}
 
-/*class: E:checks=[],onlyForRti,typeArgument*/
+/*class: E:typeArgument*/
 class E {}
 
 @pragma('dart2js:noInline')

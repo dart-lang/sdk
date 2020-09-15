@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server_client/listener/server_listener.dart';
 
 /// [BadMessageListener] throws an exception if the [Client] receives bad data.

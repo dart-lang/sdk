@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -13,19 +10,44 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstSpreadExpectedListOrSetTest);
-    defineReflectiveTests(ConstSpreadExpectedListOrSetWithConstantsTest);
+    defineReflectiveTests(ConstSpreadExpectedListOrSetTest_language24);
   });
 }
 
 @reflectiveTest
-class ConstSpreadExpectedListOrSetTest extends PubPackageResolutionTest {
+class ConstSpreadExpectedListOrSetTest extends PubPackageResolutionTest
+    with ConstSpreadExpectedListOrSetTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class ConstSpreadExpectedListOrSetTest_language24
+    extends PubPackageResolutionTest
+    with ConstSpreadExpectedListOrSetTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin ConstSpreadExpectedListOrSetTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_listInt() async {
     await assertErrorsInCode(
         '''
 const dynamic a = 5;
 var b = const <int>[...a];
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
                     44, 1),
@@ -41,7 +63,7 @@ var b = const <int>[...a];
 const dynamic a = [5];
 var b = const <int>[...a];
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 43, 4),
@@ -54,7 +76,7 @@ var b = const <int>[...a];
 const dynamic a = <int, int>{0: 1};
 var b = const <int>[...a];
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
                     59, 1),
@@ -70,7 +92,7 @@ var b = const <int>[...a];
 const dynamic a = null;
 var b = const <int>[...a];
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
                     47, 1),
@@ -86,7 +108,7 @@ var b = const <int>[...a];
 const dynamic a = null;
 var b = const <int>[...?a];
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 44, 5),
@@ -99,7 +121,7 @@ var b = const <int>[...?a];
 const dynamic a = <int>{5};
 var b = const <int>[...a];
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 48, 4),
@@ -112,7 +134,7 @@ var b = const <int>[...a];
 const dynamic a = 5;
 var b = const <int>{...a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
                     44, 1),
@@ -128,7 +150,7 @@ var b = const <int>{...a};
 const dynamic a = <int>[5];
 var b = const <int>{...a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 48, 4),
@@ -141,7 +163,7 @@ var b = const <int>{...a};
 const dynamic a = <int, int>{1: 2};
 var b = const <int>{...a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
                     59, 1),
@@ -157,7 +179,7 @@ var b = const <int>{...a};
 const dynamic a = null;
 var b = const <int>{...a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
                     47, 1),
@@ -173,7 +195,7 @@ var b = const <int>{...a};
 const dynamic a = null;
 var b = const <int>{...?a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 44, 5),
@@ -186,7 +208,7 @@ var b = const <int>{...?a};
 const dynamic a = <int>{5};
 var b = const <int>{...a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 48, 4),
@@ -206,14 +228,4 @@ const dynamic a = 5;
 var b = <int>{...a};
 ''');
   }
-}
-
-@reflectiveTest
-class ConstSpreadExpectedListOrSetWithConstantsTest
-    extends ConstSpreadExpectedListOrSetTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  dynamic operator []=(dynamic index, dynamic value) {}
+  operator []=(dynamic index, dynamic value) {}
 }
 
 abstract class I {

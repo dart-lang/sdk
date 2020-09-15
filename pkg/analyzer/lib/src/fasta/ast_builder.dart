@@ -8,11 +8,14 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         MessageCode,
         messageAbstractClassMember,
+        messageAbstractLateField,
+        messageAbstractStaticField,
         messageConstConstructorWithBody,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
         messageExpectedStatement,
         messageExternalField,
+        messageExternalLateField,
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
@@ -484,11 +487,6 @@ class AstBuilder extends StackListener {
     // printEvent('AstBuilder: $name');
   }
 
-  @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    pop();
-  }
-
   void doDotExpression(Token dot) {
     Expression identifierOrInvoke = pop();
     Expression receiver = pop();
@@ -849,13 +847,29 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("Fields");
 
-    if (!enableNonNullable && abstractToken != null) {
-      handleRecoverableError(
-          messageAbstractClassMember, abstractToken, abstractToken);
+    if (abstractToken != null) {
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageAbstractClassMember, abstractToken, abstractToken);
+      } else {
+        if (staticToken != null) {
+          handleRecoverableError(
+              messageAbstractStaticField, abstractToken, abstractToken);
+        }
+        if (lateToken != null) {
+          handleRecoverableError(
+              messageAbstractLateField, abstractToken, abstractToken);
+        }
+      }
     }
     if (externalToken != null) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -874,6 +888,7 @@ class AstBuilder extends StackListener {
         metadata: metadata,
         abstractKeyword: abstractToken,
         covariantKeyword: covariantKeyword,
+        externalKeyword: externalToken,
         staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
@@ -2140,8 +2155,13 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelFields");
 
     if (externalToken != null) {
-      handleRecoverableError(
-          messageExternalField, externalToken, externalToken);
+      if (!enableNonNullable) {
+        handleRecoverableError(
+            messageExternalField, externalToken, externalToken);
+      } else if (lateToken != null) {
+        handleRecoverableError(
+            messageExternalLateField, externalToken, externalToken);
+      }
     }
 
     List<VariableDeclaration> variables = popTypedList(count);
@@ -2155,7 +2175,8 @@ class AstBuilder extends StackListener {
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
     declarations.add(ast.topLevelVariableDeclaration(
-        comment, metadata, variableList, semicolon));
+        comment, metadata, variableList, semicolon,
+        externalKeyword: externalToken));
   }
 
   @override
@@ -2421,10 +2442,16 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     assert(extendsKeyword == null || extendsKeyword.isKeywordOrIdentifier);
     debugEvent("ClassExtends");
 
+    // If more extends clauses was specified (parser has already issued an
+    // error) throw them away for now and pick the first one.
+    while (typeCount > 1) {
+      pop();
+      typeCount--;
+    }
     TypeName supertype = pop();
     if (supertype != null) {
       push(ast.extendsClause(extendsKeyword, supertype));
@@ -3378,7 +3405,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         spreadToken,
         spreadToken,
@@ -3601,7 +3628,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         forToken,
         forToken,
@@ -3634,7 +3661,7 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
           feature.enableString,
-          _versionAsString(feature.firstSupportedVersion),
+          _versionAsString(feature.releaseVersion),
         ),
         ifToken,
         ifToken,

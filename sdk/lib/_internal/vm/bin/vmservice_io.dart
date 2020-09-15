@@ -37,6 +37,8 @@ var _signalWatch = null;
 var _signalSubscription;
 @pragma("vm:entry-point")
 bool _enableServicePortFallback = false;
+@pragma("vm:entry-point")
+bool _waitForDdsToAdvertiseService = false;
 
 // HTTP server.
 Server? server;
@@ -76,6 +78,21 @@ Future cleanupCallback() async {
   }
   // Call out to embedder's shutdown callback.
   _shutdown();
+}
+
+Future<void> ddsConnectedCallback() async {
+  final serviceAddress = server!.serverAddress.toString();
+  _notifyServerState(serviceAddress);
+  onServerAddressChange(serviceAddress);
+  if (_waitForDdsToAdvertiseService) {
+    await server!.outputConnectionInformation();
+  }
+}
+
+Future<void> ddsDisconnectedCallback() async {
+  final serviceAddress = server!.serverAddress.toString();
+  _notifyServerState(serviceAddress);
+  onServerAddressChange(serviceAddress);
 }
 
 Future<Uri> createTempDirCallback(String base) async {
@@ -184,7 +201,10 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
 
 Uri? serverInformationCallback() => _lazyServerBoot().serverAddress;
 
-Future<Uri?> webServerControlCallback(bool enable) async {
+Future<Uri?> webServerControlCallback(bool enable, bool? silenceOutput) async {
+  if (silenceOutput != null) {
+    silentObservatory = silenceOutput;
+  }
   final _server = _lazyServerBoot();
   if (_server.running != enable) {
     if (enable) {
@@ -245,6 +265,8 @@ main() {
   // Set embedder hooks.
   VMServiceEmbedderHooks.cleanup = cleanupCallback;
   VMServiceEmbedderHooks.createTempDir = createTempDirCallback;
+  VMServiceEmbedderHooks.ddsConnected = ddsConnectedCallback;
+  VMServiceEmbedderHooks.ddsDisconnected = ddsDisconnectedCallback;
   VMServiceEmbedderHooks.deleteDir = deleteDirCallback;
   VMServiceEmbedderHooks.writeFile = writeFileCallback;
   VMServiceEmbedderHooks.writeStreamFile = writeStreamFileCallback;

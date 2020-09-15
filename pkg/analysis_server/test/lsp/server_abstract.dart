@@ -340,6 +340,15 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withLocationLinkSupport(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'definition': {'linkSupport': true},
+      'implementation': {'linkSupport': true}
+    });
+  }
+
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
     List<MarkupKind> formats,
@@ -714,7 +723,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
-  Future<List<Location>> getDefinition(Uri uri, Position pos) {
+  Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
+      Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
       TextDocumentPositionParams(
@@ -722,7 +732,24 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo<List<Location>>(request);
+    return expectSuccessfulResponseTo(request);
+  }
+
+  Future<List<Location>> getDefinitionAsLocation(Uri uri, Position pos) async {
+    final results = await getDefinition(uri, pos);
+    return results.map(
+      (locations) => locations,
+      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
+    );
+  }
+
+  Future<List<LocationLink>> getDefinitionAsLocationLinks(
+      Uri uri, Position pos) async {
+    final results = await getDefinition(uri, pos);
+    return results.map(
+      (locations) => throw 'Expected List<LocationLink> got List<Location>',
+      (locationLinks) => locationLinks,
+    );
   }
 
   Future<DartDiagnosticServer> getDiagnosticServer() {
@@ -806,12 +833,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo<List<Location>>(request);
   }
 
-  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos) {
+  Future<SignatureHelp> getSignatureHelp(Uri uri, Position pos,
+      [SignatureHelpContext context]) {
     final request = makeRequest(
       Method.textDocument_signatureHelp,
-      TextDocumentPositionParams(
+      SignatureHelpParams(
         textDocument: TextDocumentIdentifier(uri: uri.toString()),
         position: pos,
+        context: context,
       ),
     );
     return expectSuccessfulResponseTo<SignatureHelp>(request);
@@ -896,10 +925,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     ClientCapabilitiesWindow windowCapabilities,
     Map<String, Object> initializationOptions,
     bool throwOnFailure = true,
+    bool allowEmptyRootUri = false,
   }) async {
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
-    if (rootPath == null && rootUri == null && workspaceFolders == null) {
+    if (rootPath == null &&
+        rootUri == null &&
+        workspaceFolders == null &&
+        !allowEmptyRootUri) {
       rootUri = Uri.file(projectFolderPath);
     }
     final request = makeRequest(
@@ -970,6 +1003,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  /// Expects both unregistration and reregistration.
+  Future<ResponseMessage> monitorDynamicReregistration(
+    List<Registration> registrations,
+    Future<ResponseMessage> Function() f,
+  ) =>
+      monitorDynamicUnregistrations(
+        registrations,
+        () => monitorDynamicRegistrations(registrations, f),
+      );
+
   /// Watches for `client/unregisterCapability` requests and updates
   /// `registrations`.
   Future<ResponseMessage> monitorDynamicUnregistrations(
@@ -1032,13 +1075,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
-  Future<ResponseMessage> provideConfig(
-      Future<ResponseMessage> Function() f, Map<String, dynamic> config) {
+  Future<ResponseMessage> provideConfig(Future<ResponseMessage> Function() f,
+      FutureOr<Map<String, dynamic>> config) {
     return handleExpectedRequest<ResponseMessage, ConfigurationParams,
         List<Map<String, dynamic>>>(
       Method.workspace_configuration,
       f,
-      handler: (configurationParams) => [config],
+      handler: (configurationParams) async => [await config],
     );
   }
 
@@ -1054,6 +1097,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     } else {
       throw 'Contents contained multiple ranges but only one was expected';
     }
+  }
+
+  /// Returns the range of [searchText] in [content].
+  Range rangeOfString(String content, String searchText) {
+    content = withoutMarkers(content);
+    final startOffset = content.indexOf(searchText);
+    return startOffset == -1
+        ? null
+        : Range(
+            start: positionFromOffset(startOffset, content),
+            end: positionFromOffset(startOffset + searchText.length, content),
+          );
   }
 
   /// Returns all ranges surrounded by `[[markers]]` in the provided string,

@@ -20,6 +20,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
@@ -3520,8 +3521,7 @@ FunctionPtr Class::CreateInvocationDispatcher(const String& target_name,
                                       false);  // Not positional.
   invocation.set_parameter_types(
       Array::Handle(zone, Array::New(desc.Count(), Heap::kOld)));
-  invocation.set_parameter_names(
-      Array::Handle(zone, Array::New(desc.Count(), Heap::kOld)));
+  invocation.CreateNameArrayIncludingFlags(Heap::kOld);
   // Receiver.
   invocation.SetParameterTypeAt(0, Object::dynamic_type());
   invocation.SetParameterNameAt(0, Symbols::This());
@@ -3541,6 +3541,7 @@ FunctionPtr Class::CreateInvocationDispatcher(const String& target_name,
     intptr_t index = i - desc.PositionalCount();
     invocation.SetParameterNameAt(i, String::Handle(zone, desc.NameAt(index)));
   }
+  invocation.TruncateUnusedParameterFlags();
   invocation.set_result_type(Object::dynamic_type());
   invocation.set_is_debuggable(false);
   invocation.set_is_visible(false);
@@ -3598,6 +3599,9 @@ FunctionPtr Function::GetMethodExtractor(const String& getter_name) const {
   const Function& closure_function =
       Function::Handle(ImplicitClosureFunction());
   const Class& owner = Class::Handle(closure_function.Owner());
+  if (owner.EnsureIsFinalized(Thread::Current()) != Error::null()) {
+    return Function::null();
+  }
   Function& result = Function::Handle(owner.LookupDynamicFunction(getter_name));
   if (result.IsNull()) {
     result = CreateMethodExtractor(getter_name);
@@ -3947,10 +3951,13 @@ static ObjectPtr ThrowNoSuchMethod(const Instance& receiver,
   args.SetAt(6, argument_names);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
-  const Class& NoSuchMethodError =
+  const Class& cls =
       Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
-  const Function& throwNew = Function::Handle(
-      NoSuchMethodError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   return DartEntry::InvokeFunction(throwNew, args);
 }
 
@@ -3966,10 +3973,12 @@ static ObjectPtr ThrowTypeError(const TokenPosition token_pos,
   args.SetAt(3, dst_name);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
-  const Class& TypeError =
+  const Class& cls =
       Class::Handle(libcore.LookupClassAllowPrivate(Symbols::TypeError()));
-  const Function& throwNew = Function::Handle(
-      TypeError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   return DartEntry::InvokeFunction(throwNew, args);
 }
 
@@ -5337,9 +5346,7 @@ FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
 FunctionPtr Class::LookupFunction(const String& name, MemberKind kind) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
+  RELEASE_ASSERT(is_finalized());
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   Array& funcs = thread->ArrayHandle();
@@ -5389,9 +5396,7 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
                                               MemberKind kind) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
+  RELEASE_ASSERT(is_finalized());
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_FUNCTION_HANDLESCOPE(thread);
   REUSABLE_STRING_HANDLESCOPE(thread);
@@ -6969,6 +6974,26 @@ void Function::set_parent_function(const Function& value) const {
   }
 }
 
+FunctionPtr Function::GetGeneratedClosure() const {
+  const auto& closure_functions = GrowableObjectArray::Handle(
+      Isolate::Current()->object_store()->closure_functions());
+  auto& entry = Object::Handle();
+
+  for (auto i = (closure_functions.Length() - 1); i >= 0; i--) {
+    entry = closure_functions.At(i);
+
+    ASSERT(entry.IsFunction());
+
+    const auto& closure_function = Function::Cast(entry);
+    if (closure_function.parent_function() == raw() &&
+        closure_function.is_generated_body()) {
+      return closure_function.raw();
+    }
+  }
+
+  return Function::null();
+}
+
 // Enclosing outermost function of this local function.
 FunctionPtr Function::GetOutermostFunction() const {
   FunctionPtr parent = parent_function();
@@ -7410,18 +7435,38 @@ void Function::set_parameter_names(const Array& value) const {
   StorePointer(&raw_ptr()->parameter_names_, value.raw());
 }
 
-intptr_t Function::NameArrayLengthIncludingFlags(intptr_t num_parameters) {
-  return num_parameters +
-         (num_parameters + compiler::target::kNumParameterFlagsPerElement - 1) /
-             compiler::target::kNumParameterFlagsPerElement;
+void Function::CreateNameArrayIncludingFlags(Heap::Space space) const {
+  // Currently, we only store flags for named parameters that are required.
+  const intptr_t num_parameters = NumParameters();
+  intptr_t num_total_slots = num_parameters;
+  if (HasOptionalNamedParameters()) {
+    const intptr_t last_index = (NumOptionalNamedParameters() - 1) /
+                                compiler::target::kNumParameterFlagsPerElement;
+    const intptr_t num_flag_slots = last_index + 1;
+    num_total_slots += num_flag_slots;
+  }
+  auto& array = Array::Handle(Array::New(num_total_slots, space));
+  if (num_total_slots > num_parameters) {
+    // Set flag slots to Smi 0 before handing off.
+    auto& empty_flags_smi = Smi::Handle(Smi::New(0));
+    for (intptr_t i = num_parameters; i < num_total_slots; i++) {
+      array.SetAt(i, empty_flags_smi);
+    }
+  }
+  set_parameter_names(array);
 }
 
 intptr_t Function::GetRequiredFlagIndex(intptr_t index,
                                         intptr_t* flag_mask) const {
+  // If these calculations change, also change
+  // FlowGraphBuilder::BuildClosureCallHasRequiredNamedArgumentsCheck.
+  ASSERT(flag_mask != nullptr);
   ASSERT(index >= num_fixed_parameters());
   index -= num_fixed_parameters();
-  *flag_mask = 1 << (static_cast<uintptr_t>(index) %
-                     compiler::target::kNumParameterFlagsPerElement);
+  *flag_mask = (1 << compiler::target::kRequiredNamedParameterFlag)
+               << ((static_cast<uintptr_t>(index) %
+                    compiler::target::kNumParameterFlagsPerElement) *
+                   compiler::target::kNumParameterFlags);
   return NumParameters() +
          index / compiler::target::kNumParameterFlagsPerElement;
 }
@@ -7436,12 +7481,9 @@ bool Function::IsRequiredAt(intptr_t index) const {
   if (flag_index >= parameter_names.Length()) {
     return false;
   }
-  ObjectPtr element = parameter_names.At(flag_index);
-  if (element == Object::null()) {
-    return false;
-  }
-  const intptr_t flag = Smi::Value(Smi::RawCast(element));
-  return (flag & flag_mask) != 0;
+  const intptr_t flags =
+      Smi::Value(Smi::RawCast(parameter_names.At(flag_index)));
+  return (flags & flag_mask) != 0;
 }
 
 void Function::SetIsRequiredAt(intptr_t index) const {
@@ -7449,27 +7491,26 @@ void Function::SetIsRequiredAt(intptr_t index) const {
   const intptr_t flag_index = GetRequiredFlagIndex(index, &flag_mask);
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
   ASSERT(flag_index < parameter_names.Length());
-  intptr_t flag;
-  ObjectPtr element = parameter_names.At(flag_index);
-  if (element == Object::null()) {
-    flag = 0;
-  } else {
-    flag = Smi::Value(Smi::RawCast(element));
-  }
-  parameter_names.SetAt(flag_index, Object::Handle(Smi::New(flag | flag_mask)));
+  const intptr_t flags =
+      Smi::Value(Smi::RawCast(parameter_names.At(flag_index)));
+  parameter_names.SetAt(flag_index, Smi::Handle(Smi::New(flags | flag_mask)));
 }
 
 void Function::TruncateUnusedParameterFlags() const {
-  // Truncate the parameter names array to remove unused flags from the end.
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
   const intptr_t num_params = NumParameters();
-  intptr_t last_required_flag = parameter_names.Length() - 1;
-  for (; last_required_flag >= num_params; --last_required_flag) {
-    if (parameter_names.At(last_required_flag) != Object::null()) {
+  if (parameter_names.Length() == num_params) {
+    // No flag slots to truncate.
+    return;
+  }
+  // Truncate the parameter names array to remove unused flags from the end.
+  intptr_t last_used = parameter_names.Length() - 1;
+  for (; last_used >= num_params; --last_used) {
+    if (Smi::Value(Smi::RawCast(parameter_names.At(last_used))) != 0) {
       break;
     }
   }
-  parameter_names.Truncate(last_required_flag + 1);
+  parameter_names.Truncate(last_used + 1);
 }
 
 void Function::set_type_parameters(const TypeArguments& value) const {
@@ -8016,10 +8057,16 @@ static TypeArgumentsPtr RetrieveFunctionTypeArguments(
     if (function_type_args.raw() == Object::empty_type_arguments().raw()) {
       // There are no delayed type arguments, so set back to null.
       function_type_args = TypeArguments::null();
+    } else {
+      // We should never end up here when the receiver is a closure with delayed
+      // type arguments unless this dynamically called closure function was
+      // retrieved directly from the closure instead of going through
+      // DartEntry::ResolveCallable, which appropriately checks for this case.
+      ASSERT(args_desc.TypeArgsLen() == 0);
     }
   }
 
-  if (function_type_args.IsNull() && args_desc.TypeArgsLen() > 0) {
+  if (args_desc.TypeArgsLen() > 0) {
     function_type_args ^= args.At(0);
   }
 
@@ -8776,6 +8823,15 @@ bool Function::SafeToClosurize() const {
 #endif
 }
 
+bool Function::IsDynamicClosureCallDispatcher(Thread* thread) const {
+  if (!IsInvokeFieldDispatcher()) return false;
+  if (thread->isolate()->object_store()->closure_class() != Owner()) {
+    return false;
+  }
+  const auto& handle = String::Handle(thread->zone(), name());
+  return handle.Equals(Symbols::DynamicCall());
+}
+
 FunctionPtr Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
   if (implicit_closure_function() != Function::null()) {
@@ -8827,14 +8883,11 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   const int num_opt_params = NumOptionalParameters();
   const bool has_opt_pos_params = HasOptionalPositionalParameters();
   const int num_params = num_fixed_params + num_opt_params;
-  const int num_required_flags =
-      Array::Handle(zone, parameter_names()).Length() - NumParameters();
   closure_function.set_num_fixed_parameters(num_fixed_params);
   closure_function.SetNumOptionalParameters(num_opt_params, has_opt_pos_params);
   closure_function.set_parameter_types(
       Array::Handle(zone, Array::New(num_params, Heap::kOld)));
-  closure_function.set_parameter_names(Array::Handle(
-      zone, Array::New(num_params + num_required_flags, Heap::kOld)));
+  closure_function.CreateNameArrayIncludingFlags(Heap::kOld);
   AbstractType& param_type = AbstractType::Handle(zone);
   String& param_name = String::Handle(zone);
   // Add implicit closure object parameter.
@@ -8850,6 +8903,7 @@ FunctionPtr Function::ImplicitClosureFunction() const {
       closure_function.SetIsRequiredAt(i);
     }
   }
+  closure_function.TruncateUnusedParameterFlags();
   closure_function.InheritBinaryDeclarationFrom(*this);
 
   // Change covariant parameter types to either Object? for an opted-in implicit
@@ -8991,6 +9045,25 @@ InstancePtr Function::ImplicitInstanceClosure(const Instance& receiver) const {
   ASSERT(HasInstantiatedSignature(kFunctions));  // No generic parent function.
   return Closure::New(instantiator_type_arguments,
                       Object::null_type_arguments(), *this, context);
+}
+
+FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
+  const auto& parent = Function::Handle(zone, parent_function());
+  const auto& func_name = String::Handle(zone, parent.name());
+  const auto& owner = Class::Handle(zone, parent.Owner());
+  const auto& error = owner.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  auto& target = Function::Handle(zone, owner.LookupFunction(func_name));
+
+  if (!target.IsNull() && (target.raw() != parent.raw())) {
+    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
+    if ((target.is_static() != parent.is_static()) ||
+        (target.kind() != parent.kind())) {
+      target = Function::null();
+    }
+  }
+
+  return target.raw();
 }
 
 intptr_t Function::ComputeClosureHash() const {
@@ -9682,65 +9755,76 @@ bool Function::MayHaveUncheckedEntryPoint() const {
 }
 
 const char* Function::ToCString() const {
-  NoSafepointScope no_safepoint;
   if (IsNull()) {
     return "Function: null";
   }
-  const char* static_str = is_static() ? " static" : "";
-  const char* abstract_str = is_abstract() ? " abstract" : "";
-  const char* kind_str = NULL;
-  const char* const_str = is_const() ? " const" : "";
+  Zone* zone = Thread::Current()->zone();
+  ZoneTextBuffer buffer(zone);
+  buffer.Printf("Function '%s':", String::Handle(zone, name()).ToCString());
+  if (is_static()) {
+    buffer.AddString(" static");
+  }
+  if (is_abstract()) {
+    buffer.AddString(" abstract");
+  }
   switch (kind()) {
     case FunctionLayout::kRegularFunction:
     case FunctionLayout::kClosureFunction:
     case FunctionLayout::kImplicitClosureFunction:
     case FunctionLayout::kGetterFunction:
     case FunctionLayout::kSetterFunction:
-      kind_str = "";
       break;
     case FunctionLayout::kSignatureFunction:
-      kind_str = " signature";
+      buffer.AddString(" signature");
       break;
     case FunctionLayout::kConstructor:
-      kind_str = is_static() ? " factory" : " constructor";
+      buffer.AddString(is_static() ? " factory" : " constructor");
       break;
     case FunctionLayout::kImplicitGetter:
-      kind_str = " getter";
+      buffer.AddString(" getter");
       break;
     case FunctionLayout::kImplicitSetter:
-      kind_str = " setter";
+      buffer.AddString(" setter");
       break;
     case FunctionLayout::kImplicitStaticGetter:
-      kind_str = " static-getter";
+      buffer.AddString(" static-getter");
       break;
     case FunctionLayout::kFieldInitializer:
-      kind_str = " field-initializer";
+      buffer.AddString(" field-initializer");
       break;
     case FunctionLayout::kMethodExtractor:
-      kind_str = " method-extractor";
+      buffer.AddString(" method-extractor");
       break;
     case FunctionLayout::kNoSuchMethodDispatcher:
-      kind_str = " no-such-method-dispatcher";
+      buffer.AddString(" no-such-method-dispatcher");
       break;
     case FunctionLayout::kDynamicInvocationForwarder:
-      kind_str = " dynamic-invocation-forwarder";
+      buffer.AddString(" dynamic-invocation-forwarder");
       break;
     case FunctionLayout::kInvokeFieldDispatcher:
-      kind_str = " invoke-field-dispatcher";
+      buffer.AddString(" invoke-field-dispatcher");
       break;
     case FunctionLayout::kIrregexpFunction:
-      kind_str = " irregexp-function";
+      buffer.AddString(" irregexp-function");
       break;
     case FunctionLayout::kFfiTrampoline:
-      kind_str = " ffi-trampoline-function";
+      buffer.AddString(" ffi-trampoline-function");
       break;
     default:
       UNREACHABLE();
   }
-  const char* function_name = String::Handle(name()).ToCString();
-  return OS::SCreate(Thread::Current()->zone(), "Function '%s':%s%s%s%s.",
-                     function_name, static_str, abstract_str, kind_str,
-                     const_str);
+  if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+    const auto& args_desc_array = Array::Handle(zone, saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    buffer.AddChar('[');
+    args_desc.PrintTo(&buffer);
+    buffer.AddChar(']');
+  }
+  if (is_const()) {
+    buffer.AddString(" const");
+  }
+  buffer.AddChar('.');
+  return buffer.buffer();
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
@@ -13910,11 +13994,13 @@ FunctionPtr Library::GetFunction(const GrowableArray<Library*>& libs,
       class_str = String::New(class_name);
       cls = lib.LookupClassAllowPrivate(class_str);
       if (!cls.IsNull()) {
-        func_str = String::New(function_name);
-        if (function_name[0] == '.') {
-          func_str = String::Concat(class_str, func_str);
+        if (cls.EnsureIsFinalized(thread) == Error::null()) {
+          func_str = String::New(function_name);
+          if (function_name[0] == '.') {
+            func_str = String::Concat(class_str, func_str);
+          }
+          func = cls.LookupFunctionAllowPrivate(func_str);
         }
-        func = cls.LookupFunctionAllowPrivate(func_str);
       }
     }
     if (!func.IsNull()) {
@@ -16176,8 +16262,8 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 ObjectPoolPtr Code::GetObjectPool() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_use_bare_instructions) {
+#if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     return Isolate::Current()->object_store()->global_object_pool();
   }
 #endif
@@ -24128,8 +24214,9 @@ const char* TransferableTypedData::ToCString() const {
 }
 
 intptr_t Closure::NumTypeParameters(Thread* thread) const {
-  if (delayed_type_arguments() != Object::null_type_arguments().raw() &&
-      delayed_type_arguments() != Object::empty_type_arguments().raw()) {
+  // Only check for empty here, as the null TAV is used to mean that the
+  // closed-over delayed type parameters were all of dynamic type.
+  if (delayed_type_arguments() != Object::empty_type_arguments().raw()) {
     return 0;
   } else {
     const auto& closure_function = Function::Handle(thread->zone(), function());

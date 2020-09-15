@@ -37,7 +37,7 @@ void main() {
       final service = await vmServiceConnectUri(dds.wsUri.toString());
       final version = await service.getVersion();
       expect(version.major > 0, true);
-      expect(version.minor > 0, true);
+      expect(version.minor >= 0, true);
 
       // Ensure we can still make requests of the VM service via HTTP.
       HttpClient client = HttpClient();

@@ -57,8 +57,12 @@ class UnitRenderer {
   /// of the HTML files used to view the content of those files.
   final PathMapper pathMapper;
 
+  /// The auth token for the current site, for use in generating URIs.
+  final String authToken;
+
   /// Creates an output object for the given library info.
-  UnitRenderer(this.unitInfo, this.migrationInfo, this.pathMapper);
+  UnitRenderer(
+      this.unitInfo, this.migrationInfo, this.pathMapper, this.authToken);
 
   /// Return the path context used to manipulate paths.
   path.Context get pathContext => migrationInfo.pathContext;
@@ -317,6 +321,7 @@ class UnitRenderer {
     var queryParams = {
       'offset': target.offset,
       if (target.line != null) 'line': target.line,
+      'authToken': authToken,
     }.entries.map((entry) => '${entry.key}=${entry.value}').join('&');
     return '$path?$queryParams';
   }

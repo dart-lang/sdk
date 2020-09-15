@@ -6,9 +6,9 @@ import "package:expect/expect.dart";
 
 main() {
   final f0 = 42;
-  final f1; //# 01: compile-time error
+  final f1; //# 01: ok
   final int f2 = 87;
-  final int f3; //# 02: compile-time error
+  final int f3; //# 02: ok
   Expect.equals(42, f0);
   Expect.equals(87, f2);
 

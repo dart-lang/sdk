@@ -5,4 +5,4 @@ abstract class A {
 class _B implements A {
   int x = 3;
 }
-main() { }
+main() {}

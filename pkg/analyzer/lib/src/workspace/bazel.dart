@@ -5,7 +5,6 @@
 import 'dart:collection';
 import 'dart:core';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -485,20 +484,20 @@ class BazelWorkspacePackage extends WorkspacePackage {
   @override
   final BazelWorkspace workspace;
 
-  bool _featureSetReady = false;
-  FeatureSet _featureSet;
+  bool _enabledExperimentsReady = false;
+  List<String> _enabledExperiments;
 
   BazelWorkspacePackage(String packageName, this.root, this.workspace)
       : _uriPrefix = 'package:$packageName/';
 
   @override
-  FeatureSet get featureSet {
-    if (_featureSetReady) {
-      return _featureSet;
+  List<String> get enabledExperiments {
+    if (_enabledExperimentsReady) {
+      return _enabledExperiments;
     }
 
     try {
-      _featureSetReady = true;
+      _enabledExperimentsReady = true;
       var buildContent = workspace.provider
           .getFolder(root)
           .getChildAssumingFile('BUILD')
@@ -511,15 +510,13 @@ class BazelWorkspacePackage extends WorkspacePackage {
           .join()
           .contains('dart_package(null_safety=True');
       if (hasNonNullableFlag) {
-        _featureSet = FeatureSet.fromEnableFlags(
-          [EnableString.non_nullable],
-        );
+        _enabledExperiments = [EnableString.non_nullable];
       }
     } on FileSystemException {
       // ignored
     }
 
-    return _featureSet;
+    return _enabledExperiments;
   }
 
   @override
@@ -541,4 +538,10 @@ class BazelWorkspacePackage extends WorkspacePackage {
     // learning exactly which package [filePath] is contained in.
     return workspace.findPackageFor(filePath).root == root;
   }
+
+  @override
+  // TODO(brianwilkerson) Implement this by looking in the BUILD file for 'deps'
+  //  lists.
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      <String, List<Folder>>{};
 }

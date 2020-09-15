@@ -46,6 +46,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
 var counterUnlinkedLinkedBytes = 0;
+int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
 
 /// [FileContentOverlay] is used to temporary override content of files.
@@ -115,6 +116,9 @@ class FileState {
 
   /// The language version for the package that contains this file.
   final Version _packageLanguageVersion;
+
+  int id = fileObjectId++;
+  int refreshId;
 
   bool _exists;
   String _content;
@@ -333,9 +337,7 @@ class FileState {
   CompilationUnit parse([AnalysisErrorListener errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return PerformanceStatistics.parse.makeCurrentWhile(() {
-        return _parse(errorListener);
-      });
+      return _parse(errorListener);
     } catch (_) {
       return _createEmptyCompilationUnit();
     }
@@ -351,6 +353,7 @@ class FileState {
   /// Return `true` if the API signature changed since the last refresh.
   bool refresh({bool allowCached = false}) {
     counterFileStateRefresh++;
+    refreshId = fileObjectId++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
@@ -492,7 +495,7 @@ class FileState {
     if (path == null) {
       return '<unresolved>';
     } else {
-      return '$uri = $path';
+      return '[id: $id][rid: $refreshId]$uri = $path';
     }
   }
 
@@ -561,9 +564,7 @@ class FileState {
           _packageLanguageVersion,
         ),
       );
-    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize(reportScannerErrors: false);
-    });
+    Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;
@@ -823,12 +824,27 @@ class FileSystemState {
   /// Return the [FileState] instance that correspond to an unresolved URI.
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      var featureSet = FeatureSet.fromEnableFlags([]);
+      var featureSet = FeatureSet.latestLanguageVersion();
       _unresolvedFile = FileState._(this, null, null, null, null, featureSet,
           ExperimentStatus.currentVersion);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
+  }
+
+  FeatureSet contextFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri);
   }
 
   /// Return the canonical [FileState] for the given absolute [path]. The
@@ -852,9 +868,7 @@ class FileSystemState {
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet workspacePackageFeatureSet = workspacePackage?.featureSet;
-      FeatureSet featureSet = workspacePackageFeatureSet ??
-          featureSetProvider.getFeatureSet(path, uri);
+      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
       file = FileState._(this, path, uri, uriSource, workspacePackage,
@@ -898,9 +912,7 @@ class FileSystemState {
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
       WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet workspacePackageFeatureSet = workspacePackage?.featureSet;
-      FeatureSet featureSet = workspacePackageFeatureSet ??
-          featureSetProvider.getFeatureSet(path, uri);
+      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
       file = FileState._(this, path, uri, source, workspacePackage, featureSet,

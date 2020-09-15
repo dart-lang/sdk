@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AbortCompletion, CompletionRequest;
@@ -37,6 +35,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -405,6 +404,14 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   String get targetPrefix {
     var entity = target.entity;
+
+    if (entity is Token) {
+      var prev = entity.previous;
+      if (prev?.end == offset && prev.isKeywordOrIdentifier) {
+        return prev.lexeme;
+      }
+    }
+
     while (entity is AstNode) {
       if (entity is SimpleIdentifier) {
         var identifier = entity.name;

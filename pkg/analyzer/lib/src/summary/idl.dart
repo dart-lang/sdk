@@ -864,6 +864,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
 
+  @VariantId(41, variant: LinkedNodeKind.compilationUnit)
+  List<int> get compilationUnit_featureSet;
+
   /// The language version information.
   @VariantId(40, variant: LinkedNodeKind.compilationUnit)
   LinkedLibraryLanguageVersion get compilationUnit_languageVersion;
@@ -1873,9 +1876,6 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
-  @Id(3)
-  bool get isNNBD;
-
   @Id(2)
   bool get isSynthetic;
 
@@ -1884,7 +1884,7 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 
   /// If the unit is a part, the URI specified in the `part` directive.
   /// Otherwise empty.
-  @Id(4)
+  @Id(3)
   String get partUriStr;
 
   /// The absolute URI.

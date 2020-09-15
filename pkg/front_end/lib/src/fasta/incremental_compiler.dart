@@ -884,7 +884,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (previousSource == null || previousSource.isEmpty) {
         return null;
       }
-      String before = textualOutline(previousSource);
+      String before = textualOutline(previousSource, performModelling: true);
       if (before == null) {
         return null;
       }
@@ -892,7 +892,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FileSystemEntity entity =
           c.options.fileSystem.entityForUri(builder.fileUri);
       if (await entity.exists()) {
-        now = textualOutline(await entity.readAsBytes());
+        now =
+            textualOutline(await entity.readAsBytes(), performModelling: true);
       }
       if (before != now) {
         return null;

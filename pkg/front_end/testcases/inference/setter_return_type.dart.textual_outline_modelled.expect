@@ -5,7 +5,7 @@ abstract class I {
 }
 
 class C {
-  dynamic set x(int value) {}
+  set x(int value) {}
 }
 
 class D extends C implements I {

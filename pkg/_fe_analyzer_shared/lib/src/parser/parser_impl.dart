@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.parser.parser;
 
+import 'package:_fe_analyzer_shared/src/parser/type_info_impl.dart';
+
 import '../messages/codes.dart' as codes;
 
 import '../scanner/scanner.dart' show ErrorToken, Token;
@@ -637,6 +639,7 @@ class Parser {
   /// ```
   Token parseLibraryName(Token libraryKeyword) {
     assert(optional('library', libraryKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(libraryKeyword);
     listener.beginLibraryName(libraryKeyword);
     Token token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
         IdentifierContext.libraryNameContinuation);
@@ -677,6 +680,7 @@ class Parser {
   /// ```
   Token parseImport(Token importKeyword) {
     assert(optional('import', importKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(importKeyword);
     listener.beginImport(importKeyword);
     Token token = ensureLiteralString(importKeyword);
     Token uri = token;
@@ -875,6 +879,7 @@ class Parser {
   /// ```
   Token parseExport(Token exportKeyword) {
     assert(optional('export', exportKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(exportKeyword);
     listener.beginExport(exportKeyword);
     Token token = ensureLiteralString(exportKeyword);
     token = parseConditionalUriStar(token);
@@ -974,6 +979,7 @@ class Parser {
 
   Token parsePartOrPartOf(Token partKeyword, DirectiveContext directiveState) {
     assert(optional('part', partKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(partKeyword);
     if (optional('of', partKeyword.next)) {
       directiveState?.checkPartOf(this, partKeyword);
       return parsePartOf(partKeyword);
@@ -1098,6 +1104,7 @@ class Parser {
   /// ```
   Token parseTypedef(Token typedefKeyword) {
     assert(optional('typedef', typedefKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(typedefKeyword);
     listener.beginFunctionTypeAlias(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, /* required = */ false);
     Token token = typeInfo.skipType(typedefKeyword);
@@ -1125,8 +1132,59 @@ class Parser {
       }
       if (optional('=', next)) {
         equals = next;
-        token = computeType(equals, /* required = */ true)
-            .ensureTypeOrVoid(equals, this);
+        TypeInfo type = computeType(equals, /* required = */ true);
+        if (!type.isFunctionType) {
+          // Recovery: In certain cases insert missing 'Function' and missing
+          // parens.
+          Token skippedType = type.skipType(equals);
+          if (optional('(', skippedType.next) &&
+              skippedType.next.endGroup != null &&
+              optional(';', skippedType.next.endGroup.next)) {
+            // Turn "<return type>? '(' <whatever> ')';"
+            // into "<return type>? Function '(' <whatever> ')';".
+            // Assume the type is meant as the return type.
+            Token functionToken =
+                rewriter.insertSyntheticKeyword(skippedType, Keyword.FUNCTION);
+            reportRecoverableError(functionToken,
+                codes.templateExpectedButGot.withArguments('Function'));
+            type = computeType(equals, /* required = */ true);
+          } else if (type is NoType &&
+              optional('<', skippedType.next) &&
+              skippedType.next.endGroup != null) {
+            // Recover these two:
+            // "<whatever>;" => "Function<whatever>();"
+            // "<whatever>(<whatever>);" => "Function<whatever>(<whatever>);"
+            Token endGroup = skippedType.next.endGroup;
+            bool recover = false;
+            if (optional(';', endGroup.next)) {
+              // Missing parenthesis. Insert them.
+              // Turn "<whatever>;" in to "<whatever>();"
+              // Insert missing 'Function' below.
+              reportRecoverableError(endGroup,
+                  missingParameterMessage(MemberKind.FunctionTypeAlias));
+              rewriter.insertParens(endGroup, /*includeIdentifier =*/ false);
+              recover = true;
+            } else if (optional('(', endGroup.next) &&
+                endGroup.next.endGroup != null &&
+                optional(';', endGroup.next.endGroup.next)) {
+              // "<whatever>(<whatever>);". Insert missing 'Function' below.
+              recover = true;
+            }
+
+            if (recover) {
+              // Assume the '<' indicates type arguments to the function.
+              // Insert 'Function' before them.
+              Token functionToken =
+                  rewriter.insertSyntheticKeyword(equals, Keyword.FUNCTION);
+              reportRecoverableError(functionToken,
+                  codes.templateExpectedButGot.withArguments('Function'));
+              type = computeType(equals, /* required = */ true);
+            }
+          } else {
+            // E.g. "typedef j = foo;" -- don't attempt any recovery.
+          }
+        }
+        token = type.ensureTypeOrVoid(equals, this);
       } else {
         // A rewrite caused the = to disappear
         token = parseFormalParametersRequiredOpt(
@@ -1733,6 +1791,7 @@ class Parser {
   /// ```
   Token parseEnum(Token enumKeyword) {
     assert(optional('enum', enumKeyword));
+    listener.beginUncategorizedTopLevelDeclaration(enumKeyword);
     listener.beginEnum(enumKeyword);
     Token token =
         ensureIdentifier(enumKeyword, IdentifierContext.enumDeclaration);
@@ -1903,10 +1962,7 @@ class Parser {
           const ['extend', 'on'].contains(token.next.lexeme)) {
         reportRecoverableError(
             token.next, codes.templateExpectedInstead.withArguments('extends'));
-        Token incorrectExtendsKeyword = token.next;
-        token = computeType(incorrectExtendsKeyword, /* required = */ true)
-            .ensureTypeNotVoid(incorrectExtendsKeyword, this);
-        listener.handleClassExtends(incorrectExtendsKeyword);
+        token = parseClassExtendsSeenExtendsClause(token.next, token);
       } else {
         token = parseClassExtendsOpt(token);
       }
@@ -1966,14 +2022,35 @@ class Parser {
     // extends <typeNotVoid>
     Token next = token.next;
     if (optional('extends', next)) {
-      Token extendsKeyword = next;
-      token = computeType(next, /* required = */ true)
-          .ensureTypeNotVoid(next, this);
-      listener.handleClassExtends(extendsKeyword);
+      token = parseClassExtendsSeenExtendsClause(next, token);
     } else {
       listener.handleNoType(token);
-      listener.handleClassExtends(/* extendsKeyword = */ null);
+      listener.handleClassExtends(
+          /* extendsKeyword = */ null,
+          /* typeCount = */ 1);
     }
+    return token;
+  }
+
+  Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
+    Token next = extendsKeyword;
+    token =
+        computeType(next, /* required = */ true).ensureTypeNotVoid(next, this);
+    int count = 1;
+
+    // Error recovery: extends <typeNotVoid>, <typeNotVoid> [...]
+    if (optional(',', token.next)) {
+      reportRecoverableError(token.next, codes.messageMultipleExtends);
+
+      while (optional(',', token.next)) {
+        next = token.next;
+        token = computeType(next, /* required = */ true)
+            .ensureTypeNotVoid(next, this);
+        count++;
+      }
+    }
+
+    listener.handleClassExtends(extendsKeyword, count);
     return token;
   }
 
@@ -2492,6 +2569,8 @@ class Parser {
       DeclarationKind kind,
       String enclosingDeclarationName,
       bool nameIsRecovered) {
+    listener.beginFields(beforeStart);
+
     // Covariant affects only the setter and final fields do not have a setter,
     // unless it's a late field (dartbug.com/40805).
     // Field that are covariant late final with initializers are checked further
@@ -4580,7 +4659,7 @@ class Parser {
             // [parsePrimary] instead.
             token = parsePrimary(
                 token.next, IdentifierContext.expressionContinuation);
-            listener.endBinaryExpression(operator);
+            listener.handleEndingBinaryExpression(operator);
 
             Token bangToken = token;
             if (optional('!', token.next)) {
@@ -4596,8 +4675,7 @@ class Parser {
               assert(optional('(', token.next));
             }
           } else if (identical(type, TokenType.OPEN_PAREN) ||
-              identical(type, TokenType.OPEN_SQUARE_BRACKET) ||
-              identical(type, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
+              identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
             token = parseArgumentOrIndexStar(
                 token, typeArg, /* checkedNullAware = */ false);
           } else if (identical(type, TokenType.QUESTION)) {
@@ -4661,8 +4739,7 @@ class Parser {
           identical(nextType, TokenType.QUESTION) ||
           identical(nextType, TokenType.OPEN_PAREN) ||
           identical(nextType, TokenType.OPEN_SQUARE_BRACKET) ||
-          identical(nextType, TokenType.QUESTION_PERIOD) ||
-          identical(nextType, TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET)) {
+          identical(nextType, TokenType.QUESTION_PERIOD)) {
         return SELECTOR_PRECEDENCE;
       }
       return POSTFIX_PRECEDENCE;
@@ -4687,7 +4764,7 @@ class Parser {
           token, noTypeParamOrArg, /* checkedNullAware = */ false);
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
-      listener.endBinaryExpression(cascadeOperator);
+      listener.handleEndingBinaryExpression(cascadeOperator);
     }
     Token next = token.next;
     Token mark;
@@ -4697,7 +4774,7 @@ class Parser {
         Token period = next;
         token = parseSend(next, IdentifierContext.expressionContinuation);
         next = token.next;
-        listener.endBinaryExpression(period);
+        listener.handleEndingBinaryExpression(period);
       } else if (optional('!', next)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -4808,7 +4885,7 @@ class Parser {
         if (isConditional) potentialNullAware = false;
       }
 
-      if (optional('[', next) || optional('?.[', next) || potentialNullAware) {
+      if (optional('[', next) || potentialNullAware) {
         assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
         Token question;
@@ -5259,10 +5336,8 @@ class Parser {
     Token next = token.next;
     if (optional('{', next)) {
       if (typeParamOrArg.typeArgumentCount > 2) {
-        listener.handleRecoverableError(
-            codes.messageSetOrMapLiteralTooManyTypeArguments,
-            start.next,
-            token);
+        reportRecoverableErrorWithEnd(start.next, token,
+            codes.messageSetOrMapLiteralTooManyTypeArguments);
       }
       return parseLiteralSetOrMapSuffix(token, constKeyword);
     }
@@ -6173,7 +6248,7 @@ class Parser {
       token =
           parseVariablesDeclarationRest(token, /* endWithSemicolon = */ false);
       listener.handleForInitializerLocalVariableDeclaration(
-          token, optional('in', token.next));
+          token, optional('in', token.next) || optional(':', token.next));
     } else if (optional(';', token.next)) {
       listener.handleForInitializerEmptyStatement(token.next);
     } else {
@@ -7133,6 +7208,11 @@ class Parser {
     listener.handleRecoverableError(message, token, token);
   }
 
+  void reportRecoverableErrorWithEnd(
+      Token startToken, Token endToken, codes.Message message) {
+    listener.handleRecoverableError(message, startToken, endToken);
+  }
+
   void reportRecoverableErrorWithToken(
       Token token, codes.Template<_MessageWithArgument<Token>> template) {
     // Find a non-synthetic token on which to report the error.
@@ -7189,6 +7269,7 @@ class Parser {
         token = next.endGroup;
       }
     }
+    listener.endMember();
     return token;
   }
 
@@ -7211,6 +7292,7 @@ class Parser {
         token = next.endGroup;
       }
     }
+    listener.endMember();
     return token;
   }
 
@@ -7221,6 +7303,7 @@ class Parser {
     // TODO(brianwilkerson): If the declaration appears to be a valid typedef
     // then skip the entire declaration so that we generate a single error
     // (above) rather than many unhelpful errors.
+    listener.endMember();
     return token;
   }
 

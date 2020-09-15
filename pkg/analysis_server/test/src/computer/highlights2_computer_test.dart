@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
@@ -27,6 +25,21 @@ class Highlights2ComputerTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
+  }
+
+  Future<void> test_comment() async {
+    await _computeHighlights('''
+// A trailing comment
+''');
+    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// A trailing comment');
+  }
+
+  Future<void> test_comment_trailing() async {
+    await _computeHighlights('''
+class A {}
+// A trailing comment
+''');
+    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// A trailing comment');
   }
 
   Future<void> test_extension() async {

@@ -210,9 +210,13 @@ part of 'syntactic_errors.dart';
   void generateFormatCode() {
     messagesYaml.forEach((name, entry) {
       if (entry is Map) {
-        if (entry['index'] is int && entry['analyzerCode'] is String) {
-          translatedFastaErrorCodes.add(name);
-          translatedEntries.add(entry);
+        if (entry['index'] is int) {
+          if (entry['analyzerCode'] is String) {
+            translatedFastaErrorCodes.add(name);
+            translatedEntries.add(entry);
+          } else {
+            throw invalidAnalyzerCode;
+          }
         }
       }
     });

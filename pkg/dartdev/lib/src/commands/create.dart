@@ -7,14 +7,18 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:stagehand/stagehand.dart' as stagehand;
 
 import '../core.dart';
+import '../events.dart';
 import '../sdk.dart';
 
 /// A command to create a new project from a set of templates.
-class CreateCommand extends DartdevCommand {
+class CreateCommand extends DartdevCommand<int> {
+  static const String cmdName = 'create';
+
   static String defaultTemplateId = 'console-simple';
 
   static List<String> legalTemplateIds = [
@@ -31,7 +35,7 @@ class CreateCommand extends DartdevCommand {
       stagehand.getGenerator(templateId);
 
   CreateCommand({bool verbose = false})
-      : super('create', 'Create a new project.') {
+      : super(cmdName, 'Create a new project.') {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,
@@ -60,7 +64,7 @@ class CreateCommand extends DartdevCommand {
   String get invocation => '${super.invocation} <directory>';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     if (argResults['list-templates']) {
       log.stdout(_availableTemplatesJson());
       return 0;
@@ -96,14 +100,14 @@ class CreateCommand extends DartdevCommand {
     );
 
     if (argResults['pub']) {
-      if (!Sdk.checkArtifactExists(sdk.pub)) {
+      if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
         return 255;
       }
       log.stdout('');
       var progress = log.progress('Running pub get');
-      var process = await startProcess(
-        sdk.pub,
-        ['get', '--no-precompile'],
+      var process = await startDartProcess(
+        sdk,
+        [sdk.pubSnapshot, 'get', '--no-precompile'],
         cwd: dir,
       );
 
@@ -139,6 +143,13 @@ class CreateCommand extends DartdevCommand {
   }
 
   @override
+  UsageEvent createUsageEvent(int exitCode) => CreateUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
+
+  @override
   String get usageFooter {
     int width = legalTemplateIds.map((s) => s.length).reduce(math.max);
     String desc = generators.map((g) {
@@ -167,6 +178,14 @@ class CreateCommand extends DartdevCommand {
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     return encoder.convert(items.toList());
   }
+}
+
+/// The [UsageEvent] for the create command.
+class CreateUsageEvent extends UsageEvent {
+  CreateUsageEvent(String usagePath,
+      {String label, @required int exitCode, @required List<String> args})
+      : super(CreateCommand.cmdName, usagePath,
+            label: label, exitCode: exitCode, args: args);
 }
 
 class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {

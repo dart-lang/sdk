@@ -11,22 +11,22 @@ class P0 {
     super.toString();
     super.foo();
     //    ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
     // [cfe] Superclass has no method named 'foo'.
     super.bar = 100;
     //    ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
     // [cfe] Superclass has no setter named 'bar'.
 
     void inner() {
       super.toString();
       super.foo();
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no method named 'foo'.
       super.bar = 100;
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_SETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no setter named 'bar'.
     }
     inner();
@@ -35,11 +35,11 @@ class P0 {
       super.toString();
       super.foo();
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no method named 'foo'.
       super.bar = 100;
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_SETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no setter named 'bar'.
     })();
 

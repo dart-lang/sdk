@@ -153,4 +153,26 @@ void f(A a, int x) {
 }
 ''');
   }
+
+  test_set_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
+  }
+
+  test_set_external_static_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static int x;
+}
+void f(int x) {
+  A.x = x;
+}
+''');
+  }
 }

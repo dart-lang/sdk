@@ -12,6 +12,7 @@
 // VMOptions=--use-slow-path --enable-testing-pragmas --stacktrace-every=100
 // VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code
 // VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--use-bare-instructions=false
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';

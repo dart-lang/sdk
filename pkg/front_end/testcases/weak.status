@@ -62,11 +62,16 @@ late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
+nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
+nnbd_mixed/bad_mixins: TypeCheckError
 nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 nnbd_mixed/never_opt_out: TypeCheckError
+value_class/simple: RuntimeError # Expected
+value_class/value_extends_non_value: RuntimeError # Expected
+value_class/value_implements_non_value: RuntimeError # Expected

@@ -259,13 +259,14 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
+    api_flags.is_system_isolate = true;
 
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(
-        new IsolateGroupSource(nullptr, kVmIsolateName, vm_isolate_snapshot,
-                               instructions_snapshot, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
+        kVmIsolateName, kVmIsolateName, vm_isolate_snapshot,
+        instructions_snapshot, nullptr, -1, api_flags));
     // ObjectStore should be created later, after null objects are initialized.
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr,
                                   /*object_store=*/nullptr);
@@ -334,8 +335,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         // Must copy before leaving the zone.
         return Utils::StrDup(error.ToErrorCString());
       }
-
-      ReversePcLookupCache::BuildAndAttachToIsolateGroup(vm_isolate_->group());
 
       Object::FinishInit(vm_isolate_);
 #if defined(SUPPORT_TIMELINE)
@@ -434,7 +433,7 @@ static void DumpAliveIsolates(intptr_t num_attempts,
                               bool only_aplication_isolates) {
   IsolateGroup::ForEach([&](IsolateGroup* group) {
     group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsVMInternalIsolate(isolate)) {
+      if (!only_aplication_isolates || !Isolate::IsSystemIsolate(isolate)) {
         OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
                      num_attempts, isolate->name());
       }
@@ -735,7 +734,6 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.raw();
     }
 
-    ReversePcLookupCache::BuildAndAttachToIsolateGroup(I->group());
     I->group()->set_saved_initial_field_table(
         std::shared_ptr<FieldTable>(I->field_table()->Clone()));
 

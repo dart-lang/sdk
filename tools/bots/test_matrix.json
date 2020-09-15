@@ -1373,7 +1373,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 6
         },
         {
           "name": "co19 nnbd tests in weak mode with asserts",
@@ -1382,7 +1382,7 @@
             "co19"
           ],
           "fileset": "vm-kernel",
-          "shards": 4
+          "shards": 6
         }
       ]
     },
@@ -2971,41 +2971,41 @@
         },
         {
           "name": "analyze pkg/analysis_server",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/analysis_server"
           ]
         },
         {
           "name": "analyze pkg/analysis_server_client",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/analysis_server_client"
           ]
         },
         {
           "name": "analyze pkg/analyzer",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/analyzer"
           ]
         },
         {
           "name": "analyze pkg/analyzer_cli",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/analyzer_cli"
           ]
         },
         {
           "name": "analyze pkg/analyzer_plugin",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/analyzer_plugin"
           ]
         },
@@ -3035,9 +3035,10 @@
         },
         {
           "name": "analyze pkg/dartdev",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
+            "--fatal-infos",
             "pkg/dartdev"
           ]
         },
@@ -3140,25 +3141,25 @@
         },
         {
           "name": "analyze pkg/status_file",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/status_file"
           ]
         },
         {
           "name": "analyze pkg/telemetry",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/telemetry"
           ]
         },
         {
           "name": "analyze pkg/test_runner",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
-            "--fatal-warnings",
+            "analyze",
             "pkg/test_runner"
           ]
         },
@@ -3184,6 +3185,14 @@
           "arguments": [
             "--fatal-warnings",
             "pkg/vm_service"
+          ]
+        },
+        {
+          "name": "analyze pkg/vm_snapshot_analysis",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "pkg/vm_snapshot_analysis"
           ]
         },
         {
@@ -3232,6 +3241,13 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk"
+          ]
+        },
+        {
+          "name": "validate pkg/ pubspec files",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "tools/package_deps/bin/package_deps.dart"
           ]
         },
         {
@@ -3405,8 +3421,12 @@
           ]
         },
         {
-          "name": "analyze flutter",
-          "script": "tools/bots/flutter/analyze_flutter.sh"
+          "name": "analyze flutter/engine",
+          "script": "tools/bots/flutter/analyze_flutter_engine.sh"
+        },
+        {
+          "name": "analyze flutter/flutter",
+          "script": "tools/bots/flutter/analyze_flutter_flutter.sh"
         }
       ]
     },
@@ -3433,6 +3453,32 @@
           "testRunner": true,
           "arguments": [
             "-nflutter-frontend"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "frontend-weekly"
+      ],
+      "meta": {
+        "description": "This configuration is used for running slow frontend tests for instance weekly."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=x64",
+            "create_sdk"
+          ]
+        },
+        {
+          "name": "run tests",
+          "script": "tools/bots/flutter/compile_flutter.sh",
+          "arguments": [
+            "--leakTest"
           ]
         }
       ]

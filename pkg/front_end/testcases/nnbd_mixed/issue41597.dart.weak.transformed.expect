@@ -97,7 +97,7 @@ library;
 //      ^
 //
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:10:8: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version higher.
+// Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
 //   c?..f!;
 //        ^
 // pkg/front_end/testcases/nnbd_mixed/issue41597_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.

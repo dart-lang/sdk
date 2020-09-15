@@ -73,10 +73,10 @@ and star the fixes you want.
 If no issue exists for the fix, [create a GitHub issue.][new issue]
 
 [dartfix]: https://pub.dev/packages/dartfix
-[dartfmt]: https://www.dartlang.org/tools/dartfmt
+[dartfmt]: https://dart.dev/tools/dartfmt
 [added in Dart in 2.1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#210---2018-11-15
 [features added to Dart in 2.1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#210---2018-11-15
-[globally install]: https://www.dartlang.org/tools/pub/cmd/pub-global
+[globally install]: https://dart.dev/tools/pub/cmd/pub-global
 [new issue]: https://github.com/dart-lang/sdk/issues/new?title=dartfix%20request%3A%20%3CSUMMARIZE%20REQUEST%20HERE%3E
 [dartfix issues]: https://github.com/dart-lang/sdk/issues?q=is%3Aissue+is%3Aopen+label%3Aanalyzer-dartfix
-[PATH]: https://www.dartlang.org/tools/pub/cmd/pub-global#running-a-script-from-your-path
+[PATH]: https://dart.dev/tools/pub/cmd/pub-global#running-a-script-from-your-path

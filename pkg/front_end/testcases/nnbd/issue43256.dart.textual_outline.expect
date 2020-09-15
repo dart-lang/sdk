@@ -1,0 +1,26 @@
+var i = 1;
+Map<int, String>? nullableMap = {1: "Let", 2: "it", 3: "be"};
+List<int>? nullableList = [1, 2, 3];
+dynamic dynamicMap = {1: "Let", 2: "it", 3: "be"};
+dynamic dynamicList = [1, 2, 3];
+var map1 = {
+  if (i > 0) ...nullableMap,
+  if (i > 0) ...dynamicMap,
+  if (i > 0) ...nullableMap!,
+};
+var set1 = {
+  0,
+  if (i > 0) ...nullableList,
+  if (i > 0) ...dynamicList,
+  if (i > 0) ...nullableList!
+};
+var list1 = [
+  if (i > 0) ...nullableList,
+  if (i > 0) ...dynamicList,
+  if (i > 0) ...nullableList!,
+];
+testMap<X extends dynamic, Y extends Map<int, String>?,
+    Z extends Map<int, String>>(X x, Y y, Z z) {}
+testIterables<X extends dynamic, Y extends List<int>?, Z extends List<int>>(
+    X x, Y y, Z z) {}
+main() {}

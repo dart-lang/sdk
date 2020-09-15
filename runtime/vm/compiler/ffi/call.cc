@@ -4,6 +4,7 @@
 
 #include "vm/compiler/ffi/call.h"
 
+#include "vm/class_finalizer.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -37,18 +38,25 @@ FunctionPtr TrampolineFunction(const Function& dart_signature,
 
   // The signature function won't have any names for the parameters. We need to
   // assign unique names for scope building and error messages.
+  function.CreateNameArrayIncludingFlags(Heap::kNew);
   const intptr_t num_params = dart_signature.num_fixed_parameters();
-  const Array& parameter_names = Array::Handle(zone, Array::New(num_params));
   for (intptr_t i = 0; i < num_params; ++i) {
     if (i == 0) {
       name = Symbols::ClosureParameter().raw();
     } else {
       name = Symbols::NewFormatted(thread, ":ffi_param%" Pd, i);
     }
-    parameter_names.SetAt(i, name);
+    function.SetParameterNameAt(i, name);
   }
-  function.set_parameter_names(parameter_names);
+  function.TruncateUnusedParameterFlags();
   function.SetFfiCSignature(c_signature);
+
+  Type& type = Type::Handle(zone);
+  type ^= function.SignatureType(Nullability::kLegacy);
+  type ^= ClassFinalizer::FinalizeType(owner_class, type);
+  function.SetSignatureType(type);
+  ASSERT(
+      Type::Handle(function.SignatureType(Nullability::kLegacy)).IsFinalized());
 
   return function.raw();
 }

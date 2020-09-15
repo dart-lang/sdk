@@ -84,14 +84,14 @@ import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
-import 'never_type_builder.dart';
+import 'never_type_declaration_builder.dart';
 import 'nullability_builder.dart';
 import 'procedure_builder.dart';
 import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
-import 'void_type_builder.dart';
+import 'void_type_declaration_builder.dart';
 
 abstract class ClassBuilder implements DeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
@@ -687,9 +687,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       }
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
-      if (decl is VoidTypeBuilder) {
+      if (decl is VoidTypeDeclarationBuilder) {
         fail(superClassType, messageExtendsVoid, aliasBuilder);
-      } else if (decl is NeverTypeBuilder) {
+      } else if (decl is NeverTypeDeclarationBuilder) {
         fail(superClassType, messageExtendsNever, aliasBuilder);
       } else if (decl is ClassBuilder) {
         superClass = decl;
@@ -737,9 +737,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         }
         if (decl != superClass) {
           // TODO(eernst): Have all 'restricted supertype' checks in one place.
-          if (decl is VoidTypeBuilder) {
+          if (decl is VoidTypeDeclarationBuilder) {
             fail(type, messageImplementsVoid, aliasBuilder);
-          } else if (decl is NeverTypeBuilder) {
+          } else if (decl is NeverTypeDeclarationBuilder) {
             fail(type, messageImplementsNever, aliasBuilder);
           }
         }
@@ -884,8 +884,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     procedure.isAbstract = false;
     procedure.isNoSuchMethodForwarder = true;
+    procedure.isMemberSignature = false;
     procedure.isForwardingStub = false;
     procedure.isForwardingSemiStub = false;
+    procedure.memberSignatureOrigin = null;
+    procedure.forwardingStubInterfaceTarget = null;
+    procedure.forwardingStubSuperTarget = null;
   }
 
   Uri _getMemberUri(Member member) {
@@ -1416,6 +1420,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   void checkMixinApplication(ClassHierarchy hierarchy, CoreTypes coreTypes) {
+    TypeEnvironment typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
     // A mixin declaration can only be applied to a class that implements all
     // the declaration's superclass constraints.
     InterfaceType supertype = cls.supertype.asInterfaceType;
@@ -1425,7 +1430,13 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType implementedInterface = hierarchy.getTypeAsInstanceOf(
           supertype, requiredInterface.classNode, library.library, coreTypes);
-      if (implementedInterface != requiredInterface) {
+      if (implementedInterface == null ||
+          !typeEnvironment.areMutualSubtypes(
+              implementedInterface,
+              requiredInterface,
+              library.isNonNullableByDefault
+                  ? SubtypeCheckMode.withNullabilities
+                  : SubtypeCheckMode.ignoringNullabilities)) {
         library.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype,

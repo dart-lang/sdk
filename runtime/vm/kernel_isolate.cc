@@ -92,6 +92,7 @@ class RunKernelTask : public ThreadPool::Task {
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
     api_flags.enable_asserts = false;
+    api_flags.is_system_isolate = true;
 #if !defined(DART_PRECOMPILER)
     api_flags.use_field_guards = true;
 #endif

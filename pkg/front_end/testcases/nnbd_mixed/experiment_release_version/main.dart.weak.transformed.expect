@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "package:allowed_package/unversioned_lib.dart";
+import "package:allowed_package/versioned_2_8_lib.dart";
+import "package:allowed_package/versioned_2_9_lib.dart";
+import "package:allowed_package/versioned_2_10_lib.dart";
+import "package:not_allowed_package/unversioned_lib.dart";
+import "package:not_allowed_package/versioned_2_8_lib.dart";
+import "package:not_allowed_package/versioned_2_9_lib.dart";
+import "package:not_allowed_package/versioned_2_10_lib.dart";
+import "org-dartlang-testcase:///unversioned_lib.dart";
+import "org-dartlang-testcase:///versioned_2_8_lib.dart";
+import "org-dartlang-testcase:///versioned_2_9_lib.dart";
+import "org-dartlang-testcase:///versioned_2_10_lib.dart";
+
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+static field core::int? unversionedLibrary;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/experiment_release_version/versioned_2_8_lib.dart:7:4: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.9 or higher.
+// int? versioned_2_8_Library; // error
+//    ^
+// pkg/front_end/testcases/nnbd_mixed/experiment_release_version/versioned_2_8_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.8
+// ^^^^^^^^^^^^
+//
+import self as self3;
+import "dart:core" as core;
+
+static field core::int? versioned_2_8_Library;
+
+library /*isNonNullableByDefault*/;
+import self as self4;
+import "dart:core" as core;
+
+static field core::int? versioned_2_9_Library;
+
+library /*isNonNullableByDefault*/;
+import self as self5;
+import "dart:core" as core;
+
+static field core::int? versioned_2_10_Library;

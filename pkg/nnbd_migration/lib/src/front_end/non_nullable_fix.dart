@@ -27,7 +27,7 @@ import 'package:yaml/yaml.dart';
 /// then adds or removes a '?' trailing the named type as appropriate.
 class NonNullableFix {
   // TODO(srawlins): Refactor to use
-  //  `Feature.non_nullable.firstSupportedVersion` when this becomes non-null.
+  //  `Feature.non_nullable.releaseVersion` when this becomes non-null.
   static const String _intendedMinimumSdkVersion = '2.9.0';
 
   // In the package_config.json file, the patch number is omitted.

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-07-14T07:50:57.318843",
+  "generated": "2020-08-18T15:38:52.410101",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -19,6 +19,41 @@
       "rootUri": "../pkg/_fe_analyzer_shared",
       "packageUri": "lib/",
       "languageVersion": "2.2"
+    },
+    {
+      "name": "_fe_analyzer_shared_assigned_variables",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_definite_assignment",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_definite_unassignment",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_inheritance",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/inheritance",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_nullability",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/nullability",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_reachability",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/reachability",
+      "packageUri": ".nonexisting/"
+    },
+    {
+      "name": "_fe_analyzer_shared_type_promotion",
+      "rootUri": "../pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion",
+      "packageUri": ".nonexisting/"
     },
     {
       "name": "_js_interop_checks",
@@ -48,7 +83,7 @@
       "name": "analyzer",
       "rootUri": "../pkg/analyzer",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "analyzer_cli",
@@ -137,13 +172,13 @@
       "name": "crypto",
       "rootUri": "../third_party/pkg/crypto",
       "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "languageVersion": "2.10"
     },
     {
       "name": "csslib",
       "rootUri": "../third_party/pkg/csslib",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.10"
     },
     {
       "name": "dart2js_info",
@@ -167,7 +202,7 @@
       "name": "dart_internal",
       "rootUri": "../pkg/dart_internal",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.10"
     },
     {
       "name": "dart_style",
@@ -234,33 +269,8 @@
       "languageVersion": "2.2"
     },
     {
-      "name": "front_end_agnostic",
-      "rootUri": "../pkg/front_end/testcases/agnostic",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_general_nnbd_opt_out",
-      "rootUri": "../pkg/front_end/testcases/general_nnbd_opt_out",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_late_lowering",
-      "rootUri": "../pkg/front_end/testcases/late_lowering",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nnbd",
-      "rootUri": "../pkg/front_end/testcases/nnbd",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nnbd_mixed",
-      "rootUri": "../pkg/front_end/testcases/nnbd_mixed",
-      "packageUri": ".nonexisting/"
-    },
-    {
-      "name": "front_end_nonfunction_type_aliases",
-      "rootUri": "../pkg/front_end/testcases/nonfunction_type_aliases",
+      "name": "front_end_testcases",
+      "rootUri": "../pkg/front_end/testcases",
       "packageUri": ".nonexisting/"
     },
     {
@@ -356,7 +366,6 @@
     {
       "name": "language_versioning_2.7_test",
       "rootUri": "../pkg/language_versioning_2.7_test",
-      "packageUri": "lib/",
       "languageVersion": "2.7"
     },
     {
@@ -375,7 +384,7 @@
       "name": "markdown",
       "rootUri": "../third_party/pkg/markdown",
       "packageUri": "lib/",
-      "languageVersion": "2.2"
+      "languageVersion": "2.6"
     },
     {
       "name": "matcher",
@@ -506,7 +515,7 @@
       "name": "shelf",
       "rootUri": "../third_party/pkg/shelf",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.1"
     },
     {
       "name": "shelf_packages_handler",
@@ -566,7 +575,7 @@
       "name": "sse",
       "rootUri": "../third_party/pkg/sse",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.2"
     },
     {
       "name": "stack_trace",
@@ -602,7 +611,7 @@
       "name": "sync_http",
       "rootUri": "../third_party/pkg/sync_http",
       "packageUri": "lib/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.0"
     },
     {
       "name": "telemetry",
@@ -707,16 +716,16 @@
       "languageVersion": "2.8"
     },
     {
+      "name": "wasm",
+      "rootUri": "../pkg/wasm",
+      "packageUri": "lib/",
+      "languageVersion": "2.10"
+    },
+    {
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
       "languageVersion": "2.2"
-    },
-    {
-      "name": "webdriver",
-      "rootUri": "../third_party/pkg/webdriver",
-      "packageUri": "lib/",
-      "languageVersion": "2.6"
     },
     {
       "name": "web_components",
@@ -727,6 +736,12 @@
     {
       "name": "web_socket_channel",
       "rootUri": "../third_party/pkg/web_socket_channel",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
+      "name": "webdriver",
+      "rootUri": "../third_party/pkg/webdriver",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },

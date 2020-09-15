@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:core';
 import 'dart:io' as io;
 
@@ -35,6 +34,8 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
+import 'package:analyzer/src/dart/analysis/experiments.dart'
+    as analyzer_features;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
@@ -157,8 +158,10 @@ abstract class AbstractAnalysisServer {
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.contextFeatures =
-        analyzer_features.FeatureSet.fromEnableFlags(
-            options.enabledExperiments);
+        analyzer_features.FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: analyzer_features.ExperimentStatus.currentVersion,
+      flags: options.enabledExperiments,
+    );
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {

@@ -17,7 +17,7 @@ Blob createImageBlob() {
 
   var context = canvas.context2D;
   context.fillStyle = 'red';
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, canvas.width!, canvas.height!);
 
   var dataUri = canvas.toDataUrl('image/png');
   var byteString = window.atob(dataUri.split(',')[1]);

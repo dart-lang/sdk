@@ -1,0 +1,6 @@
+// @dart = 2.7
+import 'mixed_mixin_lib.dart';
+
+class C1 with B {}
+
+main() {}

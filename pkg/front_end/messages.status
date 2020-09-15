@@ -10,11 +10,8 @@ AbstractFieldConstructorInitializer/analyzerCode: Fail
 AbstractFieldInitializer/analyzerCode: Fail
 AbstractExtensionField/analyzerCode: Fail
 AbstractExtensionField/example: Fail
-AbstractExternalField/analyzerCode: Fail
-AbstractLateField/analyzerCode: Fail
 AbstractNotSync/example: Fail
 AbstractRedirectedClassInstantiation/example: Fail
-AbstractStaticField/analyzerCode: Fail
 AccessError/analyzerCode: Fail
 AccessError/example: Fail
 AmbiguousExtensionMethod/analyzerCode: Fail
@@ -190,6 +187,8 @@ DuplicatedName/example: Fail
 DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 DuplicatePrefix/example: Fail
+ExceptionReadingFile/analyzerCode: Fail
+ExceptionReadingFile/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
 EnumInstantiation/example: Fail
@@ -223,6 +222,8 @@ ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
 ExperimentNotEnabled/example: Fail
+ExperimentNotEnabledNoFlag/example: Fail
+ExperimentNotEnabledNoFlagInvalidLanguageVersion/example: Fail
 ExplicitExtensionArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionArgumentMismatch/example: Fail
 ExplicitExtensionAsExpression/analyzerCode: Fail
@@ -263,7 +264,6 @@ ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
 ExternalFieldConstructorInitializer/analyzerCode: Fail
 ExternalFieldInitializer/analyzerCode: Fail
-ExternalLateField/analyzerCode: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script10: Fail
 ExtraneousModifier/part_wrapped_script11: Fail
@@ -334,7 +334,6 @@ FieldNonNullableWithoutInitializerWarning/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
-FinalInstanceVariableAlreadyInitialized/example: Fail
 ForInLoopElementTypeNotAssignable/example: Fail
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/part_wrapped_statement: Fail
@@ -484,8 +483,6 @@ MixinFunction/script: Fail # TODO(johnniwinther): This message is currently igno
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
-MultipleExtends/part_wrapped_script: Fail
-MultipleExtends/script: Fail
 MultipleImplements/part_wrapped_script: Fail
 MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail
@@ -513,8 +510,10 @@ NonNullableLateDefinitelyUnassignedError/analyzerCode: Fail
 NonNullableNotAssignedError/analyzerCode: Fail
 NonNullableNotAssignedWarning/analyzerCode: Fail
 NonNullableNotAssignedWarning/example: Fail
-NonNullableOptOut/analyzerCode: Fail
-NonNullableOptOut/example: Fail
+NonNullableOptOutExplicit/analyzerCode: Fail
+NonNullableOptOutExplicit/example: Fail
+NonNullableOptOutImplicit/analyzerCode: Fail
+NonNullableOptOutImplicit/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
@@ -550,6 +549,8 @@ NullablePropertyAccessError/analyzerCode: Fail
 NullablePropertyAccessError/example: Fail
 NullablePropertyAccessWarning/analyzerCode: Fail
 NullablePropertyAccessWarning/example: Fail
+NullableSpreadError/analyzerCode: Fail
+NullableSpreadError/example: Fail
 NullableSuperclassError/analyzerCode: Fail
 NullableSuperclassError/example: Fail
 NullableSuperclassWarning/analyzerCode: Fail

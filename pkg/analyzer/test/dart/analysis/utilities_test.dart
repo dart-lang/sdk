@@ -211,7 +211,7 @@ class A {}
     var result = parseString(
       content: content,
       throwIfDiagnostics: false,
-      featureSet: FeatureSet.fromEnableFlags([]),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
 
     var languageVersion = result.unit.languageVersionToken;
@@ -226,7 +226,7 @@ class A {}
     var result = parseString(
       content: content,
       throwIfDiagnostics: false,
-      featureSet: FeatureSet.fromEnableFlags([]),
+      featureSet: FeatureSet.latestLanguageVersion(),
     );
 
     expect(result.unit.languageVersionToken, isNull);

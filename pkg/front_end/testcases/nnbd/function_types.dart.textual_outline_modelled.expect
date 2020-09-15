@@ -1,5 +1,5 @@
-F bar() => foo;
 F? baz() => foo;
+F bar() => foo;
 Function()? foobar(Function()? x) => null;
 
 class A<T> {}
@@ -10,6 +10,6 @@ class B extends A<Function()?> {
 
 main() {}
 typedef F = void Function();
-void Function() hest() => foo;
 void Function()? fisk() => foo;
+void Function() hest() => foo;
 void foo() {}

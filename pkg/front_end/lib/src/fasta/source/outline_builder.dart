@@ -450,7 +450,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginClassOrNamedMixinApplicationPrelude(Token token) {
-    debugEvent("beginClassOrNamedMixinApplication");
+    debugEvent("beginClassOrNamedMixinApplicationPrelude");
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.classOrNamedMixinApplication,
         "class or mixin application");
@@ -522,6 +522,11 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleRecoverClassHeader() {
     debugEvent("handleRecoverClassHeader");
+    // TODO(jensj): Possibly use these instead... E.g. "class A extend B {}"
+    // will get here (because it's 'extends' with an 's') and discard the B...
+    // Also Analyzer actually merges the information meaning that the two could
+    // give different errors (if, say, one later assigns
+    // A to a variable of type B).
     pop(NullValue.TypeBuilderList); // Interfaces.
     pop(); // Supertype offset.
     pop(); // Supertype.
@@ -530,13 +535,19 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleRecoverMixinHeader() {
     debugEvent("handleRecoverMixinHeader");
+    // TODO(jensj): Possibly use these instead...
+    // See also handleRecoverClassHeader
     pop(NullValue.TypeBuilderList); // Interfaces.
     pop(NullValue.TypeBuilderList); // Supertype constraints.
   }
 
   @override
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     debugEvent("handleClassExtends");
+    while (typeCount > 1) {
+      pop();
+      typeCount--;
+    }
     push(extendsKeyword?.charOffset ?? -1);
   }
 
@@ -662,7 +673,10 @@ class OutlineBuilder extends StackListenerImpl {
         supertype = supertypeConstraints.first;
       } else {
         supertype = new MixinApplicationBuilder(
-            supertypeConstraints.first, supertypeConstraints.skip(1).toList());
+            supertypeConstraints.first,
+            supertypeConstraints.skip(1).toList(),
+            supertypeConstraints.first.fileUri,
+            supertypeConstraints.first.charOffset);
       }
     }
 
@@ -750,7 +764,9 @@ class OutlineBuilder extends StackListenerImpl {
     String documentationComment = getDocumentationComment(extensionKeyword);
     Object onType = pop();
     if (onType is ParserRecovery) {
-      onType = new FixedTypeBuilder(const InvalidType());
+      ParserRecovery parserRecovery = onType;
+      onType = new FixedTypeBuilder(
+          const InvalidType(), uri, parserRecovery.charOffset);
     }
     List<TypeVariableBuilder> typeVariables = pop(NullValue.TypeVariables);
     int nameOffset = pop();
@@ -810,6 +826,11 @@ class OutlineBuilder extends StackListenerImpl {
         // This isn't abstract as we'll add an error-recovery node in
         // [BodyBuilder.finishFunction].
         isAbstract = false;
+      }
+      if (returnType != null && !returnType.isVoidType) {
+        addProblem(messageNonVoidReturnSetter, beginToken.charOffset, noLength);
+        // Use implicit void as recovery.
+        returnType = null;
       }
     }
     int modifiers = pop();
@@ -1056,6 +1077,20 @@ class OutlineBuilder extends StackListenerImpl {
         // [BodyBuilder.finishFunction].
         isAbstract = false;
       }
+      if (returnType != null && !returnType.isVoidType) {
+        addProblem(messageNonVoidReturnSetter,
+            returnType.charOffset ?? beginToken.charOffset, noLength);
+        // Use implicit void as recovery.
+        returnType = null;
+      }
+    }
+    if (nameOrOperator == Operator.indexSet &&
+        returnType != null &&
+        !returnType.isVoidType) {
+      addProblem(messageNonVoidReturnOperator,
+          returnType.charOffset ?? beginToken.offset, noLength);
+      // Use implicit void as recovery.
+      returnType = null;
     }
     int modifiers = Modifier.toMask(pop());
     modifiers = Modifier.addAbstractMask(modifiers, isAbstract: isAbstract);
@@ -1137,9 +1172,8 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers &= ~constMask;
       }
       if (returnType != null) {
-        // TODO(danrubel): Report this error on the return type
-        handleRecoverableError(
-            messageConstructorWithReturnType, beginToken, beginToken);
+        addProblem(messageConstructorWithReturnType,
+            returnType.charOffset ?? beginToken.offset, noLength);
         returnType = null;
       }
       final int startCharOffset =
@@ -1640,7 +1674,7 @@ class OutlineBuilder extends StackListenerImpl {
           !libraryBuilder.enableNonfunctionTypeAliasesInLibrary) {
         if (type.nullabilityBuilder.build(libraryBuilder) ==
                 Nullability.nullable &&
-            libraryBuilder.enableNonNullableInLibrary) {
+            libraryBuilder.isNonNullableByDefault) {
           // The error is reported when the non-nullable experiment is enabled.
           // Otherwise, the attempt to use a nullable type will be reported
           // elsewhere.
@@ -1708,7 +1742,12 @@ class OutlineBuilder extends StackListenerImpl {
     if (fieldInfos == null) return;
     String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFields(
-        documentationComment, metadata, modifiers, type, fieldInfos);
+        documentationComment,
+        metadata,
+        modifiers,
+        /* isTopLevel = */ true,
+        type,
+        fieldInfos);
   }
 
   @override
@@ -1770,7 +1809,12 @@ class OutlineBuilder extends StackListenerImpl {
     if (fieldInfos == null) return;
     String documentationComment = getDocumentationComment(beginToken);
     libraryBuilder.addFields(
-        documentationComment, metadata, modifiers, type, fieldInfos);
+        documentationComment,
+        metadata,
+        modifiers,
+        /* isTopLevel = */ false,
+        type,
+        fieldInfos);
   }
 
   List<FieldInfo> popFieldInfos(int count) {

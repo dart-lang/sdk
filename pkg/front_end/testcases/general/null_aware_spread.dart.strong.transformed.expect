@@ -19,7 +19,7 @@ static method nullAwareListSpread(core::List<core::String*>* list) → dynamic {
 }
 static method nullAwareSetSpread(core::Set<core::String*>* set) → dynamic {
   set = block {
-    final core::Set<core::String*>* #t4 = col::LinkedHashSet::•<core::String*>();
+    final core::Set<core::String*>* #t4 = new col::_CompactLinkedHashSet::•<core::String*>();
     #t4.{core::Set::add}("foo");
     final core::Iterable<core::String*>* #t5 = set;
     if(!#t5.{core::Object::==}(null)) {

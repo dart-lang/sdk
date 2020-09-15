@@ -102,6 +102,21 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   StreamSubscription _pluginChangeSubscription;
 
+  /// Temporary analysis roots for open files.
+  ///
+  /// When a file is opened and there is no driver available (for example no
+  /// folder was opened in the editor, so the set of analysis roots is empty)
+  /// we add temporary roots for the project (or containing) folder. When the
+  /// file is closed, it is removed from this map and if no other open file
+  /// uses that root, it will be removed from the set of analysis roots.
+  ///
+  /// key: file path of the open file
+  /// value: folder to be used as a root.
+  final _temporaryAnalysisRoots = <String, String>{};
+
+  /// The set of analysis roots explicitly added to the workspace.
+  final _explicitAnalysisRoots = HashSet<String>();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -168,6 +183,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     if (didAdd) {
       _updateDriversAndPluginsPriorityFiles();
     }
+  }
+
+  /// Adds a temporary analysis root for an open file.
+  void addTemporaryAnalysisRoot(String filePath, String folderPath) {
+    _temporaryAnalysisRoots[filePath] = folderPath;
+    _refreshAnalysisRoots();
   }
 
   /// The socket from which messages are being read has been closed.
@@ -258,46 +279,44 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
     performance.logRequestTiming(null);
-    runZonedGuarded(() {
-      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
-        try {
-          if (message is ResponseMessage) {
-            handleClientResponse(message);
-          } else if (message is RequestMessage) {
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
-            } else {
-              channel.sendResponse(ResponseMessage(
-                  id: message.id,
-                  result: result.result,
-                  jsonrpc: jsonRpcVersion));
-            }
-          } else if (message is NotificationMessage) {
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
-            }
+    runZonedGuarded(() async {
+      try {
+        if (message is ResponseMessage) {
+          handleClientResponse(message);
+        } else if (message is RequestMessage) {
+          final result = await messageHandler.handleMessage(message);
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
           } else {
-            showErrorMessageToUser('Unknown message type');
+            channel.sendResponse(ResponseMessage(
+                id: message.id,
+                result: result.result,
+                jsonrpc: jsonRpcVersion));
           }
-        } catch (error, stackTrace) {
-          final errorMessage = message is ResponseMessage
-              ? 'An error occurred while handling the response to request ${message.id}'
-              : message is RequestMessage
-                  ? 'An error occurred while handling ${message.method} request'
-                  : message is NotificationMessage
-                      ? 'An error occurred while handling ${message.method} notification'
-                      : 'Unknown message type';
-          sendErrorResponse(
-              message,
-              ResponseError(
-                code: ServerErrorCodes.UnhandledError,
-                message: errorMessage,
-              ));
-          logException(errorMessage, error, stackTrace);
+        } else if (message is NotificationMessage) {
+          final result = await messageHandler.handleMessage(message);
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
+          }
+        } else {
+          showErrorMessageToUser('Unknown message type');
         }
-      });
+      } catch (error, stackTrace) {
+        final errorMessage = message is ResponseMessage
+            ? 'An error occurred while handling the response to request ${message.id}'
+            : message is RequestMessage
+                ? 'An error occurred while handling ${message.method} request'
+                : message is NotificationMessage
+                    ? 'An error occurred while handling ${message.method} notification'
+                    : 'Unknown message type';
+        sendErrorResponse(
+            message,
+            ResponseError(
+              code: ServerErrorCodes.UnhandledError,
+              message: errorMessage,
+            ));
+        logException(errorMessage, error, stackTrace);
+      }
     }, socketError);
   }
 
@@ -419,6 +438,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
+  /// Removes any temporary analysis root for a file that was closed.
+  void removeTemporaryAnalysisRoot(String filePath) {
+    _temporaryAnalysisRoots.remove(filePath);
+    _refreshAnalysisRoots();
+  }
+
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
       channel.sendResponse(ResponseMessage(
@@ -494,14 +519,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
-  void setAnalysisRoots(List<String> includedPaths) {
-    declarationsTracker?.discardContexts();
-    final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
-    contextManager.setRoots(uniquePaths.toList(), []);
-    notificationManager.setAnalysisRoots(includedPaths, []);
-    addContextsToDeclarationsTracker();
-  }
-
   /// Returns `true` if closing labels should be sent for [file] with the given
   /// absolute path.
   bool shouldSendClosingLabelsFor(String file) {
@@ -569,12 +586,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
     // TODO(dantup): This is currently case-sensitive!
-    final newPaths =
-        HashSet<String>.of(contextManager.includedPaths ?? const [])
-          ..addAll(addedPaths ?? const [])
-          ..removeAll(removedPaths ?? const []);
 
-    setAnalysisRoots(newPaths.toList());
+    _explicitAnalysisRoots
+      ..addAll(addedPaths ?? const [])
+      ..removeAll(removedPaths ?? const []);
+
+    _refreshAnalysisRoots();
   }
 
   void _afterOverlayChanged(String path, dynamic changeForPlugins) {
@@ -589,6 +606,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
+  }
+
+  void _refreshAnalysisRoots() {
+    // Always include any temporary analysis roots for open files.
+    final includedPaths = HashSet<String>.of(_explicitAnalysisRoots)
+      ..addAll(_temporaryAnalysisRoots.values)
+      ..toList();
+
+    declarationsTracker?.discardContexts();
+    notificationManager.setAnalysisRoots(includedPaths.toList(), []);
+    contextManager.setRoots(includedPaths.toList(), []);
+    addContextsToDeclarationsTracker();
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -623,6 +652,7 @@ class LspInitializationOptions {
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
+
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
@@ -710,6 +740,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
+    analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }

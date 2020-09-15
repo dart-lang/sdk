@@ -81,7 +81,7 @@ void run() {
     expect(result.stdout, isEmpty);
     expect(result.stderr,
         contains('Could not find the implicit file to run: bin'));
-    expect(result.exitCode, 255);
+    expect(result.exitCode, 64);
   });
 
   test('arguments are properly passed', () {

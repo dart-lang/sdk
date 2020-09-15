@@ -1690,6 +1690,10 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   bool get containsSuperCalls {
     return transformerFlags & TransformerFlag.superCalls != 0;
   }
+
+  /// If this member is a member signature, [memberSignatureOrigin] is one of
+  /// the non-member signature members from which it was created.
+  Member get memberSignatureOrigin => null;
 }
 
 /// A field declaration.
@@ -2197,6 +2201,7 @@ class Procedure extends Member {
 
   Reference forwardingStubSuperTargetReference;
   Reference forwardingStubInterfaceTargetReference;
+  Reference memberSignatureOriginReference;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
@@ -2211,7 +2216,8 @@ class Procedure extends Member {
       Uri fileUri,
       Reference reference,
       Member forwardingStubSuperTarget,
-      Member forwardingStubInterfaceTarget})
+      Member forwardingStubInterfaceTarget,
+      Member memberSignatureOrigin})
       : this._byReferenceRenamed(name, kind, function,
             isAbstract: isAbstract,
             isStatic: isStatic,
@@ -2227,7 +2233,9 @@ class Procedure extends Member {
             forwardingStubSuperTargetReference:
                 getMemberReference(forwardingStubSuperTarget),
             forwardingStubInterfaceTargetReference:
-                getMemberReference(forwardingStubInterfaceTarget));
+                getMemberReference(forwardingStubInterfaceTarget),
+            memberSignatureOriginReference:
+                getMemberReference(memberSignatureOrigin));
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
@@ -2242,7 +2250,8 @@ class Procedure extends Member {
       Uri fileUri,
       Reference reference,
       this.forwardingStubSuperTargetReference,
-      this.forwardingStubInterfaceTargetReference})
+      this.forwardingStubInterfaceTargetReference,
+      this.memberSignatureOriginReference})
       : super(name, fileUri, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
@@ -2254,6 +2263,13 @@ class Procedure extends Member {
     this.isMemberSignature = isMemberSignature;
     this.isExtensionMember = isExtensionMember;
     this.transformerFlags = transformerFlags;
+    assert(!(isMemberSignature && memberSignatureOriginReference == null),
+        "No member signature origin for member signature $this.");
+    assert(
+        !(memberSignatureOrigin is Procedure &&
+            (memberSignatureOrigin as Procedure).isMemberSignature),
+        "Member signature origin cannot be a member signature "
+        "$memberSignatureOrigin for $this.");
   }
 
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
@@ -2395,6 +2411,13 @@ class Procedure extends Member {
 
   void set forwardingStubInterfaceTarget(Member target) {
     forwardingStubInterfaceTargetReference = getMemberReference(target);
+  }
+
+  @override
+  Member get memberSignatureOrigin => memberSignatureOriginReference?.asMember;
+
+  void set memberSignatureOrigin(Member target) {
+    memberSignatureOriginReference = getMemberReference(target);
   }
 
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
@@ -3036,8 +3059,32 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nonNullable);
     }
-    context.typeEnvironment
-        .typeError(this, '$type is not a subtype of $superclass');
+
+    // The static type of this expression is not a subtype of [superclass]. The
+    // means that the static type of this expression is not the same as when
+    // the parent [PropertyGet] or [MethodInvocation] was created.
+    //
+    // For instance when cloning generic mixin methods, the substitution can
+    // render some of the code paths as dead code:
+    //
+    //     mixin M<T> {
+    //       int method(T t) => t is String ? t.length : 0;
+    //     }
+    //     class C with M<int> {}
+    //
+    // The mixin transformation will clone the `M.method` method into the
+    // unnamed mixin application for `Object&M<int>` as this:
+    //
+    //     int method(int t) => t is String ? t.length : 0;
+    //
+    // Now `t.length`, which was originally an access to `String.length` on a
+    // receiver of type `T & String`, is an access to `String.length` on `int`.
+    // When computing the static type of `t.length` we will try to compute the
+    // type of `int` as an instance of `String`, and we do not find it to be
+    // an instance of `String`.
+    //
+    // To resolve this case we compute the type of `t.length` to be the type
+    // as if accessed on an unknown subtype `String`.
     return context.typeEnvironment.coreTypes
         .rawType(superclass, context.nonNullable);
   }
@@ -10055,6 +10102,9 @@ class Version extends Object {
     if (minor >= other.minor) return true;
     return false;
   }
+
+  /// Returns this language version as a 'major.minor' text.
+  String toText() => '${major}.${minor}';
 
   @override
   int get hashCode {

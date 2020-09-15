@@ -718,9 +718,9 @@ class FunctionDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    if (kind == Snapshot::kFullAOT) {
-      Function& func = Function::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    if (d->kind() == Snapshot::kFullAOT) {
+      Function& func = Function::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
         ASSERT(func.raw()->ptr()->code_->IsCode());
@@ -732,9 +732,9 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         ASSERT(unchecked_entry_point != 0);
         func.raw()->ptr()->unchecked_entry_point_ = unchecked_entry_point;
       }
-    } else if (kind == Snapshot::kFullJIT) {
-      Function& func = Function::Handle(zone);
-      Code& code = Code::Handle(zone);
+    } else if (d->kind() == Snapshot::kFullJIT) {
+      Function& func = Function::Handle(d->zone());
+      Code& code = Code::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
         code = func.CurrentCode();
@@ -746,7 +746,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         }
       }
     } else {
-      Function& func = Function::Handle(zone);
+      Function& func = Function::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
         func.ClearCode();  // Set code and entrypoint to lazy compile stub.
@@ -1203,8 +1203,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    Field& field = Field::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    Field& field = Field::Handle(d->zone());
     if (!Isolate::Current()->use_field_guards()) {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         field ^= refs.At(i);
@@ -1501,9 +1501,9 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    Array& array = Array::Handle(zone);
-    KernelProgramInfo& info = KernelProgramInfo::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    Array& array = Array::Handle(d->zone());
+    KernelProgramInfo& info = KernelProgramInfo::Handle(d->zone());
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       info ^= refs.At(id);
       array = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
@@ -1517,14 +1517,15 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
 class CodeSerializationCluster : public SerializationCluster {
  public:
   explicit CodeSerializationCluster(Heap* heap)
-      : SerializationCluster("Code") {}
+      : SerializationCluster("Code"), array_(Array::Handle()) {}
   ~CodeSerializationCluster() {}
 
   void Trace(Serializer* s, ObjectPtr object) {
     CodePtr code = Code::RawCast(object);
-    objects_.Add(code);
 
-    s->InCurrentLoadingUnit(code, /*record*/ true);
+    if (s->InCurrentLoadingUnit(code, /*record*/ true)) {
+      objects_.Add(code);
+    }
 
     if (!(s->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
       s->Push(code->ptr()->object_pool_);
@@ -1551,11 +1552,23 @@ class CodeSerializationCluster : public SerializationCluster {
       if (calls_array != Array::null()) {
         // Some Code entries in the static calls target table may only be
         // accessible via here, so push the Code objects.
-        auto const length = Smi::Value(calls_array->ptr()->length_);
-        for (intptr_t i = 0; i < length; i++) {
-          auto const object = calls_array->ptr()->data()[i];
-          if (object->IsHeapObject() && object->IsCode()) {
-            s->Push(object);
+        array_ = calls_array;
+        for (auto entry : StaticCallsTable(array_)) {
+          auto kind = Code::KindField::decode(
+              Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
+          switch (kind) {
+            case Code::kCallViaCode:
+              // Code object in the pool.
+              continue;
+            case Code::kPcRelativeTTSCall:
+              // TTS will be reachable through type object which itself is
+              // in the pool.
+              continue;
+            case Code::kPcRelativeCall:
+            case Code::kPcRelativeTailCall:
+              auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
+              ASSERT(destination->IsHeapObject() && destination->IsCode());
+              s->Push(destination);
           }
         }
       }
@@ -1571,12 +1584,88 @@ class CodeSerializationCluster : public SerializationCluster {
 #endif
   }
 
+  struct CodeOrderInfo {
+    CodePtr code;
+    intptr_t order;
+  };
+
+  static int CompareCodeOrderInfo(CodeOrderInfo const* a,
+                                  CodeOrderInfo const* b) {
+    if (a->order < b->order) return -1;
+    if (a->order > b->order) return 1;
+    return 0;
+  }
+
+  static void Insert(GrowableArray<CodeOrderInfo>* order_list,
+                     IntMap<intptr_t>* order_map,
+                     CodePtr code) {
+    InstructionsPtr instr = code->ptr()->instructions_;
+    intptr_t key = static_cast<intptr_t>(instr);
+    intptr_t order;
+    if (order_map->HasKey(key)) {
+      order = order_map->Lookup(key);
+    } else {
+      order = order_list->length() + 1;
+      order_map->Insert(key, order);
+    }
+    CodeOrderInfo info;
+    info.code = code;
+    info.order = order;
+    order_list->Add(info);
+  }
+
+  static void Sort(GrowableArray<CodePtr>* codes) {
+    GrowableArray<CodeOrderInfo> order_list;
+    IntMap<intptr_t> order_map;
+    for (intptr_t i = 0; i < codes->length(); i++) {
+      Insert(&order_list, &order_map, (*codes)[i]);
+    }
+    order_list.Sort(CompareCodeOrderInfo);
+    ASSERT(order_list.length() == codes->length());
+    for (intptr_t i = 0; i < order_list.length(); i++) {
+      (*codes)[i] = order_list[i].code;
+    }
+  }
+
+  static void Sort(GrowableArray<Code*>* codes) {
+    GrowableArray<CodeOrderInfo> order_list;
+    IntMap<intptr_t> order_map;
+    for (intptr_t i = 0; i < codes->length(); i++) {
+      Insert(&order_list, &order_map, (*codes)[i]->raw());
+    }
+    order_list.Sort(CompareCodeOrderInfo);
+    ASSERT(order_list.length() == codes->length());
+    for (intptr_t i = 0; i < order_list.length(); i++) {
+      *(*codes)[i] = order_list[i].code;
+    }
+  }
+
   void WriteAlloc(Serializer* s) {
+    Sort(&objects_);
+    auto loading_units = s->loading_units();
+    if (loading_units != nullptr) {
+      for (intptr_t i = LoadingUnit::kRootId + 1; i < loading_units->length();
+           i++) {
+        auto unit_objects = loading_units->At(i)->deferred_objects();
+        Sort(unit_objects);
+        for (intptr_t j = 0; j < unit_objects->length(); j++) {
+          deferred_objects_.Add(unit_objects->At(j)->raw());
+        }
+      }
+    }
+    s->PrepareInstructions(&objects_);
+
     s->WriteCid(kCodeCid);
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
     for (intptr_t i = 0; i < count; i++) {
       CodePtr code = objects_[i];
+      s->AssignRef(code);
+    }
+    const intptr_t deferred_count = deferred_objects_.length();
+    s->WriteUnsigned(deferred_count);
+    for (intptr_t i = 0; i < deferred_count; i++) {
+      CodePtr code = deferred_objects_[i];
       s->AssignRef(code);
     }
   }
@@ -1586,82 +1675,125 @@ class CodeSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       CodePtr code = objects_[i];
-      AutoTraceObjectName(code, MakeDisambiguatedCodeName(s, code));
-
-      intptr_t pointer_offsets_length =
-          Code::PtrOffBits::decode(code->ptr()->state_bits_);
-      if (pointer_offsets_length != 0) {
-        FATAL("Cannot serialize code with embedded pointers");
-      }
-      if (kind == Snapshot::kFullAOT && Code::IsDisabled(code)) {
-        // Disabled code is fatal in AOT since we cannot recompile.
-        s->UnexpectedObject(code, "Disabled code");
-      }
-
-      s->WriteInstructions(code->ptr()->instructions_,
-                           code->ptr()->unchecked_offset_, code, i);
-      if (kind == Snapshot::kFullJIT) {
-        // TODO(rmacnak): Fix references to disabled code before serializing.
-        // For now, we may write the FixCallersTarget or equivalent stub. This
-        // will cause a fixup if this code is called.
-        const uint32_t active_unchecked_offset =
-            code->ptr()->unchecked_entry_point_ - code->ptr()->entry_point_;
-        s->WriteInstructions(code->ptr()->active_instructions_,
-                             active_unchecked_offset, code, i);
-      }
-
-      // No need to write object pool out if we are producing full AOT
-      // snapshot with bare instructions.
-      if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
-        WriteField(code, object_pool_);
-#if defined(DART_PRECOMPILER)
-      } else if (FLAG_write_v8_snapshot_profile_to != nullptr &&
-                 code->ptr()->object_pool_ != ObjectPool::null()) {
-        // If we are writing V8 snapshot profile then attribute references
-        // going through the object pool to the code object itself.
-        ObjectPoolPtr pool = code->ptr()->object_pool_;
-
-        for (intptr_t i = 0; i < pool->ptr()->length_; i++) {
-          uint8_t bits = pool->ptr()->entry_bits()[i];
-          if (ObjectPool::TypeBits::decode(bits) ==
-              ObjectPool::EntryType::kTaggedObject) {
-            s->AttributeElementRef(pool->ptr()->data()[i].raw_obj_, i);
-          }
-        }
-#endif  // defined(DART_PRECOMPILER)
-      }
-      WriteField(code, owner_);
-      WriteField(code, exception_handlers_);
-      WriteField(code, pc_descriptors_);
-      WriteField(code, catch_entry_);
-      if (s->InCurrentLoadingUnit(code->ptr()->compressed_stackmaps_)) {
-        WriteField(code, compressed_stackmaps_);
-      } else {
-        WriteFieldValue(compressed_stackmaps_, CompressedStackMaps::null());
-      }
-      if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces_mode) {
-        WriteFieldValue(inlined_id_to_function_, Array::null());
-        WriteFieldValue(code_source_map_, CodeSourceMap::null());
-      } else {
-        WriteField(code, inlined_id_to_function_);
-        if (s->InCurrentLoadingUnit(code->ptr()->code_source_map_)) {
-          WriteField(code, code_source_map_);
-        } else {
-          WriteFieldValue(code_source_map_, CodeSourceMap::null());
-        }
-      }
-      if (kind == Snapshot::kFullJIT) {
-        WriteField(code, deopt_info_array_);
-        WriteField(code, static_calls_target_table_);
-      }
-#if !defined(PRODUCT)
-      WriteField(code, return_address_metadata_);
-      if (FLAG_code_comments) {
-        WriteField(code, comments_);
-      }
-#endif
-      s->Write<int32_t>(code->ptr()->state_bits_);
+      WriteFill(s, kind, code, false);
     }
+    const intptr_t deferred_count = deferred_objects_.length();
+    for (intptr_t i = 0; i < deferred_count; i++) {
+      CodePtr code = deferred_objects_[i];
+      WriteFill(s, kind, code, true);
+    }
+  }
+
+  void WriteFill(Serializer* s,
+                 Snapshot::Kind kind,
+                 CodePtr code,
+                 bool deferred) {
+    AutoTraceObjectName(code, MakeDisambiguatedCodeName(s, code));
+
+    intptr_t pointer_offsets_length =
+        Code::PtrOffBits::decode(code->ptr()->state_bits_);
+    if (pointer_offsets_length != 0) {
+      FATAL("Cannot serialize code with embedded pointers");
+    }
+    if (kind == Snapshot::kFullAOT && Code::IsDisabled(code)) {
+      // Disabled code is fatal in AOT since we cannot recompile.
+      s->UnexpectedObject(code, "Disabled code");
+    }
+
+    s->WriteInstructions(code->ptr()->instructions_,
+                         code->ptr()->unchecked_offset_, code, deferred);
+    if (kind == Snapshot::kFullJIT) {
+      // TODO(rmacnak): Fix references to disabled code before serializing.
+      // For now, we may write the FixCallersTarget or equivalent stub. This
+      // will cause a fixup if this code is called.
+      const uint32_t active_unchecked_offset =
+          code->ptr()->unchecked_entry_point_ - code->ptr()->entry_point_;
+      s->WriteInstructions(code->ptr()->active_instructions_,
+                           active_unchecked_offset, code, deferred);
+    }
+
+    // No need to write object pool out if we are producing full AOT
+    // snapshot with bare instructions.
+    if (!(kind == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+      WriteField(code, object_pool_);
+#if defined(DART_PRECOMPILER)
+    } else if (FLAG_write_v8_snapshot_profile_to != nullptr &&
+               code->ptr()->object_pool_ != ObjectPool::null()) {
+      // If we are writing V8 snapshot profile then attribute references
+      // going through the object pool to the code object itself.
+      ObjectPoolPtr pool = code->ptr()->object_pool_;
+
+      for (intptr_t i = 0; i < pool->ptr()->length_; i++) {
+        uint8_t bits = pool->ptr()->entry_bits()[i];
+        if (ObjectPool::TypeBits::decode(bits) ==
+            ObjectPool::EntryType::kTaggedObject) {
+          s->AttributeElementRef(pool->ptr()->data()[i].raw_obj_, i);
+        }
+      }
+#endif  // defined(DART_PRECOMPILER)
+    }
+    WriteField(code, owner_);
+    WriteField(code, exception_handlers_);
+    WriteField(code, pc_descriptors_);
+    WriteField(code, catch_entry_);
+    if (s->InCurrentLoadingUnit(code->ptr()->compressed_stackmaps_)) {
+      WriteField(code, compressed_stackmaps_);
+    } else {
+      WriteFieldValue(compressed_stackmaps_, CompressedStackMaps::null());
+    }
+    if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces_mode) {
+      WriteFieldValue(inlined_id_to_function_, Array::null());
+      WriteFieldValue(code_source_map_, CodeSourceMap::null());
+    } else {
+      WriteField(code, inlined_id_to_function_);
+      if (s->InCurrentLoadingUnit(code->ptr()->code_source_map_)) {
+        WriteField(code, code_source_map_);
+      } else {
+        WriteFieldValue(code_source_map_, CodeSourceMap::null());
+      }
+    }
+    if (kind == Snapshot::kFullJIT) {
+      WriteField(code, deopt_info_array_);
+      WriteField(code, static_calls_target_table_);
+    }
+
+#if defined(DART_PRECOMPILER)
+    if (FLAG_write_v8_snapshot_profile_to != nullptr &&
+        code->ptr()->static_calls_target_table_ != Array::null()) {
+      // If we are writing V8 snapshot profile then attribute references
+      // going through static calls.
+      array_ = code->ptr()->static_calls_target_table_;
+      intptr_t index = code->ptr()->object_pool_ != ObjectPool::null()
+                           ? code->ptr()->object_pool_->ptr()->length_
+                           : 0;
+      for (auto entry : StaticCallsTable(array_)) {
+        auto kind = Code::KindField::decode(
+            Smi::Value(entry.Get<Code::kSCallTableKindAndOffset>()));
+        switch (kind) {
+          case Code::kCallViaCode:
+            // Code object in the pool.
+            continue;
+          case Code::kPcRelativeTTSCall:
+            // TTS will be reachable through type object which itself is
+            // in the pool.
+            continue;
+          case Code::kPcRelativeCall:
+          case Code::kPcRelativeTailCall:
+            auto destination = entry.Get<Code::kSCallTableCodeOrTypeTarget>();
+            ASSERT(destination->IsHeapObject() && destination->IsCode());
+            s->AttributeElementRef(destination, index++);
+        }
+      }
+    }
+#endif  // defined(DART_PRECOMPILER)
+
+#if !defined(PRODUCT)
+    WriteField(code, return_address_metadata_);
+    if (FLAG_code_comments) {
+      WriteField(code, comments_);
+    }
+#endif
+    s->Write<int32_t>(code->ptr()->state_bits_);
   }
 
   GrowableArray<CodePtr>* discovered_objects() { return &objects_; }
@@ -1699,6 +1831,8 @@ class CodeSerializationCluster : public SerializationCluster {
   }
 
   GrowableArray<CodePtr> objects_;
+  GrowableArray<CodePtr> deferred_objects_;
+  Array& array_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -1708,68 +1842,54 @@ class CodeDeserializationCluster : public DeserializationCluster {
   ~CodeDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
-    start_index_ = d->next_index();
     PageSpace* old_space = d->heap()->old_space();
+    start_index_ = d->next_index();
     const intptr_t count = d->ReadUnsigned();
-
-    // Build an array of code objects representing the order in which the
-    // [Code]'s instructions will be located in memory.
-    const bool build_code_order =
-        FLAG_precompiled_mode && FLAG_use_bare_instructions;
-    ArrayPtr code_order = nullptr;
-    const intptr_t code_order_length = d->code_order_length();
-    if (build_code_order) {
-      code_order = static_cast<ArrayPtr>(AllocateUninitialized(
-          old_space, Array::InstanceSize(code_order_length)));
-      Deserializer::InitializeHeader(code_order, kArrayCid,
-                                     Array::InstanceSize(code_order_length),
-                                     /*is_canonical=*/false);
-      code_order->ptr()->type_arguments_ = TypeArguments::null();
-      code_order->ptr()->length_ = Smi::New(code_order_length);
-    }
-
     for (intptr_t i = 0; i < count; i++) {
       auto code = AllocateUninitialized(old_space, Code::InstanceSize(0));
       d->AssignRef(code);
-      if (code_order != nullptr && i < code_order_length) {
-        code_order->ptr()->data()[i] = code;
-      }
     }
-
-    if (code_order != nullptr) {
-      const auto& code_order_table = Array::Handle(code_order);
-      d->isolate()->object_store()->set_code_order_table(code_order_table);
-    }
-
     stop_index_ = d->next_index();
+    deferred_start_index_ = d->next_index();
+    const intptr_t deferred_count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < deferred_count; i++) {
+      auto code = AllocateUninitialized(old_space, Code::InstanceSize(0));
+      d->AssignRef(code);
+    }
+    deferred_stop_index_ = d->next_index();
   }
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      auto const code = static_cast<CodePtr>(d->Ref(id));
-      Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
+      ReadFill(d, id, false);
+    }
+    for (intptr_t id = deferred_start_index_; id < deferred_stop_index_; id++) {
+      ReadFill(d, id, true);
+    }
+  }
 
-      d->ReadInstructions(code, id, start_index_);
+  void ReadFill(Deserializer* d, intptr_t id, bool deferred) {
+    auto const code = static_cast<CodePtr>(d->Ref(id));
+    Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
 
-      // There would be a single global pool if this is a full AOT snapshot
-      // with bare instructions.
-      if (!(d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
-        code->ptr()->object_pool_ = static_cast<ObjectPoolPtr>(d->ReadRef());
-      } else {
-        code->ptr()->object_pool_ = ObjectPool::null();
-      }
-      code->ptr()->owner_ = d->ReadRef();
-      code->ptr()->exception_handlers_ =
-          static_cast<ExceptionHandlersPtr>(d->ReadRef());
-      code->ptr()->pc_descriptors_ =
-          static_cast<PcDescriptorsPtr>(d->ReadRef());
-      code->ptr()->catch_entry_ = d->ReadRef();
-      code->ptr()->compressed_stackmaps_ =
-          static_cast<CompressedStackMapsPtr>(d->ReadRef());
-      code->ptr()->inlined_id_to_function_ =
-          static_cast<ArrayPtr>(d->ReadRef());
-      code->ptr()->code_source_map_ =
-          static_cast<CodeSourceMapPtr>(d->ReadRef());
+    d->ReadInstructions(code, deferred);
+
+    // There would be a single global pool if this is a full AOT snapshot
+    // with bare instructions.
+    if (!(d->kind() == Snapshot::kFullAOT && FLAG_use_bare_instructions)) {
+      code->ptr()->object_pool_ = static_cast<ObjectPoolPtr>(d->ReadRef());
+    } else {
+      code->ptr()->object_pool_ = ObjectPool::null();
+    }
+    code->ptr()->owner_ = d->ReadRef();
+    code->ptr()->exception_handlers_ =
+        static_cast<ExceptionHandlersPtr>(d->ReadRef());
+    code->ptr()->pc_descriptors_ = static_cast<PcDescriptorsPtr>(d->ReadRef());
+    code->ptr()->catch_entry_ = d->ReadRef();
+    code->ptr()->compressed_stackmaps_ =
+        static_cast<CompressedStackMapsPtr>(d->ReadRef());
+    code->ptr()->inlined_id_to_function_ = static_cast<ArrayPtr>(d->ReadRef());
+    code->ptr()->code_source_map_ = static_cast<CodeSourceMapPtr>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
@@ -1789,16 +1909,18 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif
 
       code->ptr()->state_bits_ = d->Read<int32_t>();
-    }
   }
 
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+  void PostLoad(Deserializer* d, const Array& refs) {
+    d->EndInstructions(refs, start_index_, stop_index_);
+
 #if !defined(PRODUCT)
     if (!CodeObservers::AreActive() && !FLAG_support_disassembler) return;
 #endif
-    Code& code = Code::Handle(zone);
-    Object& owner = Object::Handle(zone);
+    Code& code = Code::Handle(d->zone());
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+    Object& owner = Object::Handle(d->zone());
+#endif
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       code ^= refs.At(id);
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
@@ -1806,6 +1928,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
         Code::NotifyCodeObservers(code, code.is_optimized());
       }
 #endif
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
       owner = code.owner();
       if (owner.IsFunction()) {
         if ((FLAG_disassemble ||
@@ -1817,9 +1940,13 @@ class CodeDeserializationCluster : public DeserializationCluster {
       } else if (FLAG_disassemble_stubs) {
         Disassembler::DisassembleStub(code.Name(), code);
       }
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
     }
   }
-#endif  // !DART_PRECOMPILED_RUNTIME
+
+ private:
+  intptr_t deferred_start_index_;
+  intptr_t deferred_stop_index_;
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1892,13 +2019,13 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    Bytecode& bytecode = Bytecode::Handle(zone);
-    ExternalTypedData& binary = ExternalTypedData::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    Bytecode& bytecode = Bytecode::Handle(d->zone());
+    ExternalTypedData& binary = ExternalTypedData::Handle(d->zone());
 
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       bytecode ^= refs.At(i);
-      binary = bytecode.GetBinary(zone);
+      binary = bytecode.GetBinary(d->zone());
       bytecode.set_instructions(reinterpret_cast<uword>(
           binary.DataAddr(bytecode.instructions_binary_offset())));
     }
@@ -2087,15 +2214,15 @@ class WeakSerializationReferenceSerializationCluster
     // its canonical counterpart's object ID. This ensures that any reference to
     // it is serialized as a reference to the canonicalized one.
     for (auto const ref : objects_) {
-      ASSERT(Serializer::IsReachableReference(heap_->GetObjectId(ref)));
+      ASSERT(IsReachableReference(heap_->GetObjectId(ref)));
       if (ShouldDrop(ref)) {
         // For dropped references, reset their ID to be the unreachable
         // reference value, so RefId retrieves the target ID instead.
-        heap_->SetObjectId(ref, Serializer::kUnreachableReference);
+        heap_->SetObjectId(ref, kUnreachableReference);
         continue;
       }
       // Skip if we've already allocated a reference (this is a canonical WSR).
-      if (Serializer::IsAllocatedReference(heap_->GetObjectId(ref))) continue;
+      if (IsAllocatedReference(heap_->GetObjectId(ref))) continue;
       auto const target_cid = WeakSerializationReference::TargetClassIdOf(ref);
       ASSERT(canonical_wsr_map_.HasKey(target_cid));
       auto const canonical_index = canonical_wsr_map_.Lookup(target_cid) - 1;
@@ -2104,7 +2231,7 @@ class WeakSerializationReferenceSerializationCluster
       // canonical WSR entry, so we'll reference the canonical WSR when
       // serializing references to this object.
       auto const canonical_heap_id = heap_->GetObjectId(canonical_wsr);
-      ASSERT(Serializer::IsAllocatedReference(canonical_heap_id));
+      ASSERT(IsAllocatedReference(canonical_heap_id));
       heap_->SetObjectId(ref, canonical_heap_id);
     }
   }
@@ -2150,7 +2277,7 @@ class WeakSerializationReferenceSerializationCluster
   // the object ID from the heap directly.
   bool ShouldDrop(WeakSerializationReferencePtr ref) const {
     auto const target = WeakSerializationReference::TargetOf(ref);
-    return Serializer::IsReachableReference(heap_->GetObjectId(target));
+    return IsReachableReference(heap_->GetObjectId(target));
   }
 
   Heap* const heap_;
@@ -2282,7 +2409,7 @@ class RODataSerializationCluster : public SerializationCluster {
     // rounding need to be deterministically set for reliable deduplication in
     // shared images.
     if (object->ptr()->InVMIsolateHeap() ||
-        s->isolate()->heap()->old_space()->IsObjectFromImagePages(object)) {
+        s->heap()->old_space()->IsObjectFromImagePages(object)) {
       // This object is already read-only.
     } else {
       Object::FinalizeReadOnlyObject(object);
@@ -2852,8 +2979,8 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
 #if defined(DART_PRECOMPILED_RUNTIME)
+  void PostLoad(Deserializer* d, const Array& refs) {
     if (FLAG_use_bare_instructions) {
       // By default, every megamorphic call site will load the target
       // [Function] from the hash table and call indirectly via loading the
@@ -2869,14 +2996,14 @@ class MegamorphicCacheDeserializationCluster : public DeserializationCluster {
       // normal switchable calls instead of megamorphic calls. (This is also a
       // memory balance beause [MegamorphicCache]s are per-selector while
       // [ICData] are per-callsite.)
-      auto& cache = MegamorphicCache::Handle(zone);
+      auto& cache = MegamorphicCache::Handle(d->zone());
       for (intptr_t i = start_index_; i < stop_index_; ++i) {
         cache ^= refs.At(i);
         cache.SwitchToBareInstructions();
       }
     }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3366,6 +3493,10 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
   }
 };
 
+// Used to pack nullability into other serialized values.
+static constexpr intptr_t kNullabilityBitSize = 2;
+static constexpr intptr_t kNullabilityBitMask = (1 << kNullabilityBitSize) - 1;
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class TypeSerializationCluster : public SerializationCluster {
  public:
@@ -3412,31 +3543,31 @@ class TypeSerializationCluster : public SerializationCluster {
   void WriteFill(Serializer* s) {
     intptr_t count = canonical_objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      TypePtr type = canonical_objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-      s->WriteTokenPosition(type->ptr()->token_pos_);
-      const uint8_t combined =
-          (type->ptr()->type_state_ << 4) | type->ptr()->nullability_;
-      ASSERT(type->ptr()->type_state_ == (combined >> 4));
-      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
-      s->Write<uint8_t>(combined);
+      WriteType(s, canonical_objects_[i]);
     }
     count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
-      TypePtr type = objects_[i];
-      AutoTraceObject(type);
-      WriteFromTo(type);
-      s->WriteTokenPosition(type->ptr()->token_pos_);
-      const uint8_t combined =
-          (type->ptr()->type_state_ << 4) | type->ptr()->nullability_;
-      ASSERT(type->ptr()->type_state_ == (combined >> 4));
-      ASSERT(type->ptr()->nullability_ == (combined & 0xf));
-      s->Write<uint8_t>(combined);
+      WriteType(s, objects_[i]);
     }
   }
 
  private:
+  void WriteType(Serializer* s, TypePtr type) {
+    AutoTraceObject(type);
+    WriteFromTo(type);
+    s->WriteTokenPosition(type->ptr()->token_pos_);
+    ASSERT(type->ptr()->type_state_ < (1 << TypeLayout::kTypeStateBitSize));
+    ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
+    static_assert(TypeLayout::kTypeStateBitSize + kNullabilityBitSize <=
+                      kBitsPerByte * sizeof(uint8_t),
+                  "Cannot pack type_state_ and nullability_ into a uint8_t");
+    const uint8_t combined = (type->ptr()->type_state_ << kNullabilityBitSize) |
+                             type->ptr()->nullability_;
+    ASSERT_EQUAL(type->ptr()->type_state_, combined >> kNullabilityBitSize);
+    ASSERT_EQUAL(type->ptr()->nullability_, combined & kNullabilityBitMask);
+    s->Write<uint8_t>(combined);
+  }
+
   GrowableArray<TypePtr> canonical_objects_;
   GrowableArray<TypePtr> objects_;
 };
@@ -3468,34 +3599,20 @@ class TypeDeserializationCluster : public DeserializationCluster {
     for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
          id++) {
       TypePtr type = static_cast<TypePtr>(d->Ref(id));
-      bool is_canonical = true;
-      Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     is_canonical);
-      ReadFromTo(type);
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      const uint8_t combined = d->Read<uint8_t>();
-      type->ptr()->type_state_ = combined >> 4;
-      type->ptr()->nullability_ = combined & 0xf;
+      ReadType(d, type, /*is_canonical=*/true);
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TypePtr type = static_cast<TypePtr>(d->Ref(id));
-      bool is_canonical = false;
-      Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
-                                     is_canonical);
-      ReadFromTo(type);
-      type->ptr()->token_pos_ = d->ReadTokenPosition();
-      const uint8_t combined = d->Read<uint8_t>();
-      type->ptr()->type_state_ = combined >> 4;
-      type->ptr()->nullability_ = combined & 0xf;
+      ReadType(d, type, /*is_canonical=*/false);
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    Type& type = Type::Handle(zone);
-    Code& stub = Code::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    Type& type = Type::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
 
-    if (Snapshot::IncludesCode(kind)) {
+    if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
            id++) {
         type ^= refs.At(id);
@@ -3523,6 +3640,16 @@ class TypeDeserializationCluster : public DeserializationCluster {
   }
 
  private:
+  void ReadType(Deserializer* d, TypePtr type, bool is_canonical) {
+    Deserializer::InitializeHeader(type, kTypeCid, Type::InstanceSize(),
+                                   is_canonical);
+    ReadFromTo(type);
+    type->ptr()->token_pos_ = d->ReadTokenPosition();
+    const uint8_t combined = d->Read<uint8_t>();
+    type->ptr()->type_state_ = combined >> kNullabilityBitSize;
+    type->ptr()->nullability_ = combined & kNullabilityBitMask;
+  }
+
   intptr_t canonical_start_index_;
   intptr_t canonical_stop_index_;
 };
@@ -3587,11 +3714,11 @@ class TypeRefDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TypeRef& type_ref = TypeRef::Handle(zone);
-    Code& stub = Code::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    TypeRef& type_ref = TypeRef::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
 
-    if (Snapshot::IncludesCode(kind)) {
+    if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = start_index_; id < stop_index_; id++) {
         type_ref ^= refs.At(id);
         stub = type_ref.type_test_stub();
@@ -3659,10 +3786,15 @@ class TypeParameterSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(type->ptr()->parameterized_class_id_);
     s->WriteTokenPosition(type->ptr()->token_pos_);
     s->Write<int16_t>(type->ptr()->index_);
-    const uint8_t combined =
-        (type->ptr()->flags_ << 4) | type->ptr()->nullability_;
-    ASSERT(type->ptr()->flags_ == (combined >> 4));
-    ASSERT(type->ptr()->nullability_ == (combined & 0xf));
+    ASSERT(type->ptr()->flags_ < (1 << TypeParameterLayout::kFlagsBitSize));
+    ASSERT(type->ptr()->nullability_ < (1 << kNullabilityBitSize));
+    static_assert(TypeParameterLayout::kFlagsBitSize + kNullabilityBitSize <=
+                      kBitsPerByte * sizeof(uint8_t),
+                  "Cannot pack flags_ and nullability_ into a uint8_t");
+    const uint8_t combined = (type->ptr()->flags_ << kNullabilityBitSize) |
+                             type->ptr()->nullability_;
+    ASSERT_EQUAL(type->ptr()->flags_, combined >> kNullabilityBitSize);
+    ASSERT_EQUAL(type->ptr()->nullability_, combined & kNullabilityBitMask);
     s->Write<uint8_t>(combined);
   }
 
@@ -3708,11 +3840,11 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    TypeParameter& type_param = TypeParameter::Handle(zone);
-    Code& stub = Code::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    TypeParameter& type_param = TypeParameter::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
 
-    if (Snapshot::IncludesCode(kind)) {
+    if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t id = canonical_start_index_; id < canonical_stop_index_;
            id++) {
         type_param ^= refs.At(id);
@@ -3752,8 +3884,8 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
     type->ptr()->token_pos_ = d->ReadTokenPosition();
     type->ptr()->index_ = d->Read<int16_t>();
     const uint8_t combined = d->Read<uint8_t>();
-    type->ptr()->flags_ = combined >> 4;
-    type->ptr()->nullability_ = combined & 0xf;
+    type->ptr()->flags_ = combined >> kNullabilityBitSize;
+    type->ptr()->nullability_ = combined & kNullabilityBitMask;
   }
 
   intptr_t canonical_start_index_;
@@ -3896,15 +4028,15 @@ class MintDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {}
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    const Class& mint_cls =
-        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
+  void PostLoad(Deserializer* d, const Array& refs) {
+    const Class& mint_cls = Class::Handle(
+        d->zone(), Isolate::Current()->object_store()->mint_class());
     mint_cls.set_constants(Object::empty_array());
-    Object& number = Object::Handle(zone);
+    Object& number = Object::Handle(d->zone());
     for (intptr_t i = start_index_; i < stop_index_; i++) {
       number = refs.At(i);
       if (number.IsMint() && number.IsCanonical()) {
-        mint_cls.InsertCanonicalMint(zone, Mint::Cast(number));
+        mint_cls.InsertCanonicalMint(d->zone(), Mint::Cast(number));
       }
     }
   }
@@ -4190,8 +4322,8 @@ class TypedDataViewDeserializationCluster : public DeserializationCluster {
     }
   }
 
-  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
-    auto& view = TypedDataView::Handle(zone);
+  void PostLoad(Deserializer* d, const Array& refs) {
+    auto& view = TypedDataView::Handle(d->zone());
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       view ^= refs.At(id);
       view.RecomputeDataField();
@@ -4856,6 +4988,432 @@ class FakeSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class VMSerializationRoots : public SerializationRoots {
+ public:
+  explicit VMSerializationRoots(const Array& symbols)
+      : symbols_(symbols), zone_(Thread::Current()->zone()) {}
+
+  void AddBaseObjects(Serializer* s) {
+    // These objects are always allocated by Object::InitOnce, so they are not
+    // written into the snapshot.
+
+    s->AddBaseObject(Object::null(), "Null", "null");
+    s->AddBaseObject(Object::sentinel().raw(), "Null", "sentinel");
+    s->AddBaseObject(Object::transition_sentinel().raw(), "Null",
+                     "transition_sentinel");
+    s->AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
+    s->AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
+    s->AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
+    s->AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
+    s->AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments",
+                     "[]");
+    s->AddBaseObject(Bool::True().raw(), "bool", "true");
+    s->AddBaseObject(Bool::False().raw(), "bool", "false");
+    ASSERT(Object::extractor_parameter_types().raw() != Object::null());
+    s->AddBaseObject(Object::extractor_parameter_types().raw(), "Array",
+                     "<extractor parameter types>");
+    ASSERT(Object::extractor_parameter_names().raw() != Object::null());
+    s->AddBaseObject(Object::extractor_parameter_names().raw(), "Array",
+                     "<extractor parameter names>");
+    s->AddBaseObject(Object::empty_context_scope().raw(), "ContextScope",
+                     "<empty>");
+    s->AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors",
+                     "<empty>");
+    s->AddBaseObject(Object::empty_var_descriptors().raw(),
+                     "LocalVarDescriptors", "<empty>");
+    s->AddBaseObject(Object::empty_exception_handlers().raw(),
+                     "ExceptionHandlers", "<empty>");
+    s->AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
+                     "<implicit getter>");
+    s->AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
+                     "<implicit setter>");
+    s->AddBaseObject(Object::implicit_static_getter_bytecode().raw(),
+                     "Bytecode", "<implicit static getter>");
+    s->AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
+                     "<method extractor>");
+    s->AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
+                     "<invoke closure>");
+    s->AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
+                     "<invoke field>");
+    s->AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
+                     "<nsm dispatcher>");
+    s->AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw(),
+                     "Bytecode", "<dyn forwarder>");
+
+    for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
+      s->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
+                       "ArgumentsDescriptor", "<cached arguments descriptor>");
+    }
+    for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+      s->AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
+                       "<empty icdata entries>");
+    }
+    s->AddBaseObject(SubtypeTestCache::cached_array_, "Array",
+                     "<empty subtype entries>");
+
+    ClassTable* table = s->isolate()->class_table();
+    for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
+      // Error, CallSiteData has no class object.
+      if (cid != kErrorCid && cid != kCallSiteDataCid) {
+        ASSERT(table->HasValidClassAt(cid));
+        s->AddBaseObject(table->At(cid), "Class");
+      }
+    }
+    s->AddBaseObject(table->At(kDynamicCid), "Class");
+    s->AddBaseObject(table->At(kVoidCid), "Class");
+
+    if (!Snapshot::IncludesCode(s->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        s->AddBaseObject(StubCode::EntryAt(i).raw(), "Code", "<stub code>");
+      }
+    }
+  }
+
+  void PushRoots(Serializer* s) {
+    s->Push(symbols_.raw());
+    if (Snapshot::IncludesCode(s->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        s->Push(StubCode::EntryAt(i).raw());
+      }
+    }
+  }
+
+  void WriteRoots(Serializer* s) {
+    s->WriteRootRef(symbols_.raw(), "symbol-table");
+    if (Snapshot::IncludesCode(s->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        s->WriteRootRef(StubCode::EntryAt(i).raw(),
+                        zone_->PrintToString("Stub:%s", StubCode::NameAt(i)));
+      }
+    }
+  }
+
+ private:
+  const Array& symbols_;
+  Zone* zone_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class VMDeserializationRoots : public DeserializationRoots {
+ public:
+  VMDeserializationRoots() : symbol_table_(Array::Handle()) {}
+
+  void AddBaseObjects(Deserializer* d) {
+    // These objects are always allocated by Object::InitOnce, so they are not
+    // written into the snapshot.
+
+    d->AddBaseObject(Object::null());
+    d->AddBaseObject(Object::sentinel().raw());
+    d->AddBaseObject(Object::transition_sentinel().raw());
+    d->AddBaseObject(Object::empty_array().raw());
+    d->AddBaseObject(Object::zero_array().raw());
+    d->AddBaseObject(Object::dynamic_type().raw());
+    d->AddBaseObject(Object::void_type().raw());
+    d->AddBaseObject(Object::empty_type_arguments().raw());
+    d->AddBaseObject(Bool::True().raw());
+    d->AddBaseObject(Bool::False().raw());
+    ASSERT(Object::extractor_parameter_types().raw() != Object::null());
+    d->AddBaseObject(Object::extractor_parameter_types().raw());
+    ASSERT(Object::extractor_parameter_names().raw() != Object::null());
+    d->AddBaseObject(Object::extractor_parameter_names().raw());
+    d->AddBaseObject(Object::empty_context_scope().raw());
+    d->AddBaseObject(Object::empty_descriptors().raw());
+    d->AddBaseObject(Object::empty_var_descriptors().raw());
+    d->AddBaseObject(Object::empty_exception_handlers().raw());
+    d->AddBaseObject(Object::implicit_getter_bytecode().raw());
+    d->AddBaseObject(Object::implicit_setter_bytecode().raw());
+    d->AddBaseObject(Object::implicit_static_getter_bytecode().raw());
+    d->AddBaseObject(Object::method_extractor_bytecode().raw());
+    d->AddBaseObject(Object::invoke_closure_bytecode().raw());
+    d->AddBaseObject(Object::invoke_field_bytecode().raw());
+    d->AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
+    d->AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw());
+
+    for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
+      d->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
+    }
+    for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+      d->AddBaseObject(ICData::cached_icdata_arrays_[i]);
+    }
+    d->AddBaseObject(SubtypeTestCache::cached_array_);
+
+    ClassTable* table = d->isolate()->class_table();
+    for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
+      // Error, CallSiteData has no class object.
+      if (cid != kErrorCid && cid != kCallSiteDataCid) {
+        ASSERT(table->HasValidClassAt(cid));
+        d->AddBaseObject(table->At(cid));
+      }
+    }
+    d->AddBaseObject(table->At(kDynamicCid));
+    d->AddBaseObject(table->At(kVoidCid));
+
+    if (!Snapshot::IncludesCode(d->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        d->AddBaseObject(StubCode::EntryAt(i).raw());
+      }
+    }
+  }
+
+  void ReadRoots(Deserializer* d) {
+    symbol_table_ ^= d->ReadRef();
+    d->isolate()->object_store()->set_symbol_table(symbol_table_);
+    if (Snapshot::IncludesCode(d->kind())) {
+      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
+        Code* code = Code::ReadOnlyHandle();
+        *code ^= d->ReadRef();
+        StubCode::EntryAtPut(i, code);
+      }
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) {
+    // Move remaining bump allocation space to the freelist so it used by C++
+    // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
+    d->heap()->old_space()->AbandonBumpAllocation();
+
+    Symbols::InitFromSnapshot(d->isolate());
+
+    Object::set_vm_isolate_snapshot_object_table(refs);
+  }
+
+ private:
+  Array& symbol_table_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static const char* kObjectStoreFieldNames[] = {
+#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
+    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
+};
+
+class ProgramSerializationRoots : public SerializationRoots {
+ public:
+  ProgramSerializationRoots(intptr_t num_base_objects,
+                            ObjectStore* object_store)
+      : num_base_objects_(num_base_objects),
+        object_store_(object_store),
+        dispatch_table_entries_(Array::Handle()) {}
+
+  void AddBaseObjects(Serializer* s) {
+    if (num_base_objects_ == 0) {
+      // Not writing a new vm isolate: use the one this VM was loaded from.
+      const Array& base_objects = Object::vm_isolate_snapshot_object_table();
+      for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
+        s->AddBaseObject(base_objects.At(i));
+      }
+    } else {
+      // Base objects carried over from WriteVMSnapshot.
+      s->CarryOverBaseObjects(num_base_objects_);
+    }
+  }
+
+  void PushRoots(Serializer* s) {
+    ObjectPtr* from = object_store_->from();
+    ObjectPtr* to = object_store_->to_snapshot(s->kind());
+    for (ObjectPtr* p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+
+    dispatch_table_entries_ = object_store_->dispatch_table_code_entries();
+    // We should only have a dispatch table in precompiled mode.
+    ASSERT(dispatch_table_entries_.IsNull() || s->kind() == Snapshot::kFullAOT);
+
+#if defined(DART_PRECOMPILER)
+    // We treat the dispatch table as a root object and trace the Code objects
+    // it references. Otherwise, a non-empty entry could be invalid on
+    // deserialization if the corresponding Code object was not reachable from
+    // the existing snapshot roots.
+    if (!dispatch_table_entries_.IsNull()) {
+      for (intptr_t i = 0; i < dispatch_table_entries_.Length(); i++) {
+        s->Push(dispatch_table_entries_.At(i));
+      }
+    }
+#endif
+  }
+
+  void WriteRoots(Serializer* s) {
+    ObjectPtr* from = object_store_->from();
+    ObjectPtr* to = object_store_->to_snapshot(s->kind());
+    for (ObjectPtr* p = from; p <= to; p++) {
+      s->WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
+    }
+
+    // The dispatch table is serialized only for precompiled snapshots.
+    s->WriteDispatchTable(dispatch_table_entries_);
+  }
+
+ private:
+  intptr_t num_base_objects_;
+  ObjectStore* object_store_;
+  Array& dispatch_table_entries_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class ProgramDeserializationRoots : public DeserializationRoots {
+ public:
+  explicit ProgramDeserializationRoots(ObjectStore* object_store)
+      : object_store_(object_store) {}
+
+  void AddBaseObjects(Deserializer* d) {
+    // N.B.: Skipping index 0 because ref 0 is illegal.
+    const Array& base_objects = Object::vm_isolate_snapshot_object_table();
+    for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
+      d->AddBaseObject(base_objects.At(i));
+    }
+  }
+
+  void ReadRoots(Deserializer* d) {
+    // Read roots.
+    ObjectPtr* from = object_store_->from();
+    ObjectPtr* to = object_store_->to_snapshot(d->kind());
+    for (ObjectPtr* p = from; p <= to; p++) {
+      *p = d->ReadRef();
+    }
+
+    // Deserialize dispatch table (when applicable)
+    d->ReadDispatchTable();
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) {
+    Isolate* isolate = d->thread()->isolate();
+    isolate->class_table()->CopySizesFromClassObjects();
+    d->heap()->old_space()->EvaluateAfterLoading();
+
+    const Array& units =
+        Array::Handle(isolate->object_store()->loading_units());
+    if (!units.IsNull()) {
+      LoadingUnit& unit = LoadingUnit::Handle();
+      unit ^= units.At(LoadingUnit::kRootId);
+      unit.set_base_objects(refs);
+    }
+    isolate->isolate_object_store()->PreallocateObjects();
+
+    // Setup native resolver for bootstrap impl.
+    Bootstrap::SetupNativeResolver();
+  }
+
+ private:
+  ObjectStore* object_store_;
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class UnitSerializationRoots : public SerializationRoots {
+ public:
+  explicit UnitSerializationRoots(LoadingUnitSerializationData* unit)
+      : unit_(unit) {}
+
+  void AddBaseObjects(Serializer* s) {
+    intptr_t num_base_objects = unit_->parent()->num_objects();
+    ASSERT(num_base_objects != 0);
+    s->CarryOverBaseObjects(num_base_objects);
+  }
+
+  void PushRoots(Serializer* s) {
+    intptr_t num_deferred_objects = unit_->deferred_objects()->length();
+    for (intptr_t i = 0; i < num_deferred_objects; i++) {
+      const Object* deferred_object = (*unit_->deferred_objects())[i];
+      ASSERT(deferred_object->IsCode());
+      CodePtr code = static_cast<CodePtr>(deferred_object->raw());
+      s->Push(code->ptr()->compressed_stackmaps_);
+      s->Push(code->ptr()->code_source_map_);
+    }
+    {
+      GrowableArray<CodePtr> raw_codes(num_deferred_objects);
+      for (intptr_t i = 0; i < num_deferred_objects; i++) {
+        raw_codes.Add((*unit_->deferred_objects())[i]->raw());
+      }
+      s->PrepareInstructions(&raw_codes);
+    }
+  }
+
+  void WriteRoots(Serializer* s) {
+#if defined(DART_PRECOMPILER)
+    intptr_t start_index = 0;
+    intptr_t num_deferred_objects = unit_->deferred_objects()->length();
+    if (num_deferred_objects != 0) {
+      start_index = s->RefId(unit_->deferred_objects()->At(0)->raw());
+      ASSERT(start_index > 0);
+    }
+    s->WriteUnsigned(start_index);
+    s->WriteUnsigned(num_deferred_objects);
+    for (intptr_t i = 0; i < num_deferred_objects; i++) {
+      const Object* deferred_object = (*unit_->deferred_objects())[i];
+      ASSERT(deferred_object->IsCode());
+      CodePtr code = static_cast<CodePtr>(deferred_object->raw());
+      ASSERT(s->RefId(code) == (start_index + i));
+      s->WriteInstructions(code->ptr()->instructions_,
+                           code->ptr()->unchecked_offset_, code, false);
+      s->WriteRootRef(code->ptr()->compressed_stackmaps_, "deferred-code");
+      s->WriteRootRef(code->ptr()->code_source_map_, "deferred-code");
+    }
+#endif
+  }
+
+ private:
+  LoadingUnitSerializationData* unit_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class UnitDeserializationRoots : public DeserializationRoots {
+ public:
+  explicit UnitDeserializationRoots(const LoadingUnit& unit) : unit_(unit) {}
+
+  void AddBaseObjects(Deserializer* d) {
+    const Array& base_objects =
+        Array::Handle(LoadingUnit::Handle(unit_.parent()).base_objects());
+    for (intptr_t i = kFirstReference; i < base_objects.Length(); i++) {
+      d->AddBaseObject(base_objects.At(i));
+    }
+  }
+
+  void ReadRoots(Deserializer* d) {
+    deferred_start_index_ = d->ReadUnsigned();
+    deferred_stop_index_ = deferred_start_index_ + d->ReadUnsigned();
+    for (intptr_t id = deferred_start_index_; id < deferred_stop_index_; id++) {
+      CodePtr code = static_cast<CodePtr>(d->Ref(id));
+      d->ReadInstructions(code, false);
+      if (code->ptr()->owner_->IsFunction()) {
+        FunctionPtr func = static_cast<FunctionPtr>(code->ptr()->owner_);
+        uword entry_point = code->ptr()->entry_point_;
+        ASSERT(entry_point != 0);
+        func->ptr()->entry_point_ = entry_point;
+        uword unchecked_entry_point = code->ptr()->unchecked_entry_point_;
+        ASSERT(unchecked_entry_point != 0);
+        func->ptr()->unchecked_entry_point_ = unchecked_entry_point;
+      }
+      code->ptr()->compressed_stackmaps_ =
+          static_cast<CompressedStackMapsPtr>(d->ReadRef());
+      code->ptr()->code_source_map_ =
+          static_cast<CodeSourceMapPtr>(d->ReadRef());
+    }
+
+    // Reinitialize the dispatch table by rereading the table's serialization
+    // in the root snapshot.
+    IsolateGroup* group = d->thread()->isolate()->group();
+    if (group->dispatch_table_snapshot() != nullptr) {
+      ReadStream stream(group->dispatch_table_snapshot(),
+                        group->dispatch_table_snapshot_size());
+      d->ReadDispatchTable(&stream);
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) {
+    d->EndInstructions(refs, deferred_start_index_, deferred_stop_index_);
+    unit_.set_base_objects(refs);
+  }
+
+ private:
+  const LoadingUnit& unit_;
+  intptr_t deferred_start_index_;
+  intptr_t deferred_stop_index_;
+};
+
 #if defined(DEBUG)
 static const int32_t kSectionMarker = 0xABAB;
 #endif
@@ -4880,7 +5438,8 @@ Serializer::Serializer(Thread* thread,
       num_tlc_cids_(0),
       num_base_objects_(0),
       num_written_objects_(0),
-      next_ref_index_(1),
+      next_ref_index_(kFirstReference),
+      previous_text_offset_(0),
       field_table_(thread->isolate()->field_table()),
       vm_(vm),
       profile_writer_(profile_writer)
@@ -4982,13 +5541,13 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
   ASSERT(profile_writer() != nullptr);
 
   intptr_t id = heap_->GetObjectId(obj);
-  if (Serializer::IsAllocatedReference(id)) {
+  if (IsAllocatedReference(id)) {
     return false;
   }
-  if (Serializer::IsArtificialReference(id)) {
+  if (IsArtificialReference(id)) {
     return true;
   }
-  ASSERT(id == Serializer::kUnreachableReference);
+  ASSERT_EQUAL(id, kUnreachableReference);
   id = AssignArtificialRef(obj);
 
   const char* type = nullptr;
@@ -5038,9 +5597,15 @@ bool Serializer::CreateArtificalNodeIfNeeded(ObjectPtr obj) {
     name = str.ToCString();
   }
 
-  TraceStartWritingObject(type, obj, name);
+  // CreateArtificalNodeIfNeeded might call TraceStartWritingObject
+  // and these calls don't nest, so we need to call this outside
+  // of the tracing scope created below.
   if (owner != nullptr) {
     CreateArtificalNodeIfNeeded(owner);
+  }
+
+  TraceStartWritingObject(type, obj, name);
+  if (owner != nullptr) {
     AttributePropertyRef(owner, owner_ref_name,
                          /*permit_artificial_ref=*/true);
   }
@@ -5208,7 +5773,7 @@ bool Serializer::InCurrentLoadingUnit(ObjectPtr obj, bool record) {
   }
   if (unit_id != current_loading_unit_id_) {
     if (record) {
-      (*loading_units_)[unit_id]->AddDeferredObject(obj);
+      (*loading_units_)[unit_id]->AddDeferredObject(static_cast<CodePtr>(obj));
     }
     return false;
   }
@@ -5216,14 +5781,24 @@ bool Serializer::InCurrentLoadingUnit(ObjectPtr obj, bool record) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+void Serializer::PrepareInstructions(GrowableArray<CodePtr>* code_objects) {
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+  if ((kind() == Snapshot::kFullAOT) && FLAG_use_bare_instructions) {
+    GrowableArray<ImageWriterCommand> writer_commands;
+    RelocateCodeObjects(vm_, code_objects, &writer_commands);
+    image_writer_->PrepareForSerialization(&writer_commands);
+  }
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
+}
+
 void Serializer::WriteInstructions(InstructionsPtr instr,
                                    uint32_t unchecked_offset,
                                    CodePtr code,
-                                   intptr_t index) {
+                                   bool deferred) {
   ASSERT(code != Code::null());
 
-  if (!InCurrentLoadingUnit(code)) {
-    Write<uint32_t>(0);
+  ASSERT(InCurrentLoadingUnit(code) != deferred);
+  if (deferred) {
     return;
   }
 
@@ -5242,33 +5817,14 @@ void Serializer::WriteInstructions(InstructionsPtr instr,
   }
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    static_assert(
-        ImageWriter::kBareInstructionsAlignment > 1,
-        "Bare instruction payloads are not aligned on even byte boundaries");
-    ASSERT((offset & 0x1) == 0);
-    // Since instructions are aligned on even byte boundaries, we can use the
-    // low bit as a flag for whether the first uint32_t read is an offset
-    // followed by the unchecked_offset + mono entry bit (when 0) or a reference
-    // to another code object (when 1).
-    if (deduped_instructions_sources_.HasKey(offset)) {
-      ASSERT(FLAG_dedup_instructions);
-      Write<uint32_t>(deduped_instructions_sources_.LookupValue(offset));
-      return;
-    }
-    Write<uint32_t>(offset);
-    // When writing only instruction payloads, we also need to serialize
-    // whether there was a single entry. We append this as the low order bit
-    // in the unchecked_offset.
-    ASSERT(Utils::IsUint(31, unchecked_offset));
+    ASSERT(offset != 0);
+    RELEASE_ASSERT(offset >= previous_text_offset_);
+    const uint32_t delta = offset - previous_text_offset_;
+    WriteUnsigned(delta);
     const uint32_t payload_info =
         (unchecked_offset << 1) | (Code::HasMonomorphicEntry(code) ? 0x1 : 0x0);
     WriteUnsigned(payload_info);
-    // Store the index with an added set low bit (e.g., the form it should take
-    // if used in serializing later Code objects). This also avoids storing a 0
-    // in the IntMap when sharing instructions with the first code object (as
-    // that is IntMap's current kNoValue).
-    ASSERT(Utils::IsUint(31, index));
-    deduped_instructions_sources_.Insert(offset, (index << 1) | 0x1);
+    previous_text_offset_ = offset;
     return;
   }
 #endif
@@ -5303,6 +5859,7 @@ intptr_t Serializer::GetDataSize() const {
   }
   return image_writer_->data_size();
 }
+#endif
 
 void Serializer::Push(ObjectPtr object) {
   if (!object->IsHeapObject()) {
@@ -5425,6 +5982,7 @@ void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   free(const_cast<char*>(expected_features));
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static int CompareClusters(SerializationCluster* const* a,
                            SerializationCluster* const* b) {
   if ((*a)->size() > (*b)->size()) {
@@ -5436,7 +5994,13 @@ static int CompareClusters(SerializationCluster* const* a,
   }
 }
 
-void Serializer::Serialize() {
+intptr_t Serializer::Serialize(SerializationRoots* roots) {
+  roots->AddBaseObjects(this);
+
+  NoSafepointScope no_safepoint;
+
+  roots->PushRoots(this);
+
   while (stack_.length() > 0) {
     Trace(stack_.RemoveLast());
   }
@@ -5448,8 +6012,6 @@ void Serializer::Serialize() {
       num_clusters++;
     }
   }
-
-  intptr_t code_order_length = PrepareCodeOrder();
 
 #if defined(DART_PRECOMPILER)
   // Before we finalize the count of written objects, pick canonical versions
@@ -5475,7 +6037,6 @@ void Serializer::Serialize() {
   WriteUnsigned(num_base_objects_);
   WriteUnsigned(num_objects);
   WriteUnsigned(num_clusters);
-  WriteUnsigned(code_order_length);
   WriteUnsigned(field_table_->NumFieldIds());
 
   for (intptr_t cid = 1; cid < num_cids_; cid++) {
@@ -5516,49 +6077,25 @@ void Serializer::Serialize() {
 #endif
     }
   }
+
+  roots->WriteRoots(this);
+
+#if defined(DEBUG)
+  Write<int32_t>(kSectionMarker);
+#endif
+
+  FlushBytesWrittenToRoot();
+  object_currently_writing_.stream_start_ = stream_.Position();
+
+  PrintSnapshotSizes();
+
+  // Note we are not clearing the object id table. The full ref table
+  // of the vm isolate snapshot serves as the base objects for the
+  // regular isolate snapshot.
+
+  // Return the number of objects, -1 accounts for unused ref 0.
+  return next_ref_index_ - kFirstReference;
 }
-
-intptr_t Serializer::PrepareCodeOrder() {
-  intptr_t code_order_length = 0;
-#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  if ((kind_ == Snapshot::kFullAOT) && FLAG_use_bare_instructions) {
-    auto code_objects =
-        static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
-            ->discovered_objects();
-
-    GrowableArray<ImageWriterCommand> writer_commands;
-    RelocateCodeObjects(vm_, code_objects, &writer_commands);
-    image_writer_->PrepareForSerialization(&writer_commands);
-
-    // We permute the code objects in the x[CodeSerializationCluster] so they
-    // will arrive in the order in which the [Code]'s instructions will be in
-    // memory at AOT runtime.
-    GrowableArray<CodePtr> code_order;
-    RawCodeSet code_set;
-    for (auto& command : writer_commands) {
-      if (command.op == ImageWriterCommand::InsertInstructionOfCode) {
-        CodePtr code = command.insert_instruction_of_code.code;
-        ASSERT(!code_set.HasKey(code));
-        code_set.Insert(code);
-        code_order.Add(code);
-        code_order_length++;
-      }
-    }
-    for (CodePtr code : *code_objects) {
-      if (!code_set.HasKey(code)) {
-        code_set.Insert(code);
-        code_order.Add(code);
-      }
-    }
-    RELEASE_ASSERT(code_order.length() == code_objects->length());
-    for (intptr_t i = 0; i < code_objects->length(); ++i) {
-      (*code_objects)[i] = code_order[i];
-    }
-  }
-#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
-  return code_order_length;
-}
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
@@ -5678,6 +6215,33 @@ void Serializer::WriteDispatchTable(const Array& entries) {
     Write(repeat_count);
   }
   dispatch_table_size_ = bytes_written() - bytes_before;
+
+  object_currently_writing_.stream_start_ = stream_.Position();
+  // If any bytes were written for the dispatch table, add it to the profile.
+  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
+    // Grab an unused ref index for a unique object id for the dispatch table.
+    const auto dispatch_table_id = next_ref_index_++;
+    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
+        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
+    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
+    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
+                                          "DispatchTable", nullptr);
+    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
+                                      dispatch_table_size_);
+
+    if (!entries.IsNull()) {
+      for (intptr_t i = 0; i < entries.Length(); i++) {
+        auto const code = Code::RawCast(entries.At(i));
+        if (code == Code::null()) continue;
+        const V8SnapshotProfileWriter::ObjectId code_id(
+            V8SnapshotProfileWriter::kSnapshot, RefId(code));
+        profile_writer_->AttributeReferenceTo(
+            dispatch_table_snapshot_id,
+            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
+      }
+    }
+  }
+
 #endif  // defined(DART_PRECOMPILER)
 }
 
@@ -5737,266 +6301,6 @@ void Serializer::PrintSnapshotSizes() {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void Serializer::AddVMIsolateBaseObjects() {
-  // These objects are always allocated by Object::InitOnce, so they are not
-  // written into the snapshot.
-
-  AddBaseObject(Object::null(), "Null", "null");
-  AddBaseObject(Object::sentinel().raw(), "Null", "sentinel");
-  AddBaseObject(Object::transition_sentinel().raw(), "Null",
-                "transition_sentinel");
-  AddBaseObject(Object::empty_array().raw(), "Array", "<empty_array>");
-  AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
-  AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
-  AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
-  AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
-  AddBaseObject(Bool::True().raw(), "bool", "true");
-  AddBaseObject(Bool::False().raw(), "bool", "false");
-  ASSERT(Object::extractor_parameter_types().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_types().raw(), "Array",
-                "<extractor parameter types>");
-  ASSERT(Object::extractor_parameter_names().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_names().raw(), "Array",
-                "<extractor parameter names>");
-  AddBaseObject(Object::empty_context_scope().raw(), "ContextScope", "<empty>");
-  AddBaseObject(Object::empty_descriptors().raw(), "PcDescriptors", "<empty>");
-  AddBaseObject(Object::empty_var_descriptors().raw(), "LocalVarDescriptors",
-                "<empty>");
-  AddBaseObject(Object::empty_exception_handlers().raw(), "ExceptionHandlers",
-                "<empty>");
-  AddBaseObject(Object::implicit_getter_bytecode().raw(), "Bytecode",
-                "<implicit getter>");
-  AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
-                "<implicit setter>");
-  AddBaseObject(Object::implicit_static_getter_bytecode().raw(), "Bytecode",
-                "<implicit static getter>");
-  AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
-                "<method extractor>");
-  AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
-                "<invoke closure>");
-  AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
-                "<invoke field>");
-  AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
-                "<nsm dispatcher>");
-  AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw(),
-                "Bytecode", "<dyn forwarder>");
-
-  for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-    AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
-                  "ArgumentsDescriptor", "<cached arguments descriptor>");
-  }
-  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
-                  "<empty icdata entries>");
-  }
-  AddBaseObject(SubtypeTestCache::cached_array_, "Array",
-                "<empty subtype entries>");
-
-  ClassTable* table = isolate()->class_table();
-  for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
-    // Error, CallSiteData has no class object.
-    if (cid != kErrorCid && cid != kCallSiteDataCid) {
-      ASSERT(table->HasValidClassAt(cid));
-      AddBaseObject(table->At(cid), "Class");
-    }
-  }
-  AddBaseObject(table->At(kDynamicCid), "Class");
-  AddBaseObject(table->At(kVoidCid), "Class");
-
-  if (!Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i).raw(), "Code", "<stub code>");
-    }
-  }
-}
-
-intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
-  NoSafepointScope no_safepoint;
-
-  AddVMIsolateBaseObjects();
-
-  // Push roots.
-  Push(symbols.raw());
-  if (Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      Push(StubCode::EntryAt(i).raw());
-    }
-  }
-
-  Serialize();
-
-  // Write roots.
-  WriteRootRef(symbols.raw(), "symbol-table");
-  if (Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRootRef(StubCode::EntryAt(i).raw(),
-                   zone_->PrintToString("Stub:%s", StubCode::NameAt(i)));
-    }
-  }
-
-#if defined(DEBUG)
-  Write<int32_t>(kSectionMarker);
-#endif
-
-  FlushBytesWrittenToRoot();
-
-  PrintSnapshotSizes();
-
-  // Note we are not clearing the object id table. The full ref table
-  // of the vm isolate snapshot serves as the base objects for the
-  // regular isolate snapshot.
-
-  // Return the number of objects, -1 accounts for unused ref 0.
-  return next_ref_index_ - 1;
-}
-
-static const char* kObjectStoreFieldNames[] = {
-#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
-    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD)
-#undef DECLARE_OBJECT_STORE_FIELD
-};
-
-void Serializer::WriteProgramSnapshot(intptr_t num_base_objects,
-                                      ObjectStore* object_store) {
-  NoSafepointScope no_safepoint;
-
-  if (num_base_objects == 0) {
-    // Not writing a new vm isolate: use the one this VM was loaded from.
-    const Array& base_objects = Object::vm_isolate_snapshot_object_table();
-    for (intptr_t i = 1; i < base_objects.Length(); i++) {
-      AddBaseObject(base_objects.At(i));
-    }
-  } else {
-    // Base objects carried over from WriteVMSnapshot.
-    num_base_objects_ = num_base_objects;
-    next_ref_index_ = num_base_objects + 1;
-  }
-
-  // Push roots.
-  ObjectPtr* from = object_store->from();
-  ObjectPtr* to = object_store->to_snapshot(kind_);
-  for (ObjectPtr* p = from; p <= to; p++) {
-    Push(*p);
-  }
-
-  const auto& dispatch_table_entries =
-      Array::Handle(zone_, object_store->dispatch_table_code_entries());
-  // We should only have a dispatch table in precompiled mode.
-  ASSERT(dispatch_table_entries.IsNull() || kind() == Snapshot::kFullAOT);
-
-#if defined(DART_PRECOMPILER)
-  // We treat the dispatch table as a root object and trace the Code objects it
-  // references. Otherwise, a non-empty entry could be invalid on
-  // deserialization if the corresponding Code object was not reachable from the
-  // existing snapshot roots.
-  if (!dispatch_table_entries.IsNull()) {
-    for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-      Push(dispatch_table_entries.At(i));
-    }
-  }
-#endif
-
-  Serialize();
-
-  // Write roots.
-  for (ObjectPtr* p = from; p <= to; p++) {
-    WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
-  }
-
-  FlushBytesWrittenToRoot();
-  // The dispatch table is serialized only for precompiled snapshots.
-  WriteDispatchTable(dispatch_table_entries);
-  object_currently_writing_.stream_start_ = stream_.Position();
-#if defined(DART_PRECOMPILER)
-  // If any bytes were written for the dispatch table, add it to the profile.
-  if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
-    // Grab an unused ref index for a unique object id for the dispatch table.
-    const auto dispatch_table_id = next_ref_index_++;
-    const V8SnapshotProfileWriter::ObjectId dispatch_table_snapshot_id(
-        V8SnapshotProfileWriter::kSnapshot, dispatch_table_id);
-    profile_writer_->AddRoot(dispatch_table_snapshot_id, "dispatch_table");
-    profile_writer_->SetObjectTypeAndName(dispatch_table_snapshot_id,
-                                          "DispatchTable", nullptr);
-    profile_writer_->AttributeBytesTo(dispatch_table_snapshot_id,
-                                      dispatch_table_size_);
-
-    if (!dispatch_table_entries.IsNull()) {
-      for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
-        auto const code = Code::RawCast(dispatch_table_entries.At(i));
-        if (code == Code::null()) continue;
-        const V8SnapshotProfileWriter::ObjectId code_id(
-            V8SnapshotProfileWriter::kSnapshot, RefId(code));
-        profile_writer_->AttributeReferenceTo(
-            dispatch_table_snapshot_id,
-            {code_id, V8SnapshotProfileWriter::Reference::kElement, i});
-      }
-    }
-  }
-#endif
-
-#if defined(DEBUG)
-  Write<int32_t>(kSectionMarker);
-#endif
-
-  PrintSnapshotSizes();
-
-  // TODO(rmacnak): This also carries over object ids from loading units that
-  // aren't dominators. It would be more robust to remember the written objects
-  // in each loading and re-assign objects when setting up the base objects.
-  // Then a reference to a non-dominating object would produce an error instead
-  // of corruption.
-  if (kind() != Snapshot::kFullAOT) {
-    heap_->ResetObjectIdTable();
-  }
-}
-
-void Serializer::WriteUnitSnapshot(LoadingUnitSerializationData* unit,
-                                   uint32_t program_hash) {
-  Write(program_hash);
-
-  NoSafepointScope no_safepoint;
-
-  intptr_t num_base_objects = unit->parent()->num_objects();
-  ASSERT(num_base_objects != 0);
-  num_base_objects_ = num_base_objects;
-  next_ref_index_ = num_base_objects + 1;
-
-  intptr_t num_deferred_objects = unit->deferred_objects()->length();
-  for (intptr_t i = 0; i < num_deferred_objects; i++) {
-    const Object* deferred_object = (*unit->deferred_objects())[i];
-    ASSERT(deferred_object->IsCode());
-    CodePtr code = static_cast<CodePtr>(deferred_object->raw());
-    Push(code->ptr()->compressed_stackmaps_);
-    Push(code->ptr()->code_source_map_);
-  }
-
-  Serialize();
-
-  Write(num_deferred_objects);
-  for (intptr_t i = 0; i < num_deferred_objects; i++) {
-    const Object* deferred_object = (*unit->deferred_objects())[i];
-    ASSERT(deferred_object->IsCode());
-    CodePtr code = static_cast<CodePtr>(deferred_object->raw());
-    WriteRootRef(code, "deferred-code");
-    WriteInstructions(code->ptr()->instructions_,
-                      code->ptr()->unchecked_offset_, code, -1);
-    WriteRootRef(code->ptr()->compressed_stackmaps_, "deferred-code");
-    WriteRootRef(code->ptr()->code_source_map_, "deferred-code");
-  }
-
-  FlushBytesWrittenToRoot();
-  object_currently_writing_.stream_start_ = stream_.Position();
-
-#if defined(DEBUG)
-  Write<int32_t>(kSectionMarker);
-#endif
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 Deserializer::Deserializer(Thread* thread,
                            Snapshot::Kind kind,
                            const uint8_t* buffer,
@@ -6011,7 +6315,8 @@ Deserializer::Deserializer(Thread* thread,
       stream_(buffer, size),
       image_reader_(NULL),
       refs_(nullptr),
-      next_ref_index_(1),
+      next_ref_index_(kFirstReference),
+      previous_text_offset_(0),
       clusters_(NULL),
       field_table_(thread->isolate()->field_table()) {
   if (Snapshot::IncludesCode(kind)) {
@@ -6157,15 +6462,16 @@ DeserializationCluster* Deserializer::ReadCluster() {
   return NULL;
 }
 
-void Deserializer::ReadDispatchTable() {
+void Deserializer::ReadDispatchTable(ReadStream* stream) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  const intptr_t length = ReadUnsigned();
+  const uint8_t* table_snapshot_start = stream->AddressOfCurrentPosition();
+  const intptr_t length = stream->ReadUnsigned();
   if (length == 0) return;
 
   // Not all Code objects may be in the code_order_table when instructions can
   // be deduplicated. Thus, we serialize the reference ID of the first code
   // object, from which we can get the reference ID for any code object.
-  const intptr_t first_code_id = ReadUnsigned();
+  const intptr_t first_code_id = stream->ReadUnsigned();
 
   auto const I = isolate();
   auto code = I->object_store()->dispatch_table_null_error_stub();
@@ -6184,7 +6490,7 @@ void Deserializer::ReadDispatchTable() {
       repeat_count--;
       continue;
     }
-    auto const encoded = Read<intptr_t>();
+    auto const encoded = stream->Read<intptr_t>();
     if (encoded == 0) {
       value = null_entry;
     } else if (encoded < 0) {
@@ -6205,6 +6511,10 @@ void Deserializer::ReadDispatchTable() {
   ASSERT(repeat_count == 0);
 
   I->group()->set_dispatch_table(table);
+  intptr_t table_snapshot_size =
+      stream->AddressOfCurrentPosition() - table_snapshot_start;
+  I->group()->set_dispatch_table_snapshot(table_snapshot_start);
+  I->group()->set_dispatch_table_snapshot_size(table_snapshot_size);
 #endif
 }
 
@@ -6324,34 +6634,38 @@ ApiErrorPtr FullSnapshotReader::ConvertToApiError(char* message) {
   return ApiError::New(msg, Heap::kOld);
 }
 
-void Deserializer::ReadInstructions(CodePtr code,
-                                    intptr_t index,
-                                    intptr_t start_index) {
+void Deserializer::ReadInstructions(CodePtr code, bool deferred) {
+  if (deferred) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    if (FLAG_use_bare_instructions) {
+      uword entry_point = StubCode::NotLoaded().EntryPoint();
+      code->ptr()->entry_point_ = entry_point;
+      code->ptr()->unchecked_entry_point_ = entry_point;
+      code->ptr()->monomorphic_entry_point_ = entry_point;
+      code->ptr()->monomorphic_unchecked_entry_point_ = entry_point;
+      code->ptr()->instructions_length_ = 0;
+      return;
+    }
+#endif
+    InstructionsPtr instr = StubCode::NotLoaded().instructions();
+    uint32_t unchecked_offset = 0;
+    code->ptr()->instructions_ = instr;
+#if defined(DART_PRECOMPILED_RUNTIME)
+    code->ptr()->instructions_length_ = Instructions::Size(instr);
+#else
+    code->ptr()->unchecked_offset_ = unchecked_offset;
+#endif
+    Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
+    return;
+  }
+
 #if defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_use_bare_instructions) {
     // There are no serialized RawInstructions objects in this mode.
     code->ptr()->instructions_ = Instructions::null();
-
-    const uint32_t bare_offset = Read<uint32_t>();
-    if ((bare_offset & 0x1) == 0x1) {
-      // The low bit being set marks this as a reference to an earlier Code
-      // object in the cluster that shared the same deduplicated Instructions
-      // object. Thus, retrieve the instructions-related information from there.
-      ASSERT((index - start_index) >= code_order_length());
-      const uint32_t source_id = (bare_offset >> 1) + start_index;
-      auto const source = static_cast<CodePtr>(Ref(source_id));
-      code->ptr()->entry_point_ = source->ptr()->entry_point_;
-      code->ptr()->unchecked_entry_point_ =
-          source->ptr()->unchecked_entry_point_;
-      code->ptr()->monomorphic_entry_point_ =
-          source->ptr()->monomorphic_entry_point_;
-      code->ptr()->monomorphic_unchecked_entry_point_ =
-          source->ptr()->monomorphic_unchecked_entry_point_;
-      code->ptr()->instructions_length_ = source->ptr()->instructions_length_;
-      return;
-    }
+    previous_text_offset_ += ReadUnsigned();
     const uword payload_start =
-        image_reader_->GetBareInstructionsAt(bare_offset);
+        image_reader_->GetBareInstructionsAt(previous_text_offset_);
     const uint32_t payload_info = ReadUnsigned();
     const uint32_t unchecked_offset = payload_info >> 1;
     const bool has_monomorphic_entrypoint = (payload_info & 0x1) == 0x1;
@@ -6372,42 +6686,12 @@ void Deserializer::ReadInstructions(CodePtr code,
     code->ptr()->monomorphic_entry_point_ = monomorphic_entry_point;
     code->ptr()->monomorphic_unchecked_entry_point_ =
         monomorphic_entry_point + unchecked_offset;
-
-    // We don't serialize the length of the instructions payload. Instead, we
-    // calculate an approximate length (may include padding) by subtracting the
-    // payload start of the next Code object (if any) from the start for this
-    // one. Thus, here we patch the instructions length for the previous Code
-    // object, if any.
-    ASSERT((index - start_index) < code_order_length());
-    const uword curr_payload_start = Code::PayloadStartOf(code);
-    if (index > start_index) {
-      auto const prev = static_cast<CodePtr>(Ref(index - 1));
-      const uword prev_payload_start = Code::PayloadStartOf(prev);
-      prev->ptr()->instructions_length_ =
-          curr_payload_start - prev_payload_start;
-    }
-    // For the last Code object whose Instructions were written to the
-    // instructions image, assume its payload extends to the image's end.
-    if ((index - start_index) == code_order_length() - 1) {
-      code->ptr()->instructions_length_ =
-          image_reader_->GetBareInstructionsEnd() - curr_payload_start;
-    }
-
     return;
   }
 #endif
 
-  const uint32_t offset = Read<uint32_t>();
-  InstructionsPtr instr;
-  uint32_t unchecked_offset;
-  if (offset == 0) {
-    instr = StubCode::NotLoaded().instructions();
-    unchecked_offset = 0;
-  } else {
-    instr = image_reader_->GetInstructionsAt(offset);
-    unchecked_offset = ReadUnsigned();
-  }
-
+  InstructionsPtr instr = image_reader_->GetInstructionsAt(Read<uint32_t>());
+  uint32_t unchecked_offset = ReadUnsigned();
   code->ptr()->instructions_ = instr;
 #if defined(DART_PRECOMPILED_RUNTIME)
   code->ptr()->instructions_length_ = Instructions::Size(instr);
@@ -6423,51 +6707,44 @@ void Deserializer::ReadInstructions(CodePtr code,
   Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
 }
 
+void Deserializer::EndInstructions(const Array& refs,
+                                   intptr_t start_index,
+                                   intptr_t stop_index) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_bare_instructions) {
+    uword previous_end = image_reader_->GetBareInstructionsEnd();
+    for (intptr_t id = stop_index - 1; id >= start_index; id--) {
+      CodePtr code = static_cast<CodePtr>(refs.At(id));
+      uword start = Code::PayloadStartOf(code);
+      ASSERT(start <= previous_end);
+      code->ptr()->instructions_length_ = previous_end - start;
+      previous_end = start;
+    }
+
+    // Build an array of code objects representing the order in which the
+    // [Code]'s instructions will be located in memory.
+    const intptr_t count = stop_index - start_index;
+    const Array& order_table =
+        Array::Handle(zone_, Array::New(count, Heap::kOld));
+    Object& code = Object::Handle(zone_);
+    for (intptr_t i = 0; i < count; i++) {
+      code = refs.At(start_index + i);
+      order_table.SetAt(i, code);
+    }
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    GrowableObjectArray& order_tables =
+        GrowableObjectArray::Handle(zone_, object_store->code_order_tables());
+    if (order_tables.IsNull()) {
+      order_tables = GrowableObjectArray::New(Heap::kOld);
+      object_store->set_code_order_tables(order_tables);
+    }
+    order_tables.Add(order_table, Heap::kOld);
+  }
+#endif
+}
+
 ObjectPtr Deserializer::GetObjectAt(uint32_t offset) const {
   return image_reader_->GetObjectAt(offset);
-}
-
-void Deserializer::Prepare() {
-  num_base_objects_ = ReadUnsigned();
-  num_objects_ = ReadUnsigned();
-  num_clusters_ = ReadUnsigned();
-  code_order_length_ = ReadUnsigned();
-  const intptr_t field_table_len = ReadUnsigned();
-
-  clusters_ = new DeserializationCluster*[num_clusters_];
-  refs_ = Array::New(num_objects_ + 1, Heap::kOld);
-  if (field_table_len > 0) {
-    field_table_->AllocateIndex(field_table_len - 1);
-  }
-  ASSERT(field_table_->NumFieldIds() == field_table_len);
-}
-
-void Deserializer::Deserialize() {
-  if (num_base_objects_ != (next_ref_index_ - 1)) {
-    FATAL2("Snapshot expects %" Pd
-           " base objects, but deserializer provided %" Pd,
-           num_base_objects_, next_ref_index_ - 1);
-  }
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i] = ReadCluster();
-    clusters_[i]->ReadAlloc(this);
-#if defined(DEBUG)
-    intptr_t serializers_next_ref_index_ = Read<int32_t>();
-    ASSERT(serializers_next_ref_index_ == next_ref_index_);
-#endif
-  }
-
-  // We should have completely filled the ref array.
-  ASSERT((next_ref_index_ - 1) == num_objects_);
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->ReadFill(this);
-#if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
-#endif
-  }
 }
 
 class HeapLocker : public StackResource {
@@ -6485,86 +6762,53 @@ class HeapLocker : public StackResource {
   FreeList* freelist_;
 };
 
-void Deserializer::AddVMIsolateBaseObjects() {
-  // These objects are always allocated by Object::InitOnce, so they are not
-  // written into the snapshot.
-
-  AddBaseObject(Object::null());
-  AddBaseObject(Object::sentinel().raw());
-  AddBaseObject(Object::transition_sentinel().raw());
-  AddBaseObject(Object::empty_array().raw());
-  AddBaseObject(Object::zero_array().raw());
-  AddBaseObject(Object::dynamic_type().raw());
-  AddBaseObject(Object::void_type().raw());
-  AddBaseObject(Object::empty_type_arguments().raw());
-  AddBaseObject(Bool::True().raw());
-  AddBaseObject(Bool::False().raw());
-  ASSERT(Object::extractor_parameter_types().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_types().raw());
-  ASSERT(Object::extractor_parameter_names().raw() != Object::null());
-  AddBaseObject(Object::extractor_parameter_names().raw());
-  AddBaseObject(Object::empty_context_scope().raw());
-  AddBaseObject(Object::empty_descriptors().raw());
-  AddBaseObject(Object::empty_var_descriptors().raw());
-  AddBaseObject(Object::empty_exception_handlers().raw());
-  AddBaseObject(Object::implicit_getter_bytecode().raw());
-  AddBaseObject(Object::implicit_setter_bytecode().raw());
-  AddBaseObject(Object::implicit_static_getter_bytecode().raw());
-  AddBaseObject(Object::method_extractor_bytecode().raw());
-  AddBaseObject(Object::invoke_closure_bytecode().raw());
-  AddBaseObject(Object::invoke_field_bytecode().raw());
-  AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
-  AddBaseObject(Object::dynamic_invocation_forwarder_bytecode().raw());
-
-  for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-    AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
-  }
-  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-    AddBaseObject(ICData::cached_icdata_arrays_[i]);
-  }
-  AddBaseObject(SubtypeTestCache::cached_array_);
-
-  ClassTable* table = isolate()->class_table();
-  for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {
-    // Error, CallSiteData has no class object.
-    if (cid != kErrorCid && cid != kCallSiteDataCid) {
-      ASSERT(table->HasValidClassAt(cid));
-      AddBaseObject(table->At(cid));
-    }
-  }
-  AddBaseObject(table->At(kDynamicCid));
-  AddBaseObject(table->At(kVoidCid));
-
-  if (!Snapshot::IncludesCode(kind_)) {
-    for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      AddBaseObject(StubCode::EntryAt(i).raw());
-    }
-  }
-}
-
-void Deserializer::ReadVMSnapshot() {
-  Array& symbol_table = Array::Handle(zone_);
+void Deserializer::Deserialize(DeserializationRoots* roots) {
   Array& refs = Array::Handle(zone_);
-  Prepare();
+  num_base_objects_ = ReadUnsigned();
+  num_objects_ = ReadUnsigned();
+  num_clusters_ = ReadUnsigned();
+  const intptr_t field_table_len = ReadUnsigned();
+
+  clusters_ = new DeserializationCluster*[num_clusters_];
+  refs_ = Array::New(num_objects_ + kFirstReference, Heap::kOld);
+  if (field_table_len > 0) {
+    field_table_->AllocateIndex(field_table_len - 1);
+  }
+  ASSERT_EQUAL(field_table_->NumFieldIds(), field_table_len);
 
   {
     NoSafepointScope no_safepoint;
     HeapLocker hl(thread(), heap_->old_space());
 
-    AddVMIsolateBaseObjects();
+    roots->AddBaseObjects(this);
 
-    Deserialize();
-
-    // Read roots.
-    symbol_table ^= ReadRef();
-    isolate()->object_store()->set_symbol_table(symbol_table);
-    if (Snapshot::IncludesCode(kind_)) {
-      for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-        Code* code = Code::ReadOnlyHandle();
-        *code ^= ReadRef();
-        StubCode::EntryAtPut(i, code);
-      }
+    if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
+      FATAL2("Snapshot expects %" Pd
+             " base objects, but deserializer provided %" Pd,
+             num_base_objects_, next_ref_index_ - kFirstReference);
     }
+
+    for (intptr_t i = 0; i < num_clusters_; i++) {
+      clusters_[i] = ReadCluster();
+      clusters_[i]->ReadAlloc(this);
+#if defined(DEBUG)
+      intptr_t serializers_next_ref_index_ = Read<int32_t>();
+      ASSERT_EQUAL(serializers_next_ref_index_, next_ref_index_);
+#endif
+    }
+
+    // We should have completely filled the ref array.
+    ASSERT_EQUAL(next_ref_index_ - kFirstReference, num_objects_);
+
+    for (intptr_t i = 0; i < num_clusters_; i++) {
+      clusters_[i]->ReadFill(this);
+#if defined(DEBUG)
+    int32_t section_marker = Read<int32_t>();
+    ASSERT(section_marker == kSectionMarker);
+#endif
+    }
+
+    roots->ReadRoots(this);
 
 #if defined(DEBUG)
     int32_t section_marker = Read<int32_t>();
@@ -6575,148 +6819,19 @@ void Deserializer::ReadVMSnapshot() {
     refs_ = NULL;
   }
 
-  // Move remaining bump allocation space to the freelist so it used by C++
-  // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
-  heap_->old_space()->AbandonBumpAllocation();
-
-  Symbols::InitFromSnapshot(isolate());
-
-  Object::set_vm_isolate_snapshot_object_table(refs);
-
-#if defined(DEBUG)
-  isolate()->ValidateClassTable();
-#endif
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(refs, kind_, zone_);
-  }
-}
-
-void Deserializer::ReadProgramSnapshot(ObjectStore* object_store) {
-  Array& refs = Array::Handle();
-  Prepare();
-
-  {
-    NoSafepointScope no_safepoint;
-    HeapLocker hl(thread(), heap_->old_space());
-
-    // N.B.: Skipping index 0 because ref 0 is illegal.
-    const Array& base_objects = Object::vm_isolate_snapshot_object_table();
-    for (intptr_t i = 1; i < base_objects.Length(); i++) {
-      AddBaseObject(base_objects.At(i));
-    }
-
-    Deserialize();
-
-    // Read roots.
-    ObjectPtr* from = object_store->from();
-    ObjectPtr* to = object_store->to_snapshot(kind_);
-    for (ObjectPtr* p = from; p <= to; p++) {
-      *p = ReadRef();
-    }
-
-    // Deserialize dispatch table (when applicable)
-    ReadDispatchTable();
-
-#if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
-#endif
-
-    refs = refs_;
-    refs_ = NULL;
-  }
-
-  thread()->isolate()->class_table()->CopySizesFromClassObjects();
-  heap_->old_space()->EvaluateAfterLoading();
-
-  Isolate* isolate = thread()->isolate();
-#if defined(DEBUG)
-  isolate->ValidateClassTable();
-  isolate->heap()->Verify();
-#endif
-
-  for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(refs, kind_, zone_);
-  }
-  const Array& units = Array::Handle(isolate->object_store()->loading_units());
-  if (!units.IsNull()) {
-    LoadingUnit& unit = LoadingUnit::Handle();
-    unit ^= units.At(LoadingUnit::kRootId);
-    unit.set_base_objects(refs);
-  }
-  isolate->isolate_object_store()->PreallocateObjects();
-
-  // Setup native resolver for bootstrap impl.
-  Bootstrap::SetupNativeResolver();
-}
-
-ApiErrorPtr Deserializer::ReadUnitSnapshot(const LoadingUnit& unit) {
-  Array& units =
-      Array::Handle(thread()->isolate()->object_store()->loading_units());
-  uint32_t main_program_hash = Smi::Value(Smi::RawCast(units.At(0)));
-  uint32_t unit_program_hash = Read<uint32_t>();
-  if (main_program_hash != unit_program_hash) {
-    return ApiError::New(
-        String::Handle(String::New("Deferred loading unit is from a different "
-                                   "program than the main loading unit")));
-  }
-
-  Array& refs = Array::Handle();
-  Prepare();
-
-  {
-    NoSafepointScope no_safepoint;
-    HeapLocker hl(thread(), heap_->old_space());
-
-    // N.B.: Skipping index 0 because ref 0 is illegal.
-    const Array& base_objects =
-        Array::Handle(LoadingUnit::Handle(unit.parent()).base_objects());
-    for (intptr_t i = 1; i < base_objects.Length(); i++) {
-      AddBaseObject(base_objects.At(i));
-    }
-
-    Deserialize();
-
-    intptr_t num_deferred = Read<intptr_t>();
-    for (intptr_t i = 0; i < num_deferred; i++) {
-      CodePtr code = static_cast<CodePtr>(ReadRef());
-      ReadInstructions(code, -1, -1);
-      if (code->ptr()->owner_->IsFunction()) {
-        FunctionPtr func = static_cast<FunctionPtr>(code->ptr()->owner_);
-        uword entry_point = code->ptr()->entry_point_;
-        ASSERT(entry_point != 0);
-        func->ptr()->entry_point_ = entry_point;
-        uword unchecked_entry_point = code->ptr()->unchecked_entry_point_;
-        ASSERT(unchecked_entry_point != 0);
-        func->ptr()->unchecked_entry_point_ = unchecked_entry_point;
-      }
-      code->ptr()->compressed_stackmaps_ =
-          static_cast<CompressedStackMapsPtr>(ReadRef());
-      code->ptr()->code_source_map_ = static_cast<CodeSourceMapPtr>(ReadRef());
-    }
-
-#if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
-#endif
-
-    refs = refs_;
-    refs_ = NULL;
-  }
+  roots->PostLoad(this, refs);
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();
   isolate->ValidateClassTable();
-  isolate->heap()->Verify();
+  if (isolate != Dart::vm_isolate()) {
+    isolate->heap()->Verify();
+  }
 #endif
 
   for (intptr_t i = 0; i < num_clusters_; i++) {
-    clusters_[i]->PostLoad(refs, kind_, zone_);
+    clusters_[i]->PostLoad(this, refs);
   }
-  unit.set_base_objects(refs);
-
-  return ApiError::null();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -6769,13 +6884,9 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(true);
-  // VM snapshot roots are:
-  // - the symbol table
-  // - the stub code (App-AOT, App-JIT or Core-JIT)
-
-  const Array& symbols =
-      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table());
-  intptr_t num_objects = serializer.WriteVMSnapshot(symbols);
+  VMSerializationRoots roots(
+      Array::Handle(Dart::vm_isolate()->object_store()->symbol_table()));
+  intptr_t num_objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 
@@ -6815,9 +6926,8 @@ void FullSnapshotWriter::WriteProgramSnapshot(
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
-  // Isolate snapshot roots are:
-  // - the object store
-  serializer.WriteProgramSnapshot(num_base_objects, object_store);
+  ProgramSerializationRoots roots(num_base_objects, object_store);
+  serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -6852,7 +6962,10 @@ void FullSnapshotWriter::WriteUnitSnapshot(
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
-  serializer.WriteUnitSnapshot(unit, program_hash);
+  serializer.Write(program_hash);
+
+  UnitSerializationRoots roots(unit);
+  serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
@@ -7097,7 +7210,8 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
                                        /* is_executable */ true);
   }
 
-  deserializer.ReadVMSnapshot();
+  VMDeserializationRoots roots;
+  deserializer.Deserialize(&roots);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Initialize entries in the VM portion of the BSS segment.
@@ -7140,8 +7254,8 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
                                        /* is_executable */ true);
   }
 
-  auto object_store = thread_->isolate()->object_store();
-  deserializer.ReadProgramSnapshot(object_store);
+  ProgramDeserializationRoots roots(thread_->isolate()->object_store());
+  deserializer.Deserialize(&roots);
 
   PatchGlobalObjectPool();
   InitializeBSS();
@@ -7164,6 +7278,17 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
   if (api_error != ApiError::null()) {
     return api_error;
   }
+  {
+    Array& units =
+        Array::Handle(thread_->isolate()->object_store()->loading_units());
+    uint32_t main_program_hash = Smi::Value(Smi::RawCast(units.At(0)));
+    uint32_t unit_program_hash = deserializer.Read<uint32_t>();
+    if (main_program_hash != unit_program_hash) {
+      return ApiError::New(String::Handle(
+          String::New("Deferred loading unit is from a different "
+                      "program than the main loading unit")));
+    }
+  }
 
   if (Snapshot::IncludesCode(kind_)) {
     ASSERT(data_image_ != NULL);
@@ -7174,10 +7299,8 @@ ApiErrorPtr FullSnapshotReader::ReadUnitSnapshot(const LoadingUnit& unit) {
                                        /* is_executable */ true);
   }
 
-  api_error = deserializer.ReadUnitSnapshot(unit);
-  if (api_error != ApiError::null()) {
-    return api_error;
-  }
+  UnitDeserializationRoots roots(unit);
+  deserializer.Deserialize(&roots);
 
   PatchGlobalObjectPool();
   InitializeBSS();

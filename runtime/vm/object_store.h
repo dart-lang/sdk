@@ -82,6 +82,7 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
+  CW(Class, list_class)                    /* maybe be null, lazily built */   \
   CW(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
   CW(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
   FW(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
@@ -211,11 +212,14 @@ class ObjectPointerVisitor;
   RW(Code, default_tts_stub)                                                   \
   RW(Code, default_nullable_tts_stub)                                          \
   RW(Code, top_type_tts_stub)                                                  \
+  RW(Code, nullable_type_parameter_tts_stub)                                   \
+  RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Array, dispatch_table_code_entries)                                       \
-  RW(Array, code_order_table)                                                  \
+  RW(GrowableObjectArray, code_order_tables)                                   \
   RW(Array, obfuscation_map)                                                   \
+  RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
@@ -249,6 +253,8 @@ class ObjectPointerVisitor;
   DO(default_tts_stub, DefaultTypeTest)                                        \
   DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
   DO(top_type_tts_stub, TopTypeTypeTest)                                       \
+  DO(nullable_type_parameter_tts_stub, NullableTypeParameterTypeTest)          \
+  DO(type_parameter_tts_stub, TypeParameterTypeTest)                           \
   DO(unreachable_tts_stub, UnreachableTypeTest)                                \
   DO(slow_tts_stub, SlowTypeTest)                                              \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
@@ -458,8 +464,8 @@ class ObjectStore {
     return NULL;
   }
 
-  friend class Serializer;
-  friend class Deserializer;
+  friend class ProgramSerializationRoots;
+  friend class ProgramDeserializationRoots;
   friend class ProgramVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);

@@ -145,26 +145,6 @@ abstract class TypeEnvironment extends Types {
     }
   }
 
-  /// Called if the computation of a static type failed due to a type error.
-  ///
-  /// This should never happen in production.  The frontend should report type
-  /// errors, and either recover from the error during translation or abort
-  /// compilation if unable to recover.
-  ///
-  /// By default, this throws an exception, since programs in kernel are assumed
-  /// to be correctly typed.
-  ///
-  /// An [errorHandler] may be provided in order to override the default
-  /// behavior and tolerate the presence of type errors.  This can be useful for
-  /// debugging IR producers which are required to produce a strongly typed IR.
-  void typeError(TreeNode node, String message) {
-    if (errorHandler != null) {
-      errorHandler(node, message);
-    } else {
-      throw '$message in $node';
-    }
-  }
-
   /// True if [member] is a binary operator whose return type is defined by
   /// the both operand types.
   bool isSpecialCasedBinaryOperator(Procedure member,

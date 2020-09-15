@@ -62,17 +62,11 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(ShutdownMessageHandler(server));
     registerHandler(ExitMessageHandler(server));
     registerHandler(
-      TextDocumentOpenHandler(
-        server,
-        server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
-      ),
+      TextDocumentOpenHandler(server),
     );
     registerHandler(TextDocumentChangeHandler(server));
     registerHandler(
-      TextDocumentCloseHandler(
-        server,
-        server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
-      ),
+      TextDocumentCloseHandler(server),
     );
     registerHandler(HoverHandler(server));
     registerHandler(CompletionHandler(

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
@@ -165,13 +163,11 @@ String _computeLibraryName(CompilationUnit unit) {
 
 /// Runs the given notification producing function [f], catching exceptions.
 void _sendNotification(AnalysisServer server, Function() f) {
-  ServerPerformanceStatistics.notices.makeCurrentWhile(() {
-    try {
-      f();
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage(
-              'Failed to send notification', exception, stackTrace));
-    }
-  });
+  try {
+    f();
+  } catch (exception, stackTrace) {
+    AnalysisEngine.instance.instrumentationService.logException(
+        CaughtException.withMessage(
+            'Failed to send notification', exception, stackTrace));
+  }
 }

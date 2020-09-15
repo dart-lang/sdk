@@ -61,6 +61,25 @@ class C {
     ]);
   }
 
+  test_assignment_in_method_hasSuperField() async {
+    await assertErrorsInCode('''
+// ignore:unused_import
+import 'dart:math' as p;
+
+class A {
+  var p;
+}
+
+class B extends A {
+  void f() {
+    p = 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 109, 1),
+    ]);
+  }
+
   test_assignment_not_in_method() async {
     newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;

@@ -140,13 +140,12 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   @override
-  _MicroAnalysisContextImpl analysisContext;
-
-  @override
   final DeclaredVariables declaredVariables;
 
+  final SourceFactory sourceFactory;
+
   @override
-  SourceFactory sourceFactory;
+  _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
     this.declaredVariables,

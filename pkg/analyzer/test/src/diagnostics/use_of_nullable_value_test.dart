@@ -764,7 +764,8 @@ m() {
     ]);
     assertSimpleIdentifier(
       findNode.simple('isEven'),
-      element: intElement.getGetter('isEven'),
+      readElement: intElement.getGetter('isEven'),
+      writeElement: null,
       type: 'bool',
     );
   }

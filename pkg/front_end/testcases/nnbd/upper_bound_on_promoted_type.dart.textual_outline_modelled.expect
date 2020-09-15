@@ -1,0 +1,7 @@
+class Foo<T> {
+  dynamic bar;
+  dynamic baz;
+  dynamic qux() {}
+}
+
+main() {}

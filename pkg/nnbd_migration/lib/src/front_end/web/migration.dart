@@ -309,6 +309,9 @@ void handleError(String header, Object exception, Object stackTrace) {
   logError('$header: $exception', stackTrace);
 }
 
+String _stripQuery(String path) =>
+    path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+
 void handleNavLinkClick(
   MouseEvent event,
   bool clearEditDetails, {
@@ -318,10 +321,7 @@ void handleNavLinkClick(
   event.preventDefault();
 
   var location = target.getAttribute('href');
-  var path = location;
-  if (path.contains('?')) {
-    path = path.substring(0, path.indexOf('?'));
-  }
+  var path = _stripQuery(location);
 
   var offset = getOffset(location);
   var lineNumber = getLine(location);
@@ -383,8 +383,7 @@ void loadFile(
         queryParameters: {'inline': 'true'});
     writeCodeAndRegions(path, FileDetails.fromJson(response), clearEditDetails);
     maybeScrollToAndHighlight(offset, line);
-    var filePathPart =
-        path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+    var filePathPart = _stripQuery(path);
     updatePage(filePathPart, offset);
     if (callback != null) {
       callback();
@@ -575,7 +574,14 @@ void populateProposedEdits(
         var line = edit.line;
         anchor.dataset['line'] = '$line';
         anchor.append(Text('line $line'));
+        anchor.setAttribute(
+            'href',
+            pathWithQueryParameters(window.location.pathname, {
+              'line': '$line',
+              'offset': '$offset',
+            }));
         anchor.onClick.listen((MouseEvent event) {
+          event.preventDefault();
           navigate(window.location.pathname, offset, line, true, callback: () {
             pushState(window.location.pathname, offset, line);
           });
@@ -688,7 +694,7 @@ void writeNavigationSubtree(
       li.append(a);
       a.classes.add('nav-link');
       a.dataset['name'] = entity.path;
-      a.setAttribute('href', entity.href);
+      a.setAttribute('href', pathWithQueryParameters(entity.href, {}));
       a.append(Text(entity.name));
       a.onClick.listen((MouseEvent event) => handleNavLinkClick(event, true));
       var editCount = entity.editCount;
@@ -704,7 +710,7 @@ void writeNavigationSubtree(
   }
 }
 
-AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
+AnchorElement _aElementForLink(TargetLink link) {
   var targetLine = link.line;
   AnchorElement a = AnchorElement();
   a.append(Text('${link.path}:$targetLine'));
@@ -755,7 +761,7 @@ void _populateEditTraces(
       var link = entry.link;
       if (link != null) {
         li.append(Text(' ('));
-        li.append(_aElementForLink(link, parentDirectory));
+        li.append(_aElementForLink(link));
         li.append(Text(')'));
       }
       li.append(Text(': '));
@@ -770,7 +776,8 @@ void _populateEditTraces(
               try {
                 await doPost(pathWithQueryParameters('/apply-hint', {}),
                     hintAction.toJson());
-                loadFile(link.path, null, link.line, false);
+                var path = _stripQuery(link.href);
+                loadFile(path, null, link.line, false);
                 document.body.classes.add('needs-rerun');
               } catch (e, st) {
                 handleError("Could not apply hint", e, st);

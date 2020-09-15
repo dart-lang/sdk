@@ -967,7 +967,60 @@ class CompilationCommandOutput extends CommandOutput {
   }
 }
 
-class DevCompilerCommandOutput extends CommandOutput {
+class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
+    with _StaticErrorOutput {
+  static void parseErrors(String stdout, List<StaticError> errors) {
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.web, _errorRegexp, stdout, errors);
+  }
+
+  /// Matches the location and message of a dart2js error message, which looks
+  /// like:
+  ///
+  ///     tests/language_2/some_test.dart:9:3:
+  ///     Error: Some message.
+  ///       BadThing();
+  ///       ^
+  ///
+  /// The test runner only validates the main error message, and not the
+  /// suggested fixes, so we only parse the first line.
+  static final _errorRegexp =
+      RegExp(r"^([^:]+):(\d+):(\d+):\nError: (.*)$", multiLine: true);
+
+  Dart2jsCompilerCommandOutput(
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped);
+
+  @override
+  void _parseErrors() {
+    var errors = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors);
+    errors.forEach(addError);
+  }
+}
+
+class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
+  /// Matches the first line of a DDC error message. DDC prints errors to
+  /// stdout that look like:
+  ///
+  ///     org-dartlang-app:/tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     Try fixing the code to be less bad.
+  ///       var _ = <int>[if (1) 2];
+  ///                    ^
+  ///
+  /// The test runner only validates the main error message, and not the
+  /// suggested fixes, so we only parse the first line.
+  static final _errorRegexp = RegExp(
+      r"^org-dartlang-app:/([^:]+):(\d+):(\d+): Error: (.*)$",
+      multiLine: true);
+
   DevCompilerCommandOutput(
       Command command,
       int exitCode,
@@ -985,6 +1038,11 @@ class DevCompilerCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
     // Handle errors / missing errors
     if (testCase.hasCompileError) {
       return exitCode == 0
@@ -1001,8 +1059,23 @@ class DevCompilerCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
     if (exitCode != 0) return Expectation.compileTimeError;
+
     return Expectation.pass;
+  }
+
+  @override
+  void _parseErrors() {
+    var errors = <StaticError>[];
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.web, _errorRegexp, decodeUtf8(stdout), errors);
+    errors.forEach(addError);
   }
 }
 
@@ -1178,13 +1251,8 @@ class FastaCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
   static void parseErrors(String stdout, List<StaticError> errors,
       [List<StaticError> warnings]) {
-    for (var match in _errorRegexp.allMatches(stdout)) {
-      var line = int.parse(match.group(2));
-      var column = int.parse(match.group(3));
-      var message = match.group(4);
-      errors.add(
-          StaticError({ErrorSource.cfe: message}, line: line, column: column));
-    }
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.cfe, _errorRegexp, stdout, errors);
   }
 
   /// Matches the first line of a Fasta error message. Fasta prints errors to
@@ -1222,6 +1290,19 @@ class FastaCommandOutput extends CompilationCommandOutput
 /// Mixin for outputs from a command that implement a Dart front end which
 /// reports static errors.
 mixin _StaticErrorOutput on CommandOutput {
+  /// Parses compile errors reported by CFE using the given [regExp] and adds
+  /// them to [errors] as coming from [errorSource].
+  static void _parseCfeErrors(ErrorSource errorSource, RegExp regExp,
+      String stdout, List<StaticError> errors) {
+    for (var match in regExp.allMatches(stdout)) {
+      var line = int.parse(match.group(2));
+      var column = int.parse(match.group(3));
+      var message = match.group(4);
+      errors
+          .add(StaticError({errorSource: message}, line: line, column: column));
+    }
+  }
+
   /// Reported static errors, parsed from [stderr].
   List<StaticError> get errors {
     if (!_parsedErrors) {
@@ -1310,9 +1391,14 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter writer]) {
     // Filter out errors that aren't for this configuration.
-    var errorSource = testCase.configuration.compiler == Compiler.dart2analyzer
-        ? ErrorSource.analyzer
-        : ErrorSource.cfe;
+    var errorSource = {
+      Compiler.dart2analyzer: ErrorSource.analyzer,
+      Compiler.dart2js: ErrorSource.web,
+      Compiler.dartdevc: ErrorSource.web,
+      Compiler.fasta: ErrorSource.cfe
+    }[testCase.configuration.compiler];
+    assert(errorSource != null);
+
     var expected = testCase.testFile.expectedErrors
         .where((error) => error.hasError(errorSource));
 

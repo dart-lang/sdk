@@ -66,18 +66,6 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
-  }
-
-  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) => this;
 
   /// Given a [type] T, return true if it does not have an unknown type `_`.

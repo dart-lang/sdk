@@ -88,7 +88,7 @@ class Spelunker {
 
   Spelunker(this.path, {IOSink sink, FeatureSet featureSet})
       : sink = sink ?? stdout,
-        featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
+        featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
   void spelunk() {
     var contents = File(path).readAsStringSync();

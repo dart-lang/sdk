@@ -47,28 +47,28 @@ class FooKeep extends pro::GeneratedMessage {
     return let final self::FooKeep* #t2 = [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::create() in block {
       [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromBuffer] [@vm.inferred-type.metadata=!? (skip check)] #t2.{pro::GeneratedMessage::mergeFromBuffer}(i, r);
     } =>#t2;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method clone() → self::FooKeep*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method clone() → self::FooKeep*
     return let final self::FooKeep* #t3 = [@vm.inferred-type.metadata=foo.pb.dart::FooKeep] self::FooKeep::•() in block {
       [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromMessage] [@vm.inferred-type.metadata=!? (skip check)] #t3.{pro::GeneratedMessage::mergeFromMessage}(this);
     } =>#t3;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::FooKeep::_i;
   @#C11
   static method create() → self::FooKeep*
     return new self::FooKeep::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  @#C13
   get barKeep() → self::BarKeep*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::BarKeep? (skip check)] this.{pro::GeneratedMessage::$_getN}<self::BarKeep*>(0);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]  @#C15
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  @#C15
   get mapKeep() → core::Map<core::String*, self::BarKeep*>*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=! (skip check)] this.{pro::GeneratedMessage::$_getMap}<core::String*, self::BarKeep*>(2);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:7] [@vm.unboxing-info.metadata=()->i]  @#C17
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6] [@vm.unboxing-info.metadata=()->i]  @#C17
   get aKeep() → core::int*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(4);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:8,getterSelectorId:9]  @#C19
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  @#C19
   method hasHasKeep() → core::bool*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{pro::GeneratedMessage::$_has}(5);
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:10,getterSelectorId:11]  @#C21
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  @#C21
   method clearClearKeep() → void
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.clearField] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{pro::GeneratedMessage::clearField}(7);
 }
@@ -83,16 +83,16 @@ class BarKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::BarKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method clone() → self::BarKeep*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method clone() → self::BarKeep*
     return let final self::BarKeep* #t5 = [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] self::BarKeep::•() in block {
       [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromMessage] [@vm.inferred-type.metadata=!? (skip check)] #t5.{pro::GeneratedMessage::mergeFromMessage}(this);
     } =>#t5;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::BarKeep::_i;
   @#C11
   static method create() → self::BarKeep*
     return new self::BarKeep::_();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:12] [@vm.unboxing-info.metadata=()->i]  @#C13
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:11] [@vm.unboxing-info.metadata=()->i]  @#C13
   get aKeep() → core::int*
     return [@vm.direct-call.metadata=protobuf::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{pro::GeneratedMessage::$_getIZ}(0);
 }
@@ -106,11 +106,11 @@ class HasKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::HasKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::HasKeep] self::HasKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method clone() → self::HasKeep*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method clone() → self::HasKeep*
     return let final self::HasKeep* #t7 = [@vm.inferred-type.metadata=foo.pb.dart::HasKeep] self::HasKeep::•() in block {
       [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromMessage] [@vm.inferred-type.metadata=!? (skip check)] #t7.{pro::GeneratedMessage::mergeFromMessage}(this);
     } =>#t7;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::HasKeep::_i;
   @#C11
   static method create() → self::HasKeep*
@@ -126,11 +126,11 @@ class ClearKeep extends pro::GeneratedMessage {
     ;
   static factory •() → self::ClearKeep*
     return [@vm.inferred-type.metadata=foo.pb.dart::ClearKeep] self::ClearKeep::create();
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method clone() → self::ClearKeep*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method clone() → self::ClearKeep*
     return let final self::ClearKeep* #t9 = [@vm.inferred-type.metadata=foo.pb.dart::ClearKeep] self::ClearKeep::•() in block {
       [@vm.direct-call.metadata=protobuf::GeneratedMessage.mergeFromMessage] [@vm.inferred-type.metadata=!? (skip check)] #t9.{pro::GeneratedMessage::mergeFromMessage}(this);
     } =>#t9;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  get info_() → pro::BuilderInfo*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  get info_() → pro::BuilderInfo*
     return [@vm.inferred-type.metadata=protobuf::BuilderInfo?] self::ClearKeep::_i;
   @#C11
   static method create() → self::ClearKeep*

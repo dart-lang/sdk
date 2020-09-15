@@ -14,5 +14,5 @@ mixin B {
   external static final int finalStaticField = 0;
 }
 extension Extension ;
-on A (){ }
-main() { }
+on A (){}
+main() {}

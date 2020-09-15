@@ -249,7 +249,6 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      freshElement.type = freshType;
       substitution[element] = freshType;
 
       if (!element.isLegacyCovariant) {

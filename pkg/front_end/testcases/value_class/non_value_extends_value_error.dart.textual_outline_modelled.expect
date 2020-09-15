@@ -1,0 +1,10 @@
+import 'value_class_support_lib.dart';
+
+@valueClass
+class Animal {
+  final int numberOfLegs;
+}
+
+class Cat extends Animal {}
+
+main() {}

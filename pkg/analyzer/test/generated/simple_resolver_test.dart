@@ -538,38 +538,6 @@ class A {
     verifyTestResolved();
   }
 
-  test_getter_and_setter_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x += 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    // Verify that both the getter and setter for "x" in C.f() refer to the
-    // accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
-  }
-
   test_getter_and_setter_fromMixins_property_access() async {
     await assertNoErrorsInCode(r'''
 class B {}
@@ -650,20 +618,6 @@ void main() {
       findNode.simple('x;').staticElement,
       findElement.getter('x', of: 'M2'),
     );
-  }
-
-  @Deprecated('It was used internally, should not be part of API')
-  test_hasReferenceToSuper() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {toString() => super.toString();}''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.hasReferenceToSuper, isFalse);
-
-    var b = findElement.class_('B');
-    expect(b.hasReferenceToSuper, isTrue);
   }
 
   test_import_hide() async {
@@ -1175,29 +1129,6 @@ f(var p) {
     verifyTestResolved();
   }
 
-  test_setter_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
-class B {}assertNoErrorsInCode
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x = 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
   test_setter_fromMixins_property_access() async {
     await assertNoErrorsInCode('''
 class B {}
@@ -1218,19 +1149,6 @@ void main() {
       findNode.simple('x = ').staticElement,
       findElement.setter('x', of: 'M2'),
     );
-  }
-
-  test_setter_inherited() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get x => 0;
-  set x(int p) {}
-}
-class B extends A {
-  int get x => super.x == null ? 0 : super.x;
-  int f() => x = 1;
-}''');
-    verifyTestResolved();
   }
 
   test_setter_static() async {

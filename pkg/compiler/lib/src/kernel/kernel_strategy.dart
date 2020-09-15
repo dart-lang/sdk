@@ -120,6 +120,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
     ClassEntity objectClass = commonElements.objectClass;
     elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
+      if (!member.isInstanceMember) return;
       MemberEntity interceptorMember = elementEnvironment
           .lookupLocalClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention

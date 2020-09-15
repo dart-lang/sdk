@@ -208,7 +208,7 @@ class _MatchImplementation implements RegExpMatch {
     return out;
   }
 
-  String namedGroup(String name) {
+  String? namedGroup(String name) {
     var groups = JS('Object|Null', '#.groups', _match);
     if (groups != null) {
       var result = JS('String|Null', '#[#]', groups, name);

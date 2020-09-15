@@ -106,52 +106,47 @@ void FrameLayout::Init() {
 #endif
 }
 
-IsolateGroup* StackFrame::IsolateGroupOfBareInstructionsFrame() const {
-  IsolateGroup* isolate_group = Dart::vm_isolate()->group();
-  if (isolate_group->object_store()->code_order_table() != Object::null()) {
-    auto rct = isolate_group->reverse_pc_lookup_cache();
-    if (rct->Contains(pc())) return isolate_group;
-  }
-
-  isolate_group = this->isolate_group();
-  auto* object_store = isolate_group->object_store();
-  if (object_store != nullptr) {
-    if (object_store->code_order_table() != Object::null()) {
-      auto rct = isolate_group->reverse_pc_lookup_cache();
-      if (rct->Contains(pc())) return isolate_group;
-    }
-  }
-
-  return nullptr;
-}
-
 bool StackFrame::IsBareInstructionsDartFrame() const {
   NoSafepointScope no_safepoint;
 
-  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
-    Code code;
-    auto rct = isolate_group->reverse_pc_lookup_cache();
-    code = rct->Lookup(pc(), /*is_return_address=*/true);
-
+  Code code;
+  code = ReversePc::Lookup(this->isolate_group(), pc(),
+                           /*is_return_address=*/true);
+  if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
     return cid == kFunctionCid;
   }
+  code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
+                           /*is_return_address=*/true);
+  if (!code.IsNull()) {
+    auto const cid = code.OwnerClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kFunctionCid;
+  }
+
   return false;
 }
 
 bool StackFrame::IsBareInstructionsStubFrame() const {
   NoSafepointScope no_safepoint;
 
-  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
-    Code code;
-    auto rct = isolate_group->reverse_pc_lookup_cache();
-    code = rct->Lookup(pc(), /*is_return_address=*/true);
-
+  Code code;
+  code = ReversePc::Lookup(this->isolate_group(), pc(),
+                           /*is_return_address=*/true);
+  if (!code.IsNull()) {
     auto const cid = code.OwnerClassId();
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
     return cid == kNullCid || cid == kClassCid;
   }
+  code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
+                           /*is_return_address=*/true);
+  if (!code.IsNull()) {
+    auto const cid = code.OwnerClassId();
+    ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+    return cid == kNullCid || cid == kClassCid;
+  }
+
   return false;
 }
 
@@ -254,9 +249,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   NoSafepointScope no_safepoint;
   Code code;
 
-  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
-    auto const rct = isolate_group->reverse_pc_lookup_cache();
-    code = rct->Lookup(pc(), /*is_return_address=*/true);
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    code = GetCodeObject();
   } else {
     ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
         fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
@@ -397,11 +391,6 @@ CodePtr StackFrame::LookupDartCode() const {
   // where Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
 #endif
-  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
-    auto const rct = isolate_group->reverse_pc_lookup_cache();
-    return rct->Lookup(pc(), /*is_return_address=*/true);
-  }
-
   CodePtr code = GetCodeObject();
   if ((code != Code::null()) && Code::OwnerClassIdOf(code) == kFunctionCid) {
     return code;
@@ -411,16 +400,28 @@ CodePtr StackFrame::LookupDartCode() const {
 
 CodePtr StackFrame::GetCodeObject() const {
   ASSERT(!is_interpreted());
-  if (auto isolate_group = IsolateGroupOfBareInstructionsFrame()) {
-    auto const rct = isolate_group->reverse_pc_lookup_cache();
-    return rct->Lookup(pc(), /*is_return_address=*/true);
-  } else {
-    ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
-        fp() + runtime_frame_layout.code_from_fp * kWordSize));
-    ASSERT((pc_marker == Object::null()) ||
-           (pc_marker->GetClassId() == kCodeCid));
-    return static_cast<CodePtr>(pc_marker);
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
+                                     /*is_return_address=*/true);
+    if (code != Code::null()) {
+      return code;
+    }
+    code = ReversePc::Lookup(Dart::vm_isolate()->group(), pc(),
+                             /*is_return_address=*/true);
+    if (code != Code::null()) {
+      return code;
+    }
+    UNREACHABLE();
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+  ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
+      fp() + runtime_frame_layout.code_from_fp * kWordSize));
+  ASSERT((pc_marker == Object::null()) ||
+         (pc_marker->GetClassId() == kCodeCid));
+  return static_cast<CodePtr>(pc_marker);
 }
 
 BytecodePtr StackFrame::LookupDartBytecode() const {

@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
+import '../common/metrics.dart' show Metrics;
 import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
@@ -53,11 +54,14 @@ class TypeGraphInferrer implements TypesInferrer {
 
   final Compiler _compiler;
   final InferredDataBuilder _inferredDataBuilder;
+  Metrics /*?*/ _metrics;
 
   TypeGraphInferrer(
       this._compiler, this.closedWorld, this._inferredDataBuilder);
 
   String get name => 'Graph inferrer';
+
+  Metrics get metrics => _metrics;
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -66,6 +70,7 @@ class TypeGraphInferrer implements TypesInferrer {
   GlobalTypeInferenceResults analyzeMain(FunctionEntity main) {
     inferrer = createInferrerEngineFor(main);
     inferrer.runOverAllElements();
+    _metrics = inferrer.metrics;
     return buildResults();
   }
 

@@ -29,9 +29,9 @@ class UnitRendererTest extends NnbdMigrationTestBase {
 
     var contents = <FileDetails>[];
     for (var unitInfo in infos) {
-      contents.add(
-          UnitRenderer(unitInfo, migrationInfo, PathMapper(resourceProvider))
-              .render());
+      contents.add(UnitRenderer(unitInfo, migrationInfo,
+              PathMapper(resourceProvider), 'AUTH_TOKEN')
+          .render());
     }
     return contents;
   }

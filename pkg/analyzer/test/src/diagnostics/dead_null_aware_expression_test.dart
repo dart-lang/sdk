@@ -22,13 +22,16 @@ class DeadNullAwareExpressionTest extends PubPackageResolutionTest
 var x = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   x ??= 0;
 }
-''');
+''', [
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 32, 2),
+    ]);
   }
 
   test_assignCompound_map() async {
@@ -51,6 +54,8 @@ f(int x) {
 }
 ''', [
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 19, 1),
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 19, 2),
     ]);
   }
 
@@ -68,13 +73,16 @@ f(int? x) {
 var x = 0;
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
 f() {
   x ?? 0;
 }
-''');
+''', [
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 31, 2),
+    ]);
   }
 
   test_binary_nonNullable() async {
@@ -84,6 +92,8 @@ f(int x) {
 }
 ''', [
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 18, 1),
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 18, 2),
     ]);
   }
 

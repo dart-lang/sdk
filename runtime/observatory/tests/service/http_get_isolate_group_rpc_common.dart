@@ -66,6 +66,7 @@ Future<Null> testeeBefore() async {
     Expect.equals(result['type'], 'IsolateGroup');
     Expect.isTrue(result['id'].startsWith('isolateGroups/'));
     Expect.type<String>(result['number']);
+    Expect.isFalse(result['isSystemIsolateGroup']);
     Expect.isTrue(result['isolates'].length > 0);
     Expect.equals(result['isolates'][0]['type'], '@Isolate');
   } catch (e) {

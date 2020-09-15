@@ -41,4 +41,5 @@ Future<void> main(args) => runIsolateTests(
       args,
       test,
       testeeBefore: fooBar,
+      enableService: false,
     );

@@ -44,10 +44,10 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
       bool removeViaComments = false,
       bool warnOnWeakCode = false}) async {
     for (var path in migratedInput.keys) {
-      driver.getFileSync(newFile(path, content: migratedInput[path]).path);
+      newFile(path, content: migratedInput[path]);
     }
     for (var path in input.keys) {
-      driver.getFileSync(newFile(path, content: input[path]).path);
+      newFile(path, content: input[path]);
     }
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,
@@ -1626,6 +1626,24 @@ void f(dynamic a) {
   nonNullNonNull = hardToNonNullNonNull
   nonNullNull = hardToNonNullNull
   nullNonNull = hardToNullNonNull
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_downcast_to_null() async {
+    // This probably doesn't arise too often for real-world code, since it is
+    // most likely a mistake.  Still, we want to make sure we don't crash.
+    var content = '''
+test() {
+  var x = List.filled(3, null);
+  x[0] = 1;
+}
+''';
+    var expected = '''
+test() {
+  var x = List.filled(3, null);
+  x[0] = 1 as Null;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3256,6 +3274,280 @@ class C implements A<String> {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_getter_setter_getter_in_interface() async {
+    var content = '''
+class B {
+  int get x => null;
+}
+abstract class C implements B {
+  void set x(int value) {}
+}
+''';
+    var expected = '''
+class B {
+  int? get x => null;
+}
+abstract class C implements B {
+  void set x(int? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_getter_in_interface_field() async {
+    var content = '''
+class B {
+  final int x = null;
+}
+abstract class C implements B {
+  void set x(int value) {}
+}
+''';
+    var expected = '''
+class B {
+  final int? x = null;
+}
+abstract class C implements B {
+  void set x(int? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_getter_in_interfaces() async {
+    var content = '''
+class B1 {
+  int get x => null;
+}
+class B2 {
+  int get x => null;
+}
+abstract class C implements B1, B2 {
+  void set x(int value) {}
+}
+''';
+    var expected = '''
+class B1 {
+  int? get x => null;
+}
+class B2 {
+  int? get x => null;
+}
+abstract class C implements B1, B2 {
+  void set x(int? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_getter_in_superclass() async {
+    var content = '''
+class B {
+  int get x => null;
+}
+class C extends B {
+  void set x(int value) {}
+}
+''';
+    var expected = '''
+class B {
+  int? get x => null;
+}
+class C extends B {
+  void set x(int? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_getter_in_superclass_substituted() async {
+    var content = '''
+class B<T> {
+  T get x => throw '';
+}
+class C extends B<List<int/*?*/>> {
+  void set x(List<int> value) {}
+}
+''';
+    var expected = '''
+class B<T> {
+  T get x => throw '';
+}
+class C extends B<List<int?>> {
+  void set x(List<int?> value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_setter_in_interface() async {
+    var content = '''
+class B {
+  void set x(int value) {}
+}
+abstract class C implements B {
+  int get x => null;
+}
+''';
+    var expected = '''
+class B {
+  void set x(int? value) {}
+}
+abstract class C implements B {
+  int? get x => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_setter_in_interface_field() async {
+    var content = '''
+class B {
+  int x;
+  B(this.x);
+}
+abstract class C implements B {
+  int get x => null;
+}
+''';
+    var expected = '''
+class B {
+  int? x;
+  B(this.x);
+}
+abstract class C implements B {
+  int? get x => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_setter_in_interfaces() async {
+    var content = '''
+class B1 {
+  void set x(int value) {}
+}
+class B2 {
+  void set x(int value) {}
+}
+abstract class C implements B1, B2 {
+  int get x => null;
+}
+''';
+    var expected = '''
+class B1 {
+  void set x(int? value) {}
+}
+class B2 {
+  void set x(int? value) {}
+}
+abstract class C implements B1, B2 {
+  int? get x => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_setter_in_superclass() async {
+    var content = '''
+class B {
+  void set x(int value) {}
+}
+class C extends B {
+  int get x => null;
+}
+''';
+    var expected = '''
+class B {
+  void set x(int? value) {}
+}
+class C extends B {
+  int? get x => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_setter_in_superclass_substituted() async {
+    var content = '''
+class B<T> {
+  void set x(T value) {}
+}
+class C extends B<List<int>> {
+  List<int> get x => [null];
+}
+''';
+    var expected = '''
+class B<T> {
+  void set x(T value) {}
+}
+class C extends B<List<int?>> {
+  List<int?> get x => [null];
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_single_class() async {
+    var content = '''
+class C {
+  int get x => null;
+  void set x(int value) {}
+}
+''';
+    var expected = '''
+class C {
+  int? get x => null;
+  void set x(int? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_single_class_generic() async {
+    var content = '''
+class C<T extends Object/*!*/> {
+  T get x => null;
+  void set x(T value) {}
+}
+''';
+    var expected = '''
+class C<T extends Object> {
+  T? get x => null;
+  void set x(T? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_static() async {
+    var content = '''
+class C {
+  static int get x => null;
+  static void set x(int value) {}
+}
+''';
+    var expected = '''
+class C {
+  static int? get x => null;
+  static void set x(int? value) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_getter_setter_top_level() async {
+    var content = '''
+int get x => null;
+void set x(int value) {}
+''';
+    var expected = '''
+int? get x => null;
+void set x(int? value) {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_getter_topLevel() async {
     var content = '''
 int get g => 0;
@@ -3718,6 +4010,18 @@ void repro(){
     final List<String> a = (e['query'] as String).split('&');
   }
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_late_hint_followed_by_underscore() async {
+    var content = '''
+class _C {}
+/*late*/ _C c;
+''';
+    var expected = '''
+class _C {}
+late _C c;
 ''';
     await _checkSingleFileChanges(content, expected);
   }

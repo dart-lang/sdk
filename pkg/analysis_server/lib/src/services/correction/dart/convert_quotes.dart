@@ -39,14 +39,17 @@ abstract class ConvertQuotes extends CorrectionProducer {
           });
         }
       }
-    } else if (node is InterpolationString) {
-      StringInterpolation parent = node.parent;
-      if (_fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
-        var newQuote = parent.isMultiline
+    } else if (node is InterpolationString || node is StringInterpolation) {
+      StringInterpolation stringNode =
+          node is StringInterpolation ? node : node.parent;
+      if (_fromDouble
+          ? !stringNode.isSingleQuoted
+          : stringNode.isSingleQuoted) {
+        var newQuote = stringNode.isMultiline
             ? (_fromDouble ? "'''" : '"""')
             : (_fromDouble ? "'" : '"');
-        var quoteLength = parent.isMultiline ? 3 : 1;
-        var elements = parent.elements;
+        var quoteLength = stringNode.isMultiline ? 3 : 1;
+        var elements = stringNode.elements;
         for (var i = 0; i < elements.length; i++) {
           var element = elements[i];
           if (element is InterpolationString) {
@@ -58,10 +61,11 @@ abstract class ConvertQuotes extends CorrectionProducer {
         }
         await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(
-              SourceRange(parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
+              SourceRange(
+                  stringNode.offset + (stringNode.isRaw ? 1 : 0), quoteLength),
               newQuote);
           builder.addSimpleReplacement(
-              SourceRange(parent.end - quoteLength, quoteLength), newQuote);
+              SourceRange(stringNode.end - quoteLength, quoteLength), newQuote);
         });
       }
     }

@@ -18,17 +18,18 @@ class Builder<X> {
   method() {}
 }
 
+class Mix<M> = Base<M> with Mixin<M>;
+
 class Mixin<M> {}
 
 class SimpleCase<A, B> {
   factory SimpleCase() = SimpleCaseImpl<A, B>;
 }
 
-class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
-
 class SimpleCaseImpl<Ai, Bi> implements SimpleCase<Ai, Bi> {
   factory SimpleCaseImpl() = SimpleCaseImpl2<Ai, Bi>;
 }
 
-class Mix<M> = Base<M> with Mixin<M>;
+class SimpleCaseImpl2<Ai2, Bi2> implements SimpleCaseImpl<Ai2, Bi2> {}
+
 main() {}

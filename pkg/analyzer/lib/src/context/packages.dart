@@ -116,18 +116,22 @@ Packages parsePackageConfigJsonFile(ResourceProvider provider, File file) {
 /// location).  OTOH, if the file has the `.packages` format, still look
 /// for a `.dart_tool/package_config.json` relative to the specified [file].
 Packages parsePackagesFile(ResourceProvider provider, File file) {
-  var content = file.readAsStringSync();
-  var isJson = content.trimLeft().startsWith('{');
-  if (isJson) {
-    return parsePackageConfigJsonFile(provider, file);
-  } else {
-    var relativePackageConfigFile = file.parent
-        .getChildAssumingFolder('.dart_tool')
-        .getChildAssumingFile('package_config.json');
-    if (relativePackageConfigFile.exists) {
-      return parsePackageConfigJsonFile(provider, relativePackageConfigFile);
+  try {
+    var content = file.readAsStringSync();
+    var isJson = content.trimLeft().startsWith('{');
+    if (isJson) {
+      return parsePackageConfigJsonFile(provider, file);
+    } else {
+      var relativePackageConfigFile = file.parent
+          .getChildAssumingFolder('.dart_tool')
+          .getChildAssumingFile('package_config.json');
+      if (relativePackageConfigFile.exists) {
+        return parsePackageConfigJsonFile(provider, relativePackageConfigFile);
+      }
+      return parseDotPackagesFile(provider, file);
     }
-    return parseDotPackagesFile(provider, file);
+  } catch (e) {
+    return Packages.empty;
   }
 }
 

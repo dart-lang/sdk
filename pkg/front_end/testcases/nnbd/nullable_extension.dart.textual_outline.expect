@@ -4,5 +4,5 @@ class A {
 extension on ;
 A;
 ? { String get text => "Lily was here"; }
-void main() { }
-expect(expected, actual) { }
+void main() {}
+expect(expected, actual) {}

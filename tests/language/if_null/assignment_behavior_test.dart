@@ -125,8 +125,6 @@ class C {
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
 // [cfe] The setter 'finalOne' isn't defined for the class 'C'.
 //               ^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-//               ^^^^
 // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     yGetValue = 1;
   }
@@ -179,10 +177,6 @@ main() {
 //^
 // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
 // [cfe] Can't assign to a type literal.
-//      ^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-//      ^^^^
-// [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
   h ??= null;
 //^
 // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT

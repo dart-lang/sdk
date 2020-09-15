@@ -44,13 +44,13 @@ Annotation
               literal: 0
               staticType: int
         constructorName: ConstructorName
+          staticElement: self::@class::A::@constructor::•
           type: TypeName
             name: SimpleIdentifier
               staticElement: self::@class::A
               staticType: null
               token: A
             type: A
-        staticElement: self::@class::A::@constructor::•
         staticType: A
   element: self::@class::A::@constructor::•
   name: SimpleIdentifier

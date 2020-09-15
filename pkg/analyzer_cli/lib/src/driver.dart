@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
@@ -28,8 +27,6 @@ import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart'
-    show PerformanceTag;
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -68,9 +65,6 @@ bool containsLintRuleEntry(YamlMap options) {
 }
 
 class Driver with HasContextMixin implements CommandLineStarter {
-  static final PerformanceTag _analyzeAllTag =
-      PerformanceTag('Driver._analyzeAll');
-
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
   @override
@@ -184,12 +178,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _analyzeAllTag.makeCurrent();
-    try {
-      return await _analyzeAllImpl(options);
-    } finally {
-      previous.makeCurrent();
-    }
+
+    return await _analyzeAllImpl(options);
   }
 
   /// Perform analysis according to the given [options].
@@ -392,23 +382,19 @@ class Driver with HasContextMixin implements CommandLineStarter {
       CommandLineOptions options, SendPort sendPort) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _analyzeAllTag.makeCurrent();
-    try {
-      if (options.buildModePersistentWorker) {
-        var workerLoop = sendPort == null
-            ? AnalyzerWorkerLoop.std(resourceProvider,
-                dartSdkPath: options.dartSdkPath)
-            : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
-                dartSdkPath: options.dartSdkPath);
-        await workerLoop.run();
-        return ErrorSeverity.NONE;
-      } else {
-        return await BuildMode(resourceProvider, options, stats,
-                ContextCache(resourceProvider, options, verbosePrint))
-            .analyze();
-      }
-    } finally {
-      previous.makeCurrent();
+
+    if (options.buildModePersistentWorker) {
+      var workerLoop = sendPort == null
+          ? AnalyzerWorkerLoop.std(resourceProvider,
+              dartSdkPath: options.dartSdkPath)
+          : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+              dartSdkPath: options.dartSdkPath);
+      await workerLoop.run();
+      return ErrorSeverity.NONE;
+    } else {
+      return await BuildMode(resourceProvider, options, stats,
+              ContextCache(resourceProvider, options, verbosePrint))
+          .analyze();
     }
   }
 
@@ -701,7 +687,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
             previous.showPackageWarningsPrefix &&
         newOptions.showSdkWarnings == previous.showSdkWarnings &&
         newOptions.lints == previous.lints &&
-        newOptions.strongMode == previous.strongMode &&
         _equalLists(
             newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&

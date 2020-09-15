@@ -1587,24 +1587,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       'CONST_EVAL_TYPE_TYPE',
       "In constant expressions, operands of this operator must be of type "
           "'Type'.");
+
   /**
-   * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error
-   * if o is not <b>null</b> and the interface of the class of <i>o</i> is not a
-   * subtype of the static type of the field <i>v</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the name of the type of the initializer expression
    * 1: the name of the type of the field
    */
   static const CompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName(
+          'FIELD_INITIALIZER_NOT_ASSIGNABLE',
           'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
           "The initializer type '{0}' can't be assigned to the field type "
               "'{1}' in a const constructor.",
-          correction: "Try using a subtype, or removing the 'const' keyword");
+          correction: "Try using a subtype, or removing the 'const' keyword",
+          hasPublishedDocs: true);
 
   /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
@@ -2539,7 +2535,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXPORT_LEGACY_SYMBOL = CompileTimeErrorCode(
       'EXPORT_LEGACY_SYMBOL',
       "The symbol '{0}' is defined in a legacy library, and can't be "
-          "re-exported from a non-nullable by default library.",
+          "re-exported from a library with null safety enabled.",
       correction: "Try removing the export or migrating the legacy library.",
       hasPublishedDocs: true);
 
@@ -2793,7 +2789,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is the
-  // target of the invocation of a static member. Similar to static members in
+  // receiver of the invocation of a static member. Similar to static members in
   // classes, the static members of an extension should be accessed using the
   // name of the extension, not an extension override.
   //
@@ -2872,8 +2868,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If there's a different extension that's valid for the type of the argument,
-  // then either replace the name of the extension or unwrap the target so that
-  // the correct extension is found.
+  // then either replace the name of the extension or unwrap the argument so
+  // that the correct extension is found.
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE =
       CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -2887,8 +2883,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is used as
-  // the target of a cascade expression. The value of a cascade expression
-  // `e..m` is the value of the target `e`, but extension overrides aren't
+  // the receiver of a cascade expression. The value of a cascade expression
+  // `e..m` is the value of the receiver `e`, but extension overrides aren't
   // expressions and don't have a value.
   //
   // #### Examples
@@ -2901,7 +2897,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //   void m() {}
   // }
   // f() {
-  //   E(3)[!..!]m();
+  //   [!E!](3)..m();
   // }
   // ```
   //
@@ -2924,7 +2920,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_WITH_CASCADE',
           "Extension overrides have no value so they can't be used as the "
-              "target of a cascade expression.",
+              "receiver of a cascade expression.",
           correction: "Try using '.' instead of '..'.",
           hasPublishedDocs: true);
 
@@ -2968,7 +2964,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If you don't want to invoke a member, then unwrap the target:
+  // If you don't want to invoke a member, then unwrap the argument:
   //
   // ```dart
   // extension E on int {
@@ -2984,6 +2980,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "An extension override can only be used to access instance members.",
           correction: "Consider adding an access to an instance member.",
           hasPublishedDocs: true);
+
+  static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
+          'External fields cannot have initializers.',
+          correction:
+              "Try removing the field initializer or the 'external' keyword "
+              "from the field declaration.");
+
+  static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_FIELD_INITIALIZER',
+          'External fields cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'external' keyword.");
+
+  static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
+      CompileTimeErrorCode('EXTERNAL_VARIABLE_INITIALIZER',
+          'External variables cannot have initializers.',
+          correction:
+              "Try removing the initializer or the 'external' keyword.");
 
   /**
    * Parameters:
@@ -3428,7 +3443,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       CompileTimeErrorCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "All final variables must be initialized, but '{0}' isn't.",
           correction: "Try adding an initializer for the field.",
           hasPublishedDocs: true);
@@ -3441,7 +3456,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
       CompileTimeErrorCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
           "All final variables must be initialized, but '{0}' and '{1}' "
               "aren't.",
           correction: "Try adding initializers for the fields.",
@@ -3456,7 +3471,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
       CompileTimeErrorCodeWithUniqueName(
           'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-          'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "All final variables must be initialized, but '{0}', '{1}', and {2} "
               "others aren't.",
           correction: "Try adding initializers for the fields.",
@@ -3530,8 +3545,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
       CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
           "Generic function types can't be used as type parameter bounds",
-          correction: "Try making the free variable in the function type part"
-              " of the larger declaration signature");
+          correction: "Try making the free variable in the function type part "
+              "of the larger declaration signature");
 
   /**
    * It is a compile-time error if a generic function type is used as an actual
@@ -4384,13 +4399,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
-   * 15 Metadata: Metadata consists of a series of annotations, each of which
-   * begin with the character @, followed by a constant expression that must be
-   * either a reference to a compile-time constant variable, or a call to a
-   * constant constructor.
+   * No parameters.
    */
   static const CompileTimeErrorCode INVALID_ANNOTATION_GETTER =
-      CompileTimeErrorCode(
+      CompileTimeErrorCodeWithUniqueName('INVALID_ANNOTATION',
           'INVALID_ANNOTATION_GETTER', "Getters can't be used as annotations.",
           correction: "Try using a top-level variable or a field.");
 
@@ -5107,7 +5119,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode LATE_FINAL_LOCAL_ALREADY_ASSIGNED =
       CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
           "The late final local variable is already definitely assigned.",
-          correction: "Try removing the 'late' modifier, or don't reassign "
+          correction: "Try removing the 'final' modifier, or don't reassign "
               "the value.");
 
   /**
@@ -5848,12 +5860,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS =
       CompileTimeErrorCode(
           'NO_GENERATIVE_CONSTRUCTOR_IN_SUPERCLASS',
-          "The class '{0}' cannot extend '{1}' because '{1}' only has factory"
-              " constructors (no generative constructors), and '{0}' has at"
-              ' least one generative constructor.',
-          correction: 'Try implementing the class instead, adding a generative'
-              " (not factory) constructor to the superclass {0}, or a factory"
-              ' constructor to the subclass.');
+          "The class '{0}' cannot extend '{1}' because '{1}' only has factory "
+              "constructors (no generative constructors), and '{0}' has at "
+              "least one generative constructor.",
+          correction: "Try implementing the class instead, adding a generative "
+              "(not factory) constructor to the superclass {0}, or a factory "
+              "constructor to the subclass.");
 
   /**
    * Parameters:
@@ -5882,7 +5894,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          ' CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
           "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and "
               "{4} more.",
           correction: "Try implementing the missing methods, or make the class "
@@ -5900,7 +5912,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          ' CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
           "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
           correction: "Try implementing the missing methods, or make the class "
               "abstract.",
@@ -5973,7 +5985,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          ' CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
           "Missing concrete implementation of '{0}'.",
           correction: "Try implementing the missing method, or make the class "
               "abstract.",
@@ -5989,7 +6001,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
           "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
           correction: "Try implementing the missing methods, or make the class "
               "abstract.",
@@ -6004,7 +6016,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
       CompileTimeErrorCodeWithUniqueName(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-          'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
           "Missing concrete implementations of '{0}' and '{1}'.",
           correction: "Try implementing the missing methods, or make the class "
               "abstract.",
@@ -6594,8 +6606,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_CONSTRUCTOR',
-          "The constructor '{0}' is a factory constructor, but must be a"
-              " generative constructor to be a valid superinitializer.",
+          "The constructor '{0}' is a factory constructor, but must be a "
+              "generative constructor to be a valid superinitializer.",
           correction:
               "Try calling a different constructor of the superclass, or "
               "making the called constructor not be a factory constructor.");
@@ -6613,12 +6625,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_GENERATIVE_IMPLICIT_CONSTRUCTOR =
       CompileTimeErrorCode(
           'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-          "The default constructor of superclass '{0}' (called by the implicit"
-              " default constructor of '{1}') must be a generative constructor,"
-              " but factory found.",
-          correction: 'Try adding an explicit constructor that has a different'
-              " superinitializer or changing the superclass constructor '{2}'"
-              " to not be a factory constructor.");
+          "The default constructor of superclass '{0}' (called by the implicit "
+              "default constructor of '{1}') must be a generative constructor, "
+              "but factory found.",
+          correction: "Try adding an explicit constructor that has a different "
+              "superinitializer or changing the superclass constructor '{2}' "
+              "to not be a factory constructor.");
 
   static const CompileTimeErrorCode NON_SYNC_FACTORY = CompileTimeErrorCode(
       'NON_SYNC_FACTORY',
@@ -7469,8 +7481,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Library is unnamed. Expected a URI not a library name '{0}' in the "
               "part-of directive.",
           correction:
-              "Try changing the part-of directive to a URI, or try including a"
-              " different part.");
+              "Try changing the part-of directive to a URI, or try including a "
+              "different part.");
 
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a
@@ -7574,6 +7586,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       "The setter '{0}' is private and can't be accessed outside of the "
           "library that declares it.",
       correction: "Try making it public.");
+
+  static const CompileTimeErrorCode READ_POTENTIALLY_UNASSIGNED_FINAL =
+      CompileTimeErrorCode(
+    'READ_POTENTIALLY_UNASSIGNED_FINAL',
+    "The final variable '{0}' can't be read because it is potentially "
+        "unassigned at this point.",
+    correction: "Ensure that it is assigned on necessary execution paths.",
+  );
 
   /**
    * 12.1 Constants: It is a compile-time error if the value of a compile-time
@@ -8106,7 +8126,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR =
       CompileTimeErrorCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
-          'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
+          'RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
           "A value of type '{0}' can't be returned from constructor '{2}' "
               "because it has a return type of '{1}'.",
           hasPublishedDocs: true);
@@ -8148,7 +8168,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_FUNCTION =
       CompileTimeErrorCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
-          'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
+          'RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
           "A value of type '{0}' can't be returned from function '{2}' because "
               "it has a return type of '{1}'.",
           hasPublishedDocs: true);
@@ -8162,7 +8182,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode RETURN_OF_INVALID_TYPE_FROM_METHOD =
       CompileTimeErrorCodeWithUniqueName(
           'RETURN_OF_INVALID_TYPE',
-          'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
+          'RETURN_OF_INVALID_TYPE_FROM_METHOD',
           "A value of type '{0}' can't be returned from method '{2}' because "
               "it has a return type of '{1}'.",
           hasPublishedDocs: true);
@@ -9479,7 +9499,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If a subclass adds a parameter with the name in question, then cast the
-  // target to the subclass:
+  // receiver to the subclass:
   //
   // ```dart
   // class C {
@@ -9638,19 +9658,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
-   * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
-   *
    * Parameters:
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_GETTER =
-      CompileTimeErrorCode('UNDEFINED_SUPER_GETTER',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_GETTER',
           "The getter '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing getter, or "
-              "defining a getter or field named '{0}' in a superclass.");
+              "defining a getter or field named '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -9659,14 +9679,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an inherited method is
-  // referenced using `super`, but there’s no method with that name in the
+  // The analyzer produces this diagnostic when an inherited member is
+  // referenced using `super`, but there’s no member with that name in the
   // superclass chain.
   //
   // #### Examples
   //
   // The following code produces this diagnostic because `Object` doesn't define
-  // a member named `n`:
+  // a method named `n`:
   //
   // ```dart
   // class C {
@@ -9676,18 +9696,31 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
+  // The following code produces this diagnostic because `Object` doesn't define
+  // a getter named `g`:
+  //
+  // ```dart
+  // class C {
+  //   void m() {
+  //     super.[!g!];
+  //   }
+  // }
+  // ```
+  //
   // #### Common fixes
   //
-  // If the inherited method you intend to invoke has a different name, then
-  // make the name of the invoked method  match the inherited method.
+  // If the inherited member you intend to invoke has a different name, then
+  // make the name of the invoked member match the inherited member.
   //
-  // If the method you intend to invoke is defined in the same class, then
+  // If the member you intend to invoke is defined in the same class, then
   // remove the `super.`.
   //
-  // If not, then either add the method to one of the superclasses or remove the
+  // If not, then either add the member to one of the superclasses or remove the
   // invocation.
   static const CompileTimeErrorCode UNDEFINED_SUPER_METHOD =
-      CompileTimeErrorCode('UNDEFINED_SUPER_METHOD',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_METHOD',
           "The method '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing method, or "
@@ -9695,45 +9728,32 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 12.18 Assignment: Evaluation of an assignment of the form
-   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
-   * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);
-   * return e;} (<i>e<sub>1</sub></i>, <i>e<sub>2</sub></i>,
-   * <i>e<sub>2</sub></i>).
-   *
-   * 12.29 Assignable Expressions: An assignable expression of the form
-   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method
-   * invocation of the operator method [] on <i>e<sub>1</sub></i> with argument
-   * <i>e<sub>2</sub></i>.
-   *
-   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance member named <i>m</i>.
-   *
    * Parameters:
    * 0: the name of the operator
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_OPERATOR =
-      CompileTimeErrorCode('UNDEFINED_SUPER_OPERATOR',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_OPERATOR',
           "The operator '{0}' isn't defined in a superclass of '{1}'.",
-          correction: "Try defining the operator '{0}' in a superclass.");
+          correction: "Try defining the operator '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
-   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
-   * It is a static type warning if <i>T</i> does not have an accessible
-   * instance setter named <i>v=</i>.
-   *
    * Parameters:
    * 0: the name of the setter
    * 1: the name of the enclosing type where the setter is being looked for
    */
   static const CompileTimeErrorCode UNDEFINED_SUPER_SETTER =
-      CompileTimeErrorCode('UNDEFINED_SUPER_SETTER',
+      CompileTimeErrorCodeWithUniqueName(
+          'UNDEFINED_SUPER_MEMBER',
+          'UNDEFINED_SUPER_SETTER',
           "The setter '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing setter, or "
-              "defining a setter or field named '{0}' in a superclass.");
+              "defining a setter or field named '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
@@ -10180,6 +10200,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try moving type arguments to after the type name.");
 
   /**
+   * Parameters:
+   * 0: the name of the extension being referenced
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION =
+      CompileTimeErrorCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
+          "The extension '{0}' is declared with {1} type parameters, "
+              "but {2} type arguments were given.",
+          correction: "Try adjusting the number of type arguments.");
+
+  /**
    * It will be a static type warning if <i>m</i> is not a generic method with
    * exactly <i>n</i> type parameters.
    *
@@ -10232,8 +10265,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
     "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
     correction: "Try removing the type parameter or change the explicit "
-        "variance modifier declaration for the type parameter to another one of"
-        " 'in', 'out', or 'inout'.",
+        "variance modifier declaration for the type parameter to another one "
+        "of 'in', 'out', or 'inout'.",
   );
 
   /**
@@ -10319,6 +10352,88 @@ class CompileTimeErrorCodeWithUniqueName extends CompileTimeErrorCode {
             correction: correction,
             hasPublishedDocs: hasPublishedDocs,
             isUnresolvedIdentifier: isUnresolvedIdentifier);
+}
+
+/**
+ * This class has experimental Language-specific codes.
+ *
+ * Currently it only contains codes related to implicit dynamic.
+ */
+class LanguageCode extends ErrorCode {
+  /**
+   * This is appended to the end of an error message about implicit dynamic.
+   *
+   * The idea is to make sure the user is aware that this error message is the
+   * result of turning on a particular option, and they are free to turn it
+   * back off.
+   */
+  static const String _implicitDynamicCorrection =
+      "Try adding an explicit type, or remove implicit-dynamic from your "
+      "analysis options file.";
+
+  static const LanguageCode IMPLICIT_DYNAMIC_FIELD = LanguageCode(
+      'IMPLICIT_DYNAMIC_FIELD', "Missing field type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_FUNCTION = LanguageCode(
+      'IMPLICIT_DYNAMIC_FUNCTION',
+      "Missing type arguments for generic function '{0}<{1}>'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_INVOKE = LanguageCode(
+      'IMPLICIT_DYNAMIC_INVOKE',
+      "Missing type arguments for calling generic function type '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_LIST_LITERAL = LanguageCode(
+      'IMPLICIT_DYNAMIC_LIST_LITERAL',
+      "Missing type argument for list literal.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_MAP_LITERAL = LanguageCode(
+      'IMPLICIT_DYNAMIC_MAP_LITERAL', "Missing type arguments for map literal.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_METHOD = LanguageCode(
+      'IMPLICIT_DYNAMIC_METHOD',
+      "Missing type arguments for generic method '{0}<{1}>'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_PARAMETER = LanguageCode(
+      'IMPLICIT_DYNAMIC_PARAMETER', "Missing parameter type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_RETURN = LanguageCode(
+      'IMPLICIT_DYNAMIC_RETURN', "Missing return type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_TYPE = LanguageCode(
+      'IMPLICIT_DYNAMIC_TYPE', "Missing type arguments for generic type '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  static const LanguageCode IMPLICIT_DYNAMIC_VARIABLE = LanguageCode(
+      'IMPLICIT_DYNAMIC_VARIABLE', "Missing variable type for '{0}'.",
+      correction: _implicitDynamicCorrection);
+
+  @override
+  final ErrorType type = ErrorType.COMPILE_TIME_ERROR;
+
+  /**
+   * Initialize a newly created language code to have the given [type] and
+   * [name].
+   *
+   * The message associated with the code will be created from the given
+   * [message] template. The correction associated with the code will be
+   * created from the optional [correction] template.
+   */
+  const LanguageCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs ?? false);
+
+  @override
+  ErrorSeverity get errorSeverity => type.severity;
 }
 
 /**
@@ -10423,7 +10538,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a null-aware operator (`?.`,
-  // `?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
+  // `?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
   // non-nullable.
   //
   // #### Example
@@ -10462,8 +10577,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode INVALID_NULL_AWARE_OPERATOR =
       StaticWarningCode(
           'INVALID_NULL_AWARE_OPERATOR',
-          "The target expression can't be null, so the null-aware operator "
-              "'{0}' can't be used.",
+          "The receiver can't be null, so the null-aware operator '{0}' can't "
+              "be used.",
           correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
@@ -10477,8 +10592,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCodeWithUniqueName(
           'INVALID_NULL_AWARE_OPERATOR',
           'INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
-          "The target expression can't be null because of short-circuiting, so "
-              "the null-aware operator '{0}' can't be used.",
+          "The receiver can't be null because of short-circuiting, so the "
+              "null-aware operator '{0}' can't be used.",
           correction: "Try replacing the operator '{0}' with '{1}'.",
           hasPublishedDocs: true);
 
@@ -10611,12 +10726,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   static const StaticWarningCode UNNECESSARY_NON_NULL_ASSERTION =
-      StaticWarningCode(
-          'UNNECESSARY_NON_NULL_ASSERTION',
-          "The '!' will have no effect because the target expression can't be"
-              " null.",
-          correction: "Try removing the '!' operator.",
-          hasPublishedDocs: true);
+      StaticWarningCode('UNNECESSARY_NON_NULL_ASSERTION',
+          "The '!' will have no effect because the receiver can't be null.",
+          correction: "Try removing the '!' operator.", hasPublishedDocs: true);
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -10666,77 +10778,6 @@ class StaticWarningCodeWithUniqueName extends StaticWarningCode {
  * levels, so they are grouped for clarity.
  */
 class StrongModeCode extends ErrorCode {
-  /**
-   * This is appended to the end of an error message about implicit dynamic.
-   *
-   * The idea is to make sure the user is aware that this error message is the
-   * result of turning on a particular option, and they are free to turn it
-   * back off.
-   */
-  static const String _implicitDynamicCorrection =
-      "Try adding an explicit type like 'dynamic', or "
-      "enable implicit-dynamic in your analysis options file.";
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FIELD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FIELD',
-      "Missing field type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_FUNCTION = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_FUNCTION',
-      "Missing type arguments for generic function '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_INVOKE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_INVOKE',
-      "Missing type arguments for calling generic function type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_LIST_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_LIST_LITERAL',
-      "Missing type argument for list literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_MAP_LITERAL = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_MAP_LITERAL',
-      "Missing type arguments for map literal.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_METHOD = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_METHOD',
-      "Missing type arguments for generic method '{0}<{1}>'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_PARAMETER = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_PARAMETER',
-      "Missing parameter type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_RETURN = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_RETURN',
-      "Missing return type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_TYPE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_TYPE',
-      "Missing type arguments for generic type '{0}'.",
-      correction: _implicitDynamicCorrection);
-
-  static const StrongModeCode IMPLICIT_DYNAMIC_VARIABLE = StrongModeCode(
-      ErrorType.COMPILE_TIME_ERROR,
-      'IMPLICIT_DYNAMIC_VARIABLE',
-      "Missing variable type for '{0}'.",
-      correction: _implicitDynamicCorrection);
-
   /*
    * TODO(brianwilkerson) Make the TOP_LEVEL_ error codes be errors rather than
    * hints and then clean up the function _errorSeverity in

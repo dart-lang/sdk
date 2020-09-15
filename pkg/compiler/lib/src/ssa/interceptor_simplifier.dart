@@ -92,10 +92,6 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
   bool canUseSelfForInterceptor(HInstruction receiver,
       {Set<ClassEntity> interceptedClasses}) {
-    if (receiver.isPrimitive(_abstractValueDomain).isPotentiallyTrue) {
-      // Primitives always need interceptors.
-      return false;
-    }
     if (receiver.isNull(_abstractValueDomain).isPotentiallyTrue) {
       if (interceptedClasses == null ||
           interceptedClasses.contains(_commonElements.jsNullClass)) {

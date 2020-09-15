@@ -1,5 +1,5 @@
 class Operators7 {
-  operator <<( ){ }
+  operator <<(){}
   Toperator>(a) => true;
 }
-main() { }
+main() {}

@@ -12,9 +12,11 @@ class A {
   dynamic set baz(x) {}
 //^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+// [cfe] The return type of the setter must be 'void' or absent.
   bool set bob(x) {}
 //^^^^
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
+// [cfe] The return type of the setter must be 'void' or absent.
 }
 
 main() {

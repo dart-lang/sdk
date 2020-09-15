@@ -132,21 +132,6 @@ abstract class VmServiceBase implements VmServiceConst {
 
       @Override
       public void received(Version version) {
-        int major = version.getMajor();
-        int minor = version.getMinor();
-        if (major != VmService.versionMajor || minor != VmService.versionMinor) {
-          if (major == 2 || major == 3) {
-            Logging.getLogger().logInformation(
-                "Difference in protocol version: client=" + VmService.versionMajor + "."
-                    + VmService.versionMinor + " vm=" + major + "." + minor);
-          } else {
-            String msg = "Incompatible protocol version: client=" + VmService.versionMajor + "."
-                + VmService.versionMinor + " vm=" + major + "." + minor;
-            Logging.getLogger().logError(msg);
-            errMsg[0] = msg;
-          }
-        }
-
         vmService.runtimeVersion = version;
 
         latch.countDown();
@@ -313,7 +298,7 @@ abstract class VmServiceBase implements VmServiceConst {
   /**
    * Invoke a specific service protocol extension method.
    * <p>
-   * See https://api.dartlang.org/stable/dart-developer/dart-developer-library.html.
+   * See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
    */
   public void callServiceExtension(String isolateId, String method, ServiceExtensionConsumer consumer) {
     JsonObject params = new JsonObject();
@@ -324,7 +309,7 @@ abstract class VmServiceBase implements VmServiceConst {
   /**
    * Invoke a specific service protocol extension method.
    * <p>
-   * See https://api.dartlang.org/stable/dart-developer/dart-developer-library.html.
+   * See https://api.dart.dev/stable/dart-developer/dart-developer-library.html.
    */
   public void callServiceExtension(String isolateId, String method, JsonObject params, ServiceExtensionConsumer consumer) {
     params.addProperty("isolateId", isolateId);

@@ -15,11 +15,6 @@ import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 StringSink out;
 
-const Set<String> specialHandledMethods = {
-  "beginBinaryExpression",
-  "endBinaryExpression",
-};
-
 main(List<String> args) {
   if (args.contains("--stdout")) {
     out = stdout;
@@ -157,8 +152,7 @@ class ParserCreatorListener extends Listener {
         out.write(" null;");
       } else {
         out.write("\n    ");
-        if (!specialHandledMethods.contains(currentMethodName) &&
-            currentMethodName.startsWith("end")) {
+        if (currentMethodName.startsWith("end")) {
           out.write("indent--;\n    ");
         }
         for (int i = 0; i < parameterTypes.length; i++) {
@@ -176,8 +170,7 @@ class ParserCreatorListener extends Listener {
         }
         out.write(")');\n  ");
 
-        if (!specialHandledMethods.contains(currentMethodName) &&
-            currentMethodName.startsWith("begin")) {
+        if (currentMethodName.startsWith("begin")) {
           out.write("  indent++;\n  ");
         }
 

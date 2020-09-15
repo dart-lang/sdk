@@ -50,6 +50,23 @@ void main() {
           expect(result.stderr, isEmpty);
         }
       });
+
+      test(
+          'dart --sound-null-safety --enable-experiment=non-nullable '
+          'run smoke.dart', () async {
+        final result = await Process.run(
+          Platform.executable,
+          [
+            '--sound-null-safety',
+            '--enable-experiment=non-nullable',
+            'run',
+            script,
+          ],
+        );
+        expect(result.exitCode, 0);
+        expect(result.stdout, contains('Smoke test!'));
+        expect(result.stderr, isEmpty);
+      });
     },
     timeout: Timeout.none,
   );

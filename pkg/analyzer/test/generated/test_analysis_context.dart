@@ -68,10 +68,6 @@ class TestAnalysisContext implements AnalysisContext {
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 
-  @Deprecated('Use LibraryElement.typeProvider')
-  @override
-  TypeProvider get typeProvider => typeProviderLegacy;
-
   TypeProvider get typeProviderLegacy {
     return _typeProviderLegacy;
   }
@@ -79,10 +75,6 @@ class TestAnalysisContext implements AnalysisContext {
   TypeProvider get typeProviderNonNullableByDefault {
     return _typeProviderNonNullableByDefault;
   }
-
-  @Deprecated('Use LibraryElement.typeSystem')
-  @override
-  TypeSystemImpl get typeSystem => typeSystemLegacy;
 
   TypeSystemImpl get typeSystemLegacy {
     return _typeSystemLegacy;

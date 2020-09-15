@@ -510,8 +510,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
                                        const Location& destination,
                                        Register tmp) {
   if (destination.IsRegister()) {
-    if (representation() == kUnboxedInt32 ||
-        representation() == kUnboxedInt64) {
+    if (RepresentationUtils::IsUnboxedInteger(representation())) {
       const int64_t value = Integer::Cast(value_).AsInt64Value();
       if (value == 0) {
         __ xorl(destination.reg(), destination.reg());
@@ -542,8 +541,7 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
-    if (representation() == kUnboxedInt32 ||
-        representation() == kUnboxedInt64) {
+    if (RepresentationUtils::IsUnboxedInteger(representation())) {
       const int64_t value = Integer::Cast(value_).AsInt64Value();
       __ movq(LocationToStackSlotAddress(destination),
               compiler::Immediate(value));
@@ -556,22 +554,26 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
 
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
+  const bool is_unboxed_int =
+      RepresentationUtils::IsUnboxedInteger(representation());
+  ASSERT(!is_unboxed_int || RepresentationUtils::ValueSize(representation()) <=
+                                compiler::target::kWordSize);
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = IsUnboxedSignedIntegerConstant() ? 0 : 1;
+  const intptr_t kNumTemps = is_unboxed_int ? 0 : 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  switch (representation()) {
-    case kUnboxedDouble:
-      locs->set_out(0, Location::RequiresFpuRegister());
-      locs->set_temp(0, Location::RequiresRegister());
-      break;
-    case kUnboxedInt32:
-    case kUnboxedInt64:
-      locs->set_out(0, Location::RequiresRegister());
-      break;
-    default:
-      UNREACHABLE();
-      break;
+  if (is_unboxed_int) {
+    locs->set_out(0, Location::RequiresRegister());
+  } else {
+    switch (representation()) {
+      case kUnboxedDouble:
+        locs->set_out(0, Location::RequiresFpuRegister());
+        locs->set_temp(0, Location::RequiresRegister());
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
   }
   return locs;
 }
@@ -580,7 +582,9 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
     const Register scratch =
-        IsUnboxedSignedIntegerConstant() ? kNoRegister : locs()->temp(0).reg();
+        RepresentationUtils::IsUnboxedInteger(representation())
+            ? kNoRegister
+            : locs()->temp(0).reg();
     EmitMoveToLocation(compiler, locs()->out(0), scratch);
   }
 }
@@ -590,15 +594,12 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   auto const dst_type_loc =
       LocationFixedRegisterOrConstant(dst_type(), TypeTestABI::kDstTypeReg);
 
-  // When using a type testing stub, we want to prevent spilling of the
-  // function/instantiator type argument vectors, since stub preserves them. So
-  // we make this a `kNoCall` summary, even though most other registers can be
-  // modified by the stub. To tell the register allocator about it, we reserve
-  // all the other registers as temporary registers.
+  // We want to prevent spilling of the inputs (e.g. function/instantiator tav),
+  // since TTS preserves them. So we make this a `kNoCall` summary,
+  // even though most other registers can be modified by the stub. To tell the
+  // register allocator about it, we reserve all the other registers as
+  // temporary registers.
   // TODO(http://dartbug.com/32788): Simplify this.
-  const bool using_stub = dst_type_loc.IsConstant() &&
-                          FlowGraphCompiler::ShouldUseTypeTestingStubFor(
-                              opt, AbstractType::Cast(dst_type_loc.constant()));
 
   const intptr_t kNonChangeableInputRegs =
       (1 << TypeTestABI::kInstanceReg) |
@@ -617,14 +618,11 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kFpuRegistersToPreserve =
       CallingConventions::kVolatileXmmRegisters & ~(1 << FpuTMP);
 
-  const intptr_t kNumTemps =
-      using_stub ? (Utils::CountOneBits64(kCpuRegistersToPreserve) +
-                    Utils::CountOneBits64(kFpuRegistersToPreserve))
-                 : 0;
+  const intptr_t kNumTemps = (Utils::CountOneBits64(kCpuRegistersToPreserve) +
+                              Utils::CountOneBits64(kFpuRegistersToPreserve));
 
   LocationSummary* summary = new (zone) LocationSummary(
-      zone, kNumInputs, kNumTemps,
-      using_stub ? LocationSummary::kCallCalleeSafe : LocationSummary::kCall);
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallCalleeSafe);
   summary->set_in(0, Location::RegisterLocation(TypeTestABI::kInstanceReg));
   summary->set_in(1, dst_type_loc);
   summary->set_in(2, Location::RegisterLocation(
@@ -633,23 +631,21 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
       3, Location::RegisterLocation(TypeTestABI::kFunctionTypeArgumentsReg));
   summary->set_out(0, Location::SameAsFirstInput());
 
-  if (using_stub) {
-    // Let's reserve all registers except for the input ones.
-    intptr_t next_temp = 0;
-    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
-      const bool should_preserve = ((1 << i) & kCpuRegistersToPreserve) != 0;
-      if (should_preserve) {
-        summary->set_temp(next_temp++,
-                          Location::RegisterLocation(static_cast<Register>(i)));
-      }
+  // Let's reserve all registers except for the input ones.
+  intptr_t next_temp = 0;
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    const bool should_preserve = ((1 << i) & kCpuRegistersToPreserve) != 0;
+    if (should_preserve) {
+      summary->set_temp(next_temp++,
+                        Location::RegisterLocation(static_cast<Register>(i)));
     }
+  }
 
-    for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
-      const bool should_preserve = ((1 << i) & kFpuRegistersToPreserve) != 0;
-      if (should_preserve) {
-        summary->set_temp(next_temp++, Location::FpuRegisterLocation(
-                                           static_cast<FpuRegister>(i)));
-      }
+  for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
+    const bool should_preserve = ((1 << i) & kFpuRegistersToPreserve) != 0;
+    if (should_preserve) {
+      summary->set_temp(next_temp++, Location::FpuRegisterLocation(
+                                         static_cast<FpuRegister>(i)));
     }
   }
 
@@ -791,10 +787,11 @@ static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
       constant = right.constant_instruction();
     }
 
-    if (constant->IsUnboxedSignedIntegerConstant()) {
-      __ cmpq(left.reg(),
-              compiler::Immediate(
-                  constant->GetUnboxedSignedIntegerConstantValue()));
+    if (RepresentationUtils::IsUnboxedInteger(constant->representation())) {
+      int64_t value;
+      const bool ok = compiler::HasIntegerValue(constant->value(), &value);
+      RELEASE_ASSERT(ok);
+      __ cmpq(left.reg(), compiler::Immediate(value));
     } else {
       ASSERT(constant->representation() == kTagged);
       __ CompareObject(left.reg(), right.constant());
@@ -2775,16 +2772,21 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = (IsUnboxedLoad() && opt)
-                                 ? (FLAG_precompiled_mode ? 0 : 1)
-                                 : (IsPotentialUnboxedLoad() ? 2 : 0);
+  const intptr_t kNumTemps =
+      (slot().representation() != kTagged)
+          ? 0
+          : ((IsUnboxedDartFieldLoad() && opt)
+                 ? (FLAG_precompiled_mode ? 0 : 1)
+                 : (IsPotentialUnboxedDartFieldLoad() ? 2 : 0));
   const auto contains_call =
-      (IsUnboxedLoad() && opt)
+      (slot().representation() != kTagged)
           ? LocationSummary::kNoCall
-          : (IsPotentialUnboxedLoad()
-                 ? LocationSummary::kCallOnSlowPath
-                 : (calls_initializer() ? LocationSummary::kCall
-                                        : LocationSummary::kNoCall));
+          : ((IsUnboxedDartFieldLoad() && opt)
+                 ? LocationSummary::kNoCall
+                 : (IsPotentialUnboxedDartFieldLoad()
+                        ? LocationSummary::kCallOnSlowPath
+                        : (calls_initializer() ? LocationSummary::kCall
+                                               : LocationSummary::kNoCall)));
 
   LocationSummary* locs =
       new (zone) LocationSummary(zone, kNumInputs, kNumTemps, contains_call);
@@ -2793,18 +2795,21 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                             InitInstanceFieldABI::kInstanceReg)
                                       : Location::RequiresRegister());
 
-  if (IsUnboxedLoad() && opt) {
+  if (slot().representation() != kTagged) {
     ASSERT(!calls_initializer());
+    ASSERT(RepresentationUtils::IsUnboxedInteger(slot().representation()));
+    ASSERT(RepresentationUtils::ValueSize(slot().representation()) <=
+           compiler::target::kWordSize);
+    locs->set_out(0, Location::RequiresRegister());
+  }
+  if (IsUnboxedDartFieldLoad() && opt) {
+    ASSERT(!calls_initializer());
+    ASSERT(!slot().field().is_non_nullable_integer());
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
-    if (slot().field().is_non_nullable_integer()) {
-      ASSERT(FLAG_precompiled_mode);
-      locs->set_out(0, Location::RequiresRegister());
-    } else {
-      locs->set_out(0, Location::RequiresFpuRegister());
-    }
-  } else if (IsPotentialUnboxedLoad()) {
+    locs->set_out(0, Location::RequiresFpuRegister());
+  } else if (IsPotentialUnboxedDartFieldLoad()) {
     ASSERT(!calls_initializer());
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(XMM1));
@@ -2824,16 +2829,26 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(FieldLayout::guarded_cid_) == 2);
   ASSERT(sizeof(FieldLayout::is_nullable_) == 2);
 
-  Register instance_reg = locs()->in(0).reg();
-  if (IsUnboxedLoad() && compiler->is_optimizing()) {
-    ASSERT(!calls_initializer());
-    if (slot().field().is_non_nullable_integer()) {
-      const Register result = locs()->out(0).reg();
-      __ Comment("UnboxedIntegerLoadFieldInstr");
-      __ movq(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
-      return;
+  const Register instance_reg = locs()->in(0).reg();
+  if (slot().representation() != kTagged) {
+    const Register result = locs()->out(0).reg();
+    switch (slot().representation()) {
+      case kUnboxedInt64:
+        __ Comment("UnboxedInt64LoadFieldInstr");
+        __ movq(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+        break;
+      case kUnboxedUint32:
+        __ Comment("UnboxedUint32LoadFieldInstr");
+        __ movl(result, compiler::FieldAddress(instance_reg, OffsetInBytes()));
+        break;
+      default:
+        UNIMPLEMENTED();
+        break;
     }
+    return;
+  }
 
+  if (IsUnboxedDartFieldLoad() && compiler->is_optimizing()) {
     XmmRegister result = locs()->out(0).fpu_reg();
     const intptr_t cid = slot().field().UnboxedFieldCid();
 
@@ -2885,9 +2900,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler::Label done;
-  Register result = locs()->out(0).reg();
-  if (IsPotentialUnboxedLoad()) {
-    ASSERT(!calls_initializer());
+  const Register result = locs()->out(0).reg();
+  if (IsPotentialUnboxedDartFieldLoad()) {
     Register temp = locs()->temp(1).reg();
     XmmRegister value = locs()->temp(0).fpu_reg();
 
@@ -4255,6 +4269,7 @@ void BoxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
+  ASSERT(!RepresentationUtils::IsUnsigned(representation()));
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   const bool needs_writable_input =
@@ -4264,7 +4279,7 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, needs_writable_input ? Location::WritableRegister()
                                           : Location::RequiresRegister());
-  if (representation() == kUnboxedInt64 || representation() == kUnboxedInt32) {
+  if (RepresentationUtils::IsUnboxedInteger(representation())) {
     summary->set_out(0, Location::SameAsFirstInput());
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
@@ -4313,6 +4328,7 @@ void UnboxInstr::EmitSmiConversion(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
 
   switch (representation()) {
+    case kUnboxedInt32:
     case kUnboxedInt64: {
       const Register result = locs()->out(0).reg();
       ASSERT(result == box);
@@ -6238,9 +6254,9 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          temp.reg(), out.reg());
   } else if (right.IsConstant()) {
     ASSERT(out.reg() == left.reg());
-    ConstantInstr* constant_instr = right.constant_instruction();
-    const int64_t value =
-        constant_instr->GetUnboxedSignedIntegerConstantValue();
+    int64_t value;
+    const bool ok = compiler::HasIntegerValue(right.constant(), &value);
+    RELEASE_ASSERT(ok);
     EmitInt64Arithmetic(compiler, op_kind(), left.reg(),
                         compiler::Immediate(value));
   } else {

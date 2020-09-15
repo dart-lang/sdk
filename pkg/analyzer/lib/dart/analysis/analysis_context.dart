@@ -27,43 +27,6 @@ abstract class AnalysisContext {
   /// Return the currently active analysis session.
   AnalysisSession get currentSession;
 
-  /// A list of the absolute, normalized paths of files and directories that
-  /// will not be analyzed.
-  ///
-  /// Deprecated: Use `contextRoot.excludedPaths`.
-  @deprecated
-  List<String> get excludedPaths;
-
-  /// A list of the absolute, normalized paths of files and directories that
-  /// will be analyzed. If a path in the list represents a file, then that file
-  /// will be analyzed, even if it is in the list of [excludedPaths]. If path in
-  /// the list represents a directory, then all of the files contained in that
-  /// directory, either directly or indirectly, and that are not explicitly
-  /// excluded by the list of [excludedPaths] will be analyzed.
-  ///
-  /// Deprecated: Use `contextRoot.includedPaths`.
-  @deprecated
-  List<String> get includedPaths;
-
   /// Return the workspace for containing the context root.
   Workspace get workspace;
-
-  /// Return the absolute, normalized paths of all of the files that are
-  /// contained in this context. These are all of the files that are included
-  /// directly or indirectly by one or more of the [includedPaths] and that are
-  /// not excluded by any of the [excludedPaths].
-  ///
-  /// Deprecated: Use `contextRoot.analyzedFiles`.
-  @deprecated
-  Iterable<String> analyzedFiles();
-
-  /// Return `true` if the file or directory with the given [path] will be
-  /// analyzed in this context. A file (or directory) will be analyzed if it is
-  /// either the same as or contained in one of the [includedPaths] and, if it
-  /// is contained in one of the [includedPaths], is not the same as or
-  /// contained in one of the [excludedPaths].
-  ///
-  /// Deprecated: Use `contextRoot.isAnalyzed`.
-  @deprecated
-  bool isAnalyzed(String path);
 }

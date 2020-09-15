@@ -405,7 +405,7 @@ class CommandQueue {
   void _tryRunNextCommand() {
     _checkDone();
 
-    if (_numProcesses < _maxProcesses && !_runQueue.isEmpty) {
+    if (_numProcesses < _maxProcesses && _runQueue.isNotEmpty) {
       var command = _runQueue.removeFirst();
       var isBrowserCommand = command is BrowserTestCommand;
 

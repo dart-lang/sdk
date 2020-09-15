@@ -17,10 +17,12 @@ import 'ambiguous_extension_member_access_test.dart'
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
+import 'annotation_syntax_test.dart' as annotation_syntax;
 import 'annotation_with_non_class_test.dart' as annotation_with_non_class;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
+import 'assignment_of_do_not_store_test.dart' as assignment_of_do_not_store;
 import 'assignment_to_const_test.dart' as assignment_to_const;
 import 'assignment_to_final_local_test.dart' as assignment_to_final_local;
 import 'assignment_to_final_no_setter_test.dart'
@@ -169,6 +171,11 @@ import 'extension_override_with_cascade_test.dart'
     as extension_override_with_cascade;
 import 'extension_override_without_access_test.dart'
     as extension_override_without_access;
+import 'external_field_constructor_initializer_test.dart'
+    as external_field_constructor_initializer;
+import 'external_field_initializer_test.dart' as external_field_initializer;
+import 'external_variable_initializer_test.dart'
+    as external_variable_initializer;
 import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
@@ -264,6 +271,7 @@ import 'integer_literal_out_of_range_test.dart' as integer_literal_out_of_range;
 import 'invalid_annotation_from_deferred_library_test.dart'
     as invalid_annotation_from_deferred_library;
 import 'invalid_annotation_getter_test.dart' as invalid_annotation_getter;
+import 'invalid_annotation_target_test.dart' as invalid_annotation_target;
 import 'invalid_annotation_test.dart' as invalid_annotation;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
@@ -324,10 +332,6 @@ import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
     as invocation_of_non_function_expression;
-import 'is_double_test.dart' as is_double;
-import 'is_int_test.dart' as is_int;
-import 'is_not_double_test.dart' as is_not_double;
-import 'is_not_int_test.dart' as is_not_int;
 import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_field_with_const_constructor_test.dart'
@@ -360,6 +364,8 @@ import 'mixin_class_declares_constructor_test.dart'
     as mixin_class_declares_constructor;
 import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
 import 'mixin_deferred_class_test.dart' as mixin_deferred_class;
+import 'mixin_inference_no_possible_substitution_test.dart'
+    as mixin_inference_no_possible_substitution;
 import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
@@ -448,6 +454,7 @@ import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
 import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
 import 'null_aware_in_logical_operator_test.dart'
     as null_aware_in_logical_operator;
+import 'null_safety_read_write_test.dart' as null_safety_read_write;
 import 'nullable_type_in_catch_clause_test.dart'
     as nullable_type_in_catch_clause;
 import 'nullable_type_in_extends_clause_test.dart'
@@ -623,6 +630,8 @@ import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
 import 'wrong_number_of_parameters_for_setter_test.dart'
     as wrong_number_of_parameters_for_setter;
+import 'wrong_number_of_type_arguments_extension_test.dart'
+    as wrong_number_of_type_arguments_extension;
 import 'wrong_number_of_type_arguments_test.dart'
     as wrong_number_of_type_arguments;
 import 'wrong_type_parameter_variance_in_superinterface_test.dart'
@@ -643,9 +652,11 @@ main() {
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     annotation_on_pointer_field.main();
+    annotation_syntax.main();
     annotation_with_non_class.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();
+    assignment_of_do_not_store.main();
     assignment_to_const.main();
     assignment_to_final_local.main();
     assignment_to_final_no_setter.main();
@@ -747,6 +758,9 @@ main() {
     extension_override_argument_not_assignable.main();
     extension_override_with_cascade.main();
     extension_override_without_access.main();
+    external_field_constructor_initializer.main();
+    external_field_initializer.main();
+    external_variable_initializer.main();
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     field_in_struct_with_initializer.main();
@@ -805,6 +819,7 @@ main() {
     invalid_annotation.main();
     invalid_annotation_from_deferred_library.main();
     invalid_annotation_getter.main();
+    invalid_annotation_target.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_constant.main();
@@ -844,10 +859,6 @@ main() {
     invalid_visibility_annotation.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
-    is_double.main();
-    is_int.main();
-    is_not_double.main();
-    is_not_int.main();
     label_in_outer_scope.main();
     label_undefined.main();
     late_final_field_with_const_constructor.main();
@@ -870,6 +881,7 @@ main() {
     mixin_class_declares_constructor.main();
     mixin_declares_constructor.main();
     mixin_deferred_class.main();
+    mixin_inference_no_possible_substitution.main();
     mixin_inherits_from_not_object.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
@@ -932,6 +944,7 @@ main() {
     null_aware_before_operator.main();
     null_aware_in_condition.main();
     null_aware_in_logical_operator.main();
+    null_safety_read_write.main();
     nullable_type_in_catch_clause.main();
     nullable_type_in_extends_clause.main();
     nullable_type_in_implements_clause.main();
@@ -1054,6 +1067,7 @@ main() {
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();
     wrong_number_of_parameters_for_setter.main();
+    wrong_number_of_type_arguments_extension.main();
     wrong_number_of_type_arguments.main();
     wrong_type_parameter_variance_in_superinterface.main();
     yield_each_in_non_generator.main();

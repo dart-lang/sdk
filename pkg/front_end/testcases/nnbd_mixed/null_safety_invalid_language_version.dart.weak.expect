@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/null_safety_invalid_language_version.dart:7:4: Error: Null safety features are disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 2.10 or higher.
+// int? i;
+//    ^
+// pkg/front_end/testcases/nnbd_mixed/null_safety_invalid_language_version.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
+// // @dart=2.7
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i;
+static method main() → dynamic {}

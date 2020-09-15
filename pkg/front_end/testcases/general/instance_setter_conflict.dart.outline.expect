@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/instance_setter_conflict.dart:11:14: Error: Can't declare a member that conflicts with an inherited one.
+//   static get v {
+//              ^
+// pkg/front_end/testcases/general/instance_setter_conflict.dart:6:7: Context: This is the inherited member.
+//   int v;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int* v;
+  synthetic constructor •() → self::A*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends self::A {
+  static field core::int* n;
+  synthetic constructor •() → self::C*
+    ;
+  static get v() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

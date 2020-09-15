@@ -1,0 +1,11 @@
+import "dart:async";
+
+class Mixin {
+  FutureOr<Null> m;
+}
+
+class Class extends Object with Mixin {
+  test(dynamic t1) {}
+}
+
+main() {}

@@ -1,0 +1,10 @@
+class A {
+  int v;
+}
+
+class C extends A {
+  static int n;
+  static get v {}
+}
+
+main() {}

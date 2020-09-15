@@ -262,7 +262,7 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
       (FLAG_gc_every > 0) ||
       (isolate()->reload_every_n_stack_overflow_checks() > 0)) {
-    if (!Isolate::IsVMInternalIsolate(isolate())) {
+    if (!Isolate::IsSystemIsolate(isolate())) {
       return true;
     }
   }
@@ -2290,13 +2290,6 @@ bool FlowGraphCompiler::CheckAssertAssignableTypeTestingABILocations(
   return true;
 }
 
-bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
-                                                    const AbstractType& type) {
-  return FLAG_precompiled_mode ||
-         (optimizing &&
-          (type.IsTypeParameter() || (type.IsType() && type.IsInstantiated())));
-}
-
 FlowGraphCompiler::TypeTestStubKind
 FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
     const TypeParameter& type_param) {
@@ -2470,16 +2463,24 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   if ((rep == kUnboxedDouble) || (rep == kUnboxedFloat64x2) ||
       (rep == kUnboxedFloat32x4)) {
-    // LoadField instruction lies about its representation in the unoptimized
-    // code because Definition::representation() can't depend on the type of
-    // compilation but MakeLocationSummary and EmitNativeCode can.
-    ASSERT(defn->IsLoadField() && defn->AsLoadField()->IsUnboxedLoad());
+    // The LoadField instruction may lie about its representation in unoptimized
+    // code for Dart fields because Definition::representation() can't depend on
+    // the type of compilation but MakeLocationSummary and EmitNativeCode can.
+    ASSERT(defn->IsLoadField() &&
+           defn->AsLoadField()->IsUnboxedDartFieldLoad());
     ASSERT(defn->locs()->out(0).IsRegister());
     rep = kTagged;
   }
   ASSERT(!is_optimizing());
-  ASSERT((rep == kTagged) || (rep == kUntagged));
+  ASSERT((rep == kTagged) || (rep == kUntagged) || (rep == kUnboxedUint32));
   ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
+  const auto& function = flow_graph_.parsed_function().function();
+  // Currently, we only allow unboxed uint32 on the stack in unoptimized code
+  // when building a dynamic closure call dispatcher, where any unboxed values
+  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
+  // See FlowGraphBuilder::BuildDynamicCallVarsInit().
+  ASSERT(rep != kUnboxedUint32 ||
+         function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }
 
@@ -2836,6 +2837,53 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
     }
   }
   return;
+}
+
+// The assignment to loading units here must match that in
+// AssignLoadingUnitsCodeVisitor, which runs after compilation is done.
+static intptr_t LoadingUnitOf(Zone* zone, const Function& function) {
+  const Class& cls = Class::Handle(zone, function.Owner());
+  const Library& lib = Library::Handle(zone, cls.library());
+  const LoadingUnit& unit = LoadingUnit::Handle(zone, lib.loading_unit());
+  ASSERT(!unit.IsNull());
+  return unit.id();
+}
+
+static intptr_t LoadingUnitOf(Zone* zone, const Code& code) {
+  // No WeakSerializationReference owners here because those are only
+  // introduced during AOT serialization.
+  if (code.IsStubCode() || code.IsTypeTestStubCode()) {
+    return LoadingUnit::kRootId;
+  } else if (code.IsAllocationStubCode()) {
+    const Class& cls = Class::Cast(Object::Handle(zone, code.owner()));
+    const Library& lib = Library::Handle(zone, cls.library());
+    const LoadingUnit& unit = LoadingUnit::Handle(zone, lib.loading_unit());
+    ASSERT(!unit.IsNull());
+    return unit.id();
+  } else if (code.IsFunctionCode()) {
+    return LoadingUnitOf(zone,
+                         Function::Cast(Object::Handle(zone, code.owner())));
+  } else {
+    UNREACHABLE();
+    return LoadingUnit::kIllegalId;
+  }
+}
+
+bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+         (LoadingUnitOf(zone_, function()) == LoadingUnitOf(zone_, target));
+}
+
+bool FlowGraphCompiler::CanPcRelativeCall(const Code& target) const {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+         !target.InVMIsolateHeap() &&
+         (LoadingUnitOf(zone_, function()) == LoadingUnitOf(zone_, target));
+}
+
+bool FlowGraphCompiler::CanPcRelativeCall(const AbstractType& target) const {
+  return FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+         !target.InVMIsolateHeap() &&
+         (LoadingUnitOf(zone_, function()) == LoadingUnit::kRootId);
 }
 
 #undef __

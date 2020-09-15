@@ -478,7 +478,9 @@ abstract class num implements Comparable<num> {
   int operator ~/(num other);
 
   num abs();
+  num clamp(num lowerLimit, num upperLimit);
   int floor();
+  num remainder(num other);
   int round();
   double toDouble();
   int toInt();

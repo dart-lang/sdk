@@ -93,6 +93,7 @@ general/type_variable_as_super: RuntimeError
 general/type_variable_bound_access: TypeCheckError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
+general/with_dependencies/issue_43084/issue_43084: RuntimeError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/accessors: RuntimeError
 general_nnbd_opt_out/ambiguous_exports: RuntimeError
@@ -172,6 +173,7 @@ nnbd/covariant_late_field: TypeCheckError
 nnbd/issue41180: RuntimeError
 nnbd/issue42546: TypeCheckError
 nnbd/issue42603: TypeCheckError
+nnbd/no_support_for_old_null_aware_index_access_syntax: RuntimeError # Expected.
 nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
@@ -248,3 +250,6 @@ runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_do
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
+value_class/simple: RuntimeError # Expected
+value_class/value_extends_non_value: RuntimeError # Expected
+value_class/value_implements_non_value: RuntimeError # Expected

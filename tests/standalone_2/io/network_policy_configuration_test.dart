@@ -24,9 +24,17 @@ void _checkDenies(List<String> domains) {
 
 void main() {
   // These have no policy but the default is false.
-  _checkDenies(["mailfoobar.com", "abc.com", "oobar.com", "foobar.co"]);
+  _checkDenies([
+    "mailfoobar.com",
+    "abc.com",
+    "oobar.com",
+    "foobar.co",
+    "128.221.55.31",
+    "fe80::4607:0bff:fea0:7747%invalid",
+  ]);
   // These are explicitly denied.
   _checkDenies(["baz.foobar.com"]);
   _checkAllows(
       ["foobar.com", "test.baz.foobar.com", "test2.test.baz.foobar.com"]);
+  _checkAllows(["::1", "localhost"]);
 }

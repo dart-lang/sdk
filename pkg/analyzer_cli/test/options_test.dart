@@ -72,7 +72,6 @@ void main() {
         expect(options.showSdkWarnings, isFalse);
         expect(options.sourceFiles, equals(['foo.dart']));
         expect(options.warningsAreFatal, isFalse);
-        expect(options.strongMode, isTrue);
         expect(options.lintsAreFatal, isFalse);
         expect(options.trainSnapshot, isFalse);
       });
@@ -102,7 +101,8 @@ void main() {
             isEnabledByDefault: false,
             isExpired: false,
             documentation: 'a',
-            firstSupportedVersion: null,
+            experimentalReleaseVersion: null,
+            releaseVersion: null,
           ),
           'b': ExperimentalFeature(
             index: 1,
@@ -110,7 +110,8 @@ void main() {
             isEnabledByDefault: false,
             isExpired: false,
             documentation: 'b',
-            firstSupportedVersion: null,
+            experimentalReleaseVersion: null,
+            releaseVersion: null,
           ),
           'c': ExperimentalFeature(
             index: 2,
@@ -118,7 +119,8 @@ void main() {
             isEnabledByDefault: false,
             isExpired: false,
             documentation: 'c',
-            firstSupportedVersion: null,
+            experimentalReleaseVersion: null,
+            releaseVersion: null,
           ),
         };
 

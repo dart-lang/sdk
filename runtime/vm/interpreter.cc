@@ -1712,6 +1712,7 @@ SwitchDispatch:
     const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
     const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
     if ((arg_count != num_fixed_params) || (pos_count != num_fixed_params)) {
+      SP[1] = FrameFunction(FP);
       goto NoSuchMethodFromPrologue;
     }
 
@@ -1729,6 +1730,7 @@ SwitchDispatch:
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC)) {
       DISPATCH();
     } else {
+      SP[1] = FrameFunction(FP);
       goto NoSuchMethodFromPrologue;
     }
   }
@@ -1792,6 +1794,7 @@ SwitchDispatch:
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
     if ((type_args_len != declared_type_args_len) && (type_args_len != 0)) {
+      SP[1] = FrameFunction(FP);
       goto NoSuchMethodFromPrologue;
     }
     if (type_args_len > 0) {
@@ -3451,6 +3454,8 @@ SwitchDispatch:
 
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::kind(function) == FunctionLayout::kInvokeFieldDispatcher);
+    const bool is_dynamic_call =
+        Function::IsDynamicInvocationForwarderName(function->ptr()->name_);
 
     BUMP_USAGE_COUNTER_ON_ENTRY(function);
 
@@ -3462,9 +3467,31 @@ SwitchDispatch:
 
     ClosurePtr receiver =
         Closure::RawCast(FrameArguments(FP, argc)[receiver_idx]);
-    function = receiver->ptr()->function_;
+    SP[1] = receiver->ptr()->function_;
 
-    SP[1] = function;
+    if (is_dynamic_call) {
+      {
+        SP[2] = null_value;
+        SP[3] = receiver;
+        SP[4] = argdesc_;
+        Exit(thread, FP, SP + 5, pc);
+        if (!InvokeRuntime(thread, this, DRT_ClosureArgumentsValid,
+                           NativeArguments(thread, 2, SP + 3, SP + 2))) {
+          HANDLE_EXCEPTION;
+        }
+        receiver = Closure::RawCast(SP[3]);
+        argdesc_ = Array::RawCast(SP[4]);
+      }
+
+      if (SP[2] != Bool::True().raw()) {
+        goto NoSuchMethodFromPrologue;
+      }
+
+      // TODO(dartbug.com/40813): Move other checks that are currently
+      // compiled in the closure body to here as they are also moved to
+      // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
+    }
+
     goto TailCallSP1;
   }
 
@@ -3509,12 +3536,31 @@ SwitchDispatch:
 
     // If the field value is a closure, no need to resolve 'call' function.
     if (InterpreterHelpers::GetClassId(receiver) == kClosureCid) {
+      SP[1] = Closure::RawCast(receiver)->ptr()->function_;
+
       if (is_dynamic_call) {
-        // TODO(dartbug.com/40813): Move checks that are currently compiled
-        // in the closure body to here as they are also moved to
+        {
+          SP[2] = null_value;
+          SP[3] = receiver;
+          SP[4] = argdesc_;
+          Exit(thread, FP, SP + 5, pc);
+          if (!InvokeRuntime(thread, this, DRT_ClosureArgumentsValid,
+                             NativeArguments(thread, 2, SP + 3, SP + 2))) {
+            HANDLE_EXCEPTION;
+          }
+          receiver = SP[3];
+          argdesc_ = Array::RawCast(SP[4]);
+        }
+
+        if (SP[2] != Bool::True().raw()) {
+          goto NoSuchMethodFromPrologue;
+        }
+
+        // TODO(dartbug.com/40813): Move other checks that are currently
+        // compiled in the closure body to here as they are also moved to
         // FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher.
       }
-      SP[1] = Closure::RawCast(receiver)->ptr()->function_;
+
       goto TailCallSP1;
     }
 
@@ -3605,6 +3651,7 @@ SwitchDispatch:
       rC = KernelBytecode::DecodeC(pc2);
       pc2 = KernelBytecode::Next(pc2);
       if (!CopyParameters(thread, &pc2, &FP, &SP, rA, rB, rC)) {
+        SP[1] = function;
         goto NoSuchMethodFromPrologue;
       }
     }
@@ -3688,6 +3735,7 @@ SwitchDispatch:
     BYTECODE(VMInternal_NoSuchMethodDispatcher, 0);
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::kind(function) == FunctionLayout::kNoSuchMethodDispatcher);
+    SP[1] = function;
     goto NoSuchMethodFromPrologue;
   }
 
@@ -3766,10 +3814,11 @@ SwitchDispatch:
     }
   }
 
-  // Helper used to handle noSuchMethod on closures.
+  // Helper used to handle noSuchMethod on closures. The function should be
+  // placed into SP[1] before jumping here, similar to TailCallSP1.
   {
   NoSuchMethodFromPrologue:
-    FunctionPtr function = FrameFunction(FP);
+    FunctionPtr function = Function::RawCast(SP[1]);
 
     const intptr_t type_args_len =
         InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);

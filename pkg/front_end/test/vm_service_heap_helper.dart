@@ -1,5 +1,8 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import "dart:convert";
-import "dart:developer";
 import "dart:io";
 
 import "package:vm_service/vm_service.dart" as vmService;
@@ -214,10 +217,13 @@ class VMServiceHeapHelperBase {
 
 abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
   Process _process;
+  Process get process => _process;
 
   bool _started = false;
 
-  void start(List<String> scriptAndArgs) async {
+  void start(List<String> scriptAndArgs,
+      {void stdinReceiver(String line),
+      void stderrReceiver(String line)}) async {
     if (_started) throw "Already started";
     _started = true;
     _process = await Process.start(
@@ -232,15 +238,29 @@ abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
       if (line.startsWith(kObservatoryListening)) {
         Uri observatoryUri =
             Uri.parse(line.substring(kObservatoryListening.length));
-        _setupAndRun(observatoryUri);
+        _setupAndRun(observatoryUri).catchError((e, st) {
+          // Manually kill the process or it will leak,
+          // see http://dartbug.com/42918
+          killProcess();
+          // This seems to rethrow.
+          throw e;
+        });
       }
-      stdout.writeln("> $line");
+      if (stdinReceiver != null) {
+        stdinReceiver(line);
+      } else {
+        stdout.writeln("> $line");
+      }
     });
     _process.stderr
         .transform(utf8.decoder)
         .transform(new LineSplitter())
         .listen((line) {
-      stderr.writeln("> $line");
+      if (stderrReceiver != null) {
+        stderrReceiver(line);
+      } else {
+        stderr.writeln("> $line");
+      }
     });
     // ignore: unawaited_futures
     _process.exitCode.then((value) {
@@ -254,7 +274,7 @@ abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
     _process.kill();
   }
 
-  void _setupAndRun(Uri observatoryUri) async {
+  Future _setupAndRun(Uri observatoryUri) async {
     await connect(observatoryUri);
     await run();
   }
@@ -269,9 +289,13 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   final Map<Uri, Map<String, List<String>>> _prettyPrints =
       new Map<Uri, Map<String, List<String>>>();
   final bool throwOnPossibleLeak;
+  final bool tryToFindShortestPathToLeaks;
 
-  VMServiceHeapHelperSpecificExactLeakFinder(List<Interest> interests,
-      List<Interest> prettyPrints, this.throwOnPossibleLeak) {
+  VMServiceHeapHelperSpecificExactLeakFinder(
+      List<Interest> interests,
+      List<Interest> prettyPrints,
+      this.throwOnPossibleLeak,
+      this.tryToFindShortestPathToLeaks) {
     if (interests.isEmpty) throw "Empty list of interests given";
     for (Interest interest in interests) {
       Map<String, List<String>> classToFields = _interests[interest.uri];
@@ -301,60 +325,52 @@ class VMServiceHeapHelperSpecificExactLeakFinder
     }
   }
 
+  void pause() async {
+    await _serviceClient.pause(_isolateRef.id);
+  }
+
+  vmService.VM _vm;
+  vmService.IsolateRef _isolateRef;
+  int _iterationNumber;
+  int get iterationNumber => _iterationNumber;
+
+  /// Best effort check if the isolate is idle.
+  Future<bool> isIdle() async {
+    dynamic tmp = await _serviceClient.getIsolate(_isolateRef.id);
+    if (tmp is vmService.Isolate) {
+      vmService.Isolate isolate = tmp;
+      return isolate.pauseEvent.topFrame == null;
+    }
+    return false;
+  }
+
   @override
   Future<void> run() async {
-    vmService.VM vm = await _serviceClient.getVM();
-    if (vm.isolates.length != 1) {
-      throw "Expected 1 isolate, got ${vm.isolates.length}";
+    _vm = await _serviceClient.getVM();
+    if (_vm.isolates.length != 1) {
+      throw "Expected 1 isolate, got ${_vm.isolates.length}";
     }
-    vmService.IsolateRef isolateRef = vm.isolates.single;
-    await forceGC(isolateRef.id);
+    _isolateRef = _vm.isolates.single;
+    await forceGC(_isolateRef.id);
 
-    assert(await _isPausedAtStart(isolateRef.id));
-    await _serviceClient.resume(isolateRef.id);
+    assert(await _isPausedAtStart(_isolateRef.id));
+    await _serviceClient.resume(_isolateRef.id);
 
-    int iterationNumber = 1;
+    _iterationNumber = 1;
     while (true) {
-      await waitUntilPaused(isolateRef.id);
-      print("Iteration: #$iterationNumber");
-      iterationNumber++;
-      await forceGC(isolateRef.id);
+      await waitUntilPaused(_isolateRef.id);
+      print("Iteration: #$_iterationNumber");
+      await forceGC(_isolateRef.id);
 
       vmService.HeapSnapshotGraph heapSnapshotGraph =
           await vmService.HeapSnapshotGraph.getSnapshot(
-              _serviceClient, isolateRef);
-      HeapGraph graph = convertHeapGraph(heapSnapshotGraph);
+              _serviceClient, _isolateRef);
 
-      Set<String> seenPrints = {};
       Set<String> duplicatePrints = {};
-      Map<String, List<HeapGraphElement>> groupedByToString = {};
-      for (HeapGraphClassActual c in graph.classes) {
-        Map<String, List<String>> interests = _interests[c.libraryUri];
-        if (interests != null && interests.isNotEmpty) {
-          List<String> fieldsToUse = interests[c.name];
-          if (fieldsToUse != null && fieldsToUse.isNotEmpty) {
-            for (HeapGraphElement instance in c.getInstances(graph)) {
-              StringBuffer sb = new StringBuffer();
-              sb.writeln("Instance: ${instance}");
-              if (instance is HeapGraphElementActual) {
-                for (String fieldName in fieldsToUse) {
-                  String prettyPrinted = instance
-                      .getField(fieldName)
-                      .getPrettyPrint(_prettyPrints);
-                  sb.writeln("  $fieldName: "
-                      "${prettyPrinted}");
-                }
-              }
-              String sbToString = sb.toString();
-              if (!seenPrints.add(sbToString)) {
-                duplicatePrints.add(sbToString);
-              }
-              groupedByToString[sbToString] ??= [];
-              groupedByToString[sbToString].add(instance);
-            }
-          }
-        }
-      }
+      Map<String, List<vmService.HeapSnapshotObject>> groupedByToString = {};
+      _usingUnconvertedGraph(
+          heapSnapshotGraph, duplicatePrints, groupedByToString);
+
       if (duplicatePrints.isNotEmpty) {
         print("======================================");
         print("WARNING: Duplicated pretty prints of objects.");
@@ -363,48 +379,233 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         for (String s in duplicatePrints) {
           int count = groupedByToString[s].length;
           print("$s ($count)");
+          for (vmService.HeapSnapshotObject duplicate in groupedByToString[s]) {
+            String prettyPrint = _heapObjectPrettyPrint(
+                duplicate, heapSnapshotGraph, _prettyPrints);
+            print(" => ${prettyPrint}");
+          }
           print("");
         }
-        print("======================================");
-        for (String duplicateString in duplicatePrints) {
-          print("$duplicateString:");
-          List<HeapGraphElement> Function(HeapGraphElement target)
-              dijkstraTarget = dijkstra(graph.elements.first, graph);
-          for (HeapGraphElement duplicate
-              in groupedByToString[duplicateString]) {
-            print("${duplicate} pointed to from:");
-            print(duplicate.getPrettyPrint(_prettyPrints));
-            List<HeapGraphElement> shortestPath = dijkstraTarget(duplicate);
-            for (int i = 0; i < shortestPath.length - 1; i++) {
-              HeapGraphElement thisOne = shortestPath[i];
-              HeapGraphElement nextOne = shortestPath[i + 1];
-              String indexFieldName;
-              if (thisOne is HeapGraphElementActual) {
-                HeapGraphClass c = thisOne.class_;
-                if (c is HeapGraphClassActual) {
-                  for (vmService.HeapSnapshotField field in c.origin.fields) {
-                    if (thisOne.references[field.index] == nextOne) {
-                      indexFieldName = field.name;
-                    }
-                  }
-                }
-              }
-              if (indexFieldName == null) {
-                indexFieldName = "no field found; index "
-                    "${thisOne.references.indexOf(nextOne)}";
-              }
-              print("  $thisOne -> $nextOne ($indexFieldName)");
-            }
-            print("---------------------------");
-          }
+
+        if (tryToFindShortestPathToLeaks) {
+          _tryToFindShortestPath(heapSnapshotGraph);
         }
 
         if (throwOnPossibleLeak) {
-          debugger();
           throw "Possible leak detected.";
         }
       }
-      await _serviceClient.resume(isolateRef.id);
+
+      await _serviceClient.resume(_isolateRef.id);
+      _iterationNumber++;
+    }
+  }
+
+  void _tryToFindShortestPath(vmService.HeapSnapshotGraph heapSnapshotGraph) {
+    HeapGraph graph = convertHeapGraph(heapSnapshotGraph);
+    Set<String> duplicatePrints = {};
+    Map<String, List<HeapGraphElement>> groupedByToString = {};
+    _usingConvertedGraph(graph, duplicatePrints, groupedByToString);
+
+    print("======================================");
+
+    for (String duplicateString in duplicatePrints) {
+      print("$duplicateString:");
+      List<HeapGraphElement> Function(HeapGraphElement target) dijkstraTarget =
+          dijkstra(graph.elements.first, graph);
+      for (HeapGraphElement duplicate in groupedByToString[duplicateString]) {
+        print("${duplicate} pointed to from:");
+        print(duplicate.getPrettyPrint(_prettyPrints));
+        List<HeapGraphElement> shortestPath = dijkstraTarget(duplicate);
+        for (int i = 0; i < shortestPath.length - 1; i++) {
+          HeapGraphElement thisOne = shortestPath[i];
+          HeapGraphElement nextOne = shortestPath[i + 1];
+          String indexFieldName;
+          if (thisOne is HeapGraphElementActual) {
+            HeapGraphClass c = thisOne.class_;
+            if (c is HeapGraphClassActual) {
+              for (vmService.HeapSnapshotField field in c.origin.fields) {
+                if (thisOne.references[field.index] == nextOne) {
+                  indexFieldName = field.name;
+                }
+              }
+            }
+          }
+          if (indexFieldName == null) {
+            indexFieldName = "no field found; index "
+                "${thisOne.references.indexOf(nextOne)}";
+          }
+          print("  $thisOne -> $nextOne ($indexFieldName)");
+        }
+        print("---------------------------");
+      }
+    }
+  }
+
+  void _usingConvertedGraph(HeapGraph graph, Set<String> duplicatePrints,
+      Map<String, List<HeapGraphElement>> groupedByToString) {
+    Set<String> seenPrints = {};
+    for (HeapGraphClassActual c in graph.classes) {
+      Map<String, List<String>> interests = _interests[c.libraryUri];
+      if (interests != null && interests.isNotEmpty) {
+        List<String> fieldsToUse = interests[c.name];
+        if (fieldsToUse != null && fieldsToUse.isNotEmpty) {
+          for (HeapGraphElement instance in c.getInstances(graph)) {
+            StringBuffer sb = new StringBuffer();
+            sb.writeln("Instance: ${instance}");
+            if (instance is HeapGraphElementActual) {
+              for (String fieldName in fieldsToUse) {
+                String prettyPrinted =
+                    instance.getField(fieldName).getPrettyPrint(_prettyPrints);
+                sb.writeln("  $fieldName: "
+                    "${prettyPrinted}");
+              }
+            }
+            String sbToString = sb.toString();
+            if (!seenPrints.add(sbToString)) {
+              duplicatePrints.add(sbToString);
+            }
+            groupedByToString[sbToString] ??= [];
+            groupedByToString[sbToString].add(instance);
+          }
+        }
+      }
+    }
+  }
+
+  String _heapObjectToString(
+      vmService.HeapSnapshotObject o, vmService.HeapSnapshotClass class_) {
+    if (o == null) return "Sentinel";
+    if (o.data is vmService.HeapSnapshotObjectNoData) {
+      return "Instance of ${class_.name}";
+    }
+    if (o.data is vmService.HeapSnapshotObjectLengthData) {
+      vmService.HeapSnapshotObjectLengthData data = o.data;
+      return "Instance of ${class_.name} length = ${data.length}";
+    }
+    return "Instance of ${class_.name}; data: '${o.data}'";
+  }
+
+  vmService.HeapSnapshotObject _heapObjectGetField(
+      String name,
+      vmService.HeapSnapshotObject o,
+      vmService.HeapSnapshotClass class_,
+      vmService.HeapSnapshotGraph graph) {
+    for (vmService.HeapSnapshotField field in class_.fields) {
+      if (field.name == name) {
+        int index = o.references[field.index] - 1;
+        if (index < 0) {
+          // Sentinel object.
+          return null;
+        }
+        return graph.objects[index];
+      }
+    }
+    return null;
+  }
+
+  String _heapObjectPrettyPrint(
+      vmService.HeapSnapshotObject o,
+      vmService.HeapSnapshotGraph graph,
+      Map<Uri, Map<String, List<String>>> prettyPrints) {
+    if (o.classId == 0) {
+      return "Class sentinel";
+    }
+    vmService.HeapSnapshotClass class_ = graph.classes[o.classId - 1];
+
+    if (class_.name == "_OneByteString") {
+      return '"${o.data}"';
+    }
+
+    if (class_.name == "_SimpleUri") {
+      vmService.HeapSnapshotObject fieldValueObject =
+          _heapObjectGetField("_uri", o, class_, graph);
+      String prettyPrinted =
+          _heapObjectPrettyPrint(fieldValueObject, graph, prettyPrints);
+      return "_SimpleUri[${prettyPrinted}]";
+    }
+
+    if (class_.name == "_Uri") {
+      vmService.HeapSnapshotObject schemeValueObject =
+          _heapObjectGetField("scheme", o, class_, graph);
+      String schemePrettyPrinted =
+          _heapObjectPrettyPrint(schemeValueObject, graph, prettyPrints);
+
+      vmService.HeapSnapshotObject pathValueObject =
+          _heapObjectGetField("path", o, class_, graph);
+      String pathPrettyPrinted =
+          _heapObjectPrettyPrint(pathValueObject, graph, prettyPrints);
+
+      return "_Uri[${schemePrettyPrinted}:${pathPrettyPrinted}]";
+    }
+
+    Map<String, List<String>> classToFields = prettyPrints[class_.libraryUri];
+    if (classToFields != null) {
+      List<String> fields = classToFields[class_.name];
+      if (fields != null) {
+        return "${class_.name}[" +
+            fields.map((field) {
+              vmService.HeapSnapshotObject fieldValueObject =
+                  _heapObjectGetField(field, o, class_, graph);
+              String prettyPrinted = fieldValueObject == null
+                  ? null
+                  : _heapObjectPrettyPrint(
+                      fieldValueObject, graph, prettyPrints);
+              return "$field: ${prettyPrinted}";
+            }).join(", ") +
+            "]";
+      }
+    }
+    return _heapObjectToString(o, class_);
+  }
+
+  void _usingUnconvertedGraph(
+      vmService.HeapSnapshotGraph graph,
+      Set<String> duplicatePrints,
+      Map<String, List<vmService.HeapSnapshotObject>> groupedByToString) {
+    Set<String> seenPrints = {};
+    List<bool> ignoredClasses =
+        new List<bool>.filled(graph.classes.length, false);
+    for (int i = 0; i < graph.objects.length; i++) {
+      vmService.HeapSnapshotObject o = graph.objects[i];
+      if (o.classId == 0) {
+        // Sentinel.
+        continue;
+      }
+      if (ignoredClasses[o.classId - 1]) {
+        // Class is not interesting.
+        continue;
+      }
+      vmService.HeapSnapshotClass c = graph.classes[o.classId - 1];
+      Map<String, List<String>> interests = _interests[c.libraryUri];
+      if (interests == null || interests.isEmpty) {
+        // Not an object we care about.
+        ignoredClasses[o.classId - 1] = true;
+        continue;
+      }
+
+      List<String> fieldsToUse = interests[c.name];
+      if (fieldsToUse == null || fieldsToUse.isEmpty) {
+        // Not an object we care about.
+        ignoredClasses[o.classId - 1] = true;
+        continue;
+      }
+
+      StringBuffer sb = new StringBuffer();
+      sb.writeln("Instance: ${_heapObjectToString(o, c)}");
+      for (String fieldName in fieldsToUse) {
+        vmService.HeapSnapshotObject fieldValueObject =
+            _heapObjectGetField(fieldName, o, c, graph);
+        String prettyPrinted =
+            _heapObjectPrettyPrint(fieldValueObject, graph, _prettyPrints);
+        sb.writeln("  $fieldName: ${prettyPrinted}");
+      }
+      String sbToString = sb.toString();
+      if (!seenPrints.add(sbToString)) {
+        duplicatePrints.add(sbToString);
+      }
+      groupedByToString[sbToString] ??= [];
+      groupedByToString[sbToString].add(o);
     }
   }
 
@@ -545,7 +746,6 @@ HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
       }
     };
   }
-
   return new HeapGraph(classSentinel, classes, elementSentinel, elements);
 }
 
@@ -625,17 +825,6 @@ class HeapGraphElementActual extends HeapGraphElement {
       }
     }
     return null;
-  }
-
-  List<MapEntry<String, HeapGraphElement>> getFields() {
-    List<MapEntry<String, HeapGraphElement>> result = [];
-    if (class_ is HeapGraphClassActual) {
-      HeapGraphClassActual c = class_;
-      for (vmService.HeapSnapshotField field in c.origin.fields) {
-        result.add(new MapEntry(field.name, references[field.index]));
-      }
-    }
-    return result;
   }
 
   String toString() {

@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
+import 'common/metrics.dart' show Metric, Metrics, CountMetric, DurationMetric;
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'common_elements.dart'
@@ -84,6 +85,20 @@ class OutputUnit implements Comparable<OutputUnit> {
   String toString() => "OutputUnit($name, $_imports)";
 }
 
+class _DeferredLoadTaskMetrics implements Metrics {
+  @override
+  String get namespace => 'deferred_load';
+
+  DurationMetric time = DurationMetric('time');
+  CountMetric hunkListElements = CountMetric('hunkListElements');
+
+  @override
+  Iterable<Metric> get primary => [time];
+
+  @override
+  Iterable<Metric> get secondary => [hunkListElements];
+}
+
 /// For each deferred import, find elements and constants to be loaded when that
 /// import is loaded. Elements that are used by several deferred imports are in
 /// shared OutputUnits.
@@ -133,6 +148,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   ImportSetLattice importSets = ImportSetLattice();
 
   final Compiler compiler;
+
+  @override
+  final _DeferredLoadTaskMetrics metrics = _DeferredLoadTaskMetrics();
 
   bool get disableProgramSplit => compiler.options.disableProgramSplit;
   bool get newDeferredSplit => compiler.options.newDeferredSplit;
@@ -293,17 +311,21 @@ abstract class DeferredLoadTask extends CompilerTask {
         worldImpact,
         WorldImpactVisitorImpl(
             visitStaticUse: (MemberEntity member, StaticUse staticUse) {
-          Entity usedEntity = staticUse.element;
-          if (usedEntity is MemberEntity) {
-            dependencies.addMember(usedEntity, staticUse.deferredImport);
-          } else {
-            assert(usedEntity is KLocalFunction,
-                failedAt(usedEntity, "Unexpected static use $staticUse."));
-            KLocalFunction localFunction = usedEntity;
-            // TODO(sra): Consult KClosedWorld to see if signature is needed.
-            _collectTypeDependencies(localFunction.functionType, dependencies);
-            dependencies.localFunctions.add(localFunction);
+          void processEntity() {
+            Entity usedEntity = staticUse.element;
+            if (usedEntity is MemberEntity) {
+              dependencies.addMember(usedEntity, staticUse.deferredImport);
+            } else {
+              assert(usedEntity is KLocalFunction,
+                  failedAt(usedEntity, "Unexpected static use $staticUse."));
+              KLocalFunction localFunction = usedEntity;
+              // TODO(sra): Consult KClosedWorld to see if signature is needed.
+              _collectTypeDependencies(
+                  localFunction.functionType, dependencies);
+              dependencies.localFunctions.add(localFunction);
+            }
           }
+
           switch (staticUse.kind) {
             case StaticUseKind.CONSTRUCTOR_INVOKE:
             case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
@@ -316,6 +338,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               // arguments.
               _collectTypeArgumentDependencies(
                   staticUse.type.typeArguments, dependencies);
+              processEntity();
               break;
             case StaticUseKind.STATIC_INVOKE:
             case StaticUseKind.CLOSURE_CALL:
@@ -324,8 +347,29 @@ abstract class DeferredLoadTask extends CompilerTask {
               // arguments.
               _collectTypeArgumentDependencies(
                   staticUse.typeArguments, dependencies);
+              processEntity();
               break;
-            default:
+            case StaticUseKind.STATIC_TEAR_OFF:
+            case StaticUseKind.CLOSURE:
+            case StaticUseKind.STATIC_GET:
+            case StaticUseKind.STATIC_SET:
+              processEntity();
+              break;
+            case StaticUseKind.SUPER_TEAR_OFF:
+            case StaticUseKind.SUPER_FIELD_SET:
+            case StaticUseKind.SUPER_GET:
+            case StaticUseKind.SUPER_SETTER_SET:
+            case StaticUseKind.SUPER_INVOKE:
+            case StaticUseKind.INSTANCE_FIELD_GET:
+            case StaticUseKind.INSTANCE_FIELD_SET:
+            case StaticUseKind.FIELD_INIT:
+            case StaticUseKind.FIELD_CONSTANT_INIT:
+              // These static uses are not relevant for this algorithm.
+              break;
+            case StaticUseKind.CALL_METHOD:
+            case StaticUseKind.INLINING:
+              failedAt(element, "Unexpected static use: $staticUse.");
+              break;
           }
         }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
           void addClassIfInterfaceType(DartType t, [ImportEntity import]) {
@@ -739,6 +783,7 @@ abstract class DeferredLoadTask extends CompilerTask {
         if (outputUnit == _mainOutputUnit) continue;
         if (outputUnit._imports.contains(import)) {
           hunksToLoad[_importDeferName[import]].add(outputUnit);
+          metrics.hunkListElements.add(1);
         }
       }
     }
@@ -835,6 +880,10 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// work item (e.g. we might converge faster if we pick first the update that
   /// contains a bigger delta.)
   OutputUnitData run(FunctionEntity main, KClosedWorld closedWorld) {
+    return metrics.time.measure(() => _run(main, closedWorld));
+  }
+
+  OutputUnitData _run(FunctionEntity main, KClosedWorld closedWorld) {
     if (!isProgramSplit || main == null || disableProgramSplit) {
       return _buildResult();
     }

@@ -36,6 +36,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
   String& function_foo_name = String::Handle(String::New("foo"));
   Function& function_foo =
       Function::Handle(cls.LookupStaticFunction(function_foo_name));
@@ -75,6 +77,8 @@ ISOLATE_UNIT_TEST_CASE(OptimizeCompileFunctionOnHelperThread) {
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
   String& function_foo_name = String::Handle(String::New("foo"));
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
   Function& func =
       Function::Handle(cls.LookupStaticFunction(function_foo_name));
   EXPECT(!func.HasCode());
@@ -116,6 +120,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
   String& function_foo_name = String::Handle(String::New("foo"));
   Function& func =
       Function::Handle(cls.LookupStaticFunction(function_foo_name));

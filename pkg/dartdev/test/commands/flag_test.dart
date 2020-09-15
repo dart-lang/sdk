@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
@@ -29,12 +31,20 @@ void command() {
   });
 
   // Assert that all found usageLineLengths are the same and null
-  test('argParser usageLineLength isNull', () {
+  test('argParser usageLineLength', () {
     DartdevRunner(['--disable-dartdev-analytics'])
         .commands
         .forEach((String commandKey, Command command) {
       if (command.argParser != null) {
-        expect(command.argParser.usageLineLength, isNull);
+        if (command.name != 'help' &&
+            command.name != 'format' &&
+            command.name != 'migrate' &&
+            command.name != 'pub') {
+          expect(command.argParser.usageLineLength,
+              stdout.hasTerminal ? stdout.terminalColumns : null);
+        } else {
+          expect(command.argParser.usageLineLength, isNull);
+        }
       }
     });
   });

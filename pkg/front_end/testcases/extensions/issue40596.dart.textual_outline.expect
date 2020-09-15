@@ -1,4 +1,4 @@
 import 'dart:async';
-void main() { }
-extension Extension<T> ( ){ }
-on Stream<T> (){ }
+void main() {}
+extension Extension<T> (){}
+on Stream<T> (){}

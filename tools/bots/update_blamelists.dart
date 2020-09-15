@@ -159,11 +159,7 @@ main(List<String> arguments) async {
     ..addOption('results',
         abbr: 'r',
         help: 'path to a file containing the test results (required)')
-    ..addFlag('staging',
-        abbr: 's',
-        help: 'use staging database',
-        defaultsTo: true,
-        negatable: true);
+    ..addFlag('staging', abbr: 's', help: 'use staging database');
   var options = parser.parse(arguments);
   if (options.rest.isNotEmpty ||
       options['results'] == null ||

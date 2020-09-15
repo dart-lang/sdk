@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 bad() {
-  return null?.[1];
+  return null?[1];
 }
 
 main() {}

@@ -1,0 +1,12 @@
+abstract class A {
+  abstract covariant num covariantInstanceField;
+  abstract final int finalInstanceField;
+  abstract int instanceField;
+}
+
+main() {}
+mixin B {
+  abstract covariant num covariantInstanceField;
+  abstract final int finalInstanceField;
+  abstract int instanceField;
+}

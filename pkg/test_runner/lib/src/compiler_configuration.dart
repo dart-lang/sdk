@@ -307,14 +307,16 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   CommandArtifact computeCompilationArtifact(String tempDir,
-      List<String> globalArguments, Map<String, String> environmentOverrides) {
+      List<String> arguments, Map<String, String> environmentOverrides) {
     var allCommands = <Command>[];
 
     // The first compilation command is as usual.
-    var arguments = pipelineCommands[0].extractArguments(globalArguments, null);
+    var compileArguments =
+        pipelineCommands[0].extractArguments(arguments, null);
     var artifact = pipelineCommands[0]
         .compilerConfiguration
-        .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
+        .computeCompilationArtifact(
+            tempDir, compileArguments, environmentOverrides);
     allCommands.addAll(artifact.commands);
 
     // The following compilation commands are based on the output of the
@@ -322,9 +324,9 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
     for (var i = 1; i < pipelineCommands.length; i++) {
       var command = pipelineCommands[i];
 
-      arguments = command.extractArguments(globalArguments, artifact.filename);
-      artifact = command.compilerConfiguration
-          .computeCompilationArtifact(tempDir, arguments, environmentOverrides);
+      compileArguments = command.extractArguments(arguments, artifact.filename);
+      artifact = command.compilerConfiguration.computeCompilationArtifact(
+          tempDir, compileArguments, environmentOverrides);
 
       allCommands.addAll(artifact.commands);
     }
@@ -564,8 +566,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         workingDirectory: inputDir);
   }
 
-  CommandArtifact computeCompilationArtifact(
-      String tempDir, List<String> arguments, Map<String, String> environment) {
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
     // The list of arguments comes from a call to our own
     // computeCompilerArguments(). It contains the shared options followed by
     // the input file path.
@@ -576,10 +578,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var inputFilename = Uri.file(inputFile).pathSegments.last;
     var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
-    return CommandArtifact(
-        [_createCommand(inputFile, outputFile, sharedOptions, environment)],
-        outputFile,
-        "application/javascript");
+    return CommandArtifact([
+      _createCommand(inputFile, outputFile, sharedOptions, environmentOverrides)
+    ], outputFile, "application/javascript");
   }
 }
 
@@ -705,18 +706,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (_configuration.useElf) ...[
         "--snapshot-kind=app-aot-elf",
         "--elf=$tempDir/out.aotsnapshot",
+        // Only splitting with a ELF to avoid having to setup compilation of
+        // multiple assembly files in the test harness.
+        "--loading-unit-manifest=$tempDir/ignored.json",
       ] else ...[
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S",
-      ],
-      // Only splitting with a ELF to avoid having to setup compilation of
-      // multiple assembly files in the test harness. Only splitting tests of
-      // deferred imports because splitting currently requires disable bare
-      // instructions mode, and we want to continue testing bare instructions
-      // mode.
-      if (_configuration.useElf && arguments.last.contains("deferred")) ...[
-        "--loading-unit-manifest=$tempDir/ignored.json",
-        "--use-bare-instructions=false",
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',

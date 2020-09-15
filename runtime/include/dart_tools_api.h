@@ -5,7 +5,7 @@
 #ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
 #define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
-#include "dart_api.h"
+#include "dart_api.h" /* NOLINT */
 
 /** \mainpage Dart Tools Embedding API Reference
  *
@@ -267,6 +267,69 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
                                                   const char* event_kind,
                                                   const uint8_t* bytes,
                                                   intptr_t bytes_length);
+
+/**
+ * Usage statistics for a space/generation at a particular moment in time.
+ *
+ * \param used Amount of memory used, in bytes.
+ *
+ * \param capacity Memory capacity, in bytes.
+ *
+ * \param external External memory, in bytes.
+ *
+ * \param collections How many times the garbage collector has run in this
+ *   space.
+ *
+ * \param time Cumulative time spent collecting garbage in this space, in
+ *   seconds.
+ *
+ * \param avg_collection_period Average time between garbage collector running
+ *   in this space, in milliseconds.
+ */
+typedef struct {
+  intptr_t used;
+  intptr_t capacity;
+  intptr_t external;
+  intptr_t collections;
+  double time;
+  double avg_collection_period;
+} Dart_GCStats;
+
+/**
+ * A Garbage Collection event with memory usage statistics.
+ *
+ * \param type The event type. Static lifetime.
+ *
+ * \param reason The reason for the GC event. Static lifetime.
+ *
+ * \param new_space Data for New Space.
+ *
+ * \param old_space Data for Old Space.
+ */
+typedef struct {
+  const char* type;
+  const char* reason;
+  const char* isolate_id;
+
+  Dart_GCStats new_space;
+  Dart_GCStats old_space;
+} Dart_GCEvent;
+
+/**
+ * A callback invoked when the VM emits a GC event.
+ *
+ * \param event The GC event data. Pointer only valid for the duration of the
+ *   callback.
+ */
+typedef void (*Dart_GCEventCallback)(Dart_GCEvent* event);
+
+/**
+ * Sets the native GC event callback.
+ *
+ * \param callback A function pointer to an event handler callback function.
+ *   A NULL value removes the existing listen callback function if any.
+ */
+DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback);
 
 /*
  * ========

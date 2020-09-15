@@ -161,7 +161,7 @@ int _getServiceMinorVersion() native "Developer_getServiceMinorVersion";
 void _getServerInfo(SendPort sendPort) native "Developer_getServerInfo";
 
 @patch
-void _webServerControl(SendPort sendPort, bool enable)
+void _webServerControl(SendPort sendPort, bool enable, bool? silenceOutput)
     native "Developer_webServerControl";
 
 @patch

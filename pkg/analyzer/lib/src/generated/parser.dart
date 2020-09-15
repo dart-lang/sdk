@@ -202,7 +202,7 @@ class Parser {
   /// and to report any errors that are found to the given [_errorListener].
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta, @required FeatureSet featureSet}) {
-    featureSet ??= FeatureSet.fromEnableFlags([]);
+    featureSet ??= FeatureSet.latestLanguageVersion();
     if (useFasta ?? Parser.useFasta) {
       return _Parser2(source, errorListener, featureSet,
           allowNativeClause: true);
@@ -1160,7 +1160,7 @@ class Parser {
       // members until it is reached.
       leftBracket = _createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
       rightBracket = _createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
-      _reportErrorForCurrentToken(ParserErrorCode.MISSING_CLASS_BODY);
+      _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_BODY);
     }
     ClassDeclaration classDeclaration = astFactory.classDeclaration(
         commentAndMetadata.comment,
@@ -7729,13 +7729,13 @@ class Parser {
         constKeyword != null &&
         constKeyword.offset < externalKeyword.offset) {
       _reportErrorForToken(
-          ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword);
+          ParserErrorCode.MODIFIER_OUT_OF_ORDER, externalKeyword);
     }
     if (externalKeyword != null &&
         factoryKeyword != null &&
         factoryKeyword.offset < externalKeyword.offset) {
       _reportErrorForToken(
-          ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword);
+          ParserErrorCode.MODIFIER_OUT_OF_ORDER, externalKeyword);
     }
     return constKeyword;
   }
@@ -7785,16 +7785,17 @@ class Parser {
     if (constKeyword != null) {
       if (covariantKeyword != null) {
         _reportErrorForToken(
-            ParserErrorCode.CONST_AND_COVARIANT, covariantKeyword);
+            ParserErrorCode.MODIFIER_OUT_OF_ORDER, covariantKeyword);
       }
       if (finalKeyword != null) {
         _reportErrorForToken(ParserErrorCode.CONST_AND_FINAL, finalKeyword);
       }
       if (varKeyword != null) {
-        _reportErrorForToken(ParserErrorCode.CONST_AND_VAR, varKeyword);
+        _reportErrorForToken(ParserErrorCode.MODIFIER_OUT_OF_ORDER, varKeyword);
       }
       if (staticKeyword != null && constKeyword.offset < staticKeyword.offset) {
-        _reportErrorForToken(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword);
+        _reportErrorForToken(
+            ParserErrorCode.MODIFIER_OUT_OF_ORDER, staticKeyword);
       }
     } else if (finalKeyword != null) {
       if (covariantKeyword != null) {
@@ -7805,16 +7806,18 @@ class Parser {
         _reportErrorForToken(ParserErrorCode.FINAL_AND_VAR, varKeyword);
       }
       if (staticKeyword != null && finalKeyword.offset < staticKeyword.offset) {
-        _reportErrorForToken(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword);
+        _reportErrorForToken(
+            ParserErrorCode.MODIFIER_OUT_OF_ORDER, staticKeyword);
       }
     } else if (varKeyword != null) {
       if (staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
-        _reportErrorForToken(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword);
+        _reportErrorForToken(
+            ParserErrorCode.MODIFIER_OUT_OF_ORDER, staticKeyword);
       }
       if (covariantKeyword != null &&
           varKeyword.offset < covariantKeyword.offset) {
         _reportErrorForToken(
-            ParserErrorCode.COVARIANT_AFTER_VAR, covariantKeyword);
+            ParserErrorCode.MODIFIER_OUT_OF_ORDER, covariantKeyword);
       }
     }
     if (covariantKeyword != null && staticKeyword != null) {
@@ -7870,7 +7873,7 @@ class Parser {
         staticKeyword != null &&
         staticKeyword.offset < externalKeyword.offset) {
       _reportErrorForToken(
-          ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword);
+          ParserErrorCode.MODIFIER_OUT_OF_ORDER, externalKeyword);
     }
   }
 
@@ -7957,7 +7960,7 @@ class Parser {
         _reportErrorForToken(ParserErrorCode.CONST_AND_FINAL, finalKeyword);
       }
       if (varKeyword != null) {
-        _reportErrorForToken(ParserErrorCode.CONST_AND_VAR, varKeyword);
+        _reportErrorForToken(ParserErrorCode.MODIFIER_OUT_OF_ORDER, varKeyword);
       }
     } else if (finalKeyword != null) {
       if (varKeyword != null) {

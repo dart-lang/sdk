@@ -209,16 +209,18 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
 
-    _addLocationArgument(node, target.function, constructedClass);
+    _addLocationArgument(node, target.function, constructedClass,
+        isConst: node.isConst);
     return node;
   }
 
-  void _addLocationArgument(InvocationExpression node, FunctionNode function,
-      Class constructedClass) {
+  void _addLocationArgument(
+      InvocationExpression node, FunctionNode function, Class constructedClass,
+      {bool isConst: false}) {
     _maybeAddCreationLocationArgument(
       node.arguments,
       function,
-      _computeLocation(node, function, constructedClass),
+      _computeLocation(node, function, constructedClass, isConst: isConst),
       _locationClass,
     );
   }
@@ -233,17 +235,23 @@ class _WidgetCallSiteTransformer extends Transformer {
       return node;
     }
 
-    _addLocationArgument(node, constructor.function, constructedClass);
+    _addLocationArgument(node, constructor.function, constructedClass,
+        isConst: node.isConst);
     return node;
   }
 
-  Expression _computeLocation(InvocationExpression node, FunctionNode function,
-      Class constructedClass) {
+  Expression _computeLocation(
+      InvocationExpression node, FunctionNode function, Class constructedClass,
+      {bool isConst: false}) {
     // For factory constructors we need to use the location specified as an
     // argument to the factory constructor rather than the location
     if (_currentFactory != null &&
         _tracker._isSubclassOf(
-            constructedClass, _currentFactory.enclosingClass)) {
+            constructedClass, _currentFactory.enclosingClass) &&
+        // If the constructor invocation is constant we cannot refer to the
+        // location parameter of the surrounding factory since it isn't a
+        // constant expression.
+        !isConst) {
       final VariableDeclaration creationLocationParameter = _getNamedParameter(
         _currentFactory.function,
         _creationLocationParameterName,

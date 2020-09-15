@@ -347,5 +347,5 @@ class TestConfig {
   final FeatureSet featureSet;
 
   TestConfig(this.marker, this.name, {FeatureSet featureSet})
-      : featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
+      : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }
