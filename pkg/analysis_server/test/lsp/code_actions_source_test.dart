@@ -277,6 +277,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     final commandResponse = handleExpectedRequest<Object,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command),
       // Claim that we failed tpo apply the edits. This is what the client
       // would do if the edits provided were for an old version of the
