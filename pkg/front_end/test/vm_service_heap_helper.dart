@@ -2,288 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert";
-import "dart:io";
-
-import "package:vm_service/vm_service.dart" as vmService;
-import "package:vm_service/vm_service_io.dart" as vmService;
-
 import "dijkstras_sssp_algorithm.dart";
-
-class VMServiceHeapHelperBase {
-  vmService.VmService _serviceClient;
-  vmService.VmService get serviceClient => _serviceClient;
-
-  VMServiceHeapHelperBase();
-
-  Future connect(Uri observatoryUri) async {
-    String path = observatoryUri.path;
-    if (!path.endsWith("/")) path += "/";
-    String wsUriString = 'ws://${observatoryUri.authority}${path}ws';
-    _serviceClient = await vmService.vmServiceConnectUri(wsUriString,
-        log: const StdOutLog());
-  }
-
-  Future disconnect() async {
-    await _serviceClient.dispose();
-  }
-
-  Future<bool> waitUntilPaused(String isolateId) async {
-    int nulls = 0;
-    while (true) {
-      bool result = await _isPaused(isolateId);
-      if (result == null) {
-        nulls++;
-        if (nulls > 5) {
-          // We've now asked for the isolate 5 times and in all cases gotten
-          // `Sentinel`. Most likely things aren't working for whatever reason.
-          return false;
-        }
-      } else if (result) {
-        return true;
-      } else {
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    }
-  }
-
-  Future<bool> _isPaused(String isolateId) async {
-    dynamic tmp = await _serviceClient.getIsolate(isolateId);
-    if (tmp is vmService.Isolate) {
-      vmService.Isolate isolate = tmp;
-      if (isolate.pauseEvent.kind != "Resume") return true;
-      return false;
-    }
-    return null;
-  }
-
-  Future<bool> _isPausedAtStart(String isolateId) async {
-    dynamic tmp = await _serviceClient.getIsolate(isolateId);
-    if (tmp is vmService.Isolate) {
-      vmService.Isolate isolate = tmp;
-      return isolate.pauseEvent.kind == "PauseStart";
-    }
-    return false;
-  }
-
-  Future<vmService.AllocationProfile> forceGC(String isolateId) async {
-    await waitUntilIsolateIsRunnable(isolateId);
-    int expectGcAfter = new DateTime.now().millisecondsSinceEpoch;
-    while (true) {
-      vmService.AllocationProfile allocationProfile;
-      try {
-        allocationProfile =
-            await _serviceClient.getAllocationProfile(isolateId, gc: true);
-      } catch (e) {
-        print(e.runtimeType);
-        rethrow;
-      }
-      if (allocationProfile.dateLastServiceGC != null &&
-          allocationProfile.dateLastServiceGC >= expectGcAfter) {
-        return allocationProfile;
-      }
-    }
-  }
-
-  Future<bool> isIsolateRunnable(String isolateId) async {
-    dynamic tmp = await _serviceClient.getIsolate(isolateId);
-    if (tmp is vmService.Isolate) {
-      vmService.Isolate isolate = tmp;
-      return isolate.runnable;
-    }
-    return null;
-  }
-
-  Future<void> waitUntilIsolateIsRunnable(String isolateId) async {
-    int nulls = 0;
-    while (true) {
-      bool result = await isIsolateRunnable(isolateId);
-      if (result == null) {
-        nulls++;
-        if (nulls > 5) {
-          // We've now asked for the isolate 5 times and in all cases gotten
-          // `Sentinel`. Most likely things aren't working for whatever reason.
-          return;
-        }
-      } else if (result) {
-        return;
-      } else {
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    }
-  }
-
-  Future<void> printAllocationProfile(String isolateId, {String filter}) async {
-    await waitUntilIsolateIsRunnable(isolateId);
-    vmService.AllocationProfile allocationProfile =
-        await _serviceClient.getAllocationProfile(isolateId);
-    for (vmService.ClassHeapStats member in allocationProfile.members) {
-      if (filter != null) {
-        if (member.classRef.name != filter) continue;
-      } else {
-        if (member.classRef.name == "") continue;
-        if (member.instancesCurrent == 0) continue;
-      }
-      vmService.Class c =
-          await _serviceClient.getObject(isolateId, member.classRef.id);
-      if (c.location?.script?.uri == null) continue;
-      print("${member.classRef.name}: ${member.instancesCurrent}");
-    }
-  }
-
-  Future<void> filterAndPrintInstances(String isolateId, String filter,
-      String fieldName, Set<String> fieldValues) async {
-    await waitUntilIsolateIsRunnable(isolateId);
-    vmService.AllocationProfile allocationProfile =
-        await _serviceClient.getAllocationProfile(isolateId);
-    for (vmService.ClassHeapStats member in allocationProfile.members) {
-      if (member.classRef.name != filter) continue;
-      vmService.Class c =
-          await _serviceClient.getObject(isolateId, member.classRef.id);
-      if (c.location?.script?.uri == null) continue;
-      print("${member.classRef.name}: ${member.instancesCurrent}");
-      print(c.location.script.uri);
-
-      vmService.InstanceSet instances = await _serviceClient.getInstances(
-          isolateId, member.classRef.id, 10000);
-      int instanceNum = 0;
-      for (vmService.ObjRef instance in instances.instances) {
-        instanceNum++;
-        var receivedObject =
-            await _serviceClient.getObject(isolateId, instance.id);
-        if (receivedObject is! vmService.Instance) continue;
-        vmService.Instance object = receivedObject;
-        for (vmService.BoundField field in object.fields) {
-          if (field.decl.name == fieldName) {
-            if (field.value is vmService.Sentinel) continue;
-            var receivedValue =
-                await _serviceClient.getObject(isolateId, field.value.id);
-            if (receivedValue is! vmService.Instance) continue;
-            String value = (receivedValue as vmService.Instance).valueAsString;
-            if (!fieldValues.contains(value)) continue;
-            print("${instanceNum}: ${field.decl.name}: "
-                "${value} --- ${instance.id}");
-          }
-        }
-      }
-    }
-    print("Done!");
-  }
-
-  Future<void> printRetainingPaths(String isolateId, String filter) async {
-    await waitUntilIsolateIsRunnable(isolateId);
-    vmService.AllocationProfile allocationProfile =
-        await _serviceClient.getAllocationProfile(isolateId);
-    for (vmService.ClassHeapStats member in allocationProfile.members) {
-      if (member.classRef.name != filter) continue;
-      vmService.Class c =
-          await _serviceClient.getObject(isolateId, member.classRef.id);
-      print("Found ${c.name} (location: ${c.location})");
-      print("${member.classRef.name}: "
-          "(instancesCurrent: ${member.instancesCurrent})");
-      print("");
-
-      vmService.InstanceSet instances = await _serviceClient.getInstances(
-          isolateId, member.classRef.id, 10000);
-      print(" => Got ${instances.instances.length} instances");
-      print("");
-
-      for (vmService.ObjRef instance in instances.instances) {
-        var receivedObject =
-            await _serviceClient.getObject(isolateId, instance.id);
-        print("Instance: $receivedObject");
-        vmService.RetainingPath retainingPath =
-            await _serviceClient.getRetainingPath(isolateId, instance.id, 1000);
-        print("Retaining path: (length ${retainingPath.length}");
-        for (int i = 0; i < retainingPath.elements.length; i++) {
-          print("  [$i] = ${retainingPath.elements[i]}");
-        }
-
-        print("");
-      }
-    }
-    print("Done!");
-  }
-
-  Future<String> getIsolateId() async {
-    vmService.VM vm = await _serviceClient.getVM();
-    if (vm.isolates.length != 1) {
-      throw "Expected 1 isolate, got ${vm.isolates.length}";
-    }
-    vmService.IsolateRef isolateRef = vm.isolates.single;
-    return isolateRef.id;
-  }
-}
-
-abstract class LaunchingVMServiceHeapHelper extends VMServiceHeapHelperBase {
-  Process _process;
-  Process get process => _process;
-
-  bool _started = false;
-
-  void start(List<String> scriptAndArgs,
-      {void stdinReceiver(String line),
-      void stderrReceiver(String line)}) async {
-    if (_started) throw "Already started";
-    _started = true;
-    _process = await Process.start(
-        Platform.resolvedExecutable,
-        ["--pause_isolates_on_start", "--enable-vm-service=0"]
-          ..addAll(scriptAndArgs));
-    _process.stdout
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      const kObservatoryListening = 'Observatory listening on ';
-      if (line.startsWith(kObservatoryListening)) {
-        Uri observatoryUri =
-            Uri.parse(line.substring(kObservatoryListening.length));
-        _setupAndRun(observatoryUri).catchError((e, st) {
-          // Manually kill the process or it will leak,
-          // see http://dartbug.com/42918
-          killProcess();
-          // This seems to rethrow.
-          throw e;
-        });
-      }
-      if (stdinReceiver != null) {
-        stdinReceiver(line);
-      } else {
-        stdout.writeln("> $line");
-      }
-    });
-    _process.stderr
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      if (stderrReceiver != null) {
-        stderrReceiver(line);
-      } else {
-        stderr.writeln("> $line");
-      }
-    });
-    // ignore: unawaited_futures
-    _process.exitCode.then((value) {
-      processExited(value);
-    });
-  }
-
-  void processExited(int exitCode) {}
-
-  void killProcess() {
-    _process.kill();
-  }
-
-  Future _setupAndRun(Uri observatoryUri) async {
-    await connect(observatoryUri);
-    await run();
-  }
-
-  Future<void> run();
-}
+import "vm_service_helper.dart" as vmService;
 
 class VMServiceHeapHelperSpecificExactLeakFinder
-    extends LaunchingVMServiceHeapHelper {
+    extends vmService.LaunchingVMServiceHelper {
   final Map<Uri, Map<String, List<String>>> _interests =
       new Map<Uri, Map<String, List<String>>>();
   final Map<Uri, Map<String, List<String>>> _prettyPrints =
@@ -326,7 +49,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
   }
 
   void pause() async {
-    await _serviceClient.pause(_isolateRef.id);
+    await serviceClient.pause(_isolateRef.id);
   }
 
   vmService.VM _vm;
@@ -336,7 +59,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
   /// Best effort check if the isolate is idle.
   Future<bool> isIdle() async {
-    dynamic tmp = await _serviceClient.getIsolate(_isolateRef.id);
+    dynamic tmp = await serviceClient.getIsolate(_isolateRef.id);
     if (tmp is vmService.Isolate) {
       vmService.Isolate isolate = tmp;
       return isolate.pauseEvent.topFrame == null;
@@ -346,15 +69,15 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
   @override
   Future<void> run() async {
-    _vm = await _serviceClient.getVM();
+    _vm = await serviceClient.getVM();
     if (_vm.isolates.length != 1) {
       throw "Expected 1 isolate, got ${_vm.isolates.length}";
     }
     _isolateRef = _vm.isolates.single;
     await forceGC(_isolateRef.id);
 
-    assert(await _isPausedAtStart(_isolateRef.id));
-    await _serviceClient.resume(_isolateRef.id);
+    assert(await isPausedAtStart(_isolateRef.id));
+    await serviceClient.resume(_isolateRef.id);
 
     _iterationNumber = 1;
     while (true) {
@@ -364,7 +87,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
 
       vmService.HeapSnapshotGraph heapSnapshotGraph =
           await vmService.HeapSnapshotGraph.getSnapshot(
-              _serviceClient, _isolateRef);
+              serviceClient, _isolateRef);
 
       Set<String> duplicatePrints = {};
       Map<String, List<vmService.HeapSnapshotObject>> groupedByToString = {};
@@ -396,7 +119,7 @@ class VMServiceHeapHelperSpecificExactLeakFinder
         }
       }
 
-      await _serviceClient.resume(_isolateRef.id);
+      await serviceClient.resume(_isolateRef.id);
       _iterationNumber++;
     }
   }
@@ -693,20 +416,6 @@ class Interest {
   final List<String> fieldNames;
 
   Interest(this.uri, this.className, this.fieldNames);
-}
-
-class StdOutLog implements vmService.Log {
-  const StdOutLog();
-
-  @override
-  void severe(String message) {
-    print("> SEVERE: $message");
-  }
-
-  @override
-  void warning(String message) {
-    print("> WARNING: $message");
-  }
 }
 
 HeapGraph convertHeapGraph(vmService.HeapSnapshotGraph graph) {
