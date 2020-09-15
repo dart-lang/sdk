@@ -314,7 +314,7 @@ class WasmRuntime {
       throw Exception("Multiple return values are not supported");
     }
     var returnsPtr = allocate<Uint32>();
-    result = _export_func_params(func, returnsPtr, 1);
+    result = _export_func_returns(func, returnsPtr, 1);
     if (result != WasmerResultOk) {
       free(returnsPtr);
       throw Exception("Failed to get WASM function args");

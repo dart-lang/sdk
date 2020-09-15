@@ -5,7 +5,7 @@
 // Test error thrown when the wasm module is corrupted.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -16,5 +16,5 @@ void main() {
     0x7e, 0x0b,
   ]);
 
-  Expect.throwsArgumentError(() => WasmModule(data));
+  Expect.throws(() => WasmModule(data));
 }

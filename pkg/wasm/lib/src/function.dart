@@ -9,13 +9,14 @@ import 'package:ffi/ffi.dart';
 
 /// WasmFunction is a callable function from a WasmInstance.
 class WasmFunction {
+  String _name;
   Pointer<WasmerExportFunc> _func;
   List<int> _argTypes;
   int _returnType;
   Pointer<WasmerValue> _args;
   Pointer<WasmerValue> _result;
 
-  WasmFunction(this._func, this._argTypes, this._returnType) {
+  WasmFunction(this._name, this._func, this._argTypes, this._returnType) {
     _args = allocate<WasmerValue>(count: _argTypes.length);
     _result = allocate<WasmerValue>();
     for (var i = 0; i < _argTypes.length; ++i) {
@@ -46,11 +47,11 @@ class WasmFunction {
 
   dynamic apply(List<dynamic> args) {
     if (args.length != _argTypes.length) {
-      throw Exception("Wrong number arguments for WASM function");
+      throw ArgumentError("Wrong number arguments for WASM function: $_name");
     }
     for (var i = 0; i < args.length; ++i) {
       if (!_fillArg(args[i], i)) {
-        throw Exception("Bad argument type for WASM function");
+        throw ArgumentError("Bad argument type for WASM function: $_name");
       }
     }
     WasmRuntime().call(_func, _args, _argTypes.length, _result,
