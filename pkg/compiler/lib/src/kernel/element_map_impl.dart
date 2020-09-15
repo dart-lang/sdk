@@ -439,7 +439,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     while (superclass != null) {
       KClassEnv env = classes.getEnv(superclass);
       MemberEntity superMember =
-          env.lookupMember(this, name.text, setter: setter);
+          env.lookupMember(this, name.name, setter: setter);
       if (superMember != null) {
         if (!superMember.isInstanceMember) return null;
         if (!superMember.isAbstract) {
@@ -826,7 +826,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   Name getName(ir.Name name) {
     return new Name(
-        name.text, name.isPrivate ? getLibrary(name.library) : null);
+        name.name, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   @override
@@ -887,13 +887,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -1534,7 +1534,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
-      switch (node.target.name.text) {
+      switch (node.target.name.name) {
         case Identifiers.JS:
           return ForeignKind.JS;
         case Identifiers.JS_BUILTIN:
@@ -2037,7 +2037,7 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   /// defaulting to the Dart name.
   void _setNativeName(ir.Member node, IrAnnotationData annotationData) {
     String name = _findJsNameFromAnnotation(node, annotationData);
-    name ??= node.name.text;
+    name ??= node.name.name;
     _nativeDataBuilder.setNativeMemberName(_elementMap.getMember(node), name);
   }
 
@@ -2052,7 +2052,7 @@ class KernelNativeMemberResolver implements NativeMemberResolver {
   void _setNativeNameForStaticMethod(
       ir.Member node, IrAnnotationData annotationData) {
     String name = _findJsNameFromAnnotation(node, annotationData);
-    name ??= node.name.text;
+    name ??= node.name.name;
     if (_isIdentifier(name)) {
       ClassEntity cls = _elementMap.getClass(node.enclosingClass);
       List<String> nativeNames = _nativeBasicData.getNativeTagsOfClass(cls);

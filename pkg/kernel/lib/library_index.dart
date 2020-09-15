@@ -220,10 +220,10 @@ class _MemberTable {
 
   String getDisambiguatedName(Member member) {
     if (member is Procedure) {
-      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.text;
-      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.text;
+      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.name;
+      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.name;
     }
-    return member.name.text;
+    return member.name.name;
   }
 
   void addMember(Member member) {
@@ -238,12 +238,12 @@ class _MemberTable {
   String getDisambiguatedExtensionName(
       ExtensionMemberDescriptor extensionMember) {
     if (extensionMember.kind == ExtensionMemberKind.TearOff)
-      return LibraryIndex.tearoffPrefix + extensionMember.name.text;
+      return LibraryIndex.tearoffPrefix + extensionMember.name.name;
     if (extensionMember.kind == ExtensionMemberKind.Getter)
-      return LibraryIndex.getterPrefix + extensionMember.name.text;
+      return LibraryIndex.getterPrefix + extensionMember.name.name;
     if (extensionMember.kind == ExtensionMemberKind.Setter)
-      return LibraryIndex.setterPrefix + extensionMember.name.text;
-    return extensionMember.name.text;
+      return LibraryIndex.setterPrefix + extensionMember.name.name;
+    return extensionMember.name.name;
   }
 
   void addExtensionMember(ExtensionMemberDescriptor extensionMember) {

@@ -35,7 +35,7 @@ const String redirectingName = "_redirecting#";
 bool isRedirectingFactoryField(Member member) {
   return member is Field &&
       member.isStatic &&
-      member.name.text == redirectingName;
+      member.name.name == redirectingName;
 }
 
 /// Name used for a synthesized let variable used to encode redirecting factory

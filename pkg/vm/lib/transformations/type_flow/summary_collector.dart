@@ -762,7 +762,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         }
       }
 
-      if (member.name.text == '==') {
+      if (member.name.name == '==') {
         // In addition to what is returned from the function body,
         // operator == performs implicit comparison with null
         // and returns bool.
@@ -1350,7 +1350,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       return;
     } else if (node is MethodInvocation &&
         node.receiver is VariableGet &&
-        node.name.text == '==') {
+        node.name.name == '==') {
       assertx(node.arguments.positional.length == 1 &&
           node.arguments.types.isEmpty &&
           node.arguments.named.isEmpty);
@@ -1639,7 +1639,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final receiver = _visit(receiverNode);
     final args = _visitArguments(receiver, node.arguments);
     final target = node.interfaceTarget;
-    if (receiverNode is ConstantExpression && node.name.text == '[]') {
+    if (receiverNode is ConstantExpression && node.name.name == '[]') {
       Constant constant = receiverNode.constant;
       if (constant is ListConstant) {
         return _handleIndexingIntoListConstant(constant);
@@ -1647,11 +1647,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
     TypeExpr result;
     if (target == null) {
-      if (node.name.text == '==') {
+      if (node.name.name == '==') {
         _makeCall(node, new DynamicSelector(CallKind.Method, node.name), args);
         return new Type.nullable(_boolType);
       }
-      if (node.name.text == 'call') {
+      if (node.name.name == 'call') {
         final recvType = _staticDartType(node.receiver);
         if ((recvType is FunctionType) ||
             (recvType == _environment.functionLegacyRawType)) {

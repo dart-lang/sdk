@@ -46,7 +46,7 @@ class DevCompilerConstants {
       var constant = node.constant;
       if (constant is InstanceConstant) {
         var value = constant.fieldValues.entries
-            .firstWhere((e) => e.key.asField.name.text == name,
+            .firstWhere((e) => e.key.asField.name.name == name,
                 orElse: () => null)
             ?.value;
         if (value is PrimitiveConstant) return value.value;

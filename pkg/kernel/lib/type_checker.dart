@@ -622,11 +622,11 @@ class TypeCheckingVisitor
     var target = node.interfaceTarget;
     if (target == null) {
       var receiver = visitExpression(node.receiver);
-      if (node.name.text == '==') {
+      if (node.name.name == '==') {
         visitExpression(node.arguments.positional.single);
         return environment.coreTypes.boolLegacyRawType;
       }
-      if (node.name.text == 'call' && receiver is FunctionType) {
+      if (node.name.name == 'call' && receiver is FunctionType) {
         return handleFunctionCall(node, receiver, node.arguments);
       }
       checkUnresolvedInvocation(receiver, node);

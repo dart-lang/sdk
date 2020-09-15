@@ -20,8 +20,8 @@ import '../kernel_generator_impl.dart';
 
 /// Returns a canonical simple name for [member].
 String getMemberName(Member member) {
-  if (member is Procedure && member.isSetter) return '${member.name.text}=';
-  return member.name.text;
+  if (member is Procedure && member.isSetter) return '${member.name.name}=';
+  return member.name.name;
 }
 
 /// Returns the enclosing [Member] for [node].
@@ -174,7 +174,7 @@ MemberBuilder lookupMemberBuilder(
     {bool required: true}) {
   MemberBuilder memberBuilder;
   if (member.isExtensionMember) {
-    String memberName = member.name.text;
+    String memberName = member.name.name;
     String extensionName = memberName.substring(0, memberName.indexOf('|'));
     memberName = memberName.substring(extensionName.length + 1);
     bool isSetter = member is Procedure && member.isSetter;
@@ -191,16 +191,16 @@ MemberBuilder lookupMemberBuilder(
         isSetter: isSetter, required: required);
   } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
-        compilerResult, member.enclosingClass, member, member.name.text,
+        compilerResult, member.enclosingClass, member, member.name.name,
         required: required);
   } else {
     TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
         compilerResult, member.enclosingLibrary,
         required: required);
     if (member is Procedure && member.isSetter) {
-      memberBuilder = libraryBuilder.setters[member.name.text];
+      memberBuilder = libraryBuilder.setters[member.name.name];
     } else {
-      memberBuilder = libraryBuilder.members[member.name.text];
+      memberBuilder = libraryBuilder.members[member.name.name];
     }
   }
   if (memberBuilder == null && required) {
@@ -659,10 +659,10 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
       sb.write('tearoff ');
       break;
   }
-  sb.write(descriptor.name.text);
+  sb.write(descriptor.name.name);
   sb.write('=');
   Member member = descriptor.member.asMember;
-  String name = member.name.text;
+  String name = member.name.name;
   if (member is Procedure && member.isSetter) {
     sb.write('$name=');
   } else {

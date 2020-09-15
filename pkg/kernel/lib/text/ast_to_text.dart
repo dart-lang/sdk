@@ -119,7 +119,7 @@ String debugQualifiedClassName(Class node) {
 }
 
 String debugMemberName(Member node) {
-  return node.name?.text ?? globalDebuggingNames.nameMember(node);
+  return node.name?.name ?? globalDebuggingNames.nameMember(node);
 }
 
 String debugQualifiedMemberName(Member node) {
@@ -341,14 +341,14 @@ class Printer extends Visitor<Null> {
   static final Name emptyName = new Name(emptyNameString);
 
   Name getMemberName(Member node) {
-    if (node.name?.text == '') return emptyName;
+    if (node.name?.name == '') return emptyName;
     if (node.name != null) return node.name;
     return new Name(syntheticNames.nameMember(node));
   }
 
   String getMemberReference(Member node) {
     if (node == null) return '<No Member>';
-    String name = getMemberName(node).text;
+    String name = getMemberName(node).name;
     if (node.parent is Class) {
       String className = getClassReference(node.parent);
       return '$className::$name';
@@ -481,11 +481,11 @@ class Printer extends Visitor<Null> {
       } else if (node is Field) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name.text);
+        write(prefix + '::' + node.name.name);
       } else if (node is Procedure) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
-        write(prefix + '::' + node.name.text);
+        write(prefix + '::' + node.name.name);
       } else if (node is Typedef) {
         Library nodeLibrary = node.enclosingLibrary;
         String prefix = syntheticNames.nameLibraryPrefix(nodeLibrary);
@@ -701,10 +701,10 @@ class Printer extends Visitor<Null> {
   }
 
   void writeName(Name name) {
-    if (name?.text == '') {
+    if (name?.name == '') {
       writeWord(emptyNameString);
     } else {
-      writeWord(name?.text ?? '<anonymous>'); // TODO: write library name
+      writeWord(name?.name ?? '<anonymous>'); // TODO: write library name
     }
   }
 
@@ -1458,7 +1458,7 @@ class Printer extends Visitor<Null> {
       if (!first) {
         writeComma();
       }
-      writeWord('${fieldRef.asField.name.text}');
+      writeWord('${fieldRef.asField.name.name}');
       writeSymbol(':');
       writeExpression(value);
       first = false;
@@ -2366,7 +2366,7 @@ class Printer extends Visitor<Null> {
     writeList(node.fieldValues.entries,
         (core.MapEntry<Reference, Constant> entry) {
       if (entry.key.node != null) {
-        writeWord('${entry.key.asField.name.text}');
+        writeWord('${entry.key.asField.name.name}');
       } else {
         writeWord('${entry.key.canonicalName.name}');
       }

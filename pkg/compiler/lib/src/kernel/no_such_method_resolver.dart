@@ -32,7 +32,7 @@ class KernelNoSuchMethodResolver implements NoSuchMethodResolver {
       expr = asExpression.operand;
     }
     if (expr is ir.SuperMethodInvocation &&
-        expr.name.text == Identifiers.noSuchMethod_) {
+        expr.name.name == Identifiers.noSuchMethod_) {
       ir.Arguments arguments = expr.arguments;
       if (arguments.positional.length == 1 &&
           arguments.named.isEmpty &&

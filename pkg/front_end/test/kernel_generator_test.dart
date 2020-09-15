@@ -74,7 +74,7 @@ main() {
           (await compileScript('main() => print("hi");', options: options))
               ?.component;
       var core = component.libraries.firstWhere(isDartCoreLibrary);
-      var printMember = core.members.firstWhere((m) => m.name.text == 'print');
+      var printMember = core.members.firstWhere((m) => m.name.name == 'print');
 
       // Note: summaries created by the SDK today contain empty statements as
       // method bodies.

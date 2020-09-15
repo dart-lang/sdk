@@ -61,7 +61,7 @@ class RecognizedMethods {
     }
 
     final Expression receiver = node.receiver;
-    final String selector = node.name.text;
+    final String selector = node.name.name;
 
     switch (args.positional.length) {
       case 0:

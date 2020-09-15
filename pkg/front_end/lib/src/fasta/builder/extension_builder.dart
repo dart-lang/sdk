@@ -119,7 +119,7 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
   Builder lookupLocalMemberByName(Name name,
       {bool setter: false, bool required: false}) {
     Builder builder =
-        lookupLocalMember(name.text, setter: setter, required: required);
+        lookupLocalMember(name.name, setter: setter, required: required);
     if (builder != null && name.isPrivate && library.library != name.library) {
       builder = null;
     }

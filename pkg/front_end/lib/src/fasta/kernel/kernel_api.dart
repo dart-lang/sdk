@@ -47,6 +47,6 @@ void printQualifiedNameOn(Member member, StringSink sink,
       sink.write(cls.name ?? syntheticNames.nameClass(cls));
       sink.write("::");
     }
-    sink.write(member.name?.text ?? syntheticNames.nameMember(member));
+    sink.write(member.name?.name ?? syntheticNames.nameMember(member));
   }
 }

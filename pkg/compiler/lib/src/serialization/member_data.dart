@@ -36,7 +36,7 @@ String _computeMemberName(ir.Member member) {
     // other libraries.
     return null;
   }
-  String name = member.name.text;
+  String name = member.name.name;
   if (member is ir.Constructor) {
     name = '.$name';
   } else if (member is ir.Procedure) {

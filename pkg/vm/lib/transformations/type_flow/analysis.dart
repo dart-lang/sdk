@@ -467,7 +467,7 @@ class _DispatchableInvocation extends _Invocation {
     }
 
     // TODO(alexmarkov): handle closures more precisely
-    if ((selector is DynamicSelector) && (selector.name.text == "call")) {
+    if ((selector is DynamicSelector) && (selector.name.name == "call")) {
       tracePrint("Possible closure call, result is dynamic");
       result = new Type.nullableAny();
     }

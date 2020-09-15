@@ -3252,7 +3252,7 @@ class PropertyGet extends Expression {
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
-    String nameString = name.text;
+    String nameString = name.name;
     if (nameString == 'hashCode') {
       return context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
     } else if (nameString == 'runtimeType') {
@@ -3979,7 +3979,7 @@ class MethodInvocation extends InvocationExpression {
       }
       return const DynamicType();
     }
-    if (name.text == 'call') {
+    if (name.name == 'call') {
       var receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
@@ -3990,7 +3990,7 @@ class MethodInvocation extends InvocationExpression {
             .substituteType(receiverType.returnType);
       }
     }
-    if (name.text == '==') {
+    if (name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
       return context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
     }
@@ -4243,9 +4243,9 @@ class ConstructorInvocation extends InvocationExpression {
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name.text.isNotEmpty) {
+    if (target.name.name.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name.text);
+      printer.write(target.name.name);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -7085,29 +7085,29 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// library name for private names; uniqueness is not guaranteed.
 abstract class Name extends Node {
   final int hashCode;
-  final String text;
+  final String name;
   Reference get libraryName;
   Library get library;
   bool get isPrivate;
 
-  Name._internal(this.hashCode, this.text);
+  Name._internal(this.hashCode, this.name);
 
-  factory Name(String text, [Library library]) =>
-      new Name.byReference(text, library?.reference);
+  factory Name(String name, [Library library]) =>
+      new Name.byReference(name, library?.reference);
 
-  factory Name.byReference(String text, Reference libraryName) {
+  factory Name.byReference(String name, Reference libraryName) {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
-    if (text.startsWith('_')) {
+    if (name.startsWith('_')) {
       assert(libraryName != null);
-      return new _PrivateName(text, libraryName);
+      return new _PrivateName(name, libraryName);
     } else {
-      return new _PublicName(text);
+      return new _PublicName(name);
     }
   }
 
   bool operator ==(other) {
-    return other is Name && text == other.text && library == other.library;
+    return other is Name && name == other.name && library == other.library;
   }
 
   R accept<R>(Visitor<R> v) => v.visitName(this);
@@ -7132,13 +7132,13 @@ class _PrivateName extends Name {
   final Reference libraryName;
   bool get isPrivate => true;
 
-  _PrivateName(String text, Reference libraryName)
+  _PrivateName(String name, Reference libraryName)
       : this.libraryName = libraryName,
-        super._internal(_computeHashCode(text, libraryName), text);
+        super._internal(_computeHashCode(name, libraryName), name);
 
   String toString() => toStringInternal();
 
-  String toStringInternal() => library != null ? '$library::$text' : text;
+  String toStringInternal() => library != null ? '$library::$name' : name;
 
   Library get library => libraryName.asLibrary;
 
@@ -7155,7 +7155,7 @@ class _PublicName extends Name {
   Library get library => null;
   bool get isPrivate => false;
 
-  _PublicName(String text) : super._internal(text.hashCode, text);
+  _PublicName(String name) : super._internal(name.hashCode, name);
 
   String toString() => toStringInternal();
 }

@@ -292,10 +292,10 @@ class TypeInferrerImpl implements TypeInferrer {
       // corresponding field type which required us to know the type of the
       // constructor.
       String name = target.enclosingClass.name;
-      if (target.name.text.isNotEmpty) {
+      if (target.name.name.isNotEmpty) {
         // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
         // instead. However, `inferrer.helper` may be null.
-        name += ".${target.name.text}";
+        name += ".${target.name.name}";
       }
       constructor.library.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(name),
@@ -498,7 +498,7 @@ class TypeInferrerImpl implements TypeInferrer {
     if (contextType is! InvalidType) {
       errorNode = helper.wrapInProblem(
           errorNode,
-          template.withArguments(callName.text),
+          template.withArguments(callName.name),
           errorNode.fileOffset,
           noLength);
     }
@@ -942,13 +942,13 @@ class TypeInferrerImpl implements TypeInferrer {
       Template<Message Function(String, DartType, bool)> errorTemplate) {
     assert(receiverType != null && isKnown(receiverType));
     if (!isTopLevel && target.isMissing && errorTemplate != null) {
-      int length = name.text.length;
-      if (identical(name.text, callName.text) ||
-          identical(name.text, unaryMinusName.text)) {
+      int length = name.name.length;
+      if (identical(name.name, callName.name) ||
+          identical(name.name, unaryMinusName.name)) {
         length = 1;
       }
       return helper.buildProblem(
-          errorTemplate.withArguments(name.text,
+          errorTemplate.withArguments(name.name,
               resolveTypeParameter(receiverType), isNonNullableByDefault),
           fileOffset,
           length);
@@ -2411,9 +2411,9 @@ class TypeInferrerImpl implements TypeInferrer {
           replacement = helper.wrapInProblem(
               replacement,
               templateNullableMethodCallError.withArguments(
-                  name.text, receiverType, isNonNullableByDefault),
+                  name.name, receiverType, isNonNullableByDefault),
               fileOffset,
-              name.text.length);
+              name.name.length);
         }
       }
       return createNullAwareExpressionInferenceResult(
@@ -2454,9 +2454,9 @@ class TypeInferrerImpl implements TypeInferrer {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
-                callName.text, receiverType, isNonNullableByDefault),
+                callName.name, receiverType, isNonNullableByDefault),
             fileOffset,
-            callName.text.length);
+            callName.name.length);
       }
     }
     // TODO(johnniwinther): Check that type arguments against the bounds.
@@ -2562,9 +2562,9 @@ class TypeInferrerImpl implements TypeInferrer {
         replacement = helper.wrapInProblem(
             replacement,
             templateNullableMethodCallError.withArguments(
-                methodName.text, receiverType, isNonNullableByDefault),
+                methodName.name, receiverType, isNonNullableByDefault),
             fileOffset,
-            methodName.text.length);
+            methodName.name.length);
       }
     }
 
@@ -3021,7 +3021,7 @@ class TypeInferrerImpl implements TypeInferrer {
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
     DartType inferredType = result.inferredType;
-    if (methodName.text == '==') {
+    if (methodName.name == '==') {
       inferredType = coreTypes.boolRawType(library.nonNullable);
     }
     _checkBoundsInMethodInvocation(
@@ -3320,7 +3320,7 @@ class TypeInferrerImpl implements TypeInferrer {
           null, engine.forest.createArguments(fileOffset, <Expression>[index]));
     } else {
       return helper.buildProblem(
-          templateSuperclassHasNoMethod.withArguments(indexGetName.text),
+          templateSuperclassHasNoMethod.withArguments(indexGetName.name),
           fileOffset,
           noLength);
     }
@@ -3337,7 +3337,7 @@ class TypeInferrerImpl implements TypeInferrer {
               .createArguments(fileOffset, <Expression>[index, value]));
     } else {
       return helper.buildProblem(
-          templateSuperclassHasNoMethod.withArguments(indexSetName.text),
+          templateSuperclassHasNoMethod.withArguments(indexSetName.name),
           fileOffset,
           noLength);
     }
@@ -3365,7 +3365,7 @@ class TypeInferrerImpl implements TypeInferrer {
       template = ambiguousTemplate;
     }
     return helper.buildProblem(
-        template.withArguments(name.text, resolveTypeParameter(receiverType),
+        template.withArguments(name.name, resolveTypeParameter(receiverType),
             isNonNullableByDefault),
         fileOffset,
         length,
@@ -3385,13 +3385,13 @@ class TypeInferrerImpl implements TypeInferrer {
       assert(extensionAccessCandidates == null);
       return helper.buildProblem(
           templateInvokeNonFunction
-              .withArguments(implicitInvocationPropertyName.text),
+              .withArguments(implicitInvocationPropertyName.name),
           fileOffset,
-          implicitInvocationPropertyName.text.length);
+          implicitInvocationPropertyName.name.length);
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,
-          isExpressionInvocation ? noLength : name.text.length,
+          isExpressionInvocation ? noLength : name.name.length,
           receiverType,
           name,
           extensionAccessCandidates,
@@ -3409,7 +3409,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,
-          propertyName.text.length,
+          propertyName.name.length,
           receiverType,
           propertyName,
           extensionAccessCandidates,
@@ -3430,7 +3430,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,
-          propertyName.text.length,
+          propertyName.name.length,
           receiverType,
           propertyName,
           extensionAccessCandidates,
@@ -3488,7 +3488,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,
-          binaryName.text.length,
+          binaryName.name.length,
           leftType,
           binaryName,
           extensionAccessCandidates,
@@ -3506,7 +3506,7 @@ class TypeInferrerImpl implements TypeInferrer {
     } else {
       return _reportMissingOrAmbiguousMember(
           fileOffset,
-          unaryName == unaryMinusName ? 1 : unaryName.text.length,
+          unaryName == unaryMinusName ? 1 : unaryName.name.length,
           expressionType,
           unaryName,
           extensionAccessCandidates,

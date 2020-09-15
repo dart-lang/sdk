@@ -1181,7 +1181,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
-        String name = constructorNameForDiagnostics(initialTarget.name.text,
+        String name = constructorNameForDiagnostics(initialTarget.name.name,
             className: initialTarget.enclosingClass.name);
         // TODO(dmitryas): Report this error earlier.
         replacementNode = buildProblem(
@@ -1470,7 +1470,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
         String superclass = classBuilder.supertypeBuilder.fullNameForErrors;
-        int length = constructor.name.text.length;
+        int length = constructor.name.name.length;
         if (length == 0) {
           length = (constructor.parent as Class).name.length;
         }
@@ -1847,7 +1847,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             .withArguments(candidate.enclosingClass.name);
       } else {
         if (candidate is Constructor) {
-          if (candidate.name.text == '') {
+          if (candidate.name.name == '') {
             length = candidate.enclosingClass.name.length;
           } else {
             // Assume no spaces around the dot. Not perfect, but probably the
@@ -1887,10 +1887,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool reportWarning: true,
       List<LocatedMessage> context}) {
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoGetter.withArguments(name.text)
-        : fasta.templateGetterNotFound.withArguments(name.text);
+        ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
+        : fasta.templateGetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      addProblemErrorIfConst(message, charOffset, name.text.length,
+      addProblemErrorIfConst(message, charOffset, name.name.length,
           context: context);
     }
     return message;
@@ -1902,10 +1902,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool reportWarning: true,
       List<LocatedMessage> context}) {
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoSetter.withArguments(name.text)
-        : fasta.templateSetterNotFound.withArguments(name.text);
+        ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
+        : fasta.templateSetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      addProblemErrorIfConst(message, charOffset, name.text.length,
+      addProblemErrorIfConst(message, charOffset, name.name.length,
           context: context);
     }
     return message;
@@ -1916,7 +1916,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       {bool isSuper: false,
       bool reportWarning: true,
       List<LocatedMessage> context}) {
-    String plainName = name.text;
+    String plainName = name.name;
     int dotIndex = plainName.lastIndexOf(".");
     if (dotIndex != -1) {
       plainName = plainName.substring(dotIndex + 1);
@@ -1928,8 +1928,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       length = 1;
     }
     Message message = isSuper
-        ? fasta.templateSuperclassHasNoMethod.withArguments(name.text)
-        : fasta.templateMethodNotFound.withArguments(name.text);
+        ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
+        : fasta.templateMethodNotFound.withArguments(name.name);
     if (reportWarning) {
       addProblemErrorIfConst(message, charOffset, length, context: context);
     }
@@ -3989,7 +3989,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         target.function, arguments, charOffset, typeParameters);
     if (argMessage != null) {
       return throwNoSuchMethodError(forest.createNullLiteral(charOffset),
-          target.name.text, arguments, charOffset,
+          target.name.name, arguments, charOffset,
           candidate: target, message: argMessage);
     }
 
@@ -4064,7 +4064,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         target.function, arguments, fileOffset, typeParameters);
     if (argMessage != null) {
       return throwNoSuchMethodError(forest.createNullLiteral(fileOffset),
-          target.name.text, arguments, fileOffset,
+          target.name.name, arguments, fileOffset,
           candidate: target, message: argMessage);
     }
 
@@ -5980,7 +5980,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       [int charOffset = -1]) {
     if (member.isConst && !constructor.isConst) {
       addProblem(fasta.messageConstConstructorWithNonConstSuper, charOffset,
-          constructor.name.text.length);
+          constructor.name.name.length);
     }
     needsImplicitSuperInitializer = false;
     return new SuperInitializer(constructor, arguments)
@@ -5993,8 +5993,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     if (classBuilder.checkConstructorCyclic(
-        member.name, constructor.name.text)) {
-      int length = constructor.name.text.length;
+        member.name, constructor.name.name)) {
+      int length = constructor.name.name.length;
       if (length == 0) length = "this".length;
       addProblem(fasta.messageConstructorCyclic, charOffset, length);
       // TODO(askesc): Produce invalid initializer.
@@ -6147,7 +6147,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.templateNotConstantExpression
               .withArguments('Method invocation'),
           offset,
-          name.text.length);
+          name.name.length);
     }
     if (isSuper) {
       // We can ignore [isNullAware] on super sends.
@@ -6161,9 +6161,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           target = null;
           addProblemErrorIfConst(
               fasta.templateSuperclassMethodArgumentMismatch
-                  .withArguments(name.text),
+                  .withArguments(name.name),
               offset,
-              name.text.length);
+              name.name.length);
         }
         return new SuperMethodInvocation(name, arguments, target)
           ..fileOffset = offset;

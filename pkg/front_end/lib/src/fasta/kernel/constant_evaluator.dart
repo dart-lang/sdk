@@ -1585,7 +1585,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               unevaluatedArguments(arguments, {}, node.arguments.types)));
     }
 
-    final String op = node.name.text;
+    final String op = node.name.name;
 
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
@@ -1835,7 +1835,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
-    if (receiver is StringConstant && node.name.text == 'length') {
+    if (receiver is StringConstant && node.name.name == 'length') {
       return canonicalize(intFolder.makeIntConstant(receiver.value.length));
     } else if (shouldBeUnevaluated) {
       return unevaluated(node,
@@ -1846,7 +1846,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return report(
         node,
         templateConstEvalInvalidPropertyGet.withArguments(
-            node.name.text, receiver, isNonNullableByDefault));
+            node.name.name, receiver, isNonNullableByDefault));
   }
 
   @override
@@ -1910,7 +1910,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return report(
             node,
             templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
+                .withArguments(target.name.name));
       } else if (target is Procedure) {
         if (target.kind == ProcedureKind.Method) {
           return canonicalize(new TearOffConstant(target));
@@ -1918,7 +1918,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return report(
             node,
             templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
+                .withArguments(target.name.name));
       } else {
         reportInvalid(
             node, 'No support for ${target.runtimeType} in a static-get.');
@@ -2064,13 +2064,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (target.isConst &&
           target.enclosingLibrary == coreTypes.coreLibrary &&
           positionals.length == 1 &&
-          (target.name.text == "fromEnvironment" ||
-              target.name.text == "hasEnvironment")) {
+          (target.name.name == "fromEnvironment" ||
+              target.name.name == "hasEnvironment")) {
         if (environmentDefines != null) {
           // Evaluate environment constant.
           Constant name = positionals.single;
           if (name is StringConstant) {
-            if (target.name.text == "fromEnvironment") {
+            if (target.name.name == "fromEnvironment") {
               return _handleFromEnvironment(target, name, named);
             } else {
               return _handleHasEnvironment(name);
@@ -2087,7 +2087,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   isConst: true));
         }
       }
-    } else if (target.name.text == 'identical') {
+    } else if (target.name.name == 'identical') {
       // Ensure the "identical()" function comes from dart:core.
       final TreeNode parent = target.parent;
       if (parent is Library && parent == coreTypes.coreLibrary) {
@@ -2123,7 +2123,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(node, messageConstEvalExtension);
     }
 
-    String name = target.name.text;
+    String name = target.name.name;
     if (target is Procedure && target.isFactory) {
       if (name.isEmpty) {
         name = target.enclosingClass.name;
@@ -2325,7 +2325,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (cached != null) return cached;
     for (Procedure procedure in klass.procedures) {
       if (procedure.kind == ProcedureKind.Operator &&
-          procedure.name.text == '==' &&
+          procedure.name.name == '==' &&
           !procedure.isAbstract &&
           !procedure.isForwardingStub) {
         return primitiveEqualCache[klass] = false;

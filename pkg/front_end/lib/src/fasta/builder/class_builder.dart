@@ -755,7 +755,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         : procedure.isSetter
             ? 'set:'
             : '';
-    String invocationName = prefix + procedure.name.text;
+    String invocationName = prefix + procedure.name.name;
     if (procedure.isSetter) invocationName += '=';
     Expression invocation = target.backendTarget.instantiateInvocation(
         target.loader.coreTypes,

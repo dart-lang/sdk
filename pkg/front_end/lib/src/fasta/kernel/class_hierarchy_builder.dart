@@ -581,9 +581,9 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     if (declaration?.isStatic ?? true) return null;
     if (declaration.isDuplicate) {
       library?.addProblem(
-          templateDuplicatedDeclarationUse.withArguments(name.text),
+          templateDuplicatedDeclarationUse.withArguments(name.name),
           charOffset,
-          name.text.length,
+          name.name.length,
           library.fileUri);
       return null;
     }

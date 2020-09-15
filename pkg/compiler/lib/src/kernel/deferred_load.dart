@@ -53,7 +53,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
     ir.Member node = _elementMap.getMemberNode(element);
     return _findImportsTo(
         node is ir.Constructor ? node.enclosingClass : node,
-        node is ir.Constructor ? node.enclosingClass.name : node.name.text,
+        node is ir.Constructor ? node.enclosingClass.name : node.name.name,
         node.enclosingLibrary,
         library);
   }

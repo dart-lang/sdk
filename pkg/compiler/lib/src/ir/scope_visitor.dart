@@ -1228,7 +1228,7 @@ class InitializerComplexity {
         sb.write('eager');
         if (fields != null) {
           sb.write('&fields=[');
-          List<String> names = fields.map((f) => f.name.text).toList()..sort();
+          List<String> names = fields.map((f) => f.name.name).toList()..sort();
           sb.write(names.join(','));
           sb.write(']');
         }

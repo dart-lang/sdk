@@ -4237,7 +4237,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return '$count ${adjective}arguments';
     }
 
-    String name() => invocation.target.name.text;
+    String name() => invocation.target.name.name;
 
     ir.Arguments arguments = invocation.arguments;
     bool bad = false;
