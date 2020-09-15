@@ -598,7 +598,7 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 // The USE(x) template is used to silence C++ compiler warnings issued
 // for unused variables.
 template <typename T>
-static inline void USE(T) {}
+static inline void USE(T&&) {}
 
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)
