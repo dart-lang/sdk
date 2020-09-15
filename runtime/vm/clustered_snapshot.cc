@@ -4847,10 +4847,8 @@ class OneByteStringSerializationCluster : public SerializationCluster {
       OneByteStringPtr str = objects_[i];
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->ptr()->length_);
-      s->WriteUnsigned(length);
-      s->Write<bool>(str->ptr()->IsCanonical());
-      intptr_t hash = String::GetCachedHash(str);
-      s->Write<int32_t>(hash);
+      ASSERT(length <= compiler::target::kSmiMax);
+      s->WriteUnsigned((length << 1) | (str->ptr()->IsCanonical() ? 1 : 0));
       s->WriteBytes(str->ptr()->data(), length);
     }
   }
@@ -4880,16 +4878,20 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       OneByteStringPtr str = static_cast<OneByteStringPtr>(d->Ref(id));
-      const intptr_t length = d->ReadUnsigned();
-      bool is_canonical = d->Read<bool>();
+      const intptr_t combined = d->ReadUnsigned();
+      const intptr_t length = combined >> 1;
+      const bool is_canonical = (combined & 1) != 0;
       Deserializer::InitializeHeader(str, kOneByteStringCid,
                                      OneByteString::InstanceSize(length),
                                      is_canonical);
       str->ptr()->length_ = Smi::New(length);
-      String::SetCachedHash(str, d->Read<int32_t>());
+      uint32_t hash = 0;
       for (intptr_t j = 0; j < length; j++) {
-        str->ptr()->data()[j] = d->Read<uint8_t>();
+        uint8_t code_point = d->Read<uint8_t>();
+        str->ptr()->data()[j] = code_point;
+        hash = CombineHashes(hash, code_point);
       }
+      String::SetCachedHash(str, FinalizeHash(hash, String::kHashBits));
     }
   }
 };
@@ -4924,10 +4926,8 @@ class TwoByteStringSerializationCluster : public SerializationCluster {
       TwoByteStringPtr str = objects_[i];
       AutoTraceObject(str);
       const intptr_t length = Smi::Value(str->ptr()->length_);
-      s->WriteUnsigned(length);
-      s->Write<bool>(str->ptr()->IsCanonical());
-      intptr_t hash = String::GetCachedHash(str);
-      s->Write<int32_t>(hash);
+      ASSERT(length <= (compiler::target::kSmiMax / 2));
+      s->WriteUnsigned((length << 1) | (str->ptr()->IsCanonical() ? 1 : 0));
       s->WriteBytes(reinterpret_cast<uint8_t*>(str->ptr()->data()), length * 2);
     }
   }
@@ -4957,15 +4957,16 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       TwoByteStringPtr str = static_cast<TwoByteStringPtr>(d->Ref(id));
-      const intptr_t length = d->ReadUnsigned();
-      bool is_canonical = d->Read<bool>();
+      const intptr_t combined = d->ReadUnsigned();
+      const intptr_t length = combined >> 1;
+      const bool is_canonical = (combined & 1) != 0;
       Deserializer::InitializeHeader(str, kTwoByteStringCid,
                                      TwoByteString::InstanceSize(length),
                                      is_canonical);
       str->ptr()->length_ = Smi::New(length);
-      String::SetCachedHash(str, d->Read<int32_t>());
       uint8_t* cdata = reinterpret_cast<uint8_t*>(str->ptr()->data());
       d->ReadBytes(cdata, length * 2);
+      String::SetCachedHash(str, String::Hash(str));
     }
   }
 };
@@ -5622,10 +5623,6 @@ const char* Serializer::ReadOnlyObjectType(intptr_t cid) {
       return "CodeSourceMap";
     case kCompressedStackMapsCid:
       return "CompressedStackMaps";
-    case kOneByteStringCid:
-      return "OneByteString";
-    case kTwoByteStringCid:
-      return "TwoByteString";
     default:
       return nullptr;
   }
@@ -6352,8 +6349,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       case kPcDescriptorsCid:
       case kCodeSourceMapCid:
       case kCompressedStackMapsCid:
-      case kOneByteStringCid:
-      case kTwoByteStringCid:
         return new (Z) RODataDeserializationCluster();
     }
   }
