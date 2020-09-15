@@ -164,6 +164,29 @@ analyzer:
     expect(errors, isNull);
   }
 
+  Future<void> test_dataFile() async {
+    var filePath = join(projectPath, 'lib', 'fix_data.yaml');
+    var dataFile = newFile(filePath, content: '''
+version: 1
+transforms:
+''').path;
+
+    var request =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    var errors = filesErrors[dataFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+  }
+
   Future<void> test_dotFolder_priority() async {
     // Files inside dotFolders should not generate error notifications even
     // if they are added to priority (priority affects only priority, not what
