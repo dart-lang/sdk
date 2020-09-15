@@ -983,10 +983,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (variable != null) {
       Local local = _localsMap.getLocalVariable(variable);
       if (!_capturedVariables.contains(local)) {
+        // Receiver strengthening to non-null.
         DartType type = _localsMap.getLocalType(_elementMap, local);
         _state.updateLocal(
             _inferrer, _capturedAndBoxed, local, receiverType, node, type,
-            isNullable: selector.appliesToNullWithoutThrow());
+            excludeNull: !selector.appliesToNullWithoutThrow());
       }
     }
 
@@ -1445,11 +1446,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ir.Expression operand = node.operand;
     if (operand is ir.VariableGet) {
       Local local = _localsMap.getLocalVariable(operand.variable);
-      DartType type = _elementMap.getDartType(node.type);
+      DartType localType = _elementMap.getDartType(node.type);
       LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
       LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
-      stateAfterCheckWhenTrue.narrowLocal(
-          _inferrer, _capturedAndBoxed, local, type, node);
+
+      // Narrow variable to tested type on true branch.
+      TypeInformation currentTypeInformation = stateAfterCheckWhenTrue
+          .readLocal(_inferrer, _capturedAndBoxed, local);
+      stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
+          currentTypeInformation, node, localType,
+          isCast: false);
       _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
     }
   }
@@ -1462,10 +1468,18 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       DartType localType = _localsMap.getLocalType(_elementMap, local);
       LocalState stateAfterCheckWhenTrue = new LocalState.childPath(_state);
       LocalState stateAfterCheckWhenFalse = new LocalState.childPath(_state);
+
+      // Narrow tested variable to 'Null' on true branch.
       stateAfterCheckWhenTrue.updateLocal(_inferrer, _capturedAndBoxed, local,
           _types.nullType, node, localType);
-      stateAfterCheckWhenFalse.narrowLocal(_inferrer, _capturedAndBoxed, local,
-          _closedWorld.commonElements.objectType, node);
+
+      // Narrow tested variable to 'not null' on false branch.
+      TypeInformation currentTypeInformation = stateAfterCheckWhenFalse
+          .readLocal(_inferrer, _capturedAndBoxed, local);
+      stateAfterCheckWhenFalse.updateLocal(_inferrer, _capturedAndBoxed, local,
+          currentTypeInformation, node, _closedWorld.commonElements.objectType,
+          excludeNull: true);
+
       _setStateAfter(_state, stateAfterCheckWhenTrue, stateAfterCheckWhenFalse);
     }
   }
@@ -1620,7 +1634,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       DartType type = _localsMap.getLocalType(_elementMap, local);
       _state.updateLocal(
           _inferrer, _capturedAndBoxed, local, localFunctionType, node, type,
-          isNullable: false);
+          excludeNull: true);
     }
 
     // We don't put the closure in the work queue of the
@@ -1737,7 +1751,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(_inferrer, _capturedAndBoxed, local, mask, node,
           _dartTypes.dynamicType(),
-          isNullable: false /* `throw null` produces a NullThrownError */);
+          excludeNull: true /* `throw null` produces a NullThrownError */);
     }
     ir.VariableDeclaration stackTrace = node.stackTrace;
     if (stackTrace != null) {
@@ -2088,9 +2102,11 @@ class LocalState {
       TypeInformation type,
       ir.Node node,
       DartType staticType,
-      {isNullable: true}) {
+      {isCast: true,
+      excludeNull: false}) {
     assert(type != null);
-    type = inferrer.types.narrowType(type, staticType, isNullable: isNullable);
+    type = inferrer.types
+        .narrowType(type, staticType, isCast: isCast, excludeNull: excludeNull);
 
     FieldEntity field = capturedAndBoxed[local];
     if (field != null) {
@@ -2098,17 +2114,6 @@ class LocalState {
     } else {
       _locals.update(inferrer, local, type, node, staticType, _tryBlock);
     }
-  }
-
-  void narrowLocal(
-      InferrerEngine inferrer,
-      Map<Local, FieldEntity> capturedAndBoxed,
-      Local local,
-      DartType type,
-      ir.Node node) {
-    TypeInformation currentType = readLocal(inferrer, capturedAndBoxed, local);
-    updateLocal(inferrer, capturedAndBoxed, local, currentType, node, type,
-        isNullable: false);
   }
 
   LocalState mergeFlow(InferrerEngine inferrer, LocalState other) {
