@@ -399,7 +399,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // TODO(paulberry): this matches what is defined in the spec.  It would be
       // nice if we could change kernel to match the spec and not have to
       // override.
-      if (member.name.name == 'remainder') return false;
+      if (member.name.text == 'remainder') return false;
       if (!(receiverType is InterfaceType &&
           identical(receiverType.classNode, coreTypes.intClass))) {
         return false;

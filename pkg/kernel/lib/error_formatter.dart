@@ -65,7 +65,7 @@ Incompatible override of ${superMember} with ${ownMember}:
       final parent = context.parent;
       final parentName =
           parent is Class ? parent.name : (parent as Library).name;
-      name = "${parentName}::${context.name.name}";
+      name = "${parentName}::${context.name.text}";
     } else {
       final field = context as Field;
       if (where is Field) {

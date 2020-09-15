@@ -48,14 +48,14 @@ class IndexedLibrary {
     for (int i = 0; i < library.procedures.length; i++) {
       Procedure procedure = library.procedures[i];
       if (procedure.isSetter) {
-        _proceduresSetters[procedure.name.name] = procedure;
+        _proceduresSetters[procedure.name.text] = procedure;
       } else {
-        _proceduresNotSetters[procedure.name.name] = procedure;
+        _proceduresNotSetters[procedure.name.text] = procedure;
       }
     }
     for (int i = 0; i < library.fields.length; i++) {
       Field field = library.fields[i];
-      _fields[field.name.name] = field;
+      _fields[field.name.text] = field;
     }
   }
 
@@ -80,19 +80,19 @@ class IndexedClass {
   IndexedClass._(Class c) {
     for (int i = 0; i < c.constructors.length; i++) {
       Constructor constructor = c.constructors[i];
-      _constructors[constructor.name.name] = constructor;
+      _constructors[constructor.name.text] = constructor;
     }
     for (int i = 0; i < c.procedures.length; i++) {
       Procedure procedure = c.procedures[i];
       if (procedure.isSetter) {
-        _proceduresSetters[procedure.name.name] = procedure;
+        _proceduresSetters[procedure.name.text] = procedure;
       } else {
-        _proceduresNotSetters[procedure.name.name] = procedure;
+        _proceduresNotSetters[procedure.name.text] = procedure;
       }
     }
     for (int i = 0; i < c.fields.length; i++) {
       Field field = c.fields[i];
-      _fields[field.name.name] = field;
+      _fields[field.name.text] = field;
     }
   }
 

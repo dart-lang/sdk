@@ -1013,7 +1013,7 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
       if (info.lazyDeclaredGettersAndCalls != null) {
         sb.writeln("    - lazyDeclaredGettersAndCalls:");
         for (Member member in info.lazyDeclaredGettersAndCalls) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
 
         // Expect these to be the same as in the class.
@@ -1022,7 +1022,7 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           if (f.isStatic) continue;
           if (!f.hasImplicitGetter) continue;
           if (!members.remove(f)) {
-            throw "Didn't find ${f.name.name} in lazyDeclaredGettersAndCalls "
+            throw "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
                 "for ${c.name} in ${library.importUri}";
           }
         }
@@ -1030,19 +1030,19 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           if (p.isStatic) continue;
           if (p.isSetter) continue;
           if (!members.remove(p)) {
-            throw "Didn't find ${p.name.name} in lazyDeclaredGettersAndCalls "
+            throw "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
                 "for ${c.name} in ${library.importUri}";
           }
         }
         if (members.isNotEmpty) {
-          throw "Still have ${members.map((m) => m.name.name)} left "
+          throw "Still have ${members.map((m) => m.name.text)} left "
               "for ${c.name} in ${library.importUri}";
         }
       }
       if (info.lazyDeclaredSetters != null) {
         sb.writeln("    - lazyDeclaredSetters:");
         for (Member member in info.lazyDeclaredSetters) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
 
         // Expect these to be the same as in the class.
@@ -1062,32 +1062,32 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           }
         }
         if (members.isNotEmpty) {
-          throw "Still have ${members.map((m) => m.name.name)} left "
+          throw "Still have ${members.map((m) => m.name.text)} left "
               "for ${c.name} in ${library.importUri}";
         }
       }
       if (info.lazyImplementedGettersAndCalls != null) {
         sb.writeln("    - lazyImplementedGettersAndCalls:");
         for (Member member in info.lazyImplementedGettersAndCalls) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
       if (info.lazyImplementedSetters != null) {
         sb.writeln("    - lazyImplementedSetters:");
         for (Member member in info.lazyImplementedSetters) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
       if (info.lazyInterfaceGettersAndCalls != null) {
         sb.writeln("    - lazyInterfaceGettersAndCalls:");
         for (Member member in info.lazyInterfaceGettersAndCalls) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
       if (info.lazyInterfaceSetters != null) {
         sb.writeln("    - lazyInterfaceSetters:");
         for (Member member in info.lazyInterfaceSetters) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
     }
@@ -1292,10 +1292,10 @@ Map<String, Set<String>> buildMapOfContent(Component component) {
       libContent.add("Class ${c.name}");
     }
     for (Procedure p in lib.procedures) {
-      libContent.add("Procedure ${p.name.name}");
+      libContent.add("Procedure ${p.name.text}");
     }
     for (Field f in lib.fields) {
-      libContent.add("Field ${f.name.name}");
+      libContent.add("Field ${f.name.text}");
     }
   }
   return actualContent;
@@ -1657,7 +1657,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 void doSimulateTransformer(Component c) {
   for (Library lib in c.libraries) {
     if (lib.fields
-        .where((f) => f.name.name == "unique_SimulateTransformer")
+        .where((f) => f.name.text == "unique_SimulateTransformer")
         .toList()
         .isNotEmpty) continue;
     Name fieldName = new Name("unique_SimulateTransformer");
@@ -1669,7 +1669,7 @@ void doSimulateTransformer(Component c) {
     lib.addMember(field);
     for (Class c in lib.classes) {
       if (c.fields
-          .where((f) => f.name.name == "unique_SimulateTransformer")
+          .where((f) => f.name.text == "unique_SimulateTransformer")
           .toList()
           .isNotEmpty) continue;
       fieldName = new Name("unique_SimulateTransformer");

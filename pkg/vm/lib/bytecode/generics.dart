@@ -306,6 +306,6 @@ bool _hasGenericCovariantParameters(Member target) {
 /// function type. Such invocations can omit argument type checks.
 bool isUncheckedClosureCall(MethodInvocation node,
         StaticTypeContext staticTypeContext, BytecodeOptions options) =>
-    node.name.name == 'call' &&
+    node.name.text == 'call' &&
     getStaticType(node.receiver, staticTypeContext) is FunctionType &&
     !options.avoidClosureCallInstructions;

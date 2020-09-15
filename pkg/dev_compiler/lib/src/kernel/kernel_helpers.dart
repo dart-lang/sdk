@@ -8,7 +8,7 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 
 Constructor unnamedConstructor(Class c) =>
-    c.constructors.firstWhere((c) => c.name.name == '', orElse: () => null);
+    c.constructors.firstWhere((c) => c.name.text == '', orElse: () => null);
 
 /// Returns the enclosing library for reference [node].
 Library getLibrary(NamedNode node) {
@@ -47,10 +47,10 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name);
 String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
 
 String getTopLevelName(NamedNode n) {
-  if (n is Procedure) return n.name.name;
+  if (n is Procedure) return n.name.text;
   if (n is Class) return n.name;
   if (n is Typedef) return n.name;
-  if (n is Field) return n.name.name;
+  if (n is Field) return n.name.text;
   return n.canonicalName?.name;
 }
 
@@ -152,7 +152,7 @@ bool isOperatorMethodName(String name) {
 bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
   var target = node.target;
   return node.isConst &&
-      target.name.name == 'fromEnvironment' &&
+      target.name.text == 'fromEnvironment' &&
       target.enclosingLibrary == coreTypes.coreLibrary;
 }
 
@@ -197,7 +197,7 @@ Expression getInvocationReceiver(InvocationExpression node) =>
 
 bool isInlineJS(Member e) =>
     e is Procedure &&
-    e.name.name == 'JS' &&
+    e.name.text == 'JS' &&
     e.enclosingLibrary.importUri.toString() == 'dart:_foreign_helper';
 
 /// Whether the parameter [p] is covariant (either explicitly `covariant` or

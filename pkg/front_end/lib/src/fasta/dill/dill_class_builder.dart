@@ -73,7 +73,7 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   void addMember(Member member) {
     DillMemberBuilder builder = new DillMemberBuilder(member, this);
-    String name = member.name.name;
+    String name = member.name.text;
     if (builder.isConstructor || builder.isFactory) {
       constructorScopeBuilder.addMember(name, builder);
     } else if (builder.isSetter) {

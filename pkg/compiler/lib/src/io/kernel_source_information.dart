@@ -93,7 +93,7 @@ String _findExtensionMemberName(ir.Member member) {
         } else {
           extensionName = extension.name;
         }
-        String memberName = descriptor.name.name;
+        String memberName = descriptor.name.text;
         return '$extensionName.$memberName';
       }
     }

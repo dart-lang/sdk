@@ -81,7 +81,7 @@ class ProtobufHandler {
       return;
     }
     final messageClass = (_messageClasses[cls] ??= _MessageClass());
-    if (member is Field && member.name.name == metadataFieldName) {
+    if (member is Field && member.name.text == metadataFieldName) {
       // Update contents of static field initializer of metadata field (_i).
       // according to the used tag numbers.
       assertx(member.isStatic);
@@ -146,7 +146,7 @@ class ProtobufHandler {
   bool _isUnusedMetadata(_MessageClass cls, MethodInvocation node) {
     if (node.interfaceTarget != null &&
         node.interfaceTarget.enclosingClass == _builderInfoClass &&
-        fieldAddingMethods.contains(node.name.name)) {
+        fieldAddingMethods.contains(node.name.text)) {
       final tagNumber = (node.arguments.positional[0] as IntLiteral).value;
       return !cls._usedTags.contains(tagNumber);
     }

@@ -22,9 +22,9 @@ String nameToString(Name node, {bool includeLibraryName: false}) {
   if (node == null) {
     return 'null';
   } else if (node.library != null && includeLibraryName) {
-    return '${libraryNameToString(node.library)}::${node.name}';
+    return '${libraryNameToString(node.library)}::${node.text}';
   } else {
-    return node.name;
+    return node.text;
   }
 }
 
@@ -205,7 +205,7 @@ String qualifiedMemberNameToStringByReference(Reference reference,
 }
 
 String memberNameToString(Member node) {
-  return node.name?.name ??
+  return node.name?.text ??
       "null-named member ${node.runtimeType} ${node.hashCode}";
 }
 
