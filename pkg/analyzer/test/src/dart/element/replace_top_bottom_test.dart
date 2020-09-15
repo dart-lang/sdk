@@ -79,11 +79,22 @@ class ReplaceTopBottomNullSafetyTest extends AbstractTypeSystemNullSafetyTest {
     // Not contravariant.
     _check(neverNone, 'Never');
 
-    _check(
-      functionTypeNone(returnType: intNone, parameters: [
-        requiredParameter(type: neverNone),
-      ]),
-      'int Function(Object?)',
+    void checkContravariant(DartType type, String expectedStr) {
+      _check(
+        functionTypeNone(returnType: intNone, parameters: [
+          requiredParameter(type: type),
+        ]),
+        'int Function($expectedStr)',
+      );
+    }
+
+    checkContravariant(neverNone, 'Object?');
+
+    checkContravariant(
+      typeParameterTypeNone(
+        typeParameter('T', bound: neverNone),
+      ),
+      'Object?',
     );
   }
 

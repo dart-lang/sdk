@@ -641,11 +641,6 @@ class MethodInvocationResolver {
       nameErrorEntity: nameNode,
     );
 
-    if (result.isAmbiguous) {
-      _setDynamicResolution(node);
-      return;
-    }
-
     var target = result.getter;
     if (target != null) {
       nameNode.staticElement = target;
@@ -665,6 +660,10 @@ class MethodInvocationResolver {
     }
 
     _setDynamicResolution(node);
+
+    if (!result.needsGetterError) {
+      return;
+    }
 
     String receiverClassName = '<unknown>';
     if (receiverType is InterfaceType) {

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
@@ -28,7 +29,15 @@ class TypePropertyResolver {
   SyntacticEntity _nameErrorEntity;
   String _name;
 
-  ResolutionResult _result = ResolutionResult.none;
+  bool _needsGetterError;
+  bool _reportedGetterError;
+  ExecutableElement _getterRequested;
+  ExecutableElement _getterRecovery;
+
+  bool _needsSetterError;
+  bool _reportedSetterError;
+  ExecutableElement _setterRequested;
+  ExecutableElement _setterRecovery;
 
   TypePropertyResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
@@ -36,6 +45,10 @@ class TypePropertyResolver {
         _typeSystem = _resolver.typeSystem,
         _typeProvider = _resolver.typeProvider,
         _extensionResolver = _resolver.extensionResolver;
+
+  bool get _hasGetterOrSetter {
+    return _getterRequested != null || _setterRequested != null;
+  }
 
   /// Look up the property with the given [name] in the [receiverType].
   ///
@@ -56,91 +69,133 @@ class TypePropertyResolver {
     _receiver = receiver;
     _name = name;
     _nameErrorEntity = nameErrorEntity;
-    _result = ResolutionResult.none;
+    _resetResult();
 
     receiverType = _resolveTypeParameter(receiverType);
 
+    if (receiverType is DynamicTypeImpl) {
+      _lookupInterfaceType(_typeProvider.objectType);
+      _needsGetterError = false;
+      _needsSetterError = false;
+      return _toResult();
+    }
+
     if (_isNonNullableByDefault &&
         _typeSystem.isPotentiallyNullable(receiverType)) {
+      _lookupInterfaceType(_typeProvider.objectType);
+      if (_hasGetterOrSetter) {
+        return _toResult();
+      }
+
       _lookupExtension(receiverType);
-
-      if (_result.isNone) {
-        _lookupInterfaceType(_typeProvider.objectType);
+      if (_hasGetterOrSetter) {
+        return _toResult();
       }
 
-      if (_result.isNone && !receiverType.isDynamic) {
-        _resolver.nullableDereferenceVerifier.report(
-          receiverErrorNode,
-          receiverType,
-        );
-        // Recovery, get some resolution.
-        _lookupType(receiverType);
+      _resolver.nullableDereferenceVerifier.report(
+        receiverErrorNode,
+        receiverType,
+      );
+      _reportedGetterError = true;
+      _reportedSetterError = true;
+
+      // Recovery, get some resolution.
+      if (receiverType is InterfaceType) {
+        _lookupInterfaceType(receiverType);
       }
 
-      _toLegacy();
-      return _result;
+      return _toResult();
     } else {
-      _lookupType(receiverType);
-
-      if (_result.isNone) {
-        _lookupExtension(receiverType);
+      if (receiverType is InterfaceType) {
+        _lookupInterfaceType(receiverType);
+        if (_hasGetterOrSetter) {
+          return _toResult();
+        }
       }
 
-      if (_result.isNone) {
-        _lookupInterfaceType(_typeProvider.objectType);
+      _lookupExtension(receiverType);
+      if (_hasGetterOrSetter) {
+        return _toResult();
       }
 
-      _toLegacy();
-      return _result;
+      _lookupInterfaceType(_typeProvider.objectType);
+
+      return _toResult();
     }
   }
 
   void _lookupExtension(DartType type) {
-    _result = _extensionResolver.findExtension(type, _nameErrorEntity, _name);
+    var result =
+        _extensionResolver.findExtension(type, _nameErrorEntity, _name);
+    _reportedGetterError = result.isAmbiguous;
+    _reportedSetterError = result.isAmbiguous;
+
+    if (result.getter != null) {
+      _needsGetterError = false;
+      _getterRequested = result.getter;
+    }
+
+    if (result.setter != null) {
+      _needsSetterError = false;
+      _setterRequested = result.setter;
+    }
   }
 
   void _lookupInterfaceType(InterfaceType type) {
     var isSuper = _receiver is SuperExpression;
 
-    ExecutableElement typeGetter;
-    ExecutableElement typeSetter;
-
     if (_name == '[]') {
-      typeGetter = type.lookUpMethod2(
+      _getterRequested = type.lookUpMethod2(
         '[]',
         _definingLibrary,
         concrete: isSuper,
         inherited: isSuper,
       );
+      _needsGetterError = _getterRequested == null;
 
-      typeSetter = type.lookUpMethod2(
+      _setterRequested = type.lookUpMethod2(
         '[]=',
         _definingLibrary,
         concrete: isSuper,
         inherited: isSuper,
       );
+      _needsSetterError = _setterRequested == null;
     } else {
       var classElement = type.element as AbstractClassElementImpl;
-      var getterName = Name(_definingLibrary.source.uri, _name);
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
-      typeGetter = _resolver.inheritance
-              .getMember(type, getterName, forSuper: isSuper) ??
-          classElement.lookupStaticGetter(_name, _definingLibrary) ??
-          classElement.lookupStaticMethod(_name, _definingLibrary);
-      typeSetter = _resolver.inheritance
-              .getMember(type, setterName, forSuper: isSuper) ??
-          classElement.lookupStaticSetter(_name, _definingLibrary);
-    }
 
-    if (typeGetter != null || typeSetter != null) {
-      _result = ResolutionResult(getter: typeGetter, setter: typeSetter);
+      var getterName = Name(_definingLibrary.source.uri, _name);
+      _getterRequested =
+          _resolver.inheritance.getMember(type, getterName, forSuper: isSuper);
+      _needsGetterError = _getterRequested == null;
+      if (_getterRequested == null) {
+        _getterRecovery ??=
+            classElement.lookupStaticGetter(_name, _definingLibrary) ??
+                classElement.lookupStaticMethod(_name, _definingLibrary);
+        _needsGetterError = _getterRecovery == null;
+      }
+
+      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      _setterRequested =
+          _resolver.inheritance.getMember(type, setterName, forSuper: isSuper);
+      _needsSetterError = _setterRequested == null;
+      if (_setterRequested == null) {
+        _setterRecovery ??=
+            classElement.lookupStaticSetter(_name, _definingLibrary);
+        _needsSetterError = _setterRecovery == null;
+      }
     }
   }
 
-  void _lookupType(DartType type) {
-    if (type is InterfaceType) {
-      _lookupInterfaceType(type);
-    }
+  void _resetResult() {
+    _needsGetterError = false;
+    _reportedGetterError = false;
+    _getterRequested = null;
+    _getterRecovery = null;
+
+    _needsSetterError = false;
+    _reportedSetterError = false;
+    _setterRequested = null;
+    _setterRecovery = null;
   }
 
   /// If the given [type] is a type parameter, replace it with its bound.
@@ -149,12 +204,21 @@ class TypePropertyResolver {
     return type?.resolveToBound(_typeProvider.objectType);
   }
 
-  void _toLegacy() {
-    if (_result.isSingle) {
-      _result = ResolutionResult(
-        getter: _resolver.toLegacyElement(_result.getter),
-        setter: _resolver.toLegacyElement(_result.setter),
-      );
-    }
+  ResolutionResult _toResult() {
+    _getterRequested = _resolver.toLegacyElement(_getterRequested);
+    _getterRecovery = _resolver.toLegacyElement(_getterRecovery);
+
+    _setterRequested = _resolver.toLegacyElement(_setterRequested);
+    _setterRecovery = _resolver.toLegacyElement(_setterRecovery);
+
+    var getter = _getterRequested ?? _getterRecovery;
+    var setter = _setterRequested ?? _setterRecovery;
+
+    return ResolutionResult(
+      getter: getter,
+      needsGetterError: _needsGetterError && !_reportedGetterError,
+      setter: setter,
+      needsSetterError: _needsSetterError && !_reportedSetterError,
+    );
   }
 }

@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import "package:vm_service/vm_service.dart" as vmService;
-import "package:vm_service/vm_service_io.dart" as vmService;
-
-import "vm_service_heap_helper.dart" as helper;
 import "simple_stats.dart";
+import "vm_service_helper.dart" as vmService;
 
 const int limit = 10;
 
@@ -22,7 +19,7 @@ main(List<String> args) async {
   ]);
 }
 
-class LeakFinder extends helper.LaunchingVMServiceHeapHelper {
+class LeakFinder extends vmService.LaunchingVMServiceHelper {
   @override
   Future<void> run() async {
     vmService.VM vm = await serviceClient.getVM();

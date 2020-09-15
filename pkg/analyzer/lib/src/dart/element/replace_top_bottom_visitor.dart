@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:meta/meta.dart';
 
@@ -51,6 +52,16 @@ class ReplaceTopBottomVisitor extends ReplacementVisitor {
   @override
   DartType visitNeverType(NeverType type) {
     return _isCovariant ? null : _topType;
+  }
+
+  @override
+  DartType visitTypeParameterType(TypeParameterType type) {
+    if (!_isCovariant && _typeSystem.isNonNullableByDefault) {
+      if (_typeSystem.isSubtypeOf2(type, NeverTypeImpl.instance)) {
+        return _typeSystem.objectQuestion;
+      }
+    }
+    return null;
   }
 
   @override

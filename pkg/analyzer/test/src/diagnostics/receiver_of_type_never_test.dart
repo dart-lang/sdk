@@ -190,7 +190,6 @@ void main(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
 
     assertIndexExpression(
@@ -208,8 +207,6 @@ void main(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
 
     assertIndexExpression(
@@ -229,7 +226,6 @@ void main(Never? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 25, 3),
     ]);
 
     assertIndexExpression(

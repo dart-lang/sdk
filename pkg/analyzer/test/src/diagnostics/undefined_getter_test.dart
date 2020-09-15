@@ -235,7 +235,6 @@ m() {
 ''',
         expectedErrorsByNullability(nullable: [
           error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 5),
-          error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
         ], legacy: [
           error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
         ]));

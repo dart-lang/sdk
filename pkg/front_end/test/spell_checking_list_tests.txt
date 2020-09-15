@@ -129,6 +129,8 @@ coo
 corners
 costly
 cov
+coverage
+coverages
 cp
 csi
 ctrl
@@ -282,6 +284,7 @@ hest
 heuristics
 hi
 hints
+hits
 home
 hoo
 hosted
@@ -403,6 +406,7 @@ minutes
 mismatched
 misnamed
 miss
+misses
 misspelled
 mistake
 mistakes
@@ -500,6 +504,7 @@ repro
 response
 result1
 result2
+resuming
 retaining
 retainingpath
 retains
