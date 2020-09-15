@@ -24,6 +24,7 @@ class FlowGraph;
 
 namespace compiler {
 class Assembler;
+class Intrinsifier;
 class Label;
 
 class AsmIntrinsifier : public AllStatic {
