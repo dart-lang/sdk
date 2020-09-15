@@ -2736,7 +2736,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 
   // Visit objects in the field table.
-  field_table()->VisitObjectPointers(visitor);
+  if (!visitor->trace_values_through_fields()) {
+    field_table()->VisitObjectPointers(visitor);
+  }
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.

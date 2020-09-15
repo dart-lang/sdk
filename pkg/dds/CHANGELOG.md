@@ -1,3 +1,8 @@
+# 1.3.4
+
+- Fixed issue where `isolateId`s were expected to take the form `isolates/123`
+  although this is not required by the VM service specification.
+
 # 1.3.3
 
 - Fixed issue where `DartDevelopmentService.sseUri` did not return a URI with a

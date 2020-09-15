@@ -144,45 +144,29 @@ class TypePropertyResolver {
   void _lookupInterfaceType(InterfaceType type) {
     var isSuper = _receiver is SuperExpression;
 
-    if (_name == '[]') {
-      _getterRequested = type.lookUpMethod2(
-        '[]',
-        _definingLibrary,
-        concrete: isSuper,
-        inherited: isSuper,
-      );
-      _needsGetterError = _getterRequested == null;
+    var getterName = Name(_definingLibrary.source.uri, _name);
+    _getterRequested =
+        _resolver.inheritance.getMember(type, getterName, forSuper: isSuper);
+    _needsGetterError = _getterRequested == null;
 
-      _setterRequested = type.lookUpMethod2(
-        '[]=',
-        _definingLibrary,
-        concrete: isSuper,
-        inherited: isSuper,
-      );
-      _needsSetterError = _setterRequested == null;
-    } else {
+    if (_getterRequested == null) {
       var classElement = type.element as AbstractClassElementImpl;
+      _getterRecovery ??=
+          classElement.lookupStaticGetter(_name, _definingLibrary) ??
+              classElement.lookupStaticMethod(_name, _definingLibrary);
+      _needsGetterError = _getterRecovery == null;
+    }
 
-      var getterName = Name(_definingLibrary.source.uri, _name);
-      _getterRequested =
-          _resolver.inheritance.getMember(type, getterName, forSuper: isSuper);
-      _needsGetterError = _getterRequested == null;
-      if (_getterRequested == null) {
-        _getterRecovery ??=
-            classElement.lookupStaticGetter(_name, _definingLibrary) ??
-                classElement.lookupStaticMethod(_name, _definingLibrary);
-        _needsGetterError = _getterRecovery == null;
-      }
+    var setterName = Name(_definingLibrary.source.uri, '$_name=');
+    _setterRequested =
+        _resolver.inheritance.getMember(type, setterName, forSuper: isSuper);
+    _needsSetterError = _setterRequested == null;
 
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
-      _setterRequested =
-          _resolver.inheritance.getMember(type, setterName, forSuper: isSuper);
-      _needsSetterError = _setterRequested == null;
-      if (_setterRequested == null) {
-        _setterRecovery ??=
-            classElement.lookupStaticSetter(_name, _definingLibrary);
-        _needsSetterError = _setterRecovery == null;
-      }
+    if (_setterRequested == null) {
+      var classElement = type.element as AbstractClassElementImpl;
+      _setterRecovery ??=
+          classElement.lookupStaticSetter(_name, _definingLibrary);
+      _needsSetterError = _setterRecovery == null;
     }
   }
 

@@ -2790,6 +2790,7 @@ starts
 startup
 state
 stateful
+stateless
 statement
 statement's
 statements
