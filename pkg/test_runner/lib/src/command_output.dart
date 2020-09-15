@@ -1249,10 +1249,12 @@ class ScriptCommandOutput extends CommandOutput {
 
 class FastaCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors,
-      [List<StaticError> warnings]) {
+  static void parseErrors(
+      String stdout, List<StaticError> errors, List<StaticError> warnings) {
     _StaticErrorOutput._parseCfeErrors(
         ErrorSource.cfe, _errorRegexp, stdout, errors);
+    _StaticErrorOutput._parseCfeErrors(
+        ErrorSource.cfe, _warningRegexp, stdout, warnings);
   }
 
   /// Matches the first line of a Fasta error message. Fasta prints errors to
@@ -1268,6 +1270,19 @@ class FastaCommandOutput extends CompilationCommandOutput
   static final _errorRegexp =
       RegExp(r"^([^:]+):(\d+):(\d+): Error: (.*)$", multiLine: true);
 
+  /// Matches the first line of a Fasta warning message. Fasta prints errors to
+  /// stdout that look like:
+  ///
+  ///     tests/language_2/some_test.dart:7:21: Warning: Some message.
+  ///     Try fixing the code to be less bad.
+  ///       var _ = <int>[if (1) 2];
+  ///                    ^
+  ///
+  /// The test runner only validates the main error message, and not the
+  /// suggested fixes, so we only parse the first line.
+  static final _warningRegexp =
+      RegExp(r"^([^:]+):(\d+):(\d+): Warning: (.*)$", multiLine: true);
+
   FastaCommandOutput(
       Command command,
       int exitCode,
@@ -1282,8 +1297,10 @@ class FastaCommandOutput extends CompilationCommandOutput
   @override
   void _parseErrors() {
     var errors = <StaticError>[];
-    parseErrors(decodeUtf8(stdout), errors);
+    var warnings = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors, warnings);
     errors.forEach(addError);
+    warnings.forEach(addWarning);
   }
 }
 

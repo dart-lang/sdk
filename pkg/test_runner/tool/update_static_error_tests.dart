@@ -268,8 +268,9 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
     return null;
   }
   var errors = <StaticError>[];
-  FastaCommandOutput.parseErrors(result.stdout as String, errors);
-  return errors;
+  var warnings = <StaticError>[];
+  FastaCommandOutput.parseErrors(result.stdout as String, errors, warnings);
+  return [...errors, ...warnings];
 }
 
 /// Invoke dart2js on [path] and gather all static errors it reports.

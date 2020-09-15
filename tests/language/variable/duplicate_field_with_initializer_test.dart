@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Repeated {
-  var a = '', b = 'Something';
-  var b;
-  //  ^
+  dynamic a = '', b = 'Something';
+  dynamic b;
+  //      ^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
   // [cfe] 'b' is already declared in this scope.
 }
