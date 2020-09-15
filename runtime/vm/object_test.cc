@@ -3208,6 +3208,12 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   bare_name = OneByteString::New("foo.named");
   EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
+  // Named double-private constructor match where the caller knows the private
+  // key.  Yes, this also happens.
+  mangled_name = OneByteString::New("foo@12345.named@12345");
+  bare_name = OneByteString::New("foo@12345.named");
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
   // Named double-private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.name@12345");
   bare_name = OneByteString::New("foo.named");
