@@ -190,7 +190,7 @@ class PropertyElementResolver {
             targetType.isDartCoreFunction &&
             propertyName.name == FunctionElement.CALL_METHOD_NAME) {
           // Referencing `.call` on a `Function` type is OK.
-        } else {
+        } else if (result.needsGetterError) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_GETTER,
             propertyName,
@@ -199,7 +199,7 @@ class PropertyElementResolver {
         }
       }
 
-      if (hasWrite && result.setter == null && !result.isAmbiguous) {
+      if (hasWrite && result.needsSetterError) {
         AssignmentVerifier(_definingLibrary, _errorReporter).verify(
           node: propertyName,
           requested: null,

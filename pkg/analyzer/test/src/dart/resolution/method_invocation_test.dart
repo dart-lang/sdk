@@ -921,8 +921,9 @@ main() {
 }
 ''', [
       if (typeToStringWithNullability)
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 11, 4),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
+        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 11, 4)
+      else
+        error(CompileTimeErrorCode.UNDEFINED_METHOD, 16, 3),
     ]);
     _assertUnresolvedMethodInvocation('foo();');
   }
@@ -2452,7 +2453,6 @@ main(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 29, 3),
     ]);
 
     assertMethodInvocation2(
@@ -2477,7 +2477,6 @@ main(A? a) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 65, 1),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 67, 3),
     ]);
 
     assertMethodInvocation2(

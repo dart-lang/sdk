@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -203,7 +202,7 @@ class AssignmentExpressionResolver {
       nameErrorEntity: operator,
     );
     node.staticElement = result.getter;
-    if (_shouldReportInvalidMember(leftType, result)) {
+    if (result.needsGetterError) {
       _errorReporter.reportErrorForToken(
         CompileTimeErrorCode.UNDEFINED_OPERATOR,
         operator,
@@ -437,20 +436,6 @@ class AssignmentExpressionResolver {
         }
         break;
     }
-  }
-
-  /// Return `true` if we should report an error for the lookup [result] on
-  /// the [type].
-  // TODO(scheglov) this is duplicate
-  bool _shouldReportInvalidMember(DartType type, ResolutionResult result) {
-    if (result.isNone && type != null && !type.isDynamic) {
-      if (_typeSystem.isNonNullableByDefault &&
-          _typeSystem.isPotentiallyNullable(type)) {
-        return false;
-      }
-      return true;
-    }
-    return false;
   }
 }
 

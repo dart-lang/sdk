@@ -624,7 +624,6 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 58, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 60, 3),
     ]);
   }
 
@@ -876,7 +875,6 @@ m(int? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 54, 1),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 56, 3),
     ]);
   }
 

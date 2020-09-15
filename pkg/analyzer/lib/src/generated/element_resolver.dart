@@ -438,12 +438,12 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
 
     if (isInGetterContext) {
-      _checkForUndefinedIndexOperator(
-          node, target, getterMethodName, result, result.getter, targetType);
+      _checkForUndefinedIndexOperator(node, target, getterMethodName, result,
+          result.getter, result.needsGetterError, targetType);
     }
     if (isInSetterContext) {
-      _checkForUndefinedIndexOperator(
-          node, target, setterMethodName, result, result.setter, targetType);
+      _checkForUndefinedIndexOperator(node, target, setterMethodName, result,
+          result.setter, result.needsSetterError, targetType);
     }
   }
 
@@ -879,6 +879,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       String methodName,
       ResolutionResult result,
       ExecutableElement element,
+      bool needsError,
       DartType staticType) {
     if (result.isAmbiguous) {
       return;
@@ -921,7 +922,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         HintCode.RECEIVER_OF_TYPE_NEVER,
         target,
       );
-    } else {
+    } else if (needsError) {
       _errorReporter.reportErrorForOffset(
         CompileTimeErrorCode.UNDEFINED_OPERATOR,
         offset,

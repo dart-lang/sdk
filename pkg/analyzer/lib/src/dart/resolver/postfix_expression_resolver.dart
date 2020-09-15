@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -161,7 +160,7 @@ class PostfixExpressionResolver {
       nameErrorEntity: operand,
     );
     node.staticElement = result.getter;
-    if (_shouldReportInvalidMember(receiverType, result)) {
+    if (result.needsGetterError) {
       if (operand is SuperExpression) {
         _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
@@ -235,19 +234,5 @@ class PostfixExpressionResolver {
     _inferenceHelper.recordStaticType(node, type);
 
     _flowAnalysis?.flow?.nonNullAssert_end(operand);
-  }
-
-  /// Return `true` if we should report an error for the lookup [result] on
-  /// the [type].
-  ///
-  /// TODO(scheglov) this is duplicate
-  bool _shouldReportInvalidMember(DartType type, ResolutionResult result) {
-    if (result.isNone && type != null && !type.isDynamic) {
-      if (_isNonNullableByDefault && _typeSystem.isPotentiallyNullable(type)) {
-        return false;
-      }
-      return true;
-    }
-    return false;
   }
 }
