@@ -48,6 +48,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     object_ids_ = nullptr;
   }
 
+  virtual bool trace_values_through_fields() const { return true; }
+
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
   // won't be in use while handling a service request (ObjectGraph's only use).
@@ -472,6 +474,8 @@ class InboundReferencesVisitor : public ObjectVisitor,
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
+  virtual bool trace_values_through_fields() const { return true; }
+
   intptr_t length() const { return length_; }
 
   virtual void VisitObject(ObjectPtr raw_obj) {
@@ -765,6 +769,8 @@ class Pass1Visitor : public ObjectVisitor,
         HandleVisitor(Thread::Current()),
         writer_(writer) {}
 
+  virtual bool trace_values_through_fields() const { return true; }
+
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
@@ -818,6 +824,8 @@ class Pass2Visitor : public ObjectVisitor,
         HandleVisitor(Thread::Current()),
         isolate_(thread()->isolate()),
         writer_(writer) {}
+
+  virtual bool trace_values_through_fields() const { return true; }
 
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
