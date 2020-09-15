@@ -591,11 +591,11 @@ copy("copy_wasmer") {
   outputs =
       [ "$root_out_dir/dart-sdk/bin/third_party/wasmer/{{source_file_part}}" ]
   if (is_win) {
-    sources = [ "$target_out_dir/../../wasmer_wrapper.dll" ]
+    sources = [ "$root_out_dir/wasmer_wrapper.dll" ]
   } else if (is_mac) {
-    sources = [ "$target_out_dir/../../libwasmer_wrapper.dylib" ]
+    sources = [ "$root_out_dir/libwasmer_wrapper.dylib" ]
   } else {
-    sources = [ "$target_out_dir/../../libwasmer_wrapper.so" ]
+    sources = [ "$root_out_dir/libwasmer_wrapper.so" ]
   }
 }
 
