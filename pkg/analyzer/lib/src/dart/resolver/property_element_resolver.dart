@@ -177,36 +177,21 @@ class PropertyElementResolver {
       nameErrorEntity: propertyName,
     );
 
-    if (targetType is DynamicTypeImpl || targetType is NeverTypeImpl) {
-      // OK
-    } else {
-      // TODO(scheglov) It is not nice that we check for `call` here.
-      // We can find `call` in these types, is should be `single`, but `null`.
-      if (hasRead && result.getter == null && !result.isAmbiguous) {
-        if (targetType is FunctionType &&
-            propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-          // Referencing `.call` on a FunctionType is OK.
-        } else if (targetType is InterfaceType &&
-            targetType.isDartCoreFunction &&
-            propertyName.name == FunctionElement.CALL_METHOD_NAME) {
-          // Referencing `.call` on a `Function` type is OK.
-        } else if (result.needsGetterError) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_GETTER,
-            propertyName,
-            [propertyName.name, targetType],
-          );
-        }
-      }
+    if (hasRead && result.needsGetterError) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_GETTER,
+        propertyName,
+        [propertyName.name, targetType],
+      );
+    }
 
-      if (hasWrite && result.needsSetterError) {
-        AssignmentVerifier(_definingLibrary, _errorReporter).verify(
-          node: propertyName,
-          requested: null,
-          recovery: result.getter,
-          receiverTypeObject: targetType,
-        );
-      }
+    if (hasWrite && result.needsSetterError) {
+      AssignmentVerifier(_definingLibrary, _errorReporter).verify(
+        node: propertyName,
+        requested: null,
+        recovery: result.getter,
+        receiverTypeObject: targetType,
+      );
     }
 
     return PropertyElementResolverResult(
