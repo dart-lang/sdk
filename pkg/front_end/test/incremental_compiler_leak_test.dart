@@ -36,15 +36,22 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
         new Map<vmService.ClassRef, vmService.Class>();
 
     Completer<String> cTimeout = new Completer();
-    Timer timer = new Timer(new Duration(minutes: 4), () {
+    Timer timer = new Timer(new Duration(minutes: 6), () {
       cTimeout.complete("Timeout");
       killProcess();
     });
 
     Completer<String> cRunDone = new Completer();
     // ignore: unawaited_futures
-    runInternal(isolateRef, classInfo, instanceCounts,
-        () => cTimeout.isCompleted || cProcessExited.isCompleted).then((value) {
+    runInternal(
+        isolateRef,
+        classInfo,
+        instanceCounts,
+        (int iteration) =>
+            // Subtract 2 as it's logically one ahead and asks _before_ the run.
+            (iteration - 2) > limit ||
+            cTimeout.isCompleted ||
+            cProcessExited.isCompleted).then((value) {
       cRunDone.complete("Done");
     });
 
@@ -54,6 +61,9 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     print("\n\n======================\n\n");
 
     findPossibleLeaks(instanceCounts, classInfo);
+
+    // Make sure the process doesn't hang.
+    killProcess();
   }
 
   void findPossibleLeaks(Map<vmService.ClassRef, List<int>> instanceCounts,
@@ -115,11 +125,11 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
       vmService.IsolateRef isolateRef,
       Map<vmService.ClassRef, vmService.Class> classInfo,
       Map<vmService.ClassRef, List<int>> instanceCounts,
-      bool Function() shouldBail) async {
+      bool Function(int iteration) shouldBail) async {
     int iterationNumber = 1;
     try {
       while (true) {
-        if (shouldBail()) break;
+        if (shouldBail(iterationNumber)) break;
         if (!await waitUntilPaused(isolateRef.id)) break;
         print("\n\n====================\n\nIteration #$iterationNumber");
         iterationNumber++;
