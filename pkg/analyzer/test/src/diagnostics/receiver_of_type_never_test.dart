@@ -432,7 +432,7 @@ void main(Never x) {
       findNode.simple('foo'),
       readElement: null,
       writeElement: null,
-      type: 'Never',
+      type: 'dynamic',
     );
 
     assertAssignment(

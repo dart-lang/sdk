@@ -219,34 +219,99 @@ f() {new A<N>();}''', [
     ]);
   }
 
-  test_varRead() async {
-    newFile("$testPackageLibPath/lib1.dart", content: '''
-library lib1;
-var v;''');
-    newFile("$testPackageLibPath/lib2.dart", content: '''
-library lib2;
-var v;''');
+  test_variable_read() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
     await assertErrorsInCode('''
-import 'lib1.dart';
-import 'lib2.dart';
-f() { g(v); }
-g(p) {}''', [
+import 'a.dart';
+import 'b.dart';
+
+void f() {
+  x;
+}
+''', [
       error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
     ]);
   }
 
-  test_varWrite() async {
-    newFile("$testPackageLibPath/lib1.dart", content: '''
-library lib1;
-var v;''');
-    newFile("$testPackageLibPath/lib2.dart", content: '''
-library lib2;
-var v;''');
+  test_variable_read_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
     await assertErrorsInCode('''
-import 'lib1.dart';
-import 'lib2.dart';
-f() { v = 0; }''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 46, 1),
+import 'a.dart' as p;
+import 'b.dart' as p;
+
+void f() {
+  p.x;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
+    ]);
+  }
+
+  test_variable_write() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'b.dart';
+
+void f() {
+  x = 0;
+  x += 1;
+  ++x;
+  x++;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 48, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 57, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 69, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 74, 1),
+    ]);
+  }
+
+  test_variable_write_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var x;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var x;
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' as p;
+import 'b.dart' as p;
+
+void f() {
+  p.x = 0;
+  p.x += 1;
+  ++p.x;
+  p.x++;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 60, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 71, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 85, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 92, 1),
     ]);
   }
 }

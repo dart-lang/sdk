@@ -32,11 +32,37 @@ class PropertyElementResolver {
     @required bool hasRead,
     @required bool hasWrite,
   }) {
+    var prefix = node.prefix;
+    var identifier = node.identifier;
+
+    var prefixElement = prefix.staticElement;
+    if (prefixElement is PrefixElement) {
+      var lookupResult = prefixElement.scope.lookup2(identifier.name);
+
+      var readElement = _resolver.toLegacyElement(lookupResult.getter);
+      var writeElement = _resolver.toLegacyElement(lookupResult.setter);
+
+      if (hasRead && readElement == null || hasWrite && writeElement == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+          identifier,
+          [identifier.name, prefixElement.name],
+        );
+      }
+
+      return PropertyElementResolverResult(
+        readElementRequested: readElement,
+        readElementRecovery: null,
+        writeElementRequested: writeElement,
+        writeElementRecovery: null,
+      );
+    }
+
     return _resolve(
-      target: node.prefix,
+      target: prefix,
       isCascaded: false,
       isNullAware: false,
-      propertyName: node.identifier,
+      propertyName: identifier,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -469,10 +495,10 @@ class PropertyElementResolver {
 }
 
 class PropertyElementResolverResult {
-  final ExecutableElement readElementRequested;
-  final ExecutableElement readElementRecovery;
-  final ExecutableElement writeElementRequested;
-  final ExecutableElement writeElementRecovery;
+  final Element readElementRequested;
+  final Element readElementRecovery;
+  final Element writeElementRequested;
+  final Element writeElementRecovery;
 
   PropertyElementResolverResult({
     this.readElementRequested,
@@ -481,11 +507,11 @@ class PropertyElementResolverResult {
     this.writeElementRecovery,
   });
 
-  ExecutableElement get readElement {
+  Element get readElement {
     return readElementRequested ?? readElementRecovery;
   }
 
-  ExecutableElement get writeElement {
+  Element get writeElement {
     return writeElementRequested ?? writeElementRecovery;
   }
 }
