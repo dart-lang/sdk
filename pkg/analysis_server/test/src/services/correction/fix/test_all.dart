@@ -94,6 +94,7 @@ import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
+import 'make_variable_nullable_test.dart' as make_variable_nullable;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'qualify_reference_test.dart' as qualify_reference;
@@ -249,6 +250,7 @@ void main() {
     make_final.main();
     make_return_type_nullable.main();
     make_variable_not_final.main();
+    make_variable_nullable.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
     qualify_reference.main();
