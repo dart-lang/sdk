@@ -145,6 +145,7 @@ import 'rules/sort_unnamed_constructors_first.dart';
 import 'rules/super_goes_last.dart';
 import 'rules/test_types_in_equals.dart';
 import 'rules/throw_in_finally.dart';
+import 'rules/tighten_type_of_initializing_formals.dart';
 import 'rules/type_annotate_public_apis.dart';
 import 'rules/type_init_formals.dart';
 import 'rules/unawaited_futures.dart';
@@ -325,6 +326,7 @@ void registerLintRules() {
     ..register(SortUnnamedConstructorsFirst())
     ..register(SuperGoesLast())
     ..register(TestTypesInEquals())
+    ..register(TightenTypeOfInitializingFormals())
     ..register(ThrowInFinally())
     ..register(TypeAnnotatePublicApis())
     ..register(TypeInitFormals())

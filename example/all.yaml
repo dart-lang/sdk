@@ -141,6 +141,7 @@ linter:
     - sort_pub_dependencies
     - sort_unnamed_constructors_first
     - test_types_in_equals
+    - tighten_type_of_initializing_formals
     - throw_in_finally
     - type_annotate_public_apis
     - type_init_formals
