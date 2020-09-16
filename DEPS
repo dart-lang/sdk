@@ -142,7 +142,7 @@ vars = {
   "source_map_stack_trace_rev": "1c3026f69d9771acf2f8c176a1ab750463309cce",
   "source_maps-0.9.4_rev": "38524",
   "source_maps_rev": "53eb92ccfe6e64924054f83038a534b959b12b3e",
-  "source_span_rev": "94833d6cbf4552ebe5d2aa6714acecd93834e53a",
+  "source_span_rev": "cc7c4288a83f71ecef3414199947b52a8c112c65",
   "sse_tag": "e5cf68975e8e87171a3dc297577aa073454a91dc",
   "stack_trace_tag": "d3813ca0a77348e0faf0d6af0cc17913e36afa39",
   "stagehand_tag": "v3.3.9",
