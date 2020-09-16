@@ -42,6 +42,11 @@ class Flags {
   // Experimentally rely on JavaScript ToBoolean conversions.
   static const String experimentToBoolean = '--experiment-code-3';
 
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  static const String experimentUnreachableMethodsThrow =
+      '--experiment-unreachable-throw';
+
   // Add instrumentation to log every method call.
   static const String experimentCallInstrumentation =
       '--experiment-call-instrumentation';

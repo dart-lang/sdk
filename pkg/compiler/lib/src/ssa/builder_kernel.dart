@@ -1239,9 +1239,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         parameterStructure: function.parameterStructure,
         checks: _checksForFunction(function));
 
-    if (const bool.fromEnvironment('unreachable-throw')) {
-      var emptyParameters = parameters.values.where((p) =>
-          _abstractValueDomain.isEmpty(p.instructionType).isDefinitelyTrue);
+    if (options.experimentUnreachableMethodsThrow) {
+      var emptyParameters = parameters.values.where((parameter) =>
+          _abstractValueDomain
+              .isEmpty(parameter.instructionType)
+              .isDefinitelyTrue);
       if (emptyParameters.length > 0) {
         _addComment('${emptyParameters} inferred as [empty]');
         add(new HInvokeStatic(

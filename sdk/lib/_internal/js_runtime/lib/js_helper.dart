@@ -2415,22 +2415,28 @@ class BoundClosure extends TearOffClosure {
         "${Primitives.objectToHumanReadableString(receiver)}";
   }
 
+  @pragma('dart2js:parameter:trust')
   static evalRecipe(BoundClosure closure, String recipe) {
     return newRti.evalInInstance(closure._self, recipe);
   }
 
+  @pragma('dart2js:parameter:trust')
   static evalRecipeIntercepted(BoundClosure closure, String recipe) {
     return newRti.evalInInstance(closure._receiver, recipe);
   }
 
   @pragma('dart2js:noInline')
+  @pragma('dart2js:parameter:trust')
   static selfOf(BoundClosure closure) => closure._self;
 
+  @pragma('dart2js:parameter:trust')
   static targetOf(BoundClosure closure) => closure._target;
 
   @pragma('dart2js:noInline')
+  @pragma('dart2js:parameter:trust')
   static receiverOf(BoundClosure closure) => closure._receiver;
 
+  @pragma('dart2js:parameter:trust')
   static nameOf(BoundClosure closure) => closure._name;
 
   static String? selfFieldNameCache;

@@ -61,6 +61,9 @@ class Identifiers {
 
   /// The name of the 'DART_CLOSURE_TO_JS' foreign function.
   static const String DART_CLOSURE_TO_JS = 'DART_CLOSURE_TO_JS';
+
+  /// The name of the 'RAW_DART_FUNCTION_REF' foreign function.
+  static const String RAW_DART_FUNCTION_REF = 'RAW_DART_FUNCTION_REF';
 }
 
 /// [Name]s commonly used.
