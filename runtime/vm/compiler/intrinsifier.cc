@@ -181,7 +181,6 @@ static IntrinsicDesc math_intrinsics[] = {
 };
 
 static IntrinsicDesc typed_data_intrinsics[] = {
-  TYPED_DATA_LIB_INTRINSIC_LIST(DEFINE_INTRINSIC)
   GRAPH_TYPED_DATA_INTRINSICS_LIST(DEFINE_INTRINSIC)
   {nullptr, nullptr},
 };

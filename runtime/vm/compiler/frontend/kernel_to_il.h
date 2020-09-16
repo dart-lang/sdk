@@ -121,6 +121,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
+  Fragment BuildTypedDataFactoryConstructor(const Function& function,
+                                            classid_t cid);
 
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);

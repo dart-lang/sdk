@@ -303,6 +303,32 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   array.SetTypeArguments(element_type);  // May be null.
 }
 
+// Allocate typed data array of given class id and length.
+// Arg0: class id.
+// Arg1: number of elements.
+// Return value: newly allocated typed data array.
+DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
+  const intptr_t cid = Smi::CheckedHandle(zone, arguments.ArgAt(0)).Value();
+  const auto& length = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  if (!length.IsInteger()) {
+    const Array& args = Array::Handle(zone, Array::New(1));
+    args.SetAt(0, length);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
+  }
+  const int64_t len = Integer::Cast(length).AsInt64Value();
+  const intptr_t max = TypedData::MaxElements(cid);
+  if (len < 0) {
+    Exceptions::ThrowRangeError("length", Integer::Cast(length), 0, max);
+  } else if (len > max) {
+    const Instance& exception = Instance::Handle(
+        zone, thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+  }
+  const auto& typed_data =
+      TypedData::Handle(zone, TypedData::New(cid, static_cast<intptr_t>(len)));
+  arguments.SetReturn(typed_data);
+}
+
 // Helper returning the token position of the Dart caller.
 static TokenPosition GetCallerLocation() {
   DartFrameIterator iterator(Thread::Current(),

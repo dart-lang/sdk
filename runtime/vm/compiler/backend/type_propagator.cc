@@ -1467,6 +1467,10 @@ CompileType CreateArrayInstr::ComputeType() const {
   return CompileType::FromCid(kArrayCid);
 }
 
+CompileType AllocateTypedDataInstr::ComputeType() const {
+  return CompileType::FromCid(class_id());
+}
+
 CompileType AllocateObjectInstr::ComputeType() const {
   if (!closure_function().IsNull()) {
     ASSERT(cls().id() == kClosureCid);

@@ -7,6 +7,7 @@
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
+#include "vm/class_id.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/aot/precompiler.h"  // For Obfuscator
 #include "vm/compiler/assembler/disassembler_kbc.h"
@@ -1090,6 +1091,10 @@ TypedDataPtr BytecodeReaderHelper::NativeEntry(const Function& function,
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
     case MethodRecognizer::kFfiAbi:
+#define TYPED_DATA_FACTORY(clazz)                                              \
+  case MethodRecognizer::kTypedData_##clazz##_factory:
+      CLASS_LIST_TYPED_DATA(TYPED_DATA_FACTORY)
+#undef TYPED_DATA_FACTORY
       break;
     case MethodRecognizer::kAsyncStackTraceHelper:
       // If causal async stacks are disabled the interpreter.cc will handle this

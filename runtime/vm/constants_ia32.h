@@ -158,6 +158,12 @@ struct RangeErrorABI {
   static const Register kIndexReg = EBX;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = EAX;
+  static const Register kResultReg = EAX;
+};
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFF;
 
