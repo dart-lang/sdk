@@ -100,7 +100,7 @@ class ForResolver {
     if (identifier != null) {
       identifierElement = identifier.staticElement;
       if (identifierElement is VariableElement) {
-        valueType = identifierElement.type;
+        valueType = _resolver.localVariableTypeProvider.getType(identifier);
       } else if (identifierElement is PropertyAccessorElement) {
         var parameters = identifierElement.parameters;
         if (parameters.isNotEmpty) {
