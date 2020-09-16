@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
+import 'package:meta/meta.dart';
 
 /// The name of the type `dynamic`;
 const DYNAMIC = 'dynamic';
@@ -169,7 +170,8 @@ protocol.Element createLocalElement(
 }
 
 /// Return a default argument value for the given [parameter].
-DefaultArgument getDefaultStringParameterValue(ParameterElement parameter) {
+DefaultArgument getDefaultStringParameterValue(ParameterElement parameter,
+    {@required bool withNullability}) {
   if (parameter != null) {
     var type = parameter.type;
     if (type is InterfaceType) {
@@ -182,7 +184,8 @@ DefaultArgument getDefaultStringParameterValue(ParameterElement parameter) {
       }
     } else if (type is FunctionType) {
       var params = type.parameters
-          .map((p) => '${getTypeString(p.type)}${p.name}')
+          .map((p) =>
+              '${getTypeString(p.type, withNullability: withNullability)}${p.name}')
           .join(', ');
       // TODO(devoncarew): Support having this method return text with newlines.
       var text = '($params) {  }';
@@ -209,11 +212,11 @@ String getRequestLineIndent(DartCompletionRequest request) {
   return content.substring(lineStartOffset, notWhitespaceOffset);
 }
 
-String getTypeString(DartType type) {
+String getTypeString(DartType type, {@required bool withNullability}) {
   if (type.isDynamic) {
     return '';
   } else {
-    return type.getDisplayString(withNullability: false) + ' ';
+    return type.getDisplayString(withNullability: withNullability) + ' ';
   }
 }
 

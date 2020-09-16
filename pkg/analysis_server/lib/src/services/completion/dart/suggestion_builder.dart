@@ -800,7 +800,9 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement;
     if (element is ConstructorElement) {
       if (Flutter.instance.isWidget(element.enclosingElement)) {
-        var defaultValue = getDefaultStringParameterValue(parameter);
+        // Don't bother with nullability. It won't affect default list values.
+        var defaultValue =
+            getDefaultStringParameterValue(parameter, withNullability: false);
         // TODO(devoncarew): Should we remove the check here? We would then
         // suggest values for param types like closures.
         if (defaultValue != null && defaultValue.text == '[]') {
