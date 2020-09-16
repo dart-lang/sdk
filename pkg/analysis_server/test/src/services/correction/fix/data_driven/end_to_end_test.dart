@@ -74,7 +74,7 @@ transforms:
     - kind: 'addTypeParameter'
       index: 1
       name: 'T'
-      value:
+      argumentValue:
         kind: 'argument'
         index: 0
 ''');

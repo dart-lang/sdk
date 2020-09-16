@@ -174,7 +174,7 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
-      value:
+      argumentValue:
         kind: 'argument'
         name: 'p'
 ''');
@@ -186,7 +186,7 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var value = change.value as ArgumentExtractor;
+    var value = change.argumentValue as ArgumentExtractor;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -205,7 +205,7 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
-      value:
+      argumentValue:
         kind: 'argument'
         index: 2
 ''');
@@ -217,7 +217,7 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var value = change.value as ArgumentExtractor;
+    var value = change.argumentValue as ArgumentExtractor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
   }

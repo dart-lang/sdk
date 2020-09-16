@@ -152,9 +152,9 @@ transforms:
     - kind: 'addTypeParameter'
       index: 1
       name: 'T'
-      value: 'int'
+      argumentValue: 'int'
 ''', [
-      error(TransformSetErrorCode.invalidValue, 198, 5),
+      error(TransformSetErrorCode.invalidValue, 206, 5),
     ]);
   }
 }

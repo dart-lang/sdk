@@ -61,7 +61,6 @@ class TransformSetParser {
   static const String _transformsKey = 'transforms';
   static const String _typedefKey = 'typedef';
   static const String _urisKey = 'uris';
-  static const String _valueKey = 'value';
   static const String _versionKey = 'version';
 
   /// A table mapping top-level keys for member elements to the list of keys for
@@ -261,18 +260,24 @@ class TransformSetParser {
   /// add-type-parameter change.
   AddTypeParameter _translateAddTypeParameterChange(YamlMap node) {
     _reportUnsupportedKeys(
-        node, const {_indexKey, _kindKey, _nameKey, _valueKey});
+        node, const {_indexKey, _kindKey, _nameKey, _argumentValueKey});
     var index = _translateInteger(node.valueAt(_indexKey),
         ErrorContext(key: _indexKey, parentNode: node));
     var name = _translateString(
         node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
-    var value = _translateValueExtractor(node.valueAt(_valueKey),
-        ErrorContext(key: _valueKey, parentNode: node));
-    if (index == null || name == null || value == null) {
+    // TODO(brianwilkerson) In order to support adding multiple type parameters
+    //  we might need to introduce a `TypeParameterModification` change, similar
+    //  to `ParameterModification`. That becomes more likely if we add support
+    //  for removing type parameters.
+    var argumentValue = _translateValueExtractor(
+        node.valueAt(_argumentValueKey),
+        ErrorContext(key: _argumentValueKey, parentNode: node));
+    if (index == null || name == null || argumentValue == null) {
       // The error has already been reported.
       return null;
     }
-    return AddTypeParameter(index: index, name: name, value: value);
+    return AddTypeParameter(
+        index: index, name: name, argumentValue: argumentValue);
   }
 
   /// Translate the [node] into a value extractor. Return the resulting

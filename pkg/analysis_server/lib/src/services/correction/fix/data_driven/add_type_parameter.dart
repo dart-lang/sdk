@@ -23,19 +23,18 @@ class AddTypeParameter extends Change<_Data> {
   final String extendedType;
 
   /// The value extractor used to compute the value of the type argument.
-  final ValueExtractor value;
+  final ValueExtractor argumentValue;
 
   /// Initialize a newly created change to describe adding a type parameter to a
   /// type or a function.
-  // TODO(brianwilkerson) Support adding multiple type parameters.
   AddTypeParameter(
       {@required this.index,
       @required this.name,
-      @required this.value,
+      @required this.argumentValue,
       this.extendedType})
       : assert(index >= 0),
         assert(name != null),
-        assert(value != null);
+        assert(argumentValue != null);
 
   @override
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
@@ -54,7 +53,7 @@ class AddTypeParameter extends Change<_Data> {
     if (node is NamedType) {
       // wrong_number_of_type_arguments
       // wrong_number_of_type_arguments_constructor
-      var argument = value.from(node, fix.utils);
+      var argument = argumentValue.from(node, fix.utils);
       if (argument == null) {
         return null;
       }
@@ -67,7 +66,7 @@ class AddTypeParameter extends Change<_Data> {
     var parent = node.parent;
     if (parent is InvocationExpression) {
       // wrong_number_of_type_arguments_method
-      var argument = value.from(parent, fix.utils);
+      var argument = argumentValue.from(parent, fix.utils);
       if (argument == null) {
         return null;
       }
@@ -86,7 +85,7 @@ class AddTypeParameter extends Change<_Data> {
       return _TypeParameterData(typeParameters, parent.name.end);
     } else if (node is TypeArgumentList && parent is ExtensionOverride) {
       // wrong_number_of_type_arguments_extension
-      var argument = value.from(node, fix.utils);
+      var argument = argumentValue.from(node, fix.utils);
       if (argument == null) {
         return null;
       }
@@ -120,6 +119,8 @@ class AddTypeParameter extends Change<_Data> {
 
   void _applyToTypeParameters(
       DartFileEditBuilder builder, _TypeParameterData data) {
+    // TODO(brianwilkerson) Define a `bound` to use in the declaration of the
+    //  parameter.
     var argumentValue =
         extendedType == null ? name : '$name extends $extendedType';
     var typeParameters = data.typeParameters;
