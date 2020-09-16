@@ -471,7 +471,7 @@ class PropertyAccessGenerator extends Generator {
   String get _debugName => "PropertyAccessGenerator";
 
   @override
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   @override
   Expression doInvocation(
@@ -486,7 +486,7 @@ class PropertyAccessGenerator extends Generator {
     sink.write(", receiver: ");
     printNodeOn(receiver, sink, syntheticNames: syntheticNames);
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
   }
 
   @override
@@ -624,7 +624,7 @@ class ThisPropertyAccessGenerator extends Generator {
   String get _debugName => "ThisPropertyAccessGenerator";
 
   @override
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   @override
   Expression buildSimpleRead() {
@@ -715,7 +715,7 @@ class ThisPropertyAccessGenerator extends Generator {
   @override
   void printOn(StringSink sink) {
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
   }
 }
 
@@ -738,7 +738,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression receiverAccess() => new VariableGet(receiver);
 
   @override
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   @override
   Expression buildSimpleRead() {
@@ -823,7 +823,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
     sink.write(", receiverExpression: ");
     printNodeOn(receiverExpression, sink, syntheticNames: syntheticNames);
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
   }
 }
 
@@ -842,7 +842,7 @@ class SuperPropertyAccessGenerator extends Generator {
   String get _debugName => "SuperPropertyAccessGenerator";
 
   @override
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   @override
   Expression buildSimpleRead() {
@@ -936,7 +936,7 @@ class SuperPropertyAccessGenerator extends Generator {
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
     sink.write(", getter: ");
     printQualifiedNameOn(getter, sink, syntheticNames: syntheticNames);
     sink.write(", setter: ");
@@ -1458,11 +1458,11 @@ class StaticAccessGenerator extends Generator {
       return _helper.buildProblem(
           templateNotConstantExpression.withArguments('Method invocation'),
           offset,
-          readTarget?.name?.text?.length ?? 0);
+          readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return _helper.forest.createExpressionInvocation(
-          offset + (readTarget?.name?.text?.length ?? 0),
+          offset + (readTarget?.name?.name?.length ?? 0),
           buildSimpleRead(),
           arguments);
     } else {
@@ -1935,7 +1935,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   String get _debugName => "ExplicitExtensionIndexedAccessGenerator";
 
   @override
-  String get _plainNameForRead => targetName.text;
+  String get _plainNameForRead => targetName.name;
 
   List<DartType> _createExtensionTypeArguments() {
     return explicitTypeArguments ?? const <DartType>[];
@@ -3079,7 +3079,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     if (declarationBuilder is DeclarationBuilder) {
       DeclarationBuilder declaration = declarationBuilder;
       Builder member = declaration.findStaticBuilder(
-          name.text, offsetForToken(send.token), _uri, _helper.libraryBuilder);
+          name.name, offsetForToken(send.token), _uri, _helper.libraryBuilder);
 
       Generator generator;
       if (member == null) {
@@ -3092,7 +3092,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
               send.token,
               send.token,
               arguments,
-              name.text,
+              name.name,
               send.typeArguments,
               token.charOffset,
               Constness.implicit,
@@ -3100,7 +3100,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
         }
       } else if (member is AmbiguousBuilder) {
         return _helper.buildProblem(
-            member.message, member.charOffset, name.text.length);
+            member.message, member.charOffset, name.name.length);
       } else {
         Builder setter;
         if (member.isSetter) {
@@ -3108,13 +3108,13 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
           member = null;
         } else if (member.isGetter) {
           setter = declaration.findStaticBuilder(
-              name.text, fileOffset, _uri, _helper.libraryBuilder,
+              name.name, fileOffset, _uri, _helper.libraryBuilder,
               isSetter: true);
         } else if (member.isField) {
           MemberBuilder fieldBuilder = member;
           if (!fieldBuilder.isAssignable) {
             setter = declaration.findStaticBuilder(
-                name.text, fileOffset, _uri, _helper.libraryBuilder,
+                name.name, fileOffset, _uri, _helper.libraryBuilder,
                 isSetter: true);
           } else {
             setter = member;
@@ -3122,7 +3122,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
         }
         generator = new StaticAccessGenerator.fromBuilder(
             _helper,
-            name.text,
+            name.name,
             send.token,
             member is MemberBuilder ? member : null,
             setter is MemberBuilder ? setter : null);
@@ -3338,7 +3338,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   Name get name => unsupported("name", fileOffset, _uri);
 
   @override
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   withReceiver(Object receiver, int operatorOffset, {bool isNullAware}) => this;
 
@@ -3454,7 +3454,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   factory UnresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
-    if (name.text.isEmpty) {
+    if (name.name.isEmpty) {
       unhandled("empty", "name", offsetForToken(token), helper.uri);
     }
     return new UnresolvedNameGenerator.internal(helper, token, name);
@@ -3511,7 +3511,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   @override
   void printOn(StringSink sink) {
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
   }
 
   Expression _buildUnresolvedVariableAssignment(
@@ -3719,7 +3719,7 @@ class DelayedPostfixIncrement extends ContextAwareGenerator {
   @override
   void printOn(StringSink sink) {
     sink.write(", binaryOperator: ");
-    sink.write(binaryOperator.text);
+    sink.write(binaryOperator.name);
   }
 }
 
@@ -3801,8 +3801,8 @@ class PrefixUseGenerator extends Generator {
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (send is IncompleteSendGenerator) {
-      assert(send.name.text == send.token.lexeme,
-          "'${send.name.text}' != ${send.token.lexeme}");
+      assert(send.name.name == send.token.lexeme,
+          "'${send.name.name}' != ${send.token.lexeme}");
       Object result = qualifiedLookup(send.token);
       if (send is SendAccessGenerator) {
         result = _helper.finishSend(
@@ -4265,7 +4265,7 @@ class ThisAccessGenerator extends Generator {
           constructor.function, arguments, offset, <TypeParameter>[]);
     } else {
       String fullName =
-          _helper.constructorNameForDiagnostics(name.text, isSuper: isSuper);
+          _helper.constructorNameForDiagnostics(name.name, isSuper: isSuper);
       message = (isSuper
               ? templateSuperclassHasNoConstructor
               : templateConstructorNotFound)
@@ -4276,7 +4276,7 @@ class ThisAccessGenerator extends Generator {
       return _helper.buildInvalidInitializer(
           _helper.throwNoSuchMethodError(
               _forest.createNullLiteral(offset),
-              _helper.constructorNameForDiagnostics(name.text,
+              _helper.constructorNameForDiagnostics(name.name,
                   isSuper: isSuper),
               arguments,
               offset,
@@ -4434,7 +4434,7 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
     assert(arguments != null);
   }
 
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   String get _debugName => "SendAccessGenerator";
 
@@ -4494,7 +4494,7 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
   @override
   void printOn(StringSink sink) {
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
     sink.write(", arguments: ");
     Arguments node = arguments;
     if (node is Node) {
@@ -4513,7 +4513,7 @@ class IncompletePropertyAccessGenerator extends Generator
       ExpressionGeneratorHelper helper, Token token, this.name)
       : super(helper, token);
 
-  String get _plainNameForRead => name.text;
+  String get _plainNameForRead => name.name;
 
   String get _debugName => "IncompletePropertyAccessGenerator";
 
@@ -4572,7 +4572,7 @@ class IncompletePropertyAccessGenerator extends Generator
   @override
   void printOn(StringSink sink) {
     sink.write(", name: ");
-    sink.write(name.text);
+    sink.write(name.name);
   }
 }
 

@@ -111,29 +111,29 @@ main() async {
     Map<int, String> tagToName = {};
     for (Field f in compareMe.tagClass.fields) {
       // Class doesn't only contain tag stuff.
-      if (f.name.text.endsWith("Mask")) continue;
-      if (f.name.text.endsWith("HighBit")) continue;
-      if (f.name.text.endsWith("Bias")) continue;
-      if (f.name.text == "ComponentFile") continue;
+      if (f.name.name.endsWith("Mask")) continue;
+      if (f.name.name.endsWith("HighBit")) continue;
+      if (f.name.name.endsWith("Bias")) continue;
+      if (f.name.name == "ComponentFile") continue;
       ConstantExpression value = f.initializer;
       IntConstant intConstant = value.constant;
       int intValue = intConstant.value;
-      if (f.name.text == "BinaryFormatVersion") {
+      if (f.name.name == "BinaryFormatVersion") {
         tagVersion = intValue;
         continue;
       }
 
       int end = intValue + 1;
       // There are a few special cases that takes up a total of 8 tags.
-      if (uses8Tags(f.name.text)) {
+      if (uses8Tags(f.name.name)) {
         end = intValue + 8;
       }
       for (; intValue < end; intValue++) {
         if (tagToName[intValue] != null) {
           throw "Double entry for ${intValue}: "
-              "${f.name.text} and ${tagToName[intValue]}";
+              "${f.name.name} and ${tagToName[intValue]}";
         }
-        tagToName[intValue] = f.name.text;
+        tagToName[intValue] = f.name.name;
       }
     }
 

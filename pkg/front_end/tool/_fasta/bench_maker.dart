@@ -164,7 +164,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     Procedure callOperator;
     for (Procedure procedure in cls.procedures) {
-      if (procedure.name.text == "call") {
+      if (procedure.name.name == "call") {
         callOperator = procedure;
       }
     }

@@ -52,12 +52,12 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
         case ExtensionMemberKind.Operator:
         case ExtensionMemberKind.Field:
           Member member = descriptor.member.asMember;
-          scopeBuilder.addMember(name.text,
+          scopeBuilder.addMember(name.name,
               new DillExtensionMemberBuilder(member, descriptor, this));
           break;
         case ExtensionMemberKind.Setter:
           Member member = descriptor.member.asMember;
-          scopeBuilder.addSetter(name.text,
+          scopeBuilder.addSetter(name.name,
               new DillExtensionMemberBuilder(member, descriptor, this));
           break;
       }
@@ -65,7 +65,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
     _methods.forEach((Name name, ExtensionMemberDescriptor descriptor) {
       Member member = descriptor.member.asMember;
       scopeBuilder.addMember(
-          name.text,
+          name.name,
           new DillExtensionMemberBuilder(
               member, descriptor, this, _tearOffs[name]));
     });

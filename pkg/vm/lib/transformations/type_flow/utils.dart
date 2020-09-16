@@ -322,7 +322,7 @@ bool isNullLiteral(Expression expr) =>
     (expr is ConstantExpression && expr.constant is NullConstant);
 
 Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
-  if (node.name.text == '==') {
+  if (node.name.name == '==') {
     final lhs = node.receiver;
     final rhs = node.arguments.positional.single;
     if (isNullLiteral(lhs)) {

@@ -149,7 +149,7 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         // Don't include member signatures.
         continue;
       }
-      String name = m.name.text;
+      String name = m.name.name;
       if (m is Constructor) {
         name = '${m.enclosingClass.name}.${name}';
       }

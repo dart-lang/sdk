@@ -1805,7 +1805,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   }
 
   String mangleMemberName(Member member, bool isGetter, bool isSetter) {
-    final name = member.name.text;
+    final name = member.name.name;
     if (isGetter || (member is Procedure && member.isGetter)) {
       return mangleGetterName(name);
     }
@@ -1862,7 +1862,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   ObjectHandle getSelectorNameHandle(Name name,
       {bool isGetter: false, bool isSetter: false}) {
     return getNameHandle(
-        name.library, mangleSelectorName(name.text, isGetter, isSetter));
+        name.library, mangleSelectorName(name.name, isGetter, isSetter));
   }
 
   ObjectHandle getTopLevelClassHandle(Library library) {

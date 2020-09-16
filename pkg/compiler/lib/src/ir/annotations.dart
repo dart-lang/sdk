@@ -77,7 +77,7 @@ class IrAnnotationData {
     _jsInteropLibraryNames.forEach((ir.Library library, _) {
       for (ir.Member member in library.members) {
         if (member.isExternal) {
-          f(member, _jsInteropMemberNames[member] ?? member.name.text);
+          f(member, _jsInteropMemberNames[member] ?? member.name.name);
         }
       }
     });
@@ -86,7 +86,7 @@ class IrAnnotationData {
         if (member is ir.Field) continue;
         String name = _jsInteropMemberNames[member];
         if (member.isExternal) {
-          name ??= member.name.text;
+          name ??= member.name.name;
         }
         f(member, name);
       }
@@ -99,7 +99,7 @@ class IrAnnotationData {
           f) {
     for (ir.Member node in _nativeMembers) {
       if (node is! ir.Field) {
-        String name = _nativeMemberNames[node] ?? node.name.text;
+        String name = _nativeMemberNames[node] ?? node.name.name;
         f(node, name, getCreatesAnnotations(node), getReturnsAnnotations(node));
       }
     }
@@ -112,7 +112,7 @@ class IrAnnotationData {
     for (ir.Class cls in _nativeClassNames.keys) {
       for (ir.Field field in cls.fields) {
         if (field.isInstanceMember) {
-          String name = _nativeMemberNames[field] ?? field.name.text;
+          String name = _nativeMemberNames[field] ?? field.name.name;
           f(field, name, getCreatesAnnotations(field),
               getReturnsAnnotations(field));
         }
@@ -348,9 +348,9 @@ PragmaAnnotationData _getPragmaAnnotation(ir.Constant constant) {
     ir.Constant optionsValue;
     value.fieldValues.forEach((ir.Reference reference, ir.Constant fieldValue) {
       ir.Field field = reference.asField;
-      if (field.name.text == 'name') {
+      if (field.name.name == 'name') {
         nameValue = fieldValue;
-      } else if (field.name.text == 'options') {
+      } else if (field.name.name == 'options') {
         optionsValue = fieldValue;
       }
     });

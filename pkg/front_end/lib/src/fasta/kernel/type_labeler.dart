@@ -369,7 +369,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
           classNode.enclosingLibrary.fileUri));
       result.add(".");
     }
-    result.add(procedure.name.text);
+    result.add(procedure.name.name);
   }
 
   void visitPartialInstantiationConstant(PartialInstantiationConstant node) {

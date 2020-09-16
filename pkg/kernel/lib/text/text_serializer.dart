@@ -21,10 +21,10 @@ class NameTagger implements Tagger<Name> {
 }
 
 TextSerializer<Name> publicName =
-    Wrapped((w) => w.text, (u) => Name(u), const DartString());
+    Wrapped((w) => w.name, (u) => Name(u), const DartString());
 
 TextSerializer<Name> privateName = Wrapped(
-    (w) => Tuple2(w.text, w.library.canonicalName),
+    (w) => Tuple2(w.name, w.library.canonicalName),
     (u) => Name.byReference(u.first, u.second.getReference()),
     Tuple2Serializer(DartString(), CanonicalNameSerializer()));
 

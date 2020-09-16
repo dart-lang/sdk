@@ -35,11 +35,11 @@ class JsInteropChecks extends RecursiveVisitor<void> {
     if (!procedure.isExternal || !isJSInteropMember(procedure)) return;
 
     if (!procedure.isStatic &&
-        (procedure.name.text == '[]=' || procedure.name.text == '[]')) {
+        (procedure.name.name == '[]=' || procedure.name.name == '[]')) {
       _diagnosticsReporter.report(
           messageJsInteropIndexNotSupported,
           procedure.fileOffset,
-          procedure.name.text.length,
+          procedure.name.name.length,
           procedure.location.file);
     }
 
@@ -73,7 +73,7 @@ class JsInteropChecks extends RecursiveVisitor<void> {
       _diagnosticsReporter.report(
           messageJsInteropNonExternalConstructor,
           constructor.fileOffset,
-          constructor.name.text.length,
+          constructor.name.name.length,
           constructor.location.file);
     }
 
@@ -99,7 +99,7 @@ class JsInteropChecks extends RecursiveVisitor<void> {
     var enclosingClass = m.enclosingClass;
     if (enclosingClass != null && !hasJSInteropAnnotation(enclosingClass)) {
       _diagnosticsReporter.report(messageJsInteropEnclosingClassJSAnnotation,
-          m.fileOffset, m.name.text.length, m.location.file,
+          m.fileOffset, m.name.name.length, m.location.file,
           context: <LocatedMessage>[
             messageJsInteropEnclosingClassJSAnnotationContext.withLocation(
                 enclosingClass.location.file,

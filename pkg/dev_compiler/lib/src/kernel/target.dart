@@ -181,7 +181,7 @@ class DevCompilerTarget extends Target {
       var ctor = coreTypes.index
           .getClass('dart:core', '_Invocation')
           .constructors
-          .firstWhere((c) => c.name.text == name);
+          .firstWhere((c) => c.name.name == name);
       return ConstructorInvocation(ctor, Arguments(positional));
     }
 

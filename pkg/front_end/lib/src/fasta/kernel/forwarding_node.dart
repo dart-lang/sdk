@@ -564,10 +564,10 @@ class ForwardingNode {
     if (classBuilder.referencesFromIndexed != null) {
       if (kind == ProcedureKind.Setter) {
         referenceFrom =
-            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.text);
+            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.name);
       } else {
         referenceFrom = classBuilder.referencesFromIndexed
-            .lookupProcedureNotSetter(name.text);
+            .lookupProcedureNotSetter(name.name);
       }
     }
     return new Procedure(name, kind, function,

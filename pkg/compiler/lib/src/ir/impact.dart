@@ -542,7 +542,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
             positionArguments, namedArguments, typeArguments);
         // TODO(johnniwinther): Avoid treating a known function call as a
         // dynamic call when CFE provides a way to distinguish the two.
-        if (operatorFromString(node.name.text) == null &&
+        if (operatorFromString(node.name.name) == null &&
             receiverType is ir.DynamicType) {
           // We might implicitly call a getter that returns a function.
           registerFunctionInvocation(const ir.DynamicType(), positionArguments,

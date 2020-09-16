@@ -698,9 +698,9 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name.text.isNotEmpty) {
+    if (target.name.name.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name.text);
+      printer.write(target.name.name);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -3557,12 +3557,12 @@ class BinaryExpression extends InternalExpression {
   }
 
   @override
-  int get precedence => Precedence.binaryPrecedence[binaryName.text];
+  int get precedence => Precedence.binaryPrecedence[binaryName.name];
 
   @override
   void toTextInternal(AstPrinter printer) {
     printer.writeExpression(left, minimumPrecedence: precedence);
-    printer.write(' ${binaryName.text} ');
+    printer.write(' ${binaryName.name} ');
     printer.writeExpression(right, minimumPrecedence: precedence);
   }
 }
@@ -3611,7 +3611,7 @@ class UnaryExpression extends InternalExpression {
     if (unaryName == unaryMinusName) {
       printer.write('-');
     } else {
-      printer.write('${unaryName.text}');
+      printer.write('${unaryName.name}');
     }
     printer.writeExpression(expression, minimumPrecedence: precedence);
   }

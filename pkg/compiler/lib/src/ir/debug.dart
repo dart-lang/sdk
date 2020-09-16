@@ -29,7 +29,7 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
   @override
   void visitName(Name node) {
     openAndCloseNode(node, '${node.runtimeType}',
-        {'name': node.text, 'library': node.library?.name});
+        {'name': node.name, 'library': node.library?.name});
   }
 
   @override

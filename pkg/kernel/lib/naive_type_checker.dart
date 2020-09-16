@@ -272,7 +272,7 @@ super method declares ${superParameter.type}
     // Permit any invocation on Function type.
     if (receiver == environment.coreTypes.functionLegacyRawType &&
         where is MethodInvocation &&
-        where.name.text == 'call') {
+        where.name.name == 'call') {
       return;
     }
 
