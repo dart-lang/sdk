@@ -67,34 +67,37 @@ class WasmerImportDescriptors extends Struct {}
 // wasmer_import_descriptor_t
 class WasmerImportDescriptor extends Struct {}
 
+// wasmer_memory_t
+class WasmerMemory extends Struct {}
+
 // wasmer_import_t
 class WasmerImport extends Struct {
-  Pointer<Uint8> module_name;
+  external Pointer<Uint8> module_name;
 
   @Uint32()
-  int module_name_length;
+  external int module_name_length;
 
-  Pointer<Uint8> import_name;
+  external Pointer<Uint8> import_name;
 
   @Uint32()
-  int import_name_length;
+  external int import_name_length;
 
   // wasmer_import_export_kind
   @Uint32()
-  int tag;
+  external int tag;
 
   // wasmer_import_export_value, which is a union of wasmer_import_func_t*,
   // wasmer_table_t*, wasmer_memory_t*, and wasmer_global_t*. The tag determines
   // which type it is.
-  Pointer<Void> value;
+  external Pointer<Void> value;
 }
 
 // wasmer_byte_array
 class WasmerByteArray extends Struct {
-  Pointer<Uint8> bytes;
+  external Pointer<Uint8> bytes;
 
   @Uint32()
-  int length;
+  external int length;
 
   Uint8List get list => bytes.asTypedList(length);
   String get string => utf8.decode(list);
@@ -104,13 +107,13 @@ class WasmerByteArray extends Struct {
 class WasmerValue extends Struct {
   // wasmer_value_tag
   @Uint32()
-  int tag;
+  external int tag;
 
   // wasmer_value, which is a union of int32_t, int64_t, float, and double. The
   // tag determines which type it is. It's declared as an int64_t because that's
   // large enough to hold all the types. We use ByteData to get the other types.
   @Int64()
-  int value;
+  external int value;
 
   int get _off32 => Endian.host == Endian.little ? 0 : 4;
   int get i64 => value;
@@ -122,13 +125,28 @@ class WasmerValue extends Struct {
   set i64(int val) => value = val;
   set _val(ByteData bytes) => value = bytes.getInt64(0, Endian.host);
   set i32(int val) => _val = ByteData(8)..setInt32(_off32, val, Endian.host);
-  set f32(num val) => _val = ByteData(8)..setFloat32(_off32, val, Endian.host);
-  set f64(num val) => _val = ByteData(8)..setFloat64(0, val, Endian.host);
+  set f32(num val) =>
+      _val = ByteData(8)..setFloat32(_off32, val as double, Endian.host);
+  set f64(num val) =>
+      _val = ByteData(8)..setFloat64(0, val as double, Endian.host);
 
   bool get isI32 => tag == WasmerValueTagI32;
   bool get isI64 => tag == WasmerValueTagI64;
   bool get isF32 => tag == WasmerValueTagF32;
   bool get isF64 => tag == WasmerValueTagF64;
+}
+
+// wasmer_limits_t
+class WasmerLimits extends Struct {
+  @Uint32()
+  external int min;
+
+  // bool
+  @Uint8()
+  external int has_max;
+
+  @Uint32()
+  external int max;
 }
 
 // wasmer_compile
@@ -286,3 +304,33 @@ typedef NativeWasmerExportFuncCallFn = Uint32 Function(
     Uint32);
 typedef WasmerExportFuncCallFn = int Function(Pointer<WasmerExportFunc>,
     Pointer<WasmerValue>, int, Pointer<WasmerValue>, int);
+
+// wasmer_export_to_memory
+typedef NativeWasmerExportToMemoryFn = Uint32 Function(
+    Pointer<WasmerExport>, Pointer<Pointer<WasmerMemory>>);
+typedef WasmerExportToMemoryFn = int Function(
+    Pointer<WasmerExport>, Pointer<Pointer<WasmerMemory>>);
+
+// wasmer_memory_new_ptr
+typedef NativeWasmerMemoryNewPtrFn = Uint32 Function(
+    Pointer<Pointer<WasmerMemory>>, Pointer<WasmerLimits>);
+typedef WasmerMemoryNewPtrFn = int Function(
+    Pointer<Pointer<WasmerMemory>>, Pointer<WasmerLimits>);
+
+// wasmer_memory_grow
+typedef NativeWasmerMemoryGrowFn = Uint32 Function(
+    Pointer<WasmerMemory>, Uint32);
+typedef WasmerMemoryGrowFn = int Function(Pointer<WasmerMemory>, int);
+
+// wasmer_memory_length
+typedef NativeWasmerMemoryLengthFn = Uint32 Function(Pointer<WasmerMemory>);
+typedef WasmerMemoryLengthFn = int Function(Pointer<WasmerMemory>);
+
+// wasmer_memory_data
+typedef NativeWasmerMemoryDataFn = Pointer<Uint8> Function(
+    Pointer<WasmerMemory>);
+typedef WasmerMemoryDataFn = Pointer<Uint8> Function(Pointer<WasmerMemory>);
+
+// wasmer_memory_data_length
+typedef NativeWasmerMemoryDataLengthFn = Uint32 Function(Pointer<WasmerMemory>);
+typedef WasmerMemoryDataLengthFn = int Function(Pointer<WasmerMemory>);

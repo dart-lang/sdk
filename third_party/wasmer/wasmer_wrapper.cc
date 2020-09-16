@@ -36,4 +36,10 @@ void wasmer_import_descriptor_name_ptr(
     wasmer_byte_array* out_name) {
   *out_name = wasmer_import_descriptor_name(import_descriptor);
 }
+
+// Wraps wasmer_memory_new.
+wasmer_result_t wasmer_memory_new_ptr(wasmer_memory_t** memory,
+                                      wasmer_limits_t* limits) {
+  return wasmer_memory_new(memory, *limits);
+}
 }
