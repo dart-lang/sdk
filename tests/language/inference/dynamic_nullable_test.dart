@@ -55,7 +55,7 @@ main() {
 
     var c = C.list(o);
     var f = bar(o);
-    var l = o.whereNotNull();
+    var l = o.whereNotNull;
 
     c.expectStaticType<Exactly<C<Object>>>();
     Expect.type<C<Object>>(c); // Run-time type is subtype of C<Object>.
