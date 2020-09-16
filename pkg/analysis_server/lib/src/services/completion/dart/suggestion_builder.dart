@@ -1287,7 +1287,8 @@ class SuggestionBuilder {
         var paramType = parameter.type;
         // Gracefully degrade if type not resolved yet
         return paramType != null
-            ? paramType.getDisplayString(withNullability: false)
+            ? paramType.getDisplayString(
+                withNullability: request.libraryElement.isNonNullableByDefault)
             : 'var';
       }).toList();
 

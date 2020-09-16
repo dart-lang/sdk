@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2300,6 +2301,69 @@ class B extends A {
     expect(suggestion.parameterTypes[1], 'int');
     expect(suggestion.requiredParameterCount, 0);
     expect(suggestion.hasNamedParameters, true);
+  }
+
+  Future<void> test_function_parameters_nnbd_required() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    resolveSource('/home/test/lib/a.dart', '''
+void m(int? nullable, int nonNullable) {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'nullable');
+    expect(suggestion.parameterTypes[0], 'int?');
+    expect(suggestion.parameterNames[1], 'nonNullable');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  Future<void> test_function_parameters_nnbd_required_into_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    resolveSource('/home/test/lib/a.dart', '''
+void m(int? nullable, int nonNullable) {}
+''');
+    addTestSource('''
+// @dart = 2.8
+import 'a.dart';
+
+main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'nullable');
+    expect(suggestion.parameterTypes[0], 'int');
+    expect(suggestion.parameterNames[1], 'nonNullable');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  Future<void> test_function_parameters_nnbd_required_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    resolveSource('/home/test/lib/a.dart', '''
+// @dart = 2.8
+void m(int param) {}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {^}
+''');
+    await computeSuggestions();
+    var suggestion = assertSuggestFunction('m', 'void');
+    expect(suggestion.parameterNames, hasLength(1));
+    expect(suggestion.parameterNames[0], 'param');
+    expect(suggestion.parameterTypes[0], 'int*');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
   }
 
   Future<void> test_function_parameters_none() async {
