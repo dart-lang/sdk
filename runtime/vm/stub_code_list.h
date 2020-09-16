@@ -18,6 +18,20 @@ namespace dart {
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
   V(AllocateArray)                                                             \
+  V(AllocateInt8Array)                                                         \
+  V(AllocateUint8Array)                                                        \
+  V(AllocateUint8ClampedArray)                                                 \
+  V(AllocateInt16Array)                                                        \
+  V(AllocateUint16Array)                                                       \
+  V(AllocateInt32Array)                                                        \
+  V(AllocateUint32Array)                                                       \
+  V(AllocateInt64Array)                                                        \
+  V(AllocateUint64Array)                                                       \
+  V(AllocateFloat32Array)                                                      \
+  V(AllocateFloat64Array)                                                      \
+  V(AllocateFloat32x4Array)                                                    \
+  V(AllocateInt32x4Array)                                                      \
+  V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateContext)                                                           \

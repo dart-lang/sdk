@@ -9,6 +9,7 @@ namespace dart {
 
 #define RUNTIME_ENTRY_LIST(V)                                                  \
   V(AllocateArray)                                                             \
+  V(AllocateTypedData)                                                         \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateSubtypeTestCache)                                                  \

@@ -426,6 +426,7 @@ struct InstrAttrs {
   M(InstanceOf, _)                                                             \
   M(CreateArray, _)                                                            \
   M(AllocateObject, _)                                                         \
+  M(AllocateTypedData, _)                                                      \
   M(LoadField, _)                                                              \
   M(LoadUntagged, kNoGC)                                                       \
   M(StoreUntagged, kNoGC)                                                      \
@@ -6241,6 +6242,52 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
   AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
+};
+
+class AllocateTypedDataInstr : public TemplateAllocation<1, Throws> {
+ public:
+  AllocateTypedDataInstr(TokenPosition token_pos,
+                         classid_t class_id,
+                         Value* num_elements,
+                         intptr_t deopt_id)
+      : TemplateAllocation(deopt_id),
+        token_pos_(token_pos),
+        class_id_(class_id),
+        identity_(AliasIdentity::Unknown()) {
+    SetInputAt(kLengthPos, num_elements);
+  }
+
+  enum { kLengthPos = 0 };
+
+  DECLARE_INSTRUCTION(AllocateTypedData)
+  virtual CompileType ComputeType() const;
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  classid_t class_id() const { return class_id_; }
+  Value* num_elements() const { return inputs_[kLengthPos]; }
+
+  // Throw needs environment, which is created only if instruction can
+  // deoptimize.
+  virtual bool ComputeCanDeoptimize() const {
+    return !CompilerState::Current().is_aot();
+  }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual AliasIdentity Identity() const { return identity_; }
+  virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
+
+  virtual bool WillAllocateNewOrRemembered() const {
+    // No write barriers are generated for typed data accesses.
+    return false;
+  }
+
+ private:
+  const TokenPosition token_pos_;
+  classid_t class_id_;
+  AliasIdentity identity_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocateTypedDataInstr);
 };
 
 // Note: This instruction must not be moved without the indexed access that

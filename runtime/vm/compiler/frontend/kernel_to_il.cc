@@ -795,6 +795,20 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -943,6 +957,63 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataUint8ClampedArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataFloat64x2ArrayCid);
+      break;
+
     case MethodRecognizer::kObjectEquals:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1442,6 +1513,23 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   body += StoreUntagged(compiler::target::TypedDataBase::data_field_offset());
 
   return body;
+}
+
+Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
+    const Function& function,
+    classid_t cid) {
+  const auto token_pos = function.token_pos();
+  ASSERT(Thread::Current()->isolate()->class_table()->HasValidClassAt(cid));
+
+  ASSERT(function.IsFactory() && (function.NumParameters() == 2));
+  LocalVariable* length = parsed_function_->RawParameterVariable(1);
+
+  Fragment instructions;
+  instructions += LoadLocal(length);
+  // AllocateTypedData instruction checks that length is valid (a non-negative
+  // Smi below maximum allowed length).
+  instructions += AllocateTypedData(token_pos, cid);
+  return instructions;
 }
 
 static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {

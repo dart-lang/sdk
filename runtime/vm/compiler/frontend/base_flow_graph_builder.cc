@@ -930,6 +930,15 @@ Fragment BaseFlowGraphBuilder::CreateArray() {
   return Fragment(array);
 }
 
+Fragment BaseFlowGraphBuilder::AllocateTypedData(TokenPosition position,
+                                                 classid_t class_id) {
+  Value* num_elements = Pop();
+  auto* instr = new (Z) AllocateTypedDataInstr(position, class_id, num_elements,
+                                               GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
   Value* function_type_args = Pop();
   Value* instantiator_type_args = Pop();

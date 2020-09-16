@@ -4069,6 +4069,126 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
   GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
+static int GetScaleFactor(intptr_t size) {
+  switch (size) {
+    case 1:
+      return 0;
+    case 2:
+      return 1;
+    case 4:
+      return 2;
+    case 8:
+      return 3;
+    case 16:
+      return 4;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
+                                                          intptr_t cid) {
+  const intptr_t element_size = TypedDataElementSizeInBytes(cid);
+  const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
+  const intptr_t scale_shift = GetScaleFactor(element_size);
+
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
+
+  Label call_runtime;
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &call_runtime));
+  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg);
+  /* Check that length is a positive Smi. */
+  /* R2: requested array length argument. */
+  __ BranchIfNotSmi(R2, &call_runtime);
+  __ CompareRegisters(R2, ZR);
+  __ b(&call_runtime, LT);
+  __ SmiUntag(R2);
+  /* Check for maximum allowed length. */
+  /* R2: untagged array length. */
+  __ CompareImmediate(R2, max_len);
+  __ b(&call_runtime, GT);
+  __ LslImmediate(R2, R2, scale_shift);
+  const intptr_t fixed_size_plus_alignment_padding =
+      target::TypedData::InstanceSize() +
+      target::ObjectAlignment::kObjectAlignment - 1;
+  __ AddImmediate(R2, fixed_size_plus_alignment_padding);
+  __ andi(R2, R2, Immediate(~(target::ObjectAlignment::kObjectAlignment - 1)));
+  __ ldr(R0, Address(THR, target::Thread::top_offset()));
+
+  /* R2: allocation size. */
+  __ adds(R1, R0, Operand(R2));
+  __ b(&call_runtime, CS); /* Fail on unsigned overflow. */
+
+  /* Check if the allocation fits into the remaining space. */
+  /* R0: potential new object start. */
+  /* R1: potential next object start. */
+  /* R2: allocation size. */
+  __ ldr(R6, Address(THR, target::Thread::end_offset()));
+  __ cmp(R1, Operand(R6));
+  __ b(&call_runtime, CS);
+
+  /* Successfully allocated the object(s), now update top to point to */
+  /* next object start and initialize the object. */
+  __ str(R1, Address(THR, target::Thread::top_offset()));
+  __ AddImmediate(R0, kHeapObjectTag);
+  /* Initialize the tags. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  /* R2: allocation size. */
+  {
+    __ CompareImmediate(R2, target::ObjectLayout::kSizeTagMaxSizeTag);
+    __ LslImmediate(R2, R2,
+                    target::ObjectLayout::kTagBitsSizeTagPos -
+                        target::ObjectAlignment::kObjectAlignmentLog2);
+    __ csel(R2, ZR, R2, HI);
+
+    /* Get the class index and insert it into the tags. */
+    uint32_t tags =
+        target::MakeTagWordForNewSpaceObject(cid, /*instance_size=*/0);
+    __ LoadImmediate(TMP, tags);
+    __ orr(R2, R2, Operand(TMP));
+    __ str(R2, FieldAddress(R0, target::Object::tags_offset())); /* Tags. */
+  }
+  /* Set the length field. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  __ mov(R2, AllocateTypedDataArrayABI::kLengthReg); /* Array length. */
+  __ StoreIntoObjectNoBarrier(
+      R0, FieldAddress(R0, target::TypedDataBase::length_offset()), R2);
+  /* Initialize all array elements to 0. */
+  /* R0: new object start as a tagged pointer. */
+  /* R1: new object end address. */
+  /* R2: iterator which initially points to the start of the variable */
+  /* R3: scratch register. */
+  /* data area to be initialized. */
+  __ mov(R3, ZR);
+  __ AddImmediate(R2, R0, target::TypedData::InstanceSize() - 1);
+  __ StoreInternalPointer(
+      R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
+  Label init_loop, done;
+  __ Bind(&init_loop);
+  __ cmp(R2, Operand(R1));
+  __ b(&done, CS);
+  __ str(R3, Address(R2, 0));
+  __ add(R2, R2, Operand(target::kWordSize));
+  __ b(&init_loop);
+  __ Bind(&done);
+
+  __ Ret();
+
+  __ Bind(&call_runtime);
+  __ EnterStubFrame();
+  __ Push(ZR);                                     // Result slot.
+  __ PushImmediate(target::ToRawSmi(cid));         // Cid
+  __ Push(AllocateTypedDataArrayABI::kLengthReg);  // Array length
+  __ CallRuntime(kAllocateTypedDataRuntimeEntry, 2);
+  __ Drop(2);  // Drop arguments.
+  __ Pop(AllocateTypedDataArrayABI::kResultReg);
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 }  // namespace compiler
 
 }  // namespace dart

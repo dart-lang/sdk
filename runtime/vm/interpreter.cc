@@ -10,6 +10,7 @@
 
 #include "vm/interpreter.h"
 
+#include "vm/class_id.h"
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
@@ -2282,6 +2283,17 @@ SwitchDispatch:
       case MethodRecognizer::kFfiAbi: {
         *++SP = Smi::New(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       } break;
+#define TYPED_DATA_FACTORY(clazz)                                              \
+  case MethodRecognizer::kTypedData_##clazz##_factory: {                       \
+    ObjectPtr length = SP[0];                                                  \
+    SP[1] = Smi::New(kTypedData##clazz##Cid);                                  \
+    SP[2] = length;                                                            \
+    Exit(thread, FP, SP + 3, pc);                                              \
+    INVOKE_RUNTIME(DRT_AllocateTypedData,                                      \
+                   NativeArguments(thread, 2, SP + 1, SP));                    \
+  } break;
+        CLASS_LIST_TYPED_DATA(TYPED_DATA_FACTORY)
+#undef TYPED_DATA_FACTORY
       default: {
         NativeEntryData::Payload* payload =
             NativeEntryData::FromTypedArray(data);

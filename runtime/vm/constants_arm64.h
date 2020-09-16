@@ -226,6 +226,12 @@ struct AllocateMintABI {
   static const Register kTempReg = R1;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = R4;
+  static const Register kResultReg = R0;
+};
+
 // TODO(regis): Add ABIs for type testing stubs and is-type test stubs instead
 // of reusing the constants of the instantiation stubs ABI.
 

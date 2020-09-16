@@ -260,6 +260,42 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   return stub.raw();
 }
 
+CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
+  auto object_store = Thread::Current()->isolate()->object_store();
+  switch (class_id) {
+    case kTypedDataInt8ArrayCid:
+      return object_store->allocate_int8_array_stub();
+    case kTypedDataUint8ArrayCid:
+      return object_store->allocate_uint8_array_stub();
+    case kTypedDataUint8ClampedArrayCid:
+      return object_store->allocate_uint8_clamped_array_stub();
+    case kTypedDataInt16ArrayCid:
+      return object_store->allocate_int16_array_stub();
+    case kTypedDataUint16ArrayCid:
+      return object_store->allocate_uint16_array_stub();
+    case kTypedDataInt32ArrayCid:
+      return object_store->allocate_int32_array_stub();
+    case kTypedDataUint32ArrayCid:
+      return object_store->allocate_uint32_array_stub();
+    case kTypedDataInt64ArrayCid:
+      return object_store->allocate_int64_array_stub();
+    case kTypedDataUint64ArrayCid:
+      return object_store->allocate_uint64_array_stub();
+    case kTypedDataFloat32ArrayCid:
+      return object_store->allocate_float32_array_stub();
+    case kTypedDataFloat64ArrayCid:
+      return object_store->allocate_float64_array_stub();
+    case kTypedDataFloat32x4ArrayCid:
+      return object_store->allocate_float32x4_array_stub();
+    case kTypedDataInt32x4ArrayCid:
+      return object_store->allocate_int32x4_array_stub();
+    case kTypedDataFloat64x2ArrayCid:
+      return object_store->allocate_float64x2_array_stub();
+  }
+  UNREACHABLE();
+  return Code::null();
+}
+
 #if !defined(TARGET_ARCH_IA32)
 CodePtr StubCode::GetBuildMethodExtractorStub(
     compiler::ObjectPoolBuilder* pool) {

@@ -911,6 +911,10 @@ void ConstantPropagator::VisitCreateArray(CreateArrayInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitAllocateTypedData(AllocateTypedDataInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
   SetValue(instr, non_constant_);
 }

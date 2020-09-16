@@ -336,6 +336,7 @@ class BaseFlowGraphBuilder {
   Fragment AllocateClosure(TokenPosition position,
                            const Function& closure_function);
   Fragment CreateArray();
+  Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
   Fragment LoadClassId();

@@ -14078,10 +14078,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
-
 #undef CHECK_FINGERPRINTS
 #undef CHECK_FINGERPRINTS2
 
@@ -14095,7 +14091,9 @@ void Library::CheckFunctionFingerprints() {
         func.CheckSourceFingerprint(fp) && fingerprints_match;                 \
   }
 
+  all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
 
 #undef CHECK_FACTORY_FINGERPRINTS

@@ -207,6 +207,12 @@ struct AllocateMintABI {
   static const Register kTempReg = RBX;
 };
 
+// ABI for Allocate<TypedData>ArrayStub.
+struct AllocateTypedDataArrayABI {
+  static const Register kLengthReg = RAX;
+  static const Register kResultReg = RAX;
+};
+
 // Registers used inside the implementation of type testing stubs.
 struct TTSInternalRegs {
   static const Register kInstanceTypeArgumentsReg = RSI;

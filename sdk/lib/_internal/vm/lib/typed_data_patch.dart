@@ -2146,6 +2146,7 @@ abstract class _TypedList extends _TypedListBase {
 class Int8List {
   @patch
   @pragma("vm:exact-result-type", _Int8List)
+  @pragma("vm:prefer-inline")
   factory Int8List(int length) native "TypedData_Int8Array_new";
 
   @patch
@@ -2194,6 +2195,7 @@ class _Int8List extends _TypedList
 class Uint8List {
   @patch
   @pragma("vm:exact-result-type", _Uint8List)
+  @pragma("vm:prefer-inline")
   factory Uint8List(int length) native "TypedData_Uint8Array_new";
 
   @patch
@@ -2242,6 +2244,7 @@ class _Uint8List extends _TypedList
 class Uint8ClampedList {
   @patch
   @pragma("vm:exact-result-type", _Uint8ClampedList)
+  @pragma("vm:prefer-inline")
   factory Uint8ClampedList(int length) native "TypedData_Uint8ClampedArray_new";
 
   @patch
@@ -2290,6 +2293,7 @@ class _Uint8ClampedList extends _TypedList
 class Int16List {
   @patch
   @pragma("vm:exact-result-type", _Int16List)
+  @pragma("vm:prefer-inline")
   factory Int16List(int length) native "TypedData_Int16Array_new";
 
   @patch
@@ -2358,6 +2362,7 @@ class _Int16List extends _TypedList
 class Uint16List {
   @patch
   @pragma("vm:exact-result-type", _Uint16List)
+  @pragma("vm:prefer-inline")
   factory Uint16List(int length) native "TypedData_Uint16Array_new";
 
   @patch
@@ -2426,6 +2431,7 @@ class _Uint16List extends _TypedList
 class Int32List {
   @patch
   @pragma("vm:exact-result-type", _Int32List)
+  @pragma("vm:prefer-inline")
   factory Int32List(int length) native "TypedData_Int32Array_new";
 
   @patch
@@ -2481,6 +2487,7 @@ class _Int32List extends _TypedList
 class Uint32List {
   @patch
   @pragma("vm:exact-result-type", _Uint32List)
+  @pragma("vm:prefer-inline")
   factory Uint32List(int length) native "TypedData_Uint32Array_new";
 
   @patch
@@ -2536,6 +2543,7 @@ class _Uint32List extends _TypedList
 class Int64List {
   @patch
   @pragma("vm:exact-result-type", _Int64List)
+  @pragma("vm:prefer-inline")
   factory Int64List(int length) native "TypedData_Int64Array_new";
 
   @patch
@@ -2591,6 +2599,7 @@ class _Int64List extends _TypedList
 class Uint64List {
   @patch
   @pragma("vm:exact-result-type", _Uint64List)
+  @pragma("vm:prefer-inline")
   factory Uint64List(int length) native "TypedData_Uint64Array_new";
 
   @patch
@@ -2646,6 +2655,7 @@ class _Uint64List extends _TypedList
 class Float32List {
   @patch
   @pragma("vm:exact-result-type", _Float32List)
+  @pragma("vm:prefer-inline")
   factory Float32List(int length) native "TypedData_Float32Array_new";
 
   @patch
@@ -2702,6 +2712,7 @@ class _Float32List extends _TypedList
 class Float64List {
   @patch
   @pragma("vm:exact-result-type", _Float64List)
+  @pragma("vm:prefer-inline")
   factory Float64List(int length) native "TypedData_Float64Array_new";
 
   @patch
@@ -2758,6 +2769,7 @@ class _Float64List extends _TypedList
 class Float32x4List {
   @patch
   @pragma("vm:exact-result-type", _Float32x4List)
+  @pragma("vm:prefer-inline")
   factory Float32x4List(int length) native "TypedData_Float32x4Array_new";
 
   @patch
@@ -2813,6 +2825,7 @@ class _Float32x4List extends _TypedList
 class Int32x4List {
   @patch
   @pragma("vm:exact-result-type", _Int32x4List)
+  @pragma("vm:prefer-inline")
   factory Int32x4List(int length) native "TypedData_Int32x4Array_new";
 
   @patch
@@ -2868,6 +2881,7 @@ class _Int32x4List extends _TypedList
 class Float64x2List {
   @patch
   @pragma("vm:exact-result-type", _Float64x2List)
+  @pragma("vm:prefer-inline")
   factory Float64x2List(int length) native "TypedData_Float64x2Array_new";
 
   @patch
