@@ -5053,7 +5053,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // reported by the parser.
       lvalue.isLate = false;
       elements.explicitVariableDeclaration = lvalue;
-      typeInferrer?.assignedVariables?.write(lvalue);
       if (lvalue.isConst) {
         elements.expressionProblem = buildProblem(
             fasta.messageForInLoopWithConstVariable,
