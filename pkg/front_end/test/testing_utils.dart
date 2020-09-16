@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show Platform, Process, ProcessResult;
+import 'dart:io' show Directory, Process, ProcessResult;
 
 import 'package:testing/testing.dart' show Chain, TestDescription;
 
@@ -21,9 +21,9 @@ Stream<TestDescription> filterList(
 }
 
 Future<Set<Uri>> getGitFiles(Chain suite) async {
-  ProcessResult result = await Process.run(
-      Platform.isWindows ? "git.bat" : "git", ["ls-files", "."],
-      workingDirectory: suite.uri.path);
+  ProcessResult result = await Process.run("git", ["ls-files", "."],
+      workingDirectory: new Directory.fromUri(suite.uri).absolute.path,
+      runInShell: true);
   String stdout = result.stdout;
   return stdout
       .split(new RegExp('^', multiLine: true))
