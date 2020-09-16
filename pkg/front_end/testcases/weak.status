@@ -67,6 +67,7 @@ nnbd/nullable_object_access: TypeCheckError
 nnbd/nullable_receiver: TypeCheckError
 nnbd/potentially_nullable_access: TypeCheckError
 nnbd_mixed/bad_mixins: TypeCheckError
+nnbd_mixed/covariant_from_opt_in: TypeCheckError
 nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError

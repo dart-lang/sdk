@@ -1235,8 +1235,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     leaveScope(memberScope: true);
 
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
-    assert((node.forwardingStubSuperTarget != null) ||
-        !(node.isForwardingStub && node.function.body != null));
+    assert(
+        (node.forwardingStubSuperTarget != null) ||
+            !(node.isForwardingStub && node.function.body != null),
+        "Invalid forwarding stub $node.");
   }
 
   @override
