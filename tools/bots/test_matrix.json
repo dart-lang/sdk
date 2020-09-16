@@ -365,6 +365,7 @@
       "pkg/status_file/",
       "pkg/test_runner/",
       "pkg/vm/",
+      "pkg/vm_snapshot_analysis/",
       "runtime/",
       "sdk/",
       ".dart_tool/package_config.json",
