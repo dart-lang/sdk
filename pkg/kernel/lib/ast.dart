@@ -3790,13 +3790,16 @@ class Arguments extends TreeNode {
 
   factory Arguments.forwarded(FunctionNode function, Library library) {
     return new Arguments(
-        function.positionalParameters.map((p) => new VariableGet(p)).toList(),
+        function.positionalParameters
+            .map<Expression>((p) => new VariableGet(p))
+            .toList(),
         named: function.namedParameters
             .map((p) => new NamedExpression(p.name, new VariableGet(p)))
             .toList(),
         types: function.typeParameters
-            .map((p) => new TypeParameterType.withDefaultNullabilityForLibrary(
-                p, library))
+            .map<DartType>((p) =>
+                new TypeParameterType.withDefaultNullabilityForLibrary(
+                    p, library))
             .toList());
   }
 
