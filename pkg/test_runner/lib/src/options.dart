@@ -448,13 +448,24 @@ compiler.''',
         // option. Use it as a test selector pattern.
         var patterns = options.putIfAbsent("selectors", () => <String>[]);
 
+        var allSuiteDirectories = [
+          ...testSuiteDirectories,
+          "tests/co19",
+          "tests/co19_2",
+        ];
         // Allow passing in the full relative path to a test or directory and
         // infer the selector from it. This lets users use tab completion on
         // the command line.
-        for (var suiteDirectory in testSuiteDirectories) {
+        for (var suiteDirectory in allSuiteDirectories) {
           var path = suiteDirectory.toString();
           if (arg.startsWith("$path/") || arg.startsWith("$path\\")) {
             arg = arg.substring(path.lastIndexOf("/") + 1);
+
+            // Remove the `src/` subdirectories from the co19 and co19_2
+            // directories that do not appear in the test names.
+            if (arg.startsWith("co19")) {
+              arg = arg.replaceFirst(RegExp("src[/\]"), "");
+            }
             break;
           }
         }
