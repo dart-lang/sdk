@@ -323,6 +323,8 @@ class DartFixKind {
       'Move type arguments to after class name');
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
       'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
+  static const MAKE_VARIABLE_NULLABLE =
+      FixKind('dart.fix.makeVariableNullable', 50, "Make '{0}' nullable");
   static const ORGANIZE_IMPORTS =
       FixKind('dart.fix.organize.imports', 50, 'Organize Imports');
   static const QUALIFY_REFERENCE =

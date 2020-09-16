@@ -59,6 +59,11 @@ class AssignmentExpressionResolver {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
+    if (left is PrefixedIdentifier) {
+      _resolve_PrefixedIdentifier(node, left);
+      return;
+    }
+
     if (left is PropertyAccess) {
       _resolve_PropertyAccess(node, left);
       return;
@@ -311,6 +316,37 @@ class AssignmentExpressionResolver {
     }
   }
 
+  void _resolve_PrefixedIdentifier(
+    AssignmentExpressionImpl node,
+    PrefixedIdentifier left,
+  ) {
+    left.prefix?.accept(_resolver);
+
+    var propertyName = left.identifier;
+    var operator = node.operator.type;
+    var hasRead = operator != TokenType.EQ;
+
+    var resolver = PropertyElementResolver(_resolver);
+    var result = resolver.resolvePrefixedIdentifier(
+      node: left,
+      hasRead: hasRead,
+      hasWrite: true,
+    );
+
+    var readElement = result.readElement;
+    var writeElement = result.writeElement;
+
+    if (hasRead) {
+      _resolver.setReadElement(left, readElement);
+    }
+    _resolver.setWriteElement(left, writeElement);
+
+    _setBackwardCompatibility(node, propertyName);
+
+    var right = node.rightHandSide;
+    _resolve3(node, left, operator, right);
+  }
+
   void _resolve_PropertyAccess(
     AssignmentExpressionImpl node,
     PropertyAccess left,
@@ -323,9 +359,6 @@ class AssignmentExpressionResolver {
 
     _resolver.startNullAwarePropertyAccess(left);
 
-    ExecutableElement readElement;
-    ExecutableElement writeElement;
-
     var resolver = PropertyElementResolver(_resolver);
     var result = resolver.resolvePropertyAccess(
       node: left,
@@ -333,14 +366,12 @@ class AssignmentExpressionResolver {
       hasWrite: true,
     );
 
-    readElement = result.readElement;
-    writeElement = result.writeElement;
+    var readElement = result.readElement;
+    var writeElement = result.writeElement;
 
     if (hasRead) {
       _resolver.setReadElement(left, readElement);
     }
-
-    // var writeElement = result.setter ?? result.getter;
     _resolver.setWriteElement(left, writeElement);
 
     _setBackwardCompatibility(node, propertyName);
@@ -407,7 +438,9 @@ class AssignmentExpressionResolver {
     }
 
     var parent = left.parent;
-    if (parent is PropertyAccess && parent.propertyName == left) {
+    if (parent is PrefixedIdentifier && parent.identifier == left) {
+      _recordStaticType(parent, node.writeType);
+    } else if (parent is PropertyAccess && parent.propertyName == left) {
       _recordStaticType(parent, node.writeType);
     }
   }

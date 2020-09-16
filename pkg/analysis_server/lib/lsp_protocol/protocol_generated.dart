@@ -4938,8 +4938,8 @@ class CreateFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
-          reporter.reportError('must be of type String');
+        if (!(obj['kind'] == 'create')) {
+          reporter.reportError('must be the literal \'create\'');
           return false;
         }
       } finally {
@@ -5963,8 +5963,8 @@ class DeleteFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
-          reporter.reportError('must be of type String');
+        if (!(obj['kind'] == 'delete')) {
+          reporter.reportError('must be the literal \'delete\'');
           return false;
         }
       } finally {
@@ -13198,7 +13198,10 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
     final capabilities = json['capabilities'] != null
         ? ClientCapabilities.fromJson(json['capabilities'])
         : null;
-    final trace = json['trace'];
+    final trace = const {null, 'off', 'messages', 'verbose'}
+            .contains(json['trace'])
+        ? json['trace']
+        : throw '''${json['trace']} was not one of (null, 'off', 'messages', 'verbose')''';
     final workspaceFolders = json['workspaceFolders']
         ?.map((item) => item != null ? WorkspaceFolder.fromJson(item) : null)
         ?.cast<WorkspaceFolder>()
@@ -13363,8 +13366,12 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
       }
       reporter.push('trace');
       try {
-        if (obj['trace'] != null && !(obj['trace'] is String)) {
-          reporter.reportError('must be of type String');
+        if (obj['trace'] != null &&
+            !((obj['trace'] == 'off' ||
+                obj['trace'] == 'messages' ||
+                obj['trace'] == 'verbose'))) {
+          reporter.reportError(
+              'must be one of the literals \'off\', \'messages\', \'verbose\'');
           return false;
         }
       } finally {
@@ -16647,8 +16654,8 @@ class RenameFile implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
-          reporter.reportError('must be of type String');
+        if (!(obj['kind'] == 'rename')) {
+          reporter.reportError('must be the literal \'rename\'');
           return false;
         }
       } finally {
@@ -23813,8 +23820,8 @@ class WorkDoneProgressBegin implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
-          reporter.reportError('must be of type String');
+        if (!(obj['kind'] == 'begin')) {
+          reporter.reportError('must be the literal \'begin\'');
           return false;
         }
       } finally {
@@ -24090,8 +24097,8 @@ class WorkDoneProgressEnd implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
-          reporter.reportError('must be of type String');
+        if (!(obj['kind'] == 'end')) {
+          reporter.reportError('must be the literal \'end\'');
           return false;
         }
       } finally {
@@ -24464,8 +24471,8 @@ class WorkDoneProgressReport implements ToJsonable {
           reporter.reportError('must not be null');
           return false;
         }
-        if (!(obj['kind'] is String)) {
-          reporter.reportError('must be of type String');
+        if (!(obj['kind'] == 'report')) {
+          reporter.reportError('must be the literal \'report\'');
           return false;
         }
       } finally {

@@ -6061,8 +6061,14 @@ class LocalForInVariable implements ForInVariable {
 
   LocalForInVariable(this.variableSet);
 
-  DartType computeElementType(TypeInferrerImpl inferrer) =>
-      variableSet.variable.type;
+  DartType computeElementType(TypeInferrerImpl inferrer) {
+    VariableDeclaration variable = variableSet.variable;
+    DartType promotedType;
+    if (inferrer.isNonNullableByDefault) {
+      promotedType = inferrer.flowAnalysis.promotedType(variable);
+    }
+    return promotedType ?? variable.type;
+  }
 
   Expression inferAssignment(TypeInferrerImpl inferrer, DartType rhsType) {
     Expression rhs = inferrer.ensureAssignable(

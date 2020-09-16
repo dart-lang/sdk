@@ -120,6 +120,16 @@ List<AstNode> _getSortedUnique(List<AstNode> items) {
   return sortedList;
 }
 
+String _getTypeCheckFailureMessage(TypeBase type) {
+  if (type is LiteralType) {
+    return 'must be the literal ${type.literal}';
+  } else if (type is LiteralUnionType) {
+    return 'must be one of the literals ${type.literalTypes.map((t) => t.literal).join(', ')}';
+  } else {
+    return 'must be of type ${type.dartTypeWithTypeArgs}';
+  }
+}
+
 bool _isSimpleType(TypeBase type) {
   const literals = ['num', 'String', 'bool'];
   return type is Type && literals.contains(type.dartType);
@@ -224,7 +234,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       ..write(')) {')
       ..indent()
       ..writeIndentedln(
-          "reporter.reportError('must be of type ${field.type.dartTypeWithTypeArgs}');")
+          "reporter.reportError('${_getTypeCheckFailureMessage(field.type).replaceAll("'", "\\'")}');")
       ..writeIndentedln('return false;')
       ..outdent()
       ..writeIndentedln('}')
@@ -310,8 +320,13 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   final consts = namespace.members.cast<Const>().toList();
   final allowsAnyValue = enumClassAllowsAnyValue(namespace.name);
   final constructorName = allowsAnyValue ? '' : '._';
+  final firstValueType = consts.first.type;
+  // Enums can have constant values in their fields so if a field is a literal
+  // use its underlying type for type checking.
+  final requiredValueType =
+      firstValueType is LiteralType ? firstValueType.type : firstValueType;
   final typeOfValues =
-      resolveTypeAlias(consts.first.type, resolveEnumClasses: true);
+      resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
 
   buffer
     ..writeln('class ${namespace.name} {')
@@ -449,11 +464,26 @@ void _writeFromJsonCode(
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
     buffer.write(
         '))?.cast<${type.indexType.dartTypeWithTypeArgs}, ${type.valueType.dartTypeWithTypeArgs}>()');
+  } else if (type is LiteralUnionType) {
+    _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
+        allowsNull: allowsNull);
   } else if (type is UnionType) {
     _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
     buffer.write('$valueCode');
   }
+}
+
+void _writeFromJsonCodeForLiteralUnion(
+    IndentableStringBuffer buffer, LiteralUnionType union, String valueCode,
+    {bool allowsNull}) {
+  final allowedValues = [
+    if (allowsNull) null,
+    ...union.literalTypes.map((t) => t.literal)
+  ];
+  buffer.write(
+      "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode : "
+      "throw '''\${$valueCode} was not one of (${allowedValues.join(', ')})'''");
 }
 
 void _writeFromJsonCodeForUnion(
@@ -720,6 +750,8 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
     buffer.write('true');
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is $fullDartType');
+  } else if (type is LiteralType) {
+    buffer.write('$valueCode == ${type.literal}');
   } else if (_isSpecType(type)) {
     buffer.write('$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {

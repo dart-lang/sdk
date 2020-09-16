@@ -61,7 +61,7 @@ class WidgetCache {
   /// `State` subtype.
   ///
   /// Returns the class name if located, otherwise `null`.
-  String checkWidgetCache(
+  String checkSingleWidgetTypeModified(
     Component lastGoodComponent,
     Component partialComponent,
     ClassHierarchy classHierarchy,
