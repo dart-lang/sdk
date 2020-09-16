@@ -7,6 +7,8 @@ import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -328,6 +330,9 @@ abstract class ContextManagerCallbacks {
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 class ContextManagerImpl implements ContextManager {
+  /// The name of the data file used to specify data-driven fixes.
+  static const String dataFileName = 'fix_data.yaml';
+
   /// The name of the `doc` directory.
   static const String DOC_DIR_NAME = 'doc';
 
@@ -738,6 +743,30 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /// Use the given analysis [driver] to analyze the content of the
+  /// data file at the given [path].
+  void _analyzeDataFile(AnalysisDriver driver, String path) {
+    List<protocol.AnalysisError> convertedErrors;
+    try {
+      var content = _readFile(path);
+      var errorListener = RecordingErrorListener();
+      var errorReporter = ErrorReporter(
+          errorListener, resourceProvider.getFile(path).createSource());
+      var parser = TransformSetParser(errorReporter);
+      parser.parse(content);
+      var converter = AnalyzerConverter();
+      convertedErrors = converter.convertAnalysisErrors(errorListener.errors,
+          lineInfo: _computeLineInfo(content), options: driver.analysisOptions);
+    } catch (exception) {
+      // If the file cannot be analyzed, fall through to clear any previous
+      // errors.
+    }
+    callbacks.notificationManager.recordAnalysisErrors(
+        NotificationManager.serverId,
+        path,
+        convertedErrors ?? const <protocol.AnalysisError>[]);
+  }
+
+  /// Use the given analysis [driver] to analyze the content of the
   /// AndroidManifest file at the given [path].
   void _analyzeManifestFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
@@ -799,6 +828,19 @@ class ContextManagerImpl implements ContextManager {
       // TODO(brianwilkerson) Set exclusion patterns.
       _analyzeAnalysisOptionsFile(driver, path);
       _updateAnalysisOptions(info);
+    }
+  }
+
+  void _checkForDataFileUpdate(String path, ContextInfo info) {
+    if (_isDataFile(path)) {
+      var driver = info.analysisDriver;
+      if (driver == null) {
+        // I suspect that this happens as a result of a race condition: server
+        // has determined that the file (at [path]) is in a context, but hasn't
+        // yet created a driver for that context.
+        return;
+      }
+      _analyzeDataFile(driver, path);
     }
   }
 
@@ -948,6 +990,11 @@ class ContextManagerImpl implements ContextManager {
         callbacks.addAnalysisDriver(folder, contextRoot, options);
     if (optionsFile != null) {
       _analyzeAnalysisOptionsFile(info.analysisDriver, optionsFile.path);
+    }
+    var dataFile =
+        folder.getChildAssumingFolder('lib').getChildAssumingFile(dataFileName);
+    if (dataFile.exists) {
+      _analyzeDataFile(info.analysisDriver, dataFile.path);
     }
     var pubspecFile = folder.getChildAssumingFile(PUBSPEC_NAME);
     if (pubspecFile.exists) {
@@ -1279,6 +1326,7 @@ class ContextManagerImpl implements ContextManager {
     }
     _checkForPackagespecUpdate(path, info);
     _checkForAnalysisOptionsUpdate(path, info);
+    _checkForDataFileUpdate(path, info);
     _checkForPubspecUpdate(path, info);
     _checkForManifestUpdate(path, info);
   }
@@ -1307,6 +1355,10 @@ class ContextManagerImpl implements ContextManager {
     }
     return false;
   }
+
+  /// Return `true` if the [path] appears to be the name of the data file used
+  /// to specify data-driven fixes.
+  bool _isDataFile(String path) => pathContext.basename(path) == dataFileName;
 
   /// Returns `true` if the given [path] is excluded by [excludedPaths].
   bool _isExcluded(String path) => _isExcludedBy(excludedPaths, path);

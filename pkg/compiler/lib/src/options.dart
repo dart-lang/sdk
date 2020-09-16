@@ -365,6 +365,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// Experimental reliance on JavaScript ToBoolean conversions.
   bool experimentToBoolean = false;
 
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  bool experimentUnreachableMethodsThrow = false;
+
   /// Experimental instrumentation to investigate code bloat.
   ///
   /// If [true], the compiler will emit code that logs whenever a method is
@@ -487,6 +491,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
+      ..experimentUnreachableMethodsThrow =
+          _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)

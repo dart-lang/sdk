@@ -139,10 +139,19 @@ class TypeConstraintGatherer {
 
     // If `Q` is a legacy type `Q0*` then the match holds under constraint
     // set `C`:
-    //   Only if `P` is a subtype match for `Q?` under constraint set `C`.
     if (Q_nullability == NullabilitySuffix.star) {
-      var Qq = (Q as TypeImpl).withNullability(NullabilitySuffix.question);
-      return trySubtypeMatch(P, Qq, leftSchema);
+      if (identical(P, DynamicTypeImpl.instance) ||
+          identical(P, VoidTypeImpl.instance)) {
+        // If `P` is `dynamic` or `void` and `P` is a subtype match
+        // for `Q0` under constraint set `C`.
+        var Q0 = (Q as TypeImpl).withNullability(NullabilitySuffix.none);
+        return trySubtypeMatch(P, Q0, leftSchema);
+      } else {
+        // Or if `P` is not `dynamic` or `void` and `P` is a subtype match
+        // for `Q0?` under constraint set `C`.
+        var Qq = (Q as TypeImpl).withNullability(NullabilitySuffix.question);
+        return trySubtypeMatch(P, Qq, leftSchema);
+      }
     }
 
     // If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
@@ -196,6 +205,16 @@ class TypeConstraintGatherer {
       if (P_nullability == NullabilitySuffix.question) {
         var P0 = (P as TypeImpl).withNullability(NullabilitySuffix.none);
         if (trySubtypeMatch(P0, Q0, leftSchema)) {
+          return true;
+        }
+        _constraints.length = rewind;
+      }
+
+      // Or if `P` is `dynamic` or `void` and `Object` is a subtype match
+      // for `Q0` under constraint set `C`.
+      if (identical(P, DynamicTypeImpl.instance) ||
+          identical(P, VoidTypeImpl.instance)) {
+        if (trySubtypeMatch(_typeSystem.objectNone, Q0, leftSchema)) {
           return true;
         }
         _constraints.length = rewind;
