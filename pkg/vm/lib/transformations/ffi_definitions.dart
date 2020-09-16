@@ -406,7 +406,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     //   _fromAddress<Int8>(_loadIntPtr(pointer, offset));
     final loadMethod = isPointer
         ? loadMethods[NativeType.kIntptr]
-        : optimizedTypes.contains(type) ? loadMethods[type] : loadStructMethod;
+        : optimizedTypes.contains(type)
+            ? loadMethods[type]
+            : loadStructMethod;
     Expression getterReturnValue = StaticInvocation(
         loadMethod,
         Arguments([

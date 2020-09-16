@@ -24,9 +24,11 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
 import 'package:kernel/kernel.dart';
 
 import 'package:testing/testing.dart'
-    show ChainContext, Result, Step, TestDescription;
+    show Chain, ChainContext, Result, Step, TestDescription;
 
 import 'spell_checking_utils.dart' as spell;
+
+import 'testing_utils.dart' show filterList;
 
 abstract class SpellContext extends ChainContext {
   final List<Step> steps = const <Step>[
@@ -34,8 +36,9 @@ abstract class SpellContext extends ChainContext {
   ];
 
   final bool interactive;
+  final bool onlyInGit;
 
-  SpellContext({this.interactive});
+  SpellContext({this.interactive, this.onlyInGit});
 
   // Override special handling of negative tests.
   @override
@@ -50,6 +53,11 @@ abstract class SpellContext extends ChainContext {
 
   Set<String> reportedWords = {};
   Set<String> reportedWordsDenylisted = {};
+
+  @override
+  Stream<TestDescription> list(Chain suite) {
+    return filterList(suite, onlyInGit, super.list(suite));
+  }
 
   @override
   Future<void> postRun() {
@@ -152,7 +160,8 @@ abstract class SpellContext extends ChainContext {
           print("");
           print("To add words easily, try to run this script in interactive "
               "mode via the command");
-          print("dart ${Platform.script.toFilePath()} -Dinteractive=true");
+          print("dart ${Platform.script.toFilePath()} "
+              "-DonlyInGit=$onlyInGit -Dinteractive=true");
         }
       }
       print("================");

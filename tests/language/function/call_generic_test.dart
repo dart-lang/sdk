@@ -35,7 +35,7 @@ check(expected, actual) {
 }
 
 main() {
-  check([dynamic, 1, 2, 3, null, null], staticFn(1 as dynamic, 2, 3));
+  check([Object, 1, 2, 3, null, null], staticFn(1 as dynamic, 2, 3));
 
   check([Object, 'Z', 2, 4, null, null], staticFn('Z', 2, 4));
 
@@ -53,13 +53,13 @@ main() {
 
   var c = new C();
 
-  check([dynamic, 8, 2, 3, null, null], c.memberFn(8 as dynamic, 2, 3));
+  check([Object, 8, 2, 3, null, null], c.memberFn(8 as dynamic, 2, 3));
 
   check([Object, 'A', 2, 3, null, null], c.memberFn('A', 2, 3));
 
   check([int, 9, 2, 3, null, null], c.memberFn<int>(9, 2, 3));
 
-  check([dynamic, 10, 2, 3, null, null], c.map(10 as dynamic, 2, 3));
+  check([Object, 10, 2, 3, null, null], c.map(10 as dynamic, 2, 3));
 
   check([Object, 'B', 2, 3, null, null], c.map('B', 2, 3));
 

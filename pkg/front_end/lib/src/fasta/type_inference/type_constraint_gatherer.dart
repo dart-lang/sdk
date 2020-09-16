@@ -511,11 +511,28 @@ abstract class TypeConstraintGatherer {
 
     // If Q is a legacy type Q0* then the match holds under constraint set C:
     //
-    // Only if P is a subtype match for Q? under constraint set C.
+    // If P is dynamic or void and P is a subtype match for Q0 under constraint
+    // set C.
+    // Or if P is not dynamic or void and P is a subtype match for Q0? under
+    // constraint set C.
     if (_isLegacyTypeConstructorApplication(q)) {
-      return _isNullabilityAwareSubtypeMatch(
-          p, q.withDeclaredNullability(Nullability.nullable),
-          constrainSupertype: constrainSupertype);
+      final int baseConstraintCount = _protoConstraints.length;
+
+      if ((p is DynamicType || p is VoidType) &&
+          _isNullabilityAwareSubtypeMatch(p, _computeRawType(q),
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if (p is! DynamicType &&
+          p is! VoidType &&
+          _isNullabilityAwareSubtypeMatch(
+              p, q.withDeclaredNullability(Nullability.nullable),
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
     }
 
     // If Q is FutureOr<Q0> the match holds under constraint set C:
@@ -560,6 +577,8 @@ abstract class TypeConstraintGatherer {
     // If Q is Q0? the match holds under constraint set C:
     //
     // If P is P0? and P0 is a subtype match for Q0 under constraint set C.
+    // Or if P is dynamic or void and Object is a subtype match for Q0 under
+    // constraint set C.
     // Or if P is a subtype match for Q0 under non-empty constraint set C.
     // Or if P is a subtype match for Null under constraint set C.
     // Or if P is a subtype match for Q0 under empty constraint set C.
@@ -570,6 +589,14 @@ abstract class TypeConstraintGatherer {
 
       if (_isNullableTypeConstructorApplication(p) &&
           _isNullabilityAwareSubtypeMatch(rawP, rawQ,
+              constrainSupertype: constrainSupertype)) {
+        return true;
+      }
+      _protoConstraints.length = baseConstraintCount;
+
+      if ((p is DynamicType || p is VoidType) &&
+          _isNullabilityAwareSubtypeMatch(
+              coreTypes.objectNonNullableRawType, rawQ,
               constrainSupertype: constrainSupertype)) {
         return true;
       }

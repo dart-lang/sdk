@@ -1903,7 +1903,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isMixinDeclaration ? null : supertype,
           isNamedMixinApplication
               ? interfaces
-              : isMixinDeclaration ? [supertype, mixin] : null,
+              : isMixinDeclaration
+                  ? [supertype, mixin]
+                  : null,
           null, // No `on` clause types.
           new Scope(
               local: <String, MemberBuilder>{},

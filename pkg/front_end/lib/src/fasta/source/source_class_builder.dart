@@ -1142,6 +1142,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (declaredMember == interfaceMember) {
       return;
     }
+    Member interfaceMemberOrigin =
+        interfaceMember.memberSignatureOrigin ?? interfaceMember;
     if (declaredMember is Constructor || interfaceMember is Constructor) {
       unimplemented(
           "Constructor in override check.", declaredMember.fileOffset, fileUri);
@@ -1150,18 +1152,18 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (declaredMember.kind == interfaceMember.kind) {
         if (declaredMember.kind == ProcedureKind.Method ||
             declaredMember.kind == ProcedureKind.Operator) {
-          bool seenCovariant = checkMethodOverride(
-              types, declaredMember, interfaceMember, isInterfaceCheck);
+          bool seenCovariant = checkMethodOverride(types, declaredMember,
+              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
           if (seenCovariant) {
             handleSeenCovariant(
                 types, declaredMember, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
-          checkGetterOverride(
-              types, declaredMember, interfaceMember, isInterfaceCheck);
+          checkGetterOverride(types, declaredMember, interfaceMember,
+              interfaceMemberOrigin, isInterfaceCheck);
         } else if (declaredMember.kind == ProcedureKind.Setter) {
-          bool seenCovariant = checkSetterOverride(
-              types, declaredMember, interfaceMember, isInterfaceCheck);
+          bool seenCovariant = checkSetterOverride(types, declaredMember,
+              interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
           if (seenCovariant) {
             handleSeenCovariant(
                 types, declaredMember, interfaceMember, isSetter, callback);
@@ -1187,12 +1189,12 @@ class SourceClassBuilder extends ClassBuilderImpl
               !interfaceMember.isConst) ||
           interfaceMember is Procedure && interfaceMember.isSetter;
       if (declaredMemberHasGetter && interfaceMemberHasGetter) {
-        checkGetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
+        checkGetterOverride(types, declaredMember, interfaceMember,
+            interfaceMemberOrigin, isInterfaceCheck);
       }
       if (declaredMemberHasSetter && interfaceMemberHasSetter) {
-        bool seenCovariant = checkSetterOverride(
-            types, declaredMember, interfaceMember, isInterfaceCheck);
+        bool seenCovariant = checkSetterOverride(types, declaredMember,
+            interfaceMember, interfaceMemberOrigin, isInterfaceCheck);
         if (seenCovariant) {
           handleSeenCovariant(
               types, declaredMember, interfaceMember, isSetter, callback);
@@ -1214,6 +1216,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Types types,
       Member declaredMember,
       Member interfaceMember,
+      Member interfaceMemberOrigin,
       FunctionNode declaredFunction,
       FunctionNode interfaceFunction,
       bool isInterfaceCheck) {
@@ -1234,15 +1237,15 @@ class SourceClassBuilder extends ClassBuilderImpl
           templateOverrideTypeVariablesMismatch.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.name}"),
+              "${interfaceMemberOrigin.enclosingClass.name}."
+                  "${interfaceMemberOrigin.name.name}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
-                .withLocation(_getMemberUri(interfaceMember),
-                    interfaceMember.fileOffset, noLength)
+                .withArguments(interfaceMemberOrigin.name.name)
+                .withLocation(_getMemberUri(interfaceMemberOrigin),
+                    interfaceMemberOrigin.fileOffset, noLength)
           ]);
     } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
@@ -1283,16 +1286,16 @@ class SourceClassBuilder extends ClassBuilderImpl
                     "${declaredMember.enclosingClass.name}."
                         "${declaredMember.name.name}",
                     computedBound,
-                    "${interfaceMember.enclosingClass.name}."
-                        "${interfaceMember.name.name}",
+                    "${interfaceMemberOrigin.enclosingClass.name}."
+                        "${interfaceMemberOrigin.name.name}",
                     library.isNonNullableByDefault),
                 declaredMember.fileOffset,
                 noLength,
                 context: [
                   templateOverriddenMethodCause
-                      .withArguments(interfaceMember.name.name)
-                      .withLocation(_getMemberUri(interfaceMember),
-                          interfaceMember.fileOffset, noLength)
+                      .withArguments(interfaceMemberOrigin.name.name)
+                      .withLocation(_getMemberUri(interfaceMemberOrigin),
+                          interfaceMemberOrigin.fileOffset, noLength)
                 ]);
           }
         }
@@ -1322,6 +1325,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       Substitution declaredSubstitution,
       Member declaredMember,
       Member interfaceMember,
+      Member interfaceMemberOrigin,
       DartType declaredType,
       DartType interfaceType,
       bool isCovariant,
@@ -1365,8 +1369,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (isErrorInNnbdOptedOutMode || library.isNonNullableByDefault) {
         String declaredMemberName = '${declaredMember.enclosingClass.name}'
             '.${declaredMember.name.name}';
-        String interfaceMemberName = '${interfaceMember.enclosingClass.name}'
-            '.${interfaceMember.name.name}';
+        String interfaceMemberName =
+            '${interfaceMemberOrigin.enclosingClass.name}'
+            '.${interfaceMemberOrigin.name.name}';
         Message message;
         int fileOffset;
         if (declaredParameter == null) {
@@ -1401,18 +1406,28 @@ class SourceClassBuilder extends ClassBuilderImpl
             isInterfaceCheck, declaredMember, message, fileOffset, noLength,
             context: [
               templateOverriddenMethodCause
-                  .withArguments(interfaceMember.name.name)
-                  .withLocation(_getMemberUri(interfaceMember),
-                      interfaceMember.fileOffset, noLength)
+                  .withArguments(interfaceMemberOrigin.name.name)
+                  .withLocation(_getMemberUri(interfaceMemberOrigin),
+                      interfaceMemberOrigin.fileOffset, noLength)
             ]);
       }
     }
   }
 
+  /// Checks whether [declaredMember] correctly overrides [interfaceMember].
+  ///
+  /// If an error is reporter [interfaceMemberOrigin] is used as the context
+  /// for where [interfaceMember] was declared, since [interfaceMember] might
+  /// itself be synthesized.
+  ///
   /// Returns whether a covariant parameter was seen and more methods thus have
   /// to be checked.
-  bool checkMethodOverride(Types types, Procedure declaredMember,
-      Procedure interfaceMember, bool isInterfaceCheck) {
+  bool checkMethodOverride(
+      Types types,
+      Procedure declaredMember,
+      Procedure interfaceMember,
+      Member interfaceMemberOrigin,
+      bool isInterfaceCheck) {
     assert(declaredMember.kind == interfaceMember.kind);
     assert(declaredMember.kind == ProcedureKind.Method ||
         declaredMember.kind == ProcedureKind.Operator);
@@ -1424,6 +1439,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         types,
         declaredMember,
         interfaceMember,
+        interfaceMemberOrigin,
         declaredFunction,
         interfaceFunction,
         isInterfaceCheck);
@@ -1437,6 +1453,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredSubstitution,
         declaredMember,
         interfaceMember,
+        interfaceMemberOrigin,
         declaredFunction.returnType,
         interfaceFunction.returnType,
         false,
@@ -1505,6 +1522,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredSubstitution,
           declaredMember,
           interfaceMember,
+          interfaceMemberOrigin,
           declaredParameter.type,
           interfaceParameter.type,
           declaredParameter.isCovariant || interfaceParameter.isCovariant,
@@ -1524,15 +1542,15 @@ class SourceClassBuilder extends ClassBuilderImpl
           templateOverrideFewerNamedArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.name}"),
+              "${interfaceMemberOrigin.enclosingClass.name}."
+                  "${interfaceMemberOrigin.name.name}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
-                .withLocation(interfaceMember.fileUri,
-                    interfaceMember.fileOffset, noLength)
+                .withArguments(interfaceMemberOrigin.name.name)
+                .withLocation(interfaceMemberOrigin.fileUri,
+                    interfaceMemberOrigin.fileOffset, noLength)
           ]);
     }
     int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
@@ -1582,6 +1600,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredSubstitution,
           declaredMember,
           interfaceMember,
+          interfaceMemberOrigin,
           declaredParameter.type,
           interfaceNamedParameters.current.type,
           declaredParameter.isCovariant,
@@ -1604,9 +1623,9 @@ class SourceClassBuilder extends ClassBuilderImpl
             noLength,
             context: [
               templateOverriddenMethodCause
-                  .withArguments(interfaceMember.name.name)
-                  .withLocation(_getMemberUri(interfaceMember),
-                      interfaceMember.fileOffset, noLength)
+                  .withArguments(interfaceMemberOrigin.name.name)
+                  .withLocation(_getMemberUri(interfaceMemberOrigin),
+                      interfaceMemberOrigin.fileOffset, noLength)
             ]);
       }
       if (declaredParameter.isCovariant) seenCovariant = true;
@@ -1614,10 +1633,25 @@ class SourceClassBuilder extends ClassBuilderImpl
     return seenCovariant;
   }
 
-  void checkGetterOverride(Types types, Member declaredMember,
-      Member interfaceMember, bool isInterfaceCheck) {
+  /// Checks whether [declaredMember] correctly overrides [interfaceMember].
+  ///
+  /// If an error is reporter [interfaceMemberOrigin] is used as the context
+  /// for where [interfaceMember] was declared, since [interfaceMember] might
+  /// itself be synthesized.
+  void checkGetterOverride(
+      Types types,
+      Member declaredMember,
+      Member interfaceMember,
+      Member interfaceMemberOrigin,
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
-        types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
+        types,
+        declaredMember,
+        interfaceMember,
+        interfaceMemberOrigin,
+        /* declaredFunction = */ null,
+        /* interfaceFunction = */ null,
+        isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.getterType;
@@ -1628,19 +1662,36 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredSubstitution,
         declaredMember,
         interfaceMember,
+        interfaceMemberOrigin,
         declaredType,
         interfaceType,
-        false,
-        null,
+        /* isCovariant = */ false,
+        /* declaredParameter = */ null,
         isInterfaceCheck);
   }
 
+  /// Checks whether [declaredMember] correctly overrides [interfaceMember].
+  ///
+  /// If an error is reporter [interfaceMemberOrigin] is used as the context
+  /// for where [interfaceMember] was declared, since [interfaceMember] might
+  /// itself be synthesized.
+  ///
   /// Returns whether a covariant parameter was seen and more methods thus have
   /// to be checked.
-  bool checkSetterOverride(Types types, Member declaredMember,
-      Member interfaceMember, bool isInterfaceCheck) {
+  bool checkSetterOverride(
+      Types types,
+      Member declaredMember,
+      Member interfaceMember,
+      Member interfaceMemberOrigin,
+      bool isInterfaceCheck) {
     Substitution interfaceSubstitution = _computeInterfaceSubstitution(
-        types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
+        types,
+        declaredMember,
+        interfaceMember,
+        interfaceMemberOrigin,
+        /* declaredFunction = */ null,
+        /* interfaceFunction = */ null,
+        isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
     DartType declaredType = declaredMember.setterType;
@@ -1660,6 +1711,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         declaredSubstitution,
         declaredMember,
         interfaceMember,
+        interfaceMemberOrigin,
         declaredType,
         interfaceType,
         isCovariant,
