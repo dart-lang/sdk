@@ -88,6 +88,7 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
     registry.addExtensionDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
+    registry.addGenericTypeAlias(this, visitor);
     registry.addMixinDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
@@ -289,6 +290,13 @@ class _Visitor extends SimpleAstVisitor {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (!isInLibFolder) return;
 
+    if (!isPrivate(node.name)) {
+      check(node);
+    }
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
     if (!isPrivate(node.name)) {
       check(node);
     }

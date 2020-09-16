@@ -757,7 +757,8 @@ void defineTests() {
               'a.dart 109:1 [lint] Document all public members.',
               'a.dart 110:11 [lint] Document all public members.',
               'a.dart 117:14 [lint] Document all public members.',
-              '3 files analyzed, 23 issues found',
+              'a.dart 130:1 [lint] Document all public members.',
+              '3 files analyzed, 24 issues found',
             ]));
         expect(exitCode, 1);
       });

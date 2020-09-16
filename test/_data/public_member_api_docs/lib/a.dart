@@ -126,3 +126,5 @@ extension on Object { // OK
   int get z => 0; // OK
   static int foo = 1; // OK
 }
+
+typedef T = void Function(); // LINT
