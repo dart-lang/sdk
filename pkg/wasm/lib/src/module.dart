@@ -73,12 +73,14 @@ class WasmInstance {
       String name = runtime.exportName(e);
       if (kind == WasmerImpExpKindFunction) {
         var f = runtime.exportToFunction(e);
-        _functions[name] =
-            WasmFunction(f, runtime.getArgTypes(f), runtime.getReturnType(f));
+        _functions[name] = WasmFunction(
+            name, f, runtime.getArgTypes(f), runtime.getReturnType(f));
       }
     }
   }
 
+  /// Searches the instantiated module for the given function. Returns null if
+  /// it is not found.
   dynamic lookupFunction(String name) {
     return _functions[name];
   }

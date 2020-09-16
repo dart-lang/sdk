@@ -558,13 +558,11 @@ void main() {
   }
 
   test_binaryExpression_plus() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   (throw '') + (1 + 2);
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 27, 1),
-    ]);
+''');
 
     assertBinaryExpression(
       findNode.binary('+ ('),

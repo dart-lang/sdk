@@ -414,16 +414,6 @@ class MethodInvocationResolver {
 
   void _resolveReceiverInterfaceType(MethodInvocation node, Expression receiver,
       InterfaceType receiverType, SimpleIdentifier nameNode, String name) {
-    if (_isCoreFunction(receiverType) &&
-        name == FunctionElement.CALL_METHOD_NAME) {
-      _resolver.nullableDereferenceVerifier.expression(
-        receiver,
-        type: receiverType,
-      );
-      _setDynamicResolution(node);
-      return;
-    }
-
     _resolveReceiverType(
       node: node,
       receiver: receiver,

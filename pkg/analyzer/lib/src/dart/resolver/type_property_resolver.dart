@@ -111,6 +111,22 @@ class TypePropertyResolver {
         if (_hasGetterOrSetter) {
           return _toResult();
         }
+        if (receiverType.isDartCoreFunction && _name == 'call') {
+          _needsGetterError = false;
+          _needsSetterError = false;
+          return _toResult();
+        }
+      }
+
+      if (receiverType is FunctionType && _name == 'call') {
+        return _toResult();
+      }
+
+      if (receiverType is NeverType) {
+        _lookupInterfaceType(_typeProvider.objectType);
+        _needsGetterError = false;
+        _needsSetterError = false;
+        return _toResult();
       }
 
       _lookupExtension(receiverType);
