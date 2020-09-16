@@ -429,6 +429,7 @@ numerator
 observable
 oh
 okay
+onull
 ooo
 operate
 ops
@@ -535,6 +536,7 @@ signalled
 sigwinch
 slight
 smoke
+snull
 somehow
 spans
 spawn
