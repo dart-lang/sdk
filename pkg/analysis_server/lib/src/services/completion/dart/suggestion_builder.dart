@@ -786,7 +786,8 @@ class SuggestionBuilder {
   void suggestNamedArgument(ParameterElement parameter,
       {@required bool appendColon, @required bool appendComma}) {
     var name = parameter.name;
-    var type = parameter.type?.getDisplayString(withNullability: false);
+    var type = parameter.type?.getDisplayString(
+        withNullability: request.libraryElement.isNonNullableByDefault);
 
     var completion = name;
     if (appendColon) {
