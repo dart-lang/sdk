@@ -2,15 +2,15 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in.dart:11:27: Error: The parameter 'cls' of the method 'SubClass.invariant' has type 'SubClass', which does not match the corresponding type, 'Class', in the overridden method, 'Class with Mixin.invariant'.
+// pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in.dart:11:27: Error: The parameter 'cls' of the method 'SubClass.invariant' has type 'SubClass', which does not match the corresponding type, 'Class', in the overridden method, 'Class.invariant'.
 //  - 'SubClass' is from 'pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in.dart'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in_lib.dart'.
 // Change to a supertype of 'Class', or, for a covariant parameter, a subtype.
 //   void invariant(SubClass cls) {} // error
 //                           ^
-// pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in.dart:9:7: Context: This is the overridden method ('invariant').
-// class SubClass extends Class with Mixin {
-//       ^
+// pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in_lib.dart:9:8: Context: This is the overridden method ('invariant').
+//   void invariant(Class cls);
+//        ^
 //
 import self as self;
 import "covariant_from_opt_in_lib.dart" as cov;
