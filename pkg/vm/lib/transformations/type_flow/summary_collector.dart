@@ -77,8 +77,8 @@ class _SummaryNormalizer extends StatementVisitor {
   }
 
   TypeExpr _normalizeExpr(TypeExpr st, bool isResultUsed) {
-    assertx(!_inLoop);
-    assertx(st is! Use);
+    assert(!_inLoop);
+    assert(st is! Use);
     if (st is Statement) {
       if (isResultUsed && (st is Call)) {
         st.setResultUsed();
@@ -140,7 +140,7 @@ class _SummaryNormalizer extends StatementVisitor {
         return _handleLoop(st);
       }
     } else {
-      assertx(st is Type);
+      assert(st is Type);
       return st;
     }
   }
@@ -584,7 +584,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       this._nativeCodeOracle,
       this._genericInterfacesInfo,
       this._protobufHandler) {
-    assertx(_genericInterfacesInfo != null);
+    assert(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
     _nullMethodsAndGetters.addAll(getSelectors(
         _hierarchy, _environment.coreTypes.nullClass,
@@ -598,8 +598,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       {fieldSummaryType: FieldSummaryType.kInitializer}) {
     debugPrint(
         "===== ${member}${fieldSummaryType == FieldSummaryType.kFieldGuard ? " (guard)" : ""} =====");
-    assertx(!member.isAbstract);
-    assertx(!(member is Procedure && member.isRedirectingFactoryConstructor));
+    assert(!member.isAbstract);
+    assert(!(member is Procedure && member.isRedirectingFactoryConstructor));
 
     _protobufHandler?.beforeSummaryCreation(member);
 
@@ -633,7 +633,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           this, _summary, _receiver, null, _genericInterfacesInfo);
 
       if (fieldSummaryType == FieldSummaryType.kInitializer) {
-        assertx(member.initializer != null);
+        assert(member.initializer != null);
         _summary.result = _visit(member.initializer);
       } else {
         final Parameter valueParam =
@@ -727,7 +727,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         }
         _declareVariable(decl, param);
       }
-      assertx(count == _summary.parameterCount);
+      assert(count == _summary.parameterCount);
 
       _returnValue = new Join("%result", function.returnType);
       _summary.add(_returnValue);
@@ -795,7 +795,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   Args<Type> rawArguments(Selector selector) {
     final member = selector.member;
-    assertx(member != null);
+    assert(member != null);
 
     final List<Type> args = <Type>[];
     final List<String> names = <String>[];
@@ -806,7 +806,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
 
     if (hasReceiverArg(member)) {
-      assertx(member.enclosingClass != null);
+      assert(member.enclosingClass != null);
       final receiver =
           new ConeType(_typesBuilder.getTFClass(member.enclosingClass));
       args.add(receiver);
@@ -816,7 +816,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       case CallKind.Method:
         if (member is! Field) {
           final function = member.function;
-          assertx(function != null);
+          assert(function != null);
 
           final int paramCount = function.positionalParameters.length +
               function.namedParameters.length;
@@ -893,7 +893,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
     final param = new Parameter(name, staticType);
     _summary.add(param);
-    assertx(param.index < _summary.parameterCount);
+    assert(param.index < _summary.parameterCount);
     if (param.index >= _summary.requiredParameterCount) {
       if (initializer != null) {
         if (initializer is ConstantExpression) {
@@ -910,16 +910,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         param.defaultValue = _nullType;
       }
     } else {
-      assertx(initializer == null);
+      assert(initializer == null);
     }
     return param;
   }
 
   void _declareVariable(VariableDeclaration decl, TypeExpr initialValue) {
     final int varIndex = _variablesInfo.varIndex[decl];
-    assertx(varIndex != null);
-    assertx(_variablesInfo.varDeclarations[varIndex] == decl);
-    assertx(_variableValues[varIndex] == null);
+    assert(varIndex != null);
+    assert(_variablesInfo.varDeclarations[varIndex] == decl);
+    assert(_variableValues[varIndex] == null);
     if (_variablesInfo.isCaptured(decl)) {
       final join = _makeJoin(varIndex, initialValue);
       _variableCells[varIndex] = join;
@@ -965,7 +965,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   void _mergeVariableValues(List<TypeExpr> dst, List<TypeExpr> src) {
-    assertx(dst.length == src.length);
+    assert(dst.length == src.length);
     for (int i = 0; i < dst.length; ++i) {
       final TypeExpr dstValue = dst[i];
       final TypeExpr srcValue = src[i];
@@ -991,14 +991,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   void _copyVariableValues(List<TypeExpr> dst, List<TypeExpr> src) {
-    assertx(dst.length == src.length);
+    assert(dst.length == src.length);
     for (int i = 0; i < dst.length; ++i) {
       dst[i] = src[i];
     }
   }
 
   bool _isIdenticalState(List<TypeExpr> state1, List<TypeExpr> state2) {
-    assertx(state1.length == state2.length);
+    assert(state1.length == state2.length);
     for (int i = 0; i < state1.length; ++i) {
       if (!identical(state1[i], state2[i])) {
         return false;
@@ -1011,7 +1011,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final List<Join> joins = new List<Join>(_variablesInfo.numVariables);
     for (var i in _variablesInfo.getModifiedVariables(node)) {
       if (_variableCells[i] != null) {
-        assertx(_variableCells[i] == _variableValues[i]);
+        assert(_variableCells[i] == _variableValues[i]);
       } else {
         final join = _makeJoin(i, _variableValues[i]);
         joins[i] = join;
@@ -1032,7 +1032,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   void _restoreVariableCellsAfterTry(List<Join> joins) {
     for (int i = 0; i < joins.length; ++i) {
       if (joins[i] != null) {
-        assertx(_variableCells[i] == joins[i]);
+        assert(_variableCells[i] == joins[i]);
         _variableCells[i] = null;
       }
     }
@@ -1127,7 +1127,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   TypeExpr _makeNarrowNotNull(TreeNode node, TypeExpr arg) {
-    assertx(node is NullCheck ||
+    assert(node is NullCheck ||
         node is MethodInvocation && isComparisonWithNull(node));
     if (arg is NarrowNotNull) {
       nullTests[node] = arg;
@@ -1165,7 +1165,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     } else if (arg is Join || arg is Call || arg is TypeCheck) {
       _summary.add(new Use(arg));
     } else {
-      assertx(arg is Type || arg is Parameter);
+      assert(arg is Type || arg is Parameter);
     }
   }
 
@@ -1289,8 +1289,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           in _hierarchy.computeSubtypesInformation().getSubtypesOf(cls)) {
         if (!c.isAbstract) {
           final candidate = _hierarchy.getDispatchTarget(c, _equalsName);
-          assertx(candidate != null);
-          assertx(!candidate.isAbstract);
+          assert(candidate != null);
+          assert(!candidate.isAbstract);
           if (candidate != _environment.coreTypes.objectEquals) {
             _cachedHasOverriddenEquals[cls] = true;
             return true;
@@ -1310,14 +1310,14 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   // either trueState or falseState.
   void _visitCondition(
       Expression node, List<TypeExpr> trueState, List<TypeExpr> falseState) {
-    assertx(_isIdenticalState(_variableValues, trueState));
-    assertx(_isIdenticalState(_variableValues, falseState));
+    assert(_isIdenticalState(_variableValues, trueState));
+    assert(_isIdenticalState(_variableValues, falseState));
     if (node is Not) {
       _visitCondition(node.operand, falseState, trueState);
       _variableValues = null;
       return;
     } else if (node is LogicalExpression) {
-      assertx(node.operator == '||' || node.operator == '&&');
+      assert(node.operator == '||' || node.operator == '&&');
       final isOR = (node.operator == '||');
       _visitCondition(node.left, trueState, falseState);
       if (isOR) {
@@ -1351,7 +1351,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     } else if (node is MethodInvocation &&
         node.receiver is VariableGet &&
         node.name.text == '==') {
-      assertx(node.arguments.positional.length == 1 &&
+      assert(node.arguments.positional.length == 1 &&
           node.arguments.types.isEmpty &&
           node.arguments.named.isEmpty);
       final lhs = node.receiver as VariableGet;
@@ -1507,8 +1507,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final receiver = _visit(node.receiver);
     final args = _visitArguments(receiver, node.arguments);
     final target = node.target;
-    assertx(target is! Field);
-    assertx(!target.isGetter && !target.isSetter);
+    assert(target is! Field);
+    assert(!target.isGetter && !target.isSetter);
     if (receiver is ThisExpression) {
       _entryPointsListener.recordMemberCalledViaThis(target);
     } else {
@@ -1536,7 +1536,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([receiver, value]);
     final target = node.target;
-    assertx((target is Field) || ((target is Procedure) && target.isSetter));
+    assert((target is Field) || ((target is Procedure) && target.isSetter));
     if (receiver is ThisExpression) {
       _entryPointsListener.recordMemberCalledViaThis(target);
     } else {
@@ -1662,7 +1662,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       result = _makeCall(
           node, new DynamicSelector(CallKind.Method, node.name), args);
     } else {
-      assertx(target is Procedure && !target.isGetter);
+      assert(target is Procedure && !target.isGetter);
       // TODO(alexmarkov): overloaded arithmetic operators
       result = _makeCall(
           node,
@@ -1724,7 +1724,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       _makeCall(
           node, new DynamicSelector(CallKind.PropertySet, node.name), args);
     } else {
-      assertx((target is Field) || ((target is Procedure) && target.isSetter));
+      assert((target is Field) || ((target is Procedure) && target.isSetter));
       _makeCall(
           node,
           (node.receiver is ThisExpression)
@@ -1739,15 +1739,15 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitSuperMethodInvocation(SuperMethodInvocation node) {
-    assertx(kPartialMixinResolution);
-    assertx(_receiver != null, details: node);
+    assert(kPartialMixinResolution);
+    assert(_receiver != null, "Should have receiver. Node: $node");
     final args = _visitArguments(_receiver, node.arguments);
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
       return const EmptyType();
     } else {
-      assertx(target is Procedure && !target.isGetter);
+      assert(target is Procedure && !target.isGetter);
       _entryPointsListener.recordMemberCalledViaThis(target);
       return _makeCall(node, new DirectSelector(target), args);
     }
@@ -1755,8 +1755,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitSuperPropertyGet(SuperPropertyGet node) {
-    assertx(kPartialMixinResolution);
-    assertx(_receiver != null, details: node);
+    assert(kPartialMixinResolution);
+    assert(_receiver != null, "Should have receiver. Node: $node");
     final args = new Args<TypeExpr>([_receiver]);
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
@@ -1770,15 +1770,15 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitSuperPropertySet(SuperPropertySet node) {
-    assertx(kPartialMixinResolution);
-    assertx(_receiver != null, details: node);
+    assert(kPartialMixinResolution);
+    assert(_receiver != null, "Should have receiver. Node: $node");
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_receiver, value]);
     // Re-resolve target due to partial mixin resolution.
     final target =
         _hierarchy.getDispatchTarget(_superclass, node.name, setter: true);
     if (target != null) {
-      assertx((target is Field) || ((target is Procedure) && target.isSetter));
+      assert((target is Field) || ((target is Procedure) && target.isSetter));
       _entryPointsListener.recordMemberCalledViaThis(target);
       _makeCall(node,
           new DirectSelector(target, callKind: CallKind.PropertySet), args);
@@ -1816,7 +1816,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final args = _visitArguments(null, node.arguments,
         passTypeArguments: node.target.isFactory);
     final target = node.target;
-    assertx((target is! Field) && !target.isGetter && !target.isSetter);
+    assert((target is! Field) && !target.isGetter && !target.isSetter);
     TypeExpr result = _makeCall(node, new DirectSelector(target), args);
     if (target == unsafeCast) {
       // Async transformation inserts unsafeCasts to make sure
@@ -1835,7 +1835,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([value]);
     final target = node.target;
-    assertx((target is Field) || (target is Procedure) && target.isSetter);
+    assert((target is Field) || (target is Procedure) && target.isSetter);
     _makeCall(
         node, new DirectSelector(target, callKind: CallKind.PropertySet), args);
     return value;
@@ -1859,7 +1859,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitThisExpression(ThisExpression node) {
-    assertx(_receiver != null, details: node);
+    assert(_receiver != null, "Should have receiver. Node: $node");
     return _receiver;
   }
 
@@ -2193,7 +2193,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     } else {
       target = node.target;
     }
-    assertx(target != null);
+    assert(target != null);
     _makeCall(node, new DirectSelector(target), args);
     return null;
   }
@@ -2294,7 +2294,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     // building 'A<T>'.
     typesCache[type] = const UnknownType();
     final result = type.accept(this);
-    assertx(
+    assert(
         result is UnknownType || result is RuntimeType || result is Statement);
     typesCache[type] = result;
     return result;
@@ -2372,7 +2372,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     }
     if (type.parameter.parent is! Class) return const UnknownType();
     final interfaceClass = type.parameter.parent as Class;
-    assertx(receiver != null);
+    assert(receiver != null);
     // Undetermined nullability is equivalent to nonNullable when
     // instantiating type parameter, so convert it right away.
     Nullability nullability = type.nullability;

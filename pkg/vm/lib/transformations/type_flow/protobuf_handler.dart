@@ -84,12 +84,12 @@ class ProtobufHandler {
     if (member is Field && member.name.text == metadataFieldName) {
       // Update contents of static field initializer of metadata field (_i).
       // according to the used tag numbers.
-      assertx(member.isStatic);
+      assert(member.isStatic);
       if (messageClass._metadataField == null) {
         messageClass._metadataField = member;
         ++Statistics.protobufMessagesUsed;
       } else {
-        assertx(messageClass._metadataField == member);
+        assert(messageClass._metadataField == member);
       }
       _updateMetadataField(messageClass);
       return;

@@ -102,7 +102,7 @@ class DirectSelector extends Selector {
 
   DirectSelector(this.member, {CallKind callKind = CallKind.Method})
       : super(callKind) {
-    assertx((callKind == CallKind.Method) ||
+    assert((callKind == CallKind.Method) ||
         (callKind == CallKind.PropertyGet) ||
         memberAgreesToCallKind(member));
   }
@@ -194,7 +194,7 @@ class Args<T extends TypeExpr> {
 
   Args(this.values,
       {this.names = const <String>[], this.unknownArity = false}) {
-    assertx(isSorted(names));
+    assert(isSorted(names));
   }
 
   Args.withReceiver(Args<T> args, T receiver)

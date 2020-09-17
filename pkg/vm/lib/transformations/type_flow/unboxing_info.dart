@@ -57,8 +57,8 @@ class UnboxingInfoManager {
             final getterId = tableSelectorAssigner.getterSelectorId(field);
             final setterId =
                 tableSelectorAssigner.methodOrSetterSelectorId(field);
-            assertx(getterId != kInvalidSelectorId);
-            assertx(setterId != kInvalidSelectorId);
+            assert(getterId != kInvalidSelectorId);
+            assert(setterId != kInvalidSelectorId);
             selectorUnionFind.union(getterId, setterId);
           }
         }
@@ -85,7 +85,7 @@ class UnboxingInfoManager {
             member is Field || member is Procedure && member.isGetter
                 ? tableSelectorAssigner.getterSelectorId(member)
                 : tableSelectorAssigner.methodOrSetterSelectorId(member);
-        assertx(selectorId != kInvalidSelectorId);
+        assert(selectorId != kInvalidSelectorId);
         selectorId = selectorUnionFind.find(selectorId);
         info = selectorIdToInfo[selectorId];
         if (info == null) {
@@ -126,13 +126,13 @@ class UnboxingInfoManager {
       }
       if (member is Procedure || member is Constructor) {
         final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-        assertx(argTypes != null);
+        assert(argTypes != null);
 
         final int firstParamIndex =
             numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
         final positionalParams = member.function.positionalParameters;
-        assertx(argTypes.positionalCount ==
+        assert(argTypes.positionalCount ==
             firstParamIndex + positionalParams.length);
 
         for (int i = 0; i < positionalParams.length; i++) {
@@ -156,7 +156,7 @@ class UnboxingInfoManager {
         }
         _applyToReturn(unboxingInfo, fieldValue);
       } else {
-        assertx(false);
+        assert(false, "Unexpected member: $member");
       }
     }
   }
