@@ -21734,25 +21734,6 @@ const char* Double::ToCString() const {
   return buffer;
 }
 
-// Synchronize with implementation in compiler (intrinsifier).
-class StringHasher : ValueObject {
- public:
-  StringHasher() : hash_(0) {}
-  void Add(int32_t ch) { hash_ = CombineHashes(hash_, ch); }
-  void Add(const String& str, intptr_t begin_index, intptr_t len);
-
-  // Return a non-zero hash of at most 'bits' bits.
-  intptr_t Finalize(int bits) {
-    ASSERT(1 <= bits && bits <= (kBitsPerWord - 1));
-    hash_ = FinalizeHash(hash_, bits);
-    ASSERT(hash_ <= static_cast<uint32_t>(kMaxInt32));
-    return hash_;
-  }
-
- private:
-  uint32_t hash_;
-};
-
 void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(begin_index >= 0);
   ASSERT(len >= 0);
@@ -21762,48 +21743,32 @@ void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   }
   if (str.IsOneByteString()) {
     NoSafepointScope no_safepoint;
-    uint8_t* str_addr = OneByteString::CharAddr(str, begin_index);
-    for (intptr_t i = 0; i < len; i++) {
-      Add(*str_addr);
-      str_addr++;
-    }
+    Add(OneByteString::CharAddr(str, begin_index), len);
+  } else if (str.IsExternalOneByteString()) {
+    NoSafepointScope no_safepoint;
+    Add(ExternalOneByteString::CharAddr(str, begin_index), len);
+  } else if (str.IsTwoByteString()) {
+    NoSafepointScope no_safepoint;
+    Add(TwoByteString::CharAddr(str, begin_index), len);
+  } else if (str.IsExternalOneByteString()) {
+    NoSafepointScope no_safepoint;
+    Add(ExternalTwoByteString::CharAddr(str, begin_index), len);
   } else {
-    String::CodePointIterator it(str, begin_index, len);
-    while (it.Next()) {
-      Add(it.Current());
-    }
+    UNREACHABLE();
   }
 }
 
 intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
   StringHasher hasher;
   hasher.Add(str, begin_index, len);
-  return hasher.Finalize(kHashBits);
+  return hasher.Finalize();
 }
 
 intptr_t String::HashConcat(const String& str1, const String& str2) {
-  intptr_t len1 = str1.Length();
-  // Since String::Hash works at the code point (rune) level, a surrogate pair
-  // that crosses the boundary between str1 and str2 must be composed.
-  if (str1.IsTwoByteString() && Utf16::IsLeadSurrogate(str1.CharAt(len1 - 1))) {
-    const String& temp = String::Handle(String::Concat(str1, str2));
-    return temp.Hash();
-  } else {
-    StringHasher hasher;
-    hasher.Add(str1, 0, len1);
-    hasher.Add(str2, 0, str2.Length());
-    return hasher.Finalize(kHashBits);
-  }
-}
-
-template <typename T>
-static intptr_t HashImpl(const T* characters, intptr_t len) {
-  ASSERT(len >= 0);
   StringHasher hasher;
-  for (intptr_t i = 0; i < len; i++) {
-    hasher.Add(characters[i]);
-  }
-  return hasher.Finalize(String::kHashBits);
+  hasher.Add(str1, 0, str1.Length());
+  hasher.Add(str2, 0, str2.Length());
+  return hasher.Finalize();
 }
 
 intptr_t String::Hash(StringPtr raw) {
@@ -21833,24 +21798,21 @@ intptr_t String::Hash(StringPtr raw) {
 }
 
 intptr_t String::Hash(const char* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  StringHasher hasher;
+  hasher.Add(reinterpret_cast<const uint8_t*>(characters), len);
+  return hasher.Finalize();
 }
 
 intptr_t String::Hash(const uint8_t* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  StringHasher hasher;
+  hasher.Add(characters, len);
+  return hasher.Finalize();
 }
 
 intptr_t String::Hash(const uint16_t* characters, intptr_t len) {
   StringHasher hasher;
-  intptr_t i = 0;
-  while (i < len) {
-    hasher.Add(Utf16::Next(characters, &i, len));
-  }
-  return hasher.Finalize(kHashBits);
-}
-
-intptr_t String::Hash(const int32_t* characters, intptr_t len) {
-  return HashImpl(characters, len);
+  hasher.Add(characters, len);
+  return hasher.Finalize();
 }
 
 intptr_t String::CharSize() const {
