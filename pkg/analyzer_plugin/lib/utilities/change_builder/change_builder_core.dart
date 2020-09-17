@@ -16,8 +16,10 @@ abstract class ChangeBuilder {
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
-  factory ChangeBuilder({AnalysisSession session, ChangeWorkspace workspace}) =
-      ChangeBuilderImpl;
+  factory ChangeBuilder(
+      {AnalysisSession session,
+      ChangeWorkspace workspace,
+      String eol}) = ChangeBuilderImpl;
 
   /// Return the range of the selection for the change being built, or `null` if
   /// there is no selection.
