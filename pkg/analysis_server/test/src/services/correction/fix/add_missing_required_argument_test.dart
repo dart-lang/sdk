@@ -250,6 +250,99 @@ main() {
 ''');
   }
 
+  Future<void> test_constructor_single_closure_nnbd() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addMetaPackage();
+    addSource('/home/test/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+typedef int Callback(int? a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestUnit('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int? a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_from_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addMetaPackage();
+    addSource('/home/test/lib/a.dart', r'''
+// @dart = 2.8
+import 'package:meta/meta.dart';
+
+typedef int Callback(int a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestUnit('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addMetaPackage();
+    addSource('/home/test/lib/a.dart', r'''
+import 'package:meta/meta.dart';
+
+typedef int Callback(int? a);
+
+class A {
+  A({@required Callback callback}) {}
+}
+''');
+    await resolveTestUnit('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A();
+  print(a);
+}
+''');
+    await assertHasFix('''
+// @dart = 2.8
+import 'package:test/a.dart';
+
+main() {
+  A a = new A(callback: (int a) {  });
+  print(a);
+}
+''');
+  }
+
   Future<void> test_constructor_single_list() async {
     addMetaPackage();
     addSource('/home/test/lib/a.dart', r'''
