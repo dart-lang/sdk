@@ -708,7 +708,7 @@ def dart_vm_low_priority_builder(name, **kwargs):
 nightly_builders = []
 weekly_builders = []
 
-def dart_vm_nightly_builder(name, notifies = "nightly", **kwargs):
+def nightly_builder(name, notifies = "nightly", **kwargs):
     dart_ci_sandbox_builder(
         name,
         notifies = notifies,
@@ -750,8 +750,18 @@ dart_ci_sandbox_builder(
 )
 dart_ci_sandbox_builder(
     "front-end-nnbd-linux-release-x64",
-    category = "cfe|nn",
+    category = "cfe|nnbd|l",
     location_regexp = to_location_regexp(CFE_PATHS),
+)
+nightly_builder(
+    "front-end-nnbd-mac-release-x64",
+    category = "cfe|nnbd|m",
+    channels = ["try"],
+)
+nightly_builder(
+    "front-end-nnbd-win-release-x64",
+    category = "cfe|nnbd|w",
+    channels = ["try"],
 )
 dart_ci_sandbox_builder(
     "flutter-frontend",
@@ -951,7 +961,7 @@ dart_vm_extra_builder(
     category = "vm|kernel-precomp|wr",
     dimensions = windows(),
 )
-dart_vm_nightly_builder(
+nightly_builder(
     "cross-vm-precomp-linux-release-arm64",
     category = "vm|kernel-precomp|cra",
     channels = [],
@@ -998,7 +1008,7 @@ dart_vm_low_priority_builder(
 )
 
 def dart_vm_sanitizer_builder(name, **kwargs):
-    dart_vm_nightly_builder(
+    nightly_builder(
         name,
         channels = ["try"],
         properties = {"bisection_enabled": True},
