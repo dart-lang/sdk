@@ -441,6 +441,8 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty;
 
+  FunctionEntity get throwLateInitializationError;
+
   bool isExtractTypeArguments(FunctionEntity member);
 
   ClassEntity getInstantiationClass(int typeArgumentCount);
@@ -1776,6 +1778,10 @@ class CommonElementsImpl
 
   @override
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
+
+  @override
+  FunctionEntity get throwLateInitializationError =>
+      _findHelperFunction('throwLateInitializationError');
 
   @override
   bool isExtractTypeArguments(FunctionEntity member) {

@@ -461,6 +461,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
               registry.registerStaticUse(new StaticUse.staticInvoke(
                   closedWorld.commonElements.cyclicThrowHelper,
                   CallStructure.ONE_ARG));
+              registry.registerStaticUse(new StaticUse.staticInvoke(
+                  closedWorld.commonElements.throwLateInitializationError,
+                  CallStructure.ONE_ARG));
             }
             if (targetElement.isInstanceMember) {
               if (fieldData.isEffectivelyFinal ||
