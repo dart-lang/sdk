@@ -2174,7 +2174,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     if (returnType == null) {
       if (kind == ProcedureKind.Operator &&
-          identical(name, indexSetName.name)) {
+          identical(name, indexSetName.text)) {
         returnType = addVoidType(charOffset);
       } else if (kind == ProcedureKind.Setter) {
         returnType = addVoidType(charOffset);
@@ -2738,7 +2738,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         VariableDeclaration originNamed = originNamedMap[forwarderNamed.name];
         if (originNamed == null) {
           return unhandled(
-              "null", forwarder.name.name, origin.fileOffset, origin.fileUri);
+              "null", forwarder.name.text, origin.fileOffset, origin.fileUri);
         }
         if (originNamed.initializer == null) continue;
         forwarderNamed.initializer = cloner.clone(originNamed.initializer);
@@ -3405,7 +3405,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         targetReceiver =
             new InterfaceType(klass, klass.enclosingLibrary.nonNullable);
       }
-      String targetName = node.target.name.name;
+      String targetName = node.target.name.text;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
@@ -3489,7 +3489,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     reportTypeArgumentIssues(issues, fileUri, offset,
         typeArgumentsInfo: getTypeArgumentsInfo(arguments),
         targetReceiver: receiverType,
-        targetName: name.name);
+        targetName: name.text);
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {

@@ -3252,7 +3252,7 @@ class PropertyGet extends Expression {
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
-    String nameString = name.name;
+    String nameString = name.text;
     if (nameString == 'hashCode') {
       return context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
     } else if (nameString == 'runtimeType') {
@@ -3982,7 +3982,7 @@ class MethodInvocation extends InvocationExpression {
       }
       return const DynamicType();
     }
-    if (name.name == 'call') {
+    if (name.text == 'call') {
       var receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
@@ -3993,7 +3993,7 @@ class MethodInvocation extends InvocationExpression {
             .substituteType(receiverType.returnType);
       }
     }
-    if (name.name == '==') {
+    if (name.text == '==') {
       // We use this special case to simplify generation of '==' checks.
       return context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
     }
@@ -4246,9 +4246,9 @@ class ConstructorInvocation extends InvocationExpression {
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name.name.isNotEmpty) {
+    if (target.name.text.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name.name);
+      printer.write(target.name.text);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -7088,29 +7088,34 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// library name for private names; uniqueness is not guaranteed.
 abstract class Name extends Node {
   final int hashCode;
-  final String name;
+  final String text;
   Reference get libraryName;
   Library get library;
   bool get isPrivate;
 
-  Name._internal(this.hashCode, this.name);
+  Name._internal(this.hashCode, this.text);
 
-  factory Name(String name, [Library library]) =>
-      new Name.byReference(name, library?.reference);
+  factory Name(String text, [Library library]) =>
+      new Name.byReference(text, library?.reference);
 
-  factory Name.byReference(String name, Reference libraryName) {
+  factory Name.byReference(String text, Reference libraryName) {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
-    if (name.startsWith('_')) {
+    if (text.startsWith('_')) {
       assert(libraryName != null);
-      return new _PrivateName(name, libraryName);
+      return new _PrivateName(text, libraryName);
     } else {
-      return new _PublicName(name);
+      return new _PublicName(text);
     }
   }
 
+  // TODO(johnniwinther): Remove this when dependent code has been updated to
+  // use [text].
+  @deprecated
+  String get name => text;
+
   bool operator ==(other) {
-    return other is Name && name == other.name && library == other.library;
+    return other is Name && text == other.text && library == other.library;
   }
 
   R accept<R>(Visitor<R> v) => v.visitName(this);
@@ -7135,13 +7140,13 @@ class _PrivateName extends Name {
   final Reference libraryName;
   bool get isPrivate => true;
 
-  _PrivateName(String name, Reference libraryName)
+  _PrivateName(String text, Reference libraryName)
       : this.libraryName = libraryName,
-        super._internal(_computeHashCode(name, libraryName), name);
+        super._internal(_computeHashCode(text, libraryName), text);
 
   String toString() => toStringInternal();
 
-  String toStringInternal() => library != null ? '$library::$name' : name;
+  String toStringInternal() => library != null ? '$library::$text' : text;
 
   Library get library => libraryName.asLibrary;
 
@@ -7158,7 +7163,7 @@ class _PublicName extends Name {
   Library get library => null;
   bool get isPrivate => false;
 
-  _PublicName(String name) : super._internal(name.hashCode, name);
+  _PublicName(String text) : super._internal(text.hashCode, text);
 
   String toString() => toStringInternal();
 }

@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/heap/pages.h"
 #include "vm/heap/safepoint.h"
@@ -67,8 +68,7 @@ Heap::Heap(IsolateGroup* isolate_group,
       read_only_(false),
       last_gc_was_old_space_(false),
       assume_scavenge_will_fail_(false),
-      gc_on_nth_allocation_(kNoForcedGarbageCollection),
-      gc_event_callback_(nullptr) {
+      gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -1026,7 +1026,7 @@ void Heap::RecordAfterGC(GCType type) {
     });
   }
 #endif  // !PRODUCT
-  if (gc_event_callback_ != nullptr) {
+  if (Dart::gc_event_callback() != nullptr) {
     isolate_group_->ForEachIsolate([&](Isolate* isolate) {
       if (!Isolate::IsSystemIsolate(isolate)) {
         Dart_GCEvent event;
@@ -1072,7 +1072,7 @@ void Heap::RecordAfterGC(GCType type) {
               AvgCollectionPeriod(isolate_uptime_micros, old_space_collections);
         }
 
-        (*gc_event_callback_)(&event);
+        (*Dart::gc_event_callback())(&event);
       }
     });
   }

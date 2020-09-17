@@ -51,16 +51,16 @@ class ObfuscationProhibitionsVisitor extends RecursiveVisitor {
 
   @override
   visitConstructor(Constructor ctor) {
-    _addIfEntryPoint(ctor.annotations, ctor.name.name, ctor);
+    _addIfEntryPoint(ctor.annotations, ctor.name.text, ctor);
   }
 
   @override
   visitProcedure(Procedure proc) {
-    _addIfEntryPoint(proc.annotations, proc.name.name, proc);
+    _addIfEntryPoint(proc.annotations, proc.name.text, proc);
   }
 
   @override
   visitField(Field field) {
-    _addIfEntryPoint(field.annotations, field.name.name, field);
+    _addIfEntryPoint(field.annotations, field.name.text, field);
   }
 }

@@ -609,7 +609,7 @@ class KernelTarget extends TargetImplementation {
             builder.getSubstitutionMap(supertype.cls);
         for (Constructor constructor in supertype.cls.constructors) {
           Constructor referenceFrom =
-              indexedClass?.lookupConstructor(constructor.name.name);
+              indexedClass?.lookupConstructor(constructor.name.text);
 
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
               builder.cls,
@@ -849,7 +849,7 @@ class KernelTarget extends TargetImplementation {
         }
       });
       Set<String> kernelConstructorNames =
-          cls.constructors.map((c) => c.name.name).toSet().difference({""});
+          cls.constructors.map((c) => c.name.text).toSet().difference({""});
       return kernelConstructorNames.containsAll(patchConstructorNames);
     }(),
         "Constructors of class '${builder.fullNameForErrors}' "
@@ -860,7 +860,7 @@ class KernelTarget extends TargetImplementation {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             builder.addProblem(messageConstConstructorRedirectionToNonConst,
-                initializer.fileOffset, initializer.target.name.name.length);
+                initializer.fileOffset, initializer.target.name.text.length);
           }
           isRedirecting = true;
           break;
@@ -1072,7 +1072,7 @@ class KernelTarget extends TargetImplementation {
           patchFieldNames.remove(name);
         }
       });
-      Set<String> kernelFieldNames = cls.fields.map((f) => f.name.name).toSet();
+      Set<String> kernelFieldNames = cls.fields.map((f) => f.name.text).toSet();
       return kernelFieldNames.containsAll(patchFieldNames);
     }(),
         "Fields of class '${builder.fullNameForErrors}' "
@@ -1239,7 +1239,7 @@ Constructor defaultSuperConstructor(Class cls) {
   Class superclass = cls.superclass;
   if (superclass != null) {
     for (Constructor constructor in superclass.constructors) {
-      if (constructor.name.name.isEmpty) {
+      if (constructor.name.text.isEmpty) {
         return constructor.function.requiredParameterCount == 0
             ? constructor
             : null;

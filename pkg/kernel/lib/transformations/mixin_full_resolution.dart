@@ -153,7 +153,7 @@ class MixinFullResolution {
 
     for (var field in class_.mixin.fields) {
       Field clone =
-          cloner.cloneField(field, indexedClass?.lookupField(field.name.name));
+          cloner.cloneField(field, indexedClass?.lookupField(field.name.text));
       Procedure setter = setters[field.name];
       if (setter != null) {
         setters.remove(field.name);
@@ -187,10 +187,10 @@ class MixinFullResolution {
       Procedure referenceFrom;
       if (procedure.isSetter) {
         referenceFrom =
-            indexedClass?.lookupProcedureSetter(procedure.name.name);
+            indexedClass?.lookupProcedureSetter(procedure.name.text);
       } else {
         referenceFrom =
-            indexedClass?.lookupProcedureNotSetter(procedure.name.name);
+            indexedClass?.lookupProcedureNotSetter(procedure.name.text);
       }
 
       // Linear search for a forwarding stub with the same name.
@@ -270,7 +270,7 @@ class SuperCallResolutionTransformer extends Transformer {
       return new DirectPropertyGet(new ThisExpression(), target)
         ..fileOffset = node.fileOffset;
     } else {
-      return _callNoSuchMethod(node.name.name, new Arguments.empty(), node,
+      return _callNoSuchMethod(node.name.text, new Arguments.empty(), node,
           isGetter: true, isSuper: true);
     }
   }
@@ -287,7 +287,7 @@ class SuperCallResolutionTransformer extends Transformer {
       VariableDeclaration rightHandSide =
           new VariableDeclaration.forValue(visit(node.value));
       Expression result = _callNoSuchMethod(
-          node.name.name, new Arguments([new VariableGet(rightHandSide)]), node,
+          node.name.text, new Arguments([new VariableGet(rightHandSide)]), node,
           isSetter: true, isSuper: true);
       VariableDeclaration call = new VariableDeclaration.forValue(result);
       return new Let(
@@ -306,7 +306,7 @@ class SuperCallResolutionTransformer extends Transformer {
         ..fileOffset = node.fileOffset;
     } else if (target == null || (target is Procedure && !target.isAccessor)) {
       // Target not found at all, or call was illegal.
-      return _callNoSuchMethod(node.name.name, visitedArguments, node,
+      return _callNoSuchMethod(node.name.text, visitedArguments, node,
           isSuper: true);
     } else {
       return new MethodInvocation(

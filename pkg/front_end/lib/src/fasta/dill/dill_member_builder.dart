@@ -33,7 +33,7 @@ class DillMemberBuilder extends MemberBuilderImpl {
 
   String get debugName => "DillMemberBuilder";
 
-  String get name => member.name.name;
+  String get name => member.name.text;
 
   bool get isConstructor => member is Constructor;
 

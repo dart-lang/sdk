@@ -118,8 +118,8 @@ class CanonicalName {
 
   CanonicalName getChildFromQualifiedName(Name name) {
     return name.isPrivate
-        ? getChildFromUri(name.library.importUri).getChild(name.name)
-        : getChild(name.name);
+        ? getChildFromUri(name.library.importUri).getChild(name.text)
+        : getChild(name.text);
   }
 
   CanonicalName getChildFromMember(Member member) {

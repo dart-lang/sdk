@@ -1324,7 +1324,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'field');
+      debugPath.add(node.name?.text ?? 'field');
       return true;
     }());
     var type = readDartType();
@@ -1364,7 +1364,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'constructor');
+      debugPath.add(node.name?.text ?? 'constructor');
       return true;
     }());
     var function = readFunctionNode();
@@ -1408,7 +1408,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'procedure');
+      debugPath.add(node.name?.text ?? 'procedure');
       return true;
     }());
     int functionNodeSize = endOffset - _byteOffset;
@@ -1469,7 +1469,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+      debugPath.add(node.name?.text ?? 'redirecting-factory-constructor');
       return true;
     }());
     var targetReference = readMemberReference();

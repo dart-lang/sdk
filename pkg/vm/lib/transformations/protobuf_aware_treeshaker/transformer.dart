@@ -71,7 +71,7 @@ InfoCollector removeUnusedProtoReferences(
   final biClass =
       protobufLib.classes.where((klass) => klass.name == 'BuilderInfo').single;
   final addMethod =
-      biClass.members.singleWhere((Member member) => member.name.name == 'add');
+      biClass.members.singleWhere((Member member) => member.name.text == 'add');
 
   component.accept(collector);
 
@@ -125,9 +125,9 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
   _UnusedFieldMetadataPruner(this.tagNumberClass, this.builderInfoClass,
       this.addMethod, Set<Selector> dynamicSelectors, this.coreTypes, this.info)
       : tagNumberField = tagNumberClass.fields
-            .firstWhere((f) => f.name.name == 'tagNumber')
+            .firstWhere((f) => f.name.text == 'tagNumber')
             .reference {
-    dynamicNames.addAll(dynamicSelectors.map((sel) => sel.target.name));
+    dynamicNames.addAll(dynamicSelectors.map((sel) => sel.target.text));
   }
 
   /// If a proto message field is never accessed (neither read nor written to),
@@ -140,7 +140,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
       TransformationInfo info) {
     for (final klass in gmSubclasses) {
       final selectors = invokedMethods[klass] ?? Set<Selector>();
-      final builderInfoFields = klass.fields.where((f) => f.name.name == '_i');
+      final builderInfoFields = klass.fields.where((f) => f.name.text == '_i');
       if (builderInfoFields.isEmpty) {
         continue;
       }
@@ -152,7 +152,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
   void _pruneBuilderInfoField(
       Field field, Set<Selector> selectors, Class gmSubclass) {
     names.clear();
-    names.addAll(selectors.map((sel) => sel.target.name));
+    names.addAll(selectors.map((sel) => sel.target.text));
     visitedClass = gmSubclass;
     _computeUsedTagNumbers(gmSubclass);
     field.initializer.accept(this);
@@ -166,7 +166,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
           final constant = annotation.constant;
           if (constant is InstanceConstant &&
               constant.classReference == tagNumberClass.reference) {
-            final name = procedure.name.name;
+            final name = procedure.name.text;
             if (dynamicNames.contains(name) || names.contains(name)) {
               usedTagNumbers.add(
                   (constant.fieldValues[tagNumberField] as IntConstant).value);
@@ -216,7 +216,7 @@ class _UnusedFieldMetadataPruner extends TreeVisitor<void> {
   void _changeCascadeEntry(Expression initializer) {
     if (initializer is MethodInvocation &&
         initializer.interfaceTarget?.enclosingClass == builderInfoClass &&
-        fieldAddingMethods.contains(initializer.name.name)) {
+        fieldAddingMethods.contains(initializer.name.text)) {
       final tagNumber =
           (initializer.arguments.positional[0] as IntLiteral).value;
       if (!usedTagNumbers.contains(tagNumber)) {

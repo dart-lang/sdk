@@ -620,7 +620,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void addSyntheticConstructor(Constructor constructor) {
-    String name = constructor.name.name;
+    String name = constructor.name.text;
     cls.constructors.add(constructor);
     constructor.parent = cls;
     DillMemberBuilder memberBuilder = new DillMemberBuilder(constructor, this);
@@ -718,10 +718,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (referencesFromIndexed != null) {
       if (procedure.isSetter) {
         referenceFrom =
-            referencesFromIndexed.lookupProcedureSetter(procedure.name.name);
+            referencesFromIndexed.lookupProcedureSetter(procedure.name.text);
       } else {
         referenceFrom =
-            referencesFromIndexed.lookupProcedureNotSetter(procedure.name.name);
+            referencesFromIndexed.lookupProcedureNotSetter(procedure.name.text);
       }
     }
 
@@ -748,7 +748,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Procedure referenceFrom;
     if (referencesFromIndexed != null) {
       referenceFrom =
-          referencesFromIndexed.lookupProcedureNotSetter(field.name.name);
+          referencesFromIndexed.lookupProcedureNotSetter(field.name.text);
     }
     Procedure getter = new Procedure(
         field.name,
@@ -777,7 +777,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Procedure referenceFrom;
     if (referencesFromIndexed != null) {
       referenceFrom =
-          referencesFromIndexed.lookupProcedureSetter(field.name.name);
+          referencesFromIndexed.lookupProcedureSetter(field.name.text);
     }
 
     Procedure setter = new Procedure(
@@ -1236,14 +1236,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredMember,
           templateOverrideTypeVariablesMismatch.withArguments(
               "${declaredMember.enclosingClass.name}."
-                  "${declaredMember.name.name}",
+                  "${declaredMember.name.text}",
               "${interfaceMemberOrigin.enclosingClass.name}."
-                  "${interfaceMemberOrigin.name.name}"),
+                  "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMemberOrigin.name.name)
+                .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(_getMemberUri(interfaceMemberOrigin),
                     interfaceMemberOrigin.fileOffset, noLength)
           ]);
@@ -1284,16 +1284,16 @@ class SourceClassBuilder extends ClassBuilderImpl
                     declaredBound,
                     declaredParameter.name,
                     "${declaredMember.enclosingClass.name}."
-                        "${declaredMember.name.name}",
+                        "${declaredMember.name.text}",
                     computedBound,
                     "${interfaceMemberOrigin.enclosingClass.name}."
-                        "${interfaceMemberOrigin.name.name}",
+                        "${interfaceMemberOrigin.name.text}",
                     library.isNonNullableByDefault),
                 declaredMember.fileOffset,
                 noLength,
                 context: [
                   templateOverriddenMethodCause
-                      .withArguments(interfaceMemberOrigin.name.name)
+                      .withArguments(interfaceMemberOrigin.name.text)
                       .withLocation(_getMemberUri(interfaceMemberOrigin),
                           interfaceMemberOrigin.fileOffset, noLength)
                 ]);
@@ -1368,10 +1368,10 @@ class SourceClassBuilder extends ClassBuilderImpl
                   supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
       if (isErrorInNnbdOptedOutMode || library.isNonNullableByDefault) {
         String declaredMemberName = '${declaredMember.enclosingClass.name}'
-            '.${declaredMember.name.name}';
+            '.${declaredMember.name.text}';
         String interfaceMemberName =
             '${interfaceMemberOrigin.enclosingClass.name}'
-            '.${interfaceMemberOrigin.name.name}';
+            '.${interfaceMemberOrigin.name.text}';
         Message message;
         int fileOffset;
         if (declaredParameter == null) {
@@ -1406,7 +1406,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             isInterfaceCheck, declaredMember, message, fileOffset, noLength,
             context: [
               templateOverriddenMethodCause
-                  .withArguments(interfaceMemberOrigin.name.name)
+                  .withArguments(interfaceMemberOrigin.name.text)
                   .withLocation(_getMemberUri(interfaceMemberOrigin),
                       interfaceMemberOrigin.fileOffset, noLength)
             ]);
@@ -1466,14 +1466,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredMember,
           templateOverrideFewerPositionalArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
-                  "${declaredMember.name.name}",
+                  "${declaredMember.name.text}",
               "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.name}"),
+                  "${interfaceMember.name.text}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
+                .withArguments(interfaceMember.name.text)
                 .withLocation(interfaceMember.fileUri,
                     interfaceMember.fileOffset, noLength)
           ]);
@@ -1485,14 +1485,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredMember,
           templateOverrideMoreRequiredArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
-                  "${declaredMember.name.name}",
+                  "${declaredMember.name.text}",
               "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.name}"),
+                  "${interfaceMember.name.text}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
+                .withArguments(interfaceMember.name.text)
                 .withLocation(interfaceMember.fileUri,
                     interfaceMember.fileOffset, noLength)
           ]);
@@ -1541,14 +1541,14 @@ class SourceClassBuilder extends ClassBuilderImpl
           declaredMember,
           templateOverrideFewerNamedArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
-                  "${declaredMember.name.name}",
+                  "${declaredMember.name.text}",
               "${interfaceMemberOrigin.enclosingClass.name}."
-                  "${interfaceMemberOrigin.name.name}"),
+                  "${interfaceMemberOrigin.name.text}"),
           declaredMember.fileOffset,
           noLength,
           context: [
             templateOverriddenMethodCause
-                .withArguments(interfaceMemberOrigin.name.name)
+                .withArguments(interfaceMemberOrigin.name.text)
                 .withLocation(interfaceMemberOrigin.fileUri,
                     interfaceMemberOrigin.fileOffset, noLength)
           ]);
@@ -1578,15 +1578,15 @@ class SourceClassBuilder extends ClassBuilderImpl
               declaredMember,
               templateOverrideMismatchNamedParameter.withArguments(
                   "${declaredMember.enclosingClass.name}."
-                      "${declaredMember.name.name}",
+                      "${declaredMember.name.text}",
                   interfaceNamedParameters.current.name,
                   "${interfaceMember.enclosingClass.name}."
-                      "${interfaceMember.name.name}"),
+                      "${interfaceMember.name.text}"),
               declaredMember.fileOffset,
               noLength,
               context: [
                 templateOverriddenMethodCause
-                    .withArguments(interfaceMember.name.name)
+                    .withArguments(interfaceMember.name.text)
                     .withLocation(interfaceMember.fileUri,
                         interfaceMember.fileOffset, noLength)
               ]);
@@ -1616,14 +1616,14 @@ class SourceClassBuilder extends ClassBuilderImpl
             templateOverrideMismatchRequiredNamedParameter.withArguments(
                 declaredParameter.name,
                 "${declaredMember.enclosingClass.name}."
-                    "${declaredMember.name.name}",
+                    "${declaredMember.name.text}",
                 "${interfaceMember.enclosingClass.name}."
-                    "${interfaceMember.name.name}"),
+                    "${interfaceMember.name.text}"),
             declaredParameter.fileOffset,
             noLength,
             context: [
               templateOverriddenMethodCause
-                  .withArguments(interfaceMemberOrigin.name.name)
+                  .withArguments(interfaceMemberOrigin.name.text)
                   .withLocation(_getMemberUri(interfaceMemberOrigin),
                       interfaceMemberOrigin.fileOffset, noLength)
             ]);
@@ -1743,7 +1743,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Interface check
         library.addProblem(
             templateInterfaceCheck.withArguments(
-                declaredMember.name.name, cls.name),
+                declaredMember.name.text, cls.name),
             cls.fileOffset,
             cls.name.length,
             cls.fileUri,
@@ -1756,7 +1756,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           int classNameLength = cls.nameAsMixinApplicationSubclass.length;
           library.addProblem(
               templateImplicitMixinOverride.withArguments(
-                  mixinName, baseName, declaredMember.name.name),
+                  mixinName, baseName, declaredMember.name.text),
               cls.fileOffset,
               classNameLength,
               cls.fileUri,
@@ -1765,7 +1765,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           // Named mixin application class
           library.addProblem(
               templateNamedMixinOverride.withArguments(
-                  cls.name, declaredMember.name.name),
+                  cls.name, declaredMember.name.text),
               cls.fileOffset,
               cls.name.length,
               cls.fileUri,
