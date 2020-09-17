@@ -49,7 +49,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new TestMigrationListener();
+    var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,
         permissive: _usePermissiveMode,
         removeViaComments: removeViaComments,

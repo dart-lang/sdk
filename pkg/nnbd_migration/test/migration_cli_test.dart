@@ -145,7 +145,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
   NonNullableFix createNonNullableFix(
       DartFixListener listener,
       ResourceProvider resourceProvider,
-      LineInfo getLineInfo(String path),
+      LineInfo Function(String path) getLineInfo,
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,
@@ -165,7 +165,7 @@ class _MigrationCliRunner extends MigrationCliRunner {
     }
   }
 
-  Future<void> runWithPreviewServer(Future<void> callback()) async {
+  Future<void> runWithPreviewServer(Future<void> Function() callback) async {
     _runWhilePreviewServerActive = callback;
     await run();
     if (_runWhilePreviewServerActive != null) {
@@ -192,7 +192,7 @@ abstract class _MigrationCliTestBase {
 
   bool Function(String) overrideShouldBeMigrated;
 
-  void set logger(_TestLogger logger);
+  set logger(_TestLogger logger);
 
   _MockProcessManager get processManager;
 
@@ -389,7 +389,7 @@ mixin _MigrationCliTestMethods on _MigrationCliTestBase {
   }
 
   Map<String, String> simpleProject(
-      {bool migrated: false,
+      {bool migrated = false,
       String sourceText,
       String pubspecText,
       String packageConfigText}) {
@@ -694,7 +694,7 @@ int f() => null
     expect(
         output,
         contains("error • Expected to find ';' at lib${sep}test.dart:1:12 • "
-            "(expected_token)"));
+            '(expected_token)'));
     expect(
         output,
         contains(

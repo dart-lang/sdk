@@ -125,7 +125,7 @@ export 'package:test_core/test_core.dart';
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 
-    new MockSdk(resourceProvider: resourceProvider);
+    MockSdk(resourceProvider: resourceProvider);
 
     newFolder(testsPath);
     newFile('$testsPath/.packages', content: '''

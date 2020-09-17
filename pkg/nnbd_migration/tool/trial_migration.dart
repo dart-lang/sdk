@@ -222,7 +222,7 @@ class ExceptionCategory {
   final List<MapEntry<String, int>> exceptionCountPerPackage;
 
   ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
-      : this.exceptionCountPerPackage = exceptions.entries.toList()
+      : exceptionCountPerPackage = exceptions.entries.toList()
           ..sort((e1, e2) => e2.value.compareTo(e1.value));
 
   int get count => exceptionCountPerPackage.length;

@@ -90,7 +90,7 @@ class AtomicEdit {
   /// Optional argument [info] contains information about why the change was
   /// made.
   const AtomicEdit.insert(this.replacement,
-      {this.info, this.isInformative: false})
+      {this.info, this.isInformative = false})
       : assert(replacement.length > 0),
         assert(isInformative is bool),
         length = 0;
@@ -105,13 +105,13 @@ class AtomicEdit {
         isInformative = false;
 
   /// Return `true` if this edit is a deletion (no characters added).
-  bool get isDeletion => replacement.length == 0;
+  bool get isDeletion => replacement.isEmpty;
 
   /// Return `true` if this edit is an insertion (no characters removed).
   bool get isInsertion => length == 0;
 
   /// Return `true` if this edit is a replacement.
-  bool get isReplacement => length > 0 && replacement.length > 0;
+  bool get isReplacement => length > 0 && replacement.isNotEmpty;
 
   @override
   String toString() {

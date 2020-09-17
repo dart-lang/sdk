@@ -51,7 +51,7 @@ class EditPlanTest extends AbstractSingleUnitTest {
     return changes;
   }
 
-  void createPlanner({bool removeViaComments: false}) {
+  void createPlanner({bool removeViaComments = false}) {
     _planner = EditPlanner(testUnit.lineInfo, code,
         removeViaComments: removeViaComments);
   }

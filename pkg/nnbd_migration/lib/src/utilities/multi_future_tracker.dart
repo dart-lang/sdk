@@ -33,7 +33,7 @@ class MultiFutureTracker {
   /// Maximum number of simultaneously incomplete [Future]s.
   final int parallel;
 
-  final Set<Future<void>> _trackedFutures = Set();
+  final Set<Future<void>> _trackedFutures = <Future<void>>{};
 
   MultiFutureTracker(this.parallel);
 
