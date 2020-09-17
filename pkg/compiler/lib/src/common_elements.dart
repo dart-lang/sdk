@@ -586,11 +586,12 @@ abstract class JCommonElements implements CommonElements {
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element);
 
-  /// Returns `true` if [element] is the 'filled' constructor of `List`.
+  /// Returns `true` if [element] is the named constructor of `List`,
+  /// e.g. `List.of`.
   ///
   /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
-  bool isFilledListConstructor(ConstructorEntity element);
+  bool isNamedListConstructor(String name, ConstructorEntity element);
 
   bool isDefaultEqualityImplementation(MemberEntity element);
 
@@ -879,8 +880,8 @@ class CommonElementsImpl
   /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   @override
-  bool isFilledListConstructor(ConstructorEntity element) =>
-      element.name == 'filled' && element.enclosingClass == listClass;
+  bool isNamedListConstructor(String name, ConstructorEntity element) =>
+      element.name == name && element.enclosingClass == listClass;
 
   @override
   DynamicType get dynamicType => _env.dynamicType;

@@ -154,9 +154,8 @@ class TypeGraphInferrer implements TypesInferrer {
       parameterResults[parameter] = type;
     });
 
-    Map<ir.TreeNode, AbstractValue> allocatedLists =
-        <ir.TreeNode, AbstractValue>{};
-    Set<ir.TreeNode> checkedForGrowableLists = new Set<ir.TreeNode>();
+    Map<ir.TreeNode, AbstractValue> allocatedLists = {};
+    Set<ir.TreeNode> checkedForGrowableLists = {};
     inferrer.types.allocatedLists
         .forEach((ir.TreeNode node, ListTypeInformation typeInformation) {
       ListTypeInformation info = inferrer.types.allocatedLists[node];

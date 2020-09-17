@@ -542,6 +542,10 @@ class WrappedAbstractValueDomain implements AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.growableListType);
 
   @override
+  AbstractValue get mutableArrayType =>
+      WrappedAbstractValue(_abstractValueDomain.mutableArrayType);
+
+  @override
   AbstractValue get nullType =>
       WrappedAbstractValue(_abstractValueDomain.nullType);
 
