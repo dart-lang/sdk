@@ -1170,8 +1170,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                THR, compiler::target::Thread::
                         call_native_through_safepoint_entry_point_offset()));
 
-    // Calls R8 and clobbers R19 (along with volatile registers).
-    ASSERT(branch == R8 && temp == R19);
+    // Calls R9 and clobbers R19 (along with volatile registers).
+    ASSERT(branch == R9 && temp == R19);
     __ blr(TMP);
   }
 
