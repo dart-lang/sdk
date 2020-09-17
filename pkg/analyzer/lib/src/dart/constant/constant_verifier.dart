@@ -80,7 +80,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _intType = _typeProvider.intType,
         _evaluationEngine = ConstantEvaluationEngine(
             _typeProvider, declaredVariables,
-            typeSystem: _typeSystem, experimentStatus: featureSet);
+            typeSystem: _typeSystem);
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 
@@ -139,7 +139,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       ConstructorElement constructor = node.constructorName.staticElement;
       if (constructor != null) {
         ConstantVisitor constantVisitor =
-            ConstantVisitor(_evaluationEngine, _errorReporter);
+            ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
         _evaluationEngine.evaluateConstructorCall(
             node,
             node.argumentList.arguments,
@@ -421,8 +421,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.source,
       isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
     );
-    DartObjectImpl result =
-        expression.accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
+    DartObjectImpl result = expression.accept(
+        ConstantVisitor(_evaluationEngine, _currentLibrary, subErrorReporter));
     _reportErrors(errorListener.errors, errorCode);
     return result;
   }
@@ -520,8 +520,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               _errorReporter.source,
               isNonNullableByDefault: _currentLibrary.isNonNullableByDefault,
             );
-            DartObjectImpl result = initializer
-                .accept(ConstantVisitor(_evaluationEngine, subErrorReporter));
+            DartObjectImpl result = initializer.accept(ConstantVisitor(
+                _evaluationEngine, _currentLibrary, subErrorReporter));
             if (result == null) {
               _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode

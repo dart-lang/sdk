@@ -359,6 +359,7 @@ class LinterContextImpl implements LinterContext {
         declaredVariables,
         typeSystem: typeSystem,
       ),
+      libraryElement,
       errorReporter,
     );
 
