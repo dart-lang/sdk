@@ -10,7 +10,7 @@ Stream<TestDescription> filterList(
     Chain suite, bool onlyInGit, Stream<TestDescription> base) async* {
   Set<Uri> gitFiles;
   if (onlyInGit) {
-    gitFiles = await getGitFiles(suite);
+    gitFiles = await getGitFiles(suite.uri);
   }
   await for (TestDescription description in base) {
     if (onlyInGit && !gitFiles.contains(description.uri)) {
@@ -20,14 +20,14 @@ Stream<TestDescription> filterList(
   }
 }
 
-Future<Set<Uri>> getGitFiles(Chain suite) async {
+Future<Set<Uri>> getGitFiles(Uri uri) async {
   ProcessResult result = await Process.run("git", ["ls-files", "."],
-      workingDirectory: new Directory.fromUri(suite.uri).absolute.path,
+      workingDirectory: new Directory.fromUri(uri).absolute.path,
       runInShell: true);
   String stdout = result.stdout;
   return stdout
       .split(new RegExp('^', multiLine: true))
-      .map((line) => suite.uri.resolve(line.trimRight()))
+      .map((line) => uri.resolve(line.trimRight()))
       .toSet();
 }
 
