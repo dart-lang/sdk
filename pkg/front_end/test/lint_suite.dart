@@ -93,7 +93,7 @@ class Context extends ChainContext {
   Stream<LintTestDescription> list(Chain suite) async* {
     Set<Uri> gitFiles;
     if (onlyInGit) {
-      gitFiles = await getGitFiles(suite);
+      gitFiles = await getGitFiles(suite.uri);
     }
 
     Directory testRoot = new Directory.fromUri(suite.uri);
