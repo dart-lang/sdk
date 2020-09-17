@@ -623,7 +623,8 @@ class SnapshotWriter : public BaseWriter {
 
   void WriteStaticImplicitClosure(intptr_t object_id,
                                   FunctionPtr func,
-                                  intptr_t tags);
+                                  intptr_t tags,
+                                  TypeArgumentsPtr delayed_type_arguments);
 
  protected:
   bool CheckAndWritePredefinedObject(ObjectPtr raw);
@@ -668,7 +669,6 @@ class SnapshotWriter : public BaseWriter {
 
   friend class ArrayLayout;
   friend class ClassLayout;
-  friend class ClosureDataLayout;
   friend class CodeLayout;
   friend class ContextScopeLayout;
   friend class DynamicLibraryLayout;

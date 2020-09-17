@@ -399,8 +399,8 @@ void ClosureLayout::WriteTo(SnapshotWriter* writer,
   // Check if closure is serializable, throw an exception otherwise.
   FunctionPtr func = writer->IsSerializableClosure(ClosurePtr(this));
   if (func != Function::null()) {
-    writer->WriteStaticImplicitClosure(object_id, func,
-                                       writer->GetObjectTags(this));
+    writer->WriteStaticImplicitClosure(
+        object_id, func, writer->GetObjectTags(this), delayed_type_arguments_);
     return;
   }
 

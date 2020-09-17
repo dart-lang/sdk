@@ -458,11 +458,25 @@ ObjectPtr SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   if (func.IsNull()) {
     SetReadException("Invalid function object found in message.");
   }
+  TypeArguments& delayed_type_arguments = TypeArguments::Handle(zone());
+  delayed_type_arguments ^= ReadObjectImpl(kAsInlinedObject);
+
   func = func.ImplicitClosureFunction();
   ASSERT(!func.IsNull());
 
-  // Return the associated implicit static closure.
-  obj = func.ImplicitStaticClosure();
+  // If delayedtype arguments were provided, create and return new closure with
+  // those, otherwise return associated implicit static closure.
+  // Note that static closures can't have instantiator or function types since
+  // statics can't refer to class type arguments, don't have outer functions.
+  if (!delayed_type_arguments.IsNull()) {
+    const Context& context = Context::Handle(zone());
+    obj = Closure::New(
+        /*instantiator_type_arguments=*/Object::null_type_arguments(),
+        /*function_type_arguments=*/Object::null_type_arguments(),
+        delayed_type_arguments, func, context, Heap::kOld);
+  } else {
+    obj = func.ImplicitStaticClosure();
+  }
   return obj.raw();
 }
 
@@ -1313,9 +1327,11 @@ void SnapshotWriter::WriteClassId(ClassLayout* cls) {
   WriteObjectImpl(cls->name_, kAsInlinedObject);
 }
 
-void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
-                                                FunctionPtr func,
-                                                intptr_t tags) {
+void SnapshotWriter::WriteStaticImplicitClosure(
+    intptr_t object_id,
+    FunctionPtr func,
+    intptr_t tags,
+    TypeArgumentsPtr delayed_type_arguments) {
   // Write out the serialization header value for this object.
   WriteInlinedObjectHeader(object_id);
 
@@ -1333,6 +1349,7 @@ void SnapshotWriter::WriteStaticImplicitClosure(intptr_t object_id,
   WriteObjectImpl(library->ptr()->url_, kAsInlinedObject);
   WriteObjectImpl(cls->ptr()->name_, kAsInlinedObject);
   WriteObjectImpl(func->ptr()->name_, kAsInlinedObject);
+  WriteObjectImpl(delayed_type_arguments, kAsInlinedObject);
 }
 
 void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
