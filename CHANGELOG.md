@@ -54,8 +54,12 @@
 
 #### Linter
 
-Updated the Linter to `0.1.118`, which includes:
+Updated the Linter to `0.1.119`, which includes:
 
+* Fixed `close_sinks` to handle `this`-prefixed property accesses.
+* New lint: `unnecessary_null_checks`.
+* Fixed `unawaited_futures` to handle `Future` subtypes.
+* New lint: `avoid_type_to_string`.
 * New lint: `unnecessary_nullable_for_final_variable_declarations`.
 * Fixed NPE in `prefer_asserts_in_initializer_lists`.
 * Fixed range error in `unnecessary_string_escapes`.
