@@ -23,7 +23,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /// The end-of-line marker used in the file being edited, or `null` if the
   /// default marker should be used.
-  String eol;
+  final String eol;
 
   /// A table mapping group ids to the associated linked edit groups.
   final Map<String, LinkedEditGroup> _linkedEditGroups =
@@ -49,7 +49,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
-  ChangeBuilderImpl({AnalysisSession session, ChangeWorkspace workspace})
+  ChangeBuilderImpl(
+      {AnalysisSession session, ChangeWorkspace workspace, this.eol})
       : assert(session == null || workspace == null),
         workspace = workspace ?? _SingleSessionWorkspace(session);
 

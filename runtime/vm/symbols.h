@@ -680,11 +680,6 @@ class Symbols : public AllStatic {
                              const uint16_t* utf16_array,
                              intptr_t len);
 
-  // Creates a new Symbol from an array of UTF-32 encoded characters.
-  static StringPtr FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
-                             intptr_t len);
-
   static StringPtr New(Thread* thread, const String& str);
   static StringPtr New(Thread* thread,
                        const String& str,
@@ -712,7 +707,7 @@ class Symbols : public AllStatic {
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static StringPtr FromCharCode(Thread* thread, int32_t char_code);
+  static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 
   static StringPtr* PredefinedAddress() {
     return reinterpret_cast<StringPtr*>(&predefined_);

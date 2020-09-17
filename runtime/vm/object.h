@@ -9065,6 +9065,32 @@ class String : public Instance {
   friend class Pass2Visitor;                // Stack "handle"
 };
 
+// Synchronize with implementation in compiler (intrinsifier).
+class StringHasher : ValueObject {
+ public:
+  StringHasher() : hash_(0) {}
+  void Add(uint16_t code_unit) { hash_ = CombineHashes(hash_, code_unit); }
+  void Add(const uint8_t* code_units, intptr_t len) {
+    while (len > 0) {
+      Add(*code_units);
+      code_units++;
+      len--;
+    }
+  }
+  void Add(const uint16_t* code_units, intptr_t len) {
+    while (len > 0) {
+      Add(LoadUnaligned(code_units));
+      code_units++;
+      len--;
+    }
+  }
+  void Add(const String& str, intptr_t begin_index, intptr_t len);
+  intptr_t Finalize() { return FinalizeHash(hash_, String::kHashBits); }
+
+ private:
+  uint32_t hash_;
+};
+
 class OneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
@@ -9327,6 +9353,7 @@ class TwoByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class StringHasher;
   friend class SnapshotReader;
   friend class Symbols;
 };
@@ -9424,6 +9451,7 @@ class ExternalOneByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class StringHasher;
   friend class SnapshotReader;
   friend class Symbols;
   friend class Utf8;
@@ -9518,6 +9546,7 @@ class ExternalTwoByteString : public AllStatic {
 
   friend class Class;
   friend class String;
+  friend class StringHasher;
   friend class SnapshotReader;
   friend class Symbols;
 };

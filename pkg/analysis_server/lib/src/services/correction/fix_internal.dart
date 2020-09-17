@@ -1116,7 +1116,8 @@ class FixProcessor extends BaseProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      var builder = ChangeBuilder(workspace: context.workspace);
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
       _addFixFromBuilder(builder, producer.fixKind,
           args: producer.fixArguments);

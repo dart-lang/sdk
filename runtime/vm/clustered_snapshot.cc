@@ -4885,13 +4885,13 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
                                      OneByteString::InstanceSize(length),
                                      is_canonical);
       str->ptr()->length_ = Smi::New(length);
-      uint32_t hash = 0;
+      StringHasher hasher;
       for (intptr_t j = 0; j < length; j++) {
-        uint8_t code_point = d->Read<uint8_t>();
-        str->ptr()->data()[j] = code_point;
-        hash = CombineHashes(hash, code_point);
+        uint8_t code_unit = d->Read<uint8_t>();
+        str->ptr()->data()[j] = code_unit;
+        hasher.Add(code_unit);
       }
-      String::SetCachedHash(str, FinalizeHash(hash, String::kHashBits));
+      String::SetCachedHash(str, hasher.Finalize());
     }
   }
 };
@@ -4964,9 +4964,14 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
                                      TwoByteString::InstanceSize(length),
                                      is_canonical);
       str->ptr()->length_ = Smi::New(length);
-      uint8_t* cdata = reinterpret_cast<uint8_t*>(str->ptr()->data());
-      d->ReadBytes(cdata, length * 2);
-      String::SetCachedHash(str, String::Hash(str));
+      StringHasher hasher;
+      for (intptr_t j = 0; j < length; j++) {
+        uint16_t code_unit = d->Read<uint8_t>();
+        code_unit = code_unit | (d->Read<uint8_t>() << 8);
+        str->ptr()->data()[j] = code_unit;
+        hasher.Add(code_unit);
+      }
+      String::SetCachedHash(str, hasher.Finalize());
     }
   }
 };

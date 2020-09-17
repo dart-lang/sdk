@@ -1338,7 +1338,7 @@ ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
   int32_t clef_utf32[] = {0x1D11E};
   EXPECT(clef.Equals(clef_utf32, 1));
-  intptr_t hash32 = String::Hash(clef_utf32, 1);
+  intptr_t hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
   EXPECT_EQ(hash32, clef.Hash());
   EXPECT_EQ(hash32, String::HashConcat(
                         String::Handle(String::FromUTF16(clef_utf16, 1)),
@@ -1817,7 +1817,8 @@ ISOLATE_UNIT_TEST_CASE(Symbol) {
   uint16_t char16[] = {'E', 'l', 'f'};
   String& elf1 = String::Handle(Symbols::FromUTF16(thread, char16, 3));
   int32_t char32[] = {'E', 'l', 'f'};
-  String& elf2 = String::Handle(Symbols::FromUTF32(thread, char32, 3));
+  String& elf2 = String::Handle(
+      Symbols::New(thread, String::Handle(String::FromUTF32(char32, 3))));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
   EXPECT_EQ(elf1.raw(), Symbols::New(thread, "Elf"));
@@ -1832,13 +1833,14 @@ ISOLATE_UNIT_TEST_CASE(SymbolUnicode) {
   EXPECT_EQ(monkey.raw(), Symbols::New(thread, monkey_utf8));
 
   int32_t kMonkeyFace = 0x1f435;
-  String& monkey2 = String::Handle(Symbols::FromCharCode(thread, kMonkeyFace));
+  String& monkey2 = String::Handle(
+      Symbols::New(thread, String::Handle(String::FromUTF32(&kMonkeyFace, 1))));
   EXPECT_EQ(monkey.raw(), monkey2.raw());
 
   // Unicode cat face with tears of joy.
   int32_t kCatFaceWithTearsOfJoy = 0x1f639;
-  String& cat =
-      String::Handle(Symbols::FromCharCode(thread, kCatFaceWithTearsOfJoy));
+  String& cat = String::Handle(Symbols::New(
+      thread, String::Handle(String::FromUTF32(&kCatFaceWithTearsOfJoy, 1))));
 
   uint16_t cat_utf16[] = {0xd83d, 0xde39};
   String& cat2 = String::Handle(Symbols::FromUTF16(thread, cat_utf16, 2));

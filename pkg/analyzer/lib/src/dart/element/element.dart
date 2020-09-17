@@ -3321,11 +3321,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  set accessors(List<PropertyAccessorElement> accessors) {
-    super.accessors = accessors;
-  }
-
-  @override
   List<InterfaceType> get allSupertypes => <InterfaceType>[supertype];
 
   @override
@@ -3375,11 +3370,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
       }
     }
     return _fields ?? const <FieldElement>[];
-  }
-
-  @override
-  set fields(List<FieldElement> fields) {
-    super.fields = fields;
   }
 
   @override
@@ -3836,11 +3826,6 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   ElementKind get kind => ElementKind.EXPORT;
-
-  @override
-  set metadata(List<ElementAnnotation> metadata) {
-    super.metadata = metadata;
-  }
 
   @override
   int get nameOffset {
@@ -4917,11 +4902,6 @@ class ImportElementImpl extends UriReferencedElementImpl
   ElementKind get kind => ElementKind.IMPORT;
 
   @override
-  set metadata(List<ElementAnnotation> metadata) {
-    super.metadata = metadata;
-  }
-
-  @override
   int get nameOffset {
     if (linkedNode != null) {
       return linkedContext.getDirectiveOffset(linkedNode);
@@ -4982,11 +4962,6 @@ class ImportElementImpl extends UriReferencedElementImpl
     }
 
     return super.uri;
-  }
-
-  @override
-  set uri(String uri) {
-    super.uri = uri;
   }
 
   @override
@@ -6248,11 +6223,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
     return super.hasImplicitType;
   }
 
-  @override
-  set hasImplicitType(bool hasImplicitType) {
-    super.hasImplicitType = hasImplicitType;
-  }
-
   bool get hasInitializer {
     return linkedNode != null && linkedContext.hasInitializer(linkedNode);
   }
@@ -6404,11 +6374,6 @@ class ParameterElementImpl extends VariableElementImpl
       return linkedContext.hasImplicitType(linkedNode);
     }
     return super.hasImplicitType;
-  }
-
-  @override
-  set hasImplicitType(bool hasImplicitType) {
-    super.hasImplicitType = hasImplicitType;
   }
 
   /// True if this parameter inherits from a covariant parameter. This happens
