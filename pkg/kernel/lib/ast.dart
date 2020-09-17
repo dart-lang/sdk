@@ -7111,7 +7111,6 @@ abstract class Name extends Node {
 
   // TODO(johnniwinther): Remove this when dependent code has been updated to
   // use [text].
-  @deprecated
   String get name => text;
 
   bool operator ==(other) {
