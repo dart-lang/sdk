@@ -937,7 +937,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
-    writeStringReference(node.name);
+    writeStringReference(node.text);
     // TODO: Consider a more compressed format for private names within the
     // enclosing library.
     if (node.isPrivate) {

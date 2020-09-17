@@ -120,7 +120,7 @@ NullAwareExpression getNullAwareExpression(ir.TreeNode node) {
         body.then is ir.NullLiteral) {
       ir.MethodInvocation invocation = body.condition;
       ir.Expression receiver = invocation.receiver;
-      if (invocation.name.name == '==' &&
+      if (invocation.name.text == '==' &&
           receiver is ir.VariableGet &&
           receiver.variable == node.variable &&
           invocation.arguments.positional.single is ir.NullLiteral) {

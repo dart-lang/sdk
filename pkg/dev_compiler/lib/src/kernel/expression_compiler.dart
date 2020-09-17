@@ -177,28 +177,28 @@ class PrivateFieldsVisitor extends Visitor<void> {
   @override
   void visitFieldReference(Field node) {
     if (node.name.isPrivate) {
-      privateFields[node.name.name] = node.name.library.importUri.toString();
+      privateFields[node.name.text] = node.name.library.importUri.toString();
     }
   }
 
   @override
   void visitField(Field node) {
     if (node.name.isPrivate) {
-      privateFields[node.name.name] = node.name.library.importUri.toString();
+      privateFields[node.name.text] = node.name.library.importUri.toString();
     }
   }
 
   @override
   void visitPropertyGet(PropertyGet node) {
     if (node.name.isPrivate) {
-      privateFields[node.name.name] = node.name.library.importUri.toString();
+      privateFields[node.name.text] = node.name.library.importUri.toString();
     }
   }
 
   @override
   void visitPropertySet(PropertySet node) {
     if (node.name.isPrivate) {
-      privateFields[node.name.name] = node.name.library.importUri.toString();
+      privateFields[node.name.text] = node.name.library.importUri.toString();
     }
   }
 }

@@ -206,7 +206,7 @@ main(List<String> args) {
         void testMember(String idPrefix, ir.Member member,
             {bool implicitJsInteropMember, bool implicitNativeMember}) {
           if (memberIsIgnorable(member)) return;
-          String memberId = '$idPrefix::${member.name.name}';
+          String memberId = '$idPrefix::${member.name.text}';
           MemberEntity memberEntity = elementMap.getMember(member);
 
           String expectedJsInteropMemberName =

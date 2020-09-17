@@ -3725,9 +3725,9 @@ class InferenceVisitor
           inferrer.helper.wrapInProblem(
               binary,
               templateNullableOperatorCallError.withArguments(
-                  binaryName.name, leftType, inferrer.isNonNullableByDefault),
+                  binaryName.text, leftType, inferrer.isNonNullableByDefault),
               binary.fileOffset,
-              binaryName.name.length));
+              binaryName.text.length));
     }
     return new ExpressionInferenceResult(binaryType, binary);
   }
@@ -3823,10 +3823,10 @@ class InferenceVisitor
           unaryType,
           inferrer.helper.wrapInProblem(
               unary,
-              templateNullableOperatorCallError.withArguments(unaryName.name,
+              templateNullableOperatorCallError.withArguments(unaryName.text,
                   expressionType, inferrer.isNonNullableByDefault),
               unary.fileOffset,
-              unaryName == unaryMinusName ? 1 : unaryName.name.length));
+              unaryName == unaryMinusName ? 1 : unaryName.text.length));
     }
     return new ExpressionInferenceResult(unaryType, unary);
   }
@@ -3909,7 +3909,7 @@ class InferenceVisitor
           readType,
           inferrer.helper.wrapInProblem(
               read,
-              templateNullableOperatorCallError.withArguments(indexGetName.name,
+              templateNullableOperatorCallError.withArguments(indexGetName.text,
                   receiverType, inferrer.isNonNullableByDefault),
               read.fileOffset,
               noLength));
@@ -3973,7 +3973,7 @@ class InferenceVisitor
       return inferrer.helper.wrapInProblem(
           write,
           templateNullableOperatorCallError.withArguments(
-              indexSetName.name, receiverType, inferrer.isNonNullableByDefault),
+              indexSetName.text, receiverType, inferrer.isNonNullableByDefault),
           write.fileOffset,
           noLength);
     }
@@ -4107,9 +4107,9 @@ class InferenceVisitor
       readResult = inferrer.wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
-              propertyName.name, receiverType, inferrer.isNonNullableByDefault),
+              propertyName.text, receiverType, inferrer.isNonNullableByDefault),
           read.fileOffset,
-          propertyName.name.length);
+          propertyName.text.length);
     }
     return readResult;
   }
@@ -4191,9 +4191,9 @@ class InferenceVisitor
       return inferrer.helper.wrapInProblem(
           write,
           templateNullablePropertyAccessError.withArguments(
-              propertyName.name, receiverType, inferrer.isNonNullableByDefault),
+              propertyName.text, receiverType, inferrer.isNonNullableByDefault),
           write.fileOffset,
-          propertyName.name.length);
+          propertyName.text.length);
     }
 
     return write;

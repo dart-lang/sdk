@@ -81,7 +81,7 @@ class NoDynamicUsesAnnotator {
   }
 
   visitField(Field node) {
-    if (node.isStatic || node.name.name == 'call') {
+    if (node.isStatic || node.name.text == 'call') {
       return;
     }
 
@@ -104,7 +104,7 @@ class NoDynamicUsesAnnotator {
   }
 
   visitProcedure(Procedure node) {
-    if (node.isStatic || node.name.name == 'call') {
+    if (node.isStatic || node.name.text == 'call') {
       return;
     }
 

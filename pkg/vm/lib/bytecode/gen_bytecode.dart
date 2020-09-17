@@ -1610,7 +1610,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     if (condition is MethodInvocation &&
-        condition.name.name == '==' &&
+        condition.name.text == '==' &&
         (condition.receiver is NullLiteral ||
             condition.arguments.positional.single is NullLiteral)) {
       if (condition.receiver is NullLiteral) {
@@ -1855,7 +1855,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   // Generate additional code for 'operator ==' to handle nulls.
   void _genEqualsOperatorNullHandling(Member member) {
-    if (member.name.name != '==' ||
+    if (member.name.text != '==' ||
         locals.numParameters != 2 ||
         member.enclosingClass == coreTypes.objectClass) {
       return;
@@ -3525,7 +3525,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (target == null) {
       final int temp = locals.tempIndexInFrame(node);
       _genNoSuchMethodForSuperCall(
-          node.name.name,
+          node.name.text,
           temp,
           cp.addArgDescByArguments(args, hasReceiver: true),
           args.types,
@@ -3549,7 +3549,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         hierarchy.getDispatchTarget(enclosingClass.superclass, node.name);
     if (target == null) {
       final int temp = locals.tempIndexInFrame(node);
-      _genNoSuchMethodForSuperCall(node.name.name, temp, cp.addArgDesc(1), [],
+      _genNoSuchMethodForSuperCall(node.name.text, temp, cp.addArgDesc(1), [],
           <Expression>[new ThisExpression()]);
       return;
     }
@@ -3566,7 +3566,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final Member target = hierarchy
         .getDispatchTarget(enclosingClass.superclass, node.name, setter: true);
     if (target == null) {
-      _genNoSuchMethodForSuperCall(node.name.name, temp, cp.addArgDesc(2), [],
+      _genNoSuchMethodForSuperCall(node.name.text, temp, cp.addArgDesc(2), [],
           <Expression>[new ThisExpression(), node.value],
           storeLastArgumentToTemp: hasResult);
     } else {
@@ -3838,7 +3838,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         // closure call needs one temporary, so withTemp lets us use this
         // VariableGet's temporary when visiting the initializer.
         assert(init is MethodInvocation &&
-            init.name.name == "call" &&
+            init.name.text == "call" &&
             init.arguments.positional.length == 0);
         locals.withTemp(
             init, locals.tempIndexInFrame(node), () => _generateNode(init));

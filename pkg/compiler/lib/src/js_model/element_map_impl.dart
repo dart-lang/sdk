@@ -820,7 +820,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     while (superclass != null) {
       JClassEnv env = classes.getEnv(superclass);
       MemberEntity superMember =
-          env.lookupMember(this, name.name, setter: setter);
+          env.lookupMember(this, name.text, setter: setter);
       if (superMember != null) {
         if (!superMember.isInstanceMember) return null;
         if (!superMember.isAbstract) {
@@ -1243,7 +1243,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   Name getName(ir.Name name) {
     return new Name(
-        name.name, name.isPrivate ? getLibrary(name.library) : null);
+        name.text, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   @override
@@ -1302,13 +1302,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -2140,7 +2140,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(utils.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.text));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));

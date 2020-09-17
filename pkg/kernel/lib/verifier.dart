@@ -273,11 +273,11 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     var oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
     if (isTopLevel && !node.isStatic) {
-      problem(node, "The top-level field '${node.name.name}' should be static",
+      problem(node, "The top-level field '${node.name.text}' should be static",
           context: node);
     }
     if (node.isConst && !node.isStatic) {
-      problem(node, "The const field '${node.name.name}' should be static",
+      problem(node, "The const field '${node.name.text}' should be static",
           context: node);
     }
     classTypeParametersAreInScope = !node.isStatic;

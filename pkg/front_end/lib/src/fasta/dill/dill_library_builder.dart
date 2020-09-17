@@ -187,7 +187,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addMember(Member member) {
-    String name = member.name.name;
+    String name = member.name.text;
     if (name == "_exports#") {
       Field field = member;
       String stringValue;
@@ -327,11 +327,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           name = node.name;
         } else if (node is Procedure) {
           libraryUri = node.enclosingLibrary.importUri;
-          name = node.name.name;
+          name = node.name.text;
           isSetter = node.isSetter;
         } else if (node is Member) {
           libraryUri = node.enclosingLibrary.importUri;
-          name = node.name.name;
+          name = node.name.text;
         } else if (node is Typedef) {
           libraryUri = node.enclosingLibrary.importUri;
           name = node.name;

@@ -39,7 +39,7 @@ class HashCombineMethodsScanner extends ProcedureScanner<Null> {
   HashCombineMethodsScanner() : super(null);
 
   bool predicate(Procedure node) {
-    return node.name.name == "combine" || node.name.name == "finish";
+    return node.name.text == "combine" || node.name.text == "finish";
   }
 }
 
@@ -73,7 +73,7 @@ void addConstructor(
     Class cls, CoreTypes coreTypes, Constructor syntheticConstructor) {
   Constructor superConstructor = null;
   for (Constructor constructor in cls.superclass.constructors) {
-    if (constructor.name.name == "") {
+    if (constructor.name.text == "") {
       superConstructor = constructor;
     }
   }
@@ -83,14 +83,14 @@ void addConstructor(
         ..parent = syntheticConstructor.function)
       .toList();
   Map<String, VariableDeclaration> ownFields = Map.fromIterable(cls.fields,
-      key: (f) => f.name.name,
+      key: (f) => f.name.text,
       value: (f) =>
-          VariableDeclaration(f.name.name, type: f.type, isRequired: true)
+          VariableDeclaration(f.name.text, type: f.type, isRequired: true)
             ..parent = syntheticConstructor.function);
 
   List<Initializer> initializersConstructor = cls.fields
       .map<Initializer>((f) =>
-          FieldInitializer(f, VariableGet(ownFields[f.name.name]))
+          FieldInitializer(f, VariableGet(ownFields[f.name.text]))
             ..parent = syntheticConstructor)
       .toList();
 
@@ -124,7 +124,7 @@ void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     List<VariableDeclaration> allVariables) {
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Operator &&
-        procedure.name.name == "==") {
+        procedure.name.text == "==") {
       // ==operator is already implemented, spec is to do nothing
       return;
     }
@@ -180,7 +180,7 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     List<VariableDeclaration> allVariables) {
   for (Procedure procedure in cls.procedures) {
     if (procedure.kind == ProcedureKind.Getter &&
-        procedure.name.name == "hashCode") {
+        procedure.name.text == "hashCode") {
       // hashCode getter is already implemented, spec is to do nothing
       return;
     }
@@ -198,8 +198,8 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
       jenkinsScanner.scan(cls.enclosingLibrary.enclosingComponent);
   for (Class clazz in hashMethodsResult.targets.keys) {
     for (Procedure procedure in hashMethodsResult.targets[clazz].targets.keys) {
-      if (procedure.name.name == "combine") hashCombine = procedure;
-      if (procedure.name.name == "finish") hashFinish = procedure;
+      if (procedure.name.text == "combine") hashCombine = procedure;
+      if (procedure.name.text == "finish") hashFinish = procedure;
     }
   }
 
@@ -280,7 +280,7 @@ void addCopyWith(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
 List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
   Constructor superConstructor = null;
   for (Constructor constructor in cls.superclass.constructors) {
-    if (constructor.name.name == "") {
+    if (constructor.name.text == "") {
       superConstructor = constructor;
     }
   }
@@ -289,5 +289,5 @@ List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
           (f) => VariableDeclaration(f.name, type: f.type))
       .toList()
         ..addAll(cls.fields.map<VariableDeclaration>(
-            (f) => VariableDeclaration(f.name.name, type: f.type)));
+            (f) => VariableDeclaration(f.name.text, type: f.type)));
 }

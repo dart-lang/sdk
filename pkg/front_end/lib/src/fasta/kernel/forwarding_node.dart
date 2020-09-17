@@ -92,7 +92,7 @@ class ForwardingNode {
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom = classBuilder.referencesFromIndexed
-          .lookupProcedureNotSetter(name.name);
+          .lookupProcedureNotSetter(name.text);
     }
     return new Procedure(name, kind, new FunctionNode(null, returnType: type),
         isAbstract: true,
@@ -115,7 +115,7 @@ class ForwardingNode {
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       referenceFrom =
-          classBuilder.referencesFromIndexed.lookupProcedureSetter(name.name);
+          classBuilder.referencesFromIndexed.lookupProcedureSetter(name.text);
     }
     return new Procedure(
         name,
@@ -216,7 +216,7 @@ class ForwardingNode {
       Procedure referenceFrom;
       if (classBuilder.referencesFromIndexed != null) {
         referenceFrom = classBuilder.referencesFromIndexed
-            .lookupProcedureNotSetter(name.name);
+            .lookupProcedureNotSetter(name.text);
       }
       List<VariableDeclaration> positionalParameters = [];
       for (int i = 0; i < function.positionalParameters.length; i++) {
@@ -776,10 +776,10 @@ class ForwardingNode {
     if (classBuilder.referencesFromIndexed != null) {
       if (kind == ProcedureKind.Setter) {
         referenceFrom =
-            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.name);
+            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.text);
       } else {
         referenceFrom = classBuilder.referencesFromIndexed
-            .lookupProcedureNotSetter(name.name);
+            .lookupProcedureNotSetter(name.text);
       }
     }
     return new Procedure(name, kind, function,

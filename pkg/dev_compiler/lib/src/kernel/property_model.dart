@@ -85,7 +85,7 @@ class _LibraryVirtualFieldModel {
     Map<String, Field> getInstanceFieldMap(Class c) {
       var instanceFields = c.fields.where((f) => !f.isStatic);
       return HashMap.fromIterables(
-          instanceFields.map((f) => f.name.name), instanceFields);
+          instanceFields.map((f) => f.name.text), instanceFields);
     }
 
     var allFields =
@@ -129,7 +129,7 @@ class _LibraryVirtualFieldModel {
 
         // Look in all super classes to see if we're overriding a field in our
         // library, if so mark that field as overridden.
-        var name = member.name.name;
+        var name = member.name.text;
         _overriddenPrivateFields.addAll(superclasses
             .map((c) => allFields[c][name])
             .where((f) => f != null));
@@ -228,7 +228,7 @@ class ClassPropertyModel {
           continue;
         }
 
-        var name = member.name.name;
+        var name = member.name.text;
         if (member is Field) {
           inheritedGetters.add(name);
           if (!member.isFinal) inheritedSetters.add(name);
@@ -253,7 +253,7 @@ class ClassPropertyModel {
       // Also ignore abstract fields.
       if (field.isAbstract || field.isStatic) continue;
 
-      var name = field.name.name;
+      var name = field.name.text;
       if (virtualAccessorNames.contains(name) ||
           fieldModel.isVirtual(field) ||
           field.isCovariant ||
@@ -328,7 +328,7 @@ class ClassPropertyModel {
     // we've seen, and visit starting from the class, then mixins in
     // reverse order, then superclasses.
     for (var m in c.members) {
-      var name = m.name.name;
+      var name = m.name.text;
       if (m.isAbstract || m is Constructor) continue;
       if (m is Procedure) {
         if (m.isStatic) continue;
@@ -352,7 +352,7 @@ class ClassPropertyModel {
       for (var m in c.members) {
         if (!m.name.isPrivate &&
             (m is Procedure && !m.isStatic || m is Field && !m.isStatic)) {
-          members.add(m.name.name);
+          members.add(m.name.text);
         }
       }
     }

@@ -84,7 +84,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 
   /// Returns `true` if [node] is of the form `e.runtimeType`.
   bool isGetRuntimeType(ir.TreeNode node) {
-    return node is ir.PropertyGet && node.name.name == Identifiers.runtimeType_;
+    return node is ir.PropertyGet && node.name.text == Identifiers.runtimeType_;
   }
 
   /// Returns [node] if [node] is of the form `e.runtimeType` and `null`
@@ -95,7 +95,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
 
   /// Returns `true` if [node] is of the form `e.toString()`.
   bool isInvokeToString(ir.TreeNode node) {
-    return node is ir.MethodInvocation && node.name.name == 'toString';
+    return node is ir.MethodInvocation && node.name.text == 'toString';
   }
 
   assert(isGetRuntimeType(node));
@@ -141,7 +141,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
       } else if (nullAware.parent is ir.MethodInvocation) {
         ir.MethodInvocation methodInvocation = nullAware.parent;
         if (methodInvocation.receiver == nullAware.let &&
-            methodInvocation.name.name == '==') {
+            methodInvocation.name.text == '==') {
           // Detected
           //
           //  e0?.runtimeType == other
@@ -202,7 +202,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
       } else if (nullAware.parent is ir.Arguments &&
           nullAware.parent.parent is ir.MethodInvocation) {
         ir.MethodInvocation methodInvocation = nullAware.parent.parent;
-        if (methodInvocation.name.name == '==' &&
+        if (methodInvocation.name.text == '==' &&
             methodInvocation.arguments.positional.first == nullAware.let) {
           // [nullAware] is the right hand side of ==.
 
@@ -290,7 +290,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
     }
   } else if (node.parent is ir.MethodInvocation) {
     ir.MethodInvocation methodInvocation = node.parent;
-    if (methodInvocation.name.name == '==' &&
+    if (methodInvocation.name.text == '==' &&
         methodInvocation.receiver == node) {
       // [node] is the left hand side of ==.
 
@@ -340,7 +340,7 @@ RuntimeTypeUseData computeRuntimeTypeUse(
   } else if (node.parent is ir.Arguments &&
       node.parent.parent is ir.MethodInvocation) {
     ir.MethodInvocation methodInvocation = node.parent.parent;
-    if (methodInvocation.name.name == '==' &&
+    if (methodInvocation.name.text == '==' &&
         methodInvocation.arguments.positional.first == node) {
       // [node] is the right hand side of ==.
       ir.PropertyGet otherGetRuntimeType =

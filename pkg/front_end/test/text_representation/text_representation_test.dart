@@ -134,8 +134,8 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   visitProcedure(Procedure node) {
-    if (!node.name.name.startsWith(expressionMarker) &&
-        !node.name.name.startsWith(statementMarker)) {
+    if (!node.name.text.startsWith(expressionMarker) &&
+        !node.name.text.startsWith(statementMarker)) {
       node.function.accept(this);
     }
     computeForMember(node);
@@ -143,8 +143,8 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   visitField(Field node) {
-    if (!node.name.name.startsWith(expressionMarker) &&
-        !node.name.name.startsWith(statementMarker)) {
+    if (!node.name.text.startsWith(expressionMarker) &&
+        !node.name.text.startsWith(statementMarker)) {
       node.initializer?.accept(this);
     }
     computeForMember(node);
@@ -152,10 +152,10 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeMemberValue(Id id, Member node) {
-    if (node.name.name == 'stmtVariableDeclarationMulti') {
+    if (node.name.text == 'stmtVariableDeclarationMulti') {
       print(node);
     }
-    if (node.name.name.startsWith(expressionMarker)) {
+    if (node.name.text.startsWith(expressionMarker)) {
       if (node is Procedure) {
         Statement body = node.function.body;
         if (body is ReturnStatement) {
@@ -164,7 +164,7 @@ class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
       } else if (node is Field && node.initializer != null) {
         return node.initializer.toText(strategy);
       }
-    } else if (node.name.name.startsWith(statementMarker)) {
+    } else if (node.name.text.startsWith(statementMarker)) {
       if (node is Procedure) {
         Statement body = node.function.body;
         if (body is Block && body.statements.length == 1) {
