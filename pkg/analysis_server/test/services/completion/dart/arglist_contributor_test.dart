@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1075,6 +1076,50 @@ main() { f("16", radix: ^);}''');
       String bar() => true;''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addTestSource(r'''
+f({int? nullable, int nonnullable}) {}
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'nullable': 'int?',
+      'nonnullable': 'int',
+    });
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param_imported() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addSource('/home/test/lib/a.dart', '''
+f({int? nullable, int nonnullable}) {}''');
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addTestSource(r'''
+import "a.dart";
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'nullable': 'int?',
+      'nonnullable': 'int',
+    });
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addSource('/home/test/lib/a.dart', '''
+// @dart = 2.8
+f({int named}) {}''');
+    addTestSource(r'''
+import "a.dart";
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'named': 'int*',
+    });
   }
 
   Future<void> test_superConstructorInvocation() async {

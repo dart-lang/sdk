@@ -85,11 +85,10 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     orElse: () => null,
   );
   if (launchDdsArg != null) {
-    // TODO(bkonyi): uncomment after 2.10 branch.
-    // RunCommand.launchDds = true;
-    // final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
-    // RunCommand.ddsHost = ddsUrl[0];
-    // RunCommand.ddsPort = ddsUrl[1];
+    RunCommand.launchDds = true;
+    final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
+    RunCommand.ddsHost = ddsUrl[0];
+    RunCommand.ddsPort = ddsUrl[1];
   }
 
   String commandName;

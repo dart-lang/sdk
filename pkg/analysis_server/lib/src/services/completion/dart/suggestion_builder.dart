@@ -786,7 +786,8 @@ class SuggestionBuilder {
   void suggestNamedArgument(ParameterElement parameter,
       {@required bool appendColon, @required bool appendComma}) {
     var name = parameter.name;
-    var type = parameter.type?.getDisplayString(withNullability: false);
+    var type = parameter.type?.getDisplayString(
+        withNullability: request.libraryElement.isNonNullableByDefault);
 
     var completion = name;
     if (appendColon) {
@@ -1286,7 +1287,8 @@ class SuggestionBuilder {
         var paramType = parameter.type;
         // Gracefully degrade if type not resolved yet
         return paramType != null
-            ? paramType.getDisplayString(withNullability: false)
+            ? paramType.getDisplayString(
+                withNullability: request.libraryElement.isNonNullableByDefault)
             : 'var';
       }).toList();
 

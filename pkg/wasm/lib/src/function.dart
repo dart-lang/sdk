@@ -16,9 +16,9 @@ class WasmFunction {
   Pointer<WasmerValue> _args;
   Pointer<WasmerValue> _result;
 
-  WasmFunction(this._name, this._func, this._argTypes, this._returnType) {
-    _args = allocate<WasmerValue>(count: _argTypes.length);
-    _result = allocate<WasmerValue>();
+  WasmFunction(this._name, this._func, this._argTypes, this._returnType)
+      : _args = allocate<WasmerValue>(count: _argTypes.length),
+        _result = allocate<WasmerValue>() {
     for (var i = 0; i < _argTypes.length; ++i) {
       _args[i].tag = _argTypes[i];
     }
@@ -43,6 +43,7 @@ class WasmFunction {
         _args[i].f64 = arg;
         return true;
     }
+    return false;
   }
 
   dynamic apply(List<dynamic> args) {

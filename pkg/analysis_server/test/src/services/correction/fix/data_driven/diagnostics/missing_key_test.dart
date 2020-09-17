@@ -97,6 +97,24 @@ transforms:
     ]);
   }
 
+  void test_addTypeParameterChange_argumentValue() {
+    assertErrors('''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'a'
+''', [
+      error(TransformSetErrorCode.missingKey, 124, 56),
+    ]);
+  }
+
   void test_addTypeParameterChange_index() {
     assertErrors('''
 version: 1
@@ -109,11 +127,11 @@ transforms:
   changes:
     - kind: 'addTypeParameter'
       name: 'a'
-      value:
+      argumentValue:
         kind: 'argument'
         index: 0
 ''', [
-      error(TransformSetErrorCode.missingKey, 124, 96),
+      error(TransformSetErrorCode.missingKey, 124, 104),
     ]);
   }
 
@@ -129,29 +147,11 @@ transforms:
   changes:
     - kind: 'addTypeParameter'
       index: 0
-      value:
+      argumentValue:
         kind: 'argument'
         index: 0
 ''', [
-      error(TransformSetErrorCode.missingKey, 124, 95),
-    ]);
-  }
-
-  void test_addTypeParameterChange_value() {
-    assertErrors('''
-version: 1
-transforms:
-- title: ''
-  date: 2020-09-14
-  element:
-    uris: ['test.dart']
-    function: 'f'
-  changes:
-    - kind: 'addTypeParameter'
-      index: 0
-      name: 'a'
-''', [
-      error(TransformSetErrorCode.missingKey, 124, 56),
+      error(TransformSetErrorCode.missingKey, 124, 103),
     ]);
   }
 

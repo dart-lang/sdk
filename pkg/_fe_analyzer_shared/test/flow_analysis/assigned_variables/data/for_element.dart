@@ -19,7 +19,7 @@ forEach(int a, int b, int c) {
   ];
 }
 
-/*member: forEachWithDeclaration:declared={a, b, c}, assigned={a, b, c}*/
+/*member: forEachWithDeclaration:declared={a, b, c}, assigned={a, b}*/
 forEachWithDeclaration(int a, int b) {
   [
     /*assigned={b}*/ for (var c in [a = 0]) (b = 0)

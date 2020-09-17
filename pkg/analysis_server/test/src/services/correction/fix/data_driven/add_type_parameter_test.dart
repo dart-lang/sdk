@@ -468,6 +468,6 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
                 extendedType: extendedType,
                 index: index,
                 name: 'T',
-                value: LiteralExtractor('String')),
+                argumentValue: LiteralExtractor('String')),
           ]);
 }

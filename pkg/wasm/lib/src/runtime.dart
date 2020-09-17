@@ -24,41 +24,47 @@ class WasmExportDescriptor {
 }
 
 class WasmRuntime {
-  static WasmRuntime _inst;
+  static WasmRuntime? _inst;
 
   DynamicLibrary _lib;
-  WasmerCompileFn _compile;
-  WasmerInstantiateFn _instantiate;
-  WasmerInstanceExportsFn _instance_exports;
-  WasmerExportsLenFn _exports_len;
-  WasmerExportsGetFn _exports_get;
-  WasmerExportKindFn _export_kind;
-  WasmerExportToFuncFn _export_to_func;
-  WasmerExportFuncReturnsArityFn _export_func_returns_arity;
-  WasmerExportFuncReturnsFn _export_func_returns;
-  WasmerExportFuncParamsArityFn _export_func_params_arity;
-  WasmerExportFuncParamsFn _export_func_params;
-  WasmerExportFuncCallFn _export_func_call;
-  WasmerExportNamePtrFn _export_name_ptr;
-  WasmerExportDescriptorsFn _export_descriptors;
-  WasmerExportDescriptorsDestroyFn _export_descriptors_destroy;
-  WasmerExportDescriptorsLenFn _export_descriptors_len;
-  WasmerExportDescriptorsGetFn _export_descriptors_get;
-  WasmerExportDescriptorKindFn _export_descriptor_kind;
-  WasmerExportDescriptorNamePtrFn _export_descriptor_name_ptr;
-  WasmerImportDescriptorModuleNamePtrFn _import_descriptor_module_name_ptr;
-  WasmerImportDescriptorNamePtrFn _import_descriptor_name_ptr;
-  WasmerImportDescriptorsFn _import_descriptors;
-  WasmerImportDescriptorsDestroyFn _import_descriptors_destroy;
-  WasmerImportDescriptorsLenFn _import_descriptors_len;
-  WasmerImportDescriptorsGetFn _import_descriptors_get;
-  WasmerImportDescriptorKindFn _import_descriptor_kind;
+  late WasmerCompileFn _compile;
+  late WasmerInstantiateFn _instantiate;
+  late WasmerInstanceExportsFn _instance_exports;
+  late WasmerExportsLenFn _exports_len;
+  late WasmerExportsGetFn _exports_get;
+  late WasmerExportKindFn _export_kind;
+  late WasmerExportToFuncFn _export_to_func;
+  late WasmerExportFuncReturnsArityFn _export_func_returns_arity;
+  late WasmerExportFuncReturnsFn _export_func_returns;
+  late WasmerExportFuncParamsArityFn _export_func_params_arity;
+  late WasmerExportFuncParamsFn _export_func_params;
+  late WasmerExportFuncCallFn _export_func_call;
+  late WasmerExportNamePtrFn _export_name_ptr;
+  late WasmerExportDescriptorsFn _export_descriptors;
+  late WasmerExportDescriptorsDestroyFn _export_descriptors_destroy;
+  late WasmerExportDescriptorsLenFn _export_descriptors_len;
+  late WasmerExportDescriptorsGetFn _export_descriptors_get;
+  late WasmerExportDescriptorKindFn _export_descriptor_kind;
+  late WasmerExportDescriptorNamePtrFn _export_descriptor_name_ptr;
+  late WasmerImportDescriptorModuleNamePtrFn _import_descriptor_module_name_ptr;
+  late WasmerImportDescriptorNamePtrFn _import_descriptor_name_ptr;
+  late WasmerImportDescriptorsFn _import_descriptors;
+  late WasmerImportDescriptorsDestroyFn _import_descriptors_destroy;
+  late WasmerImportDescriptorsLenFn _import_descriptors_len;
+  late WasmerImportDescriptorsGetFn _import_descriptors_get;
+  late WasmerImportDescriptorKindFn _import_descriptor_kind;
+  late WasmerExportToMemoryFn _export_to_memory;
+  late WasmerMemoryNewPtrFn _memory_new_ptr;
+  late WasmerMemoryGrowFn _memory_grow;
+  late WasmerMemoryLengthFn _memory_length;
+  late WasmerMemoryDataFn _memory_data;
+  late WasmerMemoryDataLengthFn _memory_data_length;
 
   factory WasmRuntime() {
     if (_inst == null) {
       _inst = WasmRuntime._init();
     }
-    return _inst;
+    return _inst as WasmRuntime;
   }
 
   static String _getLibName() {
@@ -96,9 +102,8 @@ class WasmRuntime {
     return commonLibDir;
   }
 
-  WasmRuntime._init() {
-    var libPath = path.join(_getLibDir(), _getLibName());
-    _lib = DynamicLibrary.open(libPath);
+  WasmRuntime._init()
+      : _lib = DynamicLibrary.open(path.join(_getLibDir(), _getLibName())) {
     _compile = _lib.lookupFunction<NativeWasmerCompileFn, WasmerCompileFn>(
         'wasmer_compile');
     _instantiate =
@@ -171,6 +176,22 @@ class WasmRuntime {
     _import_descriptor_name_ptr = _lib.lookupFunction<
         NativeWasmerImportDescriptorNamePtrFn,
         WasmerImportDescriptorNamePtrFn>('wasmer_import_descriptor_name_ptr');
+    _export_to_memory = _lib.lookupFunction<NativeWasmerExportToMemoryFn,
+        WasmerExportToMemoryFn>('wasmer_export_to_memory');
+    _memory_new_ptr =
+        _lib.lookupFunction<NativeWasmerMemoryNewPtrFn, WasmerMemoryNewPtrFn>(
+            'wasmer_memory_new_ptr');
+    _memory_grow =
+        _lib.lookupFunction<NativeWasmerMemoryGrowFn, WasmerMemoryGrowFn>(
+            'wasmer_memory_grow');
+    _memory_length =
+        _lib.lookupFunction<NativeWasmerMemoryLengthFn, WasmerMemoryLengthFn>(
+            'wasmer_memory_length');
+    _memory_data =
+        _lib.lookupFunction<NativeWasmerMemoryDataFn, WasmerMemoryDataFn>(
+            'wasmer_memory_data');
+    _memory_data_length = _lib.lookupFunction<NativeWasmerMemoryDataLengthFn,
+        WasmerMemoryDataLengthFn>('wasmer_memory_data_length');
   }
 
   Pointer<WasmerModule> compile(Uint8List data) {
@@ -330,5 +351,49 @@ class WasmRuntime {
     if (result != WasmerResultOk) {
       throw Exception("Failed to call WASM function");
     }
+  }
+
+  Pointer<WasmerMemory> exportToMemory(Pointer<WasmerExport> export) {
+    var memPtrPtr = allocate<Pointer<WasmerMemory>>();
+    var result = _export_to_memory(export, memPtrPtr);
+    if (result != WasmerResultOk) {
+      free(memPtrPtr);
+      throw Exception("Failed to get exported memory");
+    }
+    Pointer<WasmerMemory> memPtr = memPtrPtr.value;
+    free(memPtrPtr);
+    return memPtr;
+  }
+
+  Pointer<WasmerMemory> newMemory(int pages, int? maxPages) {
+    var memPtrPtr = allocate<Pointer<WasmerMemory>>();
+    var limPtr = allocate<WasmerLimits>();
+    limPtr.ref.min = pages;
+    limPtr.ref.has_max = maxPages != null ? 1 : 0;
+    limPtr.ref.max = maxPages ?? 0;
+    var result = _memory_new_ptr(memPtrPtr, limPtr);
+    free(limPtr);
+    if (result != WasmerResultOk) {
+      free(memPtrPtr);
+      throw Exception("Failed to create memory");
+    }
+    Pointer<WasmerMemory> memPtr = memPtrPtr.value;
+    free(memPtrPtr);
+    return memPtr;
+  }
+
+  void growMemory(Pointer<WasmerMemory> memory, int deltaPages) {
+    var result = _memory_grow(memory, deltaPages);
+    if (result != WasmerResultOk) {
+      throw Exception("Failed to grow memory");
+    }
+  }
+
+  int memoryLength(Pointer<WasmerMemory> memory) {
+    return _memory_length(memory);
+  }
+
+  Uint8List memoryView(Pointer<WasmerMemory> memory) {
+    return _memory_data(memory).asTypedList(_memory_data_length(memory));
   }
 }

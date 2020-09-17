@@ -820,19 +820,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return base;
     }
 
+    /// Returns the "actual" superclass of [c].
+    ///
+    /// Walks up the superclass chain looking for the first actual class
+    /// skipping any synthetic classes inserted by the CFE.
+    Class superClassAsWritten(Class c) {
+      var superclass = c.superclass;
+      while (superclass.isAnonymousMixin) {
+        superclass = superclass.superclass;
+      }
+      return superclass;
+    }
+
     // Find the real (user declared) superclass and the list of mixins.
     // We'll use this to unroll the intermediate classes.
     //
     // TODO(jmesserly): consider using Kernel's mixin unrolling.
-    var mixinClasses = <Class>[];
-    var superclass = getSuperclassAndMixins(c, mixinClasses);
+    var superclass = superClassAsWritten(c);
     var supertype = identical(c.superclass, superclass)
         ? c.supertype.asInterfaceType
         : _hierarchy.getClassAsInstanceOf(c, superclass).asInterfaceType;
-    mixinClasses = mixinClasses.reversed.toList();
-    var mixins = mixinClasses
-        .map((m) => _hierarchy.getClassAsInstanceOf(c, m).asInterfaceType)
-        .toList();
+    // All mixins (real and anonymous) classes applied to c.
+    var mixinApplications = [
+      if (c.mixedInClass != null) c.mixedInClass,
+      for (var sc = c.superclass;
+          sc.isAnonymousMixin && sc.mixedInClass != null;
+          sc = sc.superclass)
+        sc,
+    ].reversed.toList();
 
     var hasUnnamedSuper = _hasUnnamedInheritedConstructor(superclass);
 
@@ -873,7 +888,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     if (shouldDefer(supertype)) {
       deferredSupertypes.add(runtimeStatement('setBaseClass(#, #)', [
-        getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
+        getBaseClass(isMixinAliasClass(c) ? 0 : mixinApplications.length),
         emitDeferredType(supertype),
       ]));
       // Refers to 'supertype' without any type arguments.
@@ -924,29 +939,43 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // classes lack required synthetic members, such as constructors.
     //
     // Also, we need to generate one extra level of nesting for alias classes.
-    for (var i = 0; i < mixins.length; i++) {
-      var m = mixins[i];
+    for (var i = 0; i < mixinApplications.length; i++) {
+      var m = mixinApplications[i];
+      var mixinClass = m.isAnonymousMixin ? m.mixedInClass : m;
+      var mixinType =
+          _hierarchy.getClassAsInstanceOf(c, mixinClass).asInterfaceType;
       var mixinName =
-          getLocalClassName(superclass) + '_' + getLocalClassName(m.classNode);
+          getLocalClassName(superclass) + '_' + getLocalClassName(mixinClass);
       var mixinId = _emitTemporaryId(mixinName + '\$');
+      // Collect all forwarding stubs from anonymous mixins classes. These will
+      // contain covariant parameter checks that need to be applied.
+      var forwardingMethodStubs = [
+        for (var procedure in m.procedures)
+          if (procedure.isForwardingStub && !procedure.isAbstract)
+            _emitMethodDeclaration(procedure)
+      ];
+
       // Bind the mixin class to a name to workaround a V8 bug with es6 classes
       // and anonymous function names.
       // TODO(leafp:) Eliminate this once the bug is fixed:
       // https://bugs.chromium.org/p/v8/issues/detail?id=7069
       body.add(js.statement('const # = #', [
         mixinId,
-        js_ast.ClassExpression(_emitTemporaryId(mixinName), baseClass, [])
+        js_ast.ClassExpression(
+            _emitTemporaryId(mixinName), baseClass, forwardingMethodStubs)
       ]));
 
-      emitMixinConstructors(mixinId, m);
-      hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(m.classNode);
+      emitMixinConstructors(mixinId, mixinType);
+      hasUnnamedSuper = hasUnnamedSuper || _hasUnnamedConstructor(mixinClass);
 
-      if (shouldDefer(m)) {
-        deferredSupertypes.add(runtimeStatement('applyMixin(#, #)',
-            [getBaseClass(mixins.length - i), emitDeferredType(m)]));
+      if (shouldDefer(mixinType)) {
+        deferredSupertypes.add(runtimeStatement('applyMixin(#, #)', [
+          getBaseClass(mixinApplications.length - i),
+          emitDeferredType(mixinType)
+        ]));
       } else {
-        body.add(
-            runtimeStatement('applyMixin(#, #)', [mixinId, emitClassRef(m)]));
+        body.add(runtimeStatement(
+            'applyMixin(#, #)', [mixinId, emitClassRef(mixinType)]));
       }
 
       baseClass = mixinId;
