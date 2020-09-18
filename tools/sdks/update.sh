@@ -61,21 +61,10 @@ cipd create \
   -ref $channel
 rm -rf sdk
 
-# We currently use the ia32 SDK on x64 Windows as well, see also README.
-gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-windows-ia32-release.zip" .
-unzip -q dartsdk-windows-ia32-release.zip -d sdk
+gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-windows-x64-release.zip" .
+unzip -q dartsdk-windows-x64-release.zip -d sdk
 cipd create \
   -name dart/dart-sdk/windows-amd64 \
-  -in sdk \
-  -install-mode copy \
-  -tag version:$1 \
-  -ref $channel
-rm -rf sdk
-
-gsutil.py cp "gs://dart-archive/channels/$channel/release/$1/sdk/dartsdk-windows-ia32-release.zip" .
-unzip -q dartsdk-windows-ia32-release.zip -d sdk
-cipd create \
-  -name dart/dart-sdk/windows-386 \
   -in sdk \
   -install-mode copy \
   -tag version:$1 \
