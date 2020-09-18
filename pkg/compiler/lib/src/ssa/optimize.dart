@@ -1309,6 +1309,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitGetLength(HGetLength node) {
     HInstruction receiver = node.receiver;
     if (_graph.allocatedFixedLists.contains(receiver)) {
+      // TODO(sra): How do we keep this working if we lower/inline the receiver
+      // in an optimization?
+
       // TODO(ngeoffray): checking if the second input is an integer
       // should not be necessary but it currently makes it easier for
       // other optimizations to reason about a fixed length constructor

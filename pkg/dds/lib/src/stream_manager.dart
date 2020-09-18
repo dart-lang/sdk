@@ -36,14 +36,8 @@ class _StreamManager {
     }
   }
 
-  void sendServiceRegisteredEvent(
-    _DartDevelopmentServiceClient client,
-    String service,
-    String alias,
-  ) {
-    final namespace = dds._getNamespace(client);
-    streamNotify(
-      kServiceStream,
+  static Map<String, dynamic> _buildStreamRegisteredEvent(
+          String namespace, String service, String alias) =>
       {
         'streamId': kServiceStream,
         'event': {
@@ -53,8 +47,18 @@ class _StreamManager {
           'service': service,
           'method': namespace + '.' + service,
           'alias': alias,
-        },
-      },
+        }
+      };
+
+  void sendServiceRegisteredEvent(
+    _DartDevelopmentServiceClient client,
+    String service,
+    String alias,
+  ) {
+    final namespace = dds._getNamespace(client);
+    streamNotify(
+      kServiceStream,
+      _buildStreamRegisteredEvent(namespace, service, alias),
       excludedClient: client,
     );
   }
@@ -135,6 +139,25 @@ class _StreamManager {
       streamListeners[stream].add(client);
       if (stream == kLoggingStream) {
         dds.loggingRepository.sendHistoricalLogs(client);
+      } else if (stream == kServiceStream) {
+        // Send all previously registered service extensions when a client
+        // subscribes to the Service stream.
+        for (final c in dds.clientManager.clients) {
+          if (c == client) {
+            continue;
+          }
+          final namespace = dds._getNamespace(c);
+          for (final service in c.services.keys) {
+            client.sendNotification(
+              'streamNotify',
+              _buildStreamRegisteredEvent(
+                namespace,
+                service,
+                c.services[service],
+              ),
+            );
+          }
+        }
       }
     }
   }

@@ -589,6 +589,10 @@ class PowersetBitsDomain {
   int get growableListType => _growableListType ??=
       createNonNullExact(commonElements.jsExtendableArrayClass);
 
+  int _mutableArrayType;
+  int get mutableArrayType => _mutableArrayType ??=
+      createNonNullSubtype(commonElements.jsMutableArrayClass);
+
   int get nullType => nullValue;
 
   int get nonNullType => powersetTop & ~nullValue;

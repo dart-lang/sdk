@@ -232,6 +232,25 @@ extension E on int {
     var a = findElement.topVar('a') as ConstVariableElement;
     expect(a.computeConstantValue().toIntValue(), 42);
   }
+
+  /// See https://github.com/dart-lang/sdk/issues/43462
+  test_useLanguageVersionOfEnclosingLibrary() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class Wrapper {
+  final int value;
+  const Wrapper(Object value) : value = value as int;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.4
+import 'a.dart';
+
+void f() {
+  const Wrapper(0);
+}
+''');
+  }
 }
 
 @reflectiveTest

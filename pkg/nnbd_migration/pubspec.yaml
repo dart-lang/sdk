@@ -20,5 +20,6 @@ dependencies:
   yaml: ^2.1.15
 dev_dependencies:
   http: '>=0.11.3+17 <0.13.0'
+  pedantic: ^1.9.0
   test: ^1.6.4
   test_reflective_loader: ^0.1.8

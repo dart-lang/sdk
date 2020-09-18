@@ -1,3 +1,8 @@
+# 1.3.5
+
+- Fixed issue where clients subscribing to the `Service` stream were not being
+  sent `ServiceRegistered` events on connection.
+
 # 1.3.4
 
 - Fixed issue where `isolateId`s were expected to take the form `isolates/123`

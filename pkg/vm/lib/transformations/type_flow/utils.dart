@@ -29,13 +29,6 @@ const bool kScopeTrace =
 const int kScopeIndent =
     const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
 
-/// Extended 'assert': always checks condition.
-assertx(bool cond, {details}) {
-  if (!cond) {
-    throw 'Assertion failed.' + (details != null ? ' Details: $details' : '');
-  }
-}
-
 abstract class _Logger {
   log(Object message, [int scopeChange = 0]);
 }
@@ -292,7 +285,7 @@ class UnionFind {
     if (id1 == id2) return;
     final int w1 = _elements[id1];
     final int w2 = _elements[id2];
-    assertx(w1 < 0 && w2 < 0);
+    assert(w1 < 0 && w2 < 0);
     if (w1 < w2) {
       _elements[id1] += w2;
       _elements[id2] = id1;

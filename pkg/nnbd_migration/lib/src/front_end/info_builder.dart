@@ -238,7 +238,7 @@ class InfoBuilder {
     var description = 'Non-nullability reason${target.suffix}';
     var step = node.whyNotNullable;
     if (step == null) {
-      if (node != this.info.never) {
+      if (node != info.never) {
         // 'never' indicates we're describing an edge to never, such as a `!`.
         traces.add(TraceInfo(description, [
           _nodeToTraceEntry(node,

@@ -3935,9 +3935,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     } else if (isJSArrayTypedConstructor) {
       // TODO(sra): Instead of calling the identity-like factory constructor,
       // simply select the single argument.
+
       // Factory constructors take type parameters.
-      if (closedWorld.rtiNeed
-          .classNeedsTypeArguments(function.enclosingClass)) {}
       List<DartType> typeArguments =
           _getConstructorTypeArguments(function, invocation.arguments);
       // TODO(johnniwinther): Remove this when type arguments are passed to
@@ -3962,6 +3961,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _addImplicitInstantiation(instanceType);
       _pushStaticInvocation(function, arguments, typeMask, typeArguments,
           sourceInformation: sourceInformation, instanceType: instanceType);
+
+      // TODO(sra): Special handling of List.filled, List.generate, List.of and
+      // other list constructors where 'growable' is false.
     }
 
     HInstruction newInstance = stack.last;

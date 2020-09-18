@@ -544,7 +544,7 @@ class MigrationCliRunner {
   NonNullableFix createNonNullableFix(
       DartFixListener listener,
       ResourceProvider resourceProvider,
-      LineInfo getLineInfo(String path),
+      LineInfo Function(String path) getLineInfo,
       Object bindAddress,
       {List<String> included = const <String>[],
       int preferredPort,

@@ -161,6 +161,11 @@ abstract class AbstractValueDomain {
   /// at runtime.
   AbstractValue get fixedListType;
 
+  /// The [AbstractValue] that represents the union of [growableListType] and
+  /// [fixedListType], i.e. JavaScript arrays that may have their elements
+  /// assigned.
+  AbstractValue get mutableArrayType;
+
   /// The [AbstractValue] that represents a non-null 31-bit unsigned integer at
   /// runtime.
   AbstractValue get uint31Type;

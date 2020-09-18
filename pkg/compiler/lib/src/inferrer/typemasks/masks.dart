@@ -131,7 +131,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   TypeMask get listType => _listType ??=
-      new TypeMask.nonNullExact(commonElements.jsArrayClass, _closedWorld);
+      new TypeMask.nonNullSubtype(commonElements.jsArrayClass, _closedWorld);
 
   @override
   TypeMask get constListType => _constListType ??= new TypeMask.nonNullExact(
@@ -197,6 +197,7 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get readableArrayType => _readableArrayType ??=
       new TypeMask.nonNullSubclass(commonElements.jsArrayClass, _closedWorld);
 
+  @override
   TypeMask get mutableArrayType =>
       _mutableArrayType ??= new TypeMask.nonNullSubclass(
           commonElements.jsMutableArrayClass, _closedWorld);
@@ -999,7 +1000,11 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     // a null value we accidentally printed out.
     if (type.isEmptyOrNull) return type.isNullable ? 'Null' : 'Empty';
     String nullFlag = type.isNullable ? '?' : '';
-    String subFlag = type.isExact ? '' : type.isSubclass ? '+' : '*';
+    String subFlag = type.isExact
+        ? ''
+        : type.isSubclass
+            ? '+'
+            : '*';
     return '${type.base.name}$nullFlag$subFlag';
   }
   if (type is UnionTypeMask) {

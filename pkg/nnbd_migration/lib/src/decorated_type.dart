@@ -158,7 +158,8 @@ class DecoratedType implements DecoratedTypeInfo {
       return DecoratedType(type, nullabilityNode, typeArguments: typeArguments);
     } else if (type is FunctionType) {
       if (typeArguments != null) {
-        throw "Not supported: implicit function type with explicit type arguments";
+        throw 'Not supported: implicit function type with explicit type '
+            'arguments';
       }
       return DecoratedType.forImplicitFunction(
           typeProvider, type, nullabilityNode, graph, target);
@@ -184,7 +185,7 @@ class DecoratedType implements DecoratedTypeInfo {
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
     assert(parameter.enclosingElement == null,
-        "$parameter should not have parent ${parameter.enclosingElement}");
+        '$parameter should not have parent ${parameter.enclosingElement}');
   }
 
   /// If `this` represents an interface type, returns the substitution necessary
@@ -219,8 +220,8 @@ class DecoratedType implements DecoratedTypeInfo {
   @override
   bool operator ==(Object other) {
     if (other is DecoratedType) {
-      if (!identical(this.node, other.node)) return false;
-      var thisType = this.type;
+      if (!identical(node, other.node)) return false;
+      var thisType = type;
       var otherType = other.type;
       if (thisType is FunctionType && otherType is FunctionType) {
         if (thisType.normalParameterTypes.length !=
@@ -244,7 +245,7 @@ class DecoratedType implements DecoratedTypeInfo {
         return true;
       } else if (thisType is InterfaceType && otherType is InterfaceType) {
         if (thisType.element != otherType.element) return false;
-        if (!_compareLists(this.typeArguments, other.typeArguments)) {
+        if (!_compareLists(typeArguments, other.typeArguments)) {
           return false;
         }
         return true;

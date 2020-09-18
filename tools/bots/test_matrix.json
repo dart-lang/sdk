@@ -1159,7 +1159,9 @@
     },
     {
       "builders": [
-        "front-end-nnbd-linux-release-x64"
+        "front-end-nnbd-linux-release-x64",
+        "front-end-nnbd-mac-release-x64",
+        "front-end-nnbd-win-release-x64"
       ],
       "meta": {
         "description": "Runs the front-end tests with NNBD"

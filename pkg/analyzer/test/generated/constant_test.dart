@@ -501,8 +501,7 @@ $context
     var file = getFile(result.path);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
-      result.typeProvider,
-      typeSystem: result.typeSystem,
+      result.libraryElement,
     );
 
     return evaluator.evaluate(expression);

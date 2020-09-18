@@ -180,7 +180,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
   InferredType _convertType(Type type,
       {bool skipCheck: false, bool receiverNotInt: false}) {
-    assertx(type != null);
+    assert(type != null);
 
     Class concreteClass;
     Constant constantValue;
@@ -298,7 +298,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _tableSelectorAssigner.registerGetterCall(
             selector.member, callSite.isNullableReceiver);
       } else {
-        assertx(node is MethodInvocation || node is PropertySet);
+        assert(node is MethodInvocation || node is PropertySet);
         _tableSelectorAssigner.registerMethodOrSetterCall(
             selector.member, callSite.isNullableReceiver);
       }
@@ -320,13 +320,13 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
         final uncheckedParameters =
             _typeFlowAnalysis.uncheckedParameters(member);
-        assertx(argTypes != null);
+        assert(argTypes != null);
 
         final int firstParamIndex =
             numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
         final positionalParams = member.function.positionalParameters;
-        assertx(argTypes.positionalCount ==
+        assert(argTypes.positionalCount ==
             firstParamIndex + positionalParams.length);
 
         for (int i = 0; i < positionalParams.length; i++) {
@@ -340,7 +340,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         final names = argTypes.names;
         for (int i = 0; i < names.length; i++) {
           final param = findNamedParameter(member.function, names[i]);
-          assertx(param != null);
+          assert(param != null);
           _setInferredType(param,
               argTypes.values[firstParamIndex + positionalParams.length + i],
               skipCheck: uncheckedParameters.contains(param));
@@ -653,7 +653,7 @@ class TreeShaker {
           return extension.members
               .any((descriptor) => descriptor.member.asMember == m);
         }, orElse: () => null);
-        assertx(extension != null);
+        assert(extension != null);
 
         // Ensure we retain the [Extension] itself (though members might be
         // shaken)
@@ -691,8 +691,8 @@ class FieldMorpher {
   FieldMorpher(this.shaker);
 
   Member _createAccessorForRemovedField(Field field, bool isSetter) {
-    assertx(!field.isStatic);
-    assertx(!shaker.retainField(field));
+    assert(!field.isStatic);
+    assert(!shaker.retainField(field));
     Procedure accessor;
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
@@ -945,7 +945,7 @@ class _TreeShakerPass1 extends Transformer {
     additionalInitializers.clear();
     node = defaultMember(node);
     if (additionalInitializers.isNotEmpty) {
-      assertx(node.initializers.last is SuperInitializer ||
+      assert(node.initializers.last is SuperInitializer ||
           node.initializers.last is RedirectingInitializer);
       additionalInitializers.forEach((i) => i.parent = node);
       node.initializers
@@ -1181,7 +1181,8 @@ class _TreeShakerPass1 extends Transformer {
     }
 
     final target = node.target;
-    assertx(shaker.isMemberBodyReachable(target), details: target);
+    assert(shaker.isMemberBodyReachable(target),
+        "Member body is not reachable: $target");
 
     if (!shaker._signatureShaker.isShakingSignature(target)) return node;
     final result = _fixArgumentEvaluationOrder(node, node.arguments);
@@ -1197,7 +1198,7 @@ class _TreeShakerPass1 extends Transformer {
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
         // Annotations could contain references to constant fields.
-        assertx((node.target is Field) && (node.target as Field).isConst);
+        assert((node.target is Field) && (node.target as Field).isConst);
         shaker.addUsedMember(node.target);
       }
       return node;
@@ -1217,7 +1218,8 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableCall([node.value]);
     } else {
       final target = node.target;
-      assertx(shaker.isMemberBodyReachable(target), details: node);
+      assert(shaker.isMemberBodyReachable(target),
+          "Target should be reachable: $node");
       if (target is Field && !shaker.retainField(target)) {
         return node.value;
       }
@@ -1232,7 +1234,8 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableCall(
           _flattenArguments(node.arguments, receiver: node.receiver));
     } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node);
+      assert(shaker.isMemberBodyReachable(node.target),
+          "Target should be reachable: $node");
       return node;
     }
   }
@@ -1244,9 +1247,10 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableCall([node.receiver]);
     } else {
       final target = node.target;
-      assertx(shaker.isMemberBodyReachable(target), details: node);
-      assertx(target is! Field || shaker.isFieldGetterReachable(target),
-          details: node);
+      assert(shaker.isMemberBodyReachable(target),
+          "Target should be reachable: $node");
+      assert(target is! Field || shaker.isFieldGetterReachable(target),
+          "Unexpected target in DirectProperyGet: $node");
       return node;
     }
   }
@@ -1257,7 +1261,8 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver, node.value]);
     } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node);
+      assert(shaker.isMemberBodyReachable(node.target),
+          "Target should be reachable: $node");
       node.target =
           fieldMorpher.adjustInstanceCallTarget(node.target, isSetter: true);
       return node;
@@ -1272,7 +1277,7 @@ class _TreeShakerPass1 extends Transformer {
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
         // Annotations could contain references to const constructors.
-        assertx(node.isConst);
+        assert(node.isConst);
         shaker.addUsedMember(node.target);
       }
       if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
@@ -1288,7 +1293,8 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node.target);
+      assert(shaker.isMemberBodyReachable(node.target),
+          "Target should be reachable: ${node.target}");
       if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
       _fixArgumentEvaluationOrderInInitializer(node.arguments);
       _rewriteArguments(node.arguments, node.target);
@@ -1316,7 +1322,8 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer([node.value]);
     } else {
-      assertx(shaker.isMemberBodyReachable(node.field), details: node.field);
+      assert(shaker.isMemberBodyReachable(node.field),
+          "Field should be reachable: ${node.field}");
       if (!shaker.retainField(node.field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
@@ -1373,7 +1380,7 @@ class _TreeShakerPass1 extends Transformer {
   Procedure get unsafeCast {
     _unsafeCast ??= shaker.typeFlowAnalysis.environment.coreTypes.index
         .getTopLevelMember('dart:_internal', 'unsafeCast');
-    assertx(_unsafeCast != null);
+    assert(_unsafeCast != null);
     return _unsafeCast;
   }
 }
@@ -1439,7 +1446,7 @@ class _TreeShakerPass2 extends Transformer {
       node.typeParameters.clear();
       node.isAbstract = true;
       // Mixin applications cannot have static members.
-      assertx(node.mixedInType == null);
+      assert(node.mixedInType == null);
       node.annotations = const <Expression>[];
     }
 
@@ -1547,7 +1554,7 @@ class _TreeShakerPass2 extends Transformer {
       node.members.length = writeIndex;
 
       // We only retain the extension if at least one member is retained.
-      assertx(node.members.length > 0);
+      assert(node.members.length > 0);
       return node;
     }
     return null;
@@ -1597,7 +1604,7 @@ class _SignatureShaker {
   }
 
   void defer(Member m) {
-    assertx(isShakingSignature(m));
+    assert(isShakingSignature(m));
     deferred.add(m);
   }
 
@@ -1606,7 +1613,7 @@ class _SignatureShaker {
   void _update(Member member) {
     final alwaysPassedOptionals =
         analysis.alwaysPassedOptionalParameters(member);
-    assertx(alwaysPassedOptionals.isNotEmpty);
+    assert(alwaysPassedOptionals.isNotEmpty);
 
     final func = member.function;
     final newPositional =

@@ -291,7 +291,7 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 // Calls native code within a safepoint.
 //
 // On entry:
-//   R8: target to call
+//   R9: target to call
 //   Stack: set up for native call (SP), aligned, CSP < SP
 //
 // On exit:
@@ -302,29 +302,29 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
 
   __ mov(R19, LR);
-  __ LoadImmediate(R9, target::Thread::exit_through_ffi());
-  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
+  __ LoadImmediate(R10, target::Thread::exit_through_ffi());
+  __ TransitionGeneratedToNative(R9, FPREG, R10 /*volatile*/,
                                  /*enter_safepoint=*/true);
   __ mov(R25, CSP);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
   // Check CSP alignment.
-  __ andi(R10 /*volatile*/, SP,
+  __ andi(R11 /*volatile*/, SP,
           Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  __ cmp(R10, Operand(SP));
+  __ cmp(R11, Operand(SP));
   Label done;
   __ b(&done, EQ);
   __ Breakpoint();
   __ Bind(&done);
 #endif
 
-  __ blr(R8);
+  __ blr(R9);
 
   __ mov(SP, CSP);
   __ mov(CSP, R25);
 
-  __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(R10, /*leave_safepoint=*/true);
   __ ret(R19);
 }
 
@@ -338,8 +338,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #else
   Label done;
 
-  // R8 is volatile and not used for passing any arguments.
-  COMPILE_ASSERT(!IsCalleeSavedRegister(R8) && !IsArgumentRegister(R8));
+  // R9 is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
   for (intptr_t i = 0;
        i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
     // We don't use LoadImmediate because we need the trampoline size to be
@@ -347,7 +347,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     //
     // Instead we paste the callback ID directly in the code load it
     // PC-relative.
-    __ ldr(R8, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ ldr(R9, compiler::Address::PC(2 * Instr::kInstrSize));
     __ b(&done);
     __ Emit(next_callback_id + i);
   }
@@ -362,7 +362,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // The load of the callback ID might have incorrect higher-order bits, since
   // we only emit a 32-bit callback ID.
-  __ uxtw(R8, R8);
+  __ uxtw(R9, R9);
 
   // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
   // aligned.
@@ -374,8 +374,8 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   RegisterSet all_registers;
   all_registers.AddAllArgumentRegisters();
 
-  // The call below might clobber R8 (volatile, holding callback_id).
-  all_registers.Add(Location::RegisterLocation(R8));
+  // The call below might clobber R9 (volatile, holding callback_id).
+  all_registers.Add(Location::RegisterLocation(R9));
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -396,7 +396,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     // loaded anywhere, we use the same trick as before to ensure a predictable
     // instruction sequence.
     Label call;
-    __ mov(R0, R8);
+    __ mov(R0, R9);
     __ ldr(R1, compiler::Address::PC(2 * Instr::kInstrSize));
     __ b(&call);
 
@@ -415,29 +415,30 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     __ mov(CSP, SP);
   }
 
-  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
 
   // Load the code object.
-  __ LoadFromOffset(R9, THR, compiler::target::Thread::callback_code_offset());
-  __ LoadFieldFromOffset(R9, R9,
+  __ LoadFromOffset(R10, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R10, R10,
                          compiler::target::GrowableObjectArray::data_offset());
-  __ ldr(R9, __ ElementAddressForRegIndex(
-                 /*external=*/false,
-                 /*array_cid=*/kArrayCid,
-                 /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                 /*index_unboxed=*/false,
-                 /*array=*/R9,
-                 /*index=*/R8,
-                 /*temp=*/TMP));
-  __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
+  __ ldr(R10, __ ElementAddressForRegIndex(
+                  /*external=*/false,
+                  /*array_cid=*/kArrayCid,
+                  /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                  /*index_unboxed=*/false,
+                  /*array=*/R10,
+                  /*index=*/R9,
+                  /*temp=*/TMP));
+  __ LoadFieldFromOffset(R10, R10,
+                         compiler::target::Code::entry_point_offset());
 
-  // Clobbers all volatile registers, including the callback ID in R8.
+  // Clobbers all volatile registers, including the callback ID in R9.
   // Resets CSP and SP, important for EnterSafepoint below.
-  __ blr(R9);
+  __ blr(R10);
 
-  // EnterSafepoint clobbers TMP, TMP2 and R8 -- all volatile and not holding
+  // EnterSafepoint clobbers TMP, TMP2 and R9 -- all volatile and not holding
   // return values.
-  __ EnterSafepoint(/*scratch=*/R8);
+  __ EnterSafepoint(/*scratch=*/R9);
 
   // Pop LR and THR from the real stack (CSP).
   __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));

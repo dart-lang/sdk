@@ -187,7 +187,7 @@ Future<Map<String, Object>> doPost(String path, [Object body]) => doRequest(
 /// that case, though, because it may be an error response from the server with
 /// useful debugging information (stack trace etc).
 Future<T> doRequest<T>(HttpRequest xhr, [Object body]) async {
-  var completer = new Completer<HttpRequest>();
+  var completer = Completer<HttpRequest>();
   xhr.onLoad.listen((e) {
     completer.complete(xhr);
   });
@@ -802,7 +802,7 @@ void _populateEditTraces(
                 loadFile(path, null, link.line, false);
                 document.body.classes.add('needs-rerun');
               } catch (e, st) {
-                handleError("Could not apply hint", e, st);
+                handleError('Could not apply hint', e, st);
               }
             })
             ..appendText(hintAction.kind.description));

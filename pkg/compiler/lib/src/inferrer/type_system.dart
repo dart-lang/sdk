@@ -218,6 +218,10 @@ class TypeSystem {
         getConcreteTypeFor(_abstractValueDomain.growableListType);
   }
 
+  TypeInformation _mutableArrayType;
+  TypeInformation get mutableArrayType => _mutableArrayType ??=
+      getConcreteTypeFor(_abstractValueDomain.mutableArrayType);
+
   TypeInformation setTypeCache;
   TypeInformation get setType =>
       setTypeCache ??= getConcreteTypeFor(_abstractValueDomain.setType);

@@ -118,7 +118,7 @@ class BaseTest {
   }) async {
     options = _posixToPlatformPath(options);
 
-    driver = Driver(isTesting: true);
+    driver = Driver();
     var cmd = <String>[];
     if (options != null) {
       cmd = <String>[
@@ -750,7 +750,7 @@ class ExitCodesTest extends BaseTest {
       var origWorkingDir = Directory.current;
       try {
         Directory.current = path.join(tempDirPath, 'proj');
-        var driver = Driver(isTesting: true);
+        var driver = Driver();
         try {
           await driver.start([
             path.join('lib', 'file.dart'),
@@ -826,7 +826,7 @@ class ExitCodesTest extends BaseTest {
   }
 
   Future<void> test_partFile_reversed() async {
-    var driver = Driver(isTesting: true);
+    var driver = Driver();
     await driver.start([
       path.join(testDirectory, 'data/library_and_parts/part1.dart'),
       path.join(testDirectory, 'data/library_and_parts/lib.dart')

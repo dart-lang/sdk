@@ -82,7 +82,6 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
       library.typeProvider,
       declaredVariables,
       typeSystem: library.typeSystem,
-      experimentStatus: experimentStatus,
     );
   }
 

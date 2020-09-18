@@ -215,6 +215,7 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = 0;
   static const intptr_t kFpuArgumentRegisters = 0;
   static const intptr_t kNumArgRegs = 0;
+  static const Register kPointerToReturnStructRegister = kNoRegister;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = 0;

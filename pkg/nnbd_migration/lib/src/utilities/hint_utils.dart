@@ -142,7 +142,7 @@ class HintComment {
   Map<int, List<AtomicEdit>> changesToRemove(String sourceText,
       {AtomicEditInfo info}) {
     bool appendSpace = false;
-    var removeOffset = this._removeOffset;
+    var removeOffset = _removeOffset;
     if (_isIdentifierCharBeforeOffset(sourceText, removeOffset) &&
         _isIdentifierCharAtOffset(sourceText, _removeEnd)) {
       if (sourceText[removeOffset] == ' ') {

@@ -308,6 +308,10 @@ class CallingConventions {
   static const intptr_t kArgumentRegisters = kAbiArgumentCpuRegs;
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 8;
+  // The native ABI uses R8 to pass the pointer to the memory preallocated for
+  // struct return values. Arm64 is the only ABI in which this pointer is _not_
+  // in ArgumentRegisters[0] or on the stack.
+  static const Register kPointerToReturnStructRegister = R8;
 
   static const FpuRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters =
@@ -350,9 +354,13 @@ class CallingConventions {
   static constexpr FpuRegister kReturnFpuReg = V0;
 
   static constexpr Register kFirstCalleeSavedCpuReg = kAbiFirstPreservedCpuReg;
-  static constexpr Register kFirstNonArgumentRegister = R8;
-  static constexpr Register kSecondNonArgumentRegister = R9;
+  static constexpr Register kFirstNonArgumentRegister = R9;
+  static constexpr Register kSecondNonArgumentRegister = R10;
   static constexpr Register kStackPointerRegister = SPREG;
+
+  COMPILE_ASSERT(
+      ((R(kFirstNonArgumentRegister) | R(kSecondNonArgumentRegister)) &
+       (kArgumentRegisters | R(kPointerToReturnStructRegister))) == 0);
 };
 
 #undef R
