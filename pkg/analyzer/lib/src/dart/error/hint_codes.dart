@@ -577,6 +577,19 @@ class HintCode extends AnalyzerErrorCode {
       "The annotation '{0}' can only be used on {1}");
 
   /**
+   * This hint is generated anywhere where an element annotated with `@internal`
+   * is exported as a part of a package's public API.
+   *
+   * Parameters:
+   * 0: the name of the element
+   */
+  static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT = HintCode(
+      'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
+      "The member '{0}' can't be exported as a part of a package's public "
+          "API.",
+      correction: "Try using a hide clause to hide '{0}'.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
@@ -611,6 +624,15 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_IMMUTABLE_ANNOTATION = HintCode(
       'INVALID_IMMUTABLE_ANNOTATION',
       "Only classes can be annotated as being immutable.");
+
+  /**
+   * This hint is generated anywhere a @internal annotation is associated with
+   * an element found in a package's public API.
+   */
+  static const HintCode INVALID_INTERNAL_ANNOTATION = HintCode(
+      'INVALID_INTERNAL_ANNOTATION',
+      "Only public elements in a package's private API can be annotated as "
+          "being internal.");
 
   /// Invalid Dart language version comments don't follow the specification [1].
   /// If a comment begins with "@dart" or "dart" (letters in any case),
@@ -922,7 +944,7 @@ class HintCode extends AnalyzerErrorCode {
 
   /**
    * This hint is generated anywhere where a member annotated with `@protected`
-   * is used outside an instance member of a subclass.
+   * is used outside of an instance member of a subclass.
    *
    * Parameters:
    * 0: the name of the member

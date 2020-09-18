@@ -279,6 +279,8 @@ import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
+import 'invalid_export_of_internal_element_test.dart'
+    as invalid_export_of_internal_element;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
 import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
@@ -287,6 +289,7 @@ import 'invalid_factory_name_not_a_class_test.dart'
     as invalid_factory_name_not_a_class;
 import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
+import 'invalid_internal_annotation_test.dart' as invalid_internal_annotation;
 import 'invalid_language_override_greater_test.dart'
     as invalid_language_override_greater;
 import 'invalid_language_override_test.dart' as invalid_language_override;
@@ -828,12 +831,14 @@ main() {
     invalid_constant.main();
     invalid_constructor_name.main();
     invalid_exception_value.main();
+    invalid_export_of_internal_element.main();
     invalid_extension_argument_count.main();
     invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
     invalid_factory_name_not_a_class.main();
     invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
+    invalid_internal_annotation.main();
     invalid_language_override_greater.main();
     invalid_language_override.main();
     invalid_literal_annotation.main();

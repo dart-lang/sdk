@@ -460,6 +460,9 @@ abstract class Member implements Element {
   bool get hasFactory => _declaration.hasFactory;
 
   @override
+  bool get hasInternal => _declaration.hasInternal;
+
+  @override
   bool get hasIsTest => _declaration.hasIsTest;
 
   @override

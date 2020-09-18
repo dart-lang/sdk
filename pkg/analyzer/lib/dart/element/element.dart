@@ -534,6 +534,9 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@factory`.
   bool get hasFactory;
 
+  /// Return `true` if this element has an annotation of the form `@internal`.
+  bool get hasInternal;
+
   /// Return `true` if this element has an annotation of the form `@isTest`.
   bool get hasIsTest;
 
@@ -716,6 +719,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated class and its
   /// subclasses as being immutable.
   bool get isImmutable;
+
+  /// Return `true` if this annotation marks the associated element as being
+  /// internal to its package.
+  bool get isInternal;
 
   /// Return `true` if this annotation marks the associated member as running
   /// a single test.

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -113,6 +114,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     );
   }
 
+  bool get _inPublicPackageApi {
+    return _workspacePackage != null &&
+        _workspacePackage.sourceIsInPublicApi(_currentLibrary.source);
+  }
+
   @override
   void visitAnnotation(Annotation node) {
     ElementAnnotation element = node.elementAnnotation;
@@ -131,6 +137,35 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (parent is! ClassOrMixinDeclaration && parent is! ClassTypeAlias) {
         _errorReporter.reportErrorForNode(
             HintCode.INVALID_IMMUTABLE_ANNOTATION, node, []);
+      }
+    } else if (element.isInternal) {
+      var parentElement = parent is Declaration ? parent.declaredElement : null;
+      if (parent is TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable in parent.variables.variables) {
+          if (Identifier.isPrivateName(variable.declaredElement.name)) {
+            _errorReporter.reportErrorForNode(
+                HintCode.INVALID_INTERNAL_ANNOTATION, variable, []);
+          }
+        }
+      } else if (parent is FieldDeclaration) {
+        for (VariableDeclaration variable in parent.fields.variables) {
+          if (Identifier.isPrivateName(variable.declaredElement.name)) {
+            _errorReporter.reportErrorForNode(
+                HintCode.INVALID_INTERNAL_ANNOTATION, variable, []);
+          }
+        }
+      } else if (parent is ConstructorDeclaration) {
+        var class_ = parent.declaredElement.enclosingElement;
+        if (class_.isPrivate || (parentElement?.isPrivate ?? false)) {
+          _errorReporter.reportErrorForNode(
+              HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
+        }
+      } else if (parentElement?.isPrivate ?? false) {
+        _errorReporter
+            .reportErrorForNode(HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
+      } else if (_inPublicPackageApi) {
+        _errorReporter
+            .reportErrorForNode(HintCode.INVALID_INTERNAL_ANNOTATION, node, []);
       }
     } else if (element.isLiteral == true) {
       if (parent is! ConstructorDeclaration ||
@@ -319,6 +354,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     _checkForDeprecatedMemberUse(node.uriElement, node);
+    _checkForInternalExport(node);
     super.visitExportDirective(node);
   }
 
@@ -992,6 +1028,31 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
             HintCode.MUST_BE_IMMUTABLE, node.name, [nonFinalFields.join(', ')]);
       }
     }
+  }
+
+  /// Check that the namespace exported by [node] does not include any elements
+  /// annotated with `@internal`.
+  void _checkForInternalExport(ExportDirective node) {
+    if (!_inPublicPackageApi) return;
+
+    var libraryElement = node.uriElement;
+    if (libraryElement == null) return;
+    if (libraryElement.hasInternal) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+          node,
+          [libraryElement.displayName]);
+    }
+    var exportNamespace =
+        NamespaceBuilder().createExportNamespaceForDirective(node.element);
+    exportNamespace.definedNames.forEach((String name, Element element) {
+      if (element.hasInternal) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+            node,
+            [element.displayName]);
+      }
+    });
   }
 
   void _checkForInvalidFactory(MethodDeclaration decl) {
