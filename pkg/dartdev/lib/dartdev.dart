@@ -78,19 +78,6 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     io.exit(0);
   }
 
-  // --launch-dds is provided by the VM if the VM service is to be enabled. In
-  // that case, we need to launch DDS as well.
-  final launchDdsArg = args.singleWhere(
-    (element) => element.startsWith('--launch-dds'),
-    orElse: () => null,
-  );
-  if (launchDdsArg != null) {
-    RunCommand.launchDds = true;
-    final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
-    RunCommand.ddsHost = ddsUrl[0];
-    RunCommand.ddsPort = ddsUrl[1];
-  }
-
   String commandName;
 
   try {
@@ -101,12 +88,6 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     // it if it is contained in args.
     if (args.contains('--disable-dartdev-analytics')) {
       args = List.from(args)..remove('--disable-dartdev-analytics');
-    }
-
-    // Run also can't be called with '--launch-dds', remove it if it's
-    // contained in args.
-    if (launchDdsArg != null) {
-      args = List.from(args)..remove(launchDdsArg);
     }
 
     // These flags have a format that can't be handled by package:args, so
@@ -237,11 +218,6 @@ class DartdevRunner<int> extends CommandRunner {
       help: 'Disable anonymous analytics for this `dart *` run',
       hide: true,
     );
-
-    // Another hidden flag used by the VM to indicate that DDS should be
-    // launched. Should be removed for all commands other than `run`.
-    argParser.addFlag('launch-dds',
-        negatable: false, hide: true, help: 'Launch DDS.');
 
     addCommand(AnalyzeCommand());
     addCommand(CreateCommand(verbose: verbose));

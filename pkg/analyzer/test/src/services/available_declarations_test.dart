@@ -202,7 +202,10 @@ class C {}
   }
 
   test_getLibrary_exportViaRecursiveLink() async {
-    resourceProvider.newLink('/home/test/lib/foo', '/home/test/lib');
+    resourceProvider.newLink(
+      convertPath('/home/test/lib/foo'),
+      convertPath('/home/test/lib'),
+    );
 
     newFile('/home/test/lib/a.dart', content: r'''
 export 'foo/a.dart';

@@ -21,10 +21,6 @@ import '../vm_interop_handler.dart';
 class RunCommand extends DartdevCommand<int> {
   static const String cmdName = 'run';
 
-  static bool launchDds = false;
-  static String ddsHost;
-  static String ddsPort;
-
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
   static const errorExitCode = 255;
 
@@ -62,6 +58,7 @@ class RunCommand extends DartdevCommand<int> {
             'with a set of common options useful for debugging.',
         valueHelp: '[<port>[/<bind-address>]]',
       )
+      ..addOption('launch-dds', hide: true, help: 'Launch DDS.')
       ..addSeparator(
         'Options implied by --observe are currently:',
       )
@@ -160,6 +157,22 @@ class RunCommand extends DartdevCommand<int> {
   FutureOr<int> runImpl() async {
     // The command line arguments after 'run'
     var args = argResults.arguments.toList();
+    // --launch-dds is provided by the VM if the VM service is to be enabled. In
+    // that case, we need to launch DDS as well.
+    bool launchDds = false;
+    String ddsHost = '';
+    String ddsPort = '';
+
+    final launchDdsArg = args.singleWhere(
+      (element) => element.startsWith('--launch-dds'),
+      orElse: () => null,
+    );
+    if (launchDdsArg != null) {
+      launchDds = true;
+      final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
+      ddsHost = ddsUrl[0];
+      ddsPort = ddsUrl[1];
+    }
 
     var argsContainFile = false;
     for (var arg in args) {
@@ -171,6 +184,9 @@ class RunCommand extends DartdevCommand<int> {
         return 0;
       }
     }
+
+    var disableServiceAuthCodes =
+        argResults['disable-service-auth-codes'] ?? false;
 
     final cwd = Directory.current;
     if (!argsContainFile && cwd.existsSync()) {
@@ -218,7 +234,8 @@ class RunCommand extends DartdevCommand<int> {
     _DebuggingSession debugSession;
     if (launchDds) {
       debugSession = _DebuggingSession();
-      if (!await debugSession.start()) {
+      if (!await debugSession.start(
+          ddsHost, ddsPort, disableServiceAuthCodes)) {
         return errorExitCode;
       }
     }
@@ -251,7 +268,8 @@ class RunCommand extends DartdevCommand<int> {
 }
 
 class _DebuggingSession {
-  Future<bool> start() async {
+  Future<bool> start(
+      String host, String port, bool disableServiceAuthCodes) async {
     final serviceInfo = await Service.getInfo();
     final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
         ? sdk.ddsSnapshot
@@ -267,8 +285,9 @@ class _DebuggingSession {
           else
             absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot'),
           serviceInfo.serverUri.toString(),
-          RunCommand.ddsHost,
-          RunCommand.ddsPort,
+          host,
+          port,
+          disableServiceAuthCodes.toString(),
         ],
         mode: ProcessStartMode.detachedWithStdio);
     final completer = Completer<void>();

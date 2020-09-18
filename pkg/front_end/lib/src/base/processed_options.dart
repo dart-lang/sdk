@@ -382,7 +382,6 @@ class ProcessedOptions {
       List<int> bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
         _sdkSummaryComponent = loadComponent(bytes, nameRoot);
-        _validateNullSafetyMode(_sdkSummaryComponent);
       }
     }
     return _sdkSummaryComponent;
@@ -408,8 +407,7 @@ class ProcessedOptions {
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _additionalDillComponents = allBytes
           .where((bytes) => bytes != null)
-          .map((bytes) =>
-              _validateNullSafetyMode(loadComponent(bytes, nameRoot)))
+          .map((bytes) => loadComponent(bytes, nameRoot))
           .toList();
     }
     return _additionalDillComponents;

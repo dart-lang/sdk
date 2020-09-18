@@ -376,7 +376,7 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
 
   _AllMatchesIterator(this._re, this._str, this._nextIndex);
 
-  RegExpMatch get current => _current!;
+  RegExpMatch get current => _current as RegExpMatch;
 
   static bool _isLeadSurrogate(int c) {
     return c >= 0xd800 && c <= 0xdbff;
