@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -141,7 +140,7 @@ class InstanceMemberInferrer {
       );
       if (combinedGetter != null) {
         var returnType = combinedGetter.returnType;
-        return nonNullifyType(typeSystem, returnType);
+        return typeSystem.nonNullifyLegacy(returnType);
       }
       return DynamicTypeImpl.instance;
     }
@@ -155,7 +154,7 @@ class InstanceMemberInferrer {
       );
       if (combinedSetter != null) {
         var type = combinedSetter.parameters[0].type;
-        return nonNullifyType(typeSystem, type);
+        return typeSystem.nonNullifyLegacy(type);
       }
       return DynamicTypeImpl.instance;
     }
@@ -282,7 +281,7 @@ class InstanceMemberInferrer {
 
           if (getterType == setterType) {
             var type = getterType;
-            type = nonNullifyType(typeSystem, type);
+            type = typeSystem.nonNullifyLegacy(type);
             field.type = type;
           } else {
             LazyAst.setTypeInferenceError(
@@ -443,7 +442,7 @@ class InstanceMemberInferrer {
     if (element.hasImplicitReturnType && element.displayName != '[]=') {
       if (combinedSignatureType != null) {
         var returnType = combinedSignatureType.returnType;
-        returnType = nonNullifyType(typeSystem, returnType);
+        returnType = typeSystem.nonNullifyLegacy(returnType);
         element.returnType = returnType;
       } else {
         element.returnType = DynamicTypeImpl.instance;
@@ -490,7 +489,7 @@ class InstanceMemberInferrer {
       );
       if (matchingParameter != null) {
         var type = matchingParameter.type;
-        type = nonNullifyType(typeSystem, type);
+        type = typeSystem.nonNullifyLegacy(type);
         parameter.type = type;
       } else {
         parameter.type = DynamicTypeImpl.instance;

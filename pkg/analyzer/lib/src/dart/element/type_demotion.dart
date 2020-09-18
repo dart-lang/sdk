@@ -8,17 +8,16 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 
 /// Returns [type] in which all promoted type variables have been replace with
 /// their unpromoted equivalents, and, if [library] is non-nullable by default,
 /// replaces all legacy types with their non-nullable equivalents.
 DartType demoteType(LibraryElement library, DartType type) {
   if (library.isNonNullableByDefault) {
-    var visitor = const _DemotionNonNullification();
+    var visitor = const DemotionNonNullificationVisitor();
     return type.accept(visitor) ?? type;
   } else {
-    var visitor = const _DemotionNonNullification(nonNullifyTypes: false);
+    var visitor = const DemotionNonNullificationVisitor(nonNullifyTypes: false);
     return type.accept(visitor) ?? type;
   }
 }
@@ -30,25 +29,15 @@ bool hasPromotedTypeVariable(DartType type) {
   );
 }
 
-/// Returns [type] in which all legacy types have been replaced with
-/// non-nullable types.
-DartType nonNullifyType(TypeSystemImpl typeSystem, DartType type) {
-  if (typeSystem.isNonNullableByDefault && type != null) {
-    var visitor = const _DemotionNonNullification(demoteTypeVariables: false);
-    return type.accept(visitor) ?? type;
-  }
-  return type;
-}
-
 /// Visitor that replaces all promoted type variables the type variable itself
 /// and/or replaces all legacy types with non-nullable types.
 ///
 /// The visitor returns `null` if the type wasn't changed.
-class _DemotionNonNullification extends ReplacementVisitor {
+class DemotionNonNullificationVisitor extends ReplacementVisitor {
   final bool demoteTypeVariables;
   final bool nonNullifyTypes;
 
-  const _DemotionNonNullification({
+  const DemotionNonNullificationVisitor({
     this.demoteTypeVariables = true,
     this.nonNullifyTypes = true,
   }) : assert(demoteTypeVariables || nonNullifyTypes);
