@@ -1184,7 +1184,7 @@
             "co19"
           ],
           "fileset": "front-end",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "strong co19 tests",
@@ -1193,7 +1193,7 @@
             "co19"
           ],
           "fileset": "front-end",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "weak sdk tests",
