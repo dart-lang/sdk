@@ -1140,8 +1140,8 @@ void HeapSnapshotWriter::Write() {
 
     // Root "object".
     ++object_count_;
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    isolate()->group()->VisitObjectPointers(&visitor,
+                                            ValidationPolicy::kDontValidateFrames);
 
     // Heap objects.
     iteration.IterateVMIsolateObjects(&visitor);
@@ -1162,11 +1162,11 @@ void HeapSnapshotWriter::Write() {
     WriteUnsigned(0);  // shallowSize
     WriteUnsigned(kNoData);
     visitor.DoCount();
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    isolate()->group()->VisitObjectPointers(&visitor,
+                                            ValidationPolicy::kDontValidateFrames);
     visitor.DoWrite();
-    isolate()->VisitObjectPointers(&visitor,
-                                   ValidationPolicy::kDontValidateFrames);
+    isolate()->group()->VisitObjectPointers(&visitor,
+                                            ValidationPolicy::kDontValidateFrames);
 
     // Heap objects.
     visitor.set_discount_sizes(true);
