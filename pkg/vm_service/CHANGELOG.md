@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.0
+- Added support for `dart:io` extensions version 1.2.
+- Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs.
+- Added `OpenFileList`, `OpenFileRef`, `OpenFile`, `SpawnedProcessList`, `SpawnedProcessRef`, and `SpawnedProcess` objects.
+
 ## 5.0.0
 
 - **breaking**: Update to version `3.39.0` of the spec.

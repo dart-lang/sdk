@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'package:expect/expect.dart';
-import 'package:observatory/service_io.dart';
+
+import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
-import 'test_helper.dart';
+
+import 'common/test_helper.dart';
 
 Future setupFiles() async {
   final dir = await io.Directory.systemTemp.createTemp('file_service');
@@ -55,11 +56,10 @@ Future setupFiles() async {
       final utilFile = io.File(writeTemp);
       await utilFile.writeAsString('foobar');
       final readTemp = io.File(writeTemp);
-      final result = await readTemp.readAsString();
-      Expect.equals(result, 'foobar');
+      await readTemp.readAsString();
     } catch (e) {
       closeDown();
-      throw e;
+      rethrow;
     }
     final result = jsonEncode({'type': 'foobar'});
     return Future.value(ServiceExtensionResponse.result(result));
@@ -70,34 +70,42 @@ Future setupFiles() async {
 }
 
 var fileTests = <IsolateTest>[
-  (Isolate isolate) async {
-    await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
+  (VmService service, IsolateRef isolate) async {
+    await service.callServiceExtension(
+      'ext.dart.io.setup',
+      isolateId: isolate.id,
+    );
     try {
-      final result =
-          await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenFiles', {});
-      expect(result['type'], equals('OpenFileList'));
-      expect(result['files'].length, equals(2));
-      final writing = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getOpenFileById', {'id': result['files'][0]['id']});
+      final result = await service.getOpenFiles(isolate.id);
+      expect(result, isA<OpenFileList>());
+      expect(result.files.length, equals(2));
+      final writing = await service.getOpenFileById(
+        isolate.id,
+        result.files[0].id,
+      );
 
-      expect(writing['readBytes'], equals(0));
-      expect(writing['readCount'], equals(0));
-      expect(writing['writeCount'], equals(3));
-      expect(writing['writeBytes'], equals(3));
-      expect(writing['lastWriteTime'], greaterThan(0));
-      expect(writing['lastReadTime'], equals(0));
+      expect(writing.readBytes, 0);
+      expect(writing.readCount, 0);
+      expect(writing.writeCount, 3);
+      expect(writing.writeBytes, 3);
+      expect(writing.lastWriteTime.millisecondsSinceEpoch, greaterThan(0));
+      expect(writing.lastReadTime.millisecondsSinceEpoch, 0);
 
-      final reading = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getOpenFileById', {'id': result['files'][1]['id']});
-
-      expect(reading['readBytes'], equals(5));
-      expect(reading['readCount'], equals(5));
-      expect(reading['writeCount'], equals(0));
-      expect(reading['writeBytes'], equals(0));
-      expect(reading['lastWriteTime'], equals(0));
-      expect(reading['lastReadTime'], greaterThan(0));
+      final reading = await service.getOpenFileById(
+        isolate.id,
+        result.files[1].id,
+      );
+      expect(reading.readBytes, 5);
+      expect(reading.readCount, 5);
+      expect(reading.writeCount, 0);
+      expect(reading.writeBytes, 0);
+      expect(reading.lastWriteTime.millisecondsSinceEpoch, 0);
+      expect(reading.lastReadTime.millisecondsSinceEpoch, greaterThan(0));
     } finally {
-      await isolate.invokeRpcNoUpgrade('ext.dart.io.cleanup', {});
+      await service.callServiceExtension(
+        'ext.dart.io.cleanup',
+        isolateId: isolate.id,
+      );
     }
   },
 ];

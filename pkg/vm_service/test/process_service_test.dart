@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,11 +7,11 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
 
-import 'package:observatory/service_io.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'test_helper.dart';
+import 'common/test_helper.dart';
 
 final dartJITBinary = path.join(path.dirname(io.Platform.resolvedExecutable),
     'dart' + path.extension(io.Platform.resolvedExecutable));
@@ -90,49 +90,59 @@ Future setupProcesses() async {
 
 final processTests = <IsolateTest>[
   // Initial.
-  (Isolate isolate) async {
-    final setup = await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
+  (VmService service, IsolateRef isolate) async {
+    final setup = await service.callServiceExtension(
+      'ext.dart.io.setup',
+      isolateId: isolate.id,
+    );
     try {
-      var all = await isolate
-          .invokeRpcNoUpgrade('ext.dart.io.getSpawnedProcesses', {});
-      expect(all['type'], equals('SpawnedProcessList'));
+      SpawnedProcessList all = await service.getSpawnedProcesses(isolate.id);
+      expect(all.processes.length, equals(3));
 
-      expect(all['processes'].length, equals(3));
+      final first = await service.getSpawnedProcessById(
+        isolate.id,
+        all.processes[0].id,
+      );
 
-      final first = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getSpawnedProcessById',
-          {'id': all['processes'][0]['id']});
-      expect(first['name'], io.Platform.executable);
-      expect(first['pid'], equals(setup['pids'][0]));
-      expect(first['arguments'].contains('foobar'), isFalse);
-      expect(first['startedAt'], greaterThan(0));
+      expect(first.name, io.Platform.executable);
+      expect(first.pid, equals(setup.json['pids'][0]));
+      expect(first.arguments.contains('foobar'), isFalse);
+      expect(first.startedAt, greaterThan(0));
 
-      final second = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getSpawnedProcessById',
-          {'id': all['processes'][1]['id']});
-      expect(second['name'], io.Platform.executable);
-      expect(second['pid'], equals(setup['pids'][1]));
-      expect(second['arguments'].contains('foobar'), isTrue);
-      expect(second['pid'] != first['pid'], isTrue);
-      expect(second['startedAt'], greaterThan(0));
-      expect(second['startedAt'], greaterThanOrEqualTo(first['startedAt']));
+      final second = await service.getSpawnedProcessById(
+        isolate.id,
+        all.processes[1].id,
+      );
 
-      final third = await isolate.invokeRpcNoUpgrade(
-          'ext.dart.io.getSpawnedProcessById',
-          {'id': all['processes'][2]['id']});
-      expect(third['name'], dartJITBinary);
-      expect(third['pid'], equals(setup['pids'][2]));
-      expect(third['pid'] != first['pid'], isTrue);
-      expect(third['pid'] != second['pid'], isTrue);
-      expect(third['startedAt'], greaterThanOrEqualTo(second['startedAt']));
+      expect(second.name, io.Platform.executable);
+      expect(second.pid, equals(setup.json['pids'][1]));
+      expect(second.arguments.contains('foobar'), isTrue);
+      expect(second.pid != first.pid, isTrue);
+      expect(second.startedAt, greaterThan(0));
+      expect(second.startedAt, greaterThanOrEqualTo(first.startedAt));
 
-      await isolate.invokeRpcNoUpgrade('ext.dart.io.closeStdin', {});
-      all = await isolate
-          .invokeRpcNoUpgrade('ext.dart.io.getSpawnedProcesses', {});
-      expect(all['type'], equals('SpawnedProcessList'));
-      expect(all['processes'].length, equals(2));
+      final third = await service.getSpawnedProcessById(
+        isolate.id,
+        all.processes[2].id,
+      );
+
+      expect(third.name, dartJITBinary);
+      expect(third.pid, equals(setup.json['pids'][2]));
+      expect(third.pid != first.pid, isTrue);
+      expect(third.pid != second.pid, isTrue);
+      expect(third.startedAt, greaterThanOrEqualTo(second.startedAt));
+
+      await service.callServiceExtension(
+        'ext.dart.io.closeStdin',
+        isolateId: isolate.id,
+      );
+      all = await service.getSpawnedProcesses(isolate.id);
+      expect(all.processes.length, equals(2));
     } finally {
-      await isolate.invokeRpcNoUpgrade('ext.dart.io.cleanup', {});
+      await service.callServiceExtension(
+        'ext.dart.io.cleanup',
+        isolateId: isolate.id,
+      );
     }
   },
 ];

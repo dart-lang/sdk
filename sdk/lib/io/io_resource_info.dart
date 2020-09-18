@@ -10,10 +10,10 @@ abstract class _IOResourceInfo {
   String get name;
   static int _count = 0;
 
-  static final Stopwatch _sw = new Stopwatch()..start();
-  static final _startTime = new DateTime.now().millisecondsSinceEpoch;
+  static final Stopwatch _sw = Stopwatch()..start();
+  static final _startTime = DateTime.now().millisecondsSinceEpoch;
 
-  static double get timestamp => _startTime + _sw.elapsedMicroseconds / 1000;
+  static int get timestamp => _startTime + _sw.elapsedMicroseconds ~/ 1000;
 
   _IOResourceInfo(this.type) : id = _IOResourceInfo.getNextID();
 
@@ -34,20 +34,20 @@ abstract class _IOResourceInfo {
 }
 
 abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
-  int totalRead;
-  int totalWritten;
+  int readBytes;
+  int writeBytes;
   int readCount;
   int writeCount;
-  double lastRead;
-  double lastWrite;
+  int lastReadTime;
+  int lastWriteTime;
 
   // Not all call sites use this. In some cases, e.g., a socket, a read does
   // not always mean that we actually read some bytes (we may do a read to see
   // if there are some bytes available).
   void addRead(int bytes) {
-    totalRead += bytes;
+    readBytes += bytes;
     readCount++;
-    lastRead = _IOResourceInfo.timestamp;
+    lastReadTime = _IOResourceInfo.timestamp;
   }
 
   // In cases where we read but did not necessarily get any bytes, use this to
@@ -58,102 +58,100 @@ abstract class _ReadWriteResourceInfo extends _IOResourceInfo {
   }
 
   void addWrite(int bytes) {
-    totalWritten += bytes;
+    writeBytes += bytes;
     writeCount++;
-    lastWrite = _IOResourceInfo.timestamp;
+    lastWriteTime = _IOResourceInfo.timestamp;
   }
 
   _ReadWriteResourceInfo(String type)
-      : totalRead = 0,
-        totalWritten = 0,
+      : readBytes = 0,
+        writeBytes = 0,
         readCount = 0,
         writeCount = 0,
-        lastRead = 0.0,
-        lastWrite = 0.0,
+        lastReadTime = 0,
+        lastWriteTime = 0,
         super(type);
 
   Map<String, dynamic> get fullValueMap => {
         'type': type,
         'id': id,
         'name': name,
-        'totalRead': totalRead,
-        'totalWritten': totalWritten,
+        'readBytes': readBytes,
+        'writeBytes': writeBytes,
         'readCount': readCount,
         'writeCount': writeCount,
-        'lastRead': lastRead,
-        'lastWrite': lastWrite
+        'lastReadTime': lastReadTime,
+        'lastWriteTime': lastWriteTime
       };
 }
 
 class _FileResourceInfo extends _ReadWriteResourceInfo {
-  static const String _type = '_file';
+  static const String _type = 'OpenFile';
 
   final file;
 
-  static Map<int, _FileResourceInfo> openFiles =
-      new Map<int, _FileResourceInfo>();
+  static Map<int, _FileResourceInfo> openFiles = {};
 
   _FileResourceInfo(this.file) : super(_type) {
-    FileOpened(this);
+    fileOpened(this);
   }
 
-  static FileOpened(_FileResourceInfo info) {
+  static fileOpened(_FileResourceInfo info) {
     assert(!openFiles.containsKey(info.id));
     openFiles[info.id] = info;
   }
 
-  static FileClosed(_FileResourceInfo info) {
+  static fileClosed(_FileResourceInfo info) {
     assert(openFiles.containsKey(info.id));
     openFiles.remove(info.id);
   }
 
   static Iterable<Map<String, dynamic>> getOpenFilesList() {
-    return new List.from(openFiles.values.map((e) => e.referenceValueMap));
+    return List.from(openFiles.values.map(
+      (e) => e.referenceValueMap,
+    ));
   }
 
   static Future<ServiceExtensionResponse> getOpenFiles(function, params) {
     assert(function == 'ext.dart.io.getOpenFiles');
-    var data = {'type': '_openfiles', 'data': getOpenFilesList()};
-    var jsonValue = json.encode(data);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    final data = {
+      'type': 'OpenFileList',
+      'files': getOpenFilesList(),
+    };
+    final jsonValue = json.encode(data);
+    return Future.value(ServiceExtensionResponse.result(jsonValue));
   }
 
-  Map<String, dynamic> getFileInfoMap() {
-    return fullValueMap;
+  Map<String, dynamic> get fileInfoMap => fullValueMap;
+
+  static Future<ServiceExtensionResponse> getOpenFileInfoMapByID(
+      function, params) {
+    final id = int.parse(params['id']!);
+    final result = openFiles.containsKey(id) ? openFiles[id]!.fileInfoMap : {};
+    final jsonValue = json.encode(result);
+    return Future.value(ServiceExtensionResponse.result(jsonValue));
   }
 
-  static Future<ServiceExtensionResponse> getFileInfoMapByID(function, params) {
-    var id = int.parse(params['id']!);
-    var result =
-        openFiles.containsKey(id) ? openFiles[id]!.getFileInfoMap() : {};
-    var jsonValue = json.encode(result);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
-  }
-
-  String get name {
-    return '${file.path}';
-  }
+  String get name => file.path;
 }
 
-class _ProcessResourceInfo extends _IOResourceInfo {
-  static const String _type = '_process';
+class _SpawnedProcessResourceInfo extends _IOResourceInfo {
+  static const String _type = 'SpawnedProcess';
   final process;
-  final double startedAt;
+  final int startedAt;
 
-  static Map<int, _ProcessResourceInfo> startedProcesses =
-      new Map<int, _ProcessResourceInfo>();
+  static Map<int, _SpawnedProcessResourceInfo> startedProcesses =
+      Map<int, _SpawnedProcessResourceInfo>();
 
-  _ProcessResourceInfo(this.process)
+  _SpawnedProcessResourceInfo(this.process)
       : startedAt = _IOResourceInfo.timestamp,
         super(_type) {
-    ProcessStarted(this);
+    processStarted(this);
   }
 
   String get name => process._path;
 
-  void stopped() {
-    ProcessStopped(this);
-  }
+  void stopped() => processStopped(this);
 
   Map<String, dynamic> get fullValueMap => {
         'type': type,
@@ -166,115 +164,39 @@ class _ProcessResourceInfo extends _IOResourceInfo {
             process._workingDirectory == null ? '.' : process._workingDirectory,
       };
 
-  static ProcessStarted(_ProcessResourceInfo info) {
+  static processStarted(_SpawnedProcessResourceInfo info) {
     assert(!startedProcesses.containsKey(info.id));
     startedProcesses[info.id] = info;
   }
 
-  static ProcessStopped(_ProcessResourceInfo info) {
+  static processStopped(_SpawnedProcessResourceInfo info) {
     assert(startedProcesses.containsKey(info.id));
     startedProcesses.remove(info.id);
   }
 
   static Iterable<Map<String, dynamic>> getStartedProcessesList() =>
-      new List.from(startedProcesses.values.map((e) => e.referenceValueMap));
+      List.from(startedProcesses.values.map(
+        (e) => e.referenceValueMap,
+      ));
 
   static Future<ServiceExtensionResponse> getStartedProcesses(
       String function, Map<String, String> params) {
-    assert(function == 'ext.dart.io.getProcesses');
-    var data = {'type': '_startedprocesses', 'data': getStartedProcessesList()};
-    var jsonValue = json.encode(data);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    assert(function == 'ext.dart.io.getSpawnedProcesses');
+    final data = {
+      'type': 'SpawnedProcessList',
+      'processes': getStartedProcessesList(),
+    };
+    final jsonValue = json.encode(data);
+    return Future.value(ServiceExtensionResponse.result(jsonValue));
   }
 
   static Future<ServiceExtensionResponse> getProcessInfoMapById(
       String function, Map<String, String> params) {
-    var id = int.parse(params['id']!);
-    var result = startedProcesses.containsKey(id)
+    final id = int.parse(params['id']!);
+    final result = startedProcesses.containsKey(id)
         ? startedProcesses[id]!.fullValueMap
         : {};
-    var jsonValue = json.encode(result);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
-  }
-}
-
-class _SocketResourceInfo extends _ReadWriteResourceInfo {
-  static const String _tcpString = 'TCP';
-  static const String _udpString = 'UDP';
-  static const String _type = '_socket';
-
-  final /*_NativeSocket|*/ socket;
-
-  static Map<int, _SocketResourceInfo> openSockets =
-      new Map<int, _SocketResourceInfo>();
-
-  _SocketResourceInfo(this.socket) : super(_type) {
-    SocketOpened(this);
-  }
-
-  String get name {
-    if (socket.isListening) {
-      return 'listening:${socket.address.host}:${socket.port}';
-    }
-    var remote = '';
-    try {
-      var remoteHost = socket.remoteAddress.host;
-      var remotePort = socket.remotePort;
-      remote = ' -> $remoteHost:$remotePort';
-    } catch (e) {} // ignored if we can't get the information
-    return '${socket.address.host}:${socket.port}$remote';
-  }
-
-  static Iterable<Map<String, dynamic>> getOpenSocketsList() {
-    return new List.from(openSockets.values.map((e) => e.referenceValueMap));
-  }
-
-  Map<String, dynamic> getSocketInfoMap() {
-    var result = fullValueMap;
-    result['socketType'] = socket.isTcp ? _tcpString : _udpString;
-    result['listening'] = socket.isListening;
-    result['host'] = socket.address.host;
-    result['port'] = socket.port;
-    if (!socket.isListening) {
-      try {
-        result['remoteHost'] = socket.remoteAddress.host;
-        result['remotePort'] = socket.remotePort;
-      } catch (e) {
-        // UDP.
-        result['remotePort'] = 'NA';
-        result['remoteHost'] = 'NA';
-      }
-    } else {
-      result['remotePort'] = 'NA';
-      result['remoteHost'] = 'NA';
-    }
-    result['addressType'] = socket.address.type.name;
-    return result;
-  }
-
-  static Future<ServiceExtensionResponse> getSocketInfoMapByID(
-      String function, Map<String, String> params) {
-    var id = int.parse(params['id']!);
-    var result =
-        openSockets.containsKey(id) ? openSockets[id]!.getSocketInfoMap() : {};
-    var jsonValue = json.encode(result);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
-  }
-
-  static Future<ServiceExtensionResponse> getOpenSockets(function, params) {
-    assert(function == 'ext.dart.io.getOpenSockets');
-    var data = {'type': '_opensockets', 'data': getOpenSocketsList()};
-    var jsonValue = json.encode(data);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
-  }
-
-  static SocketOpened(_SocketResourceInfo info) {
-    assert(!openSockets.containsKey(info.id));
-    openSockets[info.id] = info;
-  }
-
-  static SocketClosed(_SocketResourceInfo info) {
-    assert(openSockets.containsKey(info.id));
-    openSockets.remove(info.id);
+    final jsonValue = json.encode(result);
+    return Future.value(ServiceExtensionResponse.result(jsonValue));
   }
 }

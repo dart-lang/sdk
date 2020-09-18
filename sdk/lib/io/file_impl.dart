@@ -679,7 +679,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void _maybePerformCleanup() {
     if (closed) {
-      _FileResourceInfo.FileClosed(_resourceInfo);
+      _FileResourceInfo.fileClosed(_resourceInfo);
     }
   }
 
@@ -691,8 +691,8 @@ class _RandomAccessFile implements RandomAccessFile {
       // open.
       registerExtension(
           'ext.dart.io.getOpenFiles', _FileResourceInfo.getOpenFiles);
-      registerExtension(
-          'ext.dart.io.getFileByID', _FileResourceInfo.getFileInfoMapByID);
+      registerExtension('ext.dart.io.getOpenFileById',
+          _FileResourceInfo.getOpenFileInfoMapByID);
       _connectedResourceHandler = true;
     }
   }
