@@ -3,9 +3,8 @@ observatory and to run the test scripts.
 
 The DEPS use CIPD's ${platform} syntax find the right SDK for the platform.
 
-We are currently using the 32-bit ia32 build as the default on Windows, and the
-64-bit x64 build as the default on Linux and Mac. arm and arm64 CIPD packages
-are used on Linux.
+We use the x64 build as the default on Linux, Mac and Windows. Builds for Linux
+on ARM and ARM64 are also provided.
 
 To upload new versions of these CIPD packages, run "./update.sh" in this
 directory. Because these SDKs are used for the presubmit dartfmt check on

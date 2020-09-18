@@ -32,7 +32,6 @@ class TypeTestingStubNamer {
   Library& lib_;
   Class& klass_;
   AbstractType& type_;
-  TypeArguments& type_arguments_;
   String& string_;
 };
 

@@ -23,7 +23,6 @@ TypeTestingStubNamer::TypeTestingStubNamer()
     : lib_(Library::Handle()),
       klass_(Class::Handle()),
       type_(AbstractType::Handle()),
-      type_arguments_(TypeArguments::Handle()),
       string_(String::Handle()) {}
 
 const char* TypeTestingStubNamer::StubNameForType(
@@ -56,16 +55,18 @@ const char* TypeTestingStubNamer::StringifyType(
         OS::SCreate(Z, "%s_%s", curl, klass_.ScrubbedNameCString()));
 
     const intptr_t type_parameters = klass_.NumTypeParameters();
+    auto& type_arguments = TypeArguments::Handle();
     if (type.arguments() != TypeArguments::null() && type_parameters > 0) {
-      type_arguments_ = type.arguments();
-      ASSERT(type_arguments_.Length() >= type_parameters);
-      const intptr_t length = type_arguments_.Length();
+      type_arguments = type.arguments();
+      ASSERT(type_arguments.Length() >= type_parameters);
+      const intptr_t length = type_arguments.Length();
       for (intptr_t i = 0; i < type_parameters; ++i) {
-        type_ = type_arguments_.TypeAt(length - type_parameters + i);
+        type_ = type_arguments.TypeAt(length - type_parameters + i);
         concatenated =
             OS::SCreate(Z, "%s__%s", concatenated, StringifyType(type_));
       }
     }
+
     return concatenated;
   } else if (type.IsTypeParameter()) {
     string_ = TypeParameter::Cast(type).name();
