@@ -369,6 +369,12 @@ dart_2/thread_priority_windows_test: SkipByDesign
 dart/thread_priority_linux_test: SkipByDesign
 dart_2/thread_priority_linux_test: SkipByDesign
 
+[ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd || $builder_tag == bytecode_mixed || $builder_tag == bytecode_mixed_nnbd ]
+cc/StreamingFlowGraphBuilder_ConcatStringLits: SkipByDesign # Optimisation isn't run for bytecode functions.
+cc/StreamingFlowGraphBuilder_ConstFoldStringConcats: SkipByDesign # Optimisation isn't run for bytecode functions.
+cc/StreamingFlowGraphBuilder_DropEmptyStringInterp: SkipByDesign # Optimisation isn't run for bytecode functions.
+cc/StreamingFlowGraphBuilder_FlattenNestedStringInterp: SkipByDesign # Optimisation isn't run for bytecode functions.
+
 [ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_interpreter_nnbd || $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkb && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
 dart_2/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensitive to when functions are optimized, so they are disabled on hotreload and optcounter bots.
