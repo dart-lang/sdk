@@ -757,11 +757,13 @@ nightly_builder(
     "front-end-nnbd-mac-release-x64",
     category = "cfe|nnbd|m",
     channels = ["try"],
+    dimensions = mac(),
 )
 nightly_builder(
     "front-end-nnbd-win-release-x64",
     category = "cfe|nnbd|w",
     channels = ["try"],
+    dimensions = windows(),
 )
 dart_ci_sandbox_builder(
     "flutter-frontend",
