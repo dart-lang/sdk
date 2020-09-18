@@ -115,7 +115,7 @@ class TokenDetailBuilder {
     } else if (type is InterfaceType) {
       Element element = type.element;
       if (element == null || element.isSynthetic) {
-        assert(false, "untested branch may print nullable types wrong");
+        assert(false, 'untested branch may print nullable types wrong');
         // TODO: test this, use the the library's nullability (not tracked yet).
         buffer.write(type.getDisplayString(withNullability: false));
       } else {
