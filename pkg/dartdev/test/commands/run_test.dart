@@ -156,10 +156,29 @@ void run() {
       '--no-pause-isolates-on-unhandled-exceptions',
       p.relativeFilePath,
     ]);
+    expect(
+      result.stdout,
+      matches(
+          r'Observatory listening on http://127.0.0.1:8181/[a-zA-Z0-9]+=/\n.*'),
+    );
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    // Again, with --disable-service-auth-codes.
+    result = p.runSync('run', [
+      '--observe',
+      '--pause-isolates-on-start',
+      // This should negate the above flag.
+      '--no-pause-isolates-on-start',
+      '--no-pause-isolates-on-exit',
+      '--no-pause-isolates-on-unhandled-exceptions',
+      '--disable-service-auth-codes',
+      p.relativeFilePath,
+    ]);
 
     expect(
       result.stdout,
-      contains('Observatory listening on'),
+      contains('Observatory listening on http://127.0.0.1:8181/\n'),
     );
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
