@@ -187,6 +187,7 @@ compiler_sources_tests = [
   "backend/typed_data_aot_test.cc",
   "backend/yield_position_test.cc",
   "cha_test.cc",
+  "frontend/kernel_binary_flowgraph_test.cc",
   "write_barrier_elimination_test.cc",
 ]
 

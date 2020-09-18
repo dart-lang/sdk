@@ -370,6 +370,11 @@ String& TranslationHelper::DartString(const uint8_t* utf8_array,
   return String::ZoneHandle(Z, String::FromUTF8(utf8_array, len, space));
 }
 
+const String& TranslationHelper::DartString(
+    const GrowableHandlePtrArray<const String>& pieces) {
+  return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+}
+
 const String& TranslationHelper::DartSymbolPlain(const char* content) const {
   return String::ZoneHandle(Z, Symbols::New(thread_, content));
 }

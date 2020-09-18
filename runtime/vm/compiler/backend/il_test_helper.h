@@ -122,6 +122,9 @@ enum MatchOpCode {
   // Moves forward until the next match code matches.
   kMoveGlob,
 
+  // Moves over any DebugStepChecks.
+  kMoveDebugStepChecks,
+
   // Invalid match opcode used as default [insert_before] argument to TryMatch
   // to signal that no insertions should occur.
   kInvalidMatchOpCode,

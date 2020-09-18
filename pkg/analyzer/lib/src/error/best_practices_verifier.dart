@@ -1892,7 +1892,7 @@ extension on TargetKind {
       case TargetKind.function:
         return 'top-level functions';
       case TargetKind.library:
-        return 'librarys';
+        return 'libraries';
       case TargetKind.getter:
         return 'getters';
       case TargetKind.method:

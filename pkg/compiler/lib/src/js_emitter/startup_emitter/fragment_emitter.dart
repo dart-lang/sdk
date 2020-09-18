@@ -168,6 +168,27 @@ function lazy(holder, name, getterName, initializer) {
   };
 }
 
+// Creates a lazy final field that uses non-nullable initialization semantics.
+//
+// A lazy field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. If the field wasn't set before
+// the first access, it is initialized with the [initializer].
+function lazyFinal(holder, name, getterName, initializer) {
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
+  holder[getterName] = function() {
+    if (holder[name] === uninitializedSentinel) {
+      var value = initializer();
+      if (holder[name] !== uninitializedSentinel) {
+        #throwLateInitializationError(name);
+      }
+      holder[name] = value;
+    }
+    holder[getterName] = function() { return this[name]; };
+    return holder[name];
+  };
+}
+
 // Given a list, marks it as constant.
 //
 // The runtime ensures that const-lists cannot be modified.
@@ -369,6 +390,7 @@ var #hunkHelpers = (function(){
 
     makeConstList: makeConstList,
     lazy: lazy,
+    lazyFinal: lazyFinal,
     lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
@@ -686,6 +708,8 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(_directAccessTestExpression),
       'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
+      'throwLateInitializationError': _emitter.staticFunctionAccess(
+          _closedWorld.commonElements.throwLateInitializationError),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(
           _options, _emitter, _namer, _closedWorld.commonElements)),
@@ -1755,14 +1779,17 @@ class FragmentEmitter {
     LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
+      String helper = field.usesNonNullableInitialization
+          ? field.isFinal
+              ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
+              : locals.find('_lazy', 'hunkHelpers.lazy')
+          : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
-        field.usesNonNullableInitialization
-            ? locals.find('_lazy', 'hunkHelpers.lazy')
-            : locals.find('_lazyOld', 'hunkHelpers.lazyOld'),
+        helper,
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(field.getterName),
-        field.code
+        field.code,
       ]);
 
       registerEntityAst(field.element, statement,

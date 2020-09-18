@@ -129,6 +129,8 @@ class TranslationHelper {
                      intptr_t len,
                      Heap::Space space);
 
+  const String& DartString(const GrowableHandlePtrArray<const String>& pieces);
+
   const String& DartSymbolPlain(const char* content) const;
   String& DartSymbolPlain(StringIndex string_index) const;
   const String& DartSymbolObfuscate(const char* content) const;

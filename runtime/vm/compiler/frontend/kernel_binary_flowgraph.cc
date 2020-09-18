@@ -3613,33 +3613,86 @@ Fragment StreamingFlowGraphBuilder::BuildConditionalExpression(
          LoadLocal(parsed_function()->expression_temp_var());
 }
 
-Fragment StreamingFlowGraphBuilder::BuildStringConcatenation(TokenPosition* p) {
-  TokenPosition position = ReadPosition();  // read position.
-  if (p != NULL) *p = position;
+void StreamingFlowGraphBuilder::FlattenStringConcatenation(
+    PiecesCollector* collector) {
+  const auto length = ReadListLength();
+  for (intptr_t i = 0; i < length; ++i) {
+    const auto offset = reader_.offset();
+    switch (PeekTag()) {
+      case kStringLiteral: {
+        ReadTag();
+        const String& s = H.DartSymbolPlain(ReadStringReference());
+        // Skip empty strings.
+        if (!s.Equals("")) {
+          collector->Add({-1, &s});
+        }
+        break;
+      }
+      case kStringConcatenation: {
+        // Flatten by hoisting nested expressions up into the outer concat.
+        ReadTag();
+        ReadPosition();
+        FlattenStringConcatenation(collector);
+        break;
+      }
+      default: {
+        collector->Add({offset, nullptr});
+        SkipExpression();
+      }
+    }
+  }
+}
 
-  intptr_t length = ReadListLength();  // read list length.
-  // Note: there will be "length" expressions.
+Fragment StreamingFlowGraphBuilder::BuildStringConcatenation(TokenPosition* p) {
+  TokenPosition position = ReadPosition();
+  if (p != nullptr) {
+    *p = position;
+  }
+
+  // Collect and flatten all pieces of this and any nested StringConcats.
+  // The result is a single sequence of pieces, potentially flattened to
+  // a single String.
+  // The collector will hold concatenated strings and Reader offsets of
+  // non-string pieces.
+  PiecesCollector collector(Z, &H);
+  FlattenStringConcatenation(&collector);
+  collector.FlushRun();
+
+  if (collector.pieces.length() == 1) {
+    // No need to Interp. a single string, so return string as a Constant:
+    if (collector.pieces[0].literal != nullptr) {
+      return Constant(*collector.pieces[0].literal);
+    }
+    // A single non-string piece is handle by StringInterpolateSingle:
+    AlternativeReadingScope scope(&reader_, collector.pieces[0].offset);
+    Fragment instructions;
+    instructions += BuildExpression();
+    instructions += StringInterpolateSingle(position);
+    return instructions;
+  }
 
   Fragment instructions;
-  if (length == 1) {
-    instructions += BuildExpression();  // read expression.
-    instructions += StringInterpolateSingle(position);
-  } else {
-    // The type arguments for CreateArray.
-    instructions += Constant(TypeArguments::ZoneHandle(Z));
-    instructions += IntConstant(length);
-    instructions += CreateArray();
-    LocalVariable* array = MakeTemporary();
-
-    for (intptr_t i = 0; i < length; ++i) {
+  instructions += Constant(TypeArguments::ZoneHandle(Z));
+  instructions += IntConstant(collector.pieces.length());
+  instructions += CreateArray();
+  LocalVariable* array = MakeTemporary();
+  for (intptr_t i = 0; i < collector.pieces.length(); ++i) {
+    // All pieces are now either a concat'd string or an expression we can
+    // read at a given offset.
+    if (collector.pieces[i].literal != nullptr) {
       instructions += LoadLocal(array);
       instructions += IntConstant(i);
-      instructions += BuildExpression();  // read ith expression.
-      instructions += StoreIndexed(kArrayCid);
+      instructions += Constant(*collector.pieces[i].literal);
+    } else {
+      AlternativeReadingScope scope(&reader_, collector.pieces[i].offset);
+      instructions += LoadLocal(array);
+      instructions += IntConstant(i);
+      instructions += BuildExpression();
     }
-
-    instructions += StringInterpolate(position);
+    instructions += StoreIndexed(kArrayCid);
   }
+
+  instructions += StringInterpolate(position);
 
   return instructions;
 }

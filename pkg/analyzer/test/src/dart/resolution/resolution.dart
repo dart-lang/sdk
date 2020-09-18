@@ -350,6 +350,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
+  /// We have a contract with the Angular team that FunctionType(s) from
+  /// typedefs carry the element of the typedef, and the type arguments.
+  void assertFunctionTypeTypedef(
+    FunctionType type, {
+    @required FunctionTypeAliasElement element,
+    @required List<String> typeArguments,
+  }) {
+    assertElement2(type.element, declaration: element.function);
+    assertElementTypeStrings(type.typeArguments, typeArguments);
+  }
+
   void assertHasTestErrors() {
     expect(result.errors, isNotEmpty);
   }

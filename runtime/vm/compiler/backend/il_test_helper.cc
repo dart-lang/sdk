@@ -307,6 +307,13 @@ Instruction* ILMatcher::MatchInternal(std::vector<MatchCode> match_codes,
     }
   }
 
+  if (opcode == kMoveDebugStepChecks) {
+    while (cursor != nullptr && cursor->IsDebugStepCheck()) {
+      cursor = cursor->next();
+    }
+    return cursor;
+  }
+
   if (opcode == kMatchAndMoveGoto) {
     if (auto goto_instr = cursor->AsGoto()) {
       return goto_instr->successor();
@@ -361,6 +368,9 @@ const char* ILMatcher::MatchOpCodeToCString(MatchOpCode opcode) {
   }
   if (opcode == kMoveGlob) {
     return "kMoveGlob";
+  }
+  if (opcode == kMoveDebugStepChecks) {
+    return "kMoveDebugStepChecks";
   }
 
   switch (opcode) {
