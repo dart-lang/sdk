@@ -78,9 +78,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       : _constantUpdate2018Enabled =
             featureSet.isEnabled(Feature.constant_update_2018),
         _intType = _typeProvider.intType,
-        _evaluationEngine = ConstantEvaluationEngine(
-            _typeProvider, declaredVariables,
-            typeSystem: _typeSystem);
+        _evaluationEngine = ConstantEvaluationEngine(declaredVariables);
 
   bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
 
@@ -141,6 +139,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
         _evaluationEngine.evaluateConstructorCall(
+            _currentLibrary,
             node,
             node.argumentList.arguments,
             constructor,
@@ -404,6 +403,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     for (Expression argument in argumentList.arguments) {
       _reportNotPotentialConstants(argument);
     }
+  }
+
+  /// Check if the object [obj] matches the type [type] according to runtime
+  /// type checking rules.
+  bool _runtimeTypeMatch(DartObjectImpl obj, DartType type) {
+    return _evaluationEngine.runtimeTypeMatch(_currentLibrary, obj, type);
   }
 
   /// Validate that the given expression is a compile time constant. Return the
@@ -789,7 +794,7 @@ class _ConstLiteralVerifier {
   }
 
   bool _validateListExpression(Expression expression, DartObjectImpl value) {
-    if (!verifier._evaluationEngine.runtimeTypeMatch(value, listElementType)) {
+    if (!verifier._runtimeTypeMatch(value, listElementType)) {
       verifier._errorReporter.reportErrorForNode(
         CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
         expression,
@@ -866,7 +871,7 @@ class _ConstLiteralVerifier {
     if (keyValue != null) {
       var keyType = keyValue.type;
 
-      if (!verifier._evaluationEngine.runtimeTypeMatch(keyValue, mapKeyType)) {
+      if (!verifier._runtimeTypeMatch(keyValue, mapKeyType)) {
         verifier._errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
           keyExpression,
@@ -895,8 +900,7 @@ class _ConstLiteralVerifier {
     }
 
     if (valueValue != null) {
-      if (!verifier._evaluationEngine
-          .runtimeTypeMatch(valueValue, mapValueType)) {
+      if (!verifier._runtimeTypeMatch(valueValue, mapValueType)) {
         verifier._errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
           valueExpression,
@@ -944,7 +948,7 @@ class _ConstLiteralVerifier {
   }
 
   bool _validateSetExpression(Expression expression, DartObjectImpl value) {
-    if (!verifier._evaluationEngine.runtimeTypeMatch(value, setElementType)) {
+    if (!verifier._runtimeTypeMatch(value, setElementType)) {
       verifier._errorReporter.reportErrorForNode(
         CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
         expression,

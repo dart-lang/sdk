@@ -354,11 +354,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     var visitor = ConstantVisitor(
-      ConstantEvaluationEngine(
-        typeProvider,
-        declaredVariables,
-        typeSystem: typeSystem,
-      ),
+      ConstantEvaluationEngine(declaredVariables),
       libraryElement,
       errorReporter,
     );

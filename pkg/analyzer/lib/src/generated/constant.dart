@@ -9,8 +9,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -108,20 +106,17 @@ class ConstantEvaluator {
   /// types.
   ConstantEvaluator(this._source, LibraryElement library) : _library = library;
 
-  TypeProviderImpl get _typeProvider => _library.typeProvider;
-
-  TypeSystemImpl get _typeSystem => _library.typeSystem;
-
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = RecordingErrorListener();
     ErrorReporter errorReporter = ErrorReporter(
       errorListener,
       _source,
-      isNonNullableByDefault: _typeSystem.isNonNullableByDefault,
+      isNonNullableByDefault: _library.isNonNullableByDefault,
     );
     DartObjectImpl result = expression.accept(ConstantVisitor(
-        ConstantEvaluationEngine(_typeProvider, DeclaredVariables(),
-            typeSystem: _typeSystem),
+        ConstantEvaluationEngine(
+          DeclaredVariables(),
+        ),
         _library,
         errorReporter));
     List<AnalysisError> errors = errorListener.errors;

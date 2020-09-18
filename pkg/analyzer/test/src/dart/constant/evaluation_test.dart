@@ -318,9 +318,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     DartObjectImpl result = expression.accept(
       ConstantVisitor(
         ConstantEvaluationEngine(
-          typeProvider,
           DeclaredVariables.fromMap(declaredVariables),
-          typeSystem: this.result.typeSystem,
         ),
         this.result.libraryElement,
         errorReporter,
