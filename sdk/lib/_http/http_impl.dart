@@ -252,7 +252,9 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
     var proto = headers['x-forwarded-proto'];
     var scheme = proto != null
         ? proto.first
-        : _httpConnection._socket is SecureSocket ? "https" : "http";
+        : _httpConnection._socket is SecureSocket
+            ? "https"
+            : "http";
     var hostList = headers['x-forwarded-host'];
     String host;
     if (hostList != null) {
@@ -1120,6 +1122,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   final _HttpClient _httpClient;
   final _HttpClientConnection _httpClientConnection;
   final TimelineTask? _timeline;
+  final TimelineTask? _responseTimeline;
 
   final Completer<HttpClientResponse> _responseCompleter =
       new Completer<HttpClientResponse>();
@@ -1137,10 +1140,17 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   bool _aborted = false;
 
-  _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
-      this._httpClient, this._httpClientConnection, this._timeline)
+  _HttpClientRequest(
+      _HttpOutgoing outgoing,
+      Uri uri,
+      this.method,
+      this._proxy,
+      this._httpClient,
+      this._httpClientConnection,
+      this._timeline,
+      this._responseTimeline)
       : uri = uri,
-        super(uri, "1.1", outgoing, _timeline) {
+        super(uri, "1.1", outgoing, _responseTimeline) {
     _timeline?.instant('Request initiated');
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
@@ -1194,7 +1204,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       });
 
       // Start the timeline for response.
-      _timeline?.start('HTTP CLIENT response of ${method.toUpperCase()}',
+      _responseTimeline?.start(
+          'HTTP CLIENT response of ${method.toUpperCase()}',
           arguments: {
             'requestUri': uri.toString(),
             'statusCode': response.statusCode,
@@ -1235,7 +1246,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       return;
     }
     final response =
-        _HttpClientResponse(incoming, this, _httpClient, _timeline);
+        _HttpClientResponse(incoming, this, _httpClient, _responseTimeline);
     Future<HttpClientResponse> future;
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
@@ -1859,9 +1870,16 @@ class _HttpClientConnection {
     _ProxyCredentials? proxyCreds; // Credentials used to authorize proxy.
     _SiteCredentials? creds; // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
+
+    final responseTimeline = timeline == null
+        ? null
+        : TimelineTask(
+            parent: timeline,
+            filterKey: 'HTTP/client',
+          );
     // Create new request object, wrapping the outgoing connection.
-    var request = new _HttpClientRequest(
-        outgoing, uri, method, proxy, _httpClient, this, timeline);
+    var request = new _HttpClientRequest(outgoing, uri, method, proxy,
+        _httpClient, this, timeline, responseTimeline);
     // For the Host header an IPv6 address must be enclosed in []'s.
     var host = uri.host;
     if (host.contains(':')) host = "[$host]";
