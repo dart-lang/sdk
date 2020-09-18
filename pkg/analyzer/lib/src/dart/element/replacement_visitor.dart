@@ -25,6 +25,7 @@ class ReplacementVisitor
 
   DartType createFunctionType({
     @required FunctionType type,
+    @required List<DartType> newTypeArguments,
     @required List<TypeParameterElement> newTypeParameters,
     @required List<ParameterElement> newParameters,
     @required DartType newReturnType,
@@ -41,6 +42,8 @@ class ReplacementVisitor
       parameters: newParameters ?? type.parameters,
       returnType: newReturnType ?? type.returnType,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+      element: type.element,
+      typeArguments: newTypeArguments ?? type.typeArguments,
     );
   }
 
@@ -160,6 +163,15 @@ class ReplacementVisitor
 
     var newReturnType = visitType(node.returnType);
 
+    List<DartType> newTypeArguments;
+    for (var i = 0; i < node.typeArguments.length; i++) {
+      var substitution = node.typeArguments[i].accept(this);
+      if (substitution != null) {
+        newTypeArguments ??= node.typeArguments.toList(growable: false);
+        newTypeArguments[i] = substitution;
+      }
+    }
+
     changeVariance();
 
     List<ParameterElement> newParameters;
@@ -186,6 +198,7 @@ class ReplacementVisitor
 
     return createFunctionType(
       type: node,
+      newTypeArguments: newTypeArguments,
       newTypeParameters: newTypeParameters,
       newParameters: newParameters,
       newReturnType: newReturnType,
