@@ -78,7 +78,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.control_flow_collections,
     documentation: 'Control Flow Collections',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.2.2'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final extension_methods = ExperimentalFeature(
@@ -118,7 +118,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.set_literals,
     documentation: 'Set Literals',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.2.0'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final spread_collections = ExperimentalFeature(
@@ -128,7 +128,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.spread_collections,
     documentation: 'Spread Collections',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.2.2'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final triple_shift = ExperimentalFeature(
