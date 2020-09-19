@@ -95,11 +95,6 @@ class AssignmentExpressionResolver {
     Expression right,
     DartType rightType,
   ) {
-    // TODO(scheglov) should not happen
-    if (writeType == null) {
-      return;
-    }
-
     if (!writeType.isVoid && _checkForUseOfVoidResult(right)) {
       return;
     }
@@ -147,11 +142,7 @@ class AssignmentExpressionResolver {
   /// TODO(scheglov) this is duplication
   void _recordStaticType(Expression expression, DartType type) {
     if (_resolver.migrationResolutionHooks != null) {
-      // TODO(scheglov) type cannot be null
-      type = _migrationResolutionHooks.modifyExpressionType(
-        expression,
-        type ?? DynamicTypeImpl.instance,
-      );
+      type = _migrationResolutionHooks.modifyExpressionType(expression, type);
     }
 
     // TODO(scheglov) type cannot be null
@@ -216,62 +207,6 @@ class AssignmentExpressionResolver {
     }
   }
 
-  /// TODO(scheglov) Replace [leftWriteType] with `node.writeType`
-  void _resolve2(AssignmentExpressionImpl node, DartType leftWriteType,
-      {@required bool doNullShortingTermination}) {
-    TokenType operator = node.operator.type;
-    if (operator == TokenType.EQ) {
-      var rightType = node.rightHandSide.staticType;
-      _inferenceHelper.recordStaticType(node, rightType);
-    } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      var leftType = node.readType;
-
-      // The LHS value will be used only if it is non-null.
-      if (_isNonNullableByDefault) {
-        leftType = _typeSystem.promoteToNonNull(leftType);
-      }
-
-      var rightType = node.rightHandSide.staticType;
-      var result = _typeSystem.getLeastUpperBound(leftType, rightType);
-
-      _inferenceHelper.recordStaticType(node, result);
-    } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
-        operator == TokenType.BAR_BAR_EQ) {
-      _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
-    } else {
-      var rightType = node.rightHandSide.staticType;
-
-      var leftReadType = node.readType;
-      if (identical(leftReadType, NeverTypeImpl.instance)) {
-        _inferenceHelper.recordStaticType(node, rightType);
-        return;
-      }
-
-      var operatorElement = node.staticElement;
-      var type = operatorElement?.returnType ?? DynamicTypeImpl.instance;
-      type = _typeSystem.refineBinaryExpressionType(
-        leftReadType,
-        operator,
-        rightType,
-        type,
-        operatorElement,
-      );
-      _inferenceHelper.recordStaticType(node, type);
-
-      if (!_typeSystem.isAssignableTo2(type, leftWriteType)) {
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ASSIGNMENT,
-          node.rightHandSide,
-          [type, leftWriteType],
-        );
-      }
-    }
-
-    if (doNullShortingTermination) {
-      _resolver.nullShortingTermination(node);
-    }
-  }
-
   void _resolve3(AssignmentExpressionImpl node, Expression left,
       TokenType operator, Expression right) {
     _resolve1(node);
@@ -292,17 +227,7 @@ class AssignmentExpressionResolver {
     right?.accept(_resolver);
     right = node.rightHandSide;
 
-    _resolve2(node, node.writeType, doNullShortingTermination: false);
-
-    // TODO(scheglov) inline into resolve2().
-    DartType assignedType;
-    if (operator == TokenType.EQ ||
-        operator == TokenType.QUESTION_QUESTION_EQ) {
-      assignedType = right.staticType;
-    } else {
-      assignedType = node.staticType;
-    }
-    _checkForInvalidAssignment(node.writeType, right, assignedType);
+    _resolveTypes(node);
 
     _resolver.nullShortingTermination(node);
 
@@ -412,6 +337,56 @@ class AssignmentExpressionResolver {
     }
 
     _resolve3(node, left, operator, right);
+  }
+
+  void _resolveTypes(AssignmentExpressionImpl node) {
+    DartType assignedType;
+    DartType nodeType;
+
+    var operator = node.operator.type;
+    if (operator == TokenType.EQ) {
+      assignedType = node.rightHandSide.staticType;
+      nodeType = assignedType;
+    } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
+      var leftType = node.readType;
+
+      // The LHS value will be used only if it is non-null.
+      if (_isNonNullableByDefault) {
+        leftType = _typeSystem.promoteToNonNull(leftType);
+      }
+
+      assignedType = node.rightHandSide.staticType;
+      nodeType = _typeSystem.getLeastUpperBound(leftType, assignedType);
+    } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
+        operator == TokenType.BAR_BAR_EQ) {
+      assignedType = _typeProvider.boolType;
+      nodeType = assignedType;
+    } else {
+      var operatorElement = node.staticElement;
+      if (operatorElement != null) {
+        var leftType = node.readType;
+        var rightType = node.rightHandSide.staticType;
+        assignedType = _typeSystem.refineBinaryExpressionType(
+          leftType,
+          operator,
+          rightType,
+          operatorElement.returnType,
+          operatorElement,
+        );
+      } else {
+        assignedType = DynamicTypeImpl.instance;
+      }
+      nodeType = assignedType;
+    }
+
+    _inferenceHelper.recordStaticType(node, nodeType);
+
+    // TODO(scheglov) Remove from ErrorVerifier?
+    _checkForInvalidAssignment(
+      node.writeType,
+      node.rightHandSide,
+      assignedType,
+    );
   }
 
   /// TODO(scheglov) This is mostly necessary for backward compatibility.

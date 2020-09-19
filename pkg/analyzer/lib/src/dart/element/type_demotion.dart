@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
@@ -20,13 +19,6 @@ DartType demoteType(LibraryElement library, DartType type) {
     var visitor = const DemotionNonNullificationVisitor(nonNullifyTypes: false);
     return type.accept(visitor) ?? type;
   }
-}
-
-/// Returns `true` if type contains a promoted type variable.
-bool hasPromotedTypeVariable(DartType type) {
-  return type.accept(
-    const _HasPromotedTypeVariableVisitor(),
-  );
 }
 
 /// Visitor that replaces all promoted type variables the type variable itself
@@ -68,43 +60,5 @@ class DemotionNonNullificationVisitor extends ReplacementVisitor {
       type: type,
       newNullability: newNullability,
     );
-  }
-}
-
-/// Visitor that returns `true` if a type contains a promoted type variable.
-class _HasPromotedTypeVariableVisitor extends UnifyingTypeVisitor<bool> {
-  const _HasPromotedTypeVariableVisitor();
-
-  @override
-  bool visitDartType(DartType type) => false;
-
-  @override
-  bool visitFunctionType(FunctionType type) {
-    if (type.returnType.accept(this)) {
-      return true;
-    }
-
-    for (var parameter in type.parameters) {
-      if (parameter.type.accept(this)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  @override
-  bool visitInterfaceType(InterfaceType type) {
-    for (var typeArgument in type.typeArguments) {
-      if (typeArgument.accept(this)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  bool visitTypeParameterType(TypeParameterType type) {
-    return (type as TypeParameterTypeImpl).promotedBound != null;
   }
 }
