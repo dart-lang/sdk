@@ -452,6 +452,7 @@ void PageSpace::FreePages(OldPage* pages) {
 
 void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
   if (growth_policy != kForceGrowth) {
+    ASSERT(GrowthControlState());
     if (heap_ != NULL) {  // Some unit tests.
       Thread* thread = Thread::Current();
       if (thread->CanCollectGarbage()) {
@@ -1020,6 +1021,8 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
 }
 
 void PageSpace::CollectGarbage(bool compact, bool finalize) {
+  ASSERT(GrowthControlState());
+
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.

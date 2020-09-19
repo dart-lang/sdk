@@ -176,8 +176,6 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
   Isolate* isolate = thread->isolate();
-  EXPECT(isolate->heap()->GrowthControlState());
-  isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
     Dart::thread_pool()->Run<TaskWithZoneAllocation>(isolate, &sync[i],

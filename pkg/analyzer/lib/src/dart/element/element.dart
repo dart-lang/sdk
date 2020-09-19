@@ -2313,6 +2313,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// as being immutable.
   static const String _IMMUTABLE_VARIABLE_NAME = "immutable";
 
+  /// The name of the top-level variable used to mark an element as being
+  /// internal to its package.
+  static const String _INTERNAL_VARIABLE_NAME = "internal";
+
   /// The name of the top-level variable used to mark a constructor as being
   /// literal.
   static const String _LITERAL_VARIABLE_NAME = "literal";
@@ -2457,6 +2461,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isImmutable =>
       element is PropertyAccessorElement &&
       element.name == _IMMUTABLE_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isInternal =>
+      element is PropertyAccessorElement &&
+      element.name == _INTERNAL_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override
@@ -2745,6 +2755,18 @@ abstract class ElementImpl implements Element {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     return _cachedHashCode ??= location.hashCode;
+  }
+
+  @override
+  bool get hasInternal {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isInternal) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -5994,6 +6016,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasFactory => false;
+
+  @override
+  bool get hasInternal => false;
 
   @override
   bool get hasIsTest => false;

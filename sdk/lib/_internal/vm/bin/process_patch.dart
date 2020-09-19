@@ -225,10 +225,10 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     ArgumentError.checkNotNull(_mode, "mode");
 
     if (!connectedResourceHandler) {
-      registerExtension(
-          'ext.dart.io.getProcesses', _ProcessResourceInfo.getStartedProcesses);
-      registerExtension('ext.dart.io.getProcessById',
-          _ProcessResourceInfo.getProcessInfoMapById);
+      registerExtension('ext.dart.io.getSpawnedProcesses',
+          _SpawnedProcessResourceInfo.getStartedProcesses);
+      registerExtension('ext.dart.io.getSpawnedProcessById',
+          _SpawnedProcessResourceInfo.getProcessInfoMapById);
       connectedResourceHandler = true;
     }
 
@@ -413,7 +413,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       }
 
       _started = true;
-      final resourceInfo = new _ProcessResourceInfo(this);
+      final resourceInfo = new _SpawnedProcessResourceInfo(this);
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
@@ -474,7 +474,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
           _path, _arguments, status._errorMessage!, status._errorCode!);
     }
 
-    final resourceInfo = new _ProcessResourceInfo(this);
+    final resourceInfo = new _SpawnedProcessResourceInfo(this);
 
     var result = _wait(_stdinNativeSocket, _stdoutNativeSocket,
         _stderrNativeSocket, _exitHandler._nativeSocket);

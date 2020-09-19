@@ -60,9 +60,6 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   // Holds the port of the socket, 0 if not known.
   int localPort = 0;
 
-  // Always set by setupResourceInfo called by connectSync.
-  late _SocketResourceInfo resourceInfo;
-
   static _NativeSynchronousSocket connectSync(host, int port) {
     if (host == null) {
       throw new ArgumentError("Parameter host cannot be null");
@@ -108,7 +105,6 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
           }
           return connectNext();
         }
-        setupResourceInfo(socket);
       }
       return socket;
     }
@@ -164,7 +160,6 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   void closeSync() {
     if (!isClosed) {
       _nativeCloseSync();
-      _SocketResourceInfo.SocketClosed(resourceInfo);
       isClosed = true;
     }
   }
@@ -210,7 +205,6 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (result is OSError) {
       throw new SocketException("readIntoSync failed", osError: result);
     }
-    resourceInfo.addRead(result);
     return result;
   }
 
@@ -230,15 +224,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (result is OSError) {
       throw result;
     }
-    if (result is List<int>) {
-      resourceInfo.totalRead += result.length;
-    }
-    resourceInfo.didRead();
     return result;
-  }
-
-  static void setupResourceInfo(_NativeSynchronousSocket socket) {
-    socket.resourceInfo = new _SocketResourceInfo(socket);
   }
 
   void shutdown(SocketDirection direction) {
@@ -303,7 +289,6 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (result is OSError) {
       throw new SocketException("writeFromSync failed", osError: result);
     }
-    resourceInfo.addWrite(result);
   }
 
   void _checkAvailable() {

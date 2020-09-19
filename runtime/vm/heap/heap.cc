@@ -111,15 +111,13 @@ uword Heap::AllocateNew(intptr_t size) {
 
 uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
-  CollectForDebugging();
-  uword addr = old_space_.TryAllocate(size, type);
-  if (addr != 0) {
-    return addr;
-  }
-  // If we are in the process of running a sweep, wait for the sweeper to free
-  // memory.
-  Thread* thread = Thread::Current();
   if (old_space_.GrowthControlState()) {
+    CollectForDebugging();
+    uword addr = old_space_.TryAllocate(size, type);
+    if (addr != 0) {
+      return addr;
+    }
+    Thread* thread = Thread::Current();
     // Wait for any GC tasks that are in progress.
     WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, type);
@@ -148,7 +146,7 @@ uword Heap::AllocateOld(intptr_t size, OldPage::PageType type) {
     CollectAllGarbage(kLowMemory);
     WaitForSweeperTasks(thread);
   }
-  addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
+  uword addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);
   if (addr != 0) {
     return addr;
   }

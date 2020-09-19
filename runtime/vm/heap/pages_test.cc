@@ -10,6 +10,7 @@ namespace dart {
 
 TEST_CASE(Pages) {
   PageSpace* space = new PageSpace(NULL, 4 * MBInWords);
+  space->InitGrowthControl();
   EXPECT(!space->Contains(reinterpret_cast<uword>(&space)));
   uword block = space->TryAllocate(8 * kWordSize);
   EXPECT(block != 0);

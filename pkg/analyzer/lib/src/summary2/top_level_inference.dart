@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -450,7 +449,7 @@ class _VariableInferenceNode extends _InferenceNode {
     }
 
     if (_typeSystem.isNonNullableByDefault) {
-      return nonNullifyType(_typeSystem, type);
+      return _typeSystem.nonNullifyLegacy(type);
     } else {
       if (type.isBottom) {
         return DynamicTypeImpl.instance;

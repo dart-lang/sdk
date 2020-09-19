@@ -3133,10 +3133,6 @@ static void WeakPersistentHandleCallback(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandle) {
-  // GCs due to allocations or weak handle creation can cause early promotion
-  // and interfer with the scenario this test is verifying.
-  NoHeapGrowthControlScope force_growth;
-
   Dart_Handle local_new_ref = Dart_Null();
   weak_new_ref = Dart_NewWeakPersistentHandle(local_new_ref, NULL, 0,
                                               WeakPersistentHandleCallback);
@@ -3148,25 +3144,32 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
   {
     Dart_EnterScope();
 
-    // Create an object in new space.
-    Dart_Handle new_ref = AllocateNewString("new string");
-    EXPECT_VALID(new_ref);
+    Dart_Handle new_ref, old_ref;
+    {
+      // GCs due to allocations or weak handle creation can cause early
+      // promotion and interfere with the scenario this test is verifying.
+      NoHeapGrowthControlScope force_growth;
 
-    // Create an object in old space.
-    Dart_Handle old_ref = AllocateOldString("old string");
-    EXPECT_VALID(old_ref);
+      // Create an object in new space.
+      new_ref = AllocateNewString("new string");
+      EXPECT_VALID(new_ref);
 
-    // Create a weak ref to the new space object.
-    weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, 0,
-                                                WeakPersistentHandleCallback);
-    EXPECT_VALID(AsHandle(weak_new_ref));
-    EXPECT(!Dart_IsNull(AsHandle(weak_new_ref)));
+      // Create an object in old space.
+      old_ref = AllocateOldString("old string");
+      EXPECT_VALID(old_ref);
 
-    // Create a weak ref to the old space object.
-    weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, 0,
-                                                WeakPersistentHandleCallback);
-    EXPECT_VALID(AsHandle(weak_old_ref));
-    EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
+      // Create a weak ref to the new space object.
+      weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, 0,
+                                                  WeakPersistentHandleCallback);
+      EXPECT_VALID(AsHandle(weak_new_ref));
+      EXPECT(!Dart_IsNull(AsHandle(weak_new_ref)));
+
+      // Create a weak ref to the old space object.
+      weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, 0,
+                                                  WeakPersistentHandleCallback);
+      EXPECT_VALID(AsHandle(weak_old_ref));
+      EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
+    }
 
     {
       TransitionNativeToVM transition(thread);
@@ -3264,10 +3267,6 @@ static void FinalizableHandleCallback(void* isolate_callback_data, void* peer) {
 }
 
 TEST_CASE(DartAPI_FinalizableHandle) {
-  // GCs due to allocations or weak handle creation can cause early promotion
-  // and interfer with the scenario this test is verifying.
-  NoHeapGrowthControlScope force_growth;
-
   void* peer = reinterpret_cast<void*>(0);
   Dart_Handle local_new_ref = Dart_Null();
   finalizable_new_ref = Dart_NewFinalizableHandle(local_new_ref, peer, 0,
@@ -3283,25 +3282,32 @@ TEST_CASE(DartAPI_FinalizableHandle) {
   {
     Dart_EnterScope();
 
-    // Create an object in new space.
-    Dart_Handle new_ref = AllocateNewString("new string");
-    EXPECT_VALID(new_ref);
+    Dart_Handle new_ref, old_ref;
+    {
+      // GCs due to allocations or weak handle creation can cause early
+      // promotion and interfere with the scenario this test is verifying.
+      NoHeapGrowthControlScope force_growth;
 
-    // Create an object in old space.
-    Dart_Handle old_ref = AllocateOldString("old string");
-    EXPECT_VALID(old_ref);
+      // Create an object in new space.
+      new_ref = AllocateNewString("new string");
+      EXPECT_VALID(new_ref);
 
-    // Create a weak ref to the new space object.
-    peer = reinterpret_cast<void*>(2);
-    finalizable_new_ref =
-        Dart_NewFinalizableHandle(new_ref, peer, 0, FinalizableHandleCallback);
-    finalizable_new_ref_peer = peer;
+      // Create an object in old space.
+      old_ref = AllocateOldString("old string");
+      EXPECT_VALID(old_ref);
 
-    // Create a weak ref to the old space object.
-    peer = reinterpret_cast<void*>(3);
-    finalizable_old_ref =
-        Dart_NewFinalizableHandle(old_ref, peer, 0, FinalizableHandleCallback);
-    finalizable_old_ref_peer = peer;
+      // Create a weak ref to the new space object.
+      peer = reinterpret_cast<void*>(2);
+      finalizable_new_ref = Dart_NewFinalizableHandle(
+          new_ref, peer, 0, FinalizableHandleCallback);
+      finalizable_new_ref_peer = peer;
+
+      // Create a weak ref to the old space object.
+      peer = reinterpret_cast<void*>(3);
+      finalizable_old_ref = Dart_NewFinalizableHandle(
+          old_ref, peer, 0, FinalizableHandleCallback);
+      finalizable_old_ref_peer = peer;
+    }
 
     {
       TransitionNativeToVM transition(thread);

@@ -1308,40 +1308,61 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitGetLength(HGetLength node) {
     HInstruction receiver = node.receiver;
-    if (_graph.allocatedFixedLists.contains(receiver)) {
-      // TODO(sra): How do we keep this working if we lower/inline the receiver
-      // in an optimization?
 
-      // TODO(ngeoffray): checking if the second input is an integer
-      // should not be necessary but it currently makes it easier for
-      // other optimizations to reason about a fixed length constructor
-      // that we know takes an int.
-      if (receiver.inputs[0].isInteger(_abstractValueDomain).isDefinitelyTrue) {
-        return receiver.inputs[0];
-      }
-    } else if (receiver.isConstantList()) {
+    if (receiver.isConstantList()) {
       HConstant constantReceiver = receiver;
       ListConstantValue constant = constantReceiver.constant;
       return _graph.addConstantInt(constant.length, _closedWorld);
-    } else if (receiver.isConstantString()) {
+    }
+
+    if (receiver.isConstantString()) {
       HConstant constantReceiver = receiver;
       StringConstantValue constant = constantReceiver.constant;
       return _graph.addConstantInt(constant.length, _closedWorld);
-    } else {
-      AbstractValue type = receiver.instructionType;
-      if (_abstractValueDomain.isContainer(type) &&
-          _abstractValueDomain.getContainerLength(type) != null) {
-        HInstruction constant = _graph.addConstantInt(
-            _abstractValueDomain.getContainerLength(type), _closedWorld);
-        if (_abstractValueDomain.isNull(type).isPotentiallyTrue) {
+    }
+
+    AbstractValue receiverType = receiver.instructionType;
+    if (_abstractValueDomain.isContainer(receiverType)) {
+      int /*?*/ length = _abstractValueDomain.getContainerLength(receiverType);
+      if (length != null) {
+        HInstruction constant = _graph.addConstantInt(length, _closedWorld);
+        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
           // If the container can be null, we update all uses of the length
           // access to use the constant instead, but keep the length access in
           // the graph, to ensure we still have a null check.
           node.block.rewrite(node, constant);
           return node;
-        } else {
-          return constant;
         }
+        return constant;
+      }
+    }
+
+    // Can we find the length as an input to an allocation?
+    HInstruction potentialAllocation = receiver;
+    if (receiver is HInvokeStatic &&
+        receiver.element == commonElements.setRuntimeTypeInfo) {
+      // Look through `setRuntimeTypeInfo(new Array(), ...)`
+      potentialAllocation = receiver.inputs.first;
+    }
+    if (_graph.allocatedFixedLists.contains(potentialAllocation)) {
+      // TODO(sra): How do we keep this working if we lower/inline the receiver
+      // in an optimization?
+
+      HInstruction lengthInput = potentialAllocation.inputs.first;
+
+      // We don't expect a non-integer first input to the fixed-size allocation,
+      // but checking the input is an integer ensures we do not replace a
+      // HGetlength with a reference to something with a type that will confuse
+      // bounds check eliminiation.
+      if (lengthInput.isInteger(_abstractValueDomain).isDefinitelyTrue) {
+        // TODO(sra). HGetLength may have a better type than [lengthInput] as
+        // the allocation may throw on an out-of-range input. Typically the
+        // input is an unconstrained `int` and the length is non-negative. We
+        // may have done some optimizations with the better type that we won't
+        // be able to do with the broader type of [lengthInput].  We should
+        // insert a HTypeKnown witnessed by the allocation to narrow the
+        // lengthInput.
+        return lengthInput;
       }
     }
 

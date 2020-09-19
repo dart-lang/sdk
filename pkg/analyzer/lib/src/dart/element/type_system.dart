@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/subtype.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
@@ -1179,6 +1180,17 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return inferredTypes;
+  }
+
+  /// Replace legacy types in [type] with non-nullable types.
+  DartType nonNullifyLegacy(DartType type) {
+    if (isNonNullableByDefault && type != null) {
+      var visitor = const DemotionNonNullificationVisitor(
+        demoteTypeVariables: false,
+      );
+      return type.accept(visitor) ?? type;
+    }
+    return type;
   }
 
   /// Compute the canonical representation of [T].
