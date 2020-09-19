@@ -131,15 +131,15 @@ features:
 
   control-flow-collections:
     help: "Control Flow Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true
 
   set-literals:
     help: "Set Literals"
-    enabledIn: 2.2
+    enabledIn: '2.0.0'
     expired: true
 
   spread-collections:
     help: "Spread Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true
