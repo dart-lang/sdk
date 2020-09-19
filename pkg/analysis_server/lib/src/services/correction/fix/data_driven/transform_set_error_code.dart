@@ -26,6 +26,19 @@ class TransformSetErrorCode extends ErrorCode {
       TransformSetErrorCode('missingKey', "Missing the required key '{0}'.");
 
   /**
+   * No parameters.
+   */
+  static const TransformSetErrorCode missingTemplateEnd = TransformSetErrorCode(
+      'missingTemplateEnd', "Missing the end brace for the template.");
+
+  /**
+   * Parameters:
+   * 0: the missing key
+   */
+  static const TransformSetErrorCode undefinedVariable = TransformSetErrorCode(
+      'undefinedVariable', "The variable '{0}' is not defined.");
+
+  /**
    * Parameters:
    * 0: the unsupported key
    */

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
@@ -37,8 +38,11 @@ transforms:
       name: 'p'
       style: optional_named
       argumentValue:
-        kind: 'argument'
-        index: 1
+        expression: '{% p %}'
+        variables:
+          p:
+            kind: 'argument'
+            index: 1
 ''');
     var transforms = result.transformsFor('f', ['test.dart']);
     expect(transforms, hasLength(1));
@@ -53,7 +57,10 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, false);
     expect(modification.isPositional, false);
-    var value = modification.argumentValue as ArgumentExtractor;
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -103,8 +110,11 @@ transforms:
       name: 'p'
       style: required_named
       argumentValue:
-        kind: 'argument'
-        index: 1
+        expression: '{% p %}'
+        variables:
+          p:
+            kind: 'argument'
+            index: 1
 ''');
     var transforms = result.transformsFor('f', ['test.dart']);
     expect(transforms, hasLength(1));
@@ -119,7 +129,10 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, false);
-    var value = modification.argumentValue as ArgumentExtractor;
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -139,8 +152,11 @@ transforms:
       name: 'p'
       style: required_positional
       argumentValue:
-        kind: 'argument'
-        index: 1
+        expression: '{% p %}'
+        variables:
+          p:
+            kind: 'argument'
+            index: 1
 ''');
     var transforms = result.transformsFor('f', ['test.dart']);
     expect(transforms, hasLength(1));
@@ -155,9 +171,63 @@ transforms:
     expect(modification.name, 'p');
     expect(modification.isRequired, true);
     expect(modification.isPositional, true);
-    var value = modification.argumentValue as ArgumentExtractor;
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
+  }
+
+  void test_addParameter_requiredPositional_complexTemplate() {
+    parse('''
+version: 1
+transforms:
+- title: 'Add'
+  date: 2020-09-09
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'p'
+      style: required_positional
+      argumentValue:
+        expression: '{% a %}({% b %})'
+        variables:
+          a:
+            kind: 'argument'
+            index: 1
+          b:
+            kind: 'argument'
+            index: 2
+''');
+    var transforms = result.transformsFor('f', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as ModifyParameters;
+    var modifications = change.modifications;
+    expect(modifications, hasLength(1));
+    var modification = modifications[0] as AddParameter;
+    expect(modification.index, 0);
+    expect(modification.name, 'p');
+    expect(modification.isRequired, true);
+    expect(modification.isPositional, true);
+    var components = modification.argumentValue.components;
+    expect(components, hasLength(4));
+    var extractorA =
+        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+    var parameterA = extractorA.parameter as PositionalParameterReference;
+    expect(parameterA.index, 1);
+    expect((components[1] as TemplateText).text, '(');
+    var extractorB =
+        (components[2] as TemplateVariable).extractor as ArgumentExtractor;
+    var parameterB = extractorB.parameter as PositionalParameterReference;
+    expect(parameterB.index, 2);
+    expect((components[3] as TemplateText).text, ')');
   }
 
   void test_addTypeParameter_fromNamedArgument() {
@@ -175,8 +245,11 @@ transforms:
       index: 0
       name: 'T'
       argumentValue:
-        kind: 'argument'
-        name: 'p'
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'argument'
+            name: 'p'
 ''');
     var transforms = result.transformsFor('A', ['test.dart']);
     expect(transforms, hasLength(1));
@@ -186,7 +259,10 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var value = change.argumentValue as ArgumentExtractor;
+    var components = change.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -206,8 +282,11 @@ transforms:
       index: 0
       name: 'T'
       argumentValue:
-        kind: 'argument'
-        index: 2
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'argument'
+            index: 2
 ''');
     var transforms = result.transformsFor('A', ['test.dart']);
     expect(transforms, hasLength(1));
@@ -217,7 +296,10 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var value = change.argumentValue as ArgumentExtractor;
+    var components = change.argumentValue.components;
+    expect(components, hasLength(1));
+    var value =
+        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
   }

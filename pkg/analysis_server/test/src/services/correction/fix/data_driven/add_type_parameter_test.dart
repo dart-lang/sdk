@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -468,6 +467,6 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
                 extendedType: extendedType,
                 index: index,
                 name: 'T',
-                argumentValue: LiteralExtractor('String')),
+                argumentValue: codeTemplate('String')),
           ]);
 }

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
@@ -41,6 +42,7 @@ class TransformSetParser {
   static const String _dateKey = 'date';
   static const String _elementKey = 'element';
   static const String _enumKey = 'enum';
+  static const String _expressionKey = 'expression';
   static const String _extensionKey = 'extension';
   static const String _fieldKey = 'field';
   static const String _functionKey = 'function';
@@ -56,11 +58,13 @@ class TransformSetParser {
   static const String _nameKey = 'name';
   static const String _newNameKey = 'newName';
   static const String _setterKey = 'setter';
+  static const String _statementsKey = 'statements';
   static const String _styleKey = 'style';
   static const String _titleKey = 'title';
   static const String _transformsKey = 'transforms';
   static const String _typedefKey = 'typedef';
   static const String _urisKey = 'uris';
+  static const String _variablesKey = 'variables';
   static const String _versionKey = 'version';
 
   /// A table mapping top-level keys for member elements to the list of keys for
@@ -87,6 +91,9 @@ class TransformSetParser {
     'required_named',
     'required_positional'
   ];
+
+  static const String _openComponent = '{%';
+  static const String _closeComponent = '%}';
 
   /// The highest file version supported by this parser. The version needs to be
   /// incremented any time the parser is updated to disallow input that would
@@ -115,6 +122,50 @@ class TransformSetParser {
       return null;
     }
     return _translateTransformSet(map);
+  }
+
+  /// Convert the given [template] into a list of components. Variable
+  /// references in the template are looked up in the map of [extractors].
+  List<TemplateComponent> _extractTemplateComponents(String template,
+      Map<String, ValueExtractor> extractors, int templateOffset) {
+    var components = <TemplateComponent>[];
+    var textStart = 0;
+    var variableStart = template.indexOf(_openComponent);
+    while (variableStart >= 0) {
+      if (textStart < variableStart) {
+        // TODO(brianwilkerson) Check for an end brace without a start brace.
+        components
+            .add(TemplateText(template.substring(textStart, variableStart)));
+      }
+      var endIndex = template.indexOf(_closeComponent, variableStart + 2);
+      if (endIndex < 0) {
+        errorReporter.reportErrorForOffset(
+            TransformSetErrorCode.missingTemplateEnd,
+            templateOffset + variableStart,
+            2);
+        return null;
+      } else {
+        var name = template.substring(variableStart + 2, endIndex).trim();
+        var extractor = extractors[name];
+        if (extractor == null) {
+          errorReporter.reportErrorForOffset(
+              TransformSetErrorCode.undefinedVariable,
+              templateOffset + template.indexOf(name, variableStart),
+              name.length,
+              [name]);
+          return null;
+        } else {
+          components.add(TemplateVariable(extractor));
+        }
+      }
+      textStart = endIndex + 2;
+      variableStart = template.indexOf(_openComponent, textStart);
+    }
+    if (textStart < template.length) {
+      // TODO(brianwilkerson) Check for an end brace without a start brace.
+      components.add(TemplateText(template.substring(textStart)));
+    }
+    return components;
   }
 
   /// Return a textual description of the type of value represented by the
@@ -173,14 +224,9 @@ class TransformSetParser {
   /// Report any keys in the [map] whose values are not in [validKeys].
   void _reportUnsupportedKeys(YamlMap map, Set<String> validKeys) {
     for (var keyNode in map.nodes.keys) {
-      if (keyNode is YamlScalar && keyNode.value is String) {
-        var key = keyNode.value as String;
-        if (key != null && !validKeys.contains(key)) {
-          _reportError(TransformSetErrorCode.unsupportedKey, keyNode, [key]);
-        }
-      } else {
-        // TODO(brianwilkerson) Report the invalidKey.
-        //  "Keys must be of type 'String' but found the type '{0}'."
+      var key = _translateKey(keyNode);
+      if (key != null && !validKeys.contains(key)) {
+        _reportError(TransformSetErrorCode.unsupportedKey, keyNode, [key]);
       }
     }
   }
@@ -236,8 +282,7 @@ class TransformSetParser {
     }
     var isRequired = style.startsWith('required_');
     var isPositional = style.endsWith('_positional');
-    var argumentValue = _translateValueExtractor(
-        node.valueAt(_argumentValueKey),
+    var argumentValue = _translateCodeTemplate(node.valueAt(_argumentValueKey),
         ErrorContext(key: _argumentValueKey, parentNode: node));
     // TODO(brianwilkerson) We really ought to require an argument value for
     //  optional positional parameters too for the case where the added
@@ -269,8 +314,7 @@ class TransformSetParser {
     //  we might need to introduce a `TypeParameterModification` change, similar
     //  to `ParameterModification`. That becomes more likely if we add support
     //  for removing type parameters.
-    var argumentValue = _translateValueExtractor(
-        node.valueAt(_argumentValueKey),
+    var argumentValue = _translateCodeTemplate(node.valueAt(_argumentValueKey),
         ErrorContext(key: _argumentValueKey, parentNode: node));
     if (index == null || name == null || argumentValue == null) {
       // The error has already been reported.
@@ -331,6 +375,52 @@ class TransformSetParser {
       }
       // TODO(brianwilkerson) Report the invalid change kind.
       return null;
+    } else {
+      return _reportInvalidValue(node, context, 'Map');
+    }
+  }
+
+  /// Translate the [node] into a code template. Return the resulting template,
+  /// or `null` if the [node] does not represent a valid code template. If the
+  /// [node] is not valid, use the [context] to report the error.
+  CodeTemplate _translateCodeTemplate(YamlNode node, ErrorContext context) {
+    if (node is YamlMap) {
+      CodeTemplateKind kind;
+      int templateOffset;
+      String template;
+      var expressionNode = node.valueAt(_expressionKey);
+      if (expressionNode != null) {
+        _reportUnsupportedKeys(node, const {_expressionKey, _variablesKey});
+        kind = CodeTemplateKind.expression;
+        // TODO(brianwilkerson) We add 1 to account for the quotes around the
+        //  string, but quotes aren't required, so we need to find out what
+        //  style of node [expressionNode] is to get the right offset.
+        templateOffset = expressionNode.span.start.offset + 1;
+        template = _translateString(expressionNode,
+            ErrorContext(key: _expressionKey, parentNode: node));
+      } else {
+        var statementsNode = node.valueAt(_statementsKey);
+        if (statementsNode != null) {
+          _reportUnsupportedKeys(node, const {_statementsKey, _variablesKey});
+          kind = CodeTemplateKind.statements;
+          // TODO(brianwilkerson) We add 1 to account for the quotes around the
+          //  string, but quotes aren't required, so we need to find out what
+          //  style of node [expressionNode] is to get the right offset.
+          templateOffset = statementsNode.span.start.offset + 1;
+          template = _translateString(statementsNode,
+              ErrorContext(key: _statementsKey, parentNode: node));
+        } else {
+          // TODO(brianwilkerson) Report the missing key.
+          return null;
+        }
+      }
+      var extractors = _translateTemplateVariables(node.valueAt(_variablesKey),
+          ErrorContext(key: _variablesKey, parentNode: node));
+      var components =
+          _extractTemplateComponents(template, extractors, templateOffset);
+      return CodeTemplate(kind, components);
+    } else if (node == null) {
+      return _reportMissingKey(context);
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
@@ -435,6 +525,16 @@ class TransformSetParser {
     }
   }
 
+  /// Translate the given [node] as a key.
+  String _translateKey(YamlNode node) {
+    if (node is YamlScalar && node.value is String) {
+      return node.value as String;
+    }
+    // TODO(brianwilkerson) Report the invalidKey.
+    //  "Keys must be of type 'String' but found the type '{0}'."
+    return null;
+  }
+
   /// Translate the [node] into a list of objects using the [elementTranslator].
   /// Return the resulting list, or `null` if the [node] does not represent a
   /// valid list. If any of the elements of the list can't be translated, they
@@ -518,6 +618,32 @@ class TransformSetParser {
       return null;
     } else {
       return _reportInvalidValue(node, context, 'String');
+    }
+  }
+
+  /// Translate the [node] into a list of template components. Return the
+  /// resulting list, or `null` if the [node] does not represent a valid
+  /// variables map. If the [node] is not valid, use the [context] to report the
+  /// error.
+  Map<String, ValueExtractor> _translateTemplateVariables(
+      YamlNode node, ErrorContext context) {
+    if (node is YamlMap) {
+      var extractors = <String, ValueExtractor>{};
+      for (var entry in node.nodes.entries) {
+        var name = _translateKey(entry.key);
+        if (name != null) {
+          var value = _translateValueExtractor(
+              entry.value, ErrorContext(key: name, parentNode: node));
+          if (value != null) {
+            extractors[name] = value;
+          }
+        }
+      }
+      return extractors;
+    } else if (node == null) {
+      return const {};
+    } else {
+      return _reportInvalidValue(node, context, 'Map');
     }
   }
 

@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -26,12 +26,12 @@ class AddParameter extends ParameterModification {
   /// A flag indicating whether the parameter is a positional parameter.
   final bool isPositional;
 
-  /// The value of the new argument in invocations of the function, or `null` if
-  /// the parameter is optional and no argument needs to be added. The only time
-  /// an argument needs to be added for an optional parameter is if the
-  /// parameter is positional and there are pre-existing optional positional
-  /// parameters after the ones being added.
-  final ValueExtractor argumentValue;
+  /// The code template used to compute the value of the new argument in
+  /// invocations of the function, or `null` if the parameter is optional and no
+  /// argument needs to be added. The only time an argument needs to be added
+  /// for an optional parameter is if the parameter is positional and there are
+  /// pre-existing optional positional parameters after the ones being added.
+  final CodeTemplate argumentValue;
 
   /// Initialize a newly created parameter modification to represent the
   /// addition of a parameter. If provided, the [argumentValue] will be used as
@@ -91,7 +91,7 @@ class ModifyParameters extends Change<_Data> {
     /// Write to the [builder] the argument associated with a single
     /// [parameter].
     void writeArgument(DartEditBuilder builder, AddParameter parameter) {
-      var value = parameter.argumentValue.from(argumentList, fix.utils);
+      var value = parameter.argumentValue.generate(argumentList, fix.utils);
       if (!parameter.isPositional) {
         builder.write(parameter.name);
         builder.write(': ');

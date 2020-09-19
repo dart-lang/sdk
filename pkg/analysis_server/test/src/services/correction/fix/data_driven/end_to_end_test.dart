@@ -35,8 +35,11 @@ transforms:
       name: 'y'
       style: required_positional
       argumentValue:
-        kind: 'argument'
-        index: 0
+        expression: '{% y %}'
+        variables:
+          y:
+            kind: 'argument'
+            index: 0
 ''');
     await resolveTestUnit('''
 import '$importUri';
@@ -75,8 +78,11 @@ transforms:
       index: 1
       name: 'T'
       argumentValue:
-        kind: 'argument'
-        index: 0
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'argument'
+            index: 0
 ''');
     await resolveTestUnit('''
 import '$importUri';
