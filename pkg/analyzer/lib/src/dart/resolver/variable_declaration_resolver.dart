@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -81,10 +80,7 @@ class VariableDeclarationResolver {
         initializerType = DynamicTypeImpl.instance;
       }
 
-      var inferredType = demoteType(
-        _resolver.definingLibrary,
-        initializerType,
-      );
+      var inferredType = _resolver.typeSystem.demoteType(initializerType);
       element.type = inferredType;
     }
   }
