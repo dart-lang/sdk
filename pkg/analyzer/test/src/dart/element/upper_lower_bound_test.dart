@@ -2943,7 +2943,7 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(
       S_none,
       typeParameterTypeNone(U),
-      interfaceTypeNone(A, typeArguments: [objectNone]),
+      interfaceTypeNone(A, typeArguments: [objectQuestion]),
     );
   }
 
@@ -2983,14 +2983,22 @@ class UpperBoundTest extends _BoundsTestBase {
     _checkLeastUpperBound(typeT, C_none, A_none);
   }
 
-  void test_typeParameter_interface_noBound() {
+  void test_typeParameter_interface_bounded_objectQuestion() {
     var T = typeParameter('T', bound: objectQuestion);
-
-    var A = class_(name: 'A');
 
     _checkLeastUpperBound(
       typeParameterTypeNone(T),
-      interfaceTypeNone(A),
+      intNone,
+      objectQuestion,
+    );
+  }
+
+  void test_typeParameter_interface_noBound() {
+    var T = typeParameter('T');
+
+    _checkLeastUpperBound(
+      typeParameterTypeNone(T),
+      intNone,
       objectQuestion,
     );
   }

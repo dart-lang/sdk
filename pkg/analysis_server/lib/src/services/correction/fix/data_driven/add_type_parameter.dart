@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:meta/meta.dart';
@@ -22,8 +22,8 @@ class AddTypeParameter extends Change<_Data> {
   /// type parameter doesn't have a bound.
   final String extendedType;
 
-  /// The value extractor used to compute the value of the type argument.
-  final ValueExtractor argumentValue;
+  /// The code template used to compute the value of the type argument.
+  final CodeTemplate argumentValue;
 
   /// Initialize a newly created change to describe adding a type parameter to a
   /// type or a function.
@@ -53,7 +53,7 @@ class AddTypeParameter extends Change<_Data> {
     if (node is NamedType) {
       // wrong_number_of_type_arguments
       // wrong_number_of_type_arguments_constructor
-      var argument = argumentValue.from(node, fix.utils);
+      var argument = argumentValue.generate(node, fix.utils);
       if (argument == null) {
         return null;
       }
@@ -66,7 +66,7 @@ class AddTypeParameter extends Change<_Data> {
     var parent = node.parent;
     if (parent is InvocationExpression) {
       // wrong_number_of_type_arguments_method
-      var argument = argumentValue.from(parent, fix.utils);
+      var argument = argumentValue.generate(parent, fix.utils);
       if (argument == null) {
         return null;
       }
@@ -85,7 +85,7 @@ class AddTypeParameter extends Change<_Data> {
       return _TypeParameterData(typeParameters, parent.name.end);
     } else if (node is TypeArgumentList && parent is ExtensionOverride) {
       // wrong_number_of_type_arguments_extension
-      var argument = argumentValue.from(node, fix.utils);
+      var argument = argumentValue.generate(node, fix.utils);
       if (argument == null) {
         return null;
       }

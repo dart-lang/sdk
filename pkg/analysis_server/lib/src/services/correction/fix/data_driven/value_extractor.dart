@@ -42,20 +42,6 @@ class ArgumentExtractor extends ValueExtractor {
   }
 }
 
-/// A value extractor that returns a pre-computed piece of code.
-class LiteralExtractor extends ValueExtractor {
-  /// The code to be returned.
-  final String code;
-
-  /// Initialize a newly created extractor to return the given [code].
-  LiteralExtractor(this.code);
-
-  @override
-  String from(AstNode node, CorrectionUtils utils) {
-    return code;
-  }
-}
-
 /// An object used to extract an expression from an AST node.
 abstract class ValueExtractor {
   /// Return code extracted from the given [node], or `null` if no code could be

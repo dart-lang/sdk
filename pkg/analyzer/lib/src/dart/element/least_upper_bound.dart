@@ -439,8 +439,6 @@ class LeastUpperBoundHelper {
     );
   }
 
-  InterfaceType get _objectType => _typeSystem.typeProvider.objectType;
-
   /// Compute the least upper bound of two types.
   ///
   /// https://github.com/dart-lang/language
@@ -808,9 +806,16 @@ class LeastUpperBoundHelper {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
   }
 
+  /// TODO(scheglov) Use greatest closure.
+  /// See https://github.com/dart-lang/language/pull/1195
   DartType _typeParameterResolveToObjectBounds(DartType type) {
     var element = type.element;
-    type = type.resolveToBound(_objectType);
-    return Substitution.fromMap({element: _objectType}).substituteType(type);
+
+    var objectType = _typeSystem.isNonNullableByDefault
+        ? _typeSystem.objectQuestion
+        : _typeSystem.objectStar;
+
+    type = type.resolveToBound(objectType);
+    return Substitution.fromMap({element: objectType}).substituteType(type);
   }
 }

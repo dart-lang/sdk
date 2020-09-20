@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
@@ -26,6 +27,11 @@ abstract class DataDrivenFixProcessorTest extends FixProcessorTest {
   /// given [content].
   void addPackageDataFile(String content) {
     addPackageFile('p', TransformSetManager.dataFileName, content);
+  }
+
+  /// Return a code template that will produce the given [text].
+  CodeTemplate codeTemplate(String text) {
+    return CodeTemplate(CodeTemplateKind.expression, [TemplateText(text)]);
   }
 
   /// A method that can be used as an error filter to ignore any unused_import

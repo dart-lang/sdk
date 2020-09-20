@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/modify_p
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -57,7 +56,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(0, 'a', false, true, LiteralExtractor('0'))],
+        ['C', 'm'], [AddParameter(0, 'a', false, true, codeTemplate('0'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -84,7 +83,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(0, 'a', true, false, LiteralExtractor('0'))],
+        ['C', 'm'], [AddParameter(0, 'a', true, false, codeTemplate('0'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -111,7 +110,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(0, 'a', true, true, LiteralExtractor('0'))],
+        ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -165,7 +164,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(1, 'b', false, true, LiteralExtractor('1'))],
+        ['C', 'm'], [AddParameter(1, 'b', false, true, codeTemplate('1'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -192,7 +191,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(1, 'b', true, false, LiteralExtractor('1'))],
+        ['C', 'm'], [AddParameter(1, 'b', true, false, codeTemplate('1'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -219,7 +218,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(1, 'b', true, true, LiteralExtractor('1'))],
+        ['C', 'm'], [AddParameter(1, 'b', true, true, codeTemplate('1'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -249,9 +248,9 @@ class C {
       'C',
       'm'
     ], [
-      AddParameter(1, 'b', true, true, LiteralExtractor('1')),
-      AddParameter(2, 'c', true, true, LiteralExtractor('2')),
-      AddParameter(4, 'e', true, true, LiteralExtractor('4')),
+      AddParameter(1, 'b', true, true, codeTemplate('1')),
+      AddParameter(2, 'c', true, true, codeTemplate('2')),
+      AddParameter(4, 'e', true, true, codeTemplate('4')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -276,7 +275,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(0, 'a', true, true, LiteralExtractor('0'))],
+        ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))],
         newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -301,7 +300,7 @@ class C {
 }
 ''');
     setPackageData(_modify(
-        ['C', 'm'], [AddParameter(0, 'a', true, true, LiteralExtractor('0'))]));
+        ['C', 'm'], [AddParameter(0, 'a', true, true, codeTemplate('0'))]));
     await resolveTestUnit('''
 import '$importUri';
 
@@ -331,7 +330,7 @@ class C {
       'm'
     ], [
       RemoveParameter(PositionalParameterReference(0)),
-      AddParameter(2, 'c', true, true, LiteralExtractor('2'))
+      AddParameter(2, 'c', true, true, codeTemplate('2'))
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -362,7 +361,7 @@ class C {
       'm'
     ], [
       RemoveParameter(PositionalParameterReference(1)),
-      AddParameter(0, 'a', true, true, LiteralExtractor('0'))
+      AddParameter(0, 'a', true, true, codeTemplate('0'))
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -394,7 +393,7 @@ class C {
     ], [
       RemoveParameter(PositionalParameterReference(0)),
       RemoveParameter(PositionalParameterReference(1)),
-      AddParameter(0, 'c', true, true, LiteralExtractor('2')),
+      AddParameter(0, 'c', true, true, codeTemplate('2')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -426,7 +425,7 @@ class C {
     ], [
       RemoveParameter(PositionalParameterReference(1)),
       RemoveParameter(PositionalParameterReference(2)),
-      AddParameter(1, 'd', true, true, LiteralExtractor('3')),
+      AddParameter(1, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -456,10 +455,10 @@ class C {
       'C',
       'm1'
     ], [
-      AddParameter(0, 'a', true, true, LiteralExtractor('0')),
+      AddParameter(0, 'a', true, true, codeTemplate('0')),
       RemoveParameter(PositionalParameterReference(1)),
       RemoveParameter(PositionalParameterReference(3)),
-      AddParameter(2, 'd', true, true, LiteralExtractor('3')),
+      AddParameter(2, 'd', true, true, codeTemplate('3')),
     ], newName: 'm2'));
     await resolveTestUnit('''
 import '$importUri';
@@ -827,7 +826,7 @@ void g(int a, int b) {}
     setPackageData(_modify([
       'f'
     ], [
-      AddParameter(0, 'a', true, true, LiteralExtractor('0')),
+      AddParameter(0, 'a', true, true, codeTemplate('0')),
     ], newName: 'g'));
     await resolveTestUnit('''
 import '$importUri';
