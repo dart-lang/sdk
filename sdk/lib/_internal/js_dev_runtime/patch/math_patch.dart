@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch, nullCheck, notNull;
@@ -12,53 +10,53 @@ import 'dart:typed_data' show ByteData;
 @patch
 @notNull
 T min<T extends num>(@nullCheck T a, @nullCheck T b) =>
-    JS('-dynamic', r'Math.min(#, #)', a, b);
+    JS<T>('-dynamic', r'Math.min(#, #)', a, b);
 
 @patch
 @notNull
 T max<T extends num>(@nullCheck T a, @nullCheck T b) =>
-    JS('-dynamic', r'Math.max(#, #)', a, b);
+    JS<T>('-dynamic', r'Math.max(#, #)', a, b);
 
 @patch
 @notNull
-double sqrt(@nullCheck num x) => JS<num>('!', r'Math.sqrt(#)', x);
+double sqrt(@nullCheck num x) => JS<double>('!', r'Math.sqrt(#)', x);
 
 @patch
 @notNull
-double sin(@nullCheck num radians) => JS<num>('!', r'Math.sin(#)', radians);
+double sin(@nullCheck num radians) => JS<double>('!', r'Math.sin(#)', radians);
 
 @patch
 @notNull
-double cos(@nullCheck num radians) => JS<num>('!', r'Math.cos(#)', radians);
+double cos(@nullCheck num radians) => JS<double>('!', r'Math.cos(#)', radians);
 
 @patch
 @notNull
-double tan(@nullCheck num radians) => JS<num>('!', r'Math.tan(#)', radians);
+double tan(@nullCheck num radians) => JS<double>('!', r'Math.tan(#)', radians);
 
 @patch
 @notNull
-double acos(@nullCheck num x) => JS<num>('!', r'Math.acos(#)', x);
+double acos(@nullCheck num x) => JS<double>('!', r'Math.acos(#)', x);
 
 @patch
 @notNull
-double asin(@nullCheck num x) => JS<num>('!', r'Math.asin(#)', x);
+double asin(@nullCheck num x) => JS<double>('!', r'Math.asin(#)', x);
 
 @patch
 @notNull
-double atan(@nullCheck num x) => JS<num>('!', r'Math.atan(#)', x);
+double atan(@nullCheck num x) => JS<double>('!', r'Math.atan(#)', x);
 
 @patch
 @notNull
 double atan2(@nullCheck num a, @nullCheck num b) =>
-    JS<num>('!', r'Math.atan2(#, #)', a, b);
+    JS<double>('!', r'Math.atan2(#, #)', a, b);
 
 @patch
 @notNull
-double exp(@nullCheck num x) => JS<num>('!', r'Math.exp(#)', x);
+double exp(@nullCheck num x) => JS<double>('!', r'Math.exp(#)', x);
 
 @patch
 @notNull
-double log(@nullCheck num x) => JS<num>('!', r'Math.log(#)', x);
+double log(@nullCheck num x) => JS<double>('!', r'Math.log(#)', x);
 
 @patch
 @notNull
@@ -69,10 +67,10 @@ const int _POW2_32 = 0x100000000;
 
 @patch
 class Random {
-  static Random _secureRandom;
+  static Random? _secureRandom;
 
   @patch
-  factory Random([int seed]) =>
+  factory Random([int? seed]) =>
       (seed == null) ? const _JSRandom() : _Random(seed);
 
   @patch
@@ -88,7 +86,7 @@ class _JSRandom implements Random {
     if (max <= 0 || max > _POW2_32) {
       throw RangeError("max must be in range 0 < max ≤ 2^32, was $max");
     }
-    return JS("int", "(Math.random() * #) >>> 0", max);
+    return JS<int>("int", "(Math.random() * #) >>> 0", max);
   }
 
   /**
@@ -96,13 +94,13 @@ class _JSRandom implements Random {
    * the range from 0.0, inclusive, to 1.0, exclusive.
    */
   @notNull
-  double nextDouble() => JS("double", "Math.random()");
+  double nextDouble() => JS<double>("double", "Math.random()");
 
   /**
    * Generates a random boolean value.
    */
   @notNull
-  bool nextBool() => JS("bool", "Math.random() < 0.5");
+  bool nextBool() => JS<bool>("bool", "Math.random() < 0.5");
 }
 
 class _Random implements Random {
@@ -240,7 +238,7 @@ class _Random implements Random {
     do {
       _nextState();
       rnd32 = _lo;
-      result = rnd32.remainder(max); // % max;
+      result = rnd32.remainder(max).toInt(); // % max;
     } while ((rnd32 - result + max) >= _POW2_32);
     return result;
   }
@@ -327,7 +325,7 @@ class _JSSecureRandom implements Random {
     }
     _buffer.setUint32(0, 0);
     int start = 4 - byteCount;
-    int randomLimit = pow(256, byteCount);
+    int randomLimit = pow(256, byteCount).toInt();
     while (true) {
       _getRandomBytes(start, byteCount);
       // The getUint32 method is big-endian as default.
@@ -336,7 +334,7 @@ class _JSSecureRandom implements Random {
         // Max is power of 2.
         return random & (max - 1);
       }
-      int result = random.remainder(max);
+      int result = random.remainder(max).toInt();
       // Ensure results have equal probability by rejecting values in the
       // last range of k*max .. 256**byteCount.
       // TODO: Consider picking a higher byte count if the last range is a

@@ -43,7 +43,7 @@ var tests = <IsolateTest>[
     // Get the timeline.
     Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
     expect(result['type'], equals('Timeline'));
-    expect(result['traceEvents'], new isInstanceOf<List>());
+    expect(result['traceEvents'], isA<List>());
     // Confirm that it as no non-meta data events.
     expect(filterEvents(result['traceEvents'], isNotMetaData).length, 0);
   },
@@ -77,7 +77,7 @@ var tests = <IsolateTest>[
     // Get the timeline.
     Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
     expect(result['type'], equals('Timeline'));
-    expect(result['traceEvents'], new isInstanceOf<List>());
+    expect(result['traceEvents'], isA<List>());
     print(result['traceEvents']);
     // Confirm that Dart events are added.
     expect(filterEvents(result['traceEvents'], isDart).length, greaterThan(0));
@@ -101,7 +101,7 @@ var tests = <IsolateTest>[
     // Grab the timeline and remember the number of Dart events.
     Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
     expect(result['type'], equals('Timeline'));
-    expect(result['traceEvents'], new isInstanceOf<List>());
+    expect(result['traceEvents'], isA<List>());
     dartEventCount = filterEvents(result['traceEvents'], isDart).length;
 
     await completer.future;
@@ -119,7 +119,7 @@ var tests = <IsolateTest>[
     // Grab the timeline and verify that we haven't added any new Dart events.
     Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
     expect(result['type'], equals('Timeline'));
-    expect(result['traceEvents'], new isInstanceOf<List>());
+    expect(result['traceEvents'], isA<List>());
     expect(filterEvents(result['traceEvents'], isDart).length, dartEventCount);
     // Confirm that zero non-Dart events are added.
     expect(filterEvents(result['traceEvents'], isNotDartAndMetaData).length,

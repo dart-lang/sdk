@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -139,7 +140,8 @@ abstract class Substitution {
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound);
 
   DartType substituteType(DartType type, {bool contravariant = false}) {
-    return _TopSubstitutor(this, contravariant).visit(type);
+    var visitor = _TopSubstitutor(this, contravariant);
+    return type.accept(visitor);
   }
 
   /// Substitutes both variables from [first] and [second], favoring those from
@@ -247,7 +249,6 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      freshElement.type = freshType;
       substitution[element] = freshType;
 
       if (!element.isLegacyCovariant) {
@@ -259,7 +260,7 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       var element = elements[i];
       if (element.bound != null) {
         TypeParameterElementImpl freshElement = freshElements[i];
-        freshElement.bound = visit(element.bound);
+        freshElement.bound = element.bound.accept(this);
       }
     }
 
@@ -331,7 +332,11 @@ class _TopSubstitutor extends _TypeSubstitutor {
   }
 }
 
-abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
+abstract class _TypeSubstitutor
+    implements
+        TypeVisitor<DartType>,
+        InferenceTypeVisitor<DartType>,
+        LinkingTypeVisitor<DartType> {
   final _TypeSubstitutor outer;
   bool covariantContext = true;
 
@@ -382,12 +387,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return _FreshTypeParametersSubstitutor(this);
   }
 
-  DartType visit(DartType type) {
-    return DartTypeVisitor.visit(type, this);
-  }
-
   @override
-  DartType visitDynamicType(DynamicTypeImpl type) => type;
+  DartType visitDynamicType(DynamicType type) => type;
 
   @override
   DartType visitFunctionType(FunctionType type) {
@@ -402,7 +403,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    int before = this.useCounter;
+    int before = useCounter;
 
     var inner = this;
     var typeFormals = type.typeFormals;
@@ -415,16 +416,16 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     inner.invertVariance();
 
     var parameters = type.parameters.map((parameter) {
-      var type = inner.visit(parameter.type);
+      var type = parameter.type.accept(inner);
       return parameter.copyWith(type: type);
     }).toList();
 
     inner.invertVariance();
 
-    var returnType = inner.visit(type.returnType);
-    var typeArguments = type.typeArguments.map(visit).toList();
+    var returnType = type.returnType.accept(inner);
+    var typeArguments = _mapList(type.typeArguments);
 
-    if (this.useCounter == before) return type;
+    if (useCounter == before) return type;
 
     return FunctionTypeImpl(
       typeFormals: typeFormals,
@@ -449,7 +450,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    int before = this.useCounter;
+    int before = useCounter;
 
     var inner = this;
     var typeFormals = type.typeFormals;
@@ -462,15 +463,15 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     inner.invertVariance();
 
     var parameters = type.parameters.map((parameter) {
-      var type = inner.visit(parameter.type);
+      var type = parameter.type.accept(inner);
       return parameter.copyWith(type: type);
     }).toList();
 
     inner.invertVariance();
 
-    var returnType = inner.visit(type.returnType);
+    var returnType = type.returnType.accept(inner);
 
-    if (this.useCounter == before) return type;
+    if (useCounter == before) return type;
 
     return FunctionTypeBuilder(
       typeFormals,
@@ -487,7 +488,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
 
     int before = useCounter;
-    var typeArguments = type.typeArguments.map(visit).toList();
+    var typeArguments = _mapList(type.typeArguments);
     if (useCounter == before) {
       return type;
     }
@@ -506,7 +507,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
 
     int before = useCounter;
-    var arguments = type.arguments.map(visit).toList();
+    var arguments = _mapList(type.arguments);
     if (useCounter == before) {
       return type;
     }
@@ -520,7 +521,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitNeverType(NeverTypeImpl type) => type;
+  DartType visitNeverType(NeverType type) => type;
 
   @override
   DartType visitTypeParameterType(TypeParameterType type) {
@@ -540,6 +541,10 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitVoidType(VoidType type) => type;
+
+  List<DartType> _mapList(List<DartType> types) {
+    return types.map((e) => e.accept(this)).toList();
+  }
 
   ///  1. Substituting T=X! into T! yields X!
   ///  2. Substituting T=X* into T! yields X*

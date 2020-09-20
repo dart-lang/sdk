@@ -146,29 +146,6 @@ class ListLiteral extends Expression {
   }
 }
 
-/// "Mini AST" representation of a named expression.
-class NamedExpression extends Expression {
-  final String name;
-  final Token colon;
-  final Expression expression;
-
-  NamedExpression(this.name, this.colon, this.expression);
-}
-
-/// "Mini AST" representation of a named expression.
-class PrefixedIdentifier extends Expression {
-  final String prefix;
-  final Token operator;
-  final String identifier;
-
-  PrefixedIdentifier(this.prefix, this.operator, this.identifier);
-
-  @override
-  String toCode() {
-    return '$prefix.$identifier';
-  }
-}
-
 /// "Mini AST" representation of a method declaration.
 class MethodDeclaration extends ClassMember {
   final bool isGetter;
@@ -191,11 +168,6 @@ class MiniAstBuilder extends StackListener {
 
   @override
   Uri get uri => null;
-
-  @override
-  dynamic internalProblem(Message message, int charOffset, Uri uri) {
-    throw UnsupportedError(message.message);
-  }
 
   @override
   void addProblem(Message message, int charOffset, int length,
@@ -225,31 +197,22 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(
-      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
-    debugEvent("ClassOrMixinBody");
-    push(popList(memberCount,
-        List<ClassMember>.filled(memberCount, null, growable: true)));
-  }
+  void endBinaryExpression(Token token) {
+    debugEvent("BinaryExpression");
 
-  @override
-  void handleClassWithClause(Token withKeyword) {
-    debugEvent("ClassWithClause");
-  }
-
-  @override
-  void handleClassNoWithClause() {
-    debugEvent("NoClassWithClause");
-  }
-
-  @override
-  void handleNamedMixinApplicationWithClause(Token withKeyword) {
-    debugEvent("NamedMixinApplicationWithClause");
-  }
-
-  @override
-  void handleRecoverClassHeader() {
-    pop(); // superclass
+    if (identical('.', token.stringValue)) {
+      var rightOperand = pop();
+      var leftOperand = pop();
+      if (leftOperand is String && !leftOperand.contains('.')) {
+        push(PrefixedIdentifier(leftOperand, token, rightOperand));
+      } else {
+        push(UnknownExpression());
+      }
+    } else {
+      pop(); // RHS
+      pop(); // LHS
+      push(UnknownExpression());
+    }
   }
 
   @override
@@ -263,6 +226,42 @@ class MiniAstBuilder extends StackListener {
     Comment comment = pop();
     compilationUnit.declarations
         .add(ClassDeclaration(comment, metadata, name, superclass, members));
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("ClassFactoryMethod");
+    pop(); // Body
+    pop(); // Type variables
+    String name = pop();
+    List<Annotation> metadata = popTypedList();
+    Comment comment = pop();
+    push(ConstructorDeclaration(comment, metadata, name));
+  }
+
+  @override
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("Method");
+    pop(); // Body
+    pop(); // Initializers
+    pop(); // Formal parameters
+    pop(); // Type variables
+    String name = pop();
+    TypeName returnType = pop();
+    List<Annotation> metadata = popTypedList();
+    Comment comment = pop();
+    push(MethodDeclaration(
+        comment, metadata, getOrSet?.lexeme == 'get', name, returnType));
+  }
+
+  @override
+  void endClassOrMixinBody(
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    debugEvent("ClassOrMixinBody");
+    push(popList(memberCount,
+        List<ClassMember>.filled(memberCount, null, growable: true)));
   }
 
   @override
@@ -295,18 +294,6 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("ClassFactoryMethod");
-    pop(); // Body
-    pop(); // Type variables
-    String name = pop();
-    List<Annotation> metadata = popTypedList();
-    Comment comment = pop();
-    push(ConstructorDeclaration(comment, metadata, name));
-  }
-
-  @override
   void endFieldInitializer(Token assignment, Token token) {
     debugEvent("FieldInitializer");
     pop(); // Expression
@@ -335,30 +322,12 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleIdentifierList(int count) {
-    debugEvent("IdentifierList");
-    push(popList(count, List<dynamic>.filled(count, null, growable: true)));
-  }
-
-  @override
-  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
-    debugEvent("ImportPrefix");
-    pushIfNull(asKeyword, NullValue.Prefix);
-  }
-
-  @override
   void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
     pop(NullValue.Prefix); // Prefix identifier
     pop(); // URI
     pop(); // Metadata
     pop(); // Comment
-  }
-
-  @override
-  void handleRecoverImport(Token semicolon) {
-    debugEvent("RecoverImport");
-    pop(NullValue.Prefix); // Prefix identifier
   }
 
   @override
@@ -374,20 +343,6 @@ class MiniAstBuilder extends StackListener {
     super.endLiteralString(interpolationCount, endToken);
     String value = pop();
     push(StringLiteral(value));
-  }
-
-  @override
-  void handleNativeClause(Token nativeToken, bool hasName) {
-    debugEvent("NativeClause");
-    if (hasName) {
-      pop(); // Pop the native name which is a StringLiteral.
-    }
-  }
-
-  @override
-  void handleInvalidMember(Token endToken) {
-    debugEvent("InvalidMember");
-    pop(); // metadata star
   }
 
   @override
@@ -415,64 +370,9 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
-    debugEvent("Method");
-    pop(); // Body
-    pop(); // Initializers
-    pop(); // Formal parameters
-    pop(); // Type variables
-    String name = pop();
-    TypeName returnType = pop();
-    List<Annotation> metadata = popTypedList();
-    Comment comment = pop();
-    push(MethodDeclaration(
-        comment, metadata, getOrSet?.lexeme == 'get', name, returnType));
-  }
-
-  @override
-  void handleSend(Token beginToken, Token endToken) {
-    debugEvent("Send");
-
-    var arguments = pop();
-    pop(); // Type arguments
-    if (arguments != null) {
-      pop(); // Receiver
-      push(UnknownExpression());
-    } else {
-      // Property get.
-    }
-  }
-
-  @override
   void endShow(Token showKeyword) {
     debugEvent("Show");
     pop(); // Shown names
-  }
-
-  @override
-  void handleNamedArgument(Token colon) {
-    var expression = pop();
-    var name = pop();
-    push(NamedExpression(name, colon, expression));
-  }
-
-  @override
-  void handleLiteralList(
-      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
-    debugEvent("LiteralList");
-
-    var elements = List<Object>(count);
-    popList(count, elements);
-    pop(); // type arguments
-
-    push(
-      ListLiteral(
-        leftBracket,
-        List<Expression>.from(elements),
-        rightBracket,
-      ),
-    );
   }
 
   @override
@@ -501,33 +401,18 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleInvalidTypeArguments(Token token) {
-    debugEvent("InvalidTypeArguments");
-    pop(NullValue.TypeArguments);
-  }
-
-  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
   }
 
   @override
-  void endBinaryExpression(Token token) {
-    debugEvent("BinaryExpression");
+  void handleClassNoWithClause() {
+    debugEvent("NoClassWithClause");
+  }
 
-    if (identical('.', token.stringValue)) {
-      var rightOperand = pop();
-      var leftOperand = pop();
-      if (leftOperand is String && !leftOperand.contains('.')) {
-        push(PrefixedIdentifier(leftOperand, token, rightOperand));
-      } else {
-        push(UnknownExpression());
-      }
-    } else {
-      pop(); // RHS
-      pop(); // LHS
-      push(UnknownExpression());
-    }
+  @override
+  void handleClassWithClause(Token withKeyword) {
+    debugEvent("ClassWithClause");
   }
 
   @override
@@ -538,17 +423,6 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     if (isExpressionBody) pop();
-    push(NullValue.FunctionBody);
-  }
-
-  @override
-  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
-    debugEvent("NativeFunctionBodyIgnored");
-  }
-
-  @override
-  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
-    debugEvent("NativeFunctionBodySkipped");
     push(NullValue.FunctionBody);
   }
 
@@ -564,9 +438,33 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleIdentifierList(int count) {
+    debugEvent("IdentifierList");
+    push(popList(count, List<dynamic>.filled(count, null, growable: true)));
+  }
+
+  @override
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    pushIfNull(asKeyword, NullValue.Prefix);
+  }
+
+  @override
+  void handleInvalidMember(Token endToken) {
+    debugEvent("InvalidMember");
+    pop(); // metadata star
+  }
+
+  @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
+  }
+
+  @override
+  void handleInvalidTypeArguments(Token token) {
+    debugEvent("InvalidTypeArguments");
+    pop(NullValue.TypeArguments);
   }
 
   @override
@@ -576,9 +474,63 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleLiteralList(
+      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+    debugEvent("LiteralList");
+
+    var elements = List<Object>(count);
+    popList(count, elements);
+    pop(); // type arguments
+
+    push(
+      ListLiteral(
+        leftBracket,
+        List<Expression>.from(elements),
+        rightBracket,
+      ),
+    );
+  }
+
+  @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
     push(UnknownExpression());
+  }
+
+  @override
+  void handleNamedArgument(Token colon) {
+    var expression = pop();
+    var name = pop();
+    push(NamedExpression(name, colon, expression));
+  }
+
+  @override
+  void handleNamedMixinApplicationWithClause(Token withKeyword) {
+    debugEvent("NamedMixinApplicationWithClause");
+  }
+
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      pop(); // Pop the native name which is a StringLiteral.
+    }
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodySkipped");
+    push(NullValue.FunctionBody);
+  }
+
+  @override
+  void handleNonNullAssertExpression(Token bang) {
+    reportNonNullAssertExpressionNotEnabled(bang);
   }
 
   @override
@@ -587,6 +539,31 @@ class MiniAstBuilder extends StackListener {
     String suffix = pop();
     String prefix = pop();
     push('$prefix.$suffix');
+  }
+
+  @override
+  void handleRecoverClassHeader() {
+    pop(); // superclass
+  }
+
+  @override
+  void handleRecoverImport(Token semicolon) {
+    debugEvent("RecoverImport");
+    pop(NullValue.Prefix); // Prefix identifier
+  }
+
+  @override
+  void handleSend(Token beginToken, Token endToken) {
+    debugEvent("Send");
+
+    var arguments = pop();
+    pop(); // Type arguments
+    if (arguments != null) {
+      pop(); // Receiver
+      push(UnknownExpression());
+    } else {
+      // Property get.
+    }
   }
 
   @override
@@ -599,8 +576,13 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleNonNullAssertExpression(Token bang) {
-    reportNonNullAssertExpressionNotEnabled(bang);
+  dynamic internalProblem(Message message, int charOffset, Uri uri) {
+    throw UnsupportedError(message.message);
+  }
+
+  List popList(int n, List list) {
+    if (n == 0) return null;
+    return stack.popList(n, list, null);
   }
 
   /// Calls [pop] and creates a list with the appropriate type parameter `T`
@@ -608,11 +590,6 @@ class MiniAstBuilder extends StackListener {
   List<T> popTypedList<T>() {
     List list = pop();
     return list != null ? List<T>.from(list) : null;
-  }
-
-  List popList(int n, List list) {
-    if (n == 0) return null;
-    return stack.popList(n, list, null);
   }
 
   void reportErrorIfNullableType(Token questionMark) {
@@ -668,6 +645,29 @@ class MiniAstParser extends Parser {
 
   @override
   Token parseInvalidBlock(Token token) => skipBlock(token);
+}
+
+/// "Mini AST" representation of a named expression.
+class NamedExpression extends Expression {
+  final String name;
+  final Token colon;
+  final Expression expression;
+
+  NamedExpression(this.name, this.colon, this.expression);
+}
+
+/// "Mini AST" representation of a named expression.
+class PrefixedIdentifier extends Expression {
+  final String prefix;
+  final Token operator;
+  final String identifier;
+
+  PrefixedIdentifier(this.prefix, this.operator, this.identifier);
+
+  @override
+  String toCode() {
+    return '$prefix.$identifier';
+  }
 }
 
 /// "Mini AST" representation of a string literal.

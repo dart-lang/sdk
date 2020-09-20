@@ -414,7 +414,12 @@ class Utils {
 
   // Not all platforms support strndup.
   static char* StrNDup(const char* s, intptr_t n);
+  static char* StrDup(const char* s);
   static intptr_t StrNLen(const char* s, intptr_t n);
+
+  static int Close(int fildes);
+  static size_t Read(int filedes, void* buf, size_t nbyte);
+  static int Unlink(const char* path);
 
   // Print formatted output info a buffer.
   //

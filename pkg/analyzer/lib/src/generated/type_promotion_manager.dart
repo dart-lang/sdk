@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 /// Instances of the class `TypePromotionManager` manage the ability to promote
@@ -313,12 +313,12 @@ class _ResolverVisitor_isVariableAccessedInClosure
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    bool inClosure = this._inClosure;
+    bool inClosure = _inClosure;
     try {
-      this._inClosure = true;
+      _inClosure = true;
       super.visitFunctionExpression(node);
     } finally {
-      this._inClosure = inClosure;
+      _inClosure = inClosure;
     }
   }
 

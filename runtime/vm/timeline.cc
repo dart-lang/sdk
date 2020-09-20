@@ -166,10 +166,10 @@ static MallocGrowableArray<char*>* GetEnabledByDefaultTimelineStreams() {
   }
   char* save_ptr;  // Needed for strtok_r.
   // strtok modifies arg 1 so we make a copy of it.
-  char* streams = strdup(FLAG_timeline_streams);
+  char* streams = Utils::StrDup(FLAG_timeline_streams);
   char* token = strtok_r(streams, ",", &save_ptr);
   while (token != NULL) {
-    result->Add(strdup(token));
+    result->Add(Utils::StrDup(token));
     token = strtok_r(NULL, ",", &save_ptr);
   }
   free(streams);
@@ -347,7 +347,7 @@ void TimelineEventArguments::SetArgument(intptr_t i,
 void TimelineEventArguments::CopyArgument(intptr_t i,
                                           const char* name,
                                           const char* argument) {
-  SetArgument(i, name, strdup(argument));
+  SetArgument(i, name, Utils::StrDup(argument));
 }
 
 void TimelineEventArguments::FormatArgument(intptr_t i,

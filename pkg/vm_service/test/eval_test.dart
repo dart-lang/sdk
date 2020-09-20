@@ -29,7 +29,7 @@ void testFunction() {
   while (true) {
     if (++i % 100000000 == 0) {
       MyClass.method(10000);
-      (new _MyClass()).foo();
+      (_MyClass()).foo();
     }
   }
 }

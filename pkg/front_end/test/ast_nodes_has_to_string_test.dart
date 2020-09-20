@@ -51,7 +51,7 @@ main(List<String> args) async {
               .getInterfaceMembers(c)
               .where((Member m) =>
                   !m.isAbstract &&
-                  m.name.name == "toString" &&
+                  m.name.text == "toString" &&
                   m.enclosingLibrary.importUri.scheme != "dart")
               .toList();
           if (toStringList.length > 1) throw "What?";
@@ -72,7 +72,10 @@ main(List<String> args) async {
     print("OK");
     exitCode = 0;
   } else {
-    print("Missing toString() on $toGo classes!");
+    String classes = classMap.values
+        .map((list) => list.map((cls) => cls.name).join(', '))
+        .join(', ');
+    print("Missing toString() on $toGo class(es): ${classes}");
 
     if (args.length == 1 && args.single == "--interactive") {
       for (Uri uri in classMap.keys) {
@@ -150,7 +153,7 @@ main(List<String> args) async {
             .getInterfaceMembers(c)
             .where((Member m) =>
                 !m.isAbstract &&
-                m.name.name == "toString" &&
+                m.name.text == "toString" &&
                 m.enclosingLibrary.importUri.scheme != "dart")
             .toList();
         Member toString = toStringList.single;

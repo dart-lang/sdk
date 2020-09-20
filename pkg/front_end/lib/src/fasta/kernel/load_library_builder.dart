@@ -51,7 +51,7 @@ class LoadLibraryBuilder extends BuilderImpl {
     String prefix = expression.import.name;
     Name name = new Name('_#loadLibrary_$prefix', parent.library);
     Procedure referencesFrom =
-        parent.lookupLibraryReferenceProcedure(name.name, false);
+        parent.lookupLibraryReferenceProcedure(name.text, false);
     tearoff = new Procedure(
         name,
         ProcedureKind.Method,

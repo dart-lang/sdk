@@ -22,11 +22,11 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 
@@ -50,7 +50,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -74,7 +74,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     throw new UnsupportedError("Cannot modify an immutable List.");
   }
 }

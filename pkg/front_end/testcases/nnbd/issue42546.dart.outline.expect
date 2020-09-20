@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Divergent<T extends core::Object? = dynamic> extends core::Object implements asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>> {
+  synthetic constructor •() → self::Divergent<self::Divergent::T%>
+    ;
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) →? core::bool test = #C1}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#catchError, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#test: test}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ whenComplete(() → FutureOr<void>action) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#whenComplete, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl () →? FutureOr<self::Divergent<self::Divergent<self::Divergent::T%>>>onTimeout = #C1}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#timeout, 0, const <core::Type*>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onTimeout: onTimeout}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ then<R extends core::Object? = dynamic>((self::Divergent<self::Divergent<self::Divergent::T%>>) → FutureOr<self::Divergent::then::R%>onValue, {core::Function? onError = #C1}) → asy::Future<self::Divergent::then::R%>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#then, 0, core::List::unmodifiable<core::Type*>(<core::Type*>[self::Divergent::then::R%]), core::List::unmodifiable<dynamic>(<dynamic>[onValue]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#onError: onError}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent::then::R%>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#asStream, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))) as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+}
+static method test() → dynamic async 
+  ;
+static method main() → dynamic
+  ;
+
+constants  {
+  #C1 = null
+}

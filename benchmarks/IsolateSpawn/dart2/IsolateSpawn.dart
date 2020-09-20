@@ -16,17 +16,17 @@ class SpawnLatency {
   Future<ResultMessageLatency> run() async {
     final completerResult = Completer();
     final receivePort = ReceivePort()..listen(completerResult.complete);
-    final Completer<DateTime> isolateExitedCompleter = Completer<DateTime>();
+    final isolateExitedCompleter = Completer<DateTime>();
     final onExitReceivePort = ReceivePort()
       ..listen((_) {
         isolateExitedCompleter.complete(DateTime.now());
       });
-    final DateTime beforeSpawn = DateTime.now();
+    final beforeSpawn = DateTime.now();
     await Isolate.spawn(
         isolateCompiler, StartMessageLatency(receivePort.sendPort, beforeSpawn),
         onExit: onExitReceivePort.sendPort,
         onError: onExitReceivePort.sendPort);
-    final DateTime afterSpawn = DateTime.now();
+    final afterSpawn = DateTime.now();
 
     final ResultMessageLatency result = await completerResult.future;
     receivePort.close();
@@ -42,13 +42,13 @@ class SpawnLatency {
   Future<AggregatedResultMessageLatency> measureFor(int minimumMillis) async {
     final minimumMicros = minimumMillis * 1000;
     final watch = Stopwatch()..start();
-    final Metric toAfterIsolateSpawnUs = LatencyMetric("${name}ToAfterSpawn");
-    final Metric toStartRunningCodeUs = LatencyMetric("${name}ToStartRunning");
+    final Metric toAfterIsolateSpawnUs = LatencyMetric('${name}ToAfterSpawn');
+    final Metric toStartRunningCodeUs = LatencyMetric('${name}ToStartRunning');
     final Metric toFinishRunningCodeUs =
-        LatencyMetric("${name}ToFinishRunning");
-    final Metric toExitUs = LatencyMetric("${name}ToExit");
+        LatencyMetric('${name}ToFinishRunning');
+    final Metric toExitUs = LatencyMetric('${name}ToExit');
     while (watch.elapsedMicroseconds < minimumMicros) {
-      final ResultMessageLatency result = await run();
+      final result = await run();
       toAfterIsolateSpawnUs.add(result.timeToIsolateSpawnUs);
       toStartRunningCodeUs.add(result.timeToStartRunningCodeUs);
       toFinishRunningCodeUs.add(result.timeToFinishRunningCodeUs);
@@ -64,7 +64,7 @@ class SpawnLatency {
   }
 
   Future<void> report() async {
-    final AggregatedResultMessageLatency result = await measure();
+    final result = await measure();
     print(result);
   }
 
@@ -87,9 +87,10 @@ class Metric {
   double _average() => sum / count;
   double _rms() => sqrt(sumOfSquares / count);
 
-  toString() => "$prefix): ${_average()}$suffix\n"
-      "${prefix}Max): $max$suffix\n"
-      "${prefix}RMS): ${_rms()}$suffix";
+  @override
+  String toString() => '$prefix): ${_average()}$suffix\n'
+      '${prefix}Max): $max$suffix\n'
+      '${prefix}RMS): ${_rms()}$suffix';
 
   final String prefix;
   final String suffix;
@@ -100,7 +101,7 @@ class Metric {
 }
 
 class LatencyMetric extends Metric {
-  LatencyMetric(String name) : super(prefix: "$name(Latency", suffix: " us.");
+  LatencyMetric(String name) : super(prefix: '$name(Latency', suffix: ' us.');
 }
 
 class StartMessageLatency {
@@ -132,10 +133,11 @@ class AggregatedResultMessageLatency {
     this.toExitUs,
   );
 
-  String toString() => """$toAfterIsolateSpawnUs
+  @override
+  String toString() => '''$toAfterIsolateSpawnUs
 $toStartRunningCodeUs
 $toFinishRunningCodeUs
-$toExitUs""";
+$toExitUs''';
 
   final Metric toAfterIsolateSpawnUs;
   final Metric toStartRunningCodeUs;
@@ -144,15 +146,15 @@ $toExitUs""";
 }
 
 Future<void> isolateCompiler(StartMessageLatency start) async {
-  final DateTime timeRunningCodeUs = DateTime.now();
+  final timeRunningCodeUs = DateTime.now();
   await runZoned(
       () => dart2js_main.internalMain(<String>[
-            "benchmarks/IsolateSpawn/dart2/helloworld.dart",
+            'benchmarks/IsolateSpawn/dart/helloworld.dart',
             '--libraries-spec=sdk/lib/libraries.json'
           ]),
       zoneSpecification: ZoneSpecification(
           print: (Zone self, ZoneDelegate parent, Zone zone, String line) {}));
-  final DateTime timeFinishRunningCodeUs = DateTime.now();
+  final timeFinishRunningCodeUs = DateTime.now();
   start.sendPort.send(ResultMessageLatency(
       timeToStartRunningCodeUs:
           timeRunningCodeUs.difference(start.spawned).inMicroseconds,
@@ -161,5 +163,5 @@ Future<void> isolateCompiler(StartMessageLatency start) async {
 }
 
 Future<void> main() async {
-  await SpawnLatency("IsolateSpawn.Dart2JS").report();
+  await SpawnLatency('IsolateSpawn.Dart2JS').report();
 }

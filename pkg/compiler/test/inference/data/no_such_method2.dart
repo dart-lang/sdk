@@ -8,8 +8,8 @@
 abstract class A {
   /*member: A.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
-          /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
-          /*prod:nnbd-off|prod:nnbd-sdk.[null|exact=JSInvocationMirror]*/
+          /*spec.[null|subclass=Object]*/
+          /*prod.[null|exact=JSInvocationMirror]*/
           im) =>
       42;
 }
@@ -33,8 +33,8 @@ class D implements A {
 
   /*member: D.noSuchMethod:[exact=JSDouble]*/
   noSuchMethod(
-          /*prod:nnbd-off|prod:nnbd-sdk.[null|exact=JSInvocationMirror]*/
-          /*spec:nnbd-off|spec:nnbd-sdk.[null|subclass=Object]*/
+          /*prod.[null|exact=JSInvocationMirror]*/
+          /*spec.[null|subclass=Object]*/
           im) =>
       42.5;
 }

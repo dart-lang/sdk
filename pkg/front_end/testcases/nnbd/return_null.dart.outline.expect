@@ -23,23 +23,23 @@ static method returnExplicit() → core::String
   ;
 static method returnMixed(core::bool b) → core::String
   ;
-static method returnAsync1() → asy::Future<dynamic>
+static method returnAsync1() → asy::Future<dynamic> async 
   ;
-static method returnAsync2() → asy::FutureOr<dynamic>
+static method returnAsync2() → FutureOr<dynamic> async 
   ;
-static method returnAsync3() → asy::FutureOr<core::int>
+static method returnAsync3() → FutureOr<core::int> async 
   ;
-static method returnAsync4() → asy::FutureOr<core::int?>
+static method returnAsync4() → FutureOr<core::int?> async 
   ;
-static method returnAsync5() → dynamic
+static method returnAsync5() → dynamic async 
   ;
-static method returnAsync6() → asy::Future<core::int?>
+static method returnAsync6() → asy::Future<core::int?> async 
   ;
-static method returnAsync7() → asy::Future<core::int?>
+static method returnAsync7() → asy::Future<core::int?> async 
   ;
-static method yieldSync() → core::Iterable<dynamic>
+static method yieldSync() → core::Iterable<dynamic> sync* 
   ;
-static method yieldAsync() → asy::Stream<dynamic>
+static method yieldAsync() → asy::Stream<dynamic> async* 
   ;
 static method caseReturn1(self::Enum e) → self::Enum
   ;

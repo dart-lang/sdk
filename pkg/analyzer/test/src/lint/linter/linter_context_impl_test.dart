@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -11,7 +9,7 @@ import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../dart/resolution/driver_resolution.dart';
+import '../../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -24,7 +22,7 @@ main() {
 }
 
 @reflectiveTest
-abstract class AbstractLinterContextTest extends DriverResolutionTest {
+abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
   LinterContextImpl context;
 
   Future<void> resolve(String content) async {
@@ -191,12 +189,48 @@ B f() => B(A());
     assertCanBeConst("B(A(", false);
   }
 
+  void test_false_mapKeyType_implementsEqual() async {
+    await resolve('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  B({A(): 0});
+}
+''');
+    assertCanBeConst("B({", false);
+  }
+
   void test_false_nonConstConstructor() async {
     await resolve('''
 class A {}
 A f() => A();
 ''');
     assertCanBeConst("A(", false);
+  }
+
+  void test_false_setElementType_implementsEqual() async {
+    await resolve('''
+class A {
+  const A();
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  B({A()});
+}
+''');
+    assertCanBeConst("B({", false);
   }
 
   void test_false_typeParameter() async {
@@ -210,7 +244,7 @@ f<U>() => A<U>();
   }
 
   void test_true_computeDependencies() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
 
@@ -250,7 +284,7 @@ A f() => A([1, 2, 3]);
   }
 
   void test_true_importedClass_defaultValue() async {
-    var aPath = convertPath('/test/lib/a.dart');
+    var aPath = convertPath('$testPackageLibPath/a.dart');
     newFile(aPath, content: r'''
 class A {
   final int a;
@@ -293,7 +327,7 @@ f<U>() => [A<U>()];
   }
 
   void test_listLiteral_true_computeDependencies() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
 
@@ -427,7 +461,7 @@ var x = 42;
 @reflectiveTest
 class PubDependencyTest extends AbstractLinterContextTest {
   test_dependencies() async {
-    newFile('/test/pubspec.yaml', content: '''
+    newFile('$testPackageRootPath/pubspec.yaml', content: '''
 name: test
 
 dependencies:

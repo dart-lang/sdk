@@ -93,9 +93,7 @@ SSLCertContext* SSLCertContext::GetSecurityContext(Dart_NativeArguments args) {
   return context;
 }
 
-static void DeleteSecurityContext(void* isolate_data,
-                                  Dart_WeakPersistentHandle handle,
-                                  void* context_pointer) {
+static void DeleteSecurityContext(void* isolate_data, void* context_pointer) {
   SSLCertContext* context = static_cast<SSLCertContext*>(context_pointer);
   context->Release();
 }
@@ -109,15 +107,13 @@ static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
       dart_this, SSLCertContext::kSecurityContextNativeFieldIndex,
       reinterpret_cast<intptr_t>(context));
   RETURN_IF_ERROR(err);
-  Dart_NewWeakPersistentHandle(dart_this, context,
-                               SSLCertContext::kApproximateSize,
-                               DeleteSecurityContext);
+  Dart_NewFinalizableHandle(dart_this, context,
+                            SSLCertContext::kApproximateSize,
+                            DeleteSecurityContext);
   return Dart_Null();
 }
 
-static void ReleaseCertificate(void* isolate_data,
-                               Dart_WeakPersistentHandle handle,
-                               void* context_pointer) {
+static void ReleaseCertificate(void* isolate_data, void* context_pointer) {
   X509* cert = reinterpret_cast<X509*>(context_pointer);
   X509_free(cert);
 }
@@ -158,9 +154,9 @@ Dart_Handle X509Helper::WrappedX509Certificate(X509* certificate) {
   const intptr_t approximate_size_of_certificate =
       sizeof(*certificate) + EstimateX509Size(certificate);
   ASSERT(approximate_size_of_certificate > 0);
-  Dart_NewWeakPersistentHandle(result, reinterpret_cast<void*>(certificate),
-                               approximate_size_of_certificate,
-                               ReleaseCertificate);
+  Dart_NewFinalizableHandle(result, reinterpret_cast<void*>(certificate),
+                            approximate_size_of_certificate,
+                            ReleaseCertificate);
   return result;
 }
 

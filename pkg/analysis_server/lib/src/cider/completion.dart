@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
@@ -11,12 +9,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 
@@ -32,6 +30,9 @@ class CiderCompletionComputer {
   final PerformanceLog _logger;
   final CiderCompletionCache _cache;
   final FileResolver _fileResolver;
+
+  final OperationPerformanceImpl _performanceRoot =
+      OperationPerformanceImpl('<root>');
 
   DartCompletionRequestImpl _dartCompletionRequest;
 
@@ -54,82 +55,108 @@ class CiderCompletionComputer {
     @required String path,
     @required int line,
     @required int column,
+    @visibleForTesting void Function(ResolvedUnitResult) testResolvedUnit,
   }) async {
-    var getFileTimer = Stopwatch()..start();
-    var fileContext = _logger.run('Get file $path', () {
-      try {
-        return _fileResolver.getFileContext(path);
-      } finally {
-        getFileTimer.stop();
-      }
-    });
-
-    var file = fileContext.file;
-
-    var lineInfo = file.lineInfo;
-    var offset = lineInfo.getOffsetOfLine(line) + column;
-
-    var resolutionTimer = Stopwatch()..start();
-    var resolvedUnit = _fileResolver.resolve(path);
-    resolutionTimer.stop();
-
-    var completionRequest = CompletionRequestImpl(
-      resolvedUnit,
-      offset,
-      false,
-      CompletionPerformance(),
-    );
-    var dartdocDirectiveInfo = DartdocDirectiveInfo();
-
-    var suggestions = await _logger.runAsync('Compute suggestions', () async {
-      var includedElementKinds = <ElementKind>{};
-      var includedElementNames = <String>{};
-      var includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-
-      var manager = DartCompletionManager(
-        dartdocDirectiveInfo: dartdocDirectiveInfo,
-        includedElementKinds: includedElementKinds,
-        includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      );
-
-      return await manager.computeSuggestions(completionRequest);
-    });
-
-    _dartCompletionRequest = await DartCompletionRequestImpl.from(
-      completionRequest,
-      dartdocDirectiveInfo,
-    );
-
-    if (_dartCompletionRequest.includeIdentifiers) {
-      _logger.run('Add imported suggestions', () {
-        suggestions.addAll(
-          _importedLibrariesSuggestions(
-            resolvedUnit.libraryElement,
-          ),
+    return _performanceRoot.runAsync('completion', (performance) async {
+      var resolvedUnit = performance.run('resolution', (performance) {
+        return _fileResolver.resolve(
+          completionLine: line,
+          completionColumn: column,
+          path: path,
+          performance: performance,
         );
       });
-    }
 
-    var filter = _FilterSort(
-      _dartCompletionRequest,
-      suggestions,
-    );
+      if (testResolvedUnit != null) {
+        testResolvedUnit(resolvedUnit);
+      }
 
-    _logger.run('Filter suggestions', () {
-      suggestions = filter.perform();
+      var lineInfo = resolvedUnit.lineInfo;
+      var offset = lineInfo.getOffsetOfLine(line) + column;
+
+      var completionRequest = CompletionRequestImpl(
+        resolvedUnit,
+        offset,
+        false,
+        CompletionPerformance(),
+      );
+      var dartdocDirectiveInfo = DartdocDirectiveInfo();
+
+      var suggestions = await performance.runAsync(
+        'suggestions',
+        (performance) async {
+          var result = await _logger.runAsync('Compute suggestions', () async {
+            var includedElementKinds = <ElementKind>{};
+            var includedElementNames = <String>{};
+            var includedSuggestionRelevanceTags =
+                <IncludedSuggestionRelevanceTag>[];
+
+            var manager = DartCompletionManager(
+              dartdocDirectiveInfo: dartdocDirectiveInfo,
+              includedElementKinds: includedElementKinds,
+              includedElementNames: includedElementNames,
+              includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+            );
+
+            return await manager.computeSuggestions(
+              performance,
+              completionRequest,
+              enableOverrideContributor: false,
+              enableUriContributor: false,
+            );
+          });
+
+          performance.getDataInt('count').add(result.length);
+          return result;
+        },
+      );
+
+      _dartCompletionRequest = await DartCompletionRequestImpl.from(
+        performance,
+        completionRequest,
+        dartdocDirectiveInfo,
+      );
+
+      performance.run('imports', (performance) {
+        if (_dartCompletionRequest.includeIdentifiers) {
+          _logger.run('Add imported suggestions', () {
+            suggestions.addAll(
+              _importedLibrariesSuggestions(
+                target: resolvedUnit.libraryElement,
+                performance: performance,
+              ),
+            );
+          });
+        }
+      });
+
+      var filter = _FilterSort(
+        _dartCompletionRequest,
+        suggestions,
+      );
+
+      performance.run('filter', (performance) {
+        _logger.run('Filter suggestions', () {
+          performance.getDataInt('count').add(suggestions.length);
+          suggestions = filter.perform();
+          performance.getDataInt('matchCount').add(suggestions.length);
+        });
+      });
+
+      var result = CiderCompletionResult._(
+        suggestions: suggestions,
+        performance: CiderCompletionPerformance._(
+          file: Duration.zero,
+          imports: performance.getChild('imports').elapsed,
+          resolution: performance.getChild('resolution').elapsed,
+          suggestions: performance.getChild('suggestions').elapsed,
+          operations: _performanceRoot.children.first,
+        ),
+        prefixStart: CiderPosition(line, column - filter._pattern.length),
+      );
+
+      return result;
     });
-
-    var result = CiderCompletionResult._(
-      suggestions: suggestions,
-      performance: CiderCompletionPerformance(
-        file: getFileTimer.elapsed,
-        resolution: resolutionTimer.elapsed,
-      ),
-      prefixStart: CiderPosition(line, column - filter._pattern.length),
-    );
-
-    return result;
   }
 
   @Deprecated('Use compute')
@@ -141,31 +168,54 @@ class CiderCompletionComputer {
     return compute(path: path, line: line, column: column);
   }
 
+  /// Prepare for computing completions in files from the [pathList].
+  ///
+  /// This method might be called when we are finishing a large initial
+  /// analysis, so spending additionally a fraction of this time to make
+  /// any subsequent completion seem fast is a reasonable trade-off.
+  Future<void> warmUp(List<String> pathList) async {
+    for (var path in pathList) {
+      await compute(path: path, line: 0, column: 0);
+    }
+  }
+
   /// Return suggestions from libraries imported into the [target].
   ///
   /// TODO(scheglov) Implement show / hide combinators.
   /// TODO(scheglov) Implement prefixes.
-  List<CompletionSuggestion> _importedLibrariesSuggestions(
-    LibraryElement target,
-  ) {
+  List<CompletionSuggestion> _importedLibrariesSuggestions({
+    @required LibraryElement target,
+    @required OperationPerformanceImpl performance,
+  }) {
     var suggestions = <CompletionSuggestion>[];
     for (var importedLibrary in target.importedLibraries) {
-      var importedSuggestions = _importedLibrarySuggestions(importedLibrary);
+      var importedSuggestions = _importedLibrarySuggestions(
+        element: importedLibrary,
+        performance: performance,
+      );
       suggestions.addAll(importedSuggestions);
     }
+    performance.getDataInt('count').add(suggestions.length);
     return suggestions;
   }
 
   /// Return cached, or compute unprefixed suggestions for all elements
   /// exported from the library.
-  List<CompletionSuggestion> _importedLibrarySuggestions(
-    LibraryElement element,
-  ) {
+  List<CompletionSuggestion> _importedLibrarySuggestions({
+    @required LibraryElement element,
+    @required OperationPerformanceImpl performance,
+  }) {
+    performance.getDataInt('libraryCount').increment();
+
     var path = element.source.fullName;
-    var signature = _fileResolver.getLibraryLinkedSignature(path);
+    var signature = _fileResolver.getLibraryLinkedSignature(
+      path: path,
+      performance: performance,
+    );
 
     var cacheEntry = _cache._importedLibraries[path];
     if (cacheEntry == null || cacheEntry.signature != signature) {
+      performance.getDataInt('libraryCompute').increment();
       computedImportedLibraries.add(path);
       var suggestions = _librarySuggestions(element);
       cacheEntry = _CiderImportedLibrarySuggestions(
@@ -193,14 +243,30 @@ class CiderCompletionComputer {
 
 class CiderCompletionPerformance {
   /// The elapsed time for file access.
+  @Deprecated('This operation is not performed anymore')
   final Duration file;
 
+  /// The elapsed time to compute import suggestions.
+  @Deprecated("Use 'operations' instead")
+  final Duration imports;
+
   /// The elapsed time for resolution.
+  @Deprecated("Use 'operations' instead")
   final Duration resolution;
 
-  CiderCompletionPerformance({
+  /// The elapsed time to compute suggestions.
+  @Deprecated("Use 'operations' instead")
+  final Duration suggestions;
+
+  /// The tree of operation performances.
+  final OperationPerformance operations;
+
+  CiderCompletionPerformance._({
     @required this.file,
+    @required this.imports,
     @required this.resolution,
+    @required this.suggestions,
+    @required this.operations,
   });
 }
 
@@ -245,7 +311,7 @@ class _FilterSort {
   _FilterSort(this._request, this._suggestions);
 
   List<CompletionSuggestion> perform() {
-    _pattern = _matchingPattern();
+    _pattern = _request.targetPrefix;
     _matcher = FuzzyMatcher(_pattern, matchStyle: MatchStyle.SYMBOL);
 
     var scored = _suggestions
@@ -271,26 +337,6 @@ class _FilterSort {
     });
 
     return scored.map((e) => e.suggestion).toList();
-  }
-
-  /// Return the pattern to match suggestions against, from the identifier
-  /// to the left of the caret. Return the empty string if cannot find the
-  /// identifier.
-  String _matchingPattern() {
-    SimpleIdentifier patternNode;
-    _request.target.containingNode.accept(
-      FunctionAstVisitor(simpleIdentifier: (node) {
-        if (node.end == _request.offset) {
-          patternNode = node;
-        }
-      }),
-    );
-
-    if (patternNode != null) {
-      return patternNode.name;
-    }
-
-    return '';
   }
 
   double _score(CompletionSuggestion e) {

@@ -85,6 +85,7 @@ class InvokeDynamicSpecializer {
         if (argumentCount == 0) {
           if (name == 'abs') return const AbsSpecializer();
           if (name == 'round') return const RoundSpecializer();
+          if (name == 'toInt') return const ToIntSpecializer();
           if (name == 'trim') return const TrimSpecializer();
         } else if (argumentCount == 1) {
           if (name == 'codeUnitAt') return const CodeUnitAtSpecializer();
@@ -106,6 +107,39 @@ class InvokeDynamicSpecializer {
     }
     return const InvokeDynamicSpecializer();
   }
+}
+
+bool canBeNegativeZero(HInstruction input) {
+  bool canBePositiveZero(HInstruction input) {
+    if (input is HConstant) {
+      ConstantValue value = input.constant;
+      if (value is DoubleConstantValue && value.isZero) return true;
+      if (value is IntConstantValue && value.isZero) return true;
+      return false;
+    }
+    return true;
+  }
+
+  if (input is HConstant) {
+    ConstantValue value = input.constant;
+    if (value is DoubleConstantValue && value.isMinusZero) return true;
+    return false;
+  }
+  if (input is HAdd) {
+    // '+' can only generate -0.0 when both inputs are -0.0.
+    return canBeNegativeZero(input.left) && canBeNegativeZero(input.right);
+  }
+  if (input is HSubtract) {
+    // '-' can only generate -0.0 for inputs `-0.0` and `0`.
+    return canBeNegativeZero(input.left) && canBePositiveZero(input.right);
+  }
+  if (input is HPhi) {
+    if (input.inputs.any((phiInput) => phiInput.block.id > input.block.id)) {
+      return true; // Assume back-edge may be negative zero.
+    }
+    return input.inputs.any(canBeNegativeZero);
+  }
+  return true;
 }
 
 class IndexAssignSpecializer extends InvokeDynamicSpecializer {
@@ -548,42 +582,10 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     // cannot be -0.0.  Note that -0.0 is considered to be an int, so until we
     // track -0.0 precisely, we have to syntatically filter inputs that cannot
     // generate -0.0.
-    bool canBePositiveZero(HInstruction input) {
-      if (input is HConstant) {
-        ConstantValue value = input.constant;
-        if (value is DoubleConstantValue && value.isZero) return true;
-        if (value is IntConstantValue && value.isZero) return true;
-        return false;
-      }
-      return true;
-    }
 
-    bool inPhi = false;
-    bool canBeNegativeZero(HInstruction input) {
-      if (input is HConstant) {
-        ConstantValue value = input.constant;
-        if (value is DoubleConstantValue && value.isMinusZero) return true;
-        return false;
-      }
-      if (input is HAdd) {
-        // '+' can only generate -0.0 when both inputs are -0.0.
-        return canBeNegativeZero(input.left) && canBeNegativeZero(input.right);
-      }
-      if (input is HSubtract) {
-        return canBeNegativeZero(input.left) && canBePositiveZero(input.right);
-      }
-      if (input is HPhi) {
-        if (inPhi) return true;
-        inPhi = true;
-        bool result = input.inputs.any(canBeNegativeZero);
-        inPhi = false;
-        return result;
-      }
-      return true;
-    }
-
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
     if (inputsArePositiveIntegers(instruction, closedWorld) &&
-        !canBeNegativeZero(instruction.getDartReceiver(closedWorld))) {
+        !canBeNegativeZero(receiver)) {
       return new HRemainder(instruction.inputs[1], instruction.inputs[2],
           computeTypeFromInputTypes(instruction, results, closedWorld));
     }
@@ -1434,9 +1436,7 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
   const RoundSpecializer();
 
   @override
-  constant_system.UnaryOperation operation() {
-    return constant_system.round;
-  }
+  constant_system.UnaryOperation operation() => constant_system.round;
 
   @override
   HInstruction tryConvertToBuiltin(
@@ -1454,6 +1454,39 @@ class RoundSpecializer extends InvokeDynamicSpecializer {
       // instruction does not have any side effect, and that it can be GVN'ed.
       clearAllSideEffects(instruction);
       log?.registerRound(instruction);
+    }
+    return null;
+  }
+}
+
+class ToIntSpecializer extends InvokeDynamicSpecializer {
+  const ToIntSpecializer();
+
+  @override
+  constant_system.UnaryOperation operation() => constant_system.toInt;
+
+  @override
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction,
+      HGraph graph,
+      GlobalTypeInferenceResults results,
+      JCommonElements commonElements,
+      JClosedWorld closedWorld,
+      OptimizationTestLog log) {
+    HInstruction receiver = instruction.getDartReceiver(closedWorld);
+
+    // We would like to reduce `x.toInt()` to `x`. The web platform considers
+    // infinities to be `int` values, but it is too hard to tell if an input is
+    // a finite integral value. Further `(-0.0).toInt()` returns `0`, so
+    // `toInt()` is not strictly an identity on finite integral values.
+
+    if (receiver
+        .isNumberOrNull(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue) {
+      // Even if there is no builtin equivalent instruction, we know the
+      // instruction does not have any side effect, and that it can be GVN'ed.
+      clearAllSideEffects(instruction);
+      log?.registerToInt(instruction);
     }
     return null;
   }

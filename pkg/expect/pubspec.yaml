@@ -1,4 +1,5 @@
 name: expect
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 description: >
  Expect is used for tests that do not want to make use of the

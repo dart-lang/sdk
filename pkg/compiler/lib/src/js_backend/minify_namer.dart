@@ -10,9 +10,8 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(
-      JClosedWorld closedWorld, RuntimeTypeTags rtiTags, FixedNames fixedNames)
-      : super(closedWorld, rtiTags, fixedNames) {
+  MinifyNamer(JClosedWorld closedWorld, FixedNames fixedNames)
+      : super(closedWorld, fixedNames) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }

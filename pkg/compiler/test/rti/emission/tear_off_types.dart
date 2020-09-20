@@ -16,10 +16,10 @@ main() {
   test7();
 }
 
-/*class: A1:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A1:checkedTypeArgument,typeArgument*/
 class A1<T> {}
 
-/*class: B1:checks=[],typeArgument*/
+/*class: B1:typeArgument*/
 class B1 extends A1<int> {}
 
 @pragma('dart2js:noInline')
@@ -36,12 +36,12 @@ A1<String> method1c() => null;
 @pragma('dart2js:noInline')
 bool _test1(f) => f is A1<int> Function();
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A2:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A2:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A2:checkedTypeArgument,typeArgument*/
 class A2<T> {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B2:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: B2:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: B2:checkedTypeArgument,typeArgument*/
 class B2 extends A2<int> {}
 
 @pragma('dart2js:noInline')
@@ -58,12 +58,12 @@ void method2c(A2<String> a) {}
 @pragma('dart2js:noInline')
 bool _test2(f) => f is void Function(A2<int>);
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A3:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A3:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A3:checkedTypeArgument,typeArgument*/
 class A3<T> {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B3:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B3:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: B3:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: B3:checkedTypeArgument,typeArgument*/
 class B3 extends A3<int> {}
 
 @pragma('dart3js:noInline')
@@ -80,10 +80,10 @@ void method3c(A3<String> a) {}
 @pragma('dart3js:noInline')
 _test3(f) => f is void Function(B3);
 
-/*class: A4:checks=[],typeArgument*/
+/*class: A4:typeArgument*/
 class A4<T> {}
 
-/*class: B4:checkedTypeArgument,checks=[],typeArgument*/
+/*class: B4:checkedTypeArgument,typeArgument*/
 class B4 extends A4<int> {}
 
 @pragma('dart4js:noInline')
@@ -100,10 +100,10 @@ A4<String> method4c() => null;
 @pragma('dart4js:noInline')
 _test4(f) => f is B4 Function();
 
-/*class: A5:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A5:checkedTypeArgument,typeArgument*/
 class A5<T> {}
 
-/*class: B5:checks=[],typeArgument*/
+/*class: B5:typeArgument*/
 class B5 extends A5<int> {}
 
 @pragma('dart2js:noInline')
@@ -120,10 +120,10 @@ void method5c(void Function(A5<String>) f) => null;
 @pragma('dart2js:noInline')
 bool _test5(f) => f is void Function(void Function(A5<int>));
 
-/*class: A6:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A6:checkedTypeArgument,typeArgument*/
 class A6<T> {}
 
-/*class: B6:checkedTypeArgument,checks=[],typeArgument*/
+/*class: B6:checkedTypeArgument,typeArgument*/
 class B6 extends A6<int> {}
 
 @pragma('dart6js:noInline')
@@ -140,10 +140,10 @@ void Function(A6<String>) method6c() => null;
 @pragma('dart6js:noInline')
 _test6(f) => f is void Function(B6) Function();
 
-/*class: A7:checks=[],typeArgument*/
+/*class: A7:typeArgument*/
 class A7<T> {}
 
-/*class: B7:checkedTypeArgument,checks=[],typeArgument*/
+/*class: B7:checkedTypeArgument,typeArgument*/
 class B7 extends A7<int> {}
 
 @pragma('dart7js:noInline')

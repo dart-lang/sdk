@@ -103,6 +103,7 @@ allocation
 allow
 allowed
 allowing
+allowlisted
 allows
 almost
 alone
@@ -242,6 +243,7 @@ awaiter
 aware
 awareness
 away
+axiom
 back
 backend
 backends
@@ -274,6 +276,7 @@ behavior
 behaviors
 behind
 being
+believes
 belong
 belongs
 below
@@ -296,7 +299,6 @@ bit
 bits
 bitwise
 black
-blacklisted
 block
 blocks
 blogs
@@ -445,6 +447,10 @@ clashing
 class
 classes
 classic
+classification
+classifications
+classifies
+classify
 clause
 clauses
 clean
@@ -510,6 +516,7 @@ common
 commonly
 compact
 comparable
+comparator
 compare
 comparing
 comparison
@@ -660,6 +667,7 @@ correctness
 correspond
 correspondence
 corresponding
+correspondingly
 corresponds
 cost
 could
@@ -685,6 +693,7 @@ created
 creates
 creating
 creation
+creations
 crossed
 curly
 current
@@ -771,6 +780,8 @@ denote
 denoted
 denotes
 denoting
+deny
+denylisted
 depend
 dependence
 dependencies
@@ -782,6 +793,7 @@ deprecate
 deprecated
 depromotes
 depth
+dereferenced
 derivation
 derive
 derived
@@ -866,6 +878,7 @@ distance
 distinct
 distinction
 distinguish
+distinguishes
 divide
 division
 divisor
@@ -933,7 +946,9 @@ elapsed
 element
 elements
 eligible
+eliminate
 eliminated
+eliminates
 elimination
 eliminator
 else
@@ -997,9 +1012,11 @@ environment
 equal
 equality
 equals
+equate
 equivalence
 equivalent
 equivalents
+erasure
 erroneous
 error
 errors
@@ -1073,6 +1090,7 @@ experimental
 experimentally
 experiments
 expired
+explain
 explanation
 explicit
 explicitly
@@ -1141,6 +1159,7 @@ field
 field's
 fieldname
 fields
+fifth
 figure
 file
 filename
@@ -1392,6 +1411,7 @@ implement
 implementation
 implementations
 implemented
+implementer
 implementing
 implements
 implication
@@ -1543,6 +1563,7 @@ interpreted
 interpreter
 interpreting
 intersect
+intersecting
 intersection
 intertwined
 into
@@ -1767,7 +1788,6 @@ markers
 marking
 marks
 mask
-master
 match
 matched
 matcher
@@ -1790,6 +1810,7 @@ means
 meant
 measurably
 measure
+measurements
 mechanism
 medium
 meet
@@ -1898,6 +1919,7 @@ nature
 nearest
 necessarily
 necessary
+necessity
 need
 needed
 needing
@@ -2099,6 +2121,9 @@ patching
 paths
 pattern
 peek
+peel
+peeled
+peeling
 pending
 percent
 percolate
@@ -2218,6 +2243,7 @@ previous
 previously
 primary
 primitive
+primitiveness
 principle
 print
 printed
@@ -2268,6 +2294,7 @@ proper
 properly
 properties
 property
+proposition
 prototype
 proves
 provide
@@ -2359,6 +2386,7 @@ recurse
 recursing
 recursive
 recursively
+recursor
 redirect
 redirected
 redirecting
@@ -2379,6 +2407,7 @@ referred
 refers
 refine
 refinement
+refinements
 reflecting
 regardless
 region
@@ -2413,6 +2442,7 @@ rely
 relying
 remain
 remainder
+remained
 remaining
 remains
 remember
@@ -2622,6 +2652,7 @@ setting
 settings
 settled
 setup
+seventh
 several
 severity
 shadow
@@ -2680,6 +2711,7 @@ sink
 sites
 situation
 situations
+sixth
 skip
 skipped
 skipping
@@ -2758,6 +2790,7 @@ starts
 startup
 state
 stateful
+stateless
 statement
 statement's
 statements
@@ -2897,6 +2930,7 @@ targeted
 targeting
 targets
 task
+tasks
 tear
 tearing
 technically
@@ -3247,7 +3281,6 @@ whether
 which
 while
 white
-whitelisted
 whitespace
 whole
 whose

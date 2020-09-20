@@ -119,6 +119,7 @@ enum DartTypeNodeKind {
   exactInterfaceType,
   doesNotComplete,
   neverType,
+  futureOrType,
 }
 
 const String functionTypeNodeTag = 'function-type-node';
@@ -192,6 +193,14 @@ class DartTypeNodeWriter
     _sink.writeClassNode(node.classNode);
     _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
+  }
+
+  @override
+  void visitFutureOrType(
+      ir.FutureOrType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.futureOrType);
+    _sink.writeEnum(node.declaredNullability);
+    _sink._writeDartTypeNode(node.typeArgument, functionTypeVariables);
   }
 
   @override

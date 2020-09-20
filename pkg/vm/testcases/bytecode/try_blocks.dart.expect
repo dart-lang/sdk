@@ -184,15 +184,15 @@ ConstantPool {
   [0] = ObjectRef 'danger!'
   [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
-  [3] = Type dart:core::TypeError
+  [3] = Type dart:core::TypeError*
   [4] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
   [5] = Reserved
   [6] = ObjectRef 'caught type error'
-  [7] = Type dart:core::AssertionError
+  [7] = Type dart:core::AssertionError*
   [8] = ObjectRef 'caught assertion error '
   [9] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
   [10] = Reserved
-  [11] = Type dart:core::Error
+  [11] = Type dart:core::Error*
   [12] = ObjectRef 'caught error '
   [13] = ObjectRef ' '
   [14] = Type dynamic
@@ -328,7 +328,7 @@ ConstantPool {
   [18] = Reserved
   [19] = ClosureFunction 1
   [20] = ObjectRef 'danger bar'
-  [21] = Type dart:core::Error
+  [21] = Type dart:core::Error*
   [22] = InterfaceCall 'dart:core::Object::_simpleInstanceOf', ArgDesc num-args 2, num-type-args 0, names []
   [23] = Reserved
   [24] = ObjectRef 'error '
@@ -337,11 +337,10 @@ ConstantPool {
 }
 Closure #lib::testTryCatch3::'foo' () -> void
 ClosureCode {
-  EntryFixed           1, 6
+  Entry                6
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   PopLocal             r2
@@ -374,11 +373,10 @@ L1:
 
 Closure #lib::testTryCatch3::'bar' () -> void
 ClosureCode {
-  EntryFixed           1, 6
+  Entry                6
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   PopLocal             r2
@@ -436,7 +434,7 @@ L1:
 
 
 Function 'testRethrow', static, reflectable, debuggable
-    parameters [dart:core::bool 'cond'] (required: 1)
+    parameters [dart:core::bool* 'cond'] (required: 1)
     return-type dynamic
 
 Bytecode {
@@ -582,7 +580,7 @@ ConstantPool {
 
 
 Function 'testTryFinally2', static, reflectable, debuggable
-    parameters [dart:core::int 'x'] (required: 1)
+    parameters [dart:core::int* 'x'] (required: 1)
     return-type dynamic
 
 Bytecode {
@@ -721,11 +719,10 @@ ConstantPool {
 }
 Closure #lib::testTryFinally2::'foo' () -> void
 ClosureCode {
-  EntryFixed           1, 2
+  Entry                2
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
@@ -828,13 +825,12 @@ ConstantPool {
   [15] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
   [16] = Reserved
 }
-Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int
+Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int*
 ClosureCode {
-  EntryFixed           1, 6
+  Entry                6
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
-  CheckFunctionTypeArgs 0, r1
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
@@ -1033,7 +1029,7 @@ ConstantPool {
           y = 3;
         }
       }
-      [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
+      [@vm.call-site-attributes.metadata=receiverType:void Function()*] foo.call();
       dart.core::print(y);
     }
     on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
@@ -1099,7 +1095,7 @@ ConstantPool {
                 dart.core::print(x);
                 dart.core::print(y);
               }
-              [@vm.call-site-attributes.metadata=receiverType:FunctionType(void Function()*)] foo.call();
+              [@vm.call-site-attributes.metadata=receiverType:void Function()*] foo.call();
               continue #L4;
             }
             finally {
@@ -1143,7 +1139,7 @@ ConstantPool {
     }
     finally {
       dart.core::print(x);
-      [@vm.call-site-attributes.metadata=receiverType:DynamicType(dynamic)] y.call();
+      [@vm.call-site-attributes.metadata=receiverType:dynamic] y.call();
     }
   }
   static method testTryCatchFinally() → dynamic {

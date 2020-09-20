@@ -72,9 +72,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
     for (Feature feature in worldImpact.features) {
       switch (feature) {
-        case Feature.ABSTRACT_CLASS_INSTANTIATION:
-          registerImpact(_impacts.abstractClassInstantiation);
-          break;
         case Feature.ASSERT:
           registerImpact(_impacts.assertWithoutMessage);
           break;
@@ -206,6 +203,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.RTI_VALUE:
         case TypeUseKind.TYPE_ARGUMENT:
         case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+        case TypeUseKind.CONSTRUCTOR_REFERENCE:
           failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
           break;
       }

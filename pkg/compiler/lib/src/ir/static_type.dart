@@ -233,7 +233,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
-    String nameString = node.name.name;
+    String nameString = node.name.text;
     if (nameString == 'hashCode') {
       return typeEnvironment.coreTypes.intNonNullableRawType;
     } else if (nameString == 'runtimeType') {
@@ -255,7 +255,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         _computePropertyGetType(node, receiverType);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
     handlePropertyGet(node, receiverType, resultType);
-    if (node.name.name == Identifiers.runtimeType_) {
+    if (node.name.text == Identifiers.runtimeType_) {
       RuntimeTypeUseData data =
           computeRuntimeTypeUse(_pendingRuntimeTypeUseData, node);
       if (data.leftRuntimeTypeExpression == node) {
@@ -350,9 +350,9 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType receiverType = visitNode(node.receiver);
     ArgumentTypes argumentTypes = _visitArguments(node.arguments);
     ir.DartType returnType;
-    if (typeEnvironment.isOverloadedArithmeticOperator(node.target)) {
+    if (typeEnvironment.isSpecialCasedBinaryOperator(node.target)) {
       ir.DartType argumentType = argumentTypes.positional[0];
-      returnType = typeEnvironment.getTypeOfOverloadedArithmetic(
+      returnType = typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
           receiverType, argumentType);
     } else {
       ir.Class superclass = node.target.enclosingClass;
@@ -386,12 +386,12 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   /// target as to avoid visiting the argument twice.
   bool isSpecialCasedBinaryOperator(ir.Member interfaceTarget) {
     return interfaceTarget is ir.Procedure &&
-        typeEnvironment.isOverloadedArithmeticOperator(interfaceTarget);
+        typeEnvironment.isSpecialCasedBinaryOperator(interfaceTarget);
   }
 
   ir.Member _getMember(ir.Class cls, String name) {
     for (ir.Member member in cls.members) {
-      if (member.name.name == name) return member;
+      if (member.name.text == name) return member;
     }
     throw fail("Member '$name' not found in $cls");
   }
@@ -599,7 +599,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     // TODO(34602): Remove when `interfaceTarget` is set on synthetic calls to
     // ==.
     if (interfaceTarget == null &&
-        node.name.name == '==' &&
+        node.name.text == '==' &&
         node.arguments.types.isEmpty &&
         node.arguments.positional.length == 1 &&
         node.arguments.named.isEmpty) {
@@ -639,7 +639,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
           node, argumentTypes, getterType, interfaceTarget);
       if (isSpecialCasedBinaryOperator(interfaceTarget)) {
         ir.DartType argumentType = argumentTypes.positional[0];
-        return typeEnvironment.getTypeOfOverloadedArithmetic(
+        return typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
             receiverType, argumentType);
       } else if (getterType is ir.FunctionType) {
         return getterType.returnType;
@@ -647,7 +647,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
         return const ir.DynamicType();
       }
     }
-    if (node.name.name == 'call') {
+    if (node.name.text == 'call') {
       if (receiverType is ir.FunctionType) {
         if (receiverType.typeParameters.length != node.arguments.types.length) {
           return const DoesNotCompleteType();
@@ -657,7 +657,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
             .substituteType(receiverType.returnType);
       }
     }
-    if (node.name.name == '==') {
+    if (node.name.text == '==') {
       // We use this special case to simplify generation of '==' checks.
       return typeEnvironment.coreTypes.boolNonNullableRawType;
     }
@@ -701,7 +701,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     ir.DartType returnType =
         _computeMethodInvocationType(node, receiverType, argumentTypes);
     receiverType = _narrowInstanceReceiver(node.interfaceTarget, receiverType);
-    if (node.name.name == '==') {
+    if (node.name.text == '==') {
       ir.Expression left = node.receiver;
       ir.Expression right = node.arguments.positional[0];
       TypeMap afterInvocation = typeMap;
@@ -742,8 +742,7 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     assert(
         node.promotedType == null ||
             promotedType == typeEnvironment.nullType ||
-            promotedType is ir.InterfaceType &&
-                promotedType.classNode == typeEnvironment.futureOrClass ||
+            promotedType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(promotedType, node.promotedType,
                 ir.SubtypeCheckMode.ignoringNullabilities),
         "Unexpected promotion of ${node.variable} in ${node.parent}. "
@@ -1940,7 +1939,13 @@ class TypeMap {
             newTypesOfInterest.add(typeOfInterest);
           }
         }
-        if (newTypesOfInterest.isNotEmpty) {
+        if (newTypesOfInterest.length > 1 ||
+            (newTypesOfInterest.length == 1 &&
+                newTypesOfInterest.single != info.declaredType)) {
+          // If [newTypesOfInterest] only contains the declared type we have no
+          // information about the variable (it is either an instance of its
+          // declared type or null) and the canonical way to represent this is
+          // to have _no_ target info.
           TypeHolder typeHolderIfNonNull =
               new TypeHolder(info.declaredType, newTypesOfInterest, null);
           TypeHolder typeHolderIfNull = new TypeHolder(info.declaredType, null,

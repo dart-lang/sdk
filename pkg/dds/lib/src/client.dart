@@ -7,13 +7,47 @@ part of dds;
 /// Representation of a single DDS client which manages the connection and
 /// DDS request intercepting / forwarding.
 class _DartDevelopmentServiceClient {
-  _DartDevelopmentServiceClient(
+  factory _DartDevelopmentServiceClient.fromWebSocket(
+    DartDevelopmentService dds,
+    WebSocketChannel ws,
+    json_rpc.Peer vmServicePeer,
+  ) =>
+      _DartDevelopmentServiceClient._(
+        dds,
+        ws,
+        vmServicePeer,
+      );
+
+  factory _DartDevelopmentServiceClient.fromSSEConnection(
+    DartDevelopmentService dds,
+    SseConnection sse,
+    json_rpc.Peer vmServicePeer,
+  ) =>
+      _DartDevelopmentServiceClient._(
+        dds,
+        sse,
+        vmServicePeer,
+      );
+
+  _DartDevelopmentServiceClient._(
     this.dds,
-    this.ws,
+    this.connection,
     json_rpc.Peer vmServicePeer,
   ) : _vmServicePeer = vmServicePeer {
     _clientPeer = json_rpc.Peer(
-      ws.cast<String>(),
+      // Manually create a StreamChannel<String> instead of calling
+      // .cast<String>() as cast() results in addStream() being called,
+      // binding the underlying sink. This results in a StateError being thrown
+      // if we try and add directly to the sink, which we do for binary events
+      // in _StreamManager's streamNotify().
+      StreamChannel<String>(
+        connection.stream.cast(),
+        StreamController(sync: true)
+          ..stream
+              .cast()
+              .listen((event) => connection.sink.add(event))
+              .onDone(() => connection.sink.close()),
+      ),
       strictProtocolChecks: false,
     );
     _registerJsonRpcMethods();
@@ -145,6 +179,19 @@ class _DartDevelopmentServiceClient {
       return supportedProtocols;
     });
 
+    // `evaluate` and `evaluateInFrame` actually consist of multiple RPC
+    // invocations, including a call to `compileExpression` which can be
+    // overridden by clients which provide their own implementation (e.g.,
+    // Flutter Tools). We handle all of this in [_ExpressionEvaluator].
+    _clientPeer.registerMethod(
+      'evaluate',
+      dds.expressionEvaluator.execute,
+    );
+    _clientPeer.registerMethod(
+      'evaluateInFrame',
+      dds.expressionEvaluator.execute,
+    );
+
     // When invoked within a fallback, the next fallback will start executing.
     // The final fallback forwards the request to the VM service directly.
     @alwaysThrows
@@ -168,7 +215,11 @@ class _DartDevelopmentServiceClient {
         return await Future.any(
           [
             // Forward the request to the service client or...
-            serviceClient.sendRequest(method, parameters.asMap),
+            serviceClient.sendRequest(method, parameters.asMap).catchError((_) {
+              throw _RpcErrorCodes.buildRpcException(
+                _RpcErrorCodes.kServiceDisappeared,
+              );
+            }, test: (error) => error is StateError),
             // if the service client closes, return an error response.
             serviceClient._clientPeer.done.then(
               (_) => throw _RpcErrorCodes.buildRpcException(
@@ -206,8 +257,8 @@ class _DartDevelopmentServiceClient {
   String _name;
 
   final _DartDevelopmentService dds;
+  final StreamChannel connection;
   final Map<String, String> services = {};
   final json_rpc.Peer _vmServicePeer;
-  final WebSocketChannel ws;
   json_rpc.Peer _clientPeer;
 }

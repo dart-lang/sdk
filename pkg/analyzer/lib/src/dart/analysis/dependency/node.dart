@@ -26,7 +26,7 @@ class ClassMemberReference {
       : hashCode = JenkinsSmiHash.hash2(target.hashCode, name.hashCode);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is ClassMemberReference &&
         other.target == target &&
         other.name == name;

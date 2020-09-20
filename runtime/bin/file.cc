@@ -68,9 +68,7 @@ void FUNCTION_NAME(File_GetPointer)(Dart_NativeArguments args) {
   Dart_SetIntegerReturnValue(args, file_pointer);
 }
 
-static void ReleaseFile(void* isolate_callback_data,
-                        Dart_WeakPersistentHandle handle,
-                        void* peer) {
+static void ReleaseFile(void* isolate_callback_data, void* peer) {
   File* file = reinterpret_cast<File*>(peer);
   file->Release();
 }
@@ -79,9 +77,9 @@ void FUNCTION_NAME(File_SetPointer)(Dart_NativeArguments args) {
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   intptr_t file_pointer = DartUtils::GetNativeIntptrArgument(args, 1);
   File* file = reinterpret_cast<File*>(file_pointer);
-  Dart_WeakPersistentHandle handle = Dart_NewWeakPersistentHandle(
+  Dart_FinalizableHandle handle = Dart_NewFinalizableHandle(
       dart_this, reinterpret_cast<void*>(file), sizeof(*file), ReleaseFile);
-  file->SetWeakHandle(handle);
+  file->SetFinalizableHandle(handle);
   SetFile(dart_this, file_pointer);
 }
 
@@ -148,7 +146,7 @@ void FUNCTION_NAME(File_Close)(Dart_NativeArguments args) {
     return;
   }
   file->Close();
-  file->DeleteWeakHandle(Dart_CurrentIsolate());
+  file->DeleteFinalizableHandle(Dart_CurrentIsolate(), dart_this);
   file->Release();
 
   ThrowIfError(
@@ -1307,6 +1305,10 @@ static int SizeInBytes(Dart_TypedData_Type type) {
     case Dart_TypedData_kUint64:
     case Dart_TypedData_kFloat64:
       return 8;
+    case Dart_TypedData_kInt32x4:
+    case Dart_TypedData_kFloat32x4:
+    case Dart_TypedData_kFloat64x2:
+      return 16;
     default:
       break;
   }

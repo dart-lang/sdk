@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,13 @@ main() {
 }
 
 @reflectiveTest
-class UriWithInterpolationTest extends DriverResolutionTest {
+class UriWithInterpolationTest extends PubPackageResolutionTest {
   test_constant() async {
     await assertErrorsInCode('''
 import 'stuff_\$platform.dart';
 ''', [
       error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 22),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 15, 8),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 8),
     ]);
   }
 

@@ -55,7 +55,7 @@ class ServiceTestMessageHandler : public MessageHandler {
     if (response_obj.IsString()) {
       String& response = String::Handle();
       response ^= response_obj.raw();
-      _msg = strdup(response.ToCString());
+      _msg = Utils::StrDup(response.ToCString());
     } else {
       ASSERT(response_obj.IsArray());
       Array& response_array = Array::Handle();
@@ -63,7 +63,7 @@ class ServiceTestMessageHandler : public MessageHandler {
       ASSERT(response_array.Length() == 1);
       ExternalTypedData& response = ExternalTypedData::Handle();
       response ^= response_array.At(0);
-      _msg = strdup(reinterpret_cast<char*>(response.DataAddr(0)));
+      _msg = Utils::StrDup(reinterpret_cast<char*>(response.DataAddr(0)));
     }
 
     return kOK;
@@ -567,7 +567,7 @@ static bool alpha_callback(const char* name,
                            intptr_t num_options,
                            void* user_data,
                            const char** result) {
-  *result = strdup("alpha");
+  *result = Utils::StrDup("alpha");
   return true;
 }
 
@@ -577,7 +577,7 @@ static bool beta_callback(const char* name,
                           intptr_t num_options,
                           void* user_data,
                           const char** result) {
-  *result = strdup("beta");
+  *result = Utils::StrDup("beta");
   return false;
 }
 

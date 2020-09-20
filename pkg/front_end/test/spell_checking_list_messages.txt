@@ -27,7 +27,6 @@ dname
 e.g
 enum's
 f
-field's
 flutter_runner
 futureor
 h
@@ -45,6 +44,7 @@ num1%.3ms
 o
 opt
 opts
+outdated
 part(s)
 patch(es)
 pubspec.yaml

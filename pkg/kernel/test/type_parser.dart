@@ -172,8 +172,7 @@ class DartTypeParser {
           Nullability nullability = parseOptionalNullability();
           return new TypedefType(target, nullability, typeArguments);
         } else if (target is TypeParameter) {
-          Nullability nullability =
-              parseOptionalNullability(Nullability.undetermined);
+          Nullability nullability = parseOptionalNullability(null);
           DartType promotedBound;
           switch (peekToken()) {
             case Token.LeftAngle:
@@ -185,7 +184,11 @@ class DartTypeParser {
             default:
               break;
           }
-          return new TypeParameterType(target, nullability, promotedBound);
+          return new TypeParameterType(
+              target,
+              nullability ??
+                  TypeParameterType.computeNullabilityFromBound(target),
+              promotedBound);
         }
         return fail("Unexpected lookup result for $name: $target");
 

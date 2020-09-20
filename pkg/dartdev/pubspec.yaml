@@ -1,21 +1,30 @@
 name: dartdev
 
-# This package is not intended to be published
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
-  args: ^1.5.2
-  cli_util: ^0.1.0
-  dds:
-    path: '../dds'
-  intl: ^0.16.0
-  path: ^1.6.2
+  analysis_server_client:
+    path: ../analysis_server_client
+  analyzer:
+    path: ../analyzer
+  args: ^1.6.0
+  cli_util: '>=0.1.4 <0.3.0'
+  dart2native:
+    path: ../dart2native
+  dart_style: any
+  meta:
+    path: ../meta
+  nnbd_migration:
+    path: ../nnbd_migration
+  path: ^1.0.0
   stagehand: 3.3.7
-  watcher: ^0.9.7+13
-  yaml: ^2.2.0
+  telemetry:
+    path: ../telemetry
+  usage: ^3.4.0
 
 dev_dependencies:
   test: ^1.0.0
-  pedantic: ^1.8.0
+  pedantic: ^1.9.0

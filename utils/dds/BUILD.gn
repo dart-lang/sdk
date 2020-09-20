@@ -1,0 +1,30 @@
+# Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../application_snapshot.gni")
+
+dds_files = exec_script("../../tools/list_dart_files.py",
+                        [
+                          "absolute",
+                          rebase_path("../../pkg/dds"),
+                        ],
+                        "list lines")
+
+group("dds") {
+  public_deps = [ ":copy_dds_snapshot" ]
+}
+
+copy("copy_dds_snapshot") {
+  visibility = [ ":dds" ]
+  public_deps = [ ":generate_dds_snapshot" ]
+  sources = [ "$root_gen_dir/dds.dart.snapshot" ]
+  outputs = [ "$root_out_dir/dds.dart.snapshot" ]
+}
+
+application_snapshot("generate_dds_snapshot") {
+  main_dart = "../../pkg/dds/bin/dds.dart"
+  training_args = []
+  inputs = dds_files
+  output = "$root_gen_dir/dds.dart.snapshot"
+}

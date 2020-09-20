@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -34,7 +32,7 @@ class CiderFixesComputer {
   /// Compute quick fixes for errors on the line with the [offset].
   Future<List<CiderErrorFixes>> compute(String path, int offset) async {
     var result = <CiderErrorFixes>[];
-    var resolvedUnit = _fileResolver.resolve(path);
+    var resolvedUnit = _fileResolver.resolve(path: path);
 
     var lineInfo = resolvedUnit.lineInfo;
     var requestLine = lineInfo.getLocation(offset).lineNumber;

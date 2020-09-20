@@ -164,7 +164,8 @@ class ResultMergerTest {
 
   void test_mergeNavigation() {
     NavigationTarget target(int fileIndex, int offset) {
-      return NavigationTarget(ElementKind.CLASS, fileIndex, offset, 1, 0, 0);
+      return NavigationTarget(ElementKind.CLASS, fileIndex, offset, 1, 0, 0,
+          codeOffset: offset, codeLength: 1);
     }
 
     //

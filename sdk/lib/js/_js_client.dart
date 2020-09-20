@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 import 'dart:html' show Blob, Event, ImageData, Node, Window, WorkerGlobalScope;
 import 'dart:indexed_db' show KeyRange;
 import 'dart:_js_helper' show patch;

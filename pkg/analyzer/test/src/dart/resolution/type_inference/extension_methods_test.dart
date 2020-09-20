@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExtensionMethodsTest extends DriverResolutionTest {
+class ExtensionMethodsTest extends PubPackageResolutionTest {
   test_implicit_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -62,6 +62,25 @@ void f(A<int> a) {
 //    );
     assertInvokeType(invocation, 'Map<int, double> Function(double)');
     assertType(invocation, 'Map<int, double>');
+  }
+
+  test_implicit_method_internal() async {
+    await assertNoErrorsInCode(r'''
+extension E<T> on List<T> {
+  List<T> foo() => this;
+  List<T> bar(List<T> other) => other.foo();
+}
+''');
+    assertMethodInvocation2(
+      findNode.methodInvocation('other.foo()'),
+      element: elementMatcher(
+        findElement.method('foo'),
+        substitution: {'T': 'T'},
+      ),
+      typeArgumentTypes: [],
+      invokeType: 'List<T> Function()',
+      type: 'List<T>',
+    );
   }
 
   test_implicit_method_onTypeParameter() async {
@@ -146,7 +165,7 @@ main() {
   }
 
   test_override_downward_hasTypeArguments_wrongNumber() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 extension E<T> on Set<T> {
   void foo() {}
 }
@@ -154,7 +173,10 @@ extension E<T> on Set<T> {
 main() {
   E<int, bool>({}).foo();
 }
-''');
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION, 58,
+          11),
+    ]);
     var literal = findNode.setOrMapLiteral('{}).');
     assertType(literal, 'Set<dynamic>');
   }
@@ -287,7 +309,7 @@ f(String s) {
   E(s).foo();
 }
 ''', [
-      error(StrongModeCode.COULD_NOT_INFER, 69, 1),
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 69, 1),
     ]);
     var override = findNode.extensionOverride('E(s)');
     assertElementTypeStrings(override.typeArgumentTypes, ['String']);

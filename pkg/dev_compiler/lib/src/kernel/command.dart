@@ -27,6 +27,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'compiler.dart';
+import 'module_metadata.dart';
 import 'target.dart';
 
 const _binaryName = 'dartdevc -k';
@@ -80,27 +81,21 @@ Future<CompilerResult> _compile(List<String> args,
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
-    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
     // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
-        help: 'emit API summary in a .js.txt file',
+        help: 'Emit API summary in a .js.txt file.',
         defaultsTo: false,
         hide: true)
     ..addFlag('track-widget-creation',
-        help: 'enable inspecting of Flutter widgets', hide: true)
+        help: 'Enable inspecting of Flutter widgets.', hide: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
-    ..addOption('multi-root-scheme',
-        help: 'The custom scheme to indicate a multi-root uri.',
-        defaultsTo: 'org-dartlang-app')
     ..addMultiOption('multi-root',
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
-    ..addOption('multi-root-output-path',
-        help: 'Path to set multi-root files relative to.', hide: true)
     ..addOption('dart-sdk',
         help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
     ..addFlag('compile-sdk',
@@ -109,13 +104,6 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
         help: 'If set, the file to record inputs used.', hide: true)
-    // TODO(41852) Define a process for breaking changes before graduating from
-    // experimental.
-    ..addFlag('experimental-emit-debug-metadata',
-        help: 'Experimental option for compiler development.\n'
-            'Output a metadata file for debug tools next to the .js output.',
-        defaultsTo: false,
-        hide: true)
     ..addFlag('kernel',
         abbr: 'k',
         help: 'Deprecated and ignored. To be removed in a future release.',
@@ -158,16 +146,17 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(0);
   }
 
+  var options = SharedCompilerOptions.fromArguments(argResults);
+
   // To make the output .dill agnostic of the current working directory,
   // we use a custom-uri scheme for all app URIs (these are files outside the
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  var multiRootScheme = argResults['multi-root-scheme'] as String;
   var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
       .map(Uri.base.resolve)
       .toList();
-  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
+  var multiRootOutputPath = options.multiRootOutputPath;
   if (multiRootOutputPath == null) {
     if (outPaths.length > 1) {
       print(
@@ -180,11 +169,11 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var fileSystem = MultiRootFileSystem(
-      multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
+      options.multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
-      return Uri(scheme: multiRootScheme, path: '/' + uri.path);
+      return Uri(scheme: options.multiRootScheme, path: '/' + uri.path);
     }
     return uri;
   }
@@ -197,7 +186,6 @@ Future<CompilerResult> _compile(List<String> args,
     return toCustomUri(sourcePathToRelativeUri(source));
   }
 
-  var options = SharedCompilerOptions.fromArguments(argResults);
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
@@ -212,6 +200,11 @@ Future<CompilerResult> _compile(List<String> args,
       !sdkSummaryPath.endsWith('.dill');
   if (invalidSummary) {
     throw StateError('Non-dill file detected in input: $summaryPaths');
+  }
+
+  var inputs = [for (var arg in argResults.rest) sourcePathToCustomUri(arg)];
+  if (inputs.length == 1 && inputs.single.path.endsWith('.dill')) {
+    return compileSdkFromDill(args);
   }
 
   if (librarySpecPath == null) {
@@ -245,8 +238,6 @@ Future<CompilerResult> _compile(List<String> args,
   // This needs further investigation.
   var packageFile = argResults['packages'] as String ?? _findPackagesFilePath();
 
-  var inputs = argResults.rest.map(sourcePathToCustomUri).toList();
-
   var succeeded = true;
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
@@ -268,6 +259,7 @@ Future<CompilerResult> _compile(List<String> args,
   fe.WorkerInputComponent cachedSdkInput;
   var recordUsedInputs = argResults['used-inputs-file'] != null;
   var additionalDills = summaryModules.keys.toList();
+
   if (!useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
@@ -369,7 +361,7 @@ Future<CompilerResult> _compile(List<String> args,
           'the --summarize option is not supported.');
       return CompilerResult(64);
     }
-    // TODO(jmesserly): CFE mutates the Kernel tree, so we can't save the dill
+    // Note: CFE mutates the Kernel tree, so we can't save the dill
     // file if we successfully reused a cached library. If compiler state is
     // unchanged, it means we used the cache.
     //
@@ -382,6 +374,27 @@ Future<CompilerResult> _compile(List<String> args,
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
+    outFiles.add(sink.flush().then((_) => sink.close()));
+  }
+  if (argResults['experimental-output-compiled-kernel'] as bool) {
+    if (outPaths.length > 1) {
+      print(
+          'If multiple output files (found ${outPaths.length}) are specified, '
+          'the --experimental-output-compiled-kernel option is not supported.');
+      return CompilerResult(64);
+    }
+    // Note: CFE mutates the Kernel tree, so we can't save the dill
+    // file if we successfully reused a cached library. If compiler state is
+    // unchanged, it means we used the cache.
+    //
+    // In that case, we need to unbind canonical names, because they could be
+    // bound already from the previous compile.
+    if (identical(compilerState, oldCompilerState)) {
+      compiledLibraries.unbindCanonicalNames();
+    }
+    var sink =
+        File(p.withoutExtension(outPaths.first) + '.full.dill').openWrite();
+    kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
@@ -425,9 +438,10 @@ Future<CompilerResult> _compile(List<String> args,
     var jsCode = jsProgramToCode(jsModule, moduleFormat,
         buildSourceMap: options.sourceMap,
         inlineSourceMap: options.inlineSourceMap,
+        emitDebugMetadata: options.emitDebugMetadata,
         jsUrl: p.toUri(output).toString(),
         mapUrl: mapUrl,
-        customScheme: multiRootScheme,
+        customScheme: options.multiRootScheme,
         multiRootOutputPath: multiRootOutputPath,
         component: compiledLibraries);
 
@@ -436,21 +450,9 @@ Future<CompilerResult> _compile(List<String> args,
       outFiles.add(
           File('$output.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
-
-    if (argResults['experimental-emit-debug-metadata'] as bool) {
-      var moduleMetadata = [
-        for (var lib in compiledLibraries.libraries)
-          {
-            'name': compiler.jsLibraryName(lib),
-            'sourceMapFileUri': mapUrl,
-            'dartFileUris': [
-              lib.fileUri.toString(),
-              ...lib.parts.map((p) => p.partUri.toString())
-            ],
-          }
-      ];
+    if (jsCode.metadata != null) {
       outFiles.add(
-          File('$output.metadata').writeAsString(json.encode(moduleMetadata)));
+          File('$output.metadata').writeAsString(json.encode(jsCode.metadata)));
     }
   }
 
@@ -487,14 +489,8 @@ Future<CompilerResult> _compile(List<String> args,
 // well.
 // TODO(sigmund): refactor the underlying pieces to reduce the code duplication.
 Future<CompilerResult> compileSdkFromDill(List<String> args) async {
-  var argParser = ArgParser(allowTrailingOptions: true)
-    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
-    ..addOption('multi-root-scheme', defaultsTo: 'org-dartlang-sdk')
-    ..addOption('multi-root-output-path',
-        help: 'Path to set multi-root files relative to when generating'
-            ' source-maps.',
-        hide: true);
-  SharedCompilerOptions.addArguments(argParser);
+  var argParser = ArgParser(allowTrailingOptions: true);
+  SharedCompilerOptions.addSdkRequiredArguments(argParser);
 
   ArgResults argResults;
   try {
@@ -502,6 +498,18 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   } on FormatException catch (error) {
     print(error);
     print(_usageMessage(argParser));
+    return CompilerResult(64);
+  }
+
+  var inputs = argResults.rest.toList();
+  if (inputs.length != 1) {
+    print('Only a single input file is supported to compile the sdk from dill'
+        'but found: \n${inputs.join('\n')}');
+    return CompilerResult(64);
+  }
+
+  if (!inputs.single.endsWith('.dill')) {
+    print('Input must be a .dill file: ${inputs.single}');
     return CompilerResult(64);
   }
 
@@ -517,12 +525,22 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     return CompilerResult(64);
   }
 
-  var component = loadComponentFromBinary(argResults.rest[0]);
+  var component = loadComponentFromBinary(inputs.single);
+  var invalidLibraries = <Uri>[];
+  for (var library in component.libraries) {
+    if (library.importUri.scheme != 'dart') {
+      invalidLibraries.add(library.importUri);
+    }
+  }
+
+  if (invalidLibraries.isNotEmpty) {
+    print('Only the SDK libraries can be compiled from .dill but found:\n'
+        '${invalidLibraries.join('\n')}');
+    return CompilerResult(64);
+  }
   var coreTypes = CoreTypes(component);
   var hierarchy = ClassHierarchy(component, coreTypes);
-  var multiRootScheme = argResults['multi-root-scheme'] as String;
-  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
-  var options = SharedCompilerOptions.fromArguments(argResults);
+  var options = SharedCompilerOptions.fromSdkRequiredArguments(argResults);
 
   var compiler = ProgramCompiler(
       component, hierarchy, options, const {}, const {},
@@ -543,8 +561,8 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
         inlineSourceMap: options.inlineSourceMap,
         jsUrl: p.toUri(output).toString(),
         mapUrl: p.toUri(output + '.map').toString(),
-        customScheme: multiRootScheme,
-        multiRootOutputPath: multiRootOutputPath,
+        customScheme: options.multiRootScheme,
+        multiRootOutputPath: options.multiRootOutputPath,
         component: component);
 
     outFiles.add(file.writeAsString(jsCode.code));
@@ -553,6 +571,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
           File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
   }
+  await Future.wait(outFiles);
   return CompilerResult(0);
 }
 
@@ -598,7 +617,14 @@ class JSCode {
   /// using [placeSourceMap].
   final Map sourceMap;
 
-  JSCode(this.code, this.sourceMap);
+  /// Module and library information
+  ///
+  /// The [metadata] is a contract between compiler and the debugger,
+  /// helping the debugger map between libraries, modules, source paths.
+  /// see: https://goto.google.com/dart-web-debugger-metadata
+  final ModuleMetadata metadata;
+
+  JSCode(this.code, this.sourceMap, {this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -608,6 +634,7 @@ class JSCode {
 JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
+    bool emitDebugMetadata = false,
     String jsUrl,
     String mapUrl,
     String sourceMapBase,
@@ -666,7 +693,27 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
   };
   text = text.replaceFirst(
       SharedCompiler.metricsLocationID, '$compileTimeStatistics');
-  return JSCode(text, builtMap);
+
+  var debugMetadata = emitDebugMetadata
+      ? _emitMetadata(moduleTree, component, mapUrl, jsUrl)
+      : null;
+
+  return JSCode(text, builtMap, metadata: debugMetadata);
+}
+
+ModuleMetadata _emitMetadata(js_ast.Program program, Component component,
+    String sourceMapUri, String moduleUri) {
+  var metadata = ModuleMetadata(
+      program.name, loadFunctionName(program.name), sourceMapUri, moduleUri);
+
+  for (var lib in component.libraries) {
+    metadata.addLibrary(LibraryMetadata(
+        libraryUriToJsIdentifier(lib.importUri),
+        lib.importUri.toString(),
+        lib.fileUri.toString(),
+        [...lib.parts.map((p) => p.partUri)]));
+  }
+  return metadata;
 }
 
 /// Parses Dart's non-standard `-Dname=value` syntax for declared variables,

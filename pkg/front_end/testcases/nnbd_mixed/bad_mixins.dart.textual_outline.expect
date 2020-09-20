@@ -1,0 +1,30 @@
+// @dart = 2.7
+import 'bad_mixins_lib.dart';
+
+class Class1a extends Object with MixinA {}
+
+class Class1b extends A with MixinA {}
+
+class Class2a extends Object with MixinB<int> {}
+
+class Class2c extends B<num> with MixinB<int> {}
+
+class Class2d extends B<int> with MixinB<int> {}
+
+class Class2e extends B<Object> with MixinB<dynamic> {}
+
+class Class3a extends Object with MixinC<num, int> {}
+
+class Class3b extends C<num, num> with MixinC<num, int> {}
+
+class Class3d extends C<num, int> with MixinC<num, int> {}
+
+class Class4a extends ClassBa with MixinB<int> {}
+
+class Class4b extends ClassBb with MixinB<int> {}
+
+class Class5a extends ClassCa with MixinC<num, int> {}
+
+class Class5b extends ClassCb with MixinC<num, int> {}
+
+main() {}

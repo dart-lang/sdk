@@ -37,7 +37,7 @@ Uri computeYamlFile() {
 
 Uri computeAllowListFile() {
   return Platform.script
-      .resolve("../../../../sdk_nnbd/lib/_internal/allowed_experiments.json");
+      .resolve("../../../../sdk/lib/_internal/allowed_experiments.json");
 }
 
 String generateKernelFile() {
@@ -103,9 +103,20 @@ String generateCfeFile() {
 part of 'experimental_flags.dart';
 ''');
 
-  Map<dynamic, dynamic> features = yaml['features'];
+  Map<String, dynamic> features = {};
+  Map<dynamic, dynamic> yamlFeatures = yaml['features'];
+  for (MapEntry<dynamic, dynamic> entry in yamlFeatures.entries) {
+    String category = entry.value["category"] ?? "language";
+    if (category != "language" && category != "CFE") {
+      // Skip a feature with a category that's not language or CFE.
+      // In the future we might want to generate different code for different
+      // things.
+      continue;
+    }
+    features[entry.key] = entry.value;
+  }
 
-  List<String> keys = features.keys.cast<String>().toList()..sort();
+  List<String> keys = features.keys.toList()..sort();
 
   sb.write('''
 
@@ -170,6 +181,54 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   for (String key in keys) {
     bool expired = (features[key] as YamlMap)['expired'] == true;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${expired},');
+  }
+  sb.write('''
+};
+
+const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
+''');
+  for (String key in keys) {
+    int major;
+    int minor;
+    String enabledIn =
+        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    if (enabledIn != null) {
+      List<String> split = enabledIn.split(".");
+      major = int.parse(split[0]);
+      minor = int.parse(split[1]);
+    } else {
+      major = currentVersionMajor;
+      minor = currentVersionMinor;
+    }
+    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: '
+        'const Version($major, $minor),');
+  }
+  sb.write('''
+};
+
+const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
+''');
+  for (String key in keys) {
+    int major;
+    int minor;
+    String enabledIn =
+        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    String experimentalReleaseVersion = getAsVersionNumberString(
+        (features[key] as YamlMap)['experimentalReleaseVersion']);
+    if (experimentalReleaseVersion != null) {
+      List<String> split = experimentalReleaseVersion.split(".");
+      major = int.parse(split[0]);
+      minor = int.parse(split[1]);
+    } else if (enabledIn != null) {
+      List<String> split = enabledIn.split(".");
+      major = int.parse(split[0]);
+      minor = int.parse(split[1]);
+    } else {
+      major = currentVersionMajor;
+      minor = currentVersionMinor;
+    }
+    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: '
+        'const Version($major, $minor),');
   }
   sb.write('''
 };

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -76,7 +77,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       bool includeColon = true,
       bool includeComma = false}) {
     var expected = <CompletionSuggestion>[];
-    var paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {
       var completion = includeColon ? '$name: ' : name;
       // Selection should be before any trailing commas.
@@ -84,12 +84,8 @@ class ArgListContributorTest extends DartCompletionContributorTest {
       if (includeComma) {
         completion = '$completion,';
       }
-      var relevance = requiredParamIndices.contains(paramIndex++)
-          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
-          : DART_RELEVANCE_NAMED_PARAMETER;
       expected.add(assertSuggest(completion,
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: relevance,
           paramName: name,
           paramType: type,
           selectionOffset: selectionOffset));
@@ -106,7 +102,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
           suggestion.endsWith(',') ? suggestion.length - 1 : suggestion.length;
       expected.add(assertSuggest('$suggestion',
           csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_NAMED_PARAMETER,
           selectionOffset: selectionOffset));
     }
     assertNoOtherSuggestions(expected);
@@ -253,7 +248,6 @@ void main() {
 
     assertSuggest(
       '(a, b) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 10,
     );
 
@@ -349,7 +343,6 @@ void main() {
 
     assertSuggest(
       '(a, {b, c}) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 15,
     );
   }
@@ -382,7 +375,6 @@ void main() {
 
     assertSuggest(
       '(a, [b, c]) => ,',
-      relevance: DART_RELEVANCE_HIGH,
       selectionOffset: 15,
     );
   }
@@ -402,7 +394,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -425,7 +416,6 @@ import 'package:flutter/material.dart';
 
     assertSuggest('backgroundColor: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null, // No default values.
         selectionOffset: 17);
   }
@@ -446,7 +436,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -468,7 +457,6 @@ build() => new Row(
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -496,7 +484,6 @@ class DynamicRow extends Widget {
 
     assertSuggest('children: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 11,
         defaultArgumentListTextRanges: null);
@@ -523,7 +510,6 @@ class MapRow extends Widget {
 
     assertSuggest('children: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         selectionOffset: 10,
         defaultArgListString: null);
   }
@@ -548,7 +534,6 @@ class CustomScrollView extends Widget {
 
     assertSuggest('slivers: [],',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
         selectionOffset: 10,
         defaultArgumentListTextRanges: null);
@@ -575,7 +560,6 @@ foo({String children}) {}
 
     assertSuggest('children: ',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null);
   }
 
@@ -1092,5 +1076,65 @@ main() { f("16", radix: ^);}''');
       String bar() => true;''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addTestSource(r'''
+f({int? nullable, int nonnullable}) {}
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'nullable': 'int?',
+      'nonnullable': 'int',
+    });
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param_imported() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addSource('/home/test/lib/a.dart', '''
+f({int? nullable, int nonnullable}) {}''');
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addTestSource(r'''
+import "a.dart";
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'nullable': 'int?',
+      'nonnullable': 'int',
+    });
+  }
+
+  Future<void> test_ArgumentList_nnbd_function_named_param_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    addSource('/home/test/lib/a.dart', '''
+// @dart = 2.8
+f({int named}) {}''');
+    addTestSource(r'''
+import "a.dart";
+main() { f(^);}');
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
+      'named': 'int*',
+    });
+  }
+
+  Future<void> test_superConstructorInvocation() async {
+    addTestSource('''
+class A {
+  final bool field1;
+  final int field2;
+  A({this.field1, this.field2});
+}
+class B extends A {
+  B() : super(^);
+}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(
+        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
   }
 }

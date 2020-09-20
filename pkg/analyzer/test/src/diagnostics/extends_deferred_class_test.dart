@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class ExtendsDeferredClassTest extends DriverResolutionTest {
+class ExtendsDeferredClassTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}
 ''');
@@ -31,7 +31,7 @@ class C = a.A with M;
   }
 
   test_extends_deferred_class() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}
 ''');

@@ -6,8 +6,7 @@
 
 class A<T> {}
 
-/*spec:nnbd-off|prod:nnbd-off.class: B:explicit=[B<int>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: B:explicit=[B<int*>*],needsArgs*/
+/*class: B:explicit=[B<int*>*],needsArgs*/
 class B<T> extends A<T> {}
 
 main() {

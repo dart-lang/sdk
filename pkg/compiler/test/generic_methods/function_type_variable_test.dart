@@ -9,7 +9,6 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
 import '../helpers/type_test_helper.dart';
 
 const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
@@ -208,35 +207,7 @@ main() {
 
     all.forEach(print);
 
-    List<ToStringTestData> toStringExpectedPreNnbd = [
-      ToStringTestData(F1, 'void Function<#A>(#A)'),
-      ToStringTestData(F2, 'void Function<#A>(#A)'),
-      ToStringTestData(F3, 'void Function<#A,#B>(#A,#B)'),
-      ToStringTestData(F4, 'void Function<#A,#B>(#B,#A)'),
-      ToStringTestData(F5, 'void Function<#A extends num>(#A)'),
-      ToStringTestData(F6, 'void Function<#A extends int>(#A)'),
-      ToStringTestData(F7, 'void Function<#A extends num>(#A,[int])'),
-      ToStringTestData(F8, '#A Function<#A extends num>(#A)'),
-      ToStringTestData(F9, 'void Function<#A extends #B,#B>(#A,#B)'),
-      ToStringTestData(F10, 'void Function<#A extends #B,#B>(#A,#B)'),
-      ToStringTestData(F11, 'void Function<#A extends C3<#A>>(#A)'),
-      ToStringTestData(F12, 'void Function<#A extends C3<#A>>(#A)'),
-      ToStringTestData(F13, '#A Function<#A>(#A,#A)'),
-      ToStringTestData(F14, '#A Function<#A>(#A,#A)'),
-      ToStringTestData(
-          F15, 'Map<C5.T,#A> Function<#A extends #B,#B extends C5.T>(#A,#B)'),
-      ToStringTestData(
-          F16, 'Map<C5.T,#A> Function<#A extends C5.T,#B extends #A>(#A,#B)'),
-      ToStringTestData(F17,
-          'C5.T Function<#A extends List<#B>,#B extends Map<C5.T,#A>>(#A,#B,Object)'),
-      ToStringTestData(
-          F18,
-          'C5.T Function<#A extends C5.T>(['
-          '#A2 Function<#A2 extends #A>(#A,#A2,C5.T),'
-          '#A3 Function<#A3 extends #A>(#A,#A3,C5.T)])'),
-    ];
-
-    List<ToStringTestData> toStringExpectedNnbdWeak = [
+    List<ToStringTestData> toStringExpected = [
       ToStringTestData(F1, 'void Function<#A>(#A*)*'),
       ToStringTestData(F2, 'void Function<#A>(#A*)*'),
       ToStringTestData(F3, 'void Function<#A,#B>(#A*,#B*)*'),
@@ -266,8 +237,6 @@ main() {
           '#A3* Function<#A3 extends #A*>(#A*,#A3*,C5.T*)*])'),
     ];
 
-    List<ToStringTestData> toStringExpected =
-        isDart2jsNnbd ? toStringExpectedNnbdWeak : toStringExpectedPreNnbd;
     for (var test in toStringExpected) {
       testToString(test.type, test.expected);
     }
@@ -291,26 +260,7 @@ main() {
     testBounds(F13, [Object_]);
     testBounds(F14, [Object_]);
 
-    List<InstantiateTestData> instantiateExpectedPreNnbd = [
-      InstantiateTestData(F1, [C1], 'void Function(C1)'),
-      InstantiateTestData(F2, [C2], 'void Function(C2)'),
-      InstantiateTestData(F3, [C1, C2], 'void Function(C1,C2)'),
-      InstantiateTestData(F4, [C1, C2], 'void Function(C2,C1)'),
-      InstantiateTestData(F5, [num_], 'void Function(num)'),
-      InstantiateTestData(F6, [int_], 'void Function(int)'),
-      InstantiateTestData(F7, [int_], 'void Function(int,[int])'),
-      InstantiateTestData(F8, [int_], 'int Function(int)'),
-      InstantiateTestData(F9, [int_, num_], 'void Function(int,num)'),
-      InstantiateTestData(F10, [int_, num_], 'void Function(int,num)'),
-      InstantiateTestData(F11, [C4], 'void Function(C4)'),
-      InstantiateTestData(F12, [C4], 'void Function(C4)'),
-      InstantiateTestData(F13, [C1], 'C1 Function(C1,C1)'),
-      InstantiateTestData(F14, [C2], 'C2 Function(C2,C2)'),
-      InstantiateTestData(F15, [int_, num_], 'Map<C5.T,int> Function(int,num)'),
-      InstantiateTestData(F16, [num_, int_], 'Map<C5.T,num> Function(num,int)'),
-    ];
-
-    List<InstantiateTestData> instantiateExpectedNnbdWeak = [
+    List<InstantiateTestData> instantiateExpected = [
       InstantiateTestData(F1, [C1], 'void Function(C1*)'),
       InstantiateTestData(F2, [C2], 'void Function(C2*)'),
       InstantiateTestData(F3, [C1, C2], 'void Function(C1*,C2*)'),
@@ -331,30 +281,11 @@ main() {
           F16, [num_, int_], 'Map<C5.T*,num*>* Function(num*,int*)'),
     ];
 
-    List<InstantiateTestData> instantiateExpected = isDart2jsNnbd
-        ? instantiateExpectedNnbdWeak
-        : instantiateExpectedPreNnbd;
     for (var test in instantiateExpected) {
       testInstantiate(test.type, test.instantiation, test.expected);
     }
 
-    List<SubstTestData> substExpectedPreNnbd = [
-      SubstTestData([num_], [C5_T], F15,
-          'Map<num,#A> Function<#A extends #B,#B extends num>(#A,#B)'),
-      SubstTestData([num_], [C5_T], F16,
-          'Map<num,#A> Function<#A extends num,#B extends #A>(#A,#B)'),
-      SubstTestData([num_], [C5_T], F17,
-          'num Function<#A extends List<#B>,#B extends Map<num,#A>>(#A,#B,Object)'),
-      SubstTestData(
-          [num_],
-          [C5_T],
-          F18,
-          'num Function<#A extends num>(['
-          '#A2 Function<#A2 extends #A>(#A,#A2,num),'
-          '#A3 Function<#A3 extends #A>(#A,#A3,num)])'),
-    ];
-
-    List<SubstTestData> substExpectedNnbdWeak = [
+    List<SubstTestData> substExpected = [
       SubstTestData([num_], [C5_T], F15,
           'Map<num*,#A*>* Function<#A extends #B*,#B extends num*>(#A*,#B*)'),
       SubstTestData([num_], [C5_T], F16,
@@ -374,8 +305,6 @@ main() {
           '#A3* Function<#A3 extends #A*>(#A*,#A3*,num*)*])'),
     ];
 
-    List<SubstTestData> substExpected =
-        isDart2jsNnbd ? substExpectedNnbdWeak : substExpectedPreNnbd;
     for (var test in substExpected) {
       testSubst(test.arguments, test.parameters, test.type, test.expected);
     }

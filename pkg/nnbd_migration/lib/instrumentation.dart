@@ -266,6 +266,7 @@ enum EdgeOriginKind {
   fieldFormalParameter,
   fieldNotInitialized,
   forEachVariable,
+  getterSetterCorrespondence,
   greatestLowerBound,
   ifNull,
   implicitMixinSuperCall,

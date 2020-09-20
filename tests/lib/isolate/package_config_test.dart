@@ -25,9 +25,9 @@ main([args, msg]) async {
   }
   if (error == null) throw 'Expected a Spawning error.';
   if (!'$error'.contains(errorString)) {
-    throw 'Epected: $errorString to contain "$errorString"';
+    throw 'Expected: $error to contain "$errorString"';
   }
   if (!'$error'.contains(errorString2)) {
-    throw 'Epected: $errorString to contain "$errorString2"';
+    throw 'Expected: $error to contain "$errorString2"';
   }
 }

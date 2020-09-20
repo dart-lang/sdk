@@ -50,7 +50,7 @@ class Parser {
     });
 
     // Parse the args.
-    while (args.length > 0) {
+    while (args.isNotEmpty) {
       if (current == '--') {
         // Reached the argument terminator, so stop here.
         args.removeAt(0);
@@ -98,7 +98,7 @@ class Parser {
   /// that there is a valid value there.
   void readNextArgAsValue(Option option) {
     // Take the option argument from the next command line arg.
-    validate(args.length > 0, 'Missing argument for "${option.name}".');
+    validate(args.isNotEmpty, 'Missing argument for "${option.name}".');
 
     // Make sure it isn't an option itself.
     validate(!_ABBR_OPT.hasMatch(current) && !_LONG_OPT.hasMatch(current),

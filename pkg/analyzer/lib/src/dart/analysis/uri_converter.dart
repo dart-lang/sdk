@@ -8,19 +8,13 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/src/context.dart';
 
-/**
- * An implementation of a URI converter based on an analysis driver.
- */
+/// An implementation of a URI converter based on an analysis driver.
 class DriverBasedUriConverter implements UriConverter {
-  /**
-   * The driver associated with the context in which the conversion will occur.
-   */
+  /// The driver associated with the context in which the conversion will occur.
   final AnalysisDriver driver;
 
-  /**
-   * Initialize a newly created URI converter to use the given [driver] to =
-   * perform the conversions.
-   */
+  /// Initialize a newly created URI converter to use the given [driver] to =
+  /// perform the conversions.
   DriverBasedUriConverter(this.driver);
 
   @override

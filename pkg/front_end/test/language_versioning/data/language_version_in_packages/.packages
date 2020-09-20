@@ -1,1 +1,1 @@
-foo:lib//*error: PackagesFileFormat*/#dart=2.6
+foo:lib//*error: errors=PackagesFileFormat*/#dart=2.6

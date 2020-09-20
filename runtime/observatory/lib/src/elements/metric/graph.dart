@@ -6,11 +6,9 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class MetricGraphElement extends CustomElement implements Renderable {
-  static const tag = const Tag<MetricGraphElement>('metric-graph');
-
   RenderingScheduler<MetricGraphElement> _r;
 
   Stream<RenderedEvent<MetricGraphElement>> get onRendered => _r.onRendered;
@@ -37,7 +35,7 @@ class MetricGraphElement extends CustomElement implements Renderable {
     return e;
   }
 
-  MetricGraphElement.created() : super.created(tag);
+  MetricGraphElement.created() : super.created('metric-graph');
 
   @override
   void attached() {

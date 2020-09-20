@@ -114,10 +114,10 @@ class VerifyingVisitor extends RecursiveVisitor<Null> {
 
   @override
   visitProcedure(Procedure node) {
-    expectedSpan = test.spans[node.name.name];
+    expectedSpan = test.spans[node.name.text];
     if (expectedSpan != null) {
       super.visitProcedure(node);
-      verified.add(node.name.name);
+      verified.add(node.name.text);
       expectedSpan = null;
     }
   }

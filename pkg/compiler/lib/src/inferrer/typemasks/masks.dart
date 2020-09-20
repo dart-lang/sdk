@@ -131,7 +131,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   TypeMask get listType => _listType ??=
-      new TypeMask.nonNullExact(commonElements.jsArrayClass, _closedWorld);
+      new TypeMask.nonNullSubtype(commonElements.jsArrayClass, _closedWorld);
 
   @override
   TypeMask get constListType => _constListType ??= new TypeMask.nonNullExact(
@@ -197,6 +197,7 @@ class CommonMasks implements AbstractValueDomain {
   TypeMask get readableArrayType => _readableArrayType ??=
       new TypeMask.nonNullSubclass(commonElements.jsArrayClass, _closedWorld);
 
+  @override
   TypeMask get mutableArrayType =>
       _mutableArrayType ??= new TypeMask.nonNullSubclass(
           commonElements.jsMutableArrayClass, _closedWorld);
@@ -225,7 +226,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   AbstractBool couldBeTypedArray(TypeMask mask) {
     bool intersects(TypeMask type1, TypeMask type2) =>
-        !type1.intersection(type2, _closedWorld).isEmpty;
+        !type1.intersection(type2, this).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
     ClassEntity typedDataClass = _closedWorld.commonElements.typedDataClass;
@@ -310,7 +311,7 @@ class CommonMasks implements AbstractValueDomain {
 
     AbstractValueWithPrecision finish(TypeMask value, bool isPrecise) {
       return AbstractValueWithPrecision(
-          nullable ? value : value.nonNullable(), isPrecise);
+          nullable ? value.nullable() : value, isPrecise);
     }
 
     bool isPrecise = true;
@@ -363,25 +364,27 @@ class CommonMasks implements AbstractValueDomain {
       }
       switch (classRelation) {
         case ClassRelation.exact:
-          return finish(TypeMask.exact(cls, _closedWorld), isPrecise);
+          return finish(TypeMask.nonNullExact(cls, _closedWorld), isPrecise);
         case ClassRelation.thisExpression:
           if (!_closedWorld.isUsedAsMixin(cls)) {
-            return finish(TypeMask.subclass(cls, _closedWorld), isPrecise);
+            return finish(
+                TypeMask.nonNullSubclass(cls, _closedWorld), isPrecise);
           }
           break;
         case ClassRelation.subtype:
           break;
       }
-      return finish(TypeMask.subtype(cls, _closedWorld), isPrecise);
+      return finish(TypeMask.nonNullSubtype(cls, _closedWorld), isPrecise);
     }
 
     if (type is FunctionType) {
       return finish(
-          TypeMask.subtype(commonElements.functionClass, _closedWorld), false);
+          TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld),
+          false);
     }
 
     if (type is NeverType) {
-      return finish(nullType, isPrecise);
+      return finish(emptyType, isPrecise);
     }
 
     return AbstractValueWithPrecision(dynamicType, false);
@@ -426,9 +429,9 @@ class CommonMasks implements AbstractValueDomain {
   AbstractBool isInstanceOf(
       covariant TypeMask expressionMask, ClassEntity cls) {
     AbstractValue typeMask = (cls == commonElements.nullClass)
-        ? createNullableSubtype(cls)
+        ? nullType
         : createNonNullSubtype(cls);
-    if (expressionMask.union(typeMask, _closedWorld) == typeMask) {
+    if (expressionMask.union(typeMask, this) == typeMask) {
       return AbstractBool.True;
     } else if (expressionMask.isDisjoint(typeMask, _closedWorld)) {
       return AbstractBool.False;
@@ -652,6 +655,18 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
+  AbstractBool isTruthy(TypeMask value) {
+    if (value is ValueTypeMask && !value.isNullable) {
+      PrimitiveConstantValue constant = value.value;
+      if (constant is BoolConstantValue) {
+        return constant.boolValue ? AbstractBool.True : AbstractBool.False;
+      }
+    }
+    // TODO(sra): Non-intercepted types are generally JavaScript falsy values.
+    return AbstractBool.Maybe;
+  }
+
+  @override
   AbstractBool isString(TypeMask value) {
     return AbstractBool.trueOrMaybe(
         value.containsOnlyString(_closedWorld) && !value.isNullable);
@@ -674,11 +689,10 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  TypeMask union(TypeMask a, TypeMask b) => a.union(b, _closedWorld);
+  TypeMask union(TypeMask a, TypeMask b) => a.union(b, this);
 
   @override
-  TypeMask intersection(TypeMask a, TypeMask b) =>
-      a.intersection(b, _closedWorld);
+  TypeMask intersection(TypeMask a, TypeMask b) => a.intersection(b, this);
 
   @override
   AbstractBool areDisjoint(TypeMask a, TypeMask b) =>
@@ -690,7 +704,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractValue computeAbstractValueForConstant(ConstantValue value) {
-    return computeTypeMask(_closedWorld, value);
+    return computeTypeMask(this, _closedWorld, value);
   }
 
   @override
@@ -738,7 +752,7 @@ class CommonMasks implements AbstractValueDomain {
   AbstractValue unionOfMany(Iterable<AbstractValue> values) {
     TypeMask result = const TypeMask.nonNullEmpty();
     for (TypeMask value in values) {
-      result = result.union(value, _closedWorld);
+      result = result.union(value, this);
     }
     return result;
   }
@@ -761,7 +775,7 @@ class CommonMasks implements AbstractValueDomain {
             return const TypeMask.empty();
           }
         }),
-        _closedWorld);
+        this);
   }
 
   @override
@@ -786,7 +800,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   MemberEntity locateSingleMember(
       covariant TypeMask receiver, Selector selector) {
-    return receiver.locateSingleMember(selector, _closedWorld);
+    return receiver.locateSingleMember(selector, this);
   }
 
   @override
@@ -797,8 +811,7 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractBool isJsIndexableAndIterable(covariant TypeMask mask) {
-    return AbstractBool.trueOrMaybe(mask != null &&
-        mask.satisfies(
+    return AbstractBool.trueOrMaybe(mask.satisfies(
             _closedWorld.commonElements.jsIndexableClass, _closedWorld) &&
         // String is indexable but not iterable.
         !mask.satisfies(
@@ -816,7 +829,7 @@ class CommonMasks implements AbstractValueDomain {
         mask.containsOnly(
             _closedWorld.commonElements.jsUnmodifiableArrayClass) ||
         mask.containsOnlyString(_closedWorld) ||
-        _closedWorld.abstractValueDomain.isTypedArray(mask).isDefinitelyTrue) {
+        isTypedArray(mask).isDefinitelyTrue) {
       return AbstractBool.True;
     }
     return AbstractBool.Maybe;
@@ -964,7 +977,7 @@ class CommonMasks implements AbstractValueDomain {
   @override
   TypeMask readAbstractValueFromDataSource(DataSource source) {
     return source.readCached<TypeMask>(
-        () => new TypeMask.readFromDataSource(source, _closedWorld));
+        () => new TypeMask.readFromDataSource(source, this));
   }
 
   @override
@@ -987,7 +1000,11 @@ String formatType(DartTypes dartTypes, TypeMask type) {
     // a null value we accidentally printed out.
     if (type.isEmptyOrNull) return type.isNullable ? 'Null' : 'Empty';
     String nullFlag = type.isNullable ? '?' : '';
-    String subFlag = type.isExact ? '' : type.isSubclass ? '+' : '*';
+    String subFlag = type.isExact
+        ? ''
+        : type.isSubclass
+            ? '+'
+            : '*';
     return '${type.base.name}$nullFlag$subFlag';
   }
   if (type is UnionTypeMask) {

@@ -122,7 +122,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   final List<EdgeInfo> edges = [];
 
-  Map<int, List<AtomicEdit>> changes = null;
+  Map<int, List<AtomicEdit>> changes;
 
   final Map<AstNode, DecoratedTypeInfo> implicitReturnType = {};
 
@@ -142,7 +142,7 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
       {bool removeViaComments = false, bool warnOnWeakCode = true}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
-    var listener = new TestMigrationListener();
+    var listener = TestMigrationListener();
     var migration = NullabilityMigration(listener, getLineInfo,
         instrumentation: _InstrumentationClient(this),
         removeViaComments: removeViaComments,

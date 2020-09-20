@@ -1,8 +1,7 @@
 extension A ;
-on C (){ }
+on C (){}
 extension B ;
-on C (){ }
-class C {
-}
-errors(C c) { }
-main() { }
+on C (){}
+class C {}
+errors(C c) {}
+main() {}

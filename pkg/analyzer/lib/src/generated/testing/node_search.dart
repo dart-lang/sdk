@@ -5,9 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
-/**
- * Search the [unit] for declared [SimpleIdentifier]s with the given [name].
- */
+/// Search the [unit] for declared [SimpleIdentifier]s with the given [name].
 List<SimpleIdentifier> findDeclaredIdentifiersByName(
     CompilationUnit unit, String name) {
   var finder = _DeclaredIdentifiersByNameFinder(name);
@@ -22,7 +20,7 @@ class _DeclaredIdentifiersByNameFinder extends RecursiveAstVisitor<void> {
   _DeclaredIdentifiersByNameFinder(this.name);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.name == name && node.inDeclarationContext()) {
       identifiers.add(node);
     }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -117,7 +115,7 @@ class FileStat {
    * [FileSystemEntityType.notFound] and the other fields invalid.
    */
   static FileStat statSync(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _statSyncInternal(path);
     }
@@ -147,7 +145,7 @@ class FileStat {
    * Returns a [Future] which completes with the same results as [statSync].
    */
   static Future<FileStat> stat(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _stat(path);
     }
@@ -234,23 +232,20 @@ FileStat: type $type
  *
  * ## Other resources
  *
- * * [Dart by
- *   Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- *   provides additional task-oriented code samples that show how to use various
- *   API from the [Directory] class and the [File] class, both subclasses of
- *   FileSystemEntity.
+ * * The [Files and directories](https://dart.dev/guides/libraries/library-tour#files-and-directories)
+ *   section of the library tour.
  *
- * * [I/O for Command-Line
- *   Apps](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps),
- *   a section from _A Tour of the Dart Libraries_ covers files and directories.
- *
- * * [Write Command-Line Apps](https://www.dartlang.org/docs/tutorials/cmdline/),
+ * * [Write Command-Line Apps](https://dart.dev/tutorials/server/cmdline),
  *   a tutorial about writing command-line apps, includes information about
  *   files and directories.
  */
 abstract class FileSystemEntity {
-  String _path;
-  Uint8List _rawPath;
+  static const _backslashChar = 0x5c;
+  static const _slashChar = 0x2f;
+  static const _colonChar = 0x3a;
+
+  String get _path;
+  Uint8List get _rawPath;
 
   String get path;
 
@@ -496,7 +491,7 @@ abstract class FileSystemEntity {
       {int events: FileSystemEvent.all, bool recursive: false}) {
     // FIXME(bkonyi): find a way to do this using the raw path.
     final String trimmedPath = _trimTrailingPathSeparators(path);
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _FileSystemWatcher._watch(trimmedPath, events, recursive);
     }
@@ -532,7 +527,7 @@ abstract class FileSystemEntity {
    * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _identical(path1, path2);
     }
@@ -540,16 +535,31 @@ abstract class FileSystemEntity {
   }
 
   static final RegExp _absoluteWindowsPathPattern =
-      new RegExp(r'^(\\\\|[a-zA-Z]:[/\\])');
+      new RegExp(r'^(?:\\\\|[a-zA-Z]:[/\\])');
 
   /**
-   * Returns a [bool] indicating whether this object's path is absolute.
+   * Whether this object's path is absolute.
    *
-   * On Windows, a path is absolute if it starts with \\\\ or a drive letter
-   * between a and z (upper or lower case) followed by :\\ or :/.
-   * On non-Windows, a path is absolute if it starts with /.
+   * An absolute path is independent of the current working
+   * directory ([Directory.current]).
+   * A non-absolute path must be interpreted relative to
+   * the current working directory.
+   *
+   * On Windows, a path is absolute if it starts with `\\`
+   * (two backslashesor representing a UNC path) or with a drive letter
+   * between `a` and `z` (upper or lower case) followed by `:\` or `:/`.
+   * The makes, for example, `\file.ext` a non-absolute path
+   * because it depends on the current drive letter.
+   *
+   * On non-Windows, a path is absolute if it starts with `/`.
+   *
+   * If the path is not absolute, use [absolute] to get an entity
+   * with an absolute path referencing the same object in the file system,
+   * if possible.
    */
-  bool get isAbsolute {
+  bool get isAbsolute => _isAbsolute(path);
+
+  static bool _isAbsolute(String path) {
     if (Platform.isWindows) {
       return path.startsWith(_absoluteWindowsPathPattern);
     } else {
@@ -562,37 +572,87 @@ abstract class FileSystemEntity {
    *
    * The type of the returned instance is the type of [this].
    *
-   * The absolute path is computed by prefixing
-   * a relative path with the current working directory, and returning
-   * an absolute path unchanged.
+   * A file system entity with an already absolute path
+   * (as reported by [isAbsolute]) is returned directly.
+   * For a non-absolute path, the returned entity is absolute ([isAbsolute])
+   * *if possible*, but still refers to the same file system object.
    */
   FileSystemEntity get absolute;
 
   String get _absolutePath {
     if (isAbsolute) return path;
+    if (Platform.isWindows) return _absoluteWindowsPath(path);
     String current = Directory.current.path;
-    if (current.endsWith('/') ||
-        (Platform.isWindows && current.endsWith('\\'))) {
+    if (current.endsWith('/')) {
       return '$current$path';
     } else {
       return '$current${Platform.pathSeparator}$path';
     }
   }
 
-  Uint8List get _rawAbsolutePath {
-    if (isAbsolute) return _rawPath;
-    var current = Directory.current._rawPath.toList();
-    assert(current.last == 0);
-    current.removeLast(); // Remove null terminator.
-    if ((current.last == '/'.codeUnitAt(0)) ||
-        (Platform.isWindows && (current.last == '\\'.codeUnitAt(0)))) {
-      current.addAll(_rawPath);
-      return new Uint8List.fromList(current);
-    } else {
-      current.addAll(utf8.encode(Platform.pathSeparator));
-      current.addAll(_rawPath);
-      return new Uint8List.fromList(current);
+  /// The ASCII code of the Windows drive letter if [entity], if any.
+  ///
+  /// Returns the ASCII code of the upper-cased drive letter of
+  /// the path of [entity], if it has a drive letter (starts with `[a-zA-z]:`),
+  /// or `-1` if it has no drive letter.
+  static int _windowsDriveLetter(String path) {
+    if (path.isEmpty || !path.startsWith(':', 1)) return -1;
+    var first = path.codeUnitAt(0) & ~0x20;
+    if (first >= 0x41 && first <= 0x5b) return first;
+    return -1;
+  }
+
+  /// The relative [path] converted to an absolute path.
+  static String _absoluteWindowsPath(String path) {
+    assert(Platform.isWindows);
+    assert(!_isAbsolute(path));
+    // Could perhaps use something like
+    // https://docs.microsoft.com/en-us/windows/win32/api/pathcch/nf-pathcch-pathalloccombine
+    var current = Directory.current.path;
+    if (path.startsWith(r'\')) {
+      assert(!path.startsWith(r'\', 1));
+      // Absolute path, no drive letter.
+      var currentDrive = _windowsDriveLetter(current);
+      if (currentDrive >= 0) {
+        return '${current[0]}:$path';
+      }
+      // If `current` is a UNC path \\server\share[...],
+      // we make the absolute path relative to the share.
+      // Also works with `\\?\c:\` paths.
+      if (current.startsWith(r'\\')) {
+        var serverEnd = current.indexOf(r'\', 2);
+        if (serverEnd >= 0) {
+          // We may want to recognize UNC paths of the form:
+          //   \\?\UNC\Server\share\...
+          // specially, and be relative to the *share* not to UNC\.
+          var shareEnd = current.indexOf(r'\', serverEnd + 1);
+          if (shareEnd < 0) shareEnd = current.length;
+          return '${current.substring(0, shareEnd)}$path';
+        }
+      }
+      // If `current` is not in the drive-letter:path format,
+      // or not \\server\share[\path],
+      // we ignore it and return a relative path.
+      return path;
     }
+    var entityDrive = _windowsDriveLetter(path);
+    if (entityDrive >= 0) {
+      if (entityDrive != _windowsDriveLetter(current)) {
+        // Need to resolve relative to current directory of the drive.
+        // Windows remembers the last CWD of each drive.
+        // We currently don't have that information,
+        // so we assume the root of that drive.
+        return '${path[0]}:\\$path';
+      }
+
+      /// A `c:relative\path` path on the same drive as `current`.
+      path = path.substring(2);
+      assert(!path.startsWith(r'\\'));
+    }
+    if (current.endsWith(r'\') || current.endsWith('/')) {
+      return '$current$path';
+    }
+    return '$current\\$path';
   }
 
   static bool _identicalSync(String path1, String path2) {
@@ -614,7 +674,7 @@ abstract class FileSystemEntity {
    * exist.
    */
   static bool identicalSync(String path1, String path2) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _identicalSync(path1, path2);
     }
@@ -627,7 +687,7 @@ abstract class FileSystemEntity {
    * OS X 10.6 and below is not supported.
    */
   static bool get isWatchSupported {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _FileSystemWatcher.isSupported;
     }
@@ -637,12 +697,9 @@ abstract class FileSystemEntity {
   // The native methods which determine type of the FileSystemEntity require
   // that the buffer provided is null terminated.
   static Uint8List _toUtf8Array(String s) =>
-      _toNullTerminatedUtf8Array(utf8.encode(s));
+      _toNullTerminatedUtf8Array(utf8.encoder.convert(s));
 
   static Uint8List _toNullTerminatedUtf8Array(Uint8List l) {
-    if (l == null) {
-      return null;
-    }
     if (l.isNotEmpty && l.last != 0) {
       final tmp = new Uint8List(l.length + 1);
       tmp.setRange(0, l.length, l);
@@ -653,9 +710,6 @@ abstract class FileSystemEntity {
   }
 
   static String _toStringFromUtf8Array(Uint8List l) {
-    if (l == null) {
-      return '';
-    }
     Uint8List nonNullTerminated = l;
     if (l.last == 0) {
       nonNullTerminated =
@@ -793,7 +847,7 @@ abstract class FileSystemEntity {
 
   static FileSystemEntityType _getTypeSync(
       Uint8List rawPath, bool followLinks) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _getTypeSyncHelper(rawPath, followLinks);
     }
@@ -815,7 +869,7 @@ abstract class FileSystemEntity {
 
   static Future<FileSystemEntityType> _getType(
       Uint8List rawPath, bool followLinks) {
-    IOOverrides overrides = IOOverrides.current;
+    IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _getTypeRequest(rawPath, followLinks);
     }
@@ -823,7 +877,7 @@ abstract class FileSystemEntity {
         utf8.decode(rawPath, allowMalformed: true), followLinks);
   }
 
-  static _throwIfError(Object result, String msg, [String path]) {
+  static _throwIfError(Object result, String msg, [String? path]) {
     if (result is OSError) {
       throw new FileSystemException(msg, path, result);
     } else if (result is ArgumentError) {
@@ -833,8 +887,8 @@ abstract class FileSystemEntity {
 
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _trimTrailingPathSeparators(String path) {
-    // Don't handle argument errors here.
-    if (path == null) return path;
+    // TODO(40614): Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
       while (path.length > 1 &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
@@ -850,8 +904,6 @@ abstract class FileSystemEntity {
 
   // TODO(bkonyi): find a way to do this with raw paths.
   static String _ensureTrailingPathSeparators(String path) {
-    // Don't handle argument errors here.
-    if (path == null) return path;
     if (path.isEmpty) path = '.';
     if (Platform.isWindows) {
       while (!path.endsWith(Platform.pathSeparator) && !path.endsWith('/')) {
@@ -980,7 +1032,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
    * If the underlying implementation is able to identify the destination of
    * the moved file, [destination] will be set. Otherwise, it will be `null`.
    */
-  final String destination;
+  final String? destination;
 
   FileSystemMoveEvent._(path, isDirectory, this.destination)
       : super._(FileSystemEvent.move, path, isDirectory);
@@ -994,7 +1046,7 @@ class FileSystemMoveEvent extends FileSystemEvent {
   }
 }
 
-class _FileSystemWatcher {
+abstract class _FileSystemWatcher {
   external static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive);
   external static bool get isSupported;

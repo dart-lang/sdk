@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
+// TODO(bkonyi): refactor into io_resource_info.dart
 const int _versionMajor = 1;
-const int _versionMinor = 1;
+const int _versionMinor = 2;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
@@ -73,7 +72,7 @@ abstract class _NetworkProfiling {
               'Method $method does not exist'));
       }
       return Future.value(ServiceExtensionResponse.result(responseJson));
-    } catch (errorMessage) {
+    } on dynamic catch (errorMessage) {
       return Future.value(ServiceExtensionResponse.error(
           ServiceExtensionResponse.invalidParams, errorMessage));
     }
@@ -105,7 +104,7 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   if (!parameters.containsKey(kEnable)) {
     throw _missingArgument(kEnable);
   }
-  final enable = parameters[kEnable].toLowerCase();
+  final enable = parameters[kEnable]!.toLowerCase();
   if (enable != 'true' && enable != 'false') {
     throw _invalidArgument(kEnable, enable);
   }
@@ -139,8 +138,7 @@ abstract class _SocketProfile {
     // Skip socket that started before _enableSocketProfiling turned on.
     if (!_idToSocketStatistic.containsKey(id) &&
         type != _SocketProfileType.startTime) return;
-    _idToSocketStatistic[id] ??= _SocketStatistic(id);
-    _SocketStatistic stats = _idToSocketStatistic[id];
+    _SocketStatistic stats = _idToSocketStatistic[id] ??= _SocketStatistic(id);
     switch (type) {
       case _SocketProfileType.startTime:
         stats.startTime = Timeline.now;
@@ -162,16 +160,12 @@ abstract class _SocketProfile {
         break;
       case _SocketProfileType.readBytes:
         if (object == null) return;
-        assert(object is int);
-        stats.readBytes ??= 0;
-        stats.readBytes += object;
+        stats.readBytes += object as int;
         stats.lastReadTime = Timeline.now;
         break;
       case _SocketProfileType.writeBytes:
         if (object == null) return;
-        assert(object is int);
-        stats.writeBytes ??= 0;
-        stats.writeBytes += object;
+        stats.writeBytes += object as int;
         stats.lastWriteTime = Timeline.now;
         break;
       default:
@@ -192,7 +186,7 @@ abstract class _SocketProfile {
 
   // clear the storage if _idToSocketStatistic has been initialized.
   static String clear() {
-    _idToSocketStatistic?.clear();
+    _idToSocketStatistic.clear();
     return _success();
   }
 }
@@ -212,15 +206,15 @@ enum _SocketProfileType {
 /// Socket statistic
 class _SocketStatistic {
   final int id;
-  int startTime;
-  int endTime;
-  String address;
-  int port;
-  String socketType;
+  int? startTime;
+  int? endTime;
+  String? address;
+  int? port;
+  String? socketType;
   int readBytes = 0;
   int writeBytes = 0;
-  int lastWriteTime;
-  int lastReadTime;
+  int? lastWriteTime;
+  int? lastReadTime;
 
   _SocketStatistic(this.id);
 
@@ -240,7 +234,7 @@ class _SocketStatistic {
     return map;
   }
 
-  void _setIfNotNull(Map<String, Object> json, String key, Object value) {
+  void _setIfNotNull(Map<String, dynamic> json, String key, Object? value) {
     if (value == null) return;
     json[key] = value;
   }

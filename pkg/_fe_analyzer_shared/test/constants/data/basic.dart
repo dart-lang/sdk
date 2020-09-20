@@ -20,10 +20,10 @@ main() {
   print(/*Double(0.5)*/ double0);
   print(
       /*cfe|analyzer.Symbol(foo)*/
-      /*dart2js|dart2js:nnbd-sdk.Instance(Symbol,{_name:String(foo))*/
+      /*dart2js.Instance(Symbol,{_name:String(foo))*/
       symbol0);
   print(
       /*cfe|analyzer.Symbol(foo)*/
-      /*dart2js|dart2js:nnbd-sdk.Instance(Symbol,{_name:String(foo))*/
+      /*dart2js.Instance(Symbol,{_name:String(foo))*/
       symbol1);
 }

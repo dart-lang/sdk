@@ -303,9 +303,8 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
     }
     case kTypeLiteralConstant: {
       // Build type from the raw bytes (needs temporary translator).
-      TypeTranslator type_translator(
-          &reader, this, active_class_, true,
-          active_class_->RequireLegacyErasure(null_safety));
+      // Legacy erasure is not applied to type literals. See issue #42262.
+      TypeTranslator type_translator(&reader, this, active_class_, true);
       instance = type_translator.BuildType().raw();
       break;
     }

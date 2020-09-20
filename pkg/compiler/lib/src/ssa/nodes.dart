@@ -19,6 +19,7 @@ import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
 import '../js_model/type_recipe.dart'
     show TypeEnvironmentStructure, TypeRecipe, TypeExpressionRecipe;
 import '../native/behavior.dart';
+import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -65,8 +66,6 @@ abstract class HVisitor<R> {
   R visitInvokeSuper(HInvokeSuper node);
   R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitInvokeGeneratorBody(HInvokeGeneratorBody node);
-  R visitIs(HIs node);
-  R visitIsViaInterceptor(HIsViaInterceptor node);
   R visitLateValue(HLateValue node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
@@ -100,16 +99,11 @@ abstract class HVisitor<R> {
   R visitThrowExpression(HThrowExpression node);
   R visitTruncatingDivide(HTruncatingDivide node);
   R visitTry(HTry node);
-  R visitTypeConversion(HTypeConversion node);
   R visitPrimitiveCheck(HPrimitiveCheck node);
   R visitBoolConversion(HBoolConversion node);
   R visitNullCheck(HNullCheck node);
   R visitTypeKnown(HTypeKnown node);
   R visitYield(HYield node);
-
-  R visitTypeInfoReadRaw(HTypeInfoReadRaw node);
-  R visitTypeInfoReadVariable(HTypeInfoReadVariable node);
-  R visitTypeInfoExpression(HTypeInfoExpression node);
 
   // Instructions for 'dart:_rti'.
   R visitIsTest(HIsTest node);
@@ -583,13 +577,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitTry(HTry node) => visitControlFlow(node);
   @override
-  visitIs(HIs node) => visitInstruction(node);
-  @override
   visitLateValue(HLateValue node) => visitInstruction(node);
-  @override
-  visitIsViaInterceptor(HIsViaInterceptor node) => visitInstruction(node);
-  @override
-  visitTypeConversion(HTypeConversion node) => visitCheck(node);
   @override
   visitBoolConversion(HBoolConversion node) => visitCheck(node);
   @override
@@ -602,15 +590,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitAwait(HAwait node) => visitInstruction(node);
   @override
   visitYield(HYield node) => visitInstruction(node);
-
-  @override
-  visitTypeInfoReadRaw(HTypeInfoReadRaw node) => visitInstruction(node);
-  @override
-  visitTypeInfoReadVariable(HTypeInfoReadVariable node) =>
-      visitInstruction(node);
-
-  @override
-  visitTypeInfoExpression(HTypeInfoExpression node) => visitInstruction(node);
 
   @override
   visitIsTest(HIsTest node) => visitInstruction(node);
@@ -1087,20 +1066,13 @@ abstract class HInstruction implements Spannable {
   static const int STATIC_STORE_TYPECODE = 22;
   static const int FIELD_GET_TYPECODE = 23;
   static const int FUNCTION_REFERENCE_TYPECODE = 24;
-  static const int TYPE_CONVERSION_TYPECODE = 25;
   static const int TYPE_KNOWN_TYPECODE = 26;
   static const int INVOKE_STATIC_TYPECODE = 27;
   static const int INDEX_TYPECODE = 28;
-  static const int IS_TYPECODE = 29;
-  static const int INVOKE_DYNAMIC_TYPECODE = 30;
-  static const int SHIFT_RIGHT_TYPECODE = 31;
+  static const int INVOKE_DYNAMIC_TYPECODE = 29;
+  static const int SHIFT_RIGHT_TYPECODE = 30;
 
   static const int TRUNCATING_DIVIDE_TYPECODE = 36;
-  static const int IS_VIA_INTERCEPTOR_TYPECODE = 37;
-
-  static const int TYPE_INFO_READ_RAW_TYPECODE = 38;
-  static const int TYPE_INFO_READ_VARIABLE_TYPECODE = 39;
-  static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
   static const int INVOKE_EXTERNAL_TYPECODE = 41;
   static const int FOREIGN_CODE_TYPECODE = 42;
@@ -1407,30 +1379,6 @@ abstract class HInstruction implements Spannable {
     return false;
   }
 
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    if (type == null) return this;
-    // Only the builder knows how to create [HTypeConversion]
-    // instructions with generics. It has the generic type context
-    // available.
-    assert(type is! TypeVariableType);
-    assert(closedWorld.dartTypes.treatAsRawType(type) || type is FunctionType);
-    if (closedWorld.dartTypes.isTopType(type)) return this;
-    if (type is FunctionType || type is FutureOrType) {
-      return new HTypeConversion(type, kind,
-          closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
-    }
-    assert(type is InterfaceType);
-    if (kind == HTypeConversion.TYPE_CHECK &&
-        !closedWorld.dartTypes.treatAsRawType(type)) {
-      throw 'creating compound check to $type (this = ${this})';
-    } else {
-      InterfaceType interfaceType = type;
-      AbstractValue subtype = closedWorld.abstractValueDomain
-          .createNullableSubtype(interfaceType.element);
-      return new HTypeConversion(type, kind, subtype, this, sourceInformation);
-    }
-  }
-
   /// Return whether the instructions do not belong to a loop or
   /// belong to the same loop.
   bool hasSameLoopHeaderAs(HInstruction other) {
@@ -1588,15 +1536,6 @@ class HRef extends HInstruction {
   HInstruction get value => inputs[0];
 
   @override
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    HInstruction converted = value.convertType(closedWorld, type, kind);
-    if (converted == value) return this;
-    HTypeConversion conversion = converted;
-    conversion.inputs[0] = this;
-    return conversion;
-  }
-
-  @override
   accept(HVisitor visitor) => visitor.visitRef(this);
 
   @override
@@ -1610,18 +1549,20 @@ abstract class HLateInstruction extends HInstruction {
       : super(inputs, type);
 }
 
-/// A [HCheck] instruction is an instruction that might do a dynamic
-/// check at runtime on another instruction. To have proper instruction
-/// dependencies in the graph, instructions that depend on the check
-/// being done reference the [HCheck] instruction instead of the
-/// instruction itself.
+/// A [HCheck] instruction is an instruction that might do a dynamic check at
+/// runtime on an input instruction. To have proper instruction dependencies in
+/// the graph, instructions that depend on the check being done reference the
+/// [HCheck] instruction instead of the input instruction.
 abstract class HCheck extends HInstruction {
   HCheck(inputs, type) : super(inputs, type) {
     setUseGvn();
   }
+
   HInstruction get checkedInput => inputs[0];
+
   @override
   bool isJsStatement() => true;
+
   @override
   bool canThrow(AbstractValueDomain domain) => true;
 
@@ -2309,6 +2250,9 @@ class HLocalGet extends HLocalAccess {
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
+
+  @override
+  String toString() => 'HLocalGet($local).$hashCode';
 }
 
 class HLocalSet extends HLocalAccess {
@@ -3527,136 +3471,6 @@ class HIndexAssign extends HInstruction {
       receiver.isNull(domain).isPotentiallyTrue;
 }
 
-/// Is-test using legacy constructor based typ representation.
-class HIs extends HInstruction {
-  /// A check against a raw type: 'o is int', 'o is A'.
-  static const int RAW_CHECK = 0;
-
-  /// A check against a type with type arguments: 'o is List<int>', 'o is C<T>'.
-  static const int COMPOUND_CHECK = 1;
-
-  /// A check against a single type variable: 'o is T'.
-  static const int VARIABLE_CHECK = 2;
-
-  final DartType typeExpression;
-  final int kind;
-  final bool useInstanceOf;
-
-  HIs.direct(DartType typeExpression, HInstruction expression,
-      AbstractValue type, SourceInformation sourceInformation)
-      : this.internal(
-            typeExpression, [expression], RAW_CHECK, type, sourceInformation);
-
-  // Pre-verified that the check can be done using 'instanceof'.
-  HIs.instanceOf(DartType typeExpression, HInstruction expression,
-      AbstractValue type, SourceInformation sourceInformation)
-      : this.internal(
-            typeExpression, [expression], RAW_CHECK, type, sourceInformation,
-            useInstanceOf: true);
-
-  factory HIs.raw(
-      DartType typeExpression,
-      HInstruction expression,
-      HInterceptor interceptor,
-      AbstractValue type,
-      SourceInformation sourceInformation) {
-    // TODO(sigmund): re-add `&& typeExpression.treatAsRaw` or something
-    // equivalent (which started failing once we allowed typeExpressions that
-    // contain type parameters matching the original bounds of the type).
-    assert((typeExpression is FunctionType || typeExpression is InterfaceType),
-        "Unexpected raw is-test type: $typeExpression");
-    return new HIs.internal(typeExpression, [expression, interceptor],
-        RAW_CHECK, type, sourceInformation);
-  }
-
-  HIs.compound(
-      DartType typeExpression,
-      HInstruction expression,
-      HInstruction call,
-      AbstractValue type,
-      SourceInformation sourceInformation)
-      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type,
-            sourceInformation);
-
-  HIs.variable(
-      DartType typeExpression,
-      HInstruction expression,
-      HInstruction call,
-      AbstractValue type,
-      SourceInformation sourceInformation)
-      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type,
-            sourceInformation);
-
-  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind,
-      AbstractValue type, SourceInformation sourceInformation,
-      {bool this.useInstanceOf: false})
-      : super(inputs, type) {
-    assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
-    setUseGvn();
-    this.sourceInformation = sourceInformation;
-  }
-
-  HInstruction get expression => inputs[0];
-
-  HInstruction get interceptor {
-    assert(kind == RAW_CHECK);
-    return inputs.length > 1 ? inputs[1] : null;
-  }
-
-  HInstruction get checkCall {
-    assert(kind == VARIABLE_CHECK || kind == COMPOUND_CHECK);
-    return inputs[1];
-  }
-
-  bool get isRawCheck => kind == RAW_CHECK;
-  bool get isVariableCheck => kind == VARIABLE_CHECK;
-  bool get isCompoundCheck => kind == COMPOUND_CHECK;
-
-  @override
-  accept(HVisitor visitor) => visitor.visitIs(this);
-
-  @override
-  toString() => "$expression is $typeExpression";
-
-  @override
-  int typeCode() => HInstruction.IS_TYPECODE;
-
-  @override
-  bool typeEquals(HInstruction other) => other is HIs;
-
-  @override
-  bool dataEquals(HIs other) {
-    return typeExpression == other.typeExpression && kind == other.kind;
-  }
-}
-
-/// HIsViaInterceptor is a late-stage instruction for a type test that can be
-/// done entirely on an interceptor.  It is not a HCheck because the checked
-/// input is not one of the inputs.
-class HIsViaInterceptor extends HLateInstruction {
-  final DartType typeExpression;
-  HIsViaInterceptor(
-      this.typeExpression, HInstruction interceptor, AbstractValue type)
-      : super(<HInstruction>[interceptor], type) {
-    setUseGvn();
-  }
-
-  HInstruction get interceptor => inputs[0];
-
-  @override
-  accept(HVisitor visitor) => visitor.visitIsViaInterceptor(this);
-  @override
-  toString() => "$interceptor is $typeExpression";
-  @override
-  int typeCode() => HInstruction.IS_VIA_INTERCEPTOR_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HIsViaInterceptor;
-  @override
-  bool dataEquals(HIs other) {
-    return typeExpression == other.typeExpression;
-  }
-}
-
 /// HLateValue is a late-stage instruction that can be used to force a value
 /// into a temporary.
 ///
@@ -3673,121 +3487,6 @@ class HLateValue extends HLateInstruction {
   accept(HVisitor visitor) => visitor.visitLateValue(this);
   @override
   toString() => 'HLateValue($target)';
-}
-
-/// Type check or cast using legacy constructor-based type representation.
-class HTypeConversion extends HCheck {
-  // Values for [kind].
-  static const int TYPE_CHECK = 0;
-  static const int CAST_CHECK = 1;
-
-  final DartType typeExpression;
-  final int kind;
-
-  AbstractValue checkedType; // Not final because we refine it.
-
-  HTypeConversion(this.typeExpression, this.kind, AbstractValue type,
-      HInstruction input, SourceInformation sourceInformation)
-      : checkedType = type,
-        super(<HInstruction>[input], type) {
-    this.sourceElement = input.sourceElement;
-    this.sourceInformation = sourceInformation;
-  }
-
-  HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
-      AbstractValue type, HInstruction input, HInstruction typeRepresentation)
-      : checkedType = type,
-        super(<HInstruction>[input, typeRepresentation], type) {
-    sourceElement = input.sourceElement;
-  }
-
-  bool get hasTypeRepresentation {
-    return typeExpression != null &&
-        typeExpression is InterfaceType &&
-        inputs.length > 1;
-  }
-
-  HInstruction get typeRepresentation => inputs[1];
-
-  @override
-  HInstruction get checkedInput => super.checkedInput;
-
-  @override
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    if (typeExpression == type) {
-      return this;
-    }
-    return super.convertType(closedWorld, type, kind);
-  }
-
-  bool get isTypeCheck => kind == TYPE_CHECK;
-  bool get isCastCheck => kind == CAST_CHECK;
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeConversion(this);
-
-  @override
-  bool isJsStatement() => isControlFlow();
-  @override
-  bool isControlFlow() => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeConversion;
-  @override
-  bool isCodeMotionInvariant() => false;
-
-  @override
-  bool dataEquals(HTypeConversion other) {
-    return kind == other.kind &&
-        typeExpression == other.typeExpression &&
-        checkedType == other.checkedType;
-  }
-
-  bool isRedundant(JClosedWorld closedWorld) {
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    DartType type = typeExpression;
-    if (type != null) {
-      if (type is TypeVariableType) {
-        return false;
-      }
-      if (type is FutureOrType) {
-        // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
-          return true;
-        }
-        // TODO(johnniwinther): Optimize FutureOr type conversions.
-        return false;
-      }
-      if (!closedWorld.dartTypes.treatAsRawType(type)) {
-        // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
-          return true;
-        }
-        return false;
-      }
-      if (type is FunctionType) {
-        // `null` always passes type conversion.
-        if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
-          return true;
-        }
-        // TODO(johnniwinther): Optimize function type conversions.
-        return false;
-      }
-    }
-    // Type is refined from `dynamic`, so it might become non-redundant.
-    if (abstractValueDomain.containsAll(checkedType).isPotentiallyTrue) {
-      return false;
-    }
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain.isIn(inputType, checkedType).isDefinitelyTrue;
-  }
-
-  @override
-  String toString() => 'HTypeConversion(type=$typeExpression, kind=$kind, '
-      '${hasTypeRepresentation ? 'representation=$typeRepresentation, ' : ''}'
-      'checkedInput=$checkedInput)';
 }
 
 /// Check for receiver or argument type when lowering operation to a primitive,
@@ -3813,7 +3512,7 @@ class HPrimitiveCheck extends HCheck {
   //
   final Selector receiverTypeCheckSelector;
 
-  AbstractValue checkedType; // Not final because we refine it.
+  final AbstractValue checkedType;
 
   HPrimitiveCheck(this.typeExpression, this.kind, AbstractValue type,
       HInstruction input, SourceInformation sourceInformation,
@@ -3823,14 +3522,6 @@ class HPrimitiveCheck extends HCheck {
     assert(isReceiverTypeCheck == (receiverTypeCheckSelector != null));
     this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
-  }
-
-  @override
-  HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
-    if (typeExpression == type) {
-      return this;
-    }
-    return super.convertType(closedWorld, type, kind);
   }
 
   bool get isArgumentTypeCheck => kind == ARGUMENT_TYPE_CHECK;
@@ -3919,10 +3610,12 @@ class HBoolConversion extends HCheck {
 /// field getter or setter when the receiver might be null. In these cases, the
 /// [selector] and [field] members are assigned.
 class HNullCheck extends HCheck {
+  // A sticky check is not optimized away on the basis of the input type.
+  final bool sticky;
   Selector selector;
   FieldEntity field;
 
-  HNullCheck(HInstruction input, AbstractValue type)
+  HNullCheck(HInstruction input, AbstractValue type, {this.sticky = false})
       : super(<HInstruction>[input], type);
 
   @override
@@ -3944,6 +3637,7 @@ class HNullCheck extends HCheck {
   bool dataEquals(HNullCheck other) => true;
 
   bool isRedundant(JClosedWorld closedWorld) {
+    if (sticky) return false;
     AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
     AbstractValue inputType = checkedInput.instructionType;
     return abstractValueDomain.isNull(inputType).isDefinitelyFalse;
@@ -4357,175 +4051,6 @@ class HSwitchBlockInformation implements HStatementInformation {
       visitor.visitSwitchInfo(this);
 }
 
-/// Reads raw reified type info from an object.
-class HTypeInfoReadRaw extends HInstruction {
-  HTypeInfoReadRaw(HInstruction receiver, AbstractValue instructionType)
-      : super(<HInstruction>[receiver], instructionType) {
-    setUseGvn();
-  }
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeInfoReadRaw(this);
-
-  @override
-  bool canThrow(AbstractValueDomain domain) => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_INFO_READ_RAW_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeInfoReadRaw;
-
-  @override
-  bool dataEquals(HTypeInfoReadRaw other) {
-    return true;
-  }
-}
-
-/// Reads a type variable from an object. The read may be a simple indexing of
-/// the type parameters or it may require 'substitution'. There may be an
-/// interceptor argument to access the substitution of native classes.
-class HTypeInfoReadVariable extends HInstruction {
-  /// The type variable being read.
-  final TypeVariableType variable;
-  final bool isIntercepted;
-
-  HTypeInfoReadVariable.intercepted(this.variable, HInstruction interceptor,
-      HInstruction receiver, AbstractValue instructionType)
-      : isIntercepted = true,
-        super(<HInstruction>[interceptor, receiver], instructionType) {
-    setUseGvn();
-  }
-
-  HTypeInfoReadVariable.noInterceptor(
-      this.variable, HInstruction receiver, AbstractValue instructionType)
-      : isIntercepted = false,
-        super(<HInstruction>[receiver], instructionType) {
-    setUseGvn();
-  }
-
-  HInstruction get interceptor {
-    assert(isIntercepted);
-    return inputs.first;
-  }
-
-  HInstruction get object => inputs.last;
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeInfoReadVariable(this);
-
-  @override
-  bool canThrow(AbstractValueDomain domain) => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_INFO_READ_VARIABLE_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeInfoReadVariable;
-
-  @override
-  bool dataEquals(HTypeInfoReadVariable other) {
-    return variable == other.variable;
-  }
-
-  @override
-  String toString() => 'HTypeInfoReadVariable($variable)';
-}
-
-enum TypeInfoExpressionKind { COMPLETE, INSTANCE }
-
-/// Constructs a representation of a closed or ground-term type (that is, a type
-/// without type variables).
-///
-/// There are two forms:
-///
-/// - COMPLETE: A complete form that is self contained, used for the values of
-///   type parameters and non-raw is-checks.
-///
-/// - INSTANCE: A headless flat form for representing the sequence of values of
-///   the type parameters of an instance of a generic type.
-///
-/// The COMPLETE form value is constructed from [dartType] by replacing the type
-/// variables with consecutive values from [inputs], in the order generated by
-/// [DartType.forEachTypeVariable].  The type variables in [dartType] are
-/// treated as 'holes' in the term, which means that it must be ensured at
-/// construction, that duplicate occurences of a type variable in [dartType] are
-/// assigned the same value.
-///
-/// The INSTANCE form is constructed as a list of [inputs]. This is the same as
-/// the COMPLETE form for the 'thisType', except the root term's type is
-/// missing; this is implicit as the raw type of instance.  The [dartType] of
-/// the INSTANCE form must be the thisType of some class.
-///
-/// We want to remove the constrains on the INSTANCE form. In the meantime we
-/// get by with a tree of TypeExpressions.  Consider:
-///
-///     class Foo<T> {
-///       ... new Set<List<T>>()
-///     }
-///     class Set<E1> {
-///       factory Set() => new _LinkedHashSet<E1>();
-///     }
-///     class List<E2> { ... }
-///     class _LinkedHashSet<E3> { ... }
-///
-/// After inlining the factory constructor for `Set<E1>`, the HCreate should
-/// have type `_LinkedHashSet<List<T>>` and the TypeExpression should be a tree:
-///
-///    HCreate(dartType: _LinkedHashSet<List<T>>,
-///        [], // No arguments
-///        HTypeInfoExpression(INSTANCE,
-///            dartType: _LinkedHashSet<E3>, // _LinkedHashSet's thisType
-///            HTypeInfoExpression(COMPLETE,  // E3 = List<T>
-///                dartType: List<E2>,
-///                HTypeInfoReadVariable(this, T)))) // E2 = T
-
-// TODO(sra): The INSTANCE form requires the actual instance for full
-// interpretation. If the COMPLETE form was used on instances, then we could
-// simplify HTypeInfoReadVariable without an object.
-
-class HTypeInfoExpression extends HInstruction {
-  final TypeInfoExpressionKind kind;
-  final DartType dartType;
-
-  /// `true` if this
-  final bool isTypeVariableReplacement;
-
-  HTypeInfoExpression(this.kind, this.dartType, List<HInstruction> inputs,
-      AbstractValue instructionType,
-      {this.isTypeVariableReplacement: false})
-      : super(inputs, instructionType) {
-    setUseGvn();
-  }
-
-  @override
-  accept(HVisitor visitor) => visitor.visitTypeInfoExpression(this);
-
-  @override
-  bool canThrow(AbstractValueDomain domain) => false;
-
-  @override
-  int typeCode() => HInstruction.TYPE_INFO_EXPRESSION_TYPECODE;
-  @override
-  bool typeEquals(HInstruction other) => other is HTypeInfoExpression;
-
-  @override
-  bool dataEquals(HTypeInfoExpression other) {
-    return kind == other.kind && dartType == other.dartType;
-  }
-
-  @override
-  String toString() => 'HTypeInfoExpression($kindAsString, $dartType)';
-
-  // ignore: MISSING_RETURN
-  String get kindAsString {
-    switch (kind) {
-      case TypeInfoExpressionKind.COMPLETE:
-        return 'COMPLETE';
-      case TypeInfoExpressionKind.INSTANCE:
-        return 'INSTANCE';
-    }
-  }
-}
-
 // -----------------------------------------------------------------------------
 
 /// Is-test using Rti form of type expression.
@@ -4535,7 +4060,7 @@ class HTypeInfoExpression extends HInstruction {
 /// depend on type variables and complex types.
 class HIsTest extends HInstruction {
   final AbstractValueWithPrecision checkedAbstractValue;
-  final DartType dartType;
+  DartType dartType;
 
   HIsTest(this.dartType, this.checkedAbstractValue, HInstruction checked,
       HInstruction rti, AbstractValue type)
@@ -4547,9 +4072,10 @@ class HIsTest extends HInstruction {
   HInstruction get typeInput => inputs[0];
   HInstruction get checkedInput => inputs[1];
 
-  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
-      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
-          useNullSafety);
+  AbstractBool evaluate(JClosedWorld closedWorld, CompilerOptions options) =>
+      _typeTest(
+          checkedInput, dartType, checkedAbstractValue, closedWorld, options,
+          isCast: false);
 
   @override
   accept(HVisitor visitor) => visitor.visitIsTest(this);
@@ -4582,9 +4108,10 @@ class HIsTestSimple extends HInstruction {
 
   HInstruction get checkedInput => inputs[0];
 
-  AbstractBool evaluate(JClosedWorld closedWorld, bool useNullSafety) =>
-      _isTestResult(checkedInput, dartType, checkedAbstractValue, closedWorld,
-          useNullSafety);
+  AbstractBool evaluate(JClosedWorld closedWorld, CompilerOptions options) =>
+      _typeTest(
+          checkedInput, dartType, checkedAbstractValue, closedWorld, options,
+          isCast: false);
 
   @override
   accept(HVisitor visitor) => visitor.visitIsTestSimple(this);
@@ -4602,35 +4129,42 @@ class HIsTestSimple extends HInstruction {
   String toString() => 'HIsTestSimple()';
 }
 
-AbstractBool _isTestResult(
+AbstractBool _typeTest(
     HInstruction expression,
     DartType dartType,
     AbstractValueWithPrecision checkedAbstractValue,
     JClosedWorld closedWorld,
-    bool useNullSafety) {
+    CompilerOptions options,
+    {bool isCast}) {
+  JCommonElements commonElements = closedWorld.commonElements;
+  DartTypes dartTypes = closedWorld.dartTypes;
   AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
   AbstractValue subsetType = expression.instructionType;
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
+  AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  if (useNullSafety &&
-      expression.isNull(abstractValueDomain).isDefinitelyTrue) {
-    if (dartType.isObject) return AbstractBool.False;
-    if (closedWorld.dartTypes.isTopType(dartType) ||
-        dartType is NullableType ||
-        dartType.isNull) {
-      return AbstractBool.True;
-    }
-    if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
-      return AbstractBool.Maybe;
-    }
-    if (dartType is LegacyType) {
-      DartType baseType = dartType.baseType;
-      if (baseType is NeverType) return AbstractBool.True;
-      if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+  if (!isCast && options.useNullSafety) {
+    if (expressionIsNull.isDefinitelyTrue) {
+      if (dartType.isObject) return AbstractBool.False;
+      if (dartTypes.isTopType(dartType) ||
+          dartType is NullableType ||
+          dartType.isNull) {
+        return AbstractBool.True;
+      }
+      if (dartType is TypeVariableType || dartType is FunctionTypeVariable) {
         return AbstractBool.Maybe;
       }
+      if (dartType is LegacyType) {
+        DartType baseType = dartType.baseType;
+        if (baseType is NeverType) return AbstractBool.True;
+        if (baseType is TypeVariableType || baseType is FunctionTypeVariable) {
+          return AbstractBool.Maybe;
+        }
+      }
+      return AbstractBool.False;
+    } else if (expressionIsNull.isPotentiallyTrue) {
+      if (dartType.isObject) return AbstractBool.Maybe;
     }
-    return AbstractBool.False;
   }
 
   if (checkedAbstractValue.isPrecise &&
@@ -4638,80 +4172,95 @@ AbstractBool _isTestResult(
     return AbstractBool.True;
   }
 
+  if (abstractValueDomain
+      .areDisjoint(subsetType, supersetType)
+      .isDefinitelyTrue) {
+    return AbstractBool.False;
+  }
+
   // TODO(39287): Let the abstract value domain fully handle this.
   // Currently, the abstract value domain cannot (soundly) state that an is-test
   // is definitely false, so we reuse some of the case-by-case logic from the
   // old [HIs] optimization.
-  if (closedWorld.dartTypes.isTopType(dartType)) return AbstractBool.True;
 
-  InterfaceType type;
-  if (dartType is InterfaceType) {
-    type = dartType;
-  } else if (dartType is LegacyType) {
-    DartType base = dartType.baseType;
-    if (base is! InterfaceType) return AbstractBool.Maybe;
-    assert(!base.isObject); // Top type handled above;
-    type = base;
-  } else {
-    return AbstractBool.Maybe;
-  }
-
-  ClassEntity element = type.element;
-  if (type.typeArguments.isNotEmpty) return AbstractBool.Maybe;
-  JCommonElements commonElements = closedWorld.commonElements;
-  if (expression.isInteger(abstractValueDomain).isDefinitelyTrue) {
-    if (element == commonElements.intClass ||
-        element == commonElements.numClass ||
-        commonElements.isNumberOrStringSupertype(element)) {
-      return AbstractBool.True;
+  AbstractBool checkInterface(InterfaceType interface) {
+    if (expression.isInteger(abstractValueDomain).isDefinitelyTrue) {
+      if (dartTypes.isSubtype(commonElements.intType, interface)) {
+        return AbstractBool.True;
+      }
+      if (interface == commonElements.doubleType) {
+        // We let the JS semantics decide for that check. Currently the code we
+        // emit will always return true.
+        return AbstractBool.Maybe;
+      }
+      return AbstractBool.False;
     }
-    if (element == commonElements.doubleClass) {
-      // We let the JS semantics decide for that check. Currently the code we
-      // emit will always return true.
+
+    if (expression.isDouble(abstractValueDomain).isDefinitelyTrue) {
+      if (dartTypes.isSubtype(commonElements.doubleType, interface)) {
+        return AbstractBool.True;
+      }
+      if (interface == commonElements.intType) {
+        // We let the JS semantics decide for that check. Currently the code we
+        // emit will return true for a double that can be represented as a 31-bit
+        // integer and for -0.0.
+        return AbstractBool.Maybe;
+      }
+      return AbstractBool.False;
+    }
+
+    if (expression.isNumber(abstractValueDomain).isDefinitelyTrue) {
+      if (dartTypes.isSubtype(commonElements.numType, interface)) {
+        return AbstractBool.True;
+      }
+      // We cannot just return false, because the expression may be of type int or
+      // double.
       return AbstractBool.Maybe;
     }
-    return AbstractBool.False;
-  }
-  if (expression.isDouble(abstractValueDomain).isDefinitelyTrue) {
-    if (element == commonElements.doubleClass ||
-        element == commonElements.numClass ||
-        commonElements.isNumberOrStringSupertype(element)) {
-      return AbstractBool.True;
+
+    // We need the raw check because we don't have the notion of generics in the
+    // backend. For example, `this` in a class `A<T>` is currently always
+    // considered to have the raw type.
+    if (dartTypes.treatAsRawType(interface)) {
+      return abstractValueDomain.isInstanceOf(subsetType, interface.element);
     }
-    if (element == commonElements.intClass) {
-      // We let the JS semantics decide for that check. Currently the code we
-      // emit will return true for a double that can be represented as a 31-bit
-      // integer and for -0.0.
-      return AbstractBool.Maybe;
-    }
-    return AbstractBool.False;
-  }
-  if (expression.isNumber(abstractValueDomain).isDefinitelyTrue) {
-    if (element == commonElements.numClass) {
-      return AbstractBool.True;
-    }
-    // We cannot just return false, because the expression may be of type int or
-    // double.
+
     return AbstractBool.Maybe;
   }
-  if (expression.isPrimitiveNumber(abstractValueDomain).isPotentiallyTrue &&
-      element == commonElements.intClass) {
-    // We let the JS semantics decide for that check.
+
+  AbstractBool isNullAsCheck = !options.useLegacySubtyping && isCast
+      ? expressionIsNull
+      : AbstractBool.False;
+  AbstractBool isNullIsTest =
+      options.useNullSafety && !isCast ? expressionIsNull : AbstractBool.False;
+
+  AbstractBool unwrapAndCheck(DartType type) {
+    if (dartTypes.isTopType(dartType)) return AbstractBool.True;
+    if (type is NeverType) return AbstractBool.False;
+    if (type is InterfaceType) {
+      if (type.isNull) return expressionIsNull;
+      return ~(isNullAsCheck | isNullIsTest) & checkInterface(type);
+    }
+    if (type is LegacyType) {
+      assert(!type.baseType.isObject);
+      return ~isNullIsTest & unwrapAndCheck(type.baseType);
+    }
+    if (type is NullableType) {
+      return unwrapAndCheck(type.baseType);
+    }
+    if (type is FutureOrType) {
+      return unwrapAndCheck(type.typeArgument) | AbstractBool.Maybe;
+    }
     return AbstractBool.Maybe;
   }
-  // We need the raw check because we don't have the notion of generics in the
-  // backend. For example, `this` in a class `A<T>` is currently always
-  // considered to have the raw type.
-  if (closedWorld.dartTypes.treatAsRawType(type)) {
-    return abstractValueDomain.isInstanceOf(subsetType, element);
-  }
-  return AbstractBool.Maybe;
+
+  return unwrapAndCheck(dartType);
 }
 
 /// Type cast or type check using Rti form of type expression.
 class HAsCheck extends HCheck {
   final AbstractValueWithPrecision checkedType;
-  final DartType checkedTypeExpression;
+  DartType checkedTypeExpression;
   final bool isTypeError;
 
   HAsCheck(
@@ -4746,14 +4295,11 @@ class HAsCheck extends HCheck {
     return isTypeError == other.isTypeError;
   }
 
-  bool isRedundant(JClosedWorld closedWorld) {
-    if (!checkedType.isPrecise) return false;
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, checkedType.abstractValue)
-        .isDefinitelyTrue;
-  }
+  bool isRedundant(JClosedWorld closedWorld, CompilerOptions options) =>
+      _typeTest(checkedInput, checkedTypeExpression, checkedType, closedWorld,
+              options,
+              isCast: true)
+          .isDefinitelyTrue;
 
   @override
   String toString() {
@@ -4784,14 +4330,10 @@ class HAsCheckSimple extends HCheck {
   @override
   accept(HVisitor visitor) => visitor.visitAsCheckSimple(this);
 
-  bool isRedundant(JClosedWorld closedWorld) {
-    if (!checkedType.isPrecise) return false;
-    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
-    AbstractValue inputType = checkedInput.instructionType;
-    return abstractValueDomain
-        .isIn(inputType, checkedType.abstractValue)
-        .isDefinitelyTrue;
-  }
+  bool isRedundant(JClosedWorld closedWorld, CompilerOptions options) =>
+      _typeTest(checkedInput, dartType, checkedType, closedWorld, options,
+              isCast: true)
+          .isDefinitelyTrue;
 
   @override
   int typeCode() => HInstruction.AS_CHECK_SIMPLE_TYPECODE;

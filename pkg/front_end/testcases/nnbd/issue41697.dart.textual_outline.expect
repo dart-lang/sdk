@@ -1,0 +1,15 @@
+import 'dart:async';
+
+typedef G<T> = dynamic Function<S extends T>(S);
+typedef H<T> = dynamic Function<S extends FutureOr<T>>(S, FutureOr<T>);
+
+class C<T> {
+  G<T> field1;
+  H<T> field2;
+  C(this.field1, this.field2);
+}
+
+test1(C<num> c) {}
+test2(C<num?> c) {}
+test3<S extends num?>(S s) => s + 1;
+main() {}

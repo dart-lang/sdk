@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "issue42003_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue42003_lib.dart";
+
+static method main() → dynamic {
+  let final core::String* #t1 = iss::returnString() in #t1.{core::String::==}(null) ?{core::int?} null : #t1{core::String}.{core::String::length};
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+static method returnString() → core::String*
+  return "foo";

@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef Test<contravariant T extends self::X = self::X> = (T?) → dynamic;
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    : super core::Object::•()
+    ;
+}
+static method checkme<T extends self::X = self::X>(self::checkme::T? t) → dynamic {}
+static method main() → dynamic {
+  (self::X?) → dynamic t2 = #C1<self::X>;
+}
+
+constants  {
+  #C1 = tearoff self::checkme
+}

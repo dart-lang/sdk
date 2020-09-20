@@ -6,8 +6,8 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystem;
 import 'package:analyzer/src/generated/source.dart';
 
 /// The result of performing some kind of analysis on a single file. Every
@@ -90,15 +90,7 @@ abstract class ParsedLibraryResult implements AnalysisResult {
 /// those discovered during scanning and parsing.
 ///
 /// Clients may not extend, implement or mix-in this class.
-// ignore: deprecated_member_use_from_same_package
-abstract class ParsedUnitResult implements ParseResult {}
-
-/// The result of parsing of a single file. The errors returned include only
-/// those discovered during scanning and parsing.
-///
-/// Clients may not extend, implement or mix-in this class.
-@deprecated
-abstract class ParseResult implements AnalysisResultWithErrors {
+abstract class ParsedUnitResult implements AnalysisResultWithErrors {
   /// The content of the file that was scanned and parsed.
   String get content;
 
@@ -150,15 +142,7 @@ abstract class ResolvedLibraryResult implements AnalysisResult {
 /// include both syntactic and semantic errors.
 ///
 /// Clients may not extend, implement or mix-in this class.
-// ignore: deprecated_member_use_from_same_package
-abstract class ResolvedUnitResult implements ResolveResult {}
-
-/// The result of building a resolved AST for a single file. The errors returned
-/// include both syntactic and semantic errors.
-///
-/// Clients may not extend, implement or mix-in this class.
-@deprecated
-abstract class ResolveResult implements AnalysisResultWithErrors {
+abstract class ResolvedUnitResult implements AnalysisResultWithErrors {
   /// The content of the file that was scanned, parsed and resolved.
   String get content;
 

@@ -27,7 +27,6 @@ main(List<String> args) async {
   Sdk sdk = Sdk(parsedArgs['sdk'] as String);
 
   warnOnNoAssertions();
-  warnOnNoSdkNnbd(sdk);
 
   Playground playground =
       Playground(defaultPlaygroundPath, parsedArgs['clean'] as bool);
@@ -218,23 +217,12 @@ void warnOnNoAssertions() {
   printWarning("You didn't --enable-asserts!");
 }
 
-void warnOnNoSdkNnbd(Sdk sdk) {
-  try {
-    if (sdk.isNnbdSdk) return;
-  } catch (e) {
-    printWarning('Unable to determine whether this SDK supports NNBD');
-    return;
-  }
-  printWarning(
-      'SDK at ${sdk.sdkPath} not compiled with --nnbd, use --sdk option');
-}
-
 class ExceptionCategory {
   final String topOfStack;
   final List<MapEntry<String, int>> exceptionCountPerPackage;
 
   ExceptionCategory(this.topOfStack, Map<String, int> exceptions)
-      : this.exceptionCountPerPackage = exceptions.entries.toList()
+      : exceptionCountPerPackage = exceptions.entries.toList()
           ..sort((e1, e2) => e2.value.compareTo(e1.value));
 
   int get count => exceptionCountPerPackage.length;

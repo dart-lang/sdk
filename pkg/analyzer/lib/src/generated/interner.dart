@@ -9,10 +9,8 @@ import 'package:_fe_analyzer_shared/src/scanner/interner.dart';
 export 'package:_fe_analyzer_shared/src/scanner/interner.dart'
     show Interner, NullInterner;
 
-/**
- * The class `MappedInterner` implements an interner that uses a map to manage
- * the strings that have been interned.
- */
+/// The class `MappedInterner` implements an interner that uses a map to manage
+/// the strings that have been interned.
 class MappedInterner implements Interner {
   /// A table mapping strings to themselves.
   final Map<String, String> _table = HashMap<String, String>();

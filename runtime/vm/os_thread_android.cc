@@ -10,7 +10,8 @@
 
 #include <errno.h>  // NOLINT
 #include <stdio.h>
-#include <sys/time.h>  // NOLINT
+#include <sys/resource.h>  // NOLINT
+#include <sys/time.h>      // NOLINT
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
@@ -18,7 +19,14 @@
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
+#include "vm/flags.h"
+
 namespace dart {
+
+DEFINE_FLAG(int,
+            worker_thread_priority,
+            kMinInt,
+            "The thread priority the VM should use for new worker threads.");
 
 #define VALIDATE_PTHREAD_RESULT(result)                                        \
   if (result != 0) {                                                           \
@@ -114,6 +122,14 @@ static void UnblockSIGPROF() {
 // is used to ensure that the thread is properly destroyed if the thread just
 // exits.
 static void* ThreadStart(void* data_ptr) {
+  if (FLAG_worker_thread_priority != kMinInt) {
+    if (setpriority(PRIO_PROCESS, gettid(), FLAG_worker_thread_priority) ==
+        -1) {
+      FATAL2("Setting thread priority to %d failed: errno = %d\n",
+             FLAG_worker_thread_priority, errno);
+    }
+  }
+
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
   const char* name = data->name();

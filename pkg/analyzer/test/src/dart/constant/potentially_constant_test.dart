@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class IsConstantTypeExpressionTest extends DriverResolutionTest {
+class IsConstantTypeExpressionTest extends PubPackageResolutionTest {
   test_class() async {
     await _assertConst(r'''
 int x;
@@ -30,7 +27,7 @@ int x;
   }
 
   test_class_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
     await _assertConst(r'''
@@ -40,10 +37,10 @@ p.A x;
   }
 
   test_class_prefix_deferred() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
-    await _assertNotConst(r'''
+    await _assertNeverConst(r'''
 import 'a.dart' deferred as p;
 p.A x;
 ''');
@@ -56,7 +53,7 @@ List<int> x;
   }
 
   test_class_typeArguments_notConst() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     List<T> x;
@@ -78,7 +75,7 @@ int Function<T extends num, U>(int, bool) x;
   }
 
   test_genericFunctionType_formalParameterType() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     Function(T) x;
@@ -88,7 +85,7 @@ class A<T> {
   }
 
   test_genericFunctionType_returnType() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     T Function() x;
@@ -98,7 +95,7 @@ class A<T> {
   }
 
   test_genericFunctionType_typeParameterBound() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     Function<U extends T>() x;
@@ -108,7 +105,7 @@ class A<T> {
   }
 
   test_typeParameter() async {
-    await _assertNotConst(r'''
+    await _assertPotentiallyConst(r'''
 class A<T> {
   m() {
     T x;
@@ -129,7 +126,13 @@ void x;
     expect(isConstantTypeExpression(type), isTrue);
   }
 
-  Future<void> _assertNotConst(String code) async {
+  Future<void> _assertNeverConst(String code) async {
+    await resolveTestCode(code);
+    var type = findNode.variableDeclarationList('x;').type;
+    expect(isConstantTypeExpression(type), isFalse);
+  }
+
+  Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
     expect(isConstantTypeExpression(type), isFalse);
@@ -150,6 +153,16 @@ class A<T> {
 ''');
   }
 
+  test_typeParameter_nested() async {
+    await _assertConst(r'''
+class A<T> {
+  m() {
+    List<T> x;
+  }
+}
+''');
+  }
+
   @override
   Future<void> _assertConst(String code) async {
     await resolveTestCode(code);
@@ -158,15 +171,15 @@ class A<T> {
   }
 
   @override
-  Future<void> _assertNotConst(String code) async {
+  Future<void> _assertPotentiallyConst(String code) async {
     await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
-    expect(isPotentiallyConstantTypeExpression(type), isFalse);
+    expect(isPotentiallyConstantTypeExpression(type), isTrue);
   }
 }
 
 @reflectiveTest
-class PotentiallyConstantTest extends DriverResolutionTest {
+class PotentiallyConstantTest extends PubPackageResolutionTest {
   test_adjacentStrings() async {
     await _assertConst(r'''
 var x = 'a' 'b';
@@ -475,7 +488,7 @@ var x = a++;
   }
 
   test_prefixedIdentifier_importPrefix_deferred() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
     await _assertNotConst(r'''
@@ -485,7 +498,7 @@ var x = p.a + 1;
   }
 
   test_prefixedIdentifier_importPrefix_function() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void f() {}
 ''');
     await _assertConst(r'''
@@ -495,7 +508,7 @@ var x = p.f;
   }
 
   test_prefixedIdentifier_importPrefix_topVar() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 0;
 ''');
     await _assertConst(r'''
@@ -638,7 +651,7 @@ var x = 'abc'.length;
   }
 
   test_propertyAccess_staticField_withPrefix_const() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const a = 0;
 }
@@ -650,7 +663,7 @@ var x = p.A.a + 1;
   }
 
   test_propertyAccess_staticField_withPrefix_deferred() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const a = 0;
 }
@@ -662,7 +675,7 @@ var x = p.A.a + 1;
   }
 
   test_propertyAccess_staticField_withPrefix_final() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static final a = 0;
 }
@@ -684,7 +697,7 @@ var x = A().a + 1;
   }
 
   test_propertyAccess_target_variable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   final a = 0;
   const A();
@@ -919,6 +932,17 @@ class A<T> {
 ''', () => _xInitializer());
   }
 
+  test_asExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a as List<T>;
+  }
+}
+''', () => _xInitializer());
+  }
+
   @override
   test_isExpression_typeParameter() async {
     await _assertConst(r'''
@@ -930,15 +954,15 @@ class A<T> {
 }
 ''', () => _xInitializer());
   }
+
+  test_isExpression_typeParameter_nested() async {
+    await _assertConst(r'''
+const a = 0;
+class A<T> {
+  m() {
+    var x = a is List<T>;
+  }
 }
-
-mixin WithNullSafetyMixin on DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
+''', () => _xInitializer());
+  }
 }

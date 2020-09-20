@@ -134,7 +134,6 @@ bool parseArgument(String argument, Set<String> configurations,
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
   'kernel': const [],
-  'newRti': const ['--experiment-new-rti'],
 };
 
 final Map<String, Uri> TEST_FILES = _computeTestFiles();

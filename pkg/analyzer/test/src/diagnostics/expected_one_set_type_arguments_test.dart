@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,13 @@ main() {
 }
 
 @reflectiveTest
-class ExpectedOneSetTypeArgumentsTest extends DriverResolutionTest {
+class ExpectedOneSetTypeArgumentsTest extends PubPackageResolutionTest {
   test_multiple_type_arguments() async {
     await assertErrorsInCode(r'''
 main() {
   <int, int, int>{2, 3};
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
 }

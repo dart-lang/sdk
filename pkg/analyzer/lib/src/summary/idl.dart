@@ -635,6 +635,22 @@ enum IndexSyntheticElementKind {
   unit
 }
 
+abstract class LinkedLanguageVersion extends base.SummaryClass {
+  @Id(0)
+  int get major;
+
+  @Id(1)
+  int get minor;
+}
+
+abstract class LinkedLibraryLanguageVersion extends base.SummaryClass {
+  @Id(1)
+  LinkedLanguageVersion get override2;
+
+  @Id(0)
+  LinkedLanguageVersion get package;
+}
+
 /// Information about a linked AST node.
 @Variant('kind')
 abstract class LinkedNode extends base.SummaryClass {
@@ -848,13 +864,12 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(3, variant: LinkedNodeKind.compilationUnit)
   List<LinkedNode> get compilationUnit_directives;
 
-  /// The major component of the actual language version (not just override).
-  @VariantId(15, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_languageVersionMajor;
+  @VariantId(41, variant: LinkedNodeKind.compilationUnit)
+  List<int> get compilationUnit_featureSet;
 
-  /// The minor component of the actual language version (not just override).
-  @VariantId(16, variant: LinkedNodeKind.compilationUnit)
-  int get compilationUnit_languageVersionMinor;
+  /// The language version information.
+  @VariantId(40, variant: LinkedNodeKind.compilationUnit)
+  LinkedLibraryLanguageVersion get compilationUnit_languageVersion;
 
   @VariantId(6, variant: LinkedNodeKind.compilationUnit)
   LinkedNode get compilationUnit_scriptTag;
@@ -1494,6 +1509,7 @@ abstract class LinkedNode extends base.SummaryClass {
   LinkedNode get throwExpression_expression;
 
   @VariantId(32, variantList: [
+    LinkedNodeKind.methodDeclaration,
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.variableDeclaration,
   ])
@@ -1829,10 +1845,10 @@ abstract class LinkedNodeTypeFormalParameter extends base.SummaryClass {
 
 /// Kinds of [LinkedNodeType]s.
 enum LinkedNodeTypeKind {
-  bottom,
   dynamic_,
   function,
   interface,
+  never,
   typeParameter,
   void_
 }
@@ -1860,9 +1876,6 @@ abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 abstract class LinkedNodeUnit extends base.SummaryClass {
-  @Id(3)
-  bool get isNNBD;
-
   @Id(2)
   bool get isSynthetic;
 
@@ -1871,7 +1884,7 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
 
   /// If the unit is a part, the URI specified in the `part` directive.
   /// Otherwise empty.
-  @Id(4)
+  @Id(3)
   String get partUriStr;
 
   /// The absolute URI.
@@ -1899,23 +1912,21 @@ abstract class PackageBundleSdk extends base.SummaryClass {
   /// The content of the `allowed_experiments.json` from SDK.
   @Id(0)
   String get allowedExperimentsJson;
+
+  /// The language version of the SDK.
+  @Id(1)
+  LinkedLanguageVersion get languageVersion;
 }
 
 /// Summary information about a top-level type inference error.
 abstract class TopLevelInferenceError extends base.SummaryClass {
   /// The [kind] specific arguments.
-  @Id(2)
+  @Id(1)
   List<String> get arguments;
 
   /// The kind of the error.
-  @Id(1)
-  TopLevelInferenceErrorKind get kind;
-
-  /// The slot id (which is unique within the compilation unit) identifying the
-  /// target of type inference with which this [TopLevelInferenceError] is
-  /// associated.
   @Id(0)
-  int get slot;
+  TopLevelInferenceErrorKind get kind;
 }
 
 /// Enum used to indicate the kind of the error during top-level inference.
@@ -1924,8 +1935,7 @@ enum TopLevelInferenceErrorKind {
   instanceGetter,
   dependencyCycle,
   overrideConflictFieldType,
-  overrideConflictReturnType,
-  overrideConflictParameterType
+  overrideNoCombinedSuperSignature,
 }
 
 @Variant('kind')

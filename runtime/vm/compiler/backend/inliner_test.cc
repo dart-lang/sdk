@@ -194,4 +194,98 @@ ISOLATE_UNIT_TEST_CASE(Inliner_TypedData_Regress7551) {
   RELEASE_ASSERT(unbox_instr->is_truncating());
 }
 
+#if defined(DART_PRECOMPILER)
+
+// Verifies that all calls are inlined in List.generate call
+// with a simple closure.
+ISOLATE_UNIT_TEST_CASE(Inliner_List_generate) {
+  const char* kScript = R"(
+    foo(n) => List<int>.generate(n, (int x) => x, growable: false);
+    main() {
+      foo(100);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true,
+                   ParallelMovesHandling::kSkip);
+
+  if (function.is_declared_in_bytecode()) {
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveCreateArray,
+        kWordSize == 8 ? kMatchAndMoveUnboxInt64 : kNop,
+        kMatchAndMoveGoto,
+
+        // Loop header
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveUnboxInt64,
+        kMatchAndMoveBranchTrue,
+
+        // Loop body
+        kMatchAndMoveTargetEntry,
+        kMatchAndMoveGenericCheckBound,
+        kMatchAndMoveStoreIndexed,
+        kMatchAndMoveCheckedSmiOp,
+        kMatchAndMoveGoto,
+
+        // Loop header once again
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveUnboxInt64,
+        kMatchAndMoveBranchFalse,
+
+        // After loop
+        kMatchAndMoveTargetEntry,
+        kMatchReturn,
+    }));
+  } else {
+    Instruction* unbox1 = nullptr;
+    Instruction* unbox2 = nullptr;
+
+    RELEASE_ASSERT(cursor.TryMatch({
+        kMoveGlob,
+        kMatchAndMoveCreateArray,
+        kMatchAndMoveUnboxInt64,
+        {kMoveAny, &unbox1},
+        {kMoveAny, &unbox2},
+        kMatchAndMoveGoto,
+
+        // Loop header
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveBranchTrue,
+
+        // Loop body
+        kMatchAndMoveTargetEntry,
+        kWordSize == 4 ? kMatchAndMoveBoxInt64 : kNop,
+        kMatchAndMoveBoxInt64,
+        kMatchAndMoveStoreIndexed,
+        kMatchAndMoveBinaryInt64Op,
+        kMatchAndMoveGoto,
+
+        // Loop header once again
+        kMatchAndMoveJoinEntry,
+        kMatchAndMoveCheckStackOverflow,
+        kMatchAndMoveBranchFalse,
+
+        // After loop
+        kMatchAndMoveTargetEntry,
+        kMatchReturn,
+    }));
+
+    EXPECT(unbox1->IsUnboxedConstant() || unbox1->IsUnboxInt64());
+    EXPECT(unbox2->IsUnboxedConstant() || unbox2->IsUnboxInt64());
+  }
+}
+
+#endif  // defined(DART_PRECOMPILER)
+
 }  // namespace dart

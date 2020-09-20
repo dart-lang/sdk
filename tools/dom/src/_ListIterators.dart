@@ -9,7 +9,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
   final int _length; // Cache array length for faster access.
   int _position;
-  T _current;
+  T? _current;
 
   FixedSizeListIterator(List<T> array)
       : _array = array,
@@ -28,14 +28,14 @@ class FixedSizeListIterator<T> implements Iterator<T> {
     return false;
   }
 
-  T get current => _current;
+  T get current => _current as T;
 }
 
 // Iterator for arrays with variable size.
 class _VariableSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
   int _position;
-  T _current;
+  T? _current;
 
   _VariableSizeListIterator(List<T> array)
       : _array = array,
@@ -53,5 +53,5 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
     return false;
   }
 
-  T get current => _current;
+  T get current => _current as T;
 }

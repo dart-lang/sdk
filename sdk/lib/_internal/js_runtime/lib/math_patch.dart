@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:math library.
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show patch, checkNum;
@@ -65,10 +63,10 @@ const int _POW2_32 = 0x100000000;
 
 @patch
 class Random {
-  static Random _secureRandom;
+  static Random? _secureRandom;
 
   @patch
-  factory Random([int seed]) =>
+  factory Random([int? seed]) =>
       (seed == null) ? const _JSRandom() : new _Random(seed);
 
   @patch
@@ -226,7 +224,7 @@ class _Random implements Random {
     do {
       _nextState();
       rnd32 = _lo;
-      result = rnd32.remainder(max); // % max;
+      result = rnd32.remainder(max) as int; // % max;
     } while ((rnd32 - result + max) >= _POW2_32);
     return result;
   }
@@ -308,7 +306,7 @@ class _JSSecureRandom implements Random {
     }
     _buffer.setUint32(0, 0);
     int start = 4 - byteCount;
-    int randomLimit = pow(256, byteCount);
+    int randomLimit = pow(256, byteCount) as int;
     while (true) {
       _getRandomBytes(start, byteCount);
       // The getUint32 method is big-endian as default.
@@ -317,7 +315,7 @@ class _JSSecureRandom implements Random {
         // Max is power of 2.
         return random & (max - 1);
       }
-      int result = random.remainder(max);
+      int result = random.remainder(max) as int;
       // Ensure results have equal probability by rejecting values in the
       // last range of k*max .. 256**byteCount.
       // TODO: Consider picking a higher byte count if the last range is a

@@ -9,8 +9,6 @@
 // OtherResources=certificates/server_chain.pem
 // OtherResources=certificates/server_key.pem
 
-// @dart = 2.6
-
 library dart._http;
 
 import "dart:async";
@@ -20,7 +18,6 @@ import "dart:typed_data";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
-import "package:path/path.dart";
 
 part "../../../sdk/lib/_http/crypto.dart";
 
@@ -44,7 +41,7 @@ SecurityContext clientContext = new SecurityContext()
 class SecurityConfiguration {
   final bool secure;
 
-  SecurityConfiguration({bool this.secure});
+  SecurityConfiguration({required bool this.secure});
 
   Future<HttpServer> createServer({int backlog: 0}) => secure
       ? HttpServer.bindSecure(HOST_NAME, 0, serverContext, backlog: backlog)
@@ -61,7 +58,7 @@ class SecurityConfiguration {
         response.statusCode = HttpStatus.switchingProtocols;
         response.headers.set(HttpHeaders.connectionHeader, "upgrade");
         response.headers.set(HttpHeaders.upgradeHeader, "websocket");
-        String key = request.headers.value("Sec-WebSocket-Key");
+        String? key = request.headers.value("Sec-WebSocket-Key");
         _SHA1 sha1 = new _SHA1();
         sha1.add("$key$webSocketGUID".codeUnits);
         String accept = _CryptoUtils.bytesToBase64(sha1.close());

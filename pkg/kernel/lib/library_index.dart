@@ -12,6 +12,7 @@ import 'ast.dart';
 class LibraryIndex {
   static const String getterPrefix = 'get:';
   static const String setterPrefix = 'set:';
+  static const String tearoffPrefix = 'get#';
 
   /// A special class name that can be used to access the top-level members
   /// of a library.
@@ -219,10 +220,10 @@ class _MemberTable {
 
   String getDisambiguatedName(Member member) {
     if (member is Procedure) {
-      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.name;
-      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.name;
+      if (member.isGetter) return LibraryIndex.getterPrefix + member.name.text;
+      if (member.isSetter) return LibraryIndex.setterPrefix + member.name.text;
     }
-    return member.name.name;
+    return member.name.text;
   }
 
   void addMember(Member member) {
@@ -237,12 +238,12 @@ class _MemberTable {
   String getDisambiguatedExtensionName(
       ExtensionMemberDescriptor extensionMember) {
     if (extensionMember.kind == ExtensionMemberKind.TearOff)
-      return 'get#' + extensionMember.name.name;
+      return LibraryIndex.tearoffPrefix + extensionMember.name.text;
     if (extensionMember.kind == ExtensionMemberKind.Getter)
-      return LibraryIndex.getterPrefix + extensionMember.name.name;
+      return LibraryIndex.getterPrefix + extensionMember.name.text;
     if (extensionMember.kind == ExtensionMemberKind.Setter)
-      return LibraryIndex.setterPrefix + extensionMember.name.name;
-    return extensionMember.name.name;
+      return LibraryIndex.setterPrefix + extensionMember.name.text;
+    return extensionMember.name.text;
   }
 
   void addExtensionMember(ExtensionMemberDescriptor extensionMember) {

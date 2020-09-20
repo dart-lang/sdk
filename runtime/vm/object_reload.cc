@@ -692,6 +692,29 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
   }
 };
 
+class UnimplementedDeferredLibrary : public ReasonForCancelling {
+ public:
+  UnimplementedDeferredLibrary(Zone* zone,
+                               const Library& from,
+                               const Library& to,
+                               const String& name)
+      : ReasonForCancelling(zone), from_(from), to_(to), name_(name) {}
+
+ private:
+  const Library& from_;
+  const Library& to_;
+  const String& name_;
+
+  StringPtr ToString() {
+    const String& lib_url = String::Handle(to_.url());
+    from_.ToCString();
+    return String::NewFormatted(
+        "Reloading support for deferred loading has not yet been implemented:"
+        " library '%s' has deferred import '%s'",
+        lib_url.ToCString(), name_.ToCString());
+  }
+};
+
 // This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
                         IsolateReloadContext* context) const {
@@ -889,7 +912,23 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
 
 void Library::CheckReload(const Library& replacement,
                           IsolateReloadContext* context) const {
-  // Currently no library properties will prevent a reload.
+  // TODO(26878): If the replacement library uses deferred loading,
+  // reject it.  We do not yet support reloading deferred libraries.
+  Object& object = Object::Handle();
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  DictionaryIterator it(replacement);
+  while (it.HasNext()) {
+    object = it.GetNext();
+    if (!object.IsLibraryPrefix()) continue;
+    prefix ^= object.raw();
+    if (prefix.is_deferred_load()) {
+      const String& prefix_name = String::Handle(prefix.name());
+      context->group_reload_context()->AddReasonForCancelling(
+          new (context->zone()) UnimplementedDeferredLibrary(
+              context->zone(), *this, replacement, prefix_name));
+      return;
+    }
+  }
 }
 
 void CallSiteResetter::Reset(const ICData& ic) {
@@ -953,17 +992,8 @@ void CallSiteResetter::Reset(const ICData& ic) {
       ASSERT(!caller_.is_static());
       new_cls_ = caller_.Owner();
       new_cls_ = new_cls_.SuperClass();
-      new_target_ = Function::null();
-      while (!new_cls_.IsNull()) {
-        // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
-        // method-extractors and call-through-getters, but we're in a no
-        // safepoint scope here.
-        new_target_ = new_cls_.LookupDynamicFunction(name_);
-        if (!new_target_.IsNull()) {
-          break;
-        }
-        new_cls_ = new_cls_.SuperClass();
-      }
+      new_target_ = Resolver::ResolveDynamicAnyArgs(zone_, new_cls_, name_,
+                                                    /*allow_add=*/true);
     }
     args_desc_array_ = ic.arguments_descriptor();
     ArgumentsDescriptor args_desc(args_desc_array_);

@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
+import 'workspace_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,21 +18,23 @@ main() {
 }
 
 @reflectiveTest
-class PubWorkspacePackageTest with ResourceProviderMixin {
-  PubWorkspace workspace;
-
+class PubWorkspacePackageTest extends WorkspacePackageTest {
   setUp() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    workspace =
-        PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
+    workspace = PubWorkspace.find(
+        resourceProvider,
+        {
+          'p1': [getFolder('/.pubcache/p1/lib')],
+          'workspace': [getFolder('/workspace/lib')]
+        },
+        convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
   }
 
   void test_contains_differentWorkspace() {
     newFile('/workspace2/project/lib/file.dart');
 
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
+    var package = findPackage('/workspace/project/lib/code.dart');
     expect(
         package.contains(
             TestSource(convertPath('/workspace2/project/lib/file.dart'))),
@@ -41,8 +44,7 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
   void test_contains_sameWorkspace() {
     newFile('/workspace/project/lib/file2.dart');
 
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
+    var package = findPackage('/workspace/project/lib/code.dart');
     expect(
         package.contains(
             TestSource(convertPath('/workspace/project/lib/file2.dart'))),
@@ -60,8 +62,7 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
   void test_findPackageFor_includedFile() {
     newFile('/workspace/project/lib/file.dart');
 
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/file.dart'));
+    var package = findPackage('/workspace/project/lib/file.dart');
     expect(package, isNotNull);
     expect(package.root, convertPath('/workspace'));
     expect(package.workspace, equals(workspace));
@@ -70,16 +71,22 @@ class PubWorkspacePackageTest with ResourceProviderMixin {
   void test_findPackageFor_unrelatedFile() {
     newFile('/workspace/project/lib/file.dart');
 
-    var package = workspace
-        .findPackageFor(convertPath('/workspace2/project/lib/file.dart'));
+    var package = findPackage('/workspace2/project/lib/file.dart');
     expect(package, isNull);
+  }
+
+  void test_packagesAvailableTo() {
+    var libraryPath = convertPath('/workspace/lib/test.dart');
+    var package = findPackage(libraryPath);
+    var packageMap = package.packagesAvailableTo(libraryPath);
+    expect(packageMap.keys, unorderedEquals(['p1', 'workspace']));
   }
 }
 
 @reflectiveTest
 class PubWorkspaceTest with ResourceProviderMixin {
   void test_find_directory() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     PubWorkspace workspace =
         PubWorkspace.find(resourceProvider, {}, convertPath('/workspace'));
     expect(workspace.isBazel, isFalse);
@@ -94,7 +101,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_file() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     PubWorkspace workspace = PubWorkspace.find(
         resourceProvider, {}, convertPath('/workspace/lib/lib1.dart'));
     expect(workspace.root, convertPath('/workspace'));

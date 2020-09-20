@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -23,7 +24,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import '../util/element_type_matchers.dart';
 import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
@@ -46,9 +47,9 @@ void _fail(String message) {
 }
 
 @reflectiveTest
-class AnnotationElementResolverTest extends DriverResolutionTest {
+class AnnotationElementResolverTest extends PubPackageResolutionTest {
   test_class_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -77,7 +78,7 @@ class A {
   }
 
   test_class_prefixed_namedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A.named();
 }
@@ -108,7 +109,7 @@ class A {
   }
 
   test_class_prefixed_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -138,7 +139,7 @@ class A {
   }
 
   test_class_prefixed_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -166,7 +167,7 @@ class A {
   }
 
   test_class_staticConstField() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const V = 0;
 }
@@ -194,7 +195,7 @@ class A {
   }
 
   test_class_unnamedConstructor() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A();
 }
@@ -220,7 +221,7 @@ class A {
   }
 
   test_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -244,7 +245,7 @@ const V = 0;
   }
 
   test_topLevelVariable_prefixed() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
@@ -297,29 +298,19 @@ class C {}
 
 @reflectiveTest
 class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
-  /**
-   * The error listener to which errors will be reported.
-   */
+  /// The error listener to which errors will be reported.
   GatheringErrorListener _listener;
 
-  /**
-   * The type provider used to access the types.
-   */
+  /// The type provider used to access the types.
   TypeProvider _typeProvider;
 
-  /**
-   * The library containing the code being resolved.
-   */
+  /// The library containing the code being resolved.
   LibraryElementImpl _definingLibrary;
 
-  /**
-   * The resolver visitor that maintains the state for the resolver.
-   */
+  /// The resolver visitor that maintains the state for the resolver.
   ResolverVisitor _visitor;
 
-  /**
-   * The resolver being used to resolve the test cases.
-   */
+  /// The resolver being used to resolve the test cases.
   ElementResolver _resolver;
 
   @override
@@ -413,8 +404,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
     array.staticType = interfaceTypeStar(classD);
-    IndexExpression expression =
-        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
+    IndexExpression expression = AstTestFactory.indexExpression(
+      target: array,
+      index: AstTestFactory.identifier3("i"),
+    );
     expect(_resolveIndexExpression(expression), same(operator));
     _listener.assertNoErrors();
   }
@@ -451,8 +444,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.setterElement(propName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.p"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'p');
     CommentReference commentReference =
@@ -471,8 +463,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("m", _typeProvider.intType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.m"
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', 'm');
     CommentReference commentReference =
@@ -491,8 +482,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         ElementFactory.methodElement("==", _typeProvider.boolType);
     classA.methods = <MethodElement>[method];
     // set name scope
-    _visitor.nameScope = EnclosedScope(null)
-      ..defineNameWithoutChecking('A', classA);
+    _visitor.nameScope = LocalScope(null)..add(classA);
     // prepare "A.=="
     PrefixedIdentifier prefixed = AstTestFactory.identifier5('A', '==');
     CommentReference commentReference =
@@ -960,9 +950,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  /**
-   * Create and return the resolver used by the tests.
-   */
+  /// Create and return the resolver used by the tests.
   void _createResolver() {
     var context = TestAnalysisContext();
     _typeProvider = context.typeProviderLegacy;
@@ -991,62 +979,58 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     }
   }
 
-  /**
-   * Return the element associated with the label of [statement] after the
-   * resolver has resolved it.  [labelElement] is the label element to be
-   * defined in the statement's label scope, and [labelTarget] is the statement
-   * the label resolves to.
-   */
+  /// Return the element associated with the label of [statement] after the
+  /// resolver has resolved it.  [labelElement] is the label element to be
+  /// defined in the statement's label scope, and [labelTarget] is the statement
+  /// the label resolves to.
   Element _resolveBreak(BreakStatement statement, LabelElementImpl labelElement,
       Statement labelTarget) {
     _resolveStatement(statement, labelElement, labelTarget);
     return statement.label.staticElement;
   }
 
-  /**
-   * Return the element associated with the label [statement] after the
-   * resolver has resolved it.  [labelElement] is the label element to be
-   * defined in the statement's label scope, and [labelTarget] is the AST node
-   * the label resolves to.
-   *
-   * @param statement the statement to be resolved
-   * @param labelElement the label element to be defined in the statement's label scope
-   * @return the element to which the statement's label was resolved
-   */
+  /// Return the element associated with the label [statement] after the
+  /// resolver has resolved it.  [labelElement] is the label element to be
+  /// defined in the statement's label scope, and [labelTarget] is the AST node
+  /// the label resolves to.
+  ///
+  /// @param statement the statement to be resolved
+  /// @param labelElement the label element to be defined in the statement's
+  ///          label scope
+  /// @return the element to which the statement's label was resolved
   Element _resolveContinue(ContinueStatement statement,
       LabelElementImpl labelElement, AstNode labelTarget) {
     _resolveStatement(statement, labelElement, labelTarget);
     return statement.label.staticElement;
   }
 
-  /**
-   * Return the element associated with the given identifier after the resolver has resolved the
-   * identifier.
-   *
-   * @param node the expression to be resolved
-   * @param definedElements the elements that are to be defined in the scope in which the element is
-   *          being resolved
-   * @return the element to which the expression was resolved
-   */
+  /// Return the element associated with the given identifier after the resolver
+  /// has resolved the identifier.
+  ///
+  /// @param node the expression to be resolved
+  /// @param definedElements the elements that are to be defined in the scope in
+  ///          which the element is being resolved
+  /// @return the element to which the expression was resolved
   Element _resolveIdentifier(Identifier node, [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     return node.staticElement;
   }
 
-  /**
-   * Return the element associated with the given identifier after the resolver has resolved the
-   * identifier.
-   *
-   * @param node the expression to be resolved
-   * @param enclosingClass the element representing the class enclosing the identifier
-   * @return the element to which the expression was resolved
-   */
+  /// Return the element associated with the given identifier after the resolver
+  /// has resolved the identifier.
+  ///
+  /// @param node the expression to be resolved
+  /// @param enclosingClass the element representing the class enclosing the
+  ///          identifier
+  /// @return the element to which the expression was resolved
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
     Scope outerScope = _visitor.nameScope;
     try {
       _visitor.enclosingClass = enclosingClass;
       EnclosedScope innerScope = ClassScope(
-          TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+        TypeParameterScope(outerScope, enclosingClass.typeParameters),
+        enclosingClass,
+      );
       _visitor.nameScope = innerScope;
       node.accept(_resolver);
     } finally {
@@ -1055,37 +1039,33 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     }
   }
 
-  /**
-   * Return the element associated with the given expression after the resolver has resolved the
-   * expression.
-   *
-   * @param node the expression to be resolved
-   * @param definedElements the elements that are to be defined in the scope in which the element is
-   *          being resolved
-   * @return the element to which the expression was resolved
-   */
+  /// Return the element associated with the given expression after the resolver
+  /// has resolved the expression.
+  ///
+  /// @param node the expression to be resolved
+  /// @param definedElements the elements that are to be defined in the scope in
+  ///          which the element is being resolved
+  /// @return the element to which the expression was resolved
   Element _resolveIndexExpression(IndexExpression node,
       [List<Element> definedElements]) {
     _resolveNode(node, definedElements);
     return node.staticElement;
   }
 
-  /**
-   * Return the element associated with the given identifier after the resolver has resolved the
-   * identifier.
-   *
-   * @param node the expression to be resolved
-   * @param definedElements the elements that are to be defined in the scope in which the element is
-   *          being resolved
-   * @return the element to which the expression was resolved
-   */
+  /// Return the element associated with the given identifier after the resolver
+  /// has resolved the identifier.
+  ///
+  /// @param node the expression to be resolved
+  /// @param definedElements the elements that are to be defined in the scope in
+  ///          which the element is being resolved
+  /// @return the element to which the expression was resolved
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     Scope outerScope = _visitor.nameScope;
     try {
-      EnclosedScope innerScope = EnclosedScope(outerScope);
+      var innerScope = LocalScope(outerScope);
       if (definedElements != null) {
         for (Element element in definedElements) {
-          innerScope.define(element);
+          innerScope.add(element);
         }
       }
       _visitor.nameScope = innerScope;
@@ -1095,14 +1075,13 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     }
   }
 
-  /**
-   * Return the element associated with the label of the given statement after the resolver has
-   * resolved the statement.
-   *
-   * @param statement the statement to be resolved
-   * @param labelElement the label element to be defined in the statement's label scope
-   * @return the element to which the statement's label was resolved
-   */
+  /// Return the element associated with the label of the given statement after
+  /// the resolver has resolved the statement.
+  ///
+  /// @param statement the statement to be resolved
+  /// @param labelElement the label element to be defined in the statement's
+  ///          label scope
+  /// @return the element to which the statement's label was resolved
   void _resolveStatement(
       Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
     LabelScope outerScope = _visitor.labelScope;

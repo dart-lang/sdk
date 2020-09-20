@@ -120,4 +120,34 @@ class FakeFlutter {
 }
 ''');
   }
+
+  Future<void> test_endOfWidgetName() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return Container(
+      child: Text/*caret*/('aaa'),
+    );
+  }
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+class FakeFlutter {
+  main() {
+    return Container(
+      child: Column(
+        children: [
+          Text('aaa'),
+        ],
+      ),
+    );
+  }
+}
+''');
+  }
 }

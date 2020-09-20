@@ -33,6 +33,9 @@ abstract class Entity implements Spannable {
 abstract class LibraryEntity extends Entity {
   /// Return the canonical uri that identifies this library.
   Uri get canonicalUri;
+
+  /// Returns whether or not this library has opted into null safety.
+  bool get isNonNullableByDefault;
 }
 
 /// Stripped down super interface for import entities.

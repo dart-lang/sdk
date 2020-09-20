@@ -13,7 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddRequiredTest);
-    defineReflectiveTests(AddRequiredWithNNBDTest);
+    defineReflectiveTests(AddRequiredWithNullSafetyTest);
   });
 }
 
@@ -40,7 +40,7 @@ void function({@required String param}) {
 }
 
 @reflectiveTest
-class AddRequiredWithNNBDTest extends FixProcessorTest {
+class AddRequiredWithNullSafetyTest extends FixProcessorTest {
   @override
   List<String> get experiments => [EnableString.non_nullable];
 

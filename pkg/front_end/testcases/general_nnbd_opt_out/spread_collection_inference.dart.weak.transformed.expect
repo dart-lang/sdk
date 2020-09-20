@@ -76,15 +76,15 @@ library;
 //   Map<String, String> map61 = <String, String>{...mapSpread};
 //                                                   ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type 'Null'.
 //   List<int> lhs70 = <int>[...null];
 //                              ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type 'Null'.
 //   Set<int> set70 = <int>{...null};
 //                             ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:139:8: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:139:8: Error: Can't spread a value with static type 'Null'.
 //     ...null,
 //        ^
 //
@@ -92,7 +92,7 @@ library;
 //     ...null,
 //        ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type 'Null'.
 //   Map<String, int> map70 = <String, int>{...null};
 //                                             ^
 //
@@ -120,7 +120,7 @@ static method foo(dynamic dynVar) → dynamic {
     }
   } =>#t1;
   core::Set<dynamic>* set10 = block {
-    final core::Set<dynamic>* #t3 = col::LinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t3 = new col::_CompactLinkedHashSet::•<dynamic>();
     {
       core::Iterator<dynamic>* :sync-for-iterator = <dynamic>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -160,7 +160,7 @@ static method foo(dynamic dynVar) → dynamic {
     }
   } =>#t9;
   core::Set<core::int*>* set20 = block {
-    final core::Set<core::int*>* #t11 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t11 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -171,7 +171,7 @@ static method foo(dynamic dynVar) → dynamic {
     #t11.{core::Set::add}(42);
   } =>#t11;
   core::Set<core::int*>* set20ambiguous = block {
-    final core::Set<core::int*>* #t13 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t13 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -215,7 +215,7 @@ static method foo(dynamic dynVar) → dynamic {
     }
   } =>#t20;
   core::Set<dynamic>* set21 = block {
-    final core::Set<dynamic>* #t22 = col::LinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t22 = new col::_CompactLinkedHashSet::•<dynamic>();
     {
       core::Iterator<dynamic>* :sync-for-iterator = ((spread as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -251,7 +251,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t26;
   core::Set<core::int*>* set22 = block {
-    final core::Set<core::int*>* #t28 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t28 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -262,7 +262,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     #t28.{core::Set::add}(42);
   } =>#t28;
   core::Set<core::int*>* set22ambiguous = block {
-    final core::Set<core::int*>* #t30 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t30 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = <core::int*>[].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -295,7 +295,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t35;
   core::Set<core::List<core::int*>*>* set23 = block {
-    final core::Set<core::List<core::int*>*>* #t37 = col::LinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t37 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
     {
       core::Iterator<core::List<core::int*>*>* :sync-for-iterator = <core::List<core::int*>*>[<core::int*>[]].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -306,7 +306,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     #t37.{core::Set::add}(<core::int*>[42]);
   } =>#t37;
   core::Set<core::List<core::int*>*>* set23ambiguous = block {
-    final core::Set<core::List<core::int*>*>* #t39 = col::LinkedHashSet::•<core::List<core::int*>*>();
+    final core::Set<core::List<core::int*>*>* #t39 = new col::_CompactLinkedHashSet::•<core::List<core::int*>*>();
     {
       core::Iterator<core::List<core::int*>*>* :sync-for-iterator = <core::List<core::int*>*>[<core::int*>[]].{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -348,7 +348,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
  - 'Set' is from 'dart:core'.
   int set30 = /*@ typeArgs=int* */ {...spread, 42};
                                    ^" in ( block {
-    final core::Set<core::int*>* #t48 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t48 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -362,7 +362,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
  - 'Set' is from 'dart:core'.
       {...spread};
       ^" in ( block {
-    final core::Set<core::int*>* #t51 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t51 = new col::_CompactLinkedHashSet::•<core::int*>();
     {
       core::Iterator<core::int*>* :sync-for-iterator = spread.{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
@@ -404,7 +404,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<dynamic>* lhs40 = <dynamic>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:113:38: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs40 = <dynamic>[...notSpreadInt];
                                      ^"];
-  core::Set<dynamic>* set40 = let final core::Set<dynamic>* #t60 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t61 = #t60.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:115:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
+  core::Set<dynamic>* set40 = let final core::Set<dynamic>* #t60 = new col::_CompactLinkedHashSet::•<dynamic>() in let final core::bool #t61 = #t60.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:115:37: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set40 = <dynamic>{...notSpreadInt};
                                     ^") in #t60;
   core::Map<dynamic, dynamic>* map40 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:117:55: Error: Unexpected type 'int' of a map spread entry.  Expected 'dynamic' or a Map.
@@ -413,7 +413,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<dynamic>* lhs50 = <dynamic>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:119:38: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
   List<dynamic> lhs50 = <dynamic>[...notSpreadFunction];
                                      ^"];
-  core::Set<dynamic>* set50 = let final core::Set<dynamic>* #t62 = col::LinkedHashSet::•<dynamic>() in let final core::bool #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:121:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
+  core::Set<dynamic>* set50 = let final core::Set<dynamic>* #t62 = new col::_CompactLinkedHashSet::•<dynamic>() in let final core::bool #t63 = #t62.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:121:37: Error: Unexpected type 'int Function()' of a spread.  Expected 'dynamic' or an Iterable.
   Set<dynamic> set50 = <dynamic>{...notSpreadFunction};
                                     ^") in #t62;
   core::Map<dynamic, dynamic>* map50 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:123:55: Error: Unexpected type 'int Function()' of a map spread entry.  Expected 'dynamic' or a Map.
@@ -422,7 +422,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::String*>* lhs60 = <core::String*>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:125:36: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   List<String> lhs60 = <String>[...spread];
                                    ^"];
-  core::Set<core::String*>* set60 = let final core::Set<core::String*>* #t64 = col::LinkedHashSet::•<core::String*>() in let final core::bool #t65 = #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:127:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
+  core::Set<core::String*>* set60 = let final core::Set<core::String*>* #t64 = new col::_CompactLinkedHashSet::•<core::String*>() in let final core::bool #t65 = #t64.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:127:35: Error: Can't assign spread elements of type 'int' to collection elements of type 'String'.
   Set<String> set60 = <String>{...spread};
                                   ^") in #t64;
   core::Map<core::int*, core::int*>* map60 = <core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:129:39: Error: Can't assign spread entry keys of type 'String' to map entry keys of type 'int'.
@@ -431,14 +431,14 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::String*>* map61 = <core::String*, core::String*>{null: invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:131:51: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
   Map<String, String> map61 = <String, String>{...mapSpread};
                                                   ^"};
-  core::List<core::int*>* lhs70 = <core::int*>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type Null.
+  core::List<core::int*>* lhs70 = <core::int*>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type 'Null'.
   List<int> lhs70 = <int>[...null];
                              ^"];
-  core::Set<core::int*>* set70 = let final core::Set<core::int*>* #t66 = col::LinkedHashSet::•<core::int*>() in let final core::bool #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type Null.
+  core::Set<core::int*>* set70 = let final core::Set<core::int*>* #t66 = new col::_CompactLinkedHashSet::•<core::int*>() in let final core::bool #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type 'Null'.
   Set<int> set70 = <int>{...null};
                             ^") in #t66;
   core::Set<dynamic>* set71ambiguous = block {
-    final core::Set<dynamic>* #t68 = col::LinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t68 = new col::_CompactLinkedHashSet::•<dynamic>();
     #t68.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:139:8: Error: Expected ',' before this.
     ...null,
        ^");
@@ -453,7 +453,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       }
     }
   } =>#t68;
-  core::Map<core::String*, core::int*>* map70 = <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type Null.
+  core::Map<core::String*, core::int*>* map70 = <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type 'Null'.
   Map<String, int> map70 = <String, int>{...null};
                                             ^": null};
   core::List<core::int*>* lhs80 = block {
@@ -468,7 +468,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t71;
   core::Set<core::int*>* set80 = block {
-    final core::Set<core::int*>* #t74 = col::LinkedHashSet::•<core::int*>();
+    final core::Set<core::int*>* #t74 = new col::_CompactLinkedHashSet::•<core::int*>();
     final core::Iterable<core::int*>* #t75 = null;
     if(!#t75.{core::Object::==}(null)) {
       core::Iterator<core::int*>* :sync-for-iterator = #t75.{core::Iterable::iterator};
@@ -479,7 +479,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
     }
   } =>#t74;
   core::Set<dynamic>* set81ambiguous = block {
-    final core::Set<dynamic>* #t77 = col::LinkedHashSet::•<dynamic>();
+    final core::Set<dynamic>* #t77 = new col::_CompactLinkedHashSet::•<dynamic>();
     final core::Iterable<dynamic>* #t78 = null;
     if(!#t78.{core::Object::==}(null)) {
       core::Iterator<dynamic>* :sync-for-iterator = #t78.{core::Iterable::iterator};

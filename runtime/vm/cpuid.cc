@@ -81,11 +81,11 @@ void CpuId::Cleanup() {
 }
 
 const char* CpuId::id_string() {
-  return strdup(id_string_);
+  return Utils::StrDup(id_string_);
 }
 
 const char* CpuId::brand_string() {
-  return strdup(brand_string_);
+  return Utils::StrDup(brand_string_);
 }
 
 const char* CpuId::field(CpuInfoIndices idx) {
@@ -115,7 +115,7 @@ const char* CpuId::field(CpuInfoIndices idx) {
       }
       // Remove last space before returning string.
       if (p != buffer) *(p - 1) = '\0';
-      return strdup(buffer);
+      return Utils::StrDup(buffer);
     }
     default: {
       UNREACHABLE();

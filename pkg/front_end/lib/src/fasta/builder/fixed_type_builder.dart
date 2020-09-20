@@ -11,8 +11,10 @@ import 'type_builder.dart';
 
 class FixedTypeBuilder extends TypeBuilder {
   final DartType type;
+  final Uri fileUri;
+  final int charOffset;
 
-  const FixedTypeBuilder(this.type);
+  const FixedTypeBuilder(this.type, this.fileUri, this.charOffset);
 
   TypeBuilder clone(List<TypeBuilder> newTypes) => this;
 
@@ -22,6 +24,8 @@ class FixedTypeBuilder extends TypeBuilder {
       new NullabilityBuilder.fromNullability(type.nullability);
 
   String get debugName => 'FixedTypeBuilder';
+
+  bool get isVoidType => type is VoidType;
 
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write('type=${type}');

@@ -9,14 +9,11 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/field_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
 
 class InstanceRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<InstanceRefElement>('instance-ref',
-      dependencies: const [CurlyBlockElement.tag]);
-
   RenderingScheduler<InstanceRefElement> _r;
 
   Stream<RenderedEvent<InstanceRefElement>> get onRendered => _r.onRendered;
@@ -46,7 +43,7 @@ class InstanceRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  InstanceRefElement.created() : super.created(tag);
+  InstanceRefElement.created() : super.created('instance-ref');
 
   @override
   void attached() {

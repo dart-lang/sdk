@@ -168,6 +168,14 @@ class Snapshot {
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };
 
+inline static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
+                                        Snapshot::Kind isolate_kind) {
+  if (vm_kind == isolate_kind) return true;
+  if (vm_kind == Snapshot::kFull && isolate_kind == Snapshot::kFullJIT)
+    return true;
+  return Snapshot::IsFull(isolate_kind);
+}
+
 class BaseReader {
  public:
   BaseReader(const uint8_t* buffer, intptr_t size) : stream_(buffer, size) {}
@@ -615,7 +623,8 @@ class SnapshotWriter : public BaseWriter {
 
   void WriteStaticImplicitClosure(intptr_t object_id,
                                   FunctionPtr func,
-                                  intptr_t tags);
+                                  intptr_t tags,
+                                  TypeArgumentsPtr delayed_type_arguments);
 
  protected:
   bool CheckAndWritePredefinedObject(ObjectPtr raw);
@@ -660,7 +669,6 @@ class SnapshotWriter : public BaseWriter {
 
   friend class ArrayLayout;
   friend class ClassLayout;
-  friend class ClosureDataLayout;
   friend class CodeLayout;
   friend class ContextScopeLayout;
   friend class DynamicLibraryLayout;

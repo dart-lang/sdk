@@ -701,6 +701,7 @@ final Matcher isFlutterWidgetPropertyValueEnumItem = LazyMatcher(() =>
 ///
 /// enum {
 ///   ANNOTATIONS
+///   BLOCK
 ///   CLASS_BODY
 ///   DIRECTIVES
 ///   DOCUMENTATION_COMMENT
@@ -711,6 +712,7 @@ final Matcher isFlutterWidgetPropertyValueEnumItem = LazyMatcher(() =>
 /// }
 final Matcher isFoldingKind = MatchesEnum('FoldingKind', [
   'ANNOTATIONS',
+  'BLOCK',
   'CLASS_BODY',
   'DIRECTIVES',
   'DOCUMENTATION_COMMENT',
@@ -1117,6 +1119,8 @@ final Matcher isNavigationRegion = LazyMatcher(() => MatchesJsonObject(
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "codeOffset": optional int
+///   "codeLength": optional int
 /// }
 final Matcher isNavigationTarget =
     LazyMatcher(() => MatchesJsonObject('NavigationTarget', {
@@ -1126,6 +1130,9 @@ final Matcher isNavigationTarget =
           'length': isInt,
           'startLine': isInt,
           'startColumn': isInt
+        }, optionalFields: {
+          'codeOffset': isInt,
+          'codeLength': isInt
         }));
 
 /// Occurrences
@@ -2202,6 +2209,22 @@ final Matcher isDiagnosticGetServerPortParams = isNull;
 /// }
 final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
     MatchesJsonObject('diagnostic.getServerPort result', {'port': isInt}));
+
+/// edit.bulkFixes params
+///
+/// {
+///   "included": List<FilePath>
+/// }
+final Matcher isEditBulkFixesParams = LazyMatcher(() => MatchesJsonObject(
+    'edit.bulkFixes params', {'included': isListOf(isFilePath)}));
+
+/// edit.bulkFixes result
+///
+/// {
+///   "edits": List<SourceFileEdit>
+/// }
+final Matcher isEditBulkFixesResult = LazyMatcher(() => MatchesJsonObject(
+    'edit.bulkFixes result', {'edits': isListOf(isSourceFileEdit)}));
 
 /// edit.dartfix params
 ///

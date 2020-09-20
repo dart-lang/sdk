@@ -169,6 +169,26 @@ class MergeVisitor implements DartTypeVisitor1<DartType, DartType> {
   }
 
   @override
+  DartType visitFutureOrType(FutureOrType a, DartType b) {
+    if (b is FutureOrType) {
+      Nullability nullability = mergeNullability(a.nullability, b.nullability);
+      if (nullability != null) {
+        return mergeFutureOrTypes(a, b, nullability);
+      }
+    }
+    return null;
+  }
+
+  DartType mergeFutureOrTypes(
+      FutureOrType a, FutureOrType b, Nullability nullability) {
+    DartType newTypeArgument = a.typeArgument.accept1(this, b.typeArgument);
+    if (newTypeArgument == null) {
+      return null;
+    }
+    return new FutureOrType(newTypeArgument, nullability);
+  }
+
+  @override
   DartType visitDynamicType(DynamicType a, DartType b) {
     if (b is DynamicType) {
       return a;

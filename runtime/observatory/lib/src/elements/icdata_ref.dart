@@ -6,12 +6,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, ICDataRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ICDataRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ICDataRefElement>('icdata-ref');
-
   RenderingScheduler<ICDataRefElement> _r;
 
   Stream<RenderedEvent<ICDataRefElement>> get onRendered => _r.onRendered;
@@ -33,7 +31,7 @@ class ICDataRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ICDataRefElement.created() : super.created(tag);
+  ICDataRefElement.created() : super.created('icdata-ref');
 
   @override
   void attached() {

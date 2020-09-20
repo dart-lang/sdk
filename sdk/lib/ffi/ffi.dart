@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-// @dart = 2.6
-
 /**
  * Foreign Function Interface for interoperability with the C programming language.
  *
@@ -15,8 +13,8 @@
  */
 library dart.ffi;
 
-import 'dart:typed_data';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 part "native_type.dart";
 part "annotations.dart";
@@ -30,7 +28,7 @@ external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
 /// a pointer with address 0.
-final Pointer<Null> nullptr = Pointer.fromAddress(0);
+final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma("vm:entry-point")
@@ -56,7 +54,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]);
+      [Object? exceptionalReturn]);
 
   /// Access to the raw pointer value.
   /// On 32-bit systems, the upper 32-bits of the result are 0.
@@ -69,9 +67,10 @@ class Pointer<T extends NativeType> extends NativeType {
   external Pointer<U> cast<U extends NativeType>();
 
   /// Equality for Pointers only depends on their address.
-  bool operator ==(other) {
-    if (other == null) return false;
-    return address == other.address;
+  bool operator ==(Object other) {
+    if (other is! Pointer) return false;
+    Pointer otherPointer = other;
+    return address == otherPointer.address;
   }
 
   /// The hash code for a Pointer only depends on its address.
@@ -563,8 +562,19 @@ class Dart_CObject extends Struct {}
 
 typedef Dart_NativeMessageHandler = Void Function(Int64, Pointer<Dart_CObject>);
 
-/// Exposes function pointers to functions in `dart_native_api.h`.
+/// Utilities for accessing the Dart VM API from Dart code or
+/// from C code via `dart_api_dl.h`.
 abstract class NativeApi {
+  /// On breaking changes the major version is increased.
+  ///
+  /// The versioning covers the API surface in `dart_api_dl.h`.
+  external static int get majorVersion;
+
+  /// On backwards compatible changes the minor version is increased.
+  ///
+  /// The versioning covers the API surface in `dart_api_dl.h`.
+  external static int get minorVersion;
+
   /// A function pointer to
   /// `bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message)`
   /// in `dart_native_api.h`.
@@ -591,4 +601,8 @@ abstract class NativeApi {
   /// in `dart_native_api.h`.
   external static Pointer<NativeFunction<Int8 Function(Int64)>>
       get closeNativePort;
+
+  /// Pass this to `Dart_InitializeApiDL` in your native code to enable using the
+  /// symbols in `dart_api_dl.h`.
+  external static Pointer<Void> get initializeApiDLData;
 }

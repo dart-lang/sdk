@@ -1132,7 +1132,6 @@ void Assembler::StoreInternalPointer(Register object,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kWord);
 }
 
@@ -1405,19 +1404,23 @@ void Assembler::EnterSafepoint(Register state) {
 
 void Assembler::TransitionGeneratedToNative(Register destination,
                                             Register new_exit_frame,
-                                            Register state,
+                                            Register new_exit_through_ffi,
                                             bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   StoreToOffset(new_exit_frame, THR,
                 target::Thread::top_exit_frame_info_offset());
 
+  StoreToOffset(new_exit_through_ffi, THR,
+                target::Thread::exit_through_ffi_offset());
+  Register tmp = new_exit_through_ffi;
+
   // Mark that the thread is executing native code.
   StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
-  LoadImmediate(state, target::Thread::native_execution_state());
-  StoreToOffset(state, THR, target::Thread::execution_state_offset());
+  LoadImmediate(tmp, target::Thread::native_execution_state());
+  StoreToOffset(tmp, THR, target::Thread::execution_state_offset());
 
   if (enter_safepoint) {
-    EnterSafepoint(state);
+    EnterSafepoint(tmp);
   }
 }
 
@@ -1476,11 +1479,13 @@ void Assembler::TransitionNativeToGenerated(Register state,
   LoadImmediate(state, target::Thread::generated_execution_state());
   StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
-  // Reset exit frame information in Isolate structure.
+  // Reset exit frame information in Isolate's mutator thread structure.
   StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
+  LoadImmediate(state, 0);
+  StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
   Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
@@ -1505,19 +1510,30 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
     Push(reg);
   }
 
-  ReserveAlignedFrameSpace(frame_size);
+  if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
+    ReserveAlignedFrameSpace(frame_size);
+  } else {
+    PushPair(kCallLeafRuntimeCalleeSaveScratch1,
+             kCallLeafRuntimeCalleeSaveScratch2);
+  }
 }
 
-void Assembler::LeaveCallRuntimeFrame() {
+void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
+  const intptr_t fixed_frame_words_without_pc_and_fp =
+      target::frame_layout.dart_fixed_frame_size - 2;
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * target::kWordSize +
-      kDartVolatileFpuRegCount * target::kWordSize +
-      (target::frame_layout.dart_fixed_frame_size - 2) *
-          target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
+      kDartVolatileFpuRegCount * sizeof(double) +
+      (kDartVolatileCpuRegCount + (is_leaf ? 2 : 0) +
+       fixed_frame_words_without_pc_and_fp) *
+          target::kWordSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
+  if (is_leaf) {
+    PopPair(kCallLeafRuntimeCalleeSaveScratch1,
+            kCallLeafRuntimeCalleeSaveScratch2);
+  }
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
     Pop(reg);
@@ -1542,12 +1558,52 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
+void Assembler::CallRuntimeScope::Call(intptr_t argument_count) {
+  assembler_->CallRuntime(entry_, argument_count);
+}
+
+Assembler::CallRuntimeScope::~CallRuntimeScope() {
+  if (preserve_registers_) {
+    assembler_->LeaveCallRuntimeFrame(entry_.is_leaf());
+    if (restore_code_reg_) {
+      assembler_->Pop(CODE_REG);
+    }
+  }
+}
+
+Assembler::CallRuntimeScope::CallRuntimeScope(Assembler* assembler,
+                                              const RuntimeEntry& entry,
+                                              intptr_t frame_size,
+                                              bool preserve_registers,
+                                              const Address* caller)
+    : assembler_(assembler),
+      entry_(entry),
+      preserve_registers_(preserve_registers),
+      restore_code_reg_(caller != nullptr) {
+  if (preserve_registers_) {
+    if (caller != nullptr) {
+      assembler_->Push(CODE_REG);
+      assembler_->ldr(CODE_REG, *caller);
+    }
+    assembler_->EnterCallRuntimeFrame(frame_size, entry.is_leaf());
+  }
+}
+
 void Assembler::EnterStubFrame() {
   EnterDartFrame(0);
 }
 
 void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
+}
+
+void Assembler::EnterCFrame(intptr_t frame_space) {
+  EnterFrame(0);
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+void Assembler::LeaveCFrame() {
+  LeaveFrame();
 }
 
 // R0 receiver, R5 ICData entries array

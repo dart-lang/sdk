@@ -49,10 +49,10 @@ void main() {
     // ignore: strong_mode_down_cast_composite
     process.stderr.transform(utf8.decoder).listen(print);
 
-    await new Future.delayed(new Duration(milliseconds: 500));
+    await Future.delayed(Duration(milliseconds: 500));
 
     // ignore: deprecated_member_use_from_same_package
-    serviceClient = await vmServiceConnect(host, port, log: new StdoutLog());
+    serviceClient = await vmServiceConnect(host, port, log: StdoutLog());
 
     print('socket connected');
 
@@ -164,8 +164,8 @@ Future testServiceRegistration() async {
   await serviceClient.registerService(serviceName, serviceAlias);
   VmService otherClient =
       // ignore: deprecated_member_use_from_same_package
-      await vmServiceConnect(host, port, log: new StdoutLog());
-  Completer completer = new Completer();
+      await vmServiceConnect(host, port, log: StdoutLog());
+  Completer completer = Completer();
   otherClient.onEvent('Service').listen((e) async {
     if (e.service == serviceName && e.kind == EventKind.kServiceRegistered) {
       assert(e.alias == serviceAlias);

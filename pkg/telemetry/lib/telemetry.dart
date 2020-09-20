@@ -179,8 +179,9 @@ bool isRunningOnBot() {
     return false;
   }
 
-  return env['BOT'] == 'true'
-      // https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+  return env.containsKey('BOT')
+      // https://docs.travis-ci.com/user/environment-variables/
+      // Example .travis.yml file: https://github.com/flutter/devtools/blob/master/.travis.yml
       ||
       env['TRAVIS'] == 'true' ||
       env['CONTINUOUS_INTEGRATION'] == 'true' ||

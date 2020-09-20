@@ -9,6 +9,7 @@
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/abi.h"
 #include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/recognized_method.h"
@@ -16,12 +17,14 @@
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/kernel_isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/longjump.h"
 #include "vm/native_entry.h"
 #include "vm/object_store.h"
 #include "vm/report.h"
 #include "vm/resolver.h"
+#include "vm/scopes.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -441,6 +444,8 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,
       Z, Library::LookupCoreClass(Symbols::LateInitializationError()));
   ASSERT(!klass.IsNull());
 
+  const auto& error = klass.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   const Function& throw_new =
       Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
                                   H.DartSymbolObfuscate("_throwNew")));
@@ -668,6 +673,8 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& klass = Class::ZoneHandle(
       Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
   ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& throw_function = Function::ZoneHandle(
       Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
   ASSERT(!throw_function.IsNull());
@@ -677,6 +684,11 @@ Fragment FlowGraphBuilder::ThrowNoSuchMethodError(const Function& target) {
   const Class& owner = Class::Handle(Z, target.Owner());
   AbstractType& receiver = AbstractType::ZoneHandle();
   InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
+  if (target.IsImplicitGetterFunction() || target.IsGetterFunction()) {
+    kind = InvocationMirror::kGetter;
+  } else if (target.IsImplicitSetterFunction() || target.IsSetterFunction()) {
+    kind = InvocationMirror::kSetter;
+  }
   InvocationMirror::Level level;
   if (owner.IsTopLevel()) {
     level = InvocationMirror::Level::kTopLevel;
@@ -783,6 +795,20 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -831,6 +857,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
+    case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kLinkedHashMap_getIndex:
     case MethodRecognizer::kLinkedHashMap_setIndex:
     case MethodRecognizer::kLinkedHashMap_getData:
@@ -843,6 +870,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kReachabilityFence:
+    case MethodRecognizer::kUtf8DecoderScan:
       return true;
     case MethodRecognizer::kAsyncStackTraceHelper:
       return !FLAG_causal_async_stacks;
@@ -929,6 +957,63 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += BuildTypedDataViewFactoryConstructor(
           function, kTypedDataFloat64x2ArrayViewCid);
       break;
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataUint8ClampedArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataFloat32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataFloat64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataFloat32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+      body +=
+          BuildTypedDataFactoryConstructor(function, kTypedDataInt32x4ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
+      body += BuildTypedDataFactoryConstructor(function,
+                                               kTypedDataFloat64x2ArrayCid);
+      break;
+
     case MethodRecognizer::kObjectEquals:
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1054,6 +1139,16 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += CreateArray();
       break;
+    case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
+      ASSERT(function.NumParameters() == 5);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));
+      body += LoadLocal(parsed_function_->RawParameterVariable(2));
+      body += LoadLocal(parsed_function_->RawParameterVariable(3));
+      body += LoadLocal(parsed_function_->RawParameterVariable(4));
+      body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid);
+      body += NullConstant();
+      break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1125,6 +1220,22 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kAsyncStackTraceHelper:
       ASSERT(!FLAG_causal_async_stacks);
       body += NullConstant();
+      break;
+    case MethodRecognizer::kUtf8DecoderScan:
+      ASSERT(function.NumParameters() == 5);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // decoder
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));  // bytes
+      body += LoadLocal(parsed_function_->RawParameterVariable(2));  // start
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedIntPtr);
+      body += LoadLocal(parsed_function_->RawParameterVariable(3));  // end
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedIntPtr);
+      body += LoadLocal(parsed_function_->RawParameterVariable(4));  // table
+      body += Utf8Scan();
+      body += Box(kUnboxedIntPtr);
       break;
     case MethodRecognizer::kReachabilityFence:
       ASSERT(function.NumParameters() == 1);
@@ -1404,6 +1515,23 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   return body;
 }
 
+Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
+    const Function& function,
+    classid_t cid) {
+  const auto token_pos = function.token_pos();
+  ASSERT(Thread::Current()->isolate()->class_table()->HasValidClassAt(cid));
+
+  ASSERT(function.IsFactory() && (function.NumParameters() == 2));
+  LocalVariable* length = parsed_function_->RawParameterVariable(1);
+
+  Fragment instructions;
+  instructions += LoadLocal(length);
+  // AllocateTypedData instruction checks that length is valid (a non-negative
+  // Smi below maximum allowed length).
+  instructions += AllocateTypedData(token_pos, cid);
+  return instructions;
+}
+
 static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if klass is _Closure, DeclarationType will be _Closure,
@@ -1516,6 +1644,8 @@ Fragment FlowGraphBuilder::EvaluateAssertion() {
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& target = Function::ZoneHandle(
       Z, klass.LookupStaticFunctionAllowPrivate(Symbols::EvaluateAssertion()));
   ASSERT(!target.IsNull());
@@ -1792,6 +1922,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
     const Function& function) {
   // This function is specialized for a receiver class, a method name, and
   // the arguments descriptor at a call site.
+  const ArgumentsDescriptor descriptor(saved_args_desc_array());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -1802,20 +1933,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   PrologueInfo prologue_info(-1, -1);
   BlockEntryInstr* instruction_cursor =
       BuildPrologue(normal_entry, &prologue_info);
-
-  // The backend will expect an array of default values for all the named
-  // parameters, even if they are all known to be passed at the call site
-  // because the call site matches the arguments descriptor.  Use null for
-  // the default values.
-  const Array& descriptor_array =
-      Array::ZoneHandle(Z, function.saved_args_desc());
-  ArgumentsDescriptor descriptor(descriptor_array);
-  ZoneGrowableArray<const Instance*>* default_values =
-      new ZoneGrowableArray<const Instance*>(Z, descriptor.NamedCount());
-  for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
-    default_values->Add(&Object::null_instance());
-  }
-  parsed_function_->set_default_parameter_values(default_values);
 
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
@@ -1829,7 +1946,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   body += Constant(String::ZoneHandle(Z, function.name()));
 
   // Second, the arguments descriptor.
-  body += Constant(descriptor_array);
+  body += Constant(saved_args_desc_array());
 
   // Third, an array containing the original arguments.  Create it and fill
   // it in.
@@ -1869,6 +1986,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
+  const auto& error = mirror_class.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& allocation_function = Function::ZoneHandle(
       Z, mirror_class.LookupStaticFunction(
              Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
@@ -1898,12 +2017,434 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
                            prologue_info);
 }
 
+// Information used by the various dynamic closure call fragment builders.
+struct FlowGraphBuilder::ClosureCallInfo {
+  ClosureCallInfo(LocalVariable* closure,
+                  JoinEntryInstr* throw_no_such_method,
+                  const Array& arguments_descriptor_array,
+                  ParsedFunction::DynamicClosureCallVars* const vars)
+      : closure(ASSERT_NOTNULL(closure)),
+        throw_no_such_method(ASSERT_NOTNULL(throw_no_such_method)),
+        descriptor(arguments_descriptor_array),
+        vars(ASSERT_NOTNULL(vars)) {}
+
+  LocalVariable* const closure;
+  JoinEntryInstr* const throw_no_such_method;
+  const ArgumentsDescriptor descriptor;
+  ParsedFunction::DynamicClosureCallVars* const vars;
+
+  // Set up by BuildDynamicCallChecks() when needed. These values are
+  // read-only, so they don't need real local variables and are created
+  // using MakeTemporary().
+  LocalVariable* function = nullptr;
+  LocalVariable* num_fixed_params = nullptr;
+  LocalVariable* num_opt_params = nullptr;
+  LocalVariable* num_max_params = nullptr;
+  LocalVariable* has_named_params = nullptr;
+  LocalVariable* parameter_names = nullptr;
+  LocalVariable* type_parameters = nullptr;
+};
+
+Fragment FlowGraphBuilder::TestClosureFunctionNamedParameterRequired(
+    const ClosureCallInfo& info,
+    Fragment set,
+    Fragment not_set) {
+  // Required named arguments only exist if null_safety is enabled.
+  if (!I->null_safety()) return not_set;
+
+  Fragment check_required;
+  // First, we convert the index to be in terms of the number of optional
+  // parameters, not total parameters (to calculate the flag index and shift).
+  check_required += LoadLocal(info.vars->current_param_index);
+  check_required += LoadLocal(info.num_fixed_params);
+  check_required += SmiBinaryOp(Token::kSUB, /*is_truncating=*/true);
+  LocalVariable* opt_index = MakeTemporary("opt_index");  // Read-only.
+
+  // Next, we calculate the index to dereference in the parameter names array.
+  check_required += LoadLocal(opt_index);
+  check_required +=
+      IntConstant(compiler::target::kNumParameterFlagsPerElementLog2);
+  check_required += SmiBinaryOp(Token::kSHR);
+  check_required += LoadLocal(info.num_max_params);
+  check_required += SmiBinaryOp(Token::kADD);
+  LocalVariable* flags_index = MakeTemporary("flags_index");  // Read-only.
+
+  // Two read-only stack values (opt_index, flag_index) that must be dropped
+  // after we rejoin at after_check.
+  JoinEntryInstr* after_check = BuildJoinEntry();
+
+  // Now we check to see if the flags index is within the bounds of the
+  // parameters names array. If not, it cannot be required.
+  check_required += LoadLocal(flags_index);
+  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadNativeField(Slot::Array_length());
+  check_required += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr *valid_index, *invalid_index;
+  check_required += BranchIfTrue(&valid_index, &invalid_index);
+
+  JoinEntryInstr* join_not_set = BuildJoinEntry();
+
+  Fragment(invalid_index) + Goto(join_not_set);
+
+  // Otherwise, we need to retrieve the value. We're guaranteed the Smis in
+  // the flag slots are non-null, so after loading we can immediate check
+  // the required flag bit for the given named parameter.
+  check_required.current = valid_index;
+  check_required += LoadLocal(info.parameter_names);
+  check_required += LoadLocal(flags_index);
+  check_required += LoadIndexed(compiler::target::kWordSize);
+  check_required += LoadLocal(opt_index);
+  check_required +=
+      IntConstant(compiler::target::kNumParameterFlagsPerElement - 1);
+  check_required += SmiBinaryOp(Token::kBIT_AND);
+  // If the below changes, we'll need to multiply by the number of parameter
+  // flags before shifting.
+  static_assert(compiler::target::kNumParameterFlags == 1,
+                "IL builder assumes only one flag bit per parameter");
+  check_required += SmiBinaryOp(Token::kSHR);
+  check_required +=
+      IntConstant(1 << compiler::target::kRequiredNamedParameterFlag);
+  check_required += SmiBinaryOp(Token::kBIT_AND);
+  check_required += IntConstant(0);
+  TargetEntryInstr *is_not_set, *is_set;
+  check_required += BranchIfEqual(&is_not_set, &is_set);
+
+  Fragment(is_not_set) + Goto(join_not_set);
+
+  set.Prepend(is_set);
+  set += Goto(after_check);
+
+  not_set.Prepend(join_not_set);
+  not_set += Goto(after_check);
+
+  // After rejoining, drop the introduced temporaries.
+  check_required.current = after_check;
+  check_required += DropTemporary(&flags_index);
+  check_required += DropTemporary(&opt_index);
+  return check_required;
+}
+
+Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
+    const ClosureCallInfo& info) {
+  // When no named arguments are provided, we just need to check for possible
+  // required named arguments.
+  if (info.descriptor.NamedCount() == 0) {
+    // No work to do if there are no possible required named parameters.
+    if (!I->null_safety()) {
+      return Fragment();
+    }
+    // If the below changes, we can no longer assume that flag slots existing
+    // means there are required parameters.
+    static_assert(compiler::target::kNumParameterFlags == 1,
+                  "IL builder assumes only one flag bit per parameter");
+    // No named args were provided, so check for any required named params.
+    // Here, we assume that the only parameter flag saved is the required bit
+    // for named parameters. If this changes, we'll need to check each flag
+    // entry appropriately for any set required bits.
+    Fragment has_any;
+    has_any += LoadLocal(info.num_max_params);
+    has_any += LoadLocal(info.parameter_names);
+    has_any += LoadNativeField(Slot::Array_length());
+    TargetEntryInstr *no_required, *has_required;
+    has_any += BranchIfEqual(&no_required, &has_required);
+
+    Fragment(has_required) + Goto(info.throw_no_such_method);
+
+    return Fragment(has_any.entry, no_required);
+  }
+
+  // Otherwise, we need to loop through the parameter names to check the names
+  // of named arguments for validity (and possibly missing required ones).
+  Fragment check_names;
+  check_names += LoadLocal(info.vars->current_param_index);
+  LocalVariable* old_index = MakeTemporary("old_index");  // Read-only.
+  check_names += LoadLocal(info.vars->current_num_processed);
+  LocalVariable* old_processed = MakeTemporary("old_processed");  // Read-only.
+
+  // Two local stack values (old_index, old_processed) to drop after rejoining
+  // at done.
+  JoinEntryInstr* loop = BuildJoinEntry();
+  JoinEntryInstr* done = BuildJoinEntry();
+
+  check_names += IntConstant(0);
+  check_names += StoreLocal(info.vars->current_num_processed);
+  check_names += Drop();
+  check_names += LoadLocal(info.num_fixed_params);
+  check_names += StoreLocal(info.vars->current_param_index);
+  check_names += Drop();
+  check_names += Goto(loop);
+
+  Fragment loop_check(loop);
+  loop_check += LoadLocal(info.vars->current_param_index);
+  loop_check += LoadLocal(info.num_max_params);
+  loop_check += SmiRelationalOp(Token::kLT);
+  TargetEntryInstr *no_more, *more;
+  loop_check += BranchIfTrue(&more, &no_more);
+
+  Fragment(no_more) + Goto(done);
+
+  Fragment loop_body(more);
+  // First load the name we need to check against.
+  loop_body += LoadLocal(info.parameter_names);
+  loop_body += LoadLocal(info.vars->current_param_index);
+  loop_body += LoadIndexed(compiler::target::kWordSize);
+  LocalVariable* param_name = MakeTemporary("param_name");  // Read only.
+
+  // One additional local value on the stack within the loop body (param_name)
+  // that should be dropped after rejoining at loop_incr.
+  JoinEntryInstr* loop_incr = BuildJoinEntry();
+
+  // Now iterate over the ArgumentsDescriptor names and check for a match.
+  for (intptr_t i = 0; i < info.descriptor.NamedCount(); i++) {
+    const auto& name = String::ZoneHandle(Z, info.descriptor.NameAt(i));
+    loop_body += Constant(name);
+    loop_body += LoadLocal(param_name);
+    TargetEntryInstr *match, *mismatch;
+    loop_body += BranchIfEqual(&match, &mismatch);
+    loop_body.current = mismatch;
+
+    // We have a match, so go to the next name after incrementing the number
+    // of matched arguments. (No need to check for the required bit, as this
+    // parameter was provided.)
+    Fragment matched(match);
+    matched += LoadLocal(info.vars->current_num_processed);
+    matched += IntConstant(1);
+    matched += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
+    matched += StoreLocal(info.vars->current_num_processed);
+    matched += Drop();
+    matched += Goto(loop_incr);
+  }
+
+  // None of the names in the arguments descriptor matched, so check if this
+  // is a required parameter.
+  loop_body += TestClosureFunctionNamedParameterRequired(
+      info,
+      /*set=*/Goto(info.throw_no_such_method),
+      /*not_set=*/{});
+
+  loop_body += Goto(loop_incr);
+
+  Fragment incr_index(loop_incr);
+  incr_index += DropTemporary(&param_name);
+  incr_index += LoadLocal(info.vars->current_param_index);
+  incr_index += IntConstant(1);
+  incr_index += SmiBinaryOp(Token::kADD, /*is_truncating=*/true);
+  incr_index += StoreLocal(info.vars->current_param_index);
+  incr_index += Drop();
+  incr_index += Goto(loop);
+
+  Fragment check_processed(done);
+  check_processed += LoadLocal(info.vars->current_num_processed);
+  check_processed += IntConstant(info.descriptor.NamedCount());
+  TargetEntryInstr *all_processed, *bad_name;
+  check_processed += BranchIfEqual(&all_processed, &bad_name);
+
+  // Didn't find a matching parameter name for at least one argument name.
+  Fragment(bad_name) + Goto(info.throw_no_such_method);
+
+  // Drop the temporaries at the end of the fragment.
+  check_names.current = all_processed;
+  check_names += LoadLocal(old_processed);
+  check_names += StoreLocal(info.vars->current_num_processed);
+  check_names += Drop();
+  check_names += DropTemporary(&old_processed);
+  check_names += LoadLocal(old_index);
+  check_names += StoreLocal(info.vars->current_param_index);
+  check_names += Drop();
+  check_names += DropTemporary(&old_index);
+  return check_names;
+}
+
+Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
+    const ClosureCallInfo& info) {
+  Fragment check_entry;
+  // We only need to check the length of any explicitly provided type arguments.
+  if (info.descriptor.TypeArgsLen() > 0) {
+    Fragment check_type_args_length;
+    check_type_args_length += LoadLocal(info.type_parameters);
+    TargetEntryInstr *null, *not_null;
+    check_type_args_length += BranchIfNull(&null, &not_null);
+    check_type_args_length.current = not_null;  // Continue in non-error case.
+    check_type_args_length += LoadLocal(info.type_parameters);
+    check_type_args_length += LoadNativeField(Slot::TypeArguments_length());
+    check_type_args_length += IntConstant(info.descriptor.TypeArgsLen());
+    TargetEntryInstr *equal, *not_equal;
+    check_type_args_length += BranchIfEqual(&equal, &not_equal);
+    check_type_args_length.current = equal;  // Continue in non-error case.
+
+    // The function is not generic.
+    Fragment(null) + Goto(info.throw_no_such_method);
+
+    // An incorrect number of type arguments were passed.
+    Fragment(not_equal) + Goto(info.throw_no_such_method);
+
+    // Type arguments should not be provided if there are delayed type
+    // arguments, as then the closure itself is not generic.
+    check_entry += TestDelayedTypeArgs(
+        info.closure, /*present=*/Goto(info.throw_no_such_method),
+        /*absent=*/check_type_args_length);
+  }
+
+  check_entry += LoadLocal(info.has_named_params);
+  TargetEntryInstr *has_named, *has_positional;
+  check_entry += BranchIfTrue(&has_named, &has_positional);
+  JoinEntryInstr* join_after_optional = BuildJoinEntry();
+  check_entry.current = join_after_optional;
+
+  if (info.descriptor.NamedCount() > 0) {
+    // No reason to continue checking, as this function doesn't take named args.
+    Fragment(has_positional) + Goto(info.throw_no_such_method);
+  } else {
+    Fragment check_pos(has_positional);
+    check_pos += LoadLocal(info.num_fixed_params);
+    check_pos += IntConstant(info.descriptor.PositionalCount());
+    check_pos += SmiRelationalOp(Token::kLTE);
+    TargetEntryInstr *enough, *too_few;
+    check_pos += BranchIfTrue(&enough, &too_few);
+    check_pos.current = enough;
+
+    Fragment(too_few) + Goto(info.throw_no_such_method);
+
+    check_pos += IntConstant(info.descriptor.PositionalCount());
+    check_pos += LoadLocal(info.num_max_params);
+    check_pos += SmiRelationalOp(Token::kLTE);
+    TargetEntryInstr *valid, *too_many;
+    check_pos += BranchIfTrue(&valid, &too_many);
+    check_pos.current = valid;
+
+    Fragment(too_many) + Goto(info.throw_no_such_method);
+
+    check_pos += Goto(join_after_optional);
+  }
+
+  Fragment check_named(has_named);
+
+  TargetEntryInstr *same, *different;
+  check_named += LoadLocal(info.num_fixed_params);
+  check_named += IntConstant(info.descriptor.PositionalCount());
+  check_named += BranchIfEqual(&same, &different);
+  check_named.current = same;
+
+  Fragment(different) + Goto(info.throw_no_such_method);
+
+  if (info.descriptor.NamedCount() > 0) {
+    check_named += IntConstant(info.descriptor.NamedCount());
+    check_named += LoadLocal(info.num_opt_params);
+    check_named += SmiRelationalOp(Token::kLTE);
+    TargetEntryInstr *valid, *too_many;
+    check_named += BranchIfTrue(&valid, &too_many);
+    check_named.current = valid;
+
+    Fragment(too_many) + Goto(info.throw_no_such_method);
+  }
+
+  // Check the names for optional arguments. If applicable, also check that all
+  // required named parameters are provided.
+  check_named += BuildClosureCallNamedArgumentsCheck(info);
+  check_named += Goto(join_after_optional);
+
+  check_entry.current = join_after_optional;
+  return check_entry;
+}
+
+Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
+    LocalVariable* closure) {
+  ClosureCallInfo info(closure, BuildThrowNoSuchMethod(),
+                       saved_args_desc_array(),
+                       parsed_function_->dynamic_closure_call_vars());
+
+  // We extract all the packed fields here so code generation that puts unboxed
+  // integers on the expression stack even in unoptimized code is in one place.
+  auto const rep = Slot::Function_packed_fields().representation();
+
+  Fragment body;
+  body += LoadLocal(info.closure);
+  body += LoadNativeField(Slot::Closure_function());
+  info.function = MakeTemporary("function");
+
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_packed_fields());
+  body +=
+      BuildExtractPackedFieldIntoSmi<Function::PackedNumFixedParameters>(rep);
+  info.num_fixed_params = MakeTemporary("num_fixed_params");
+
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_packed_fields());
+  body += BuildExtractPackedFieldIntoSmi<Function::PackedNumOptionalParameters>(
+      rep);
+  info.num_opt_params = MakeTemporary("num_opt_params");
+
+  body += LoadLocal(info.num_fixed_params);
+  body += LoadLocal(info.num_opt_params);
+  body += SmiBinaryOp(Token::kADD);
+  info.num_max_params = MakeTemporary("num_max_params");
+
+  body += LoadLocal(info.function);
+  body += LoadNativeField(Slot::Function_packed_fields());
+  body += BuildExtractPackedFieldIntoSmi<
+      Function::PackedHasNamedOptionalParameters>(rep);
+  body += IntConstant(0);
+  body += StrictCompare(Token::kNE_STRICT);
+  info.has_named_params = MakeTemporary("has_named_params");
+
+  if (I->null_safety() || info.descriptor.NamedCount() > 0) {
+    body += LoadLocal(info.function);
+    body += LoadNativeField(Slot::Function_parameter_names());
+    info.parameter_names = MakeTemporary("parameter_names");
+  }
+
+  if (info.descriptor.TypeArgsLen() > 0) {
+    body += LoadLocal(info.function);
+    body += LoadNativeField(Slot::Function_type_parameters());
+    info.type_parameters = MakeTemporary("type_parameters");
+  }
+
+  // Check that the shape of the arguments generally matches what the
+  // closure function expects. The only remaining non-type check after this
+  // is that the names for optional arguments are valid.
+  body += BuildClosureCallArgumentsValidCheck(info);
+
+  // TODO(dartbug.com/40813): Move checks that are currently compiled
+  // in the closure body to here, using the dynamic versions of
+  // AssertSubtype to typecheck the type arguments using the runtime types
+  // available in the closure object.
+
+  // TODO(dartbug.com/40813): Move checks that are currently compiled
+  // in the closure body to here, using the dynamic versions of
+  // AssertAssignable to typecheck the parameters using the runtime types
+  // available in the closure object.
+
+  // Drop all the read-only temporaries at the end of the fragment.
+  if (info.type_parameters != nullptr) {
+    body += DropTemporary(&info.type_parameters);
+  }
+  if (info.parameter_names != nullptr) {
+    body += DropTemporary(&info.parameter_names);
+  }
+  body += DropTemporary(&info.has_named_params);
+  body += DropTemporary(&info.num_max_params);
+  body += DropTemporary(&info.num_opt_params);
+  body += DropTemporary(&info.num_fixed_params);
+  body += DropTemporary(&info.function);
+
+  return body;
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     const Function& function) {
+  const ArgumentsDescriptor descriptor(saved_args_desc_array());
   // Find the name of the field we should dispatch to.
   const Class& owner = Class::Handle(Z, function.Owner());
   ASSERT(!owner.IsNull());
-  const String& field_name = String::Handle(Z, function.name());
+  auto& field_name = String::Handle(Z, function.name());
+  // If the field name has a dyn: tag, then remove it. We don't add dynamic
+  // invocation forwarders for field getters used for invoking, we just use
+  // the tag in the name of the invoke field dispatcher to detect dynamic calls.
+  const bool is_dynamic_call =
+      Function::IsDynamicInvocationForwarderName(field_name);
+  if (is_dynamic_call) {
+    field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
+  }
   const String& getter_name = String::ZoneHandle(
       Z, Symbols::New(thread_,
                       String::Handle(Z, Field::GetterSymbol(field_name))));
@@ -1913,27 +2454,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       Class::Handle(Z, I->object_store()->closure_class());
   const bool is_closure_call = (owner.raw() == closure_class.raw()) &&
                                field_name.Equals(Symbols::Call());
-
-  // Set default parameters & construct argument names array.
-  //
-  // The backend will expect an array of default values for all the named
-  // parameters, even if they are all known to be passed at the call site
-  // because the call site matches the arguments descriptor.  Use null for
-  // the default values.
-  const Array& descriptor_array =
-      Array::ZoneHandle(Z, function.saved_args_desc());
-  ArgumentsDescriptor descriptor(descriptor_array);
-  const Array& argument_names =
-      Array::ZoneHandle(Z, Array::New(descriptor.NamedCount(), Heap::kOld));
-  ZoneGrowableArray<const Instance*>* default_values =
-      new ZoneGrowableArray<const Instance*>(Z, descriptor.NamedCount());
-  String& string_handle = String::Handle(Z);
-  for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
-    default_values->Add(&Object::null_instance());
-    string_handle = descriptor.NameAt(i);
-    argument_names.SetAt(i, string_handle);
-  }
-  parsed_function_->set_default_parameter_values(default_values);
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -1948,16 +2468,29 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
+  // Build any dynamic closure call checks before pushing arguments to the
+  // final call on the stack to make debugging easier.
+  LocalVariable* closure = nullptr;
+  if (is_closure_call) {
+    closure = parsed_function_->ParameterVariable(0);
+    if (is_dynamic_call) {
+      // The whole reason for making this invoke field dispatcher is that
+      // this closure call needs checking, so we shouldn't inline a call to an
+      // unchecked entry that can't tail call NSM.
+      InlineBailout(
+          "kernel::FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher");
+
+      body += BuildDynamicClosureCallChecks(closure);
+    }
+  }
+
   if (descriptor.TypeArgsLen() > 0) {
     LocalVariable* type_args = parsed_function_->function_type_arguments();
-    ASSERT(type_args != NULL);
+    ASSERT(type_args != nullptr);
     body += LoadLocal(type_args);
   }
 
-  LocalVariable* closure = NULL;
   if (is_closure_call) {
-    closure = parsed_function_->ParameterVariable(0);
-
     // The closure itself is the first argument.
     body += LoadLocal(closure);
   } else {
@@ -1970,9 +2503,21 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
   }
 
   // Push all arguments onto the stack.
-  intptr_t pos = 1;
-  for (; pos < descriptor.Count(); pos++) {
+  for (intptr_t pos = 1; pos < descriptor.Count(); pos++) {
     body += LoadLocal(parsed_function_->ParameterVariable(pos));
+  }
+
+  // Construct argument names array if necessary.
+  const Array* argument_names = &Object::null_array();
+  if (descriptor.NamedCount() > 0) {
+    const auto& array_handle =
+        Array::ZoneHandle(Z, Array::New(descriptor.NamedCount(), Heap::kNew));
+    String& string_handle = String::Handle(Z);
+    for (intptr_t i = 0; i < descriptor.NamedCount(); ++i) {
+      string_handle = descriptor.NameAt(i);
+      array_handle.SetAt(i, string_handle);
+    }
+    argument_names = &array_handle;
   }
 
   if (is_closure_call) {
@@ -1981,12 +2526,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += LoadNativeField(Slot::Closure_function());
 
     body += ClosureCall(TokenPosition::kNoSource, descriptor.TypeArgsLen(),
-                        descriptor.Count(), argument_names);
+                        descriptor.Count(), *argument_names);
   } else {
     const intptr_t kNumArgsChecked = 1;
-    body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),
-                         Token::kILLEGAL, descriptor.TypeArgsLen(),
-                         descriptor.Count(), argument_names, kNumArgsChecked);
+    body +=
+        InstanceCall(TokenPosition::kMinSource,
+                     is_dynamic_call ? Symbols::DynamicCall() : Symbols::Call(),
+                     Token::kILLEGAL, descriptor.TypeArgsLen(),
+                     descriptor.Count(), *argument_names, kNumArgsChecked);
   }
 
   body += Return(TokenPosition::kNoSource);
@@ -2019,19 +2566,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     if (parsed_function_->has_arg_desc_var()) {
       body += LoadArgDescriptor();
       body += LoadNativeField(Slot::ArgumentsDescriptor_size());
-      body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(Slot::GetContextVariableSlotFor(
-          thread_, *parsed_function_->receiver_var()));
-      body += StoreFpRelativeSlot(
-          kWordSize * compiler::target::frame_layout.param_end_from_fp);
     } else {
-      body += LoadLocal(parsed_function_->current_context_var());
-      body += LoadNativeField(Slot::GetContextVariableSlotFor(
-          thread_, *parsed_function_->receiver_var()));
-      body += StoreFpRelativeSlot(
-          kWordSize * (compiler::target::frame_layout.param_end_from_fp +
-                       function.NumParameters()));
+      ASSERT(function.NumOptionalParameters() == 0);
+      body += IntConstant(function.NumParameters());
     }
+    body += LoadLocal(parsed_function_->current_context_var());
+    body += LoadNativeField(Slot::GetContextVariableSlotFor(
+        thread_, *parsed_function_->receiver_var()));
+    body += StoreFpRelativeSlot(
+        kWordSize * compiler::target::frame_layout.param_end_from_fp);
   }
 
   if (function.NeedsArgumentTypeChecks()) {
@@ -2225,6 +2768,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   const Class& mirror_class =
       Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
   ASSERT(!mirror_class.IsNull());
+  const auto& error = mirror_class.EnsureIsFinalized(H.thread());
+  ASSERT(error == Error::null());
   const Function& allocation_function = Function::ZoneHandle(
       Z, mirror_class.LookupStaticFunction(Library::PrivateCoreLibName(
              Symbols::AllocateInvocationMirrorForClosure())));
@@ -2236,6 +2781,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     const Class& klass = Class::ZoneHandle(
         Z, Library::LookupCoreClass(Symbols::NoSuchMethodError()));
     ASSERT(!klass.IsNull());
+    const auto& error = klass.EnsureIsFinalized(H.thread());
+    ASSERT(error == Error::null());
     const Function& throw_function = Function::ZoneHandle(
         Z,
         klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNewInvocation()));
@@ -2368,17 +2915,7 @@ FunctionEntryInstr* FlowGraphBuilder::BuildSeparateUncheckedEntryPoint(
 FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
   const Function& parent = Function::ZoneHandle(Z, function.parent_function());
-  const String& func_name = String::ZoneHandle(Z, parent.name());
-  const Class& owner = Class::ZoneHandle(Z, parent.Owner());
-  Function& target = Function::ZoneHandle(Z, owner.LookupFunction(func_name));
-
-  if (!target.IsNull() && (target.raw() != parent.raw())) {
-    DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());
-    if ((target.is_static() != parent.is_static()) ||
-        (target.kind() != parent.kind())) {
-      target = Function::null();
-    }
-  }
+  Function& target = Function::ZoneHandle(Z, function.ImplicitClosureTarget(Z));
 
   if (target.IsNull() ||
       (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
@@ -2508,17 +3045,18 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   // type and then invokes original setter we simply generate the type check
   // and inlined field store. Scope builder takes care of setting correct
   // type check mode in this case.
-  const bool is_setter = function.IsDynamicInvocationForwarder() ||
-                         function.IsImplicitSetterFunction();
-  const bool is_method = !function.IsStaticFunction();
+  const auto& target = Function::Handle(
+      Z, function.IsDynamicInvocationForwarder() ? function.ForwardingTarget()
+                                                 : function.raw());
+  ASSERT(target.IsImplicitGetterOrSetter());
 
-  Field& field = Field::ZoneHandle(Z);
-  if (function.IsDynamicInvocationForwarder()) {
-    Function& target = Function::Handle(function.ForwardingTarget());
-    field = target.accessor_field();
-  } else {
-    field = function.accessor_field();
-  }
+  const bool is_method = !function.IsStaticFunction();
+  const bool is_setter = target.IsImplicitSetterFunction();
+  const bool is_getter = target.IsImplicitGetterFunction() ||
+                         target.IsImplicitStaticGetterFunction();
+  ASSERT(is_setter || is_getter);
+
+  const auto& field = Field::ZoneHandle(Z, target.accessor_field());
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -2528,21 +3066,24 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
 
   Fragment body(normal_entry);
   if (is_setter) {
-    LocalVariable* setter_value =
+    auto const setter_value =
         parsed_function_->ParameterVariable(is_method ? 1 : 0);
-
-    // We only expect to generate a dynamic invocation forwarder if
-    // the value needs type check.
-    ASSERT(!function.IsDynamicInvocationForwarder() ||
-           setter_value->needs_type_check());
     if (is_method) {
       body += LoadLocal(parsed_function_->ParameterVariable(0));
     }
     body += LoadLocal(setter_value);
-    if (setter_value->needs_type_check()) {
+
+    // The dyn:* forwarder has to check the parameters that the
+    // actual target will not check.
+    // Though here we manually inline the target, so the dyn:* forwarder has to
+    // check all parameters.
+    const bool needs_type_check = function.IsDynamicInvocationForwarder() ||
+                                  setter_value->needs_type_check();
+    if (needs_type_check) {
       body += CheckAssignable(setter_value->type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck);
     }
+    body += BuildNullAssertions();
     if (field.is_late()) {
       if (is_method) {
         body += Drop();
@@ -2560,7 +3101,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
       }
     }
     body += NullConstant();
-  } else if (is_method) {
+  } else if (is_getter && is_method) {
     ASSERT(!field.needs_load_guard()
                 NOT_IN_PRODUCT(|| I->HasAttemptedReload()));
     body += LoadLocal(parsed_function_->ParameterVariable(0));
@@ -2609,14 +3150,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     const Function& function) {
   auto& name = String::Handle(Z, function.name());
   name = Function::DemangleDynamicInvocationForwarderName(name);
-  const auto& owner = Class::Handle(Z, function.Owner());
-  const auto& target =
-      Function::ZoneHandle(Z, owner.LookupDynamicFunction(name));
+  const auto& target = Function::ZoneHandle(Z, function.ForwardingTarget());
   ASSERT(!target.IsNull());
-  ASSERT(!target.IsImplicitGetterFunction());
 
-  if (target.IsImplicitSetterFunction()) {
+  if (target.IsImplicitSetterFunction() || target.IsImplicitGetterFunction()) {
     return BuildGraphOfFieldAccessor(function);
+  }
+  if (target.IsMethodExtractor()) {
+    return BuildGraphOfMethodExtractor(target);
   }
 
   graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, osr_id_);
@@ -2699,6 +3240,109 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
                            prologue_info);
 }
 
+void FlowGraphBuilder::SetConstantRangeOfCurrentDefinition(
+    const Fragment& fragment,
+    int64_t min,
+    int64_t max) {
+  ASSERT(fragment.current->IsDefinition());
+  Range range(RangeBoundary::FromConstant(min),
+              RangeBoundary::FromConstant(max));
+  fragment.current->AsDefinition()->set_range(range);
+}
+
+Fragment FlowGraphBuilder::EnterHandleScope() {
+  auto* instr = new (Z)
+      EnterHandleScopeInstr(EnterHandleScopeInstr::Kind::kEnterHandleScope);
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment FlowGraphBuilder::GetTopHandleScope() {
+  auto* instr = new (Z)
+      EnterHandleScopeInstr(EnterHandleScopeInstr::Kind::kGetTopHandleScope);
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment FlowGraphBuilder::ExitHandleScope() {
+  auto* instr = new (Z) ExitHandleScopeInstr();
+  return Fragment(instr);
+}
+
+Fragment FlowGraphBuilder::AllocateHandle(LocalVariable* api_local_scope) {
+  Fragment code;
+  if (api_local_scope != nullptr) {
+    // Use the reference the scope we created in the trampoline.
+    code += LoadLocal(api_local_scope);
+  } else {
+    // Or get a reference to the top handle scope.
+    code += GetTopHandleScope();
+  }
+  Value* api_local_scope_value = Pop();
+  auto* instr = new (Z) AllocateHandleInstr(api_local_scope_value);
+  Push(instr);
+  code <<= instr;
+  return code;
+}
+
+Fragment FlowGraphBuilder::RawStoreField(int32_t offset) {
+  Fragment code;
+  Value* value = Pop();
+  Value* base = Pop();
+  auto* instr = new (Z) RawStoreFieldInstr(base, value, offset);
+  code <<= instr;
+  return code;
+}
+
+Fragment FlowGraphBuilder::WrapHandle(LocalVariable* api_local_scope) {
+  Fragment code;
+  LocalVariable* object = MakeTemporary();
+  code += AllocateHandle(api_local_scope);
+
+  code += LoadLocal(MakeTemporary());  // Duplicate handle pointer.
+  code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
+  code += LoadLocal(object);
+  code += RawStoreField(compiler::target::LocalHandle::raw_offset());
+
+  code += DropTempsPreserveTop(1);  // Drop object below handle.
+  return code;
+}
+
+Fragment FlowGraphBuilder::UnwrapHandle() {
+  Fragment code;
+  code += ConvertUnboxedToUntagged(kUnboxedIntPtr);
+  code += IntConstant(compiler::target::LocalHandle::raw_offset());
+  code += UnboxTruncate(kUnboxedIntPtr);
+  code += LoadIndexedTypedData(kArrayCid, /*index_scale=*/1,
+                               /*index_unboxed=*/true);
+  return code;
+}
+
+Fragment FlowGraphBuilder::UnhandledException() {
+  const auto class_table = thread_->isolate()->class_table();
+  ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
+  const auto& klass =
+      Class::ZoneHandle(H.zone(), class_table->At(kUnhandledExceptionCid));
+  ASSERT(!klass.IsNull());
+  Fragment body;
+  body += AllocateObject(TokenPosition::kNoSource, klass, 0);
+  LocalVariable* error_instance = MakeTemporary();
+
+  body += LoadLocal(error_instance);
+  body += LoadLocal(CurrentException());
+  body += StoreInstanceField(
+      TokenPosition::kNoSource, Slot::UnhandledException_exception(),
+      StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
+
+  body += LoadLocal(error_instance);
+  body += LoadLocal(CurrentStackTrace());
+  body += StoreInstanceField(
+      TokenPosition::kNoSource, Slot::UnhandledException_stacktrace(),
+      StoreInstanceFieldInstr::Kind::kInitializing, kNoStoreBarrier);
+
+  return body;
+}
+
 Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
   auto* unbox = UnboxInstr::Create(to, Pop(), DeoptId::kNone,
                                    Instruction::kNotSpeculative);
@@ -2760,6 +3404,8 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
     body += Box(kUnboxedFfiIntPtr);
     body += FfiPointerFromAddress(
         Type::CheckedHandle(Z, marshaller.CType(arg_index)));
+  } else if (marshaller.IsHandle(arg_index)) {
+    body += UnwrapHandle();
   } else if (marshaller.IsVoid(arg_index)) {
     body += Drop();
     body += NullConstant();
@@ -2776,18 +3422,16 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
 
 Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
     const compiler::ffi::BaseMarshaller& marshaller,
-    intptr_t arg_index) {
+    intptr_t arg_index,
+    LocalVariable* api_local_scope) {
   Fragment body;
-
-  // Check for 'null'.
-  // TODO(36780): Mention the param name instead of function name and reciever.
-  body += CheckNullOptimized(TokenPosition::kNoSource,
-                             String::ZoneHandle(Z, marshaller.function_name()));
 
   if (marshaller.IsPointer(arg_index)) {
     // This can only be Pointer, so it is always safe to LoadUntagged.
     body += LoadUntagged(compiler::target::Pointer::data_field_offset());
     body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+  } else if (marshaller.IsHandle(arg_index)) {
+    body += WrapHandle(api_local_scope);
   } else {
     body += UnboxTruncate(marshaller.RepInDart(arg_index));
   }
@@ -2824,19 +3468,55 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   BlockEntryInstr* instruction_cursor =
       BuildPrologue(normal_entry, &prologue_info);
 
-  Fragment body(instruction_cursor);
-  body += CheckStackOverflowInPrologue(function.token_pos());
+  Fragment function_body(instruction_cursor);
+  function_body += CheckStackOverflowInPrologue(function.token_pos());
 
   const auto& marshaller = *new (Z) compiler::ffi::CallMarshaller(Z, function);
 
+  const bool signature_contains_handles = marshaller.ContainsHandles();
+
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
-                          &body, &body, &body);
+                          &function_body, &function_body, &function_body);
+
+  // Null check arguments before we go into the try catch, so that we don't
+  // catch our own null errors.
+  const intptr_t num_args = marshaller.num_args();
+  for (intptr_t i = 0; i < num_args; i++) {
+    if (marshaller.IsHandle(i)) {
+      continue;
+    }
+    function_body += LoadLocal(
+        parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
+    // Check for 'null'.
+    // TODO(36780): Mention the param name instead of function reciever.
+    function_body +=
+        CheckNullOptimized(TokenPosition::kNoSource,
+                           String::ZoneHandle(Z, marshaller.function_name()));
+    function_body += StoreLocal(
+        TokenPosition::kNoSource,
+        parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
+    function_body += Drop();
+  }
+
+  Fragment body;
+  intptr_t try_handler_index = -1;
+  LocalVariable* api_local_scope = nullptr;
+  if (signature_contains_handles) {
+    // Wrap in Try catch to transition from Native to Generated on a throw from
+    // the dart_api.
+    try_handler_index = AllocateTryIndex();
+    body += TryCatch(try_handler_index);
+    ++try_depth_;
+
+    body += EnterHandleScope();
+    api_local_scope = MakeTemporary();
+  }
 
   // Unbox and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
     body += LoadLocal(
         parsed_function_->ParameterVariable(kFirstArgumentParameterOffset + i));
-    body += FfiConvertArgumentToNative(marshaller, i);
+    body += FfiConvertArgumentToNative(marshaller, i, api_local_scope);
   }
 
   // Push the function pointer, which is stored (as Pointer object) in the
@@ -2864,7 +3544,34 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 
   body += FfiConvertArgumentToDart(marshaller, compiler::ffi::kResultIndex);
 
+  if (signature_contains_handles) {
+    body += DropTempsPreserveTop(1);  // Drop api_local_scope.
+    body += ExitHandleScope();
+  }
+
   body += Return(TokenPosition::kNoSource);
+
+  if (signature_contains_handles) {
+    --try_depth_;
+  }
+
+  function_body += body;
+
+  if (signature_contains_handles) {
+    ++catch_depth_;
+    Fragment catch_body =
+        CatchBlockEntry(Array::empty_array(), try_handler_index,
+                        /*needs_stacktrace=*/true, /*is_synthesized=*/true);
+
+    // TODO(41984): If we want to pass in the handle scope, move it out
+    // of the try catch.
+    catch_body += ExitHandleScope();
+
+    catch_body += LoadLocal(CurrentException());
+    catch_body += LoadLocal(CurrentStackTrace());
+    catch_body += RethrowException(TokenPosition::kNoSource, try_handler_index);
+    --catch_depth_;
+  }
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
                            prologue_info);
@@ -2909,16 +3616,25 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
                      marshaller.num_args(), Array::empty_array(),
                      ICData::kNoRebind);
 
-  body += FfiConvertArgumentToNative(marshaller, compiler::ffi::kResultIndex);
+  if (marshaller.IsVoid(compiler::ffi::kResultIndex)) {
+    body += Drop();
+    body += IntConstant(0);
+  } else if (!marshaller.IsHandle(compiler::ffi::kResultIndex)) {
+    body +=
+        CheckNullOptimized(TokenPosition::kNoSource,
+                           String::ZoneHandle(Z, marshaller.function_name()));
+  }
+  body += FfiConvertArgumentToNative(marshaller, compiler::ffi::kResultIndex,
+                                     /*api_local_scope=*/nullptr);
   body += NativeReturn(marshaller);
 
   --try_depth_;
   function_body += body;
 
   ++catch_depth_;
-  Fragment catch_body =
-      CatchBlockEntry(Array::empty_array(), try_handler_index,
-                      /*needs_stacktrace=*/false, /*is_synthesized=*/true);
+  Fragment catch_body = CatchBlockEntry(Array::empty_array(), try_handler_index,
+                                        /*needs_stacktrace=*/false,
+                                        /*is_synthesized=*/true);
 
   // Return the "exceptional return" value given in 'fromFunction'.
   //
@@ -2929,11 +3645,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     catch_body += IntConstant(0);
     catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
+  } else if (marshaller.IsHandle(compiler::ffi::kResultIndex)) {
+    catch_body += UnhandledException();
+    catch_body += FfiConvertArgumentToNative(
+        marshaller, compiler::ffi::kResultIndex, /*api_local_scope=*/nullptr);
   } else {
     catch_body += Constant(
         Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
-    catch_body +=
-        FfiConvertArgumentToNative(marshaller, compiler::ffi::kResultIndex);
+    catch_body += FfiConvertArgumentToNative(
+        marshaller, compiler::ffi::kResultIndex, /*api_local_scope=*/nullptr);
   }
 
   catch_body += NativeReturn(marshaller);
@@ -2948,6 +3668,84 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
   try_catch_block_ = try_catch_block;
   SetCurrentTryIndex(try_catch_block == nullptr ? kInvalidTryIndex
                                                 : try_catch_block->try_index());
+}
+
+bool FlowGraphBuilder::NeedsNullAssertion(const AbstractType& type) {
+  if (!type.IsNonNullable()) {
+    return false;
+  }
+  if (type.IsTypeParameter()) {
+    return NeedsNullAssertion(
+        AbstractType::Handle(Z, TypeParameter::Cast(type).bound()));
+  }
+  if (type.IsFutureOrType()) {
+    return NeedsNullAssertion(AbstractType::Handle(Z, type.UnwrapFutureOr()));
+  }
+  return true;
+}
+
+Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
+  Fragment code;
+  if (!NeedsNullAssertion(variable->type())) {
+    return code;
+  }
+
+  TargetEntryInstr* then;
+  TargetEntryInstr* otherwise;
+
+  code += LoadLocal(variable);
+  code += NullConstant();
+  code += BranchIfEqual(&then, &otherwise);
+
+  if (throw_new_null_assertion_ == nullptr) {
+    const Class& klass = Class::ZoneHandle(
+        Z, Library::LookupCoreClass(Symbols::AssertionError()));
+    ASSERT(!klass.IsNull());
+    const auto& error = klass.EnsureIsFinalized(H.thread());
+    ASSERT(error == Error::null());
+    throw_new_null_assertion_ =
+        &Function::ZoneHandle(Z, klass.LookupStaticFunctionAllowPrivate(
+                                     Symbols::ThrowNewNullAssertion()));
+    ASSERT(!throw_new_null_assertion_->IsNull());
+  }
+
+  const Script& script =
+      Script::Handle(Z, parsed_function_->function().script());
+  intptr_t line = -1;
+  intptr_t column = -1;
+  script.GetTokenLocation(variable->token_pos(), &line, &column);
+
+  // Build equivalent of `throw _AssertionError._throwNewNullAssertion(name)`
+  // expression. We build throw (even through _throwNewNullAssertion already
+  // throws) because call is not a valid last instruction for the block.
+  // Blocks can only terminate with explicit control flow instructions
+  // (Branch, Goto, Return or Throw).
+  Fragment null_code(then);
+  null_code += Constant(variable->name());
+  null_code += IntConstant(line);
+  null_code += IntConstant(column);
+  null_code += StaticCall(variable->token_pos(), *throw_new_null_assertion_, 3,
+                          ICData::kStatic);
+  null_code += ThrowException(TokenPosition::kNoSource);
+  null_code += Drop();
+
+  return Fragment(code.entry, otherwise);
+}
+
+Fragment FlowGraphBuilder::BuildNullAssertions() {
+  Fragment code;
+  if (I->null_safety() || !I->asserts() || !FLAG_null_assertions) {
+    return code;
+  }
+
+  const Function& dart_function = parsed_function_->function();
+  for (intptr_t i = dart_function.NumImplicitParameters(),
+                n = dart_function.NumParameters();
+       i < n; ++i) {
+    LocalVariable* variable = parsed_function_->ParameterVariable(i);
+    code += NullAssertion(variable);
+  }
+  return code;
 }
 
 }  // namespace kernel

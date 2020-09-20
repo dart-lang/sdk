@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
-class OverrideVerifier extends RecursiveAstVisitor {
+class OverrideVerifier extends RecursiveAstVisitor<void> {
   /// The inheritance manager used to find overridden methods.
   final InheritanceManager3 _inheritance;
 
@@ -30,14 +30,14 @@ class OverrideVerifier extends RecursiveAstVisitor {
       : _libraryUri = library.source.uri;
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     _currentClass = node.declaredElement;
     super.visitClassDeclaration(node);
     _currentClass = null;
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
       FieldElement fieldElement = field.declaredElement;
       if (fieldElement.hasOverride) {
@@ -56,7 +56,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement element = node.declaredElement;
     if (element.hasOverride && !_isOverride(element)) {
       if (element is MethodElement) {
@@ -81,7 +81,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     _currentClass = node.declaredElement;
     super.visitMixinDeclaration(node);
     _currentClass = null;

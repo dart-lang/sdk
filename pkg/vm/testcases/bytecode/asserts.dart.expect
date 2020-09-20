@@ -11,7 +11,7 @@ Class '', script = '#lib'
 
 
 Function 'test1', static, reflectable, debuggable
-    parameters [dart:core::bool 'condition'] (required: 1)
+    parameters [dart:core::bool* 'condition'] (required: 1)
     return-type void
 
 Bytecode {
@@ -37,7 +37,7 @@ ConstantPool {
 
 
 Function 'test2', static, reflectable, debuggable
-    parameters [FunctionType () -> dart:core::bool 'condition', FunctionType () -> dart:core::String 'message'] (required: 2)
+    parameters [FunctionType ()* -> dart:core::bool* 'condition', FunctionType ()* -> dart:core::String* 'message'] (required: 2)
     return-type void
 
 Bytecode {
@@ -90,7 +90,7 @@ ConstantPool {
     assert(condition);
   }
   static method test2(() →* dart.core::bool* condition, () →* dart.core::String* message) → void {
-    assert([@vm.call-site-attributes.metadata=receiverType:FunctionType(bool* Function()*)] condition.call(), [@vm.call-site-attributes.metadata=receiverType:FunctionType(String* Function()*)] message.call());
+    assert([@vm.call-site-attributes.metadata=receiverType:dart.core::bool* Function()*] condition.call(), [@vm.call-site-attributes.metadata=receiverType:dart.core::String* Function()*] message.call());
   }
   static method main() → dynamic {}
 }

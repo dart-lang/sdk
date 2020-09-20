@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  constructor •(core::int initializedField1) → self::A
+    ;
+  external get fieldWithInitializer() → core::int;
+  external set fieldWithInitializer(core::int #t1) → void;
+  external get initializedField1() → core::int;
+  external set initializedField1(core::int #t2) → void;
+  external get initializedField2() → core::int;
+  external set initializedField2(core::int #t3) → void;
+  external static get staticField() → core::int;
+  external static set staticField(core::int #t4) → void;
+  external static get finalStaticField() → core::int;
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  external static get staticField() → core::int;
+  external static set staticField(core::int #t5) → void;
+  external static get finalStaticField() → core::int;
+}
+extension Extension on self::A {
+  get extensionInstanceField = get self::Extension|extensionInstanceField;
+  set extensionInstanceField = set self::Extension|extensionInstanceField;
+  get finalExtensionInstanceField = get self::Extension|finalExtensionInstanceField;
+  static get extensionStaticField = get self::Extension|extensionStaticField;
+  static set extensionStaticField = set self::Extension|extensionStaticField;
+  static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
+}
+external static get topLevelField() → core::int;
+external static set topLevelField(core::int #t6) → void;
+external static get finalTopLevelField() → core::int;
+external static get constField() → core::int;
+external static set constField(core::int #t7) → void;
+external static get Extension|extensionInstanceField() → core::int;
+external static set Extension|extensionInstanceField(core::int #t8) → void;
+external static get Extension|finalExtensionInstanceField() → core::int;
+external static get Extension|extensionStaticField() → core::int;
+external static set Extension|extensionStaticField(core::int #t9) → void;
+external static get Extension|finalExtensionStaticField() → core::int;
+static method main() → dynamic
+  ;

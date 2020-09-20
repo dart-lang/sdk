@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message AKeep {}
+
+message NameManglingKeep {
+  // the name `clone` is mangled by the protoc_plugin to not conflict with
+  // `GeneratedMessage.clone`.
+  // Still we should be able to detect usages of this field.
+  AKeep clone = 10;
+}

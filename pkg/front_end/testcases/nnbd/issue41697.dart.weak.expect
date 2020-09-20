@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41697.dart:33:14: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+//     return s + 1; // error
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue41697.dart:36:22: Error: Operator '+' cannot be called on 'num?' because it is potentially null.
+//     return (await t) + 1; // error
+//                      ^
+//
+// pkg/front_end/testcases/nnbd/issue41697.dart:40:33: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+// test3<S extends num?>(S s) => s + 1; // error
+//                                 ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+typedef G<invariant T extends core::Object? = dynamic> = <S extends T% = dynamic>(S%) → dynamic;
+typedef H<invariant T extends core::Object? = dynamic> = <S extends FutureOr<T%> = dynamic>(S%, FutureOr<T%>) → dynamic;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field <S extends self::C::T% = dynamic>(S%) → dynamic field1;
+  generic-covariant-impl field <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2;
+  constructor •(<S extends self::C::T% = dynamic>(S%) → dynamic field1, <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2) → self::C<self::C::T%>
+    : self::C::field1 = field1, self::C::field2 = field2, super core::Object::•()
+    ;
+}
+static method test1(self::C<core::num> c) → dynamic {
+  <S extends core::num = core::num>(S) → core::num f1 = c.{self::C::field1} = <S extends core::num = core::num>(S s) → core::num {
+    return s.{core::num::+}(1);
+  };
+  <S extends FutureOr<core::num> = FutureOr<core::num>>(S, FutureOr<core::num>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num> = FutureOr<core::num>>(S s, FutureOr<core::num>t) → asy::Future<core::num> async {
+    return (await t).{core::num::+}(1);
+  };
+}
+static method test2(self::C<core::num?> c) → dynamic {
+  <S extends core::num? = core::num?>(S%) → core::num f1 = c.{self::C::field1} = <S extends core::num? = core::num?>(S% s) → core::num {
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41697.dart:33:14: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+    return s + 1; // error
+             ^" in s.{core::num::+}(1);
+  };
+  <S extends FutureOr<core::num?> = FutureOr<core::num?>>(S%, FutureOr<core::num?>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num?> = FutureOr<core::num?>>(S% s, FutureOr<core::num?>t) → asy::Future<core::num> async {
+    return let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41697.dart:36:22: Error: Operator '+' cannot be called on 'num?' because it is potentially null.
+    return (await t) + 1; // error
+                     ^" in (await t).{core::num::+}(1);
+  };
+}
+static method test3<S extends core::num? = core::num?>(self::test3::S% s) → dynamic
+  return let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/issue41697.dart:40:33: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+test3<S extends num?>(S s) => s + 1; // error
+                                ^" in s.{core::num::+}(1);
+static method main() → dynamic {}

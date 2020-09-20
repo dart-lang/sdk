@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → self::X*
+    : super core::Object::•()
+    ;
+  method _foo() → void async {
+    await null;
+    core::print("hello");
+  }
+  method foo() → void
+    return this.{self::X::_foo}();
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Y extends core::Object implements self::X {
+  synthetic constructor •() → self::Y*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* _) → void {
+    core::print("Hello from noSuchMethod");
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method _foo() → void
+    return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  no-such-method-forwarder method foo() → void
+    return this.{self::Y::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+}
+static method main() → dynamic {
+  self::Y* y = new self::Y::•();
+  y.{self::X::foo}();
+}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///no_such_method_forwarder.dart::_foo
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = #foo
+}

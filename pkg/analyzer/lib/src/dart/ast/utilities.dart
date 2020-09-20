@@ -22,49 +22,33 @@ export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 typedef ExceptionInDelegateHandler = void Function(
     AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
 
-/**
- * An AST visitor that will clone any AST structure that it visits. The cloner
- * will only clone the structure, it will not preserve any resolution results or
- * properties associated with the nodes.
- */
+/// An AST visitor that will clone any AST structure that it visits. The cloner
+/// will only clone the structure, it will not preserve any resolution results
+/// or properties associated with the nodes.
 class AstCloner implements AstVisitor<AstNode> {
-  /**
-   * A flag indicating whether tokens should be cloned while cloning an AST
-   * structure.
-   */
+  /// A flag indicating whether tokens should be cloned while cloning an AST
+  /// structure.
   final bool cloneTokens;
 
-  /**
-   * Mapping from original tokes to cloned.
-   */
+  /// Mapping from original tokes to cloned.
   final Map<Token, Token> _clonedTokens = Map<Token, Token>.identity();
 
-  /**
-   * The next original token to clone.
-   */
+  /// The next original token to clone.
   Token _nextToClone;
 
-  /**
-   * The last cloned token.
-   */
+  /// The last cloned token.
   Token _lastCloned;
 
-  /**
-   * The offset of the last cloned token.
-   */
+  /// The offset of the last cloned token.
   int _lastClonedOffset = -1;
 
-  /**
-   * Initialize a newly created AST cloner to optionally clone tokens while
-   * cloning AST nodes if [cloneTokens] is `true`.
-   *
-   * TODO(brianwilkerson) Change this to be a named parameter.
-   */
+  /// Initialize a newly created AST cloner to optionally clone tokens while
+  /// cloning AST nodes if [cloneTokens] is `true`.
+  ///
+  /// TODO(brianwilkerson) Change this to be a named parameter.
   AstCloner([this.cloneTokens = false]);
 
-  /**
-   * Return a clone of the given [node].
-   */
+  /// Return a clone of the given [node].
   E cloneNode<E extends AstNode>(E node) {
     if (node == null) {
       return null;
@@ -72,10 +56,8 @@ class AstCloner implements AstVisitor<AstNode> {
     return node.accept(this) as E;
   }
 
-  /**
-   * Return a list containing cloned versions of the nodes in the given list of
-   * [nodes].
-   */
+  /// Return a list containing cloned versions of the nodes in the given list of
+  /// [nodes].
   List<E> cloneNodeList<E extends AstNode>(List<E> nodes) {
     int count = nodes.length;
     List<E> clonedNodes = <E>[];
@@ -85,9 +67,7 @@ class AstCloner implements AstVisitor<AstNode> {
     return clonedNodes;
   }
 
-  /**
-   * Clone the given [token] if tokens are supposed to be cloned.
-   */
+  /// Clone the given [token] if tokens are supposed to be cloned.
   Token cloneToken(Token token) {
     if (cloneTokens) {
       if (token == null) {
@@ -104,9 +84,7 @@ class AstCloner implements AstVisitor<AstNode> {
     }
   }
 
-  /**
-   * Clone the given [tokens] if tokens are supposed to be cloned.
-   */
+  /// Clone the given [tokens] if tokens are supposed to be cloned.
   List<Token> cloneTokenList(List<Token> tokens) {
     if (cloneTokens) {
       return tokens.map(cloneToken).toList();
@@ -361,8 +339,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   DefaultFormalParameter visitDefaultFormalParameter(
-          DefaultFormalParameter node) =>
-      // ignore: deprecated_member_use_from_same_package
+          covariant DefaultFormalParameterImpl node) =>
       astFactory.defaultFormalParameter(cloneNode(node.parameter), node.kind,
           cloneToken(node.separator), cloneNode(node.defaultValue));
 
@@ -470,7 +447,9 @@ class AstCloner implements AstVisitor<AstNode> {
       astFactory.fieldDeclaration2(
           comment: cloneNode(node.documentationComment),
           metadata: cloneNodeList(node.metadata),
+          abstractKeyword: cloneToken(node.abstractKeyword),
           covariantKeyword: cloneToken(node.covariantKeyword),
+          externalKeyword: cloneToken(node.externalKeyword),
           staticKeyword: cloneToken(node.staticKeyword),
           fieldList: cloneNode(node.fields),
           semicolon: cloneToken(node.semicolon));
@@ -996,7 +975,8 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.documentationComment),
           cloneNodeList(node.metadata),
           cloneNode(node.variables),
-          cloneToken(node.semicolon));
+          cloneToken(node.semicolon),
+          externalKeyword: cloneToken(node.externalKeyword));
 
   @override
   TryStatement visitTryStatement(TryStatement node) => astFactory.tryStatement(
@@ -1076,15 +1056,13 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.expression),
           cloneToken(node.semicolon));
 
-  /**
-   * Clone all token starting from the given [token] up to a token that has
-   * offset greater then [stopAfter], and put mapping from originals to clones
-   * into [_clonedTokens].
-   *
-   * We cannot clone tokens as we visit nodes because not every token is a part
-   * of a node, E.g. commas in argument lists are not represented in AST. But
-   * we need to the sequence of tokens that is identical to the original one.
-   */
+  /// Clone all token starting from the given [token] up to a token that has
+  /// offset greater then [stopAfter], and put mapping from originals to clones
+  /// into [_clonedTokens].
+  ///
+  /// We cannot clone tokens as we visit nodes because not every token is a part
+  /// of a node, E.g. commas in argument lists are not represented in AST. But
+  /// we need to the sequence of tokens that is identical to the original one.
   void _cloneTokens(Token token, int stopAfter) {
     if (token == null) {
       return;
@@ -1121,73 +1099,55 @@ class AstCloner implements AstVisitor<AstNode> {
     }
   }
 
-  /**
-   * Return a clone of the given [node].
-   */
+  /// Return a clone of the given [node].
   static AstNode clone(AstNode node) {
     return node.accept(AstCloner());
   }
 }
 
-/**
- * An AstVisitor that compares the structure of two AstNodes to see whether they
- * are equal.
- */
+/// An AstVisitor that compares the structure of two AstNodes to see whether
+/// they are equal.
 class AstComparator implements AstVisitor<bool> {
-  /**
-   * The AST node with which the node being visited is to be compared. This is
-   * only valid at the beginning of each visit method (until [isEqualNodes] is
-   * invoked).
-   */
+  /// The AST node with which the node being visited is to be compared. This is
+  /// only valid at the beginning of each visit method (until [isEqualNodes] is
+  /// invoked).
   AstNode _other;
 
-  /**
-   * Notify that [first] and second have different length.
-   * This implementation returns `false`. Subclasses can override and throw.
-   */
+  /// Notify that [first] and second have different length.
+  /// This implementation returns `false`. Subclasses can override and throw.
   bool failDifferentLength(List first, List second) {
     return false;
   }
 
-  /**
-   * Check whether the values of the [first] and [second] nodes are [equal].
-   * Subclasses can override to throw.
-   */
+  /// Check whether the values of the [first] and [second] nodes are [equal].
+  /// Subclasses can override to throw.
   bool failIfNotEqual(
       AstNode first, Object firstValue, AstNode second, Object secondValue) {
     return firstValue == secondValue;
   }
 
-  /**
-   * Check whether [second] is null. Subclasses can override to throw.
-   */
+  /// Check whether [second] is null. Subclasses can override to throw.
   bool failIfNotNull(Object first, Object second) {
     return second == null;
   }
 
-  /**
-   * Notify that [first] is not `null` while [second] one is `null`.
-   * This implementation returns `false`. Subclasses can override and throw.
-   */
+  /// Notify that [first] is not `null` while [second] one is `null`.
+  /// This implementation returns `false`. Subclasses can override and throw.
   bool failIsNull(Object first, Object second) {
     return false;
   }
 
-  /**
-   * Notify that [first] and [second] have different types.
-   * This implementation returns `false`. Subclasses can override and throw.
-   */
+  /// Notify that [first] and [second] have different types.
+  /// This implementation returns `false`. Subclasses can override and throw.
   bool failRuntimeType(Object first, Object second) {
     return false;
   }
 
-  /**
-   * Return `true` if the [first] node and the [second] node have the same
-   * structure.
-   *
-   * *Note:* This method is only visible for testing purposes and should not be
-   * used by clients.
-   */
+  /// Return `true` if the [first] node and the [second] node have the same
+  /// structure.
+  ///
+  /// *Note:* This method is only visible for testing purposes and should not be
+  /// used by clients.
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first == null) {
       return failIfNotNull(first, second);
@@ -1200,13 +1160,11 @@ class AstComparator implements AstVisitor<bool> {
     return first.accept(this);
   }
 
-  /**
-   * Return `true` if the [first] token and the [second] token have the same
-   * structure.
-   *
-   * *Note:* This method is only visible for testing purposes and should not be
-   * used by clients.
-   */
+  /// Return `true` if the [first] token and the [second] token have the same
+  /// structure.
+  ///
+  /// *Note:* This method is only visible for testing purposes and should not be
+  /// used by clients.
   bool isEqualTokens(Token first, Token second) {
     if (first == null) {
       return failIfNotNull(first, second);
@@ -1218,10 +1176,8 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokensNotNull(first, second);
   }
 
-  /**
-   * Return `true` if the [first] token and the [second] token have the same
-   * structure.  Both [first] and [second] are not `null`.
-   */
+  /// Return `true` if the [first] token and the [second] token have the same
+  /// structure.  Both [first] and [second] are not `null`.
   bool isEqualTokensNotNull(Token first, Token second) =>
       first.offset == second.offset &&
       first.length == second.length &&
@@ -1492,10 +1448,9 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
-    DefaultFormalParameter other = _other as DefaultFormalParameter;
+  bool visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
+    var other = _other as DefaultFormalParameterImpl;
     return isEqualNodes(node.parameter, other.parameter) &&
-        // ignore: deprecated_member_use_from_same_package
         node.kind == other.kind &&
         isEqualTokens(node.separator, other.separator) &&
         isEqualNodes(node.defaultValue, other.defaultValue);
@@ -1621,8 +1576,10 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = _other as FieldDeclaration;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
+    return isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
+        isEqualTokens(node.covariantKeyword, other.covariantKeyword) &&
+        isEqualNodes(node.documentationComment, other.documentationComment) &&
+        isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.staticKeyword, other.staticKeyword) &&
         isEqualNodes(node.fields, other.fields) &&
@@ -2237,6 +2194,7 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.externalKeyword, other.externalKeyword) &&
         isEqualNodes(node.variables, other.variables) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2344,10 +2302,8 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.semicolon, other.semicolon);
   }
 
-  /**
-   * Return `true` if the [first] and [second] lists of AST nodes have the same
-   * size and corresponding elements are equal.
-   */
+  /// Return `true` if the [first] and [second] lists of AST nodes have the same
+  /// size and corresponding elements are equal.
   bool _isEqualNodeLists(NodeList first, NodeList second) {
     if (first == null) {
       return failIfNotNull(first, second);
@@ -2366,10 +2322,8 @@ class AstComparator implements AstVisitor<bool> {
     return true;
   }
 
-  /**
-   * Return `true` if the [first] and [second] lists of tokens have the same
-   * length and corresponding elements are equal.
-   */
+  /// Return `true` if the [first] and [second] lists of tokens have the same
+  /// length and corresponding elements are equal.
   bool _isEqualTokenLists(List<Token> first, List<Token> second) {
     int length = first.length;
     if (second.length != length) {
@@ -2383,33 +2337,25 @@ class AstComparator implements AstVisitor<bool> {
     return true;
   }
 
-  /**
-   * Return `true` if the [first] and [second] nodes are equal.
-   */
+  /// Return `true` if the [first] and [second] nodes are equal.
   static bool equalNodes(AstNode first, AstNode second) {
     AstComparator comparator = AstComparator();
     return comparator.isEqualNodes(first, second);
   }
 }
 
-/**
- * A recursive AST visitor that is used to run over [Expression]s to determine
- * whether the expression is composed by at least one deferred
- * [PrefixedIdentifier].
- *
- * See [PrefixedIdentifier.isDeferred].
- */
+/// A recursive AST visitor that is used to run over [Expression]s to determine
+/// whether the expression is composed by at least one deferred
+/// [PrefixedIdentifier].
+///
+/// See [PrefixedIdentifier.isDeferred].
 class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<void> {
-  /**
-   * A flag indicating whether an identifier from a deferred library has been
-   * found.
-   */
+  /// A flag indicating whether an identifier from a deferred library has been
+  /// found.
   bool _result = false;
 
-  /**
-   * Return `true` if the visitor found a [PrefixedIdentifier] that returned
-   * `true` to the [PrefixedIdentifier.isDeferred] query.
-   */
+  /// Return `true` if the visitor found a [PrefixedIdentifier] that returned
+  /// `true` to the [PrefixedIdentifier.isDeferred] query.
   bool get result => _result;
 
   @override
@@ -2422,24 +2368,18 @@ class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * A [DelegatingAstVisitor] that will additionally catch all exceptions from the
- * delegates without stopping the visiting. A function must be provided that
- * will be invoked for each such exception.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A [DelegatingAstVisitor] that will additionally catch all exceptions from
+/// the delegates without stopping the visiting. A function must be provided
+/// that will be invoked for each such exception.
+///
+/// Clients may not extend, implement or mix-in this class.
 class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
-  /**
-   * The function that will be executed for each exception that is thrown by one
-   * of the visit methods on the delegate.
-   */
+  /// The function that will be executed for each exception that is thrown by
+  /// one of the visit methods on the delegate.
   final ExceptionInDelegateHandler handler;
 
-  /**
-   * Initialize a newly created visitor to use each of the given delegate
-   * visitors to visit the nodes of an AST structure.
-   */
+  /// Initialize a newly created visitor to use each of the given delegate
+  /// visitors to visit the nodes of an AST structure.
   ExceptionHandlingDelegatingAstVisitor(
       Iterable<AstVisitor<T>> delegates, this.handler)
       : super(delegates) {
@@ -2461,10 +2401,8 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
     return null;
   }
 
-  /**
-   * A function that can be used with instances of this class to log and then
-   * ignore any exceptions that are thrown by any of the delegates.
-   */
+  /// A function that can be used with instances of this class to log and then
+  /// ignore any exceptions that are thrown by any of the delegates.
   static void logException(
       AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
     StringBuffer buffer = StringBuffer();
@@ -2486,49 +2424,35 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
   }
 }
 
-/**
- * An object used to locate the [AstNode] associated with a source range, given
- * the AST structure built from the source. More specifically, they will return
- * the [AstNode] with the shortest length whose source range completely
- * encompasses the specified range.
- */
+/// An object used to locate the [AstNode] associated with a source range, given
+/// the AST structure built from the source. More specifically, they will return
+/// the [AstNode] with the shortest length whose source range completely
+/// encompasses the specified range.
 class NodeLocator extends UnifyingAstVisitor<void> {
-  /**
-   * The start offset of the range used to identify the node.
-   */
+  /// The start offset of the range used to identify the node.
   final int _startOffset;
 
-  /**
-   * The end offset of the range used to identify the node.
-   */
+  /// The end offset of the range used to identify the node.
   final int _endOffset;
 
-  /**
-   * The element that was found that corresponds to the given source range, or
-   * `null` if there is no such element.
-   */
+  /// The element that was found that corresponds to the given source range, or
+  /// `null` if there is no such element.
   AstNode _foundNode;
 
-  /**
-   * Initialize a newly created locator to locate an [AstNode] by locating the
-   * node within an AST structure that corresponds to the given range of
-   * characters (between the [startOffset] and [endOffset] in the source.
-   */
+  /// Initialize a newly created locator to locate an [AstNode] by locating the
+  /// node within an AST structure that corresponds to the given range of
+  /// characters (between the [startOffset] and [endOffset] in the source.
   NodeLocator(int startOffset, [int endOffset])
-      : this._startOffset = startOffset,
-        this._endOffset = endOffset ?? startOffset;
+      : _startOffset = startOffset,
+        _endOffset = endOffset ?? startOffset;
 
-  /**
-   * Return the node that was found that corresponds to the given source range
-   * or `null` if there is no such node.
-   */
+  /// Return the node that was found that corresponds to the given source range
+  /// or `null` if there is no such node.
   AstNode get foundNode => _foundNode;
 
-  /**
-   * Search within the given AST [node] for an identifier representing an
-   * element in the specified source range. Return the element that was found,
-   * or `null` if no element was found.
-   */
+  /// Search within the given AST [node] for an identifier representing an
+  /// element in the specified source range. Return the element that was found,
+  /// or `null` if no element was found.
   AstNode searchWithin(AstNode node) {
     if (node == null) {
       return null;
@@ -2593,11 +2517,9 @@ class NodeLocator extends UnifyingAstVisitor<void> {
   }
 }
 
-/**
- * An object used to locate the [AstNode] associated with a source range.
- * More specifically, they will return the deepest [AstNode] which completely
- * encompasses the specified range.
- */
+/// An object used to locate the [AstNode] associated with a source range.
+/// More specifically, they will return the deepest [AstNode] which completely
+/// encompasses the specified range.
 class NodeLocator2 extends UnifyingAstVisitor<void> {
   /// The inclusive start offset of the range used to identify the node.
   final int _startOffset;
@@ -2605,26 +2527,20 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   /// The inclusive end offset of the range used to identify the node.
   final int _endOffset;
 
-  /**
-   * The found node or `null` if there is no such node.
-   */
+  /// The found node or `null` if there is no such node.
   AstNode _foundNode;
 
-  /**
-   * Initialize a newly created locator to locate the deepest [AstNode] for
-   * which `node.offset <= [startOffset]` and `[endOffset] < node.end`.
-   *
-   * If [endOffset] is not provided, then it is considered the same as the
-   * given [startOffset].
-   */
+  /// Initialize a newly created locator to locate the deepest [AstNode] for
+  /// which `node.offset <= [startOffset]` and `[endOffset] < node.end`.
+  ///
+  /// If [endOffset] is not provided, then it is considered the same as the
+  /// given [startOffset].
   NodeLocator2(int startOffset, [int endOffset])
-      : this._startOffset = startOffset,
-        this._endOffset = endOffset ?? startOffset;
+      : _startOffset = startOffset,
+        _endOffset = endOffset ?? startOffset;
 
-  /**
-   * Search within the given AST [node] and return the node that was found,
-   * or `null` if no node was found.
-   */
+  /// Search within the given AST [node] and return the node that was found,
+  /// or `null` if no node was found.
   AstNode searchWithin(AstNode node) {
     if (node == null) {
       return null;
@@ -2633,9 +2549,10 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
       node.accept(this);
     } catch (exception, stackTrace) {
       // TODO(39284): should this exception be silent?
-      AnalysisEngine.instance.instrumentationService.logException(
-          SilentException(
-              "Unable to locate element at offset ($_startOffset - $_endOffset)",
+      AnalysisEngine.instance.instrumentationService
+          .logException(SilentException(
+              'Unable to locate element at offset '
+              '($_startOffset - $_endOffset)',
               exception,
               stackTrace));
       return null;
@@ -2689,24 +2606,16 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   }
 }
 
-/**
- * An object that will replace one child node in an AST node with another node.
- */
+/// An object that will replace one child node in an AST node with another node.
 class NodeReplacer implements AstVisitor<bool> {
-  /**
-   * The node being replaced.
-   */
+  /// The node being replaced.
   final AstNode _oldNode;
 
-  /**
-   * The node that is replacing the old node.
-   */
+  /// The node that is replacing the old node.
   final AstNode _newNode;
 
-  /**
-   * Initialize a newly created node locator to replace the [_oldNode] with the
-   * [_newNode].
-   */
+  /// Initialize a newly created node locator to replace the [_oldNode] with the
+  /// [_newNode].
   NodeReplacer(this._oldNode, this._newNode);
 
   @override
@@ -4044,13 +3953,11 @@ class NodeReplacer implements AstVisitor<bool> {
     return false;
   }
 
-  /**
-   * Replace the [oldNode] with the [newNode] in the AST structure containing
-   * the old node. Return `true` if the replacement was successful.
-   *
-   * Throws an [ArgumentError] if either node is `null`, if the old node does
-   * not have a parent node, or if the AST structure has been corrupted.
-   */
+  /// Replace the [oldNode] with the [newNode] in the AST structure containing
+  /// the old node. Return `true` if the replacement was successful.
+  ///
+  /// Throws an [ArgumentError] if either node is `null`, if the old node does
+  /// not have a parent node, or if the AST structure has been corrupted.
   static bool replace(AstNode oldNode, AstNode newNode) {
     if (oldNode == null || newNode == null) {
       throw ArgumentError("The old and new nodes must be non-null");
@@ -4066,22 +3973,18 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 }
 
-/**
- * An object that copies resolution information from one AST structure to
- * another as long as the structures of the corresponding children of a pair of
- * nodes are the same.
- */
+/// An object that copies resolution information from one AST structure to
+/// another as long as the structures of the corresponding children of a pair of
+/// nodes are the same.
 class ResolutionCopier implements AstVisitor<bool> {
-  /**
-   * The AST node with which the node being visited is to be compared. This is
-   * only valid at the beginning of each visit method (until [isEqualNodes] is
-   * invoked).
-   */
+  /// The AST node with which the node being visited is to be compared. This is
+  /// only valid at the beginning of each visit method (until [isEqualNodes] is
+  /// invoked).
   AstNode _toNode;
 
   @override
   bool visitAdjacentStrings(AdjacentStrings node) {
-    AdjacentStrings toNode = this._toNode as AdjacentStrings;
+    AdjacentStrings toNode = _toNode as AdjacentStrings;
     if (_isEqualNodeLists(node.strings, toNode.strings)) {
       toNode.staticType = node.staticType;
       return true;
@@ -4091,7 +3994,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitAnnotation(Annotation node) {
-    Annotation toNode = this._toNode as Annotation;
+    Annotation toNode = _toNode as Annotation;
     if (_and(
         _isEqualTokens(node.atSign, toNode.atSign),
         _isEqualNodes(node.name, toNode.name),
@@ -4106,7 +4009,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitArgumentList(ArgumentList node) {
-    ArgumentList toNode = this._toNode as ArgumentList;
+    ArgumentList toNode = _toNode as ArgumentList;
     return _and(
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodeLists(node.arguments, toNode.arguments),
@@ -4115,7 +4018,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitAsExpression(AsExpression node) {
-    AsExpression toNode = this._toNode as AsExpression;
+    AsExpression toNode = _toNode as AsExpression;
     if (_and(
         _isEqualNodes(node.expression, toNode.expression),
         _isEqualTokens(node.asOperator, toNode.asOperator),
@@ -4128,7 +4031,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitAssertInitializer(AssertInitializer node) {
-    AssertInitializer toNode = this._toNode as AssertInitializer;
+    AssertInitializer toNode = _toNode as AssertInitializer;
     return _and(
         _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -4140,7 +4043,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitAssertStatement(AssertStatement node) {
-    AssertStatement toNode = this._toNode as AssertStatement;
+    AssertStatement toNode = _toNode as AssertStatement;
     return _and(
         _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -4153,7 +4056,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitAssignmentExpression(AssignmentExpression node) {
-    AssignmentExpression toNode = this._toNode as AssignmentExpression;
+    AssignmentExpression toNode = _toNode as AssignmentExpression;
     if (_and(
         _isEqualNodes(node.leftHandSide, toNode.leftHandSide),
         _isEqualTokens(node.operator, toNode.operator),
@@ -4167,7 +4070,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitAwaitExpression(AwaitExpression node) {
-    AwaitExpression toNode = this._toNode as AwaitExpression;
+    AwaitExpression toNode = _toNode as AwaitExpression;
     if (_and(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
         _isEqualNodes(node.expression, toNode.expression))) {
       toNode.staticType = node.staticType;
@@ -4178,7 +4081,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitBinaryExpression(BinaryExpression node) {
-    BinaryExpression toNode = this._toNode as BinaryExpression;
+    BinaryExpression toNode = _toNode as BinaryExpression;
     if (_and(
         _isEqualNodes(node.leftOperand, toNode.leftOperand),
         _isEqualTokens(node.operator, toNode.operator),
@@ -4192,7 +4095,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitBlock(Block node) {
-    Block toNode = this._toNode as Block;
+    Block toNode = _toNode as Block;
     return _and(
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
         _isEqualNodeLists(node.statements, toNode.statements),
@@ -4201,13 +4104,13 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitBlockFunctionBody(BlockFunctionBody node) {
-    BlockFunctionBody toNode = this._toNode as BlockFunctionBody;
+    BlockFunctionBody toNode = _toNode as BlockFunctionBody;
     return _isEqualNodes(node.block, toNode.block);
   }
 
   @override
   bool visitBooleanLiteral(BooleanLiteral node) {
-    BooleanLiteral toNode = this._toNode as BooleanLiteral;
+    BooleanLiteral toNode = _toNode as BooleanLiteral;
     if (_and(_isEqualTokens(node.literal, toNode.literal),
         node.value == toNode.value)) {
       toNode.staticType = node.staticType;
@@ -4218,7 +4121,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitBreakStatement(BreakStatement node) {
-    BreakStatement toNode = this._toNode as BreakStatement;
+    BreakStatement toNode = _toNode as BreakStatement;
     if (_and(
         _isEqualTokens(node.breakKeyword, toNode.breakKeyword),
         _isEqualNodes(node.label, toNode.label),
@@ -4231,7 +4134,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitCascadeExpression(CascadeExpression node) {
-    CascadeExpression toNode = this._toNode as CascadeExpression;
+    CascadeExpression toNode = _toNode as CascadeExpression;
     if (_and(_isEqualNodes(node.target, toNode.target),
         _isEqualNodeLists(node.cascadeSections, toNode.cascadeSections))) {
       toNode.staticType = node.staticType;
@@ -4242,7 +4145,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitCatchClause(CatchClause node) {
-    CatchClause toNode = this._toNode as CatchClause;
+    CatchClause toNode = _toNode as CatchClause;
     return _and(
         _isEqualTokens(node.onKeyword, toNode.onKeyword),
         _isEqualNodes(node.exceptionType, toNode.exceptionType),
@@ -4257,7 +4160,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitClassDeclaration(ClassDeclaration node) {
-    ClassDeclaration toNode = this._toNode as ClassDeclaration;
+    ClassDeclaration toNode = _toNode as ClassDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4275,7 +4178,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitClassTypeAlias(ClassTypeAlias node) {
-    ClassTypeAlias toNode = this._toNode as ClassTypeAlias;
+    ClassTypeAlias toNode = _toNode as ClassTypeAlias;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4292,20 +4195,20 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitComment(Comment node) {
-    Comment toNode = this._toNode as Comment;
+    Comment toNode = _toNode as Comment;
     return _isEqualNodeLists(node.references, toNode.references);
   }
 
   @override
   bool visitCommentReference(CommentReference node) {
-    CommentReference toNode = this._toNode as CommentReference;
+    CommentReference toNode = _toNode as CommentReference;
     return _and(_isEqualTokens(node.newKeyword, toNode.newKeyword),
         _isEqualNodes(node.identifier, toNode.identifier));
   }
 
   @override
   bool visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit toNode = this._toNode as CompilationUnit;
+    CompilationUnit toNode = _toNode as CompilationUnit;
     if (_and(
         _isEqualTokens(node.beginToken, toNode.beginToken),
         _isEqualNodes(node.scriptTag, toNode.scriptTag),
@@ -4320,7 +4223,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitConditionalExpression(ConditionalExpression node) {
-    ConditionalExpression toNode = this._toNode as ConditionalExpression;
+    ConditionalExpression toNode = _toNode as ConditionalExpression;
     if (_and(
         _isEqualNodes(node.condition, toNode.condition),
         _isEqualTokens(node.question, toNode.question),
@@ -4335,7 +4238,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitConfiguration(Configuration node) {
-    Configuration toNode = this._toNode as Configuration;
+    Configuration toNode = _toNode as Configuration;
     if (_and(
         _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -4351,7 +4254,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorDeclarationImpl toNode = this._toNode as ConstructorDeclaration;
+    ConstructorDeclarationImpl toNode = _toNode as ConstructorDeclaration;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4374,8 +4277,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    ConstructorFieldInitializer toNode =
-        this._toNode as ConstructorFieldInitializer;
+    ConstructorFieldInitializer toNode = _toNode as ConstructorFieldInitializer;
     return _and(
         _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
         _isEqualTokens(node.period, toNode.period),
@@ -4386,7 +4288,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitConstructorName(ConstructorName node) {
-    ConstructorName toNode = this._toNode as ConstructorName;
+    ConstructorName toNode = _toNode as ConstructorName;
     if (_and(
         _isEqualNodes(node.type, toNode.type),
         _isEqualTokens(node.period, toNode.period),
@@ -4399,7 +4301,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitContinueStatement(ContinueStatement node) {
-    ContinueStatement toNode = this._toNode as ContinueStatement;
+    ContinueStatement toNode = _toNode as ContinueStatement;
     if (_and(
         _isEqualTokens(node.continueKeyword, toNode.continueKeyword),
         _isEqualNodes(node.label, toNode.label),
@@ -4412,7 +4314,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitDeclaredIdentifier(DeclaredIdentifier node) {
-    DeclaredIdentifier toNode = this._toNode as DeclaredIdentifier;
+    DeclaredIdentifier toNode = _toNode as DeclaredIdentifier;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4422,11 +4324,10 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
-  bool visitDefaultFormalParameter(DefaultFormalParameter node) {
-    DefaultFormalParameter toNode = this._toNode as DefaultFormalParameter;
+  bool visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
+    var toNode = _toNode as DefaultFormalParameterImpl;
     return _and(
         _isEqualNodes(node.parameter, toNode.parameter),
-        // ignore: deprecated_member_use_from_same_package
         node.kind == toNode.kind,
         _isEqualTokens(node.separator, toNode.separator),
         _isEqualNodes(node.defaultValue, toNode.defaultValue));
@@ -4434,7 +4335,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitDoStatement(DoStatement node) {
-    DoStatement toNode = this._toNode as DoStatement;
+    DoStatement toNode = _toNode as DoStatement;
     return _and(
         _isEqualTokens(node.doKeyword, toNode.doKeyword),
         _isEqualNodes(node.body, toNode.body),
@@ -4447,13 +4348,13 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitDottedName(DottedName node) {
-    DottedName toNode = this._toNode as DottedName;
+    DottedName toNode = _toNode as DottedName;
     return _isEqualNodeLists(node.components, toNode.components);
   }
 
   @override
   bool visitDoubleLiteral(DoubleLiteral node) {
-    DoubleLiteral toNode = this._toNode as DoubleLiteral;
+    DoubleLiteral toNode = _toNode as DoubleLiteral;
     if (_and(_isEqualTokens(node.literal, toNode.literal),
         node.value == toNode.value)) {
       toNode.staticType = node.staticType;
@@ -4464,19 +4365,19 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitEmptyFunctionBody(EmptyFunctionBody node) {
-    EmptyFunctionBody toNode = this._toNode as EmptyFunctionBody;
+    EmptyFunctionBody toNode = _toNode as EmptyFunctionBody;
     return _isEqualTokens(node.semicolon, toNode.semicolon);
   }
 
   @override
   bool visitEmptyStatement(EmptyStatement node) {
-    EmptyStatement toNode = this._toNode as EmptyStatement;
+    EmptyStatement toNode = _toNode as EmptyStatement;
     return _isEqualTokens(node.semicolon, toNode.semicolon);
   }
 
   @override
   bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    EnumConstantDeclaration toNode = this._toNode as EnumConstantDeclaration;
+    EnumConstantDeclaration toNode = _toNode as EnumConstantDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4485,7 +4386,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitEnumDeclaration(EnumDeclaration node) {
-    EnumDeclaration toNode = this._toNode as EnumDeclaration;
+    EnumDeclaration toNode = _toNode as EnumDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4498,7 +4399,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitExportDirective(ExportDirective node) {
-    ExportDirective toNode = this._toNode as ExportDirective;
+    ExportDirective toNode = _toNode as ExportDirective;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4514,7 +4415,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    ExpressionFunctionBody toNode = this._toNode as ExpressionFunctionBody;
+    ExpressionFunctionBody toNode = _toNode as ExpressionFunctionBody;
     return _and(
         _isEqualTokens(node.functionDefinition, toNode.functionDefinition),
         _isEqualNodes(node.expression, toNode.expression),
@@ -4523,21 +4424,21 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitExpressionStatement(ExpressionStatement node) {
-    ExpressionStatement toNode = this._toNode as ExpressionStatement;
+    ExpressionStatement toNode = _toNode as ExpressionStatement;
     return _and(_isEqualNodes(node.expression, toNode.expression),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitExtendsClause(ExtendsClause node) {
-    ExtendsClause toNode = this._toNode as ExtendsClause;
+    ExtendsClause toNode = _toNode as ExtendsClause;
     return _and(_isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
         _isEqualNodes(node.superclass, toNode.superclass));
   }
 
   @override
   bool visitExtensionDeclaration(ExtensionDeclaration node) {
-    ExtensionDeclaration toNode = this._toNode as ExtensionDeclaration;
+    ExtensionDeclaration toNode = _toNode as ExtensionDeclaration;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4556,7 +4457,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitExtensionOverride(ExtensionOverride node) {
-    ExtensionOverride toNode = this._toNode as ExtensionOverride;
+    ExtensionOverride toNode = _toNode as ExtensionOverride;
     return _and(
         _isEqualNodes(node.extensionName, toNode.extensionName),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
@@ -4565,9 +4466,11 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitFieldDeclaration(FieldDeclaration node) {
-    FieldDeclaration toNode = this._toNode as FieldDeclaration;
+    FieldDeclaration toNode = _toNode as FieldDeclaration;
     return _and(
+        _isEqualTokens(node.abstractKeyword, toNode.abstractKeyword),
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
         _isEqualNodeLists(node.metadata, toNode.metadata),
         _isEqualTokens(node.staticKeyword, toNode.staticKeyword),
         _isEqualNodes(node.fields, toNode.fields),
@@ -4576,7 +4479,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitFieldFormalParameter(FieldFormalParameter node) {
-    FieldFormalParameter toNode = this._toNode as FieldFormalParameter;
+    FieldFormalParameter toNode = _toNode as FieldFormalParameter;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4589,8 +4492,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    ForEachPartsWithDeclaration toNode =
-        this._toNode as ForEachPartsWithDeclaration;
+    ForEachPartsWithDeclaration toNode = _toNode as ForEachPartsWithDeclaration;
     return _and(
         _isEqualNodes(node.loopVariable, toNode.loopVariable),
         _isEqualTokens(node.inKeyword, toNode.inKeyword),
@@ -4599,8 +4501,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    ForEachPartsWithIdentifier toNode =
-        this._toNode as ForEachPartsWithIdentifier;
+    ForEachPartsWithIdentifier toNode = _toNode as ForEachPartsWithIdentifier;
     return _and(
         _isEqualNodes(node.identifier, toNode.identifier),
         _isEqualTokens(node.inKeyword, toNode.inKeyword),
@@ -4609,7 +4510,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitForElement(ForElement node) {
-    ForElement toNode = this._toNode as ForElement;
+    ForElement toNode = _toNode as ForElement;
     return _and(
         _isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
         _isEqualTokens(node.forKeyword, toNode.forKeyword),
@@ -4621,7 +4522,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitFormalParameterList(FormalParameterList node) {
-    FormalParameterList toNode = this._toNode as FormalParameterList;
+    FormalParameterList toNode = _toNode as FormalParameterList;
     return _and(
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodeLists(node.parameters, toNode.parameters),
@@ -4632,7 +4533,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    ForPartsWithDeclarations toNode = this._toNode as ForPartsWithDeclarations;
+    ForPartsWithDeclarations toNode = _toNode as ForPartsWithDeclarations;
     return _and(
         _isEqualNodes(node.variables, toNode.variables),
         _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
@@ -4643,7 +4544,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitForPartsWithExpression(ForPartsWithExpression node) {
-    ForPartsWithExpression toNode = this._toNode as ForPartsWithExpression;
+    ForPartsWithExpression toNode = _toNode as ForPartsWithExpression;
     return _and(
         _isEqualNodes(node.initialization, toNode.initialization),
         _isEqualTokens(node.leftSeparator, toNode.leftSeparator),
@@ -4654,7 +4555,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitForStatement(ForStatement node) {
-    ForStatement toNode = this._toNode as ForStatement;
+    ForStatement toNode = _toNode as ForStatement;
     return _and(
         _isEqualTokens(node.awaitKeyword, toNode.awaitKeyword),
         _isEqualTokens(node.forKeyword, toNode.forKeyword),
@@ -4666,7 +4567,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionDeclaration toNode = this._toNode as FunctionDeclaration;
+    FunctionDeclaration toNode = _toNode as FunctionDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4680,13 +4581,13 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     FunctionDeclarationStatement toNode =
-        this._toNode as FunctionDeclarationStatement;
+        _toNode as FunctionDeclarationStatement;
     return _isEqualNodes(node.functionDeclaration, toNode.functionDeclaration);
   }
 
   @override
   bool visitFunctionExpression(FunctionExpression node) {
-    FunctionExpressionImpl toNode = this._toNode as FunctionExpression;
+    FunctionExpressionImpl toNode = _toNode as FunctionExpression;
     if (_and(_isEqualNodes(node.parameters, toNode.parameters),
         _isEqualNodes(node.body, toNode.body))) {
       toNode.declaredElement = node.declaredElement;
@@ -4699,7 +4600,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     FunctionExpressionInvocation toNode =
-        this._toNode as FunctionExpressionInvocation;
+        _toNode as FunctionExpressionInvocation;
     if (_and(
         _isEqualNodes(node.function, toNode.function),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
@@ -4714,7 +4615,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAlias toNode = this._toNode as FunctionTypeAlias;
+    FunctionTypeAlias toNode = _toNode as FunctionTypeAlias;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4729,7 +4630,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     FunctionTypedFormalParameter toNode =
-        this._toNode as FunctionTypedFormalParameter;
+        _toNode as FunctionTypedFormalParameter;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4740,7 +4641,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeImpl toNode = this._toNode as GenericFunctionTypeImpl;
+    GenericFunctionTypeImpl toNode = _toNode as GenericFunctionTypeImpl;
     if (_and(
         _isEqualNodes(node.returnType, toNode.returnType),
         _isEqualTokens(node.functionKeyword, toNode.functionKeyword),
@@ -4755,7 +4656,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitGenericTypeAlias(GenericTypeAlias node) {
-    GenericTypeAliasImpl toNode = this._toNode as GenericTypeAliasImpl;
+    GenericTypeAliasImpl toNode = _toNode as GenericTypeAliasImpl;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4772,14 +4673,14 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitHideCombinator(HideCombinator node) {
-    HideCombinator toNode = this._toNode as HideCombinator;
+    HideCombinator toNode = _toNode as HideCombinator;
     return _and(_isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodeLists(node.hiddenNames, toNode.hiddenNames));
   }
 
   @override
   bool visitIfElement(IfElement node) {
-    IfElement toNode = this._toNode as IfElement;
+    IfElement toNode = _toNode as IfElement;
     return _and(
         _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -4792,7 +4693,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitIfStatement(IfStatement node) {
-    IfStatement toNode = this._toNode as IfStatement;
+    IfStatement toNode = _toNode as IfStatement;
     return _and(
         _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -4805,7 +4706,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitImplementsClause(ImplementsClause node) {
-    ImplementsClause toNode = this._toNode as ImplementsClause;
+    ImplementsClause toNode = _toNode as ImplementsClause;
     return _and(
         _isEqualTokens(node.implementsKeyword, toNode.implementsKeyword),
         _isEqualNodeLists(node.interfaces, toNode.interfaces));
@@ -4813,7 +4714,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitImportDirective(ImportDirective node) {
-    ImportDirective toNode = this._toNode as ImportDirective;
+    ImportDirective toNode = _toNode as ImportDirective;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4831,7 +4732,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitIndexExpression(IndexExpression node) {
-    IndexExpression toNode = this._toNode as IndexExpression;
+    IndexExpression toNode = _toNode as IndexExpression;
     if (_and(
         _isEqualNodes(node.target, toNode.target),
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
@@ -4847,8 +4748,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitInstanceCreationExpression(InstanceCreationExpression node) {
-    InstanceCreationExpression toNode =
-        this._toNode as InstanceCreationExpression;
+    InstanceCreationExpression toNode = _toNode as InstanceCreationExpression;
     if (_and(
         _isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodes(node.constructorName, toNode.constructorName),
@@ -4861,7 +4761,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitIntegerLiteral(IntegerLiteral node) {
-    IntegerLiteral toNode = this._toNode as IntegerLiteral;
+    IntegerLiteral toNode = _toNode as IntegerLiteral;
     if (_and(_isEqualTokens(node.literal, toNode.literal),
         node.value == toNode.value)) {
       toNode.staticType = node.staticType;
@@ -4872,7 +4772,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitInterpolationExpression(InterpolationExpression node) {
-    InterpolationExpression toNode = this._toNode as InterpolationExpression;
+    InterpolationExpression toNode = _toNode as InterpolationExpression;
     return _and(
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
         _isEqualNodes(node.expression, toNode.expression),
@@ -4881,14 +4781,14 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitInterpolationString(InterpolationString node) {
-    InterpolationString toNode = this._toNode as InterpolationString;
+    InterpolationString toNode = _toNode as InterpolationString;
     return _and(_isEqualTokens(node.contents, toNode.contents),
         node.value == toNode.value);
   }
 
   @override
   bool visitIsExpression(IsExpression node) {
-    IsExpression toNode = this._toNode as IsExpression;
+    IsExpression toNode = _toNode as IsExpression;
     if (_and(
         _isEqualNodes(node.expression, toNode.expression),
         _isEqualTokens(node.isOperator, toNode.isOperator),
@@ -4902,21 +4802,21 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitLabel(Label node) {
-    Label toNode = this._toNode as Label;
+    Label toNode = _toNode as Label;
     return _and(_isEqualNodes(node.label, toNode.label),
         _isEqualTokens(node.colon, toNode.colon));
   }
 
   @override
   bool visitLabeledStatement(LabeledStatement node) {
-    LabeledStatement toNode = this._toNode as LabeledStatement;
+    LabeledStatement toNode = _toNode as LabeledStatement;
     return _and(_isEqualNodeLists(node.labels, toNode.labels),
         _isEqualNodes(node.statement, toNode.statement));
   }
 
   @override
   bool visitLibraryDirective(LibraryDirective node) {
-    LibraryDirective toNode = this._toNode as LibraryDirective;
+    LibraryDirective toNode = _toNode as LibraryDirective;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4931,7 +4831,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitLibraryIdentifier(LibraryIdentifier node) {
-    LibraryIdentifier toNode = this._toNode as LibraryIdentifier;
+    LibraryIdentifier toNode = _toNode as LibraryIdentifier;
     if (_isEqualNodeLists(node.components, toNode.components)) {
       toNode.staticType = node.staticType;
       return true;
@@ -4941,7 +4841,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitListLiteral(ListLiteral node) {
-    ListLiteral toNode = this._toNode as ListLiteral;
+    ListLiteral toNode = _toNode as ListLiteral;
     if (_and(
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
@@ -4956,7 +4856,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitMapLiteralEntry(MapLiteralEntry node) {
-    MapLiteralEntry toNode = this._toNode as MapLiteralEntry;
+    MapLiteralEntry toNode = _toNode as MapLiteralEntry;
     return _and(
         _isEqualNodes(node.key, toNode.key),
         _isEqualTokens(node.separator, toNode.separator),
@@ -4965,7 +4865,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitMethodDeclaration(MethodDeclaration node) {
-    MethodDeclaration toNode = this._toNode as MethodDeclaration;
+    MethodDeclaration toNode = _toNode as MethodDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -4981,7 +4881,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitMethodInvocation(MethodInvocation node) {
-    MethodInvocation toNode = this._toNode as MethodInvocation;
+    MethodInvocation toNode = _toNode as MethodInvocation;
     if (_and(
         _isEqualNodes(node.target, toNode.target),
         _isEqualTokens(node.operator, toNode.operator),
@@ -4997,7 +4897,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitMixinDeclaration(MixinDeclaration node) {
-    MixinDeclaration toNode = this._toNode as MixinDeclaration;
+    MixinDeclaration toNode = _toNode as MixinDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5013,7 +4913,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitNamedExpression(NamedExpression node) {
-    NamedExpression toNode = this._toNode as NamedExpression;
+    NamedExpression toNode = _toNode as NamedExpression;
     if (_and(_isEqualNodes(node.name, toNode.name),
         _isEqualNodes(node.expression, toNode.expression))) {
       toNode.staticType = node.staticType;
@@ -5024,14 +4924,14 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitNativeClause(NativeClause node) {
-    NativeClause toNode = this._toNode as NativeClause;
+    NativeClause toNode = _toNode as NativeClause;
     return _and(_isEqualTokens(node.nativeKeyword, toNode.nativeKeyword),
         _isEqualNodes(node.name, toNode.name));
   }
 
   @override
   bool visitNativeFunctionBody(NativeFunctionBody node) {
-    NativeFunctionBody toNode = this._toNode as NativeFunctionBody;
+    NativeFunctionBody toNode = _toNode as NativeFunctionBody;
     return _and(
         _isEqualTokens(node.nativeKeyword, toNode.nativeKeyword),
         _isEqualNodes(node.stringLiteral, toNode.stringLiteral),
@@ -5040,7 +4940,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitNullLiteral(NullLiteral node) {
-    NullLiteral toNode = this._toNode as NullLiteral;
+    NullLiteral toNode = _toNode as NullLiteral;
     if (_isEqualTokens(node.literal, toNode.literal)) {
       toNode.staticType = node.staticType;
       return true;
@@ -5050,7 +4950,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitOnClause(OnClause node) {
-    OnClause toNode = this._toNode as OnClause;
+    OnClause toNode = _toNode as OnClause;
     return _and(
         _isEqualTokens(node.onKeyword, toNode.onKeyword),
         _isEqualNodeLists(
@@ -5059,7 +4959,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitParenthesizedExpression(ParenthesizedExpression node) {
-    ParenthesizedExpression toNode = this._toNode as ParenthesizedExpression;
+    ParenthesizedExpression toNode = _toNode as ParenthesizedExpression;
     if (_and(
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.expression, toNode.expression),
@@ -5072,7 +4972,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitPartDirective(PartDirective node) {
-    PartDirective toNode = this._toNode as PartDirective;
+    PartDirective toNode = _toNode as PartDirective;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5087,7 +4987,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitPartOfDirective(PartOfDirective node) {
-    PartOfDirective toNode = this._toNode as PartOfDirective;
+    PartOfDirective toNode = _toNode as PartOfDirective;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5103,7 +5003,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitPostfixExpression(PostfixExpression node) {
-    PostfixExpression toNode = this._toNode as PostfixExpression;
+    PostfixExpression toNode = _toNode as PostfixExpression;
     if (_and(_isEqualNodes(node.operand, toNode.operand),
         _isEqualTokens(node.operator, toNode.operator))) {
       toNode.staticElement = node.staticElement;
@@ -5115,7 +5015,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitPrefixedIdentifier(PrefixedIdentifier node) {
-    PrefixedIdentifier toNode = this._toNode as PrefixedIdentifier;
+    PrefixedIdentifier toNode = _toNode as PrefixedIdentifier;
     if (_and(
         _isEqualNodes(node.prefix, toNode.prefix),
         _isEqualTokens(node.period, toNode.period),
@@ -5128,7 +5028,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitPrefixExpression(PrefixExpression node) {
-    PrefixExpression toNode = this._toNode as PrefixExpression;
+    PrefixExpression toNode = _toNode as PrefixExpression;
     if (_and(_isEqualTokens(node.operator, toNode.operator),
         _isEqualNodes(node.operand, toNode.operand))) {
       toNode.staticElement = node.staticElement;
@@ -5140,7 +5040,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitPropertyAccess(PropertyAccess node) {
-    PropertyAccess toNode = this._toNode as PropertyAccess;
+    PropertyAccess toNode = _toNode as PropertyAccess;
     if (_and(
         _isEqualNodes(node.target, toNode.target),
         _isEqualTokens(node.operator, toNode.operator),
@@ -5155,7 +5055,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   bool visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation toNode =
-        this._toNode as RedirectingConstructorInvocation;
+        _toNode as RedirectingConstructorInvocation;
     if (_and(
         _isEqualTokens(node.thisKeyword, toNode.thisKeyword),
         _isEqualTokens(node.period, toNode.period),
@@ -5169,7 +5069,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitRethrowExpression(RethrowExpression node) {
-    RethrowExpression toNode = this._toNode as RethrowExpression;
+    RethrowExpression toNode = _toNode as RethrowExpression;
     if (_isEqualTokens(node.rethrowKeyword, toNode.rethrowKeyword)) {
       toNode.staticType = node.staticType;
       return true;
@@ -5179,7 +5079,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitReturnStatement(ReturnStatement node) {
-    ReturnStatement toNode = this._toNode as ReturnStatement;
+    ReturnStatement toNode = _toNode as ReturnStatement;
     return _and(
         _isEqualTokens(node.returnKeyword, toNode.returnKeyword),
         _isEqualNodes(node.expression, toNode.expression),
@@ -5188,13 +5088,13 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitScriptTag(ScriptTag node) {
-    ScriptTag toNode = this._toNode as ScriptTag;
+    ScriptTag toNode = _toNode as ScriptTag;
     return _isEqualTokens(node.scriptTag, toNode.scriptTag);
   }
 
   @override
   bool visitSetOrMapLiteral(SetOrMapLiteral node) {
-    SetOrMapLiteral toNode = this._toNode as SetOrMapLiteral;
+    SetOrMapLiteral toNode = _toNode as SetOrMapLiteral;
     if (_and(
         _isEqualTokens(node.constKeyword, toNode.constKeyword),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
@@ -5209,14 +5109,14 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitShowCombinator(ShowCombinator node) {
-    ShowCombinator toNode = this._toNode as ShowCombinator;
+    ShowCombinator toNode = _toNode as ShowCombinator;
     return _and(_isEqualTokens(node.keyword, toNode.keyword),
         _isEqualNodeLists(node.shownNames, toNode.shownNames));
   }
 
   @override
   bool visitSimpleFormalParameter(SimpleFormalParameter node) {
-    SimpleFormalParameter toNode = this._toNode as SimpleFormalParameter;
+    SimpleFormalParameter toNode = _toNode as SimpleFormalParameter;
     if (_and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5232,7 +5132,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier toNode = this._toNode as SimpleIdentifier;
+    SimpleIdentifier toNode = _toNode as SimpleIdentifier;
     if (_isEqualTokens(node.token, toNode.token)) {
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
@@ -5246,7 +5146,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
-    SimpleStringLiteral toNode = this._toNode as SimpleStringLiteral;
+    SimpleStringLiteral toNode = _toNode as SimpleStringLiteral;
     if (_and(_isEqualTokens(node.literal, toNode.literal),
         node.value == toNode.value)) {
       toNode.staticType = node.staticType;
@@ -5257,14 +5157,14 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSpreadElement(SpreadElement node) {
-    SpreadElement toNode = this._toNode as SpreadElement;
+    SpreadElement toNode = _toNode as SpreadElement;
     return _and(_isEqualTokens(node.spreadOperator, toNode.spreadOperator),
         _isEqualNodes(node.expression, toNode.expression));
   }
 
   @override
   bool visitStringInterpolation(StringInterpolation node) {
-    StringInterpolation toNode = this._toNode as StringInterpolation;
+    StringInterpolation toNode = _toNode as StringInterpolation;
     if (_isEqualNodeLists(node.elements, toNode.elements)) {
       toNode.staticType = node.staticType;
       return true;
@@ -5274,8 +5174,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    SuperConstructorInvocation toNode =
-        this._toNode as SuperConstructorInvocation;
+    SuperConstructorInvocation toNode = _toNode as SuperConstructorInvocation;
     if (_and(
         _isEqualTokens(node.superKeyword, toNode.superKeyword),
         _isEqualTokens(node.period, toNode.period),
@@ -5289,7 +5188,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSuperExpression(SuperExpression node) {
-    SuperExpression toNode = this._toNode as SuperExpression;
+    SuperExpression toNode = _toNode as SuperExpression;
     if (_isEqualTokens(node.superKeyword, toNode.superKeyword)) {
       toNode.staticType = node.staticType;
       return true;
@@ -5299,7 +5198,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSwitchCase(SwitchCase node) {
-    SwitchCase toNode = this._toNode as SwitchCase;
+    SwitchCase toNode = _toNode as SwitchCase;
     return _and(
         _isEqualNodeLists(node.labels, toNode.labels),
         _isEqualTokens(node.keyword, toNode.keyword),
@@ -5310,7 +5209,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSwitchDefault(SwitchDefault node) {
-    SwitchDefault toNode = this._toNode as SwitchDefault;
+    SwitchDefault toNode = _toNode as SwitchDefault;
     return _and(
         _isEqualNodeLists(node.labels, toNode.labels),
         _isEqualTokens(node.keyword, toNode.keyword),
@@ -5320,7 +5219,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSwitchStatement(SwitchStatement node) {
-    SwitchStatement toNode = this._toNode as SwitchStatement;
+    SwitchStatement toNode = _toNode as SwitchStatement;
     return _and(
         _isEqualTokens(node.switchKeyword, toNode.switchKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -5333,7 +5232,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitSymbolLiteral(SymbolLiteral node) {
-    SymbolLiteral toNode = this._toNode as SymbolLiteral;
+    SymbolLiteral toNode = _toNode as SymbolLiteral;
     if (_and(_isEqualTokens(node.poundSign, toNode.poundSign),
         _isEqualTokenLists(node.components, toNode.components))) {
       toNode.staticType = node.staticType;
@@ -5344,7 +5243,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitThisExpression(ThisExpression node) {
-    ThisExpression toNode = this._toNode as ThisExpression;
+    ThisExpression toNode = _toNode as ThisExpression;
     if (_isEqualTokens(node.thisKeyword, toNode.thisKeyword)) {
       toNode.staticType = node.staticType;
       return true;
@@ -5354,7 +5253,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitThrowExpression(ThrowExpression node) {
-    ThrowExpression toNode = this._toNode as ThrowExpression;
+    ThrowExpression toNode = _toNode as ThrowExpression;
     if (_and(_isEqualTokens(node.throwKeyword, toNode.throwKeyword),
         _isEqualNodes(node.expression, toNode.expression))) {
       toNode.staticType = node.staticType;
@@ -5365,18 +5264,18 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    TopLevelVariableDeclaration toNode =
-        this._toNode as TopLevelVariableDeclaration;
+    TopLevelVariableDeclaration toNode = _toNode as TopLevelVariableDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.externalKeyword, toNode.externalKeyword),
         _isEqualNodes(node.variables, toNode.variables),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitTryStatement(TryStatement node) {
-    TryStatement toNode = this._toNode as TryStatement;
+    TryStatement toNode = _toNode as TryStatement;
     return _and(
         _isEqualTokens(node.tryKeyword, toNode.tryKeyword),
         _isEqualNodes(node.body, toNode.body),
@@ -5387,7 +5286,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitTypeArgumentList(TypeArgumentList node) {
-    TypeArgumentList toNode = this._toNode as TypeArgumentList;
+    TypeArgumentList toNode = _toNode as TypeArgumentList;
     return _and(
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
         _isEqualNodeLists(node.arguments, toNode.arguments),
@@ -5396,7 +5295,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitTypeName(TypeName node) {
-    TypeName toNode = this._toNode as TypeName;
+    TypeName toNode = _toNode as TypeName;
     if (_and(
         _isEqualNodes(node.name, toNode.name),
         _isEqualNodes(node.typeArguments, toNode.typeArguments),
@@ -5409,7 +5308,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitTypeParameter(TypeParameter node) {
-    TypeParameter toNode = this._toNode as TypeParameter;
+    TypeParameter toNode = _toNode as TypeParameter;
     // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     return _and(
@@ -5424,7 +5323,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitTypeParameterList(TypeParameterList node) {
-    TypeParameterList toNode = this._toNode as TypeParameterList;
+    TypeParameterList toNode = _toNode as TypeParameterList;
     return _and(
         _isEqualTokens(node.leftBracket, toNode.leftBracket),
         _isEqualNodeLists(node.typeParameters, toNode.typeParameters),
@@ -5433,7 +5332,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitVariableDeclaration(VariableDeclaration node) {
-    VariableDeclaration toNode = this._toNode as VariableDeclaration;
+    VariableDeclaration toNode = _toNode as VariableDeclaration;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5444,7 +5343,7 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitVariableDeclarationList(VariableDeclarationList node) {
-    VariableDeclarationList toNode = this._toNode as VariableDeclarationList;
+    VariableDeclarationList toNode = _toNode as VariableDeclarationList;
     return _and(
         _isEqualNodes(node.documentationComment, toNode.documentationComment),
         _isEqualNodeLists(node.metadata, toNode.metadata),
@@ -5456,14 +5355,14 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     VariableDeclarationStatement toNode =
-        this._toNode as VariableDeclarationStatement;
+        _toNode as VariableDeclarationStatement;
     return _and(_isEqualNodes(node.variables, toNode.variables),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
   @override
   bool visitWhileStatement(WhileStatement node) {
-    WhileStatement toNode = this._toNode as WhileStatement;
+    WhileStatement toNode = _toNode as WhileStatement;
     return _and(
         _isEqualTokens(node.whileKeyword, toNode.whileKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
@@ -5474,23 +5373,21 @@ class ResolutionCopier implements AstVisitor<bool> {
 
   @override
   bool visitWithClause(WithClause node) {
-    WithClause toNode = this._toNode as WithClause;
+    WithClause toNode = _toNode as WithClause;
     return _and(_isEqualTokens(node.withKeyword, toNode.withKeyword),
         _isEqualNodeLists(node.mixinTypes, toNode.mixinTypes));
   }
 
   @override
   bool visitYieldStatement(YieldStatement node) {
-    YieldStatement toNode = this._toNode as YieldStatement;
+    YieldStatement toNode = _toNode as YieldStatement;
     return _and(
         _isEqualTokens(node.yieldKeyword, toNode.yieldKeyword),
         _isEqualNodes(node.expression, toNode.expression),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }
 
-  /**
-   * Return `true` if all of the parameters are `true`.
-   */
+  /// Return `true` if all of the parameters are `true`.
   bool _and(bool b1, bool b2,
       [bool b3 = true,
       bool b4 = true,
@@ -5519,10 +5416,8 @@ class ResolutionCopier implements AstVisitor<bool> {
         b13;
   }
 
-  /**
-   * Return `true` if the [first] and [second] lists of AST nodes have the same
-   * size and corresponding elements are equal.
-   */
+  /// Return `true` if the [first] and [second] lists of AST nodes have the same
+  /// size and corresponding elements are equal.
   bool _isEqualNodeLists(NodeList first, NodeList second) {
     if (first == null) {
       return second == null;
@@ -5542,18 +5437,16 @@ class ResolutionCopier implements AstVisitor<bool> {
     return equal;
   }
 
-  /**
-   * Return `true` if the [fromNode] and [toNode] have the same structure. As a
-   * side-effect, if the nodes do have the same structure, any resolution data
-   * from the first node will be copied to the second node.
-   */
+  /// Return `true` if the [fromNode] and [toNode] have the same structure. As a
+  /// side-effect, if the nodes do have the same structure, any resolution data
+  /// from the first node will be copied to the second node.
   bool _isEqualNodes(AstNode fromNode, AstNode toNode) {
     if (fromNode == null) {
       return toNode == null;
     } else if (toNode == null) {
       return false;
     } else if (fromNode.runtimeType == toNode.runtimeType) {
-      this._toNode = toNode;
+      _toNode = toNode;
       return fromNode.accept(this);
     }
     //
@@ -5562,23 +5455,21 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (toNode is PrefixedIdentifier) {
       SimpleIdentifier prefix = toNode.prefix;
       if (fromNode.runtimeType == prefix.runtimeType) {
-        this._toNode = prefix;
+        _toNode = prefix;
         return fromNode.accept(this);
       }
     } else if (toNode is PropertyAccess) {
       Expression target = toNode.target;
       if (fromNode.runtimeType == target.runtimeType) {
-        this._toNode = target;
+        _toNode = target;
         return fromNode.accept(this);
       }
     }
     return false;
   }
 
-  /**
-   * Return `true` if the [first] and [second] arrays of tokens have the same
-   * length and corresponding elements are equal.
-   */
+  /// Return `true` if the [first] and [second] arrays of tokens have the same
+  /// length and corresponding elements are equal.
   bool _isEqualTokenLists(List<Token> first, List<Token> second) {
     int length = first.length;
     if (second.length != length) {
@@ -5592,9 +5483,7 @@ class ResolutionCopier implements AstVisitor<bool> {
     return true;
   }
 
-  /**
-   * Return `true` if the [first] and [second] tokens have the same structure.
-   */
+  /// Return `true` if the [first] and [second] tokens have the same structure.
   bool _isEqualTokens(Token first, Token second) {
     if (first == null) {
       return second == null;
@@ -5604,24 +5493,20 @@ class ResolutionCopier implements AstVisitor<bool> {
     return first.lexeme == second.lexeme;
   }
 
-  /**
-   * Copy resolution data from the [fromNode] to the [toNode].
-   */
+  /// Copy resolution data from the [fromNode] to the [toNode].
   static void copyResolutionData(AstNode fromNode, AstNode toNode) {
     ResolutionCopier copier = ResolutionCopier();
     copier._isEqualNodes(fromNode, toNode);
   }
 }
 
-/**
- * Traverse the AST from initial child node to successive parents, building a
- * collection of local variable and parameter names visible to the initial child
- * node. In case of name shadowing, the first name seen is the most specific one
- * so names are not redefined.
- *
- * Completion test code coverage is 95%. The two basic blocks that are not
- * executed cannot be executed. They are included for future reference.
- */
+/// Traverse the AST from initial child node to successive parents, building a
+/// collection of local variable and parameter names visible to the initial
+/// child node. In case of name shadowing, the first name seen is the most
+/// specific one so names are not redefined.
+///
+/// Completion test code coverage is 95%. The two basic blocks that are not
+/// executed cannot be executed. They are included for future reference.
 class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   Declaration _declarationNode;
 
@@ -5757,10 +5642,9 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
     }
   }
 
-  /**
-   * Check the given list of [statements] for any that come before the immediate
-   * child and that define a name that would be visible to the immediate child.
-   */
+  /// Check the given list of [statements] for any that come before the
+  /// immediate child and that define a name that would be visible to the
+  /// immediate child.
   void _checkStatements(List<Statement> statements) {
     for (Statement statement in statements) {
       if (identical(statement, _immediateChild)) {
@@ -5785,10 +5669,8 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
   }
 }
 
-/**
- * A visitor used to write a source representation of a visited AST node (and
- * all of it's children) to a sink.
- */
+/// A visitor used to write a source representation of a visited AST node (and
+/// all of it's children) to a sink.
 @Deprecated('Use ToSourceVisitor')
 class ToSourceVisitor2 extends ToSourceVisitor {
   ToSourceVisitor2(StringSink sink) : super(sink);

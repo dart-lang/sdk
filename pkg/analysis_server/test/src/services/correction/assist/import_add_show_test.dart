@@ -21,9 +21,9 @@ class ImportAddShowTest extends AssistProcessorTest {
 
   Future<void> test_hasShow() async {
     await resolveTestUnit('''
-import 'dart:math' show PI;
+import 'dart:math' show pi;
 main() {
-  PI;
+  pi;
 }
 ''');
     await assertNoAssistAt('import ');
@@ -33,14 +33,14 @@ main() {
     await resolveTestUnit('''
 import 'dart:math';
 main(x) {
-  PI;
+  pi;
   return x.foo();
 }
 ''');
     await assertHasAssistAt('import ', '''
-import 'dart:math' show PI;
+import 'dart:math' show pi;
 main(x) {
-  PI;
+  pi;
   return x.foo();
 }
 ''');
@@ -50,16 +50,16 @@ main(x) {
     await resolveTestUnit('''
 import 'dart:math';
 main() {
-  PI;
-  E;
+  pi;
+  e;
   max(1, 2);
 }
 ''');
     await assertHasAssistAt('import ', '''
-import 'dart:math' show E, PI, max;
+import 'dart:math' show e, max, pi;
 main() {
-  PI;
-  E;
+  pi;
+  e;
   max(1, 2);
 }
 ''');
@@ -69,16 +69,16 @@ main() {
     await resolveTestUnit('''
 import 'dart:math';
 main() {
-  PI;
-  E;
+  pi;
+  e;
   max(1, 2);
 }
 ''');
     await assertHasAssistAt('art:math', '''
-import 'dart:math' show E, PI, max;
+import 'dart:math' show e, max, pi;
 main() {
-  PI;
-  E;
+  pi;
+  e;
   max(1, 2);
 }
 ''');

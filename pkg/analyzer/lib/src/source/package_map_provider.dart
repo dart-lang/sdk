@@ -4,39 +4,29 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 
-/**
- * Data structure output by PackageMapProvider.  This contains both the package
- * map and dependency information.
- */
+/// Data structure output by PackageMapProvider.  This contains both the package
+/// map and dependency information.
 class PackageMapInfo {
-  /**
-   * The package map itself.  This is a map from package name to a list of
-   * the folders containing source code for the package.
-   *
-   * `null` if an error occurred.
-   */
+  /// The package map itself.  This is a map from package name to a list of
+  /// the folders containing source code for the package.
+  ///
+  /// `null` if an error occurred.
   Map<String, List<Folder>> packageMap;
 
-  /**
-   * Dependency information.  This is a set of the paths which were consulted
-   * in order to generate the package map.  If any of these files is
-   * modified, the package map will need to be regenerated.
-   */
+  /// Dependency information.  This is a set of the paths which were consulted
+  /// in order to generate the package map.  If any of these files is
+  /// modified, the package map will need to be regenerated.
   Set<String> dependencies;
 
   PackageMapInfo(this.packageMap, this.dependencies);
 }
 
-/**
- * A PackageMapProvider is an entity capable of determining the mapping from
- * package name to source directory for a given folder.
- */
+/// A PackageMapProvider is an entity capable of determining the mapping from
+/// package name to source directory for a given folder.
 abstract class PackageMapProvider {
-  /**
-   * Compute a package map for the given folder, if possible.
-   *
-   * If a package map can't be computed (e.g. because an error occurred), a
-   * [PackageMapInfo] will still be returned, but its packageMap will be null.
-   */
+  /// Compute a package map for the given folder, if possible.
+  ///
+  /// If a package map can't be computed (e.g. because an error occurred), a
+  /// [PackageMapInfo] will still be returned, but its packageMap will be null.
   PackageMapInfo computePackageMap(Folder folder);
 }

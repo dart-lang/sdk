@@ -631,9 +631,7 @@ class FolderTest extends OverlayTestSupport {
     expect(folder.resolveSymbolicLinksSync(), folder);
   }
 
-  /**
-   * Verify that the [copy] has the same name and content as the [source].
-   */
+  /// Verify that the [copy] has the same name and content as the [source].
   void _verifyStructure(Folder copy, Folder source) {
     expect(copy.shortName, source.shortName);
     Map<String, File> sourceFiles = <String, File>{};

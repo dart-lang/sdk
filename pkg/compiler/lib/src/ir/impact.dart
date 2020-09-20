@@ -298,13 +298,11 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
       case ir.AsyncMarker.Async:
         ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType) {
-          if (returnType.classNode == typeEnvironment.coreTypes.futureOrClass) {
-            elementType = returnType.typeArguments.first;
-          } else if (returnType.classNode ==
-              typeEnvironment.coreTypes.futureClass) {
-            elementType = returnType.typeArguments.first;
-          }
+        if (returnType is ir.InterfaceType &&
+            returnType.classNode == typeEnvironment.coreTypes.futureClass) {
+          elementType = returnType.typeArguments.first;
+        } else if (returnType is ir.FutureOrType) {
+          elementType = returnType.typeArgument;
         }
         registerAsync(elementType);
         break;
@@ -544,7 +542,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
             positionArguments, namedArguments, typeArguments);
         // TODO(johnniwinther): Avoid treating a known function call as a
         // dynamic call when CFE provides a way to distinguish the two.
-        if (operatorFromString(node.name.name) == null &&
+        if (operatorFromString(node.name.text) == null &&
             receiverType is ir.DynamicType) {
           // We might implicitly call a getter that returns a function.
           registerFunctionInvocation(const ir.DynamicType(), positionArguments,

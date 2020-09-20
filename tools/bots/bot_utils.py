@@ -195,52 +195,34 @@ def run(command, env=None, shell=False, throw_on_error=True):
 
 
 class GSUtil(object):
-    GSUTIL_IS_SHELL_SCRIPT = False
     GSUTIL_PATH = None
     USE_DART_REPO_VERSION = False
 
     def _layzCalculateGSUtilPath(self):
         if not GSUtil.GSUTIL_PATH:
-            buildbot_gsutil = '/b/build/scripts/slave/gsutil'
-            if platform.system() == 'Windows':
-                buildbot_gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
-            if os.path.isfile(
-                    buildbot_gsutil) and not GSUtil.USE_DART_REPO_VERSION:
-                GSUtil.GSUTIL_IS_SHELL_SCRIPT = True
-                GSUtil.GSUTIL_PATH = buildbot_gsutil
+            dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil',
+                                       'gsutil')
+            if os.path.isfile(dart_gsutil):
+                GSUtil.GSUTIL_PATH = dart_gsutil
+            elif GSUtil.USE_DART_REPO_VERSION:
+                raise Exception("Dart repository version of gsutil required, "
+                                "but not found.")
             else:
-                dart_gsutil = os.path.join(DART_DIR, 'third_party', 'gsutil',
-                                           'gsutil')
-                if os.path.isfile(dart_gsutil):
-                    GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
-                    GSUtil.GSUTIL_PATH = dart_gsutil
-                elif GSUtil.USE_DART_REPO_VERSION:
-                    raise Exception(
-                        "Dart repository version of gsutil required, "
-                        "but not found.")
-                else:
-                    # We did not find gsutil, look in path
-                    possible_locations = list(os.environ['PATH'].split(
-                        os.pathsep))
-                    for directory in possible_locations:
-                        location = os.path.join(directory, 'gsutil')
-                        if os.path.isfile(location):
-                            GSUtil.GSUTIL_IS_SHELL_SCRIPT = False
-                            GSUtil.GSUTIL_PATH = location
-                            break
+                # We did not find gsutil, look in path
+                possible_locations = list(os.environ['PATH'].split(os.pathsep))
+                for directory in possible_locations:
+                    location = os.path.join(directory, 'gsutil')
+                    if os.path.isfile(location):
+                        GSUtil.GSUTIL_PATH = location
+                        break
             assert GSUtil.GSUTIL_PATH
 
     def execute(self, gsutil_args):
         self._layzCalculateGSUtilPath()
 
-        if GSUtil.GSUTIL_IS_SHELL_SCRIPT:
-            gsutil_command = [GSUtil.GSUTIL_PATH]
-        else:
-            gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
+        gsutil_command = [sys.executable, GSUtil.GSUTIL_PATH]
 
-        return run(
-            gsutil_command + gsutil_args,
-            shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and sys.platform == 'win32'))
+        return run(gsutil_command + gsutil_args)
 
     def upload(self,
                local_path,

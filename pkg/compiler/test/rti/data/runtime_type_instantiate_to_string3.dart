@@ -7,8 +7,7 @@
 /*member: global#instantiate1:needsArgs*/
 
 class Class {
-  /*spec:nnbd-sdk.member: Class.id:direct,explicit=[id.T*],needsArgs,needsInst=[<int*>]*/
-  /*spec:nnbd-off.member: Class.id:direct,explicit=[id.T],needsArgs,needsInst=[<int>]*/
+  /*spec.member: Class.id:direct,explicit=[id.T*],needsArgs,needsInst=[<int*>]*/
   T id<T>(T t, String s) => t;
 }
 

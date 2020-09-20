@@ -49,68 +49,50 @@ main() {
   });
 }
 
-/**
- * Abstract base class for parser tests, which does not make assumptions about
- * which parser is used.
- */
+/// Abstract base class for parser tests, which does not make assumptions about
+/// which parser is used.
 abstract class AbstractParserTestCase implements ParserTestHelpers {
   bool get allowNativeClause;
 
   set allowNativeClause(bool value);
 
-  /**
-   * Set a flag indicating whether the parser should parse instance creation
-   * expressions that lack either the `new` or `const` keyword.
-   */
+  /// Set a flag indicating whether the parser should parse instance creation
+  /// expressions that lack either the `new` or `const` keyword.
   set enableOptionalNewAndConst(bool value);
 
-  /**
-   * Set a flag indicating whether the parser is to parse part-of directives
-   * that specify a URI rather than a library name.
-   */
+  /// Set a flag indicating whether the parser is to parse part-of directives
+  /// that specify a URI rather than a library name.
   set enableUriInPartOf(bool value);
 
-  /**
-   * The error listener to which scanner and parser errors will be reported.
-   *
-   * This field is typically initialized by invoking [createParser].
-   */
+  /// The error listener to which scanner and parser errors will be reported.
+  ///
+  /// This field is typically initialized by invoking [createParser].
   GatheringErrorListener get listener;
 
-  /**
-   * Get the parser used by the test.
-   *
-   * Caller must first invoke [createParser].
-   */
+  /// Get the parser used by the test.
+  ///
+  /// Caller must first invoke [createParser].
   Parser get parser;
 
-  /**
-   * Flag indicating whether the fasta parser is being used.
-   */
+  /// Flag indicating whether the fasta parser is being used.
   bool get usingFastaParser;
 
-  /**
-   * Assert that the number and codes of errors occurred during parsing is the
-   * same as the [expectedErrorCodes].
-   */
+  /// Assert that the number and codes of errors occurred during parsing is the
+  /// same as the [expectedErrorCodes].
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes);
 
-  /**
-   * Asserts that no errors occurred during parsing.
-   */
+  /// Asserts that no errors occurred during parsing.
   void assertNoErrors();
 
-  /**
-   * Prepares to parse using tokens scanned from the given [content] string.
-   *
-   * [expectedEndOffset] is the expected offset of the next token to be parsed
-   * after the parser has finished parsing,
-   * or `null` (the default) if EOF is expected.
-   * In general, the analyzer tests do not assert that the last token is EOF,
-   * but the fasta parser adapter tests do assert this.
-   * For any analyzer test where the last token is not EOF, set this value.
-   * It is ignored when not using the fasta parser.
-   */
+  /// Prepares to parse using tokens scanned from the given [content] string.
+  ///
+  /// [expectedEndOffset] is the expected offset of the next token to be parsed
+  /// after the parser has finished parsing,
+  /// or `null` (the default) if EOF is expected.
+  /// In general, the analyzer tests do not assert that the last token is EOF,
+  /// but the fasta parser adapter tests do assert this.
+  /// For any analyzer test where the last token is not EOF, set this value.
+  /// It is ignored when not using the fasta parser.
   void createParser(
     String content, {
     int expectedEndOffset,
@@ -150,15 +132,15 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   ConstructorInitializer parseConstructorInitializer(String code);
 
-  /**
-   * Parse the given source as a compilation unit.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the compilation unit that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
+  /// Parse the given source as a compilation unit.
+  ///
+  /// @param source the source to be parsed
+  /// @param errorCodes the error codes of the errors that are expected to be
+  ///          found
+  /// @return the compilation unit that was parsed
+  /// @throws Exception if the source could not be parsed, if the compilation
+  ///           errors in the source do not match those that are expected, or if
+  ///           the result would have been `null`
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]);
 
@@ -181,16 +163,12 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
       List<ErrorCode> errorCodes = const <ErrorCode>[],
       List<ExpectedError> errors});
 
-  /**
-   * Parses a single top level member of a compilation unit (other than a
-   * directive), including any comment and/or metadata that precedes it.
-   */
+  /// Parses a single top level member of a compilation unit (other than a
+  /// directive), including any comment and/or metadata that precedes it.
   CompilationUnitMember parseFullCompilationUnitMember();
 
-  /**
-   * Parses a single top level directive, including any comment and/or metadata
-   * that precedes it.
-   */
+  /// Parses a single top level directive, including any comment and/or metadata
+  /// that precedes it.
   Directive parseFullDirective();
 
   FunctionExpression parseFunctionExpression(String code);
@@ -250,10 +228,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
   VariableDeclarationList parseVariableDeclarationList(String source);
 }
 
-/**
- * Instances of the class `AstValidator` are used to validate the correct construction of an
- * AST structure.
- */
+/// Instances of the class `AstValidator` are used to validate the correct
+/// construction of an AST structure.
 class AstValidator extends UnifyingAstVisitor<void> {
   /// A list containing the errors found while traversing the AST structure.
   final List<String> _errors = <String>[];
@@ -278,11 +254,9 @@ class AstValidator extends UnifyingAstVisitor<void> {
     super.visitNode(node);
   }
 
-  /**
-   * Validate that the given AST node is correctly constructed.
-   *
-   * @param node the AST node being validated
-   */
+  /// Validate that the given AST node is correctly constructed.
+  ///
+  /// @param node the AST node being validated
   void _validate(AstNode node) {
     AstNode parent = node.parent;
     if (node is CompilationUnit) {
@@ -331,9 +305,7 @@ class ClassMemberParserTest extends ParserTestCase
   }
 }
 
-/**
- * Tests which exercise the parser using a class member.
- */
+/// Tests which exercise the parser using a class member.
 mixin ClassMemberParserTestMixin implements AbstractParserTestCase {
   void test_parseAwaitExpression_asStatement_inAsync() {
     createParser('m() async { await x; }');
@@ -635,7 +607,10 @@ Function(int, String) v;
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     listener.assertErrors(usingFastaParser
-        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 3)]
+        ? [
+            expectedError(
+                ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 4, 3)
+          ]
         : [
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 4, 3),
             expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 4, 3)
@@ -1833,9 +1808,7 @@ int f(
     expectCommentText(parameter.documentationComment, '/// Doc');
   }
 
-  /**
-   * Assert that the given [name] is in declaration context.
-   */
+  /// Assert that the given [name] is in declaration context.
   void _assertIsDeclarationName(SimpleIdentifier name, [bool expected = true]) {
     expect(name.inDeclarationContext(), expected);
   }
@@ -1865,19 +1838,16 @@ int f(
   }
 }
 
-/**
- * Tests of the analyzer parser based on [ComplexParserTestMixin].
- */
+/// Tests of the analyzer parser based on [ComplexParserTestMixin].
 @reflectiveTest
 class ComplexParserTest extends ParserTestCase with ComplexParserTestMixin {}
 
-/**
- * The class `ComplexParserTest` defines parser tests that test the parsing of more complex
- * code fragments or the interactions between multiple parsing methods. For example, tests to ensure
- * that the precedence of operations is being handled correctly should be defined in this class.
- *
- * Simpler tests should be defined in the class [SimpleParserTest].
- */
+/// The class `ComplexParserTest` defines parser tests that test the parsing of
+/// more complex code fragments or the interactions between multiple parsing
+/// methods. For example, tests to ensure that the precedence of operations is
+/// being handled correctly should be defined in this class.
+///
+/// Simpler tests should be defined in the class [SimpleParserTest].
 mixin ComplexParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_normal() {
     BinaryExpression expression = parseExpression("x + y - z");
@@ -2356,11 +2326,9 @@ void f() {
   }
 }
 
-/**
- * The class `ErrorParserTest` defines parser tests that test the parsing
- * of code to ensure that errors are correctly reported,
- * and in some cases, not reported.
- */
+/// The class `ErrorParserTest` defines parser tests that test the parsing
+/// of code to ensure that errors are correctly reported,
+/// and in some cases, not reported.
 @reflectiveTest
 class ErrorParserTest extends ParserTestCase with ErrorParserTestMixin {
   void test_missingIdentifier_number() {
@@ -2534,7 +2502,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.CONST_AND_COVARIANT, 10, 5)]);
+        [expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 10, 5)]);
   }
 
   void test_constAndFinal() {
@@ -2549,7 +2517,8 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('const var x = null;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([expectedError(ParserErrorCode.CONST_AND_VAR, 6, 3)]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 6, 3)]);
   }
 
   void test_constClass() {
@@ -2759,7 +2728,7 @@ mixin ErrorParserTestMixin implements AbstractParserTestCase {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.COVARIANT_AFTER_VAR, 4, 9)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 9)]);
   }
 
   void test_covariantAndFinal() {
@@ -2997,6 +2966,11 @@ class Foo {
     parseExpression("1 != 2 == 3", errors: [
       expectedError(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 7, 2)
     ]);
+  }
+
+  void test_expectedBody_class() {
+    parseCompilationUnit("class A class B {}",
+        errors: [expectedError(ParserErrorCode.EXPECTED_BODY, 6, 1)]);
   }
 
   void test_expectedCaseOrDefault() {
@@ -3304,7 +3278,7 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_AFTER_CONST, 6, 8)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 8)]);
   }
 
   void test_externalAfterFactory() {
@@ -3320,7 +3294,7 @@ class Foo {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.EXTERNAL_AFTER_STATIC, 7, 8)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 7, 8)]);
   }
 
   void test_externalClass() {
@@ -3572,7 +3546,7 @@ class Foo {
     expectNotNullIfNoErrors(member);
     listener.assertErrors(usingFastaParser
         ? [
-            expectedError(ParserErrorCode.COVARIANT_AFTER_FINAL, 6, 9),
+            expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 9),
             expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)
           ]
         : [expectedError(ParserErrorCode.FINAL_AND_COVARIANT, 6, 9)]);
@@ -3662,7 +3636,8 @@ class Foo {
           errors: usingFastaParser
               ? [
                   expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5),
-                  expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 5)
+                  expectedError(
+                      ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 9, 5)
                 ]
               : [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 5)]);
     }
@@ -4005,7 +3980,8 @@ class Wrong<T> {
     expectNotNullIfNoErrors(member);
     listener.assertErrors([
       usingFastaParser
-          ? expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 4)
+          ? expectedError(
+              ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 2, 4)
           : expectedError(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 0, 1)
     ]);
   }
@@ -4451,8 +4427,8 @@ class Wrong<T> {
     ]);
     FunctionDeclaration declaration = unit.declarations.first;
     BlockFunctionBody blockBody = declaration.functionExpression.body;
-    ExpressionStatement statement = (blockBody).block.statements.first;
-    Expression expression = (statement).expression;
+    ExpressionStatement statement = blockBody.block.statements.first;
+    Expression expression = statement.expression;
     expect(expression, isSuperExpression);
     SuperExpression superExpression = expression;
     expect(superExpression.superKeyword, isNotNull);
@@ -4468,11 +4444,6 @@ class Wrong<T> {
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_CATCH_OR_FINALLY, 0, 3)]);
     expect(statement, isNotNull);
-  }
-
-  void test_missingClassBody() {
-    parseCompilationUnit("class A class B {}",
-        errors: [expectedError(ParserErrorCode.MISSING_CLASS_BODY, 6, 1)]);
   }
 
   void test_missingClosingParenthesis() {
@@ -5193,7 +5164,7 @@ class Wrong<T> {
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
     listener.assertErrors(
-        [expectedError(ParserErrorCode.STATIC_AFTER_FINAL, 6, 6)]);
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 6)]);
   }
 
   void test_staticAfterFinal() {
@@ -5202,11 +5173,11 @@ class Wrong<T> {
     expectNotNullIfNoErrors(member);
     if (usingFastaParser) {
       listener.assertErrors([
-        expectedError(ParserErrorCode.STATIC_AFTER_CONST, 6, 6),
+        expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 6),
         expectedError(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 17, 1)
       ]);
     } else {
-      listener.assertErrorsWithCodes([ParserErrorCode.STATIC_AFTER_CONST]);
+      listener.assertErrorsWithCodes([ParserErrorCode.MODIFIER_OUT_OF_ORDER]);
     }
   }
 
@@ -5214,8 +5185,8 @@ class Wrong<T> {
     createParser('var static f;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.STATIC_AFTER_VAR, 4, 6)]);
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 6)]);
   }
 
   void test_staticConstructor() {
@@ -5487,7 +5458,7 @@ main() {
   void test_typedef_namedFunction() {
     parseCompilationUnit('typedef void Function();',
         codes: usingFastaParser
-            ? [ParserErrorCode.MISSING_IDENTIFIER]
+            ? [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD]
             : [
                 ParserErrorCode.UNEXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
@@ -6915,9 +6886,7 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
     InstanceCreationExpressionImpl expression =
         parseExpression('new a.b.c<C>()', errors: [
       expectedError(
-          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          8,
-          1)
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 8, 1)
     ]);
     expect(expression, isNotNull);
     expect(expression.keyword.keyword, Keyword.NEW);
@@ -8231,17 +8200,13 @@ mixin ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 }
 
-/**
- * Tests of the analyzer parser based on [FormalParameterParserTestMixin].
- */
+/// Tests of the analyzer parser based on [FormalParameterParserTestMixin].
 @reflectiveTest
 class FormalParameterParserTest extends ParserTestCase
     with FormalParameterParserTestMixin {}
 
-/**
- * The class [FormalParameterParserTestMixin] defines parser tests that test
- * the parsing of formal parameters.
- */
+/// The class [FormalParameterParserTestMixin] defines parser tests that test
+/// the parsing of formal parameters.
 mixin FormalParameterParserTestMixin implements AbstractParserTestCase {
   void test_parseConstructorParameter_this() {
     parseCompilationUnit('''
@@ -9419,50 +9384,36 @@ class NonErrorParserTest extends ParserTestCase {
   }
 }
 
-/**
- * Implementation of [AbstractParserTestCase] specialized for testing the
- * analyzer parser.
- */
+/// Implementation of [AbstractParserTestCase] specialized for testing the
+/// analyzer parser.
 class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
-  /**
-   * A flag indicating whether parser is to parse function bodies.
-   */
+  /// A flag indicating whether parser is to parse function bodies.
   static bool parseFunctionBodies = true;
 
   @override
   bool allowNativeClause = true;
 
-  /**
-   * A flag indicating whether parser is to parse async.
-   */
+  /// A flag indicating whether parser is to parse async.
   bool parseAsync = true;
 
-  /**
-   * A flag indicating whether the parser should parse instance creation
-   * expressions that lack either the `new` or `const` keyword.
-   */
+  /// A flag indicating whether the parser should parse instance creation
+  /// expressions that lack either the `new` or `const` keyword.
   bool enableOptionalNewAndConst = false;
 
-  /**
-   * A flag indicating whether the parser should parse mixin declarations.
-   * https://github.com/dart-lang/language/issues/12
-   */
+  /// A flag indicating whether the parser should parse mixin declarations.
+  /// https://github.com/dart-lang/language/issues/12
   bool isMixinSupportEnabled = false;
 
-  /**
-   * A flag indicating whether the parser is to parse part-of directives that
-   * specify a URI rather than a library name.
-   */
+  /// A flag indicating whether the parser is to parse part-of directives that
+  /// specify a URI rather than a library name.
   bool enableUriInPartOf = false;
 
   @override
   GatheringErrorListener listener;
 
-  /**
-   * The parser used by the test.
-   *
-   * This field is typically initialized by invoking [createParser].
-   */
+  /// The parser used by the test.
+  ///
+  /// This field is typically initialized by invoking [createParser].
   @override
   Parser parser;
 
@@ -9479,10 +9430,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     listener.assertNoErrors();
   }
 
-  /**
-   * Create the [parser] and [listener] used by a test. The [parser] will be
-   * prepared to parse the tokens scanned from the given [content].
-   */
+  /// Create the [parser] and [listener] used by a test. The [parser] will be
+  /// prepared to parse the tokens scanned from the given [content].
   @override
   void createParser(
     String content, {
@@ -9612,15 +9561,15 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     }
   }
 
-  /**
-   * Parse the given source as a compilation unit.
-   *
-   * @param source the source to be parsed
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the compilation unit that was parsed
-   * @throws Exception if the source could not be parsed, if the compilation errors in the source do
-   *           not match those that are expected, or if the result would have been `null`
-   */
+  /// Parse the given source as a compilation unit.
+  ///
+  /// @param source the source to be parsed
+  /// @param errorCodes the error codes of the errors that are expected to be
+  ///          found
+  /// @return the compilation unit that was parsed
+  /// @throws Exception if the source could not be parsed, if the compilation
+  ///           errors in the source do not match those that are expected, or if
+  ///           the result would have been `null`
   @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
@@ -9648,9 +9597,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     return unit;
   }
 
-  /**
-   * Parse the given [content] as a compilation unit.
-   */
+  /// Parse the given [content] as a compilation unit.
   CompilationUnit parseCompilationUnit2(String content,
       {AnalysisErrorListener listener}) {
     Source source = NonExistingSource.unknown;
@@ -9707,12 +9654,10 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     return parser.parseEqualityExpression();
   }
 
-  /**
-   * Parse the given [source] as an expression. If a list of error [codes] is
-   * provided, then assert that the produced errors matches the list. Otherwise,
-   * if a list of [errors] is provided, the assert that the produced errors
-   * matches the list. Otherwise, assert that there are no errors.
-   */
+  /// Parse the given [source] as an expression. If a list of error [codes] is
+  /// provided, then assert that the produced errors matches the list.
+  /// Otherwise, if a list of [errors] is provided, the assert that the produced
+  /// errors matches the list. Otherwise, assert that there are no errors.
   @override
   Expression parseExpression(String source,
       {List<ErrorCode> codes,
@@ -9791,10 +9736,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     return list;
   }
 
-  /**
-   * Parses a single top level member of a compilation unit (other than a
-   * directive), including any comment and/or metadata that precedes it.
-   */
+  /// Parses a single top level member of a compilation unit (other than a
+  /// directive), including any comment and/or metadata that precedes it.
   @override
   CompilationUnitMember parseFullCompilationUnitMember() => usingFastaParser
       ? parser.parseCompilationUnit2().declarations.first
@@ -9986,10 +9929,9 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     return parser.parseSimpleIdentifier();
   }
 
-  /**
-   * Parse the given [content] as a statement. If [enableLazyAssignmentOperators]
-   * is `true`, then lazy assignment operators should be enabled.
-   */
+  /// Parse the given [content] as a statement. If
+  /// [enableLazyAssignmentOperators] is `true`, then lazy assignment operators
+  /// should be enabled.
   @override
   Statement parseStatement(String content, {int expectedEndOffset}) {
     Source source = TestSource();
@@ -10009,17 +9951,17 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     return statement;
   }
 
-  /**
-   * Parse the given source as a sequence of statements.
-   *
-   * @param source the source to be parsed
-   * @param expectedCount the number of statements that are expected
-   * @param errorCodes the error codes of the errors that are expected to be found
-   * @return the statements that were parsed
-   * @throws Exception if the source could not be parsed, if the number of statements does not match
-   *           the expected count, if the compilation errors in the source do not match those that
-   *           are expected, or if the result would have been `null`
-   */
+  /// Parse the given source as a sequence of statements.
+  ///
+  /// @param source the source to be parsed
+  /// @param expectedCount the number of statements that are expected
+  /// @param errorCodes the error codes of the errors that are expected to be
+  ///          found
+  /// @return the statements that were parsed
+  /// @throws Exception if the source could not be parsed, if the number of
+  ///           statements does not match the expected count, if the compilation
+  ///           errors in the source do not match those that are expected, or if
+  ///           the result would have been `null`
   List<Statement> parseStatements(String content, int expectedCount,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     Source source = TestSource();
@@ -10088,11 +10030,9 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   }
 }
 
-/**
- * Helper methods that aid in parser tests.
- *
- * Intended to be mixed in to parser test case classes.
- */
+/// Helper methods that aid in parser tests.
+///
+/// Intended to be mixed in to parser test case classes.
 mixin ParserTestHelpers {
   void expectCommentText(Comment comment, String expectedText) {
     expect(comment.beginToken, same(comment.endToken));
@@ -10111,17 +10051,13 @@ mixin ParserTestHelpers {
   }
 }
 
-/**
- * Tests of the analyzer parser based on [RecoveryParserTestMixin].
- */
+/// Tests of the analyzer parser based on [RecoveryParserTestMixin].
 @reflectiveTest
 class RecoveryParserTest extends ParserTestCase with RecoveryParserTestMixin {}
 
-/**
- * The class `RecoveryParserTest` defines parser tests that test the parsing of
- * invalid code sequences to ensure that the correct recovery steps are taken in
- * the parser.
- */
+/// The class `RecoveryParserTest` defines parser tests that test the parsing of
+/// invalid code sequences to ensure that the correct recovery steps are taken
+/// in the parser.
 mixin RecoveryParserTestMixin implements AbstractParserTestCase {
   void test_additiveExpression_missing_LHS() {
     BinaryExpression expression =
@@ -11416,9 +11352,7 @@ class C {
     // TODO(brianwilkerson) We could do better with this.
     parseCompilationUnit("do() {}",
         codes: usingFastaParser
-            // fasta reports ExpectedIdentifier
-            // which gets mapped to MISSING_IDENTIFIER
-            ? [ParserErrorCode.MISSING_IDENTIFIER]
+            ? [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD]
             : [
                 ParserErrorCode.EXPECTED_EXECUTABLE,
                 ParserErrorCode.UNEXPECTED_TOKEN
@@ -11518,7 +11452,7 @@ class C {
 
   void test_missing_commaInArgumentList() {
     MethodInvocation expression = parseExpression("f(x: 1 y: 2)",
-        errors: ([expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]));
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1)]);
     NodeList<Expression> arguments = expression.argumentList.arguments;
     expect(arguments, hasLength(2));
   }
@@ -11841,9 +11775,7 @@ class C {
   }
 }
 
-/**
- * Tests of the analyzer parser based on [SimpleParserTestMixin].
- */
+/// Tests of the analyzer parser based on [SimpleParserTestMixin].
 @reflectiveTest
 class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
   void test_computeStringValue_emptyInterpolationPrefix() {
@@ -12577,15 +12509,14 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     expect(following.type, TokenType.PLUS);
   }
 
-  /**
-   * Invoke the method [Parser.computeStringValue] with the given argument.
-   *
-   * @param lexeme the argument to the method
-   * @param first `true` if this is the first token in a string literal
-   * @param last `true` if this is the last token in a string literal
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
+  /// Invoke the method [Parser.computeStringValue] with the given argument.
+  ///
+  /// @param lexeme the argument to the method
+  /// @param first `true` if this is the first token in a string literal
+  /// @param last `true` if this is the last token in a string literal
+  /// @return the result of invoking the method
+  /// @throws Exception if the method could not be invoked or throws an
+  ///           exception
   String _computeStringValue(String lexeme, bool first, bool last) {
     createParser('');
     String value = parser.computeStringValue(lexeme, first, last);
@@ -12593,14 +12524,14 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     return value;
   }
 
-  /**
-   * Invoke the method [Parser.isFunctionDeclaration] with the parser set to the token
-   * stream produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
+  /// Invoke the method [Parser.isFunctionDeclaration] with the parser set to
+  /// the token stream produced by scanning the given source.
+  ///
+  /// @param source the source to be scanned to produce the token stream being
+  ///          tested
+  /// @return the result of invoking the method
+  /// @throws Exception if the method could not be invoked or throws an
+  ///           exception
   bool _isFunctionDeclaration(String source) {
     createParser(source);
     bool result = parser.isFunctionDeclaration();
@@ -12608,27 +12539,27 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     return result;
   }
 
-  /**
-   * Invoke the method [Parser.isFunctionExpression] with the parser set to the token stream
-   * produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
+  /// Invoke the method [Parser.isFunctionExpression] with the parser set to the
+  /// token stream produced by scanning the given source.
+  ///
+  /// @param source the source to be scanned to produce the token stream being
+  ///          tested
+  /// @return the result of invoking the method
+  /// @throws Exception if the method could not be invoked or throws an
+  ///           exception
   bool _isFunctionExpression(String source) {
     createParser(source);
     return parser.isFunctionExpression(parser.currentToken);
   }
 
-  /**
-   * Invoke the method [Parser.isInitializedVariableDeclaration] with the parser set to the
-   * token stream produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
+  /// Invoke the method [Parser.isInitializedVariableDeclaration] with the
+  /// parser set to the token stream produced by scanning the given source.
+  ///
+  /// @param source the source to be scanned to produce the token stream being
+  ///          tested
+  /// @return the result of invoking the method
+  /// @throws Exception if the method could not be invoked or throws an
+  ///           exception
   bool _isInitializedVariableDeclaration(String source) {
     createParser(source);
     bool result = parser.isInitializedVariableDeclaration();
@@ -12636,14 +12567,14 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     return result;
   }
 
-  /**
-   * Invoke the method [Parser.isSwitchMember] with the parser set to the token stream
-   * produced by scanning the given source.
-   *
-   * @param source the source to be scanned to produce the token stream being tested
-   * @return the result of invoking the method
-   * @throws Exception if the method could not be invoked or throws an exception
-   */
+  /// Invoke the method [Parser.isSwitchMember] with the parser set to the token
+  /// stream produced by scanning the given source.
+  ///
+  /// @param source the source to be scanned to produce the token stream being
+  ///          tested
+  /// @return the result of invoking the method
+  /// @throws Exception if the method could not be invoked or throws an
+  ///           exception
   bool _isSwitchMember(String source) {
     createParser(source);
     bool result = parser.isSwitchMember();
@@ -12652,13 +12583,11 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
   }
 }
 
-/**
- * Parser tests that test individual parsing methods. The code fragments should
- * be as minimal as possible in order to test the method, but should not test
- * the interactions between the method under test and other methods.
- *
- * More complex tests should be defined in the class [ComplexParserTest].
- */
+/// Parser tests that test individual parsing methods. The code fragments should
+/// be as minimal as possible in order to test the method, but should not test
+/// the interactions between the method under test and other methods.
+///
+/// More complex tests should be defined in the class [ComplexParserTest].
 mixin SimpleParserTestMixin implements AbstractParserTestCase {
   ConstructorName parseConstructorName(String name) {
     createParser('new $name();');
@@ -12705,12 +12634,10 @@ mixin SimpleParserTestMixin implements AbstractParserTestCase {
     return directive.name;
   }
 
-  /**
-   * Parse the given [content] as a sequence of statements by enclosing it in a
-   * block. The [expectedCount] is the number of statements that are expected to
-   * be parsed. If [errorCodes] are provided, verify that the error codes of the
-   * errors that are expected are found.
-   */
+  /// Parse the given [content] as a sequence of statements by enclosing it in a
+  /// block. The [expectedCount] is the number of statements that are expected
+  /// to be parsed. If [errorCodes] are provided, verify that the error codes of
+  /// the errors that are expected are found.
   void parseStatementList(String content, int expectedCount) {
     Statement statement = parseStatement('{$content}');
     expect(statement, isBlock);
@@ -14605,17 +14532,16 @@ Function<A>(core.List<core.int> x) m() => null;
 class StatementParserTest extends ParserTestCase with StatementParserTestMixin {
 }
 
-/**
- * The class [FormalParameterParserTestMixin] defines parser tests that test
- * the parsing statements.
- */
+/// The class [FormalParameterParserTestMixin] defines parser tests that test
+/// the parsing statements.
 mixin StatementParserTestMixin implements AbstractParserTestCase {
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit('main() { C<@Foo T> v; }',
         errors: usingFastaParser
-            // TODO(danrubel): Improve this error to indicate that annotations
-            // are not valid in this context.
-            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]
+            ? [
+                expectedError(
+                    ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 4)
+              ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1)
@@ -14625,9 +14551,10 @@ mixin StatementParserTestMixin implements AbstractParserTestCase {
   void test_invalid_typeParamAnnotation2() {
     parseCompilationUnit('main() { C<@Foo.bar(1) T> v; }',
         errors: usingFastaParser
-            // TODO(danrubel): Improve this error to indicate that annotations
-            // are not valid in this context.
-            ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 11, 1)]
+            ? [
+                expectedError(
+                    ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 11)
+              ]
             : [
                 expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 1)
@@ -14645,9 +14572,7 @@ main() {
     W<X<Y<Z>>>
   > v;
 }''', errors: [
-        // TODO(danrubel): Improve this error to indicate that annotations
-        // are not valid in this context.
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 13, 1)
+        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 13, 63)
       ]);
     }
   }
@@ -15230,7 +15155,7 @@ main() {
     }
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
     assertErrorsWithCodes(
-        [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
+        [CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR]);
     expect(statement.expression, isNotNull);
   }
 
@@ -16012,10 +15937,8 @@ main() {
 @reflectiveTest
 class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
 
-/**
- * Tests which exercise the parser using a complete compilation unit or
- * compilation unit member.
- */
+/// Tests which exercise the parser using a complete compilation unit or
+/// compilation unit member.
 mixin TopLevelParserTestMixin implements AbstractParserTestCase {
   void test_function_literal_allowed_at_toplevel() {
     parseCompilationUnit("var x = () {};");
@@ -16356,7 +16279,7 @@ mixin TopLevelParserTestMixin implements AbstractParserTestCase {
             : [
                 expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4),
                 expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 4),
-                expectedError(ParserErrorCode.MISSING_CLASS_BODY, 18, 4),
+                expectedError(ParserErrorCode.EXPECTED_BODY, 18, 4),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
                 expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 22, 1),
                 expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 22, 1),
@@ -18114,9 +18037,7 @@ class A<
     expectCommentText(typeVariable.documentationComment, '/// Doc');
   }
 
-  /**
-   * Assert that the given [name] is in declaration context.
-   */
+  /// Assert that the given [name] is in declaration context.
   void _assertIsDeclarationName(SimpleIdentifier name) {
     expect(name.inDeclarationContext(), isTrue);
   }

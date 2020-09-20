@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 @ReifyFunctionTypes(false)
 library dart._runtime;
 
@@ -13,7 +11,7 @@ import 'dart:collection';
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors' show JSArray, jsNull, JSFunction, NativeError;
-import 'dart:_internal' as internal show Symbol;
+import 'dart:_internal' as internal show LateInitializationErrorImpl, Symbol;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
@@ -79,7 +77,8 @@ bool polyfill(window) => JS('', '''(() => {
     }
     if (typeof $window.MemoryInfo == "undefined") {
       if (typeof $window.performance.memory != "undefined") {
-        $window.MemoryInfo = $window.performance.memory.constructor;
+        $window.MemoryInfo = function () {};
+        $window.MemoryInfo.prototype = $window.performance.memory.__proto__;
       }
     }
     if (typeof $window.Geolocation == "undefined") {

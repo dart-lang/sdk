@@ -11,14 +11,14 @@ main() {
   Expect.throwsRangeError(() => v.toStringAsExponential(21));
   v.toStringAsExponential(1.5);
   //                      ^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
   v.toStringAsExponential("string");
   //                      ^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   v.toStringAsExponential("3");
   //                      ^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 }

@@ -1,0 +1,14 @@
+name: language_versioning_2.7_test
+version: 1.0.0
+
+description: >
+  Tests of language versioning.
+  Stored as a package in order to have its own package configuration
+  and default language version
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=2.7.0 <3.0.0'
+

@@ -28,12 +28,10 @@ main() {
 // inserts an implicit cast at the call-site or we disregard the forced check
 // because it is a static call.
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: Class1a:checkedInstance*/
-/*prod:nnbd-off.class: Class1a:*/
+/*spec.class: Class1a:checkedInstance*/
 class Class1a {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: Class1b:checkedInstance*/
-/*prod:nnbd-off.class: Class1b:*/
+/*spec.class: Class1b:checkedInstance*/
 class Class1b {}
 
 // Checks are needed both with and without --omit-implicit-checks.
@@ -52,12 +50,10 @@ class Class3a {}
 /*class: Class3b:*/
 class Class3b {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: Class4a:checkedInstance*/
-/*prod:nnbd-off.class: Class4a:*/
+/*spec.class: Class4a:checkedInstance*/
 class Class4a<T> {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: Class4b:checkedInstance*/
-/*prod:nnbd-off.class: Class4b:*/
+/*spec.class: Class4b:checkedInstance*/
 class Class4b<T> {}
 
 // Checks are needed both with and without --omit-implicit-checks.

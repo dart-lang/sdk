@@ -201,19 +201,6 @@ nnbd/syntax/class_member_declarations_test/none: Skip # Issue 39823
 nnbd/syntax/nullable_type_test: Skip # Issue 39820
 nnbd/syntax/opt_out_nnbd_modifiers_test: Skip # Issue 37957
 nnbd/syntax/pre_nnbd_modifiers_test: Skip # Issue 37957
-superinterface_variance/abstract_class_error_test/27: Crash # Issue dart-lang/language#113
-superinterface_variance/concrete_class_error_test/27: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/27: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/37: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/38: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/40: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/41: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/42: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/43: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/44: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/46: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/47: Crash # Issue dart-lang/language#113
-superinterface_variance/mixin_error_test/48: Crash # Issue dart-lang/language#113
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 generic/function_dcall_test/01: SkipByDesign # Prints type names

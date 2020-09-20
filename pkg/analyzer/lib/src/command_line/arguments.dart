@@ -6,11 +6,10 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:path/path.dart';
+import 'package:cli_util/cli_util.dart';
 
 const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
@@ -55,19 +54,35 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
   }
 }
 
-/**
- * Use the command-line [args] to create a context builder.
- */
-ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
+/// Use the command-line [args] to create a context builder options.
+ContextBuilderOptions createContextBuilderOptions(
+  ResourceProvider resourceProvider,
+  ArgResults args,
+) {
+  String absoluteNormalizedPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    var pathContext = resourceProvider.pathContext;
+    return pathContext.normalize(
+      pathContext.absolute(path),
+    );
+  }
+
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
   builderOptions.argResults = args;
   //
   // File locations.
   //
-  builderOptions.dartSdkSummaryPath = args[sdkSummaryPathOption];
-  builderOptions.defaultAnalysisOptionsFilePath =
-      args[analysisOptionsFileOption];
-  builderOptions.defaultPackageFilePath = args[packagesOption];
+  builderOptions.dartSdkSummaryPath = absoluteNormalizedPath(
+    args[sdkSummaryPathOption],
+  );
+  builderOptions.defaultAnalysisOptionsFilePath = absoluteNormalizedPath(
+    args[analysisOptionsFileOption],
+  );
+  builderOptions.defaultPackageFilePath = absoluteNormalizedPath(
+    args[packagesOption],
+  );
   //
   // Analysis options.
   //
@@ -101,36 +116,24 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
   return builderOptions;
 }
 
-/**
- * Use the given [resourceProvider] and command-line [args] to create a Dart SDK
- * manager. The manager will use summary information if [useSummaries] is `true`
- * and if the summary information exists.
- */
+/// Use the given [resourceProvider] and command-line [args] to create a Dart
+/// SDK manager. The manager will use summary information if [useSummaries] is
+/// `true` and if the summary information exists.
 DartSdkManager createDartSdkManager(
-    ResourceProvider resourceProvider, bool useSummaries, ArgResults args) {
-  String sdkPath = args[sdkPathOption];
+    ResourceProvider resourceProvider, ArgResults args) {
+  String sdkPath = args[sdkPathOption] ?? getSdkPath();
 
-  bool canUseSummaries = useSummaries &&
-      args.rest.every((String sourcePath) {
-        sourcePath = context.absolute(sourcePath);
-        sourcePath = context.normalize(sourcePath);
-        return !context.isWithin(sdkPath, sourcePath);
-      });
-  return DartSdkManager(
-      sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
-      canUseSummaries);
+  return DartSdkManager(sdkPath);
 }
 
-/**
- * Add the standard flags and options to the given [parser]. The standard flags
- * are those that are typically used to control the way in which the code is
- * analyzed.
- *
- * TODO(danrubel) Update DDC to support all the options defined in this method
- * then remove the [ddc] named argument from this method.
- */
+/// Add the standard flags and options to the given [parser]. The standard flags
+/// are those that are typically used to control the way in which the code is
+/// analyzed.
+///
+/// TODO(danrubel) Update DDC to support all the options defined in this method
+/// then remove the [ddc] named argument from this method.
 void defineAnalysisArguments(ArgParser parser,
-    {bool hide = true, ddc = false}) {
+    {bool hide = true, bool ddc = false}) {
   parser.addOption(sdkPathOption,
       help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,
@@ -160,8 +163,8 @@ void defineAnalysisArguments(ArgParser parser,
   parser.addMultiOption(defineVariableOption,
       abbr: 'D',
       help:
-          'Define an environment declaration. For example, "-Dfoo=bar" defines an '
-          'environment declaration named "foo" whose value is "bar".',
+          'Define an environment declaration. For example, "-Dfoo=bar" defines '
+          'an environment declaration named "foo" whose value is "bar".',
       hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
@@ -182,12 +185,10 @@ void defineAnalysisArguments(ArgParser parser,
   }
 }
 
-/**
- * Find arguments of the form -Dkey=value
- * or argument pairs of the form -Dkey value
- * and place those key/value pairs into [definedVariables].
- * Return a list of arguments with the key/value arguments removed.
- */
+/// Find arguments of the form -Dkey=value
+/// or argument pairs of the form -Dkey value
+/// and place those key/value pairs into [definedVariables].
+/// Return a list of arguments with the key/value arguments removed.
 List<String> extractDefinedVariables(
     List<String> args, Map<String, String> definedVariables) {
   //TODO(danrubel) extracting defined variables is already handled by the
@@ -217,19 +218,17 @@ List<String> extractDefinedVariables(
   return remainingArgs;
 }
 
-/**
- * Return a list of command-line arguments containing all of the given [args]
- * that are defined by the given [parser]. An argument is considered to be
- * defined by the parser if
- * - it starts with '--' and the rest of the argument (minus any value
- *   introduced by '=') is the name of a known option,
- * - it starts with '-' and the rest of the argument (minus any value
- *   introduced by '=') is the name of a known abbreviation, or
- * - it starts with something other than '--' or '-'.
- *
- * This function allows command-line tools to implement the
- * '--ignore-unrecognized-flags' option.
- */
+/// Return a list of command-line arguments containing all of the given [args]
+/// that are defined by the given [parser]. An argument is considered to be
+/// defined by the parser if
+/// - it starts with '--' and the rest of the argument (minus any value
+///   introduced by '=') is the name of a known option,
+/// - it starts with '-' and the rest of the argument (minus any value
+///   introduced by '=') is the name of a known abbreviation, or
+/// - it starts with something other than '--' or '-'.
+///
+/// This function allows command-line tools to implement the
+/// '--ignore-unrecognized-flags' option.
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownOptions = HashSet<String>();
   Set<String> knownAbbreviations = HashSet<String>();
@@ -269,10 +268,8 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   return filtered;
 }
 
-/**
- * Use the given [parser] to parse the given command-line [args], and return the
- * result.
- */
+/// Use the given [parser] to parse the given command-line [args], and return
+/// the result.
 ArgResults parse(
     ResourceProvider provider, ArgParser parser, List<String> args) {
   args = preprocessArgs(provider, args);
@@ -282,12 +279,10 @@ ArgResults parse(
   return parser.parse(args);
 }
 
-/**
- * Preprocess the given list of command line [args].
- * If the final arg is `@file_path` (Bazel worker mode),
- * then read in all the lines of that file and add those as args.
- * Always returns a new modifiable list.
- */
+/// Preprocess the given list of command line [args].
+/// If the final arg is `@file_path` (Bazel worker mode),
+/// then read in all the lines of that file and add those as args.
+/// Always returns a new modifiable list.
 List<String> preprocessArgs(ResourceProvider provider, List<String> args) {
   args = List.from(args);
   if (args.isEmpty) {

@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,13 +19,13 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   MemberSuggestionBuilder memberBuilder;
 
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var containingLibrary = request.libraryElement;
     // Gracefully degrade if the library could not be determined, such as with a
     // detached part file or source change.
     if (containingLibrary == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     memberBuilder = MemberSuggestionBuilder(request, builder);
@@ -63,24 +59,23 @@ class ExtensionMemberContributor extends DartCompletionContributor {
           }
         }
       }
-
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     if (expression.isSynthetic) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     if (expression is Identifier) {
       var elem = expression.staticElement;
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor.
-        return const <CompletionSuggestion>[];
+        return;
       } else if (elem is ExtensionElement) {
         // Suggestions provided by StaticMemberContributor.
-        return const <CompletionSuggestion>[];
+        return;
       } else if (elem is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor.
-        return const <CompletionSuggestion>[];
+        return;
       }
     }
     if (expression is ExtensionOverride) {
@@ -92,25 +87,28 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // get to this point, but there's an NPE if we invoke
         // `_resolveExtendedType` when `type` is `null`, so we guard against it
         // to ensure that we can return the suggestions from other providers.
-        return const <CompletionSuggestion>[];
+        return;
       }
       _addExtensionMembers(containingLibrary, type);
       expression.staticType;
     }
-    return const <CompletionSuggestion>[];
   }
 
   void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
     var typeSystem = containingLibrary.typeSystem;
-    var nameScope = LibraryScope(containingLibrary);
+    var nameScope = containingLibrary.scope;
     for (var extension in nameScope.extensions) {
       var extendedType =
           _resolveExtendedType(containingLibrary, extension, type);
       if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
         double inheritanceDistance;
         if (memberBuilder.request.useNewRelevance) {
-          inheritanceDistance = memberBuilder.request.featureComputer
-              .inheritanceDistanceFeature(type.element, extendedType.element);
+          if (type is InterfaceType && extendedType is InterfaceType) {
+            inheritanceDistance = memberBuilder.request.featureComputer
+                .inheritanceDistanceFeature(type.element, extendedType.element);
+          } else {
+            inheritanceDistance = -1;
+          }
         }
         // TODO(brianwilkerson) We might want to apply the substitution to the
         //  members of the extension for display purposes.

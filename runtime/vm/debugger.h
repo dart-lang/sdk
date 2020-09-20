@@ -369,7 +369,6 @@ class ActivationFrame : public ZoneAllocated {
   void PrintToJSONObjectRegular(JSONObject* jsobj);
   void PrintToJSONObjectAsyncCausal(JSONObject* jsobj);
   void PrintToJSONObjectAsyncSuspensionMarker(JSONObject* jsobj);
-  void PrintToJSONObjectAsyncActivation(JSONObject* jsobj);
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
@@ -519,6 +518,10 @@ class Debugger {
   Breakpoint* SetBreakpointAtLineCol(const String& script_url,
                                      intptr_t line_number,
                                      intptr_t column_number);
+
+  // Sets synthetic breakpoint at async_op to step over the synthetic part of
+  // the stack trace.
+  Breakpoint* SetBreakpointAtAsyncOp(const Function& async_op);
 
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,

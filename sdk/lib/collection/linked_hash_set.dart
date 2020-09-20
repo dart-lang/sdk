@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
 /// A [LinkedHashSet] is a hash-table based [Set] implementation.
@@ -73,9 +71,9 @@ abstract class LinkedHashSet<E> implements Set<E> {
   /// and the `isValidKey` defaults to accepting all keys.
   /// Such a map can be created directly using [LinkedHashSet.identity].
   external factory LinkedHashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)});
+      {bool Function(E, E)? equals,
+      int Function(E)? hashCode,
+      bool Function(dynamic)? isValidKey});
 
   /// Creates an insertion-ordered identity-based set.
   ///
@@ -97,10 +95,10 @@ abstract class LinkedHashSet<E> implements Set<E> {
   ///     Set<SuperType> superSet = ...;
   ///     Iterable<SuperType> tmp = superSet.where((e) => e is SubType);
   ///     Set<SubType> subSet = new LinkedHashSet<SubType>.from(tmp);
-  factory LinkedHashSet.from(Iterable elements) {
+  factory LinkedHashSet.from(Iterable<dynamic> elements) {
     LinkedHashSet<E> result = LinkedHashSet<E>();
     for (final element in elements) {
-      result.add(element);
+      result.add(element as E);
     }
     return result;
   }

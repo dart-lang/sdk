@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,15 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class PrivateOptionalParameterTest extends DriverResolutionTest {
-  test_private() async {
-    await assertErrorsInCode('''
-f({var _p}) {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 6),
-    ]);
-  }
-
+class PrivateOptionalParameterTest extends PubPackageResolutionTest {
   test_fieldFormal() async {
     await assertErrorsInCode(r'''
 class A {
@@ -32,6 +24,14 @@ class A {
 ''', [
       error(HintCode.UNUSED_FIELD, 16, 2),
       error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 25, 7),
+    ]);
+  }
+
+  test_private() async {
+    await assertErrorsInCode('''
+f({var _p}) {}
+''', [
+      error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 6),
     ]);
   }
 

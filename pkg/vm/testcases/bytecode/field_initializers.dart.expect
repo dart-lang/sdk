@@ -24,26 +24,26 @@ ConstantPool {
 }
 
 Class 'A', script = '#lib'
-    extends dart:core::Object
+    extends dart:core::Object*
 
-Field 'foo1', type = dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
+Field 'foo1', type = dart:core::int*, getter = 'get:foo1', setter = 'set:foo1', reflectable
     value = null
 
-Field 'foo2', type = dart:core::int, getter = 'get:foo2', setter = 'set:foo2', reflectable, has-initializer
+Field 'foo2', type = dart:core::int*, getter = 'get:foo2', setter = 'set:foo2', reflectable, has-initializer
     value = null
 
-Field 'foo3', type = dart:core::int, getter = 'get:foo3', setter = 'set:foo3', reflectable, has-initializer
+Field 'foo3', type = dart:core::int*, getter = 'get:foo3', setter = 'set:foo3', reflectable, has-initializer
     value = const 42
 
-Field 'foo4', type = dart:core::int, getter = 'get:foo4', setter = 'set:foo4', reflectable
+Field 'foo4', type = dart:core::int*, getter = 'get:foo4', setter = 'set:foo4', reflectable
     value = null
 
-Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', reflectable, has-initializer
+Field 'foo5', type = dart:core::int*, getter = 'get:foo5', setter = 'set:foo5', reflectable, has-initializer
     value = const 43
 
 Function '', constructor, reflectable, debuggable
-    parameters [dart:core::int 'foo4'] (required: 1)
-    return-type #lib::A
+    parameters [dart:core::int* 'foo4'] (required: 1)
+    return-type #lib::A*
 
 Bytecode {
   Entry                0
@@ -79,8 +79,8 @@ ConstantPool {
 
 
 Function 'constr2', constructor, reflectable, debuggable
-    parameters [dart:core::int 'x', dart:core::int 'y'] (required: 2)
-    return-type #lib::A
+    parameters [dart:core::int* 'x', dart:core::int* 'y'] (required: 2)
+    return-type #lib::A*
 
 Bytecode {
   Entry                0
@@ -119,7 +119,7 @@ ConstantPool {
 
 Function 'redirecting1', constructor, reflectable, debuggable
     parameters [] (required: 0)
-    return-type #lib::A
+    return-type #lib::A*
 
 Bytecode {
   Entry                0
@@ -138,8 +138,8 @@ ConstantPool {
 
 
 Function 'redirecting2', constructor, reflectable, debuggable
-    parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
-    return-type #lib::A
+    parameters [dart:core::int* 'a', dart:core::int* 'b', dart:core::int* 'c'] (required: 3)
+    return-type #lib::A*
 
 Bytecode {
   Entry                0
@@ -162,58 +162,58 @@ ConstantPool {
 
 Function 'get:_identityHashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function '_instanceOf', abstract, debuggable
     parameters [dynamic 'instantiatorTypeArguments', dynamic 'functionTypeArguments', dynamic 'type'] (required: 3)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOf', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfTrue', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '_simpleInstanceOfFalse', abstract, debuggable
     parameters [dynamic 'type'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function '==', abstract, debuggable
     parameters [dynamic 'other'] (required: 1)
-    return-type dart:core::bool
+    return-type dart:core::bool*
 
 Function 'get:hashCode', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::int
+    return-type dart:core::int*
 
 Function 'toString', abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::String
+    return-type dart:core::String*
 
 Function 'noSuchMethod', abstract, debuggable
-    parameters [dart:core::Invocation 'invocation'] (required: 1)
+    parameters [dart:core::Invocation* 'invocation'] (required: 1)
     return-type dynamic
 
 Function 'get:runtimeType', getter, abstract, debuggable
     parameters [] (required: 0)
-    return-type dart:core::Type
+    return-type dart:core::Type*
 Class 'B', script = '#lib'
-    extends #lib::A
+    extends #lib::A*
 
-Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable, has-initializer
+Field 'foo6', type = dart:core::int*, getter = 'get:foo6', setter = 'set:foo6', reflectable, has-initializer
     value = const 46
 
-Field 'foo7', type = dart:core::int, reflectable, static, has-initializer
+Field 'foo7', type = dart:core::int*, reflectable, static, has-initializer
     value = const 47
 
-Field 'foo8', type = dart:core::int, reflectable, static, const, final, has-initializer
+Field 'foo8', type = dart:core::int*, reflectable, static, const, final, has-initializer
     value = const 48
 
 Function '', constructor, reflectable, debuggable
     parameters [] (required: 0)
-    return-type #lib::B
+    return-type #lib::B*
 
 Bytecode {
   Entry                0
@@ -237,8 +237,8 @@ ConstantPool {
 
 
 Function 'c2', constructor, reflectable, debuggable
-    parameters [dart:core::int 'i', dart:core::int 'j'] (required: 2)
-    return-type #lib::B
+    parameters [dart:core::int* 'i', dart:core::int* 'j'] (required: 2)
+    return-type #lib::B*
 
 Bytecode {
   Entry                0
@@ -286,16 +286,16 @@ ConstantPool {
     constructor redirecting2(dart.core::int* a, dart.core::int* b, dart.core::int* c) → #lib::A*
       : this #lib::A::constr2(a, b.{dart.core::num::*}(c))
       ;
-    abstract member-signature get _identityHashCode() → dart.core::int*;
-    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*;
-    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*;
-    abstract member-signature operator ==(dynamic other) → dart.core::bool*;
-    abstract member-signature get hashCode() → dart.core::int*;
-    abstract member-signature method toString() → dart.core::String*;
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic;
-    abstract member-signature get runtimeType() → dart.core::Type*;
+    abstract member-signature get _identityHashCode() → dart.core::int*; -> dart.core::Object::_identityHashCode
+    abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dart.core::bool*; -> dart.core::Object::_instanceOf
+    abstract member-signature method _simpleInstanceOf(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOf
+    abstract member-signature method _simpleInstanceOfTrue(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfTrue
+    abstract member-signature method _simpleInstanceOfFalse(dynamic type) → dart.core::bool*; -> dart.core::Object::_simpleInstanceOfFalse
+    abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
+    abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
+    abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
+    abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
   class B extends #lib::A {
     field dart.core::int* foo6 = 46;

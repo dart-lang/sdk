@@ -9,18 +9,8 @@ abstract class A {}
 
 class B implements A {}
 
-/*spec:nnbd-off.class: C:
-  deps=[lookup],
-  explicit=[C<lookup.T>,Map<String,C>],
-  implicit=[C],
-  needsArgs
-*/
-/*prod:nnbd-off.class: C:
- deps=[lookup],explicit=[C<lookup.T>],
- needsArgs
-*/
-/*spec:nnbd-sdk.class: C:deps=[lookup],explicit=[C<lookup.T*>*,Map<String*,C*>*],implicit=[C],needsArgs*/
-/*prod:nnbd-sdk.class: C:deps=[lookup],explicit=[C<lookup.T*>*],needsArgs*/
+/*spec.class: C:deps=[lookup],explicit=[C<lookup.T*>*,Map<String*,C*>*],implicit=[C],needsArgs*/
+/*prod.class: C:deps=[lookup],explicit=[C<lookup.T*>*],needsArgs*/
 class C<T> {}
 
 final Map<String, C> map = {};
@@ -29,8 +19,7 @@ void setup() {
   map['x'] = new C<B>();
 }
 
-/*spec:nnbd-off|prod:nnbd-off.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.member: lookup:direct,explicit=[C<lookup.T*>*],needsArgs*/
+/*member: lookup:direct,explicit=[C<lookup.T*>*],needsArgs*/
 C<T> lookup<T>(String key) {
   final value = map[key];
   if (value != null && value is C<T>) {

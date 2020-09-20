@@ -243,6 +243,27 @@ void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   }
 }
 
+void FUNCTION_NAME(InternetAddress_ParseScopedLinkLocalAddress)(
+    Dart_NativeArguments args) {
+  const char* address =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  // This must be an IPv6 address.
+  intptr_t type = 1;
+  ASSERT(address != NULL);
+  OSError* os_error = NULL;
+  AddressList<SocketAddress>* addresses =
+      SocketBase::LookupAddress(address, type, &os_error);
+  if (addresses != NULL) {
+    SocketAddress* addr = addresses->GetAt(0);
+    Dart_SetReturnValue(
+        args, Dart_NewInteger(SocketAddress::GetAddrScope(addr->addr())));
+    delete addresses;
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(os_error));
+    delete os_error;
+  }
+}
+
 void FUNCTION_NAME(InternetAddress_RawAddrToString)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 0), &addr);

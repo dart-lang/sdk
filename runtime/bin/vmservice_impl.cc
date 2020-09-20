@@ -13,6 +13,7 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/text_buffer.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -24,7 +25,7 @@ namespace bin {
 
 #define SHUTDOWN_ON_ERROR(handle)                                              \
   if (Dart_IsError(handle)) {                                                  \
-    error_msg_ = strdup(Dart_GetError(handle));                                \
+    error_msg_ = Utils::StrDup(Dart_GetError(handle));                         \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     return false;                                                              \
@@ -117,7 +118,8 @@ bool VmService::Setup(const char* server_ip,
                       const char* write_service_info_filename,
                       bool trace_loading,
                       bool deterministic,
-                      bool enable_service_port_fallback) {
+                      bool enable_service_port_fallback,
+                      bool wait_for_dds_to_advertise_service) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerAddress("");
@@ -188,6 +190,12 @@ bool VmService::Setup(const char* server_ip,
                                        write_service_info_filename);
     SHUTDOWN_ON_ERROR(result);
   }
+
+  result = Dart_SetField(library,
+                         DartUtils::NewString("_waitForDdsToAdvertiseService"),
+                         Dart_NewBoolean(wait_for_dds_to_advertise_service));
+  SHUTDOWN_ON_ERROR(result);
+
 // Are we running on Windows?
 #if defined(HOST_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();

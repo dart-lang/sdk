@@ -6,12 +6,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, UnlinkedCallRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class UnlinkedCallRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<UnlinkedCallRefElement>('unlinkedcall-ref');
-
   RenderingScheduler<UnlinkedCallRefElement> _r;
 
   Stream<RenderedEvent<UnlinkedCallRefElement>> get onRendered => _r.onRendered;
@@ -34,7 +32,7 @@ class UnlinkedCallRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  UnlinkedCallRefElement.created() : super.created(tag);
+  UnlinkedCallRefElement.created() : super.created('unlinkedcall-ref');
 
   @override
   void attached() {

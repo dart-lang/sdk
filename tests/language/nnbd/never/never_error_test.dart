@@ -55,7 +55,7 @@ void neverHasAllMembers(Never x) {
     staticErrorIfNotNever(x == x);
     staticErrorIfNotNever(x == 3);
     staticErrorIfNotNever(3 == x);
-//  ^^^^^^^^^^^^^^^^^
+//  ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] Inferred type argument 'bool' doesn't conform to the bound 'Never' of the type variable 'T' on 'staticErrorIfNotNever'.
   }
@@ -81,14 +81,14 @@ void extensionsDontApply(Never x) {
   {
     var t = NeverExt(x).neverMethod();
     staticErrorIfNotNever(t);
-//  ^^^^^^^^^^^^^^^^^
+//  ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] Inferred type argument 'int' doesn't conform to the bound 'Never' of the type variable 'T' on 'staticErrorIfNotNever'.
   }
   {
     var t = ObjectExt(x).objectMethod();
     staticErrorIfNotNever(t);
-//  ^^^^^^^^^^^^^^^^^
+//  ^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] Inferred type argument 'int' doesn't conform to the bound 'Never' of the type variable 'T' on 'staticErrorIfNotNever'.
   }

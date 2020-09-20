@@ -744,7 +744,9 @@ class ProcessStarter {
     }
     actions[3] = {
       .action = FDIO_SPAWN_ACTION_SET_NAME,
-      .name.data = program_arguments_[0],
+      .name = {
+        .data = program_arguments_[0],
+      },
     };
 
     // Then fill in the namespace actions.
@@ -752,8 +754,10 @@ class ProcessStarter {
       for (size_t i = 0; i < flat_ns->count; i++) {
         actions[fixed_actions_cnt + i] = {
           .action = FDIO_SPAWN_ACTION_ADD_NS_ENTRY,
-          .ns.prefix = flat_ns->path[i],
-          .ns.handle = flat_ns->handle[i],
+          .ns = {
+            .prefix = flat_ns->path[i],
+            .handle = flat_ns->handle[i],
+          },
         };
       }
       free(flat_ns);

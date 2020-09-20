@@ -6,14 +6,14 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: C:checkedInstance,checks=[],instance,typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: C:checks=[],instance,typeArgument*/
+/*spec.class: C:checkedInstance,checks=[],instance,typeArgument*/
+/*prod.class: C:checks=[],instance,typeArgument*/
 class C {
   call(int i) {}
 }
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: D:checkedInstance,checks=[],instance,typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: D:checks=[],instance,typeArgument*/
+/*spec.class: D:checkedInstance,checks=[],instance,typeArgument*/
+/*prod.class: D:checks=[],instance,typeArgument*/
 class D {
   call(double i) {}
 }

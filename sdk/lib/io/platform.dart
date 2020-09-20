@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -60,12 +58,6 @@ part of dart.io;
  *         print('is not a Mac');
  *       }
  *     }
- *
- * ## Other resources
- *
- * [Dart by Example](https://www.dartlang.org/dart-by-example/#dart-io-and-command-line-apps)
- * provides additional task-oriented code samples that show how to use
- * various API from the [dart:io] library.
  */
 class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
@@ -210,7 +202,7 @@ class Platform {
    *
    */
   @Deprecated('packages/ directory resolution is not supported in Dart 2')
-  static String get packageRoot => null; // TODO(mfairhurst): remove this
+  static String? get packageRoot => null; // TODO(mfairhurst): remove this
 
   /**
    * The `--packages` flag passed to the executable used to run the script
@@ -220,7 +212,7 @@ class Platform {
    *
    * Is `null` if there is no `--packages` flag.
    */
-  static String get packageConfig => _Platform.packageConfig;
+  static String? get packageConfig => _Platform.packageConfig;
 
   /**
    * The version of the current Dart runtime.

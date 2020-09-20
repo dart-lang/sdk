@@ -191,7 +191,7 @@ class DdcModuleBuilder extends _ModuleBuilder {
     }
 
     var resultModule = NamedFunction(
-        loadFunctionName(module.name),
+        loadFunctionIdentifier(module.name),
         js.fun("function(#) { 'use strict'; #; }", [parameters, statements]),
         true);
 
@@ -299,7 +299,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
       statements.add(Return(ObjectInitializer(exportedProps, multiline: true)));
     }
     var resultModule = NamedFunction(
-        loadFunctionName(module.name),
+        loadFunctionIdentifier(module.name),
         js.fun("function(#) { 'use strict'; #; }", [fnParams, statements]),
         true);
     var block = js.statement(
@@ -307,6 +307,17 @@ class AmdModuleBuilder extends _ModuleBuilder {
 
     return Program([block]);
   }
+}
+
+bool isSdkInternalRuntimeUri(Uri importUri) {
+  return importUri.scheme == 'dart' && importUri.path == '_runtime';
+}
+
+String libraryUriToJsIdentifier(Uri importUri) {
+  if (importUri.scheme == 'dart') {
+    return isSdkInternalRuntimeUri(importUri) ? 'dart' : importUri.path;
+  }
+  return pathToJSIdentifier(p.withoutExtension(importUri.pathSegments.last));
 }
 
 /// Converts an entire arbitrary path string into a string compatible with
@@ -327,9 +338,13 @@ String pathToJSIdentifier(String path) {
       .replaceAll('-', '_'));
 }
 
+/// Creates function name given [moduleName].
+String loadFunctionName(String moduleName) =>
+    'load__' + pathToJSIdentifier(moduleName.replaceAll('.', '_'));
+
 /// Creates function name identifier given [moduleName].
-Identifier loadFunctionName(String moduleName) =>
-    Identifier('load__' + pathToJSIdentifier(moduleName.replaceAll('.', '_')));
+Identifier loadFunctionIdentifier(String moduleName) =>
+    Identifier(loadFunctionName(moduleName));
 
 // Replacement string for path separators (i.e., '/', '\', '..').
 final encodedSeparator = '__';

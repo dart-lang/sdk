@@ -11,7 +11,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -19,14 +19,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
 class TimelinePageElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<TimelinePageElement>('timeline-page', dependencies: const [
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag
-  ]);
-
   RenderingScheduler<TimelinePageElement> _r;
 
   Stream<RenderedEvent<TimelinePageElement>> get onRendered => _r.onRendered;
@@ -59,7 +51,7 @@ class TimelinePageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  TimelinePageElement.created() : super.created(tag);
+  TimelinePageElement.created() : super.created('timeline-page');
 
   @override
   attached() {

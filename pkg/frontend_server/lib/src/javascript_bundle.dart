@@ -25,7 +25,9 @@ import 'strong_components.dart';
 class JavaScriptBundler {
   JavaScriptBundler(this._originalComponent, this._strongComponents,
       this._fileSystemScheme, this._packageConfig,
-      {this.useDebuggerModuleNames = false, String moduleFormat})
+      {this.useDebuggerModuleNames = false,
+      this.emitDebugMetadata = false,
+      String moduleFormat})
       : compilers = <String, ProgramCompiler>{},
         _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
     _summaries = <Component>[];
@@ -58,6 +60,7 @@ class JavaScriptBundler {
   final String _fileSystemScheme;
   final PackageConfig _packageConfig;
   final bool useDebuggerModuleNames;
+  final bool emitDebugMetadata;
   final Map<String, ProgramCompiler> compilers;
   final ModuleFormat _moduleFormat;
 
@@ -74,9 +77,11 @@ class JavaScriptBundler {
       Set<Library> loadedLibraries,
       IOSink codeSink,
       IOSink manifestSink,
-      IOSink sourceMapsSink) async {
+      IOSink sourceMapsSink,
+      IOSink metadataSink) async {
     var codeOffset = 0;
     var sourceMapOffset = 0;
+    var metadataOffset = 0;
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
 
@@ -124,7 +129,11 @@ class JavaScriptBundler {
         _originalComponent,
         classHierarchy,
         SharedCompilerOptions(
-            sourceMap: true, summarizeApi: false, moduleName: moduleName),
+          sourceMap: true,
+          summarizeApi: false,
+          emitDebugMetadata: emitDebugMetadata,
+          moduleName: moduleName,
+        ),
         importToSummary,
         summaryToModule,
         coreTypes: coreTypes,
@@ -149,11 +158,13 @@ class JavaScriptBundler {
         sourceMapBase =
             p.dirname((await _packageConfig.resolve(moduleUri)).path);
       }
+
       final code = jsProgramToCode(
         jsModule,
         _moduleFormat,
         inlineSourceMap: true,
         buildSourceMap: true,
+        emitDebugMetadata: emitDebugMetadata,
         jsUrl: '$moduleUrl.lib.js',
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
@@ -162,9 +173,14 @@ class JavaScriptBundler {
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
+      final metadataBytes =
+          emitDebugMetadata ? utf8.encode(json.encode(code.metadata)) : null;
+
       codeSink.add(codeBytes);
       sourceMapsSink.add(sourceMapBytes);
-
+      if (emitDebugMetadata) {
+        metadataSink.add(metadataBytes);
+      }
       final String moduleKey = _moduleImportForSummary[moduleUri];
       manifest[moduleKey] = {
         'code': <int>[codeOffset, codeOffset += codeBytes.length],
@@ -172,6 +188,11 @@ class JavaScriptBundler {
           sourceMapOffset,
           sourceMapOffset += sourceMapBytes.length
         ],
+        if (emitDebugMetadata)
+          'metadata': <int>[
+            metadataOffset,
+            metadataOffset += metadataBytes.length
+          ],
       };
     }
     manifestSink.add(utf8.encode(json.encode(manifest)));

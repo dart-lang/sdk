@@ -6,7 +6,7 @@
 
 library lib1;
 
-/*class: ConstClass:OutputUnit(2, {lib1, lib2})*/
+/*class: ConstClass:OutputUnit(2, {lib1, lib2}), type=OutputUnit(2, {lib1, lib2})*/
 class ConstClass {
   /*member: ConstClass.x:OutputUnit(2, {lib1, lib2})*/
   final x;
@@ -20,7 +20,7 @@ class ConstClass {
 */
 var x = const ConstClass(const ConstClass(1));
 
-/*class: C:OutputUnit(1, {lib1})*/
+/*class: C:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
 class C {
   /*member: C.foo:OutputUnit(3, {lib2})*/
   static foo() {
@@ -38,7 +38,7 @@ class C {
   }
 }
 
-/*class: C1:null*/
+/*class: C1:none, type=none*/
 class C1 {
   /*member: C1.foo:
    OutputUnit(3, {lib2}),
@@ -48,7 +48,7 @@ class C1 {
   var bar = const {};
 }
 
-/*class: C2:OutputUnit(1, {lib1})*/
+/*class: C2:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
 class C2 {
   /*member: C2.foo:OutputUnit(3, {lib2})*/
   static var foo = new Map<int, int>.from({1: 2});
@@ -60,7 +60,7 @@ class C2 {
   C2();
 }
 
-/*class: C3:OutputUnit(1, {lib1})*/
+/*class: C3:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
 class C3 {
   /*member: C3.foo:
    OutputUnit(3, {lib2}),
@@ -78,7 +78,7 @@ class C3 {
   C3();
 }
 
-/*class: C4:OutputUnit(1, {lib1})*/
+/*class: C4:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
 class C4 {
   /*member: C4.foo:OutputUnit(3, {lib2})*/
   static final foo = new Map<ConstClass, ConstClass>.from({x: x});
@@ -90,7 +90,7 @@ class C4 {
   C4();
 }
 
-/*class: C5:OutputUnit(1, {lib1})*/
+/*class: C5:OutputUnit(1, {lib1}), type=OutputUnit(1, {lib1})*/
 class C5 {
   static const foo = const [
     const {1: 3}

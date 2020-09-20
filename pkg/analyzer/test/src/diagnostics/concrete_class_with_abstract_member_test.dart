@@ -5,22 +5,26 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConcreteClassWithAbstractMemberTest);
+    defineReflectiveTests(ConcreteClassWithAbstractMemberWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConcreteClassWithAbstractMemberTest extends DriverResolutionTest {
+class ConcreteClassWithAbstractMemberTest extends PubPackageResolutionTest
+    with ConcreteClassWithAbstractMemberTestCases {}
+
+mixin ConcreteClassWithAbstractMemberTestCases on PubPackageResolutionTest {
   test_direct() async {
     await assertErrorsInCode('''
 class A {
   m();
 }''', [
-      error(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 4),
     ]);
   }
 
@@ -32,7 +36,52 @@ class I {
 class A implements I {
   m();
 }''', [
-      error(StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 62, 4),
     ]);
+  }
+}
+
+@reflectiveTest
+class ConcreteClassWithAbstractMemberWithNullSafetyTest
+    extends PubPackageResolutionTest
+    with WithNullSafetyMixin, ConcreteClassWithAbstractMemberTestCases {
+  test_abstract_field() async {
+    await assertErrorsInCode('''
+class A {
+  abstract int? x;
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
+          text: "'x' must have a method body because 'A' isn't abstract."),
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 16,
+          text: "'x=' must have a method body because 'A' isn't abstract."),
+    ]);
+  }
+
+  test_abstract_field_final() async {
+    await assertErrorsInCode('''
+class A {
+  abstract final int? x;
+}
+''', [
+      error(CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, 12, 22,
+          text: "'x' must have a method body because 'A' isn't abstract."),
+    ]);
+  }
+
+  test_external_field() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int? x;
+}
+''');
+  }
+
+  test_external_field_final() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int? x;
+}
+''');
   }
 }

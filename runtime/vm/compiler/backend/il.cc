@@ -28,6 +28,7 @@
 #include "vm/os.h"
 #include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
+#include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -201,7 +202,6 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
     if (cid == kNullCid && !exclude_null) continue;
     cls = table->At(cid);
     if (!include_abstract && cls.is_abstract()) continue;
-    if (cls.is_patch()) continue;
     if (cls.IsTopLevel()) continue;
 
     // We are either interested in [CidRange]es of subclasses or subtypes.
@@ -309,7 +309,7 @@ void HierarchyInfo::BuildRangesForJIT(ClassTable* table,
         for (; j < current_cid; ++j) {
           if (table->HasValidClassAt(j)) {
             klass = table->At(j);
-            if (!klass.is_patch() && !klass.IsTopLevel()) {
+            if (!klass.IsTopLevel()) {
               // If we care about abstract classes also, we cannot skip over any
               // arbitrary abstract class, only those which are subtypes.
               if (include_abstract) {
@@ -453,6 +453,12 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {
   ASSERT(CompilerState::Current().is_aot());
+  if (type.IsNullable()) {
+    // 'is' test for nullable types should accept null cid in addition to the
+    // class range. In most cases it is not possible to extend class range to
+    // include kNullCid.
+    return false;
+  }
   if (CanUseSubtypeRangeCheckFor(type)) {
     const Class& type_class =
         Class::Handle(thread()->zone(), type.type_class());
@@ -471,6 +477,80 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
   }
   return false;
 }
+
+// The set of supported non-integer unboxed representations.
+// Format: (unboxed representations suffix, boxed class type)
+#define FOR_EACH_NON_INT_BOXED_REPRESENTATION(M)                               \
+  M(Double, Double)                                                            \
+  M(Float, Double)                                                             \
+  M(Float32x4, Float32x4)                                                      \
+  M(Float64x2, Float64x2)                                                      \
+  M(Int32x4, Int32x4)
+
+#define BOXING_IN_SET_CASE(unboxed, boxed)                                     \
+  case kUnboxed##unboxed:                                                      \
+    return true;
+#define BOXING_VALUE_OFFSET_CASE(unboxed, boxed)                               \
+  case kUnboxed##unboxed:                                                      \
+    return compiler::target::boxed::value_offset();
+#define BOXING_CID_CASE(unboxed, boxed)                                        \
+  case kUnboxed##unboxed:                                                      \
+    return k##boxed##Cid;
+
+bool Boxing::Supports(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    return true;
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_IN_SET_CASE)
+    default:
+      return false;
+  }
+}
+
+bool Boxing::RequiresAllocation(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    return (kBitsPerByte * RepresentationUtils::ValueSize(rep)) >
+           compiler::target::kSmiBits;
+  }
+  return true;
+}
+
+intptr_t Boxing::ValueOffset(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep) &&
+      Boxing::RequiresAllocation(rep) &&
+      RepresentationUtils::ValueSize(rep) <= sizeof(int64_t)) {
+    return compiler::target::Mint::value_offset();
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_VALUE_OFFSET_CASE)
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
+// Note that not all boxes require allocation (e.g., Smis).
+intptr_t Boxing::BoxCid(Representation rep) {
+  if (RepresentationUtils::IsUnboxedInteger(rep)) {
+    if (!Boxing::RequiresAllocation(rep)) {
+      return kSmiCid;
+    } else if (RepresentationUtils::ValueSize(rep) <= sizeof(int64_t)) {
+      return kMintCid;
+    }
+  }
+  switch (rep) {
+    FOR_EACH_NON_INT_BOXED_REPRESENTATION(BOXING_CID_CASE)
+    default:
+      UNREACHABLE();
+      return kIllegalCid;
+  }
+}
+
+#undef BOXING_CID_CASE
+#undef BOXING_VALUE_OFFSET_CASE
+#undef BOXING_IN_SET_CASE
+#undef FOR_EACH_NON_INT_BOXED_REPRESENTATION
 
 #if defined(DEBUG)
 void Instruction::CheckField(const Field& field) const {
@@ -860,33 +940,36 @@ bool CheckClassInstr::IsBitTest() const {
 
 intptr_t CheckClassInstr::ComputeCidMask() const {
   ASSERT(IsBitTest());
+  const uintptr_t one = 1;
   intptr_t min = cids_.ComputeLowestCid();
   intptr_t mask = 0;
   for (intptr_t i = 0; i < cids_.length(); ++i) {
-    intptr_t run;
-    uintptr_t range = 1ul + cids_[i].Extent();
+    uintptr_t run;
+    uintptr_t range = one + cids_[i].Extent();
     if (range >= static_cast<uintptr_t>(compiler::target::kBitsPerWord)) {
       run = -1;
     } else {
-      run = (1 << range) - 1;
+      run = (one << range) - 1;
     }
     mask |= run << (cids_[i].cid_start - min);
   }
   return mask;
 }
 
-bool LoadFieldInstr::IsUnboxedLoad() const {
-  return slot().IsDartField() &&
+bool LoadFieldInstr::IsUnboxedDartFieldLoad() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
-bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return slot().IsDartField() &&
+bool LoadFieldInstr::IsPotentialUnboxedDartFieldLoad() const {
+  return slot().representation() == kTagged && slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation LoadFieldInstr::representation() const {
-  if (IsUnboxedLoad()) {
+  if (slot().representation() != kTagged) {
+    return slot().representation();
+  } else if (IsUnboxedDartFieldLoad()) {
     const Field& field = slot().field();
     const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
@@ -897,11 +980,8 @@ Representation LoadFieldInstr::representation() const {
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        if (field.is_non_nullable_integer()) {
-          return kUnboxedInt64;
-        } else {
-          UNREACHABLE();
-        }
+        UNREACHABLE();
+        break;
     }
   }
   return kTagged;
@@ -915,6 +995,26 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
       identity_(AliasIdentity::Unknown()) {
   // This instruction is not used in AOT for code size reasons.
   ASSERT(!CompilerState::Current().is_aot());
+}
+
+LocationSummary* AllocateTypedDataInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(kLengthPos, Location::RegisterLocation(
+                               AllocateTypedDataArrayABI::kLengthReg));
+  locs->set_out(
+      0, Location::RegisterLocation(AllocateTypedDataArrayABI::kResultReg));
+  return locs;
+}
+
+void AllocateTypedDataInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForTypedData(class_id()));
+  compiler->GenerateStubCall(token_pos(), stub, PcDescriptorsLayout::kOther,
+                             locs());
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
@@ -1096,7 +1196,11 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
     // tables used for certain character classes are represented as TypedData,
     // and so those values are also neither immutable (as there are no immutable
     // TypedData values) or canonical.
-    ASSERT(value.IsTypeParameter() || value.IsArray() || value.IsTypedData());
+    //
+    // LibraryPrefixes are also never canonicalized since their equality is
+    // their identity.
+    ASSERT(value.IsTypeParameter() || value.IsArray() || value.IsTypedData() ||
+           value.IsLibraryPrefix());
   }
 #endif
 }
@@ -1517,7 +1621,9 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
 bool Instruction::HasUnmatchedInputRepresentations() const {
   for (intptr_t i = 0; i < InputCount(); i++) {
     Definition* input = InputAt(i)->definition();
-    if (RequiredInputRepresentation(i) != input->representation()) {
+    const Representation input_representation = RequiredInputRepresentation(i);
+    if (input_representation != kNoRepresentation &&
+        input_representation != input->representation()) {
       return true;
     }
   }
@@ -2208,28 +2314,42 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     Value* left,
     Value* right,
     intptr_t deopt_id,
-    bool can_overflow,
-    bool is_truncating,
-    Range* range,
     SpeculativeMode speculative_mode) {
-  BinaryIntegerOpInstr* op = NULL;
+  BinaryIntegerOpInstr* op = nullptr;
+  Range* right_range = nullptr;
+  switch (op_kind) {
+    case Token::kMOD:
+    case Token::kTRUNCDIV:
+      if (representation != kTagged) break;
+      FALL_THROUGH;
+    case Token::kSHR:
+    case Token::kSHL:
+      if (auto const const_def = right->definition()->AsConstant()) {
+        right_range = new Range();
+        const_def->InferRange(nullptr, right_range);
+      }
+      break;
+    default:
+      break;
+  }
   switch (representation) {
     case kTagged:
-      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id);
+      op = new BinarySmiOpInstr(op_kind, left, right, deopt_id, right_range);
       break;
     case kUnboxedInt32:
       if (!BinaryInt32OpInstr::IsSupported(op_kind, left, right)) {
-        return NULL;
+        return nullptr;
       }
       op = new BinaryInt32OpInstr(op_kind, left, right, deopt_id);
       break;
     case kUnboxedUint32:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
         if (speculative_mode == kNotSpeculative) {
-          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+          op = new ShiftUint32OpInstr(op_kind, left, right, deopt_id,
+                                      right_range);
         } else {
-          op =
-              new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id);
+          op = new SpeculativeShiftUint32OpInstr(op_kind, left, right, deopt_id,
+                                                 right_range);
         }
       } else {
         op = new BinaryUint32OpInstr(op_kind, left, right, deopt_id);
@@ -2238,9 +2358,11 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     case kUnboxedInt64:
       if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
         if (speculative_mode == kNotSpeculative) {
-          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id);
+          op = new ShiftInt64OpInstr(op_kind, left, right, deopt_id,
+                                     right_range);
         } else {
-          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id);
+          op = new SpeculativeShiftInt64OpInstr(op_kind, left, right, deopt_id,
+                                                right_range);
         }
       } else {
         op = new BinaryInt64OpInstr(op_kind, left, right, deopt_id);
@@ -2248,9 +2370,28 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
       break;
     default:
       UNREACHABLE();
-      return NULL;
+      return nullptr;
   }
 
+  ASSERT(op->representation() == representation);
+  return op;
+}
+
+BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
+    Representation representation,
+    Token::Kind op_kind,
+    Value* left,
+    Value* right,
+    intptr_t deopt_id,
+    bool can_overflow,
+    bool is_truncating,
+    Range* range,
+    SpeculativeMode speculative_mode) {
+  BinaryIntegerOpInstr* op = BinaryIntegerOpInstr::Make(
+      representation, op_kind, left, right, deopt_id, speculative_mode);
+  if (op == nullptr) {
+    return nullptr;
+  }
   if (!Range::IsUnknown(range)) {
     op->set_range(*range);
   }
@@ -2260,7 +2401,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
     op->mark_truncating();
   }
 
-  ASSERT(op->representation() == representation);
   return op;
 }
 
@@ -2567,6 +2707,7 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedDataBase_length:
     case Slot::Kind::kString_length:
+    case Slot::Kind::kTypeArguments_length:
       return true;
     case Slot::Kind::kGrowableObjectArray_length:
       return false;
@@ -2594,9 +2735,15 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kClosure_hash:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
+    case Slot::Kind::kFunction_packed_fields:
+    case Slot::Kind::kFunction_parameter_names:
+    case Slot::Kind::kFunction_parameter_types:
+    case Slot::Kind::kFunction_type_parameters:
     case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kUnhandledException_exception:
+    case Slot::Kind::kUnhandledException_stacktrace:
       return false;
   }
   UNREACHABLE();
@@ -2667,6 +2814,42 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       }
       return false;
 
+    case Slot::Kind::kArgumentsDescriptor_count:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.Count());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_positional_count:
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.PositionalCount());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kArgumentsDescriptor_size:
+      // If a constant arguments descriptor appears, then either it is from
+      // a invocation dispatcher (which always has tagged arguments and so
+      // [host]Size() ==  [target]Size() == Count()) or the constant should
+      // have the correct Size() in terms of the target architecture if any
+      // spill slots are involved.
+      if (instance.IsArray() && Array::Cast(instance).IsImmutable()) {
+        ArgumentsDescriptor desc(Array::Cast(instance));
+        *result = Smi::New(desc.Size());
+        return true;
+      }
+      return false;
+
+    case Slot::Kind::kTypeArguments_length:
+      if (instance.IsTypeArguments()) {
+        *result = Smi::New(TypeArguments::Cast(instance).Length());
+        return true;
+      }
+      return false;
+
     default:
       break;
   }
@@ -2733,6 +2916,10 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (slot().kind() == Slot::Kind::kArray_length) {
         return create_array->num_elements()->definition();
       }
+    } else if (AllocateTypedDataInstr* alloc_typed_data =
+                   array->AsAllocateTypedData()) {
+      ASSERT(slot().kind() == Slot::Kind::kTypedDataBase_length);
+      return alloc_typed_data->num_elements()->definition();
     } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
@@ -3161,16 +3348,17 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
       return this;
     }
 
-#if defined(TARGET_ARCH_IS_32_BIT)
-    // Do not erase extending conversions from 32-bit untagged to 64-bit values
-    // because untagged does not specify whether it is signed or not.
-    if ((box_defn->from() == kUntagged) && to() == kUnboxedInt64) {
-      return this;
-    }
-#endif
-
+    // It's safe to discard any other conversions from and then back to the same
+    // integer type.
     if (box_defn->from() == to()) {
       return box_defn->value()->definition();
+    }
+
+    // Do not merge conversions where the first starts from Untagged or the
+    // second ends at Untagged, since we expect to see either UnboxedIntPtr
+    // or UnboxedFfiIntPtr as the other type in an Untagged conversion.
+    if ((box_defn->from() == kUntagged) || (to() == kUntagged)) {
+      return this;
     }
 
     IntConverterInstr* converter = new IntConverterInstr(
@@ -4261,7 +4449,7 @@ void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The native entry frame has size -kExitLinkSlotFromFp. In order to access
   // the top of stack from above the entry frame, we add a constant to account
-  // for the the two frame pointers and two return addresses of the entry frame.
+  // for the two frame pointers and two return addresses of the entry frame.
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
       /*old_base=*/SPREG, /*new_base=*/FPREG,
@@ -5143,6 +5331,9 @@ LocationSummary* GenericCheckBoundInstr::MakeLocationSummary(Zone* zone,
 }
 
 void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(representation() == RequiredInputRepresentation(kIndexPos));
+  ASSERT(representation() == RequiredInputRepresentation(kLengthPos));
+
   RangeErrorSlowPath* slow_path =
       new RangeErrorSlowPath(this, compiler->CurrentTryIndex());
   compiler->AddSlowPathCode(slow_path);
@@ -5151,8 +5342,15 @@ void GenericCheckBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register length = length_loc.reg();
   Register index = index_loc.reg();
   const intptr_t index_cid = this->index()->Type()->ToCid();
-  if (index_cid != kSmiCid) {
-    __ BranchIfNotSmi(index, slow_path->entry_label());
+
+  // The length comes from one of our variable-sized heap objects (e.g. typed
+  // data array) and is therefore guaranteed to be in the positive Smi range.
+  if (representation() == kTagged) {
+    if (index_cid != kSmiCid) {
+      __ BranchIfNotSmi(index, slow_path->entry_label());
+    }
+  } else {
+    ASSERT(representation() == kUnboxedInt64);
   }
   __ CompareRegisters(index, length);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_path->entry_label());
@@ -5175,36 +5373,6 @@ void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
   compiler->AddNullCheck(check_null->token_pos(), check_null->function_name());
 }
 
-void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                           bool save_fpu_registers) {
-#if defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
-  auto object_store = compiler->isolate()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->null_error_stub_with_fpu_regs_stub()
-          : object_store->null_error_stub_without_fpu_regs_stub());
-  compiler->EmitCallToStub(stub);
-#endif
-}
-
-void NullArgErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
-                                              bool save_fpu_registers) {
-#if defined(TARGET_ARCH_IA32)
-  UNREACHABLE();
-#else
-  auto object_store = compiler->isolate()->object_store();
-  const auto& stub = Code::ZoneHandle(
-      compiler->zone(),
-      save_fpu_registers
-          ? object_store->null_arg_error_stub_with_fpu_regs_stub()
-          : object_store->null_arg_error_stub_without_fpu_regs_stub());
-  compiler->EmitCallToStub(stub);
-#endif
-}
-
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
                                             bool save_fpu_registers) {
 #if defined(TARGET_ARCH_IA32)
@@ -5222,6 +5390,7 @@ void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
+  ASSERT(box_cid != kSmiCid);  // Should never reach here with Smi-able ints.
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
@@ -5252,6 +5421,11 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (SpeculativeModeOfInputs() == kNotSpeculative) {
+    if (BoxCid() == kSmiCid) {
+      // Since the representation fits in a Smi, we can extract it directly.
+      ASSERT_EQUAL(value()->Type()->ToCid(), kSmiCid);
+      return EmitSmiConversion(compiler);
+    }
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
@@ -5284,14 +5458,15 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const intptr_t value_cid = value()->Type()->ToCid();
     const intptr_t box_cid = BoxCid();
 
-    if (value_cid == box_cid) {
-      EmitLoadFromBox(compiler);
-    } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+    if (box_cid == kSmiCid || (CanConvertSmi() && (value_cid == kSmiCid))) {
+      ASSERT_EQUAL(value_cid, kSmiCid);
       EmitSmiConversion(compiler);
     } else if (representation() == kUnboxedInt32 && value()->Type()->IsInt()) {
       EmitLoadInt32FromBoxOrSmi(compiler);
     } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
       EmitLoadInt64FromBoxOrSmi(compiler);
+    } else if (value_cid == box_cid) {
+      EmitLoadFromBox(compiler);
     } else {
       ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);
@@ -5545,7 +5720,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
   return LoadFieldInstr::IsFixedLengthArrayCid(cid);
 }
 
-Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+Definition* CheckBoundBase::Canonicalize(FlowGraph* flow_graph) {
   return IsRedundant() ? index()->definition() : this;
 }
 
@@ -5707,6 +5882,22 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
   SetInputAt(1, index);
 }
 
+Definition* LoadIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
+  auto Z = flow_graph->zone();
+  if (auto box = index()->definition()->AsBoxInt64()) {
+    // TODO(dartbug.com/39432): Make LoadIndexed fully suport unboxed indices.
+    if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto load = new (Z) LoadIndexedInstr(
+          array()->CopyWithType(Z), box->value()->CopyWithType(Z),
+          /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
+          GetDeoptId(), token_pos(), result_type_);
+      flow_graph->InsertBefore(this, load, env(), FlowGraph::kValue);
+      return load;
+    }
+  }
+  return this;
+}
+
 StoreIndexedInstr::StoreIndexedInstr(Value* array,
                                      Value* index,
                                      Value* value,
@@ -5729,6 +5920,27 @@ StoreIndexedInstr::StoreIndexedInstr(Value* array,
   SetInputAt(kArrayPos, array);
   SetInputAt(kIndexPos, index);
   SetInputAt(kValuePos, value);
+}
+
+Instruction* StoreIndexedInstr::Canonicalize(FlowGraph* flow_graph) {
+  auto Z = flow_graph->zone();
+  if (auto box = index()->definition()->AsBoxInt64()) {
+    // TODO(dartbug.com/39432): Make StoreIndexed fully suport unboxed indices.
+    if (!box->ComputeCanDeoptimize() && compiler::target::kWordSize == 8) {
+      auto store = new (Z) StoreIndexedInstr(
+          array()->CopyWithType(Z), box->value()->CopyWithType(Z),
+          value()->CopyWithType(Z), emit_store_barrier_,
+          /*index_unboxed=*/true, index_scale(), class_id(), alignment_,
+          GetDeoptId(), token_pos(), speculative_mode_);
+      flow_graph->InsertBefore(this, store, env(), FlowGraph::kEffect);
+      return nullptr;
+    }
+  }
+  return this;
+}
+
+bool Utf8ScanInstr::IsScanFlagsUnboxed() const {
+  return FlowGraphCompiler::IsUnboxedField(scan_flags_field_.field());
 }
 
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
@@ -5953,6 +6165,133 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
   const Representation dst_type = representation();
   NoTemporaryAllocator no_temp;
   compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+}
+
+static Location FirstArgumentLocation() {
+#ifdef TARGET_ARCH_IA32
+  return Location::StackSlot(0, SPREG);
+#else
+  return Location::RegisterLocation(CallingConventions::ArgumentRegisters[0]);
+#endif
+}
+
+LocationSummary* EnterHandleScopeInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/0,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+  summary->set_out(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+  return summary;
+}
+
+void EnterHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (kind_ == Kind::kGetTopHandleScope) {
+    __ LoadMemoryValue(CallingConventions::kReturnReg, THR,
+                       compiler::target::Thread::api_top_scope_offset());
+    return;
+  }
+
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kEnterHandleScopeRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* ExitHandleScopeInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/0,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+  return summary;
+}
+
+void ExitHandleScopeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(arg_loc, Location::RegisterLocation(THR), &no_temp);
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kExitHandleScopeRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* AllocateHandleInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/1,
+                                 /*num_temps=*/0, LocationSummary::kCall);
+
+  Location arg_loc = FirstArgumentLocation();
+  // Assign input to a register that does not conflict with anything if
+  // argument is passed on the stack.
+  const Register scope_reg =
+      arg_loc.IsStackSlot() ? CallingConventions::kSecondNonArgumentRegister
+                            : arg_loc.reg();
+
+  summary->set_in(kScope, Location::RegisterLocation(scope_reg));
+  summary->set_out(0,
+                   Location::RegisterLocation(CallingConventions::kReturnReg));
+  return summary;
+}
+
+Representation AllocateHandleInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  ASSERT(idx == kScope);
+  return kUnboxedIntPtr;
+}
+
+void AllocateHandleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Location arg_loc = FirstArgumentLocation();
+  __ EnterCFrame(arg_loc.IsRegister() ? 0 : compiler::target::kWordSize);
+  if (arg_loc.IsStackSlot()) {
+    NoTemporaryAllocator no_temp;
+    compiler->EmitMove(arg_loc, locs()->in(kScope), &no_temp);
+  }
+  __ CallCFunction(
+      compiler::Address(THR, compiler::target::Thread::OffsetFromThread(
+                                 &kAllocateHandleRuntimeEntry)));
+  __ LeaveCFrame();
+}
+
+LocationSummary* RawStoreFieldInstr::MakeLocationSummary(
+    Zone* zone,
+    bool is_optimizing) const {
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/2,
+                                 /*num_temps=*/0, LocationSummary::kNoCall);
+
+  summary->set_in(kBase, Location::RequiresRegister());
+  summary->set_in(kValue, Location::RequiresRegister());
+
+  return summary;
+}
+
+Representation RawStoreFieldInstr::RequiredInputRepresentation(
+    intptr_t idx) const {
+  switch (idx) {
+    case kBase:
+      return kUntagged;
+    case kValue:
+      return kTagged;
+    default:
+      break;
+  }
+  UNREACHABLE();
+}
+
+void RawStoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register base_reg = locs()->in(kBase).reg();
+  const Register value_reg = locs()->in(kValue).reg();
+  compiler->assembler()->StoreMemoryValue(value_reg, base_reg, offset_);
 }
 
 void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {

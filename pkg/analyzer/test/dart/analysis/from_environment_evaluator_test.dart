@@ -3,17 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_analysis_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FromEnvironmentEvaluatorTest);
   });
@@ -21,8 +20,34 @@ main() {
 
 @reflectiveTest
 class FromEnvironmentEvaluatorTest {
+  static const String _defaultValue = 'defaultValue';
+
   TypeProvider typeProvider;
   TypeSystemImpl typeSystem;
+
+  DartObjectImpl get _boolValueFalse {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.boolType,
+      BoolState.FALSE_STATE,
+    );
+  }
+
+  DartObjectImpl get _boolValueTrue {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.boolType,
+      BoolState.TRUE_STATE,
+    );
+  }
+
+  DartObjectImpl get _nullValue {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.nullType,
+      NullState.NULL_STATE,
+    );
+  }
 
   void setUp() {
     var analysisContext = TestAnalysisContext();
@@ -30,124 +55,209 @@ class FromEnvironmentEvaluatorTest {
     typeSystem = analysisContext.typeSystemLegacy;
   }
 
-  @deprecated
+  void test_getBool_default() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables.fromMap({}),
+    );
+    var object = _getBool(
+      variables,
+      name,
+      {_defaultValue: _boolValueFalse},
+    );
+    expect(object, _boolValueFalse);
+  }
+
   void test_getBool_false() {
-    String variableName = "var";
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
-      DeclaredVariables.fromMap({variableName: 'false'}),
+      DeclaredVariables.fromMap({name: 'false'}),
     );
-    DartObject object = variables.getBool(variableName);
-    expect(object, isNotNull);
-    expect(object.toBoolValue(), false);
+    var object = _getBool(
+      variables,
+      name,
+      {_defaultValue: _boolValueFalse},
+    );
+    expect(object, _boolValueFalse);
   }
 
-  @deprecated
   void test_getBool_invalid() {
-    String variableName = "var";
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
-      DeclaredVariables.fromMap({variableName: 'not true'}),
+      DeclaredVariables.fromMap({name: 'not bool'}),
     );
-    _assertNullDartObject(
-      variables.getBool(variableName),
+    var object = _getBool(
+      variables,
+      name,
+      {_defaultValue: _boolValueFalse},
     );
+    expect(object, _boolValueFalse);
   }
 
-  @deprecated
   void test_getBool_true() {
-    String variableName = "var";
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
-      DeclaredVariables.fromMap({variableName: 'true'}),
+      DeclaredVariables.fromMap({name: 'true'}),
     );
-    DartObject object = variables.getBool(variableName);
-    expect(object, isNotNull);
-    expect(object.toBoolValue(), true);
+    var object = _getBool(
+      variables,
+      name,
+      {_defaultValue: _boolValueFalse},
+    );
+    expect(object, _boolValueTrue);
   }
 
-  @deprecated
-  void test_getBool_undefined() {
-    String variableName = "var";
-    var variables = FromEnvironmentEvaluator(
-      typeSystem,
-      DeclaredVariables(),
-    );
-    _assertUnknownDartObject(
-      typeProvider.boolType,
-      variables.getBool(variableName),
-    );
-  }
-
-  @deprecated
   void test_getInt_invalid() {
-    String variableName = "var";
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
-      DeclaredVariables.fromMap({variableName: 'four score and seven years'}),
+      DeclaredVariables.fromMap({name: 'four score and seven years'}),
     );
-    _assertNullDartObject(
-      variables.getInt(variableName),
+    var object = _getInt(
+      variables,
+      name,
+      {_defaultValue: _intValue(0)},
     );
+    expect(object, _intValue(0));
   }
 
-  @deprecated
-  void test_getInt_undefined() {
-    String variableName = "var";
+  void test_getInt_undefined_defaultNull() {
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
       DeclaredVariables(),
     );
-    _assertUnknownDartObject(
-      typeProvider.intType,
-      variables.getInt(variableName),
+    var object = _getInt(
+      variables,
+      name,
+      {_defaultValue: _nullValue},
     );
+    expect(object, _nullValue);
   }
 
-  @deprecated
+  void test_getInt_undefined_defaultZero() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables(),
+    );
+    var object = _getInt(
+      variables,
+      name,
+      {_defaultValue: _intValue(0)},
+    );
+    expect(object, _intValue(0));
+  }
+
   void test_getInt_valid() {
-    String variableName = "var";
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
-      DeclaredVariables.fromMap({variableName: '23'}),
+      DeclaredVariables.fromMap({name: '23'}),
     );
-    DartObject object = variables.getInt(variableName);
-    expect(object, isNotNull);
-    expect(object.toIntValue(), 23);
+    var object = _getInt(
+      variables,
+      name,
+      {_defaultValue: _intValue(0)},
+    );
+    expect(object, _intValue(23));
   }
 
-  @deprecated
   void test_getString_defined() {
-    String variableName = "var";
-    String value = "value";
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
-      DeclaredVariables.fromMap({variableName: value}),
+      DeclaredVariables.fromMap({name: 'bar'}),
     );
-    DartObject object = variables.getString(variableName);
-    expect(object, isNotNull);
-    expect(object.toStringValue(), value);
+    var object = _getString(
+      variables,
+      name,
+      {_defaultValue: _nullValue},
+    );
+    expect(object, _stringValue('bar'));
   }
 
-  @deprecated
-  void test_getString_undefined() {
-    String variableName = "var";
+  void test_getString_undefined_defaultEmpty() {
+    var name = 'foo';
     var variables = FromEnvironmentEvaluator(
       typeSystem,
       DeclaredVariables(),
     );
-    _assertUnknownDartObject(
-      typeProvider.stringType,
-      variables.getString(variableName),
+    var object = _getString(
+      variables,
+      name,
+      {_defaultValue: _stringValue('')},
+    );
+    expect(object, _stringValue(''));
+  }
+
+  void test_getString_undefined_defaultNull() {
+    var name = 'foo';
+    var variables = FromEnvironmentEvaluator(
+      typeSystem,
+      DeclaredVariables(),
+    );
+    var object = _getString(
+      variables,
+      name,
+      {_defaultValue: _nullValue},
+    );
+    expect(object, _nullValue);
+  }
+
+  DartObjectImpl _getBool(
+    FromEnvironmentEvaluator variables,
+    String name,
+    Map<String, DartObjectImpl> namedValues,
+  ) {
+    return variables.getBool2(
+      name,
+      namedValues,
+      typeProvider.boolElement.getNamedConstructor('fromEnvironment'),
     );
   }
 
-  void _assertNullDartObject(DartObject result) {
-    expect(result.type, typeProvider.nullType);
+  DartObjectImpl _getInt(
+    FromEnvironmentEvaluator variables,
+    String name,
+    Map<String, DartObjectImpl> namedValues,
+  ) {
+    return variables.getInt2(
+      name,
+      namedValues,
+      typeProvider.intElement.getNamedConstructor('fromEnvironment'),
+    );
   }
 
-  void _assertUnknownDartObject(DartType expectedType, DartObject result) {
-    expect((result as DartObjectImpl).isUnknown, isTrue);
-    expect(result.type, expectedType);
+  DartObjectImpl _getString(
+    FromEnvironmentEvaluator variables,
+    String name,
+    Map<String, DartObjectImpl> namedValues,
+  ) {
+    return variables.getString2(
+      name,
+      namedValues,
+      typeProvider.stringElement.getNamedConstructor('fromEnvironment'),
+    );
+  }
+
+  DartObjectImpl _intValue(int value) {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.intType,
+      IntState(value),
+    );
+  }
+
+  DartObjectImpl _stringValue(String value) {
+    return DartObjectImpl(
+      typeSystem,
+      typeProvider.stringType,
+      StringState(value),
+    );
   }
 }

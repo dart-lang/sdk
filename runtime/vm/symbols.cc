@@ -44,10 +44,6 @@ StringPtr StringFrom(const uint16_t* data, intptr_t len, Heap::Space space) {
   return String::FromUTF16(data, len, space);
 }
 
-StringPtr StringFrom(const int32_t* data, intptr_t len, Heap::Space space) {
-  return String::FromUTF32(data, len, space);
-}
-
 template <typename CharType>
 class CharArray {
  public:
@@ -76,7 +72,6 @@ class CharArray {
 };
 typedef CharArray<uint8_t> Latin1Array;
 typedef CharArray<uint16_t> UTF16Array;
-typedef CharArray<int32_t> UTF32Array;
 
 class StringSlice {
  public:
@@ -312,21 +307,25 @@ void Symbols::Compact() {
   // 1. Drop the tables and do a full garbage collection.
   object_store->set_symbol_table(Object::empty_array());
   object_store->set_canonical_types(Object::empty_array());
+  object_store->set_canonical_type_parameters(Object::empty_array());
   object_store->set_canonical_type_arguments(Object::empty_array());
   thread->heap()->CollectAllGarbage();
 
   // 2. Walk the heap to find surviving canonical objects.
   GrowableArray<String*> symbols;
   GrowableArray<class Type*> types;
+  GrowableArray<class TypeParameter*> type_params;
   GrowableArray<class TypeArguments*> type_args;
   class SymbolCollector : public ObjectVisitor {
    public:
     SymbolCollector(Thread* thread,
                     GrowableArray<String*>* symbols,
                     GrowableArray<class Type*>* types,
+                    GrowableArray<class TypeParameter*>* type_params,
                     GrowableArray<class TypeArguments*>* type_args)
         : symbols_(symbols),
           types_(types),
+          type_params_(type_params),
           type_args_(type_args),
           zone_(thread->zone()) {}
 
@@ -336,6 +335,9 @@ void Symbols::Compact() {
           symbols_->Add(&String::Handle(zone_, String::RawCast(obj)));
         } else if (obj->IsType()) {
           types_->Add(&Type::Handle(zone_, Type::RawCast(obj)));
+        } else if (obj->IsTypeParameter()) {
+          type_params_->Add(
+              &TypeParameter::Handle(zone_, TypeParameter::RawCast(obj)));
         } else if (obj->IsTypeArguments()) {
           type_args_->Add(
               &TypeArguments::Handle(zone_, TypeArguments::RawCast(obj)));
@@ -346,13 +348,14 @@ void Symbols::Compact() {
    private:
     GrowableArray<String*>* symbols_;
     GrowableArray<class Type*>* types_;
+    GrowableArray<class TypeParameter*>* type_params_;
     GrowableArray<class TypeArguments*>* type_args_;
     Zone* zone_;
   };
 
   {
     HeapIterationScope iteration(thread);
-    SymbolCollector visitor(thread, &symbols, &types, &type_args);
+    SymbolCollector visitor(thread, &symbols, &types, &type_params, &type_args);
     iteration.IterateObjects(&visitor);
   }
 
@@ -385,6 +388,22 @@ void Symbols::Compact() {
       ASSERT(!present || type.IsRecursive());
     }
     object_store->set_canonical_types(table.Release());
+  }
+
+  {
+    Array& array =
+        Array::Handle(zone, HashTables::New<CanonicalTypeParameterSet>(
+                                type_params.length() * 4 / 3, Heap::kOld));
+    CanonicalTypeParameterSet table(zone, array.raw());
+    for (intptr_t i = 0; i < type_params.length(); i++) {
+      class TypeParameter& type_param = *type_params[i];
+      ASSERT(type_param.IsTypeParameter());
+      ASSERT(type_param.IsCanonical());
+      if (type_param.IsDeclaration()) continue;
+      bool present = table.Insert(type_param);
+      ASSERT(!present);
+    }
+    object_store->set_canonical_type_parameters(table.Release());
   }
 
   {
@@ -455,12 +474,6 @@ StringPtr Symbols::FromUTF16(Thread* thread,
                              const uint16_t* utf16_array,
                              intptr_t len) {
   return NewSymbol(thread, UTF16Array(utf16_array, len));
-}
-
-StringPtr Symbols::FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
-                             intptr_t len) {
-  return NewSymbol(thread, UTF32Array(utf32_array, len));
 }
 
 StringPtr Symbols::FromConcat(Thread* thread,
@@ -562,7 +575,7 @@ StringPtr Symbols::FromConcatAll(
   }
 }
 
-// StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
+// StringType can be StringSlice, ConcatString, or {Latin1,UTF16}Array.
 template <typename StringType>
 StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
@@ -758,9 +771,9 @@ StringPtr Symbols::NewFormattedV(Thread* thread,
   return Symbols::New(thread, buffer);
 }
 
-StringPtr Symbols::FromCharCode(Thread* thread, int32_t char_code) {
+StringPtr Symbols::FromCharCode(Thread* thread, uint16_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
-    return FromUTF32(thread, &char_code, 1);
+    return FromUTF16(thread, &char_code, 1);
   }
   return predefined_[char_code];
 }

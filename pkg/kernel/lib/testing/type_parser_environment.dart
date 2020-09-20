@@ -10,6 +10,7 @@ import "package:kernel/ast.dart"
         DartType,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         Library,
         NamedType,
@@ -119,6 +120,13 @@ class Env {
   void extendWithTypeParameters(String typeParameters) {
     _libraryEnvironment =
         _libraryEnvironment.extendWithTypeParameters(typeParameters);
+  }
+
+  void withTypeParameters(String typeParameters, void Function() f) {
+    TypeParserEnvironment oldLibraryEnvironment = _libraryEnvironment;
+    extendWithTypeParameters(typeParameters);
+    f();
+    _libraryEnvironment = oldLibraryEnvironment;
   }
 }
 
@@ -232,6 +240,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     for (int i = 0; i < arguments.length; i++) {
       kernelArguments[i] =
           arguments[i].accept<Node, TypeParserEnvironment>(this, environment);
+    }
+    if (name == "FutureOr") {
+      return new FutureOrType(kernelArguments.single,
+          interpretParsedNullability(node.parsedNullability));
     }
     if (declaration is Class) {
       Nullability nullability =

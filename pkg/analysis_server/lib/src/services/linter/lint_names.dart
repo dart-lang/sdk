@@ -23,6 +23,8 @@ class LintNames {
       'avoid_return_types_on_setters';
   static const String avoid_returning_null_for_future =
       'avoid_returning_null_for_future';
+  static const String avoid_single_cascade_in_expression_statements =
+      'avoid_single_cascade_in_expression_statements';
   static const String avoid_types_as_parameter_names =
       'avoid_types_as_parameter_names';
   static const String avoid_types_on_closure_parameters =
@@ -59,6 +61,7 @@ class LintNames {
   static const String prefer_expression_function_bodies =
       'prefer_expression_function_bodies';
   static const String prefer_final_fields = 'prefer_final_fields';
+  static const String prefer_final_in_for_each = 'prefer_final_in_for_each';
   static const String prefer_final_locals = 'prefer_final_locals';
   static const String prefer_for_elements_to_map_fromIterable =
       'prefer_for_elements_to_map_fromIterable';

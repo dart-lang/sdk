@@ -12,12 +12,11 @@ final _lineCommentRegExp = RegExp(r"^\s*//");
 /// Removes existing static error marker comments in [source] and adds markers
 /// for the given [errors].
 ///
-/// If [removeAnalyzer] is `false`, then existing analyzer errors in [source]
-/// are preserved. Likewise for [removeCfe] and CFE errors.
+/// If [remove] is not `null`, then only removes existing errors for the given
+/// sources.
 String updateErrorExpectations(String source, List<StaticError> errors,
-    {bool removeAnalyzer, bool removeCfe}) {
-  removeAnalyzer ??= true;
-  removeCfe ??= true;
+    {Set<ErrorSource> remove}) {
+  remove ??= {};
 
   var existingErrors = StaticError.parseExpectations(source);
   var lines = source.split("\n");
@@ -38,13 +37,9 @@ String updateErrorExpectations(String source, List<StaticError> errors,
     }
 
     // Re-add errors for the portions we intend to preserve.
-    var keepAnalyzer = !removeAnalyzer && error.hasError(ErrorSource.analyzer);
-    var keepCfe = !removeCfe && error.hasError(ErrorSource.cfe);
-
     var keptErrors = {
-      if (keepAnalyzer)
-        ErrorSource.analyzer: error.errorFor(ErrorSource.analyzer),
-      if (keepCfe) ErrorSource.cfe: error.errorFor(ErrorSource.cfe),
+      for (var source in ErrorSource.all.toSet().difference(remove))
+        if (error.hasError(source)) source: error.errorFor(source)
     };
 
     if (keptErrors.isNotEmpty) {

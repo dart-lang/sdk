@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:js library.
 library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
 
-import 'dart:_js_helper' show patch, Primitives;
+import 'dart:_js_helper' show patch, NoReifyGeneric, Primitives;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
@@ -21,7 +19,7 @@ final JsObject _context = _wrapToDart(dart.global_);
 @patch
 class JsObject {
   // The wrapped JS object.
-  final dynamic _jsObject;
+  final Object _jsObject;
 
   // This should only be called from _wrapToDart
   JsObject._fromJs(this._jsObject) {
@@ -29,7 +27,7 @@ class JsObject {
   }
 
   @patch
-  factory JsObject(JsFunction constructor, [List arguments]) {
+  factory JsObject(JsFunction constructor, [List? arguments]) {
     var ctor = constructor._jsObject;
     if (arguments == null) {
       return _wrapToDart(JS('', 'new #()', ctor));
@@ -39,25 +37,25 @@ class JsObject {
   }
 
   @patch
-  factory JsObject.fromBrowserObject(object) {
+  factory JsObject.fromBrowserObject(Object object) {
     if (object is num || object is String || object is bool || object == null) {
       throw ArgumentError("object cannot be a num, string, bool, or null");
     }
-    return _wrapToDart(_convertToJS(object));
+    return _wrapToDart(_convertToJS(object)!);
   }
 
   @patch
-  factory JsObject.jsify(object) {
+  factory JsObject.jsify(Object object) {
     if ((object is! Map) && (object is! Iterable)) {
       throw ArgumentError("object must be a Map or Iterable");
     }
     return _wrapToDart(_convertDataTree(object));
   }
 
-  static _convertDataTree(data) {
+  static _convertDataTree(Object data) {
     var _convertedObjects = HashMap.identity();
 
-    _convert(o) {
+    _convert(Object? o) {
       if (_convertedObjects.containsKey(o)) {
         return _convertedObjects[o];
       }
@@ -90,7 +88,7 @@ class JsObject {
   }
 
   @patch
-  void operator []=(Object property, value) {
+  void operator []=(Object property, Object? value) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
     }
@@ -98,11 +96,11 @@ class JsObject {
   }
 
   @patch
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is JsObject && JS<bool>('!', '# === #', _jsObject, other._jsObject);
 
   @patch
-  bool hasProperty(property) {
+  bool hasProperty(Object property) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
     }
@@ -110,7 +108,7 @@ class JsObject {
   }
 
   @patch
-  void deleteProperty(property) {
+  void deleteProperty(Object property) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
     }
@@ -132,14 +130,14 @@ class JsObject {
   }
 
   @patch
-  dynamic callMethod(method, [List args]) {
+  dynamic callMethod(Object method, [List? args]) {
     if (method is! String && method is! num) {
       throw ArgumentError("method is not a String or num");
     }
     if (args != null) args = List.from(args.map(_convertToJS));
     var fn = JS('', '#[#]', _jsObject, method);
     if (JS<bool>('!', 'typeof(#) !== "function"', fn)) {
-      throw NoSuchMethodError(_jsObject, Symbol(method), args, {});
+      throw NoSuchMethodError(_jsObject, Symbol('$method'), args, {});
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
   }
@@ -164,7 +162,7 @@ class JsFunction extends JsObject {
         f));
   }
 
-  JsFunction._fromJs(jsObject) : super._fromJs(jsObject);
+  JsFunction._fromJs(Object jsObject) : super._fromJs(jsObject);
 
   @patch
   dynamic apply(List args, {thisArg}) => _convertToDart(JS(
@@ -185,16 +183,16 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   factory JsArray.from(Iterable<E> other) =>
       JsArray<E>._fromJs([]..addAll(other.map(_convertToJS)));
 
-  JsArray._fromJs(jsObject) : super._fromJs(jsObject);
+  JsArray._fromJs(Object jsObject) : super._fromJs(jsObject);
 
   _checkIndex(int index) {
-    if (index is int && (index < 0 || index >= length)) {
+    if (index < 0 || index >= length) {
       throw RangeError.range(index, 0, length);
     }
   }
 
   _checkInsertIndex(int index) {
-    if (index is int && (index < 0 || index >= length + 1)) {
+    if (index < 0 || index >= length + 1) {
       throw RangeError.range(index, 0, length);
     }
   }
@@ -210,9 +208,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   @patch
   E operator [](Object index) {
-    // TODO(justinfagnani): fix the semantics for non-ints
-    // dartbug.com/14605
-    if (index is num && index == index.toInt()) {
+    if (index is int) {
       _checkIndex(index);
     }
     return super[index] as E;
@@ -220,9 +216,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   @patch
   void operator []=(Object index, value) {
-    // TODO(justinfagnani): fix the semantics for non-ints
-    // dartbug.com/14605
-    if (index is num && index == index.toInt()) {
+    if (index is int) {
       _checkIndex(index);
     }
     super[index] = value;
@@ -253,7 +247,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   @patch
   void addAll(Iterable<E> iterable) {
     var list = (JS<bool>('!', '# instanceof Array', iterable))
-        ? iterable
+        ? JS<List>('', '#', iterable)
         : List.from(iterable);
     callMethod('push', list);
   }
@@ -288,13 +282,13 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     int length = end - start;
     if (length == 0) return;
     if (skipCount < 0) throw ArgumentError(skipCount);
-    var args = <Object>[start, length]
+    var args = <Object?>[start, length]
       ..addAll(iterable.skip(skipCount).take(length));
     callMethod('splice', args);
   }
 
   @patch
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
@@ -304,7 +298,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 // We include the instanceof Object test to filter out cross frame objects
 // on FireFox. Surprisingly on FireFox the instanceof Window test succeeds for
 // cross frame windows while the instanceof Object test fails.
-bool _isBrowserType(o) => JS(
+bool _isBrowserType(Object o) => JS(
     'bool',
     '# instanceof Object && ('
         '# instanceof Blob || '
@@ -329,11 +323,11 @@ bool _isBrowserType(o) => JS(
     o);
 
 class _DartObject {
-  final _dartObj;
+  final Object _dartObj;
   _DartObject(this._dartObj);
 }
 
-dynamic _convertToJS(dynamic o) {
+Object? _convertToJS(Object? o) {
   if (o == null || o is String || o is num || o is bool || _isBrowserType(o)) {
     return o;
   } else if (o is DateTime) {
@@ -349,8 +343,8 @@ dynamic _convertToJS(dynamic o) {
   }
 }
 
-dynamic _wrapDartFunction(f) {
-  var wrapper = JS(
+Object _wrapDartFunction(Object f) {
+  var wrapper = JS<Object>(
       '',
       'function(/*...arguments*/) {'
           '  let args = Array.prototype.map.call(arguments, #);'
@@ -366,11 +360,11 @@ dynamic _wrapDartFunction(f) {
 
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
-Object _convertToDart(o) {
+Object? _convertToDart(Object? o) {
   if (o == null || o is String || o is num || o is bool || _isBrowserType(o)) {
     return o;
   } else if (JS('!', '# instanceof Date', o)) {
-    num ms = JS('!', '#.getTime()', o);
+    int ms = JS('!', '#.getTime()', o);
     return DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (o is _DartObject &&
       !identical(dart.getReifiedType(o), dart.jsobject)) {
@@ -380,9 +374,10 @@ Object _convertToDart(o) {
   }
 }
 
-Object _wrapToDart(o) => _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
+JsObject _wrapToDart(Object o) =>
+    _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
 
-Object _wrapToDartHelper(o) {
+JsObject _wrapToDartHelper(Object o) {
   if (JS<bool>('!', 'typeof # == "function"', o)) {
     return JsFunction._fromJs(o);
   }
@@ -392,16 +387,18 @@ Object _wrapToDartHelper(o) {
   return JsObject._fromJs(o);
 }
 
-final _dartProxies = JS('', 'new WeakMap()');
-final _jsProxies = JS('', 'new WeakMap()');
+final Object _dartProxies = JS('', 'new WeakMap()');
+final Object _jsProxies = JS('', 'new WeakMap()');
 
-Object _putIfAbsent(weakMap, o, getValue(o)) {
-  var value = JS('', '#.get(#)', weakMap, o);
+@NoReifyGeneric()
+T _putIfAbsent<T>(Object weakMap, Object o, T getValue(Object o)) {
+  T? value = JS('', '#.get(#)', weakMap, o);
   if (value == null) {
     value = getValue(o);
     JS('', '#.set(#, #)', weakMap, o, value);
   }
-  return value;
+  // TODO(vsm): Static cast.  Unnecessary?
+  return JS('', '#', value);
 }
 
 Expando<Function> _interopExpando = Expando<Function>();
@@ -409,9 +406,9 @@ Expando<Function> _interopExpando = Expando<Function>();
 @patch
 F allowInterop<F extends Function>(F f) {
   if (!dart.isDartFunction(f)) return f;
-  var ret = _interopExpando[f];
+  var ret = _interopExpando[f] as F?;
   if (ret == null) {
-    ret = JS(
+    ret = JS<F>(
         '',
         'function (...args) {'
             ' return #(#, args);'
@@ -430,7 +427,7 @@ Function allowInteropCaptureThis(Function f) {
   if (!dart.isDartFunction(f)) return f;
   var ret = _interopCaptureThisExpando[f];
   if (ret == null) {
-    ret = JS(
+    ret = JS<Function>(
         '',
         'function(...arguments) {'
             '  let args = [this];'

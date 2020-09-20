@@ -1,31 +1,36 @@
 include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
-  # This currently finds ~4,500 implicit-casts issues when enabled.
-  # strong-mode:
-  #   implicit-casts: false
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
-    # There are currently 140 violations in lib/.
+    # There are currently 10k violations in test/ and tool/.
     always_declare_return_types: ignore
-    # There are currently 5500 violations in lib/. This just does not fit well
+    # There are currently 5000 violations in lib/. This just does not fit well
     # with the analyzer team's style.
     omit_local_variable_types: ignore
     # There are currently 3360 violations in lib/.
     prefer_single_quotes: ignore
-    # Ignoring "style" lint rules from pedantic for now. There are pre-existing
-    # violations that need to be cleaned up. Each one can be cleaned up and
-    # enabled according to the value provided.
-    # TODO(srawlins): At the time of writing, 1700 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
-    # today.
-    slash_for_doc_comments: ignore
-    # There are currently 1980 violations in lib/.
-    unnecessary_this: ignore
+
+    # "strict-inference" is enabled, but "unused" parameters named '_' are
+    # still reported.  Re-evaluate after
+    # https://github.com/dart-lang/language/pull/599 and a functional fix land.
+    inference_failure_on_untyped_parameter: ignore
+    # There are about 10k violations in test/ due to missing return types on
+    # test methods. It would be nice to mark this code as
+    # "ignored for test/**/*.dart".
+    inference_failure_on_function_return_type: ignore
+
+  language:
+    strict-inference: true
 
 linter:
   rules:
     - avoid_unused_constructor_parameters
     - empty_statements
+    - iterable_contains_unrelated_type
+    - list_remove_unrelated_type
+    - prefer_typing_uninitialized_variables
     - unnecessary_brace_in_string_interps
+    - unnecessary_overrides
+    - unnecessary_parenthesis

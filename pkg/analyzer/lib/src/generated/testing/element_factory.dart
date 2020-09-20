@@ -4,34 +4,33 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
-/**
- * The class `ElementFactory` defines utility methods used to create elements for testing
- * purposes. The elements that are created are complete in the sense that as much of the element
- * model as can be created, given the provided information, has been created.
- */
+/// The class `ElementFactory` defines utility methods used to create elements
+/// for testing purposes. The elements that are created are complete in the
+/// sense that as much of the element model as can be created, given the
+/// provided information, has been created.
 class ElementFactory {
-  /**
-   * The element representing the class 'Object'.
-   */
+  /// The element representing the class 'Object'.
   static ClassElementImpl _objectElement;
   static InterfaceType _objectType;
 
@@ -82,7 +81,8 @@ class ElementFactory {
     return element;
   }
 
-  static classTypeAlias(String typeName, InterfaceType superclassType,
+  static ClassElementImpl classTypeAlias(
+      String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
@@ -254,152 +254,11 @@ class ElementFactory {
           Identifier name) =>
       FieldFormalParameterElementImpl(name.name, name.offset);
 
-  /**
-   * Destroy any static state retained by [ElementFactory].  This should be
-   * called from the `setUp` method of any tests that use [ElementFactory], in
-   * order to ensure that state is not shared between multiple tests.
-   */
+  /// Destroy any static state retained by [ElementFactory].  This should be
+  /// called from the `setUp` method of any tests that use [ElementFactory], in
+  /// order to ensure that state is not shared between multiple tests.
   static void flushStaticState() {
     _objectElement = null;
-  }
-
-  static FunctionElementImpl functionElement(String functionName) =>
-      functionElement4(functionName, null, null, null, null);
-
-  static FunctionElementImpl functionElement2(
-          String functionName, DartType returnType) =>
-      functionElement3(functionName, returnType, null, null);
-
-  static FunctionElementImpl functionElement3(
-      String functionName,
-      DartType returnType,
-      List<TypeDefiningElement> normalParameters,
-      List<TypeDefiningElement> optionalParameters) {
-    // We don't create parameter elements because we don't have parameter names
-    FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
-    functionElement.returnType = returnType ?? VoidTypeImpl.instance;
-    // parameters
-    int normalCount = normalParameters == null ? 0 : normalParameters.length;
-    int optionalCount =
-        optionalParameters == null ? 0 : optionalParameters.length;
-    int totalCount = normalCount + optionalCount;
-    List<ParameterElement> parameters = List<ParameterElement>(totalCount);
-    for (int i = 0; i < totalCount; i++) {
-      ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
-      if (i < normalCount) {
-        parameter.type = _typeDefiningElementType(normalParameters[i]);
-        parameter.parameterKind = ParameterKind.REQUIRED;
-      } else {
-        parameter.type =
-            _typeDefiningElementType(optionalParameters[i - normalCount]);
-        parameter.parameterKind = ParameterKind.POSITIONAL;
-      }
-      parameters[i] = parameter;
-    }
-    functionElement.parameters = parameters;
-    // done
-    return functionElement;
-  }
-
-  static FunctionElementImpl functionElement4(
-      String functionName,
-      ClassElement returnElement,
-      List<ClassElement> normalParameters,
-      List<String> names,
-      List<ClassElement> namedParameters) {
-    FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
-    // parameters
-    int normalCount = normalParameters == null ? 0 : normalParameters.length;
-    int nameCount = names == null ? 0 : names.length;
-    int typeCount = namedParameters == null ? 0 : namedParameters.length;
-    if (names != null && nameCount != typeCount) {
-      throw StateError(
-          "The passed String[] and ClassElement[] arrays had different lengths.");
-    }
-    int totalCount = normalCount + nameCount;
-    List<ParameterElement> parameters = List<ParameterElement>(totalCount);
-    for (int i = 0; i < totalCount; i++) {
-      if (i < normalCount) {
-        ParameterElementImpl parameter = ParameterElementImpl("a$i", i);
-        parameter.type = _typeDefiningElementType(normalParameters[i]);
-        parameter.parameterKind = ParameterKind.REQUIRED;
-        parameters[i] = parameter;
-      } else {
-        ParameterElementImpl parameter =
-            ParameterElementImpl(names[i - normalCount], i);
-        parameter.type =
-            _typeDefiningElementType(namedParameters[i - normalCount]);
-        parameter.parameterKind = ParameterKind.NAMED;
-        parameters[i] = parameter;
-      }
-    }
-    functionElement.parameters = parameters;
-    // return type
-    if (returnElement == null) {
-      functionElement.returnType = VoidTypeImpl.instance;
-    } else {
-      functionElement.returnType = _typeDefiningElementType(returnElement);
-    }
-    return functionElement;
-  }
-
-  static FunctionElementImpl functionElement5(
-          String functionName, List<ClassElement> normalParameters) =>
-      functionElement3(functionName, null, normalParameters, null);
-
-  static FunctionElementImpl functionElement6(
-          String functionName,
-          List<ClassElement> normalParameters,
-          List<ClassElement> optionalParameters) =>
-      functionElement3(
-          functionName, null, normalParameters, optionalParameters);
-
-  static FunctionElementImpl functionElement7(
-          String functionName,
-          List<ClassElement> normalParameters,
-          List<String> names,
-          List<ClassElement> namedParameters) =>
-      functionElement4(
-          functionName, null, normalParameters, names, namedParameters);
-
-  static FunctionElementImpl functionElement8(
-      List<DartType> parameters, DartType returnType,
-      {List<DartType> optional, Map<String, DartType> named}) {
-    List<ParameterElement> parameterElements = <ParameterElement>[];
-    for (int i = 0; i < parameters.length; i++) {
-      ParameterElementImpl parameterElement = ParameterElementImpl("a$i", i);
-      parameterElement.type = parameters[i];
-      parameterElement.parameterKind = ParameterKind.REQUIRED;
-      parameterElements.add(parameterElement);
-    }
-    if (optional != null) {
-      int j = parameters.length;
-      for (int i = 0; i < optional.length; i++) {
-        ParameterElementImpl parameterElement = ParameterElementImpl("o$i", j);
-        parameterElement.type = optional[i];
-        parameterElement.parameterKind = ParameterKind.POSITIONAL;
-        parameterElements.add(parameterElement);
-        j++;
-      }
-    } else if (named != null) {
-      int j = parameters.length;
-      for (String s in named.keys) {
-        ParameterElementImpl parameterElement = ParameterElementImpl(s, j);
-        parameterElement.type = named[s];
-        parameterElement.parameterKind = ParameterKind.NAMED;
-        parameterElements.add(parameterElement);
-      }
-    }
-
-    return functionElementWithParameters("f", returnType, parameterElements);
-  }
-
-  static FunctionElementImpl functionElementWithParameters(String functionName,
-      DartType returnType, List<ParameterElement> parameters) {
-    FunctionElementImpl functionElement = FunctionElementImpl(functionName, 0);
-    functionElement.returnType = returnType ?? VoidTypeImpl.instance;
-    functionElement.parameters = parameters;
-    return functionElement;
   }
 
   static GenericTypeAliasElementImpl genericTypeAliasElement(String name,
@@ -443,12 +302,16 @@ class ElementFactory {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library = LibraryElementImpl(
-        context,
-        AnalysisSessionImpl(null),
-        libraryName,
-        0,
-        libraryName.length,
-        isNonNullableByDefault);
+      context,
+      AnalysisSessionImpl(null),
+      libraryName,
+      0,
+      libraryName.length,
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: isNonNullableByDefault ? [EnableString.non_nullable] : [],
+      ),
+    );
     library.definingCompilationUnit = unit;
     return library;
   }
@@ -645,18 +508,5 @@ class ElementFactory {
     typeParameter.bound = bound;
     typeParameter.variance = variance;
     return typeParameter;
-  }
-
-  static DartType _typeDefiningElementType(TypeDefiningElement element) {
-    if (element is ClassElement) {
-      return element.instantiate(
-        typeArguments: List.filled(
-          element.typeParameters.length,
-          DynamicTypeImpl.instance,
-        ),
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-    }
-    throw ArgumentError('element: (${element.runtimeType}) $element');
   }
 }

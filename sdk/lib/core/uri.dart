@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 // Frequently used character codes.
@@ -34,8 +32,8 @@ const String _hexDigits = "0123456789ABCDEF";
  * * [URIs][uris] in the [library tour][libtour]
  * * [RFC-3986](http://tools.ietf.org/html/rfc3986)
  *
- * [uris]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#uris
- * [libtour]: https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
+ * [uris]: https://dart.dev/guides/libraries/library-tour#uris
+ * [libtour]: https://dart.dev/guides/libraries/library-tour
  */
 abstract class Uri {
   /**
@@ -121,15 +119,15 @@ abstract class Uri {
    * If `fragment` is omitted or `null`, the URI has no fragment part.
    */
   factory Uri(
-      {String scheme,
-      String userInfo,
-      String host,
-      int port,
-      String path,
-      Iterable<String> pathSegments,
-      String query,
-      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
-      String fragment}) = _Uri;
+      {String? scheme,
+      String? userInfo,
+      String? host,
+      int? port,
+      String? path,
+      Iterable<String>? pathSegments,
+      String? query,
+      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      String? fragment}) = _Uri;
 
   /**
    * Creates a new `http` URI from authority, path and query.
@@ -165,7 +163,7 @@ abstract class Uri {
    * argument.
    */
   factory Uri.http(String authority, String unencodedPath,
-      [Map<String, String> queryParameters]) = _Uri.http;
+      [Map<String, String>? queryParameters]) = _Uri.http;
 
   /**
    * Creates a new `https` URI from authority, path and query.
@@ -174,7 +172,7 @@ abstract class Uri {
    * which is set to `https`.
    */
   factory Uri.https(String authority, String unencodedPath,
-      [Map<String, String> queryParameters]) = _Uri.https;
+      [Map<String, String>? queryParameters]) = _Uri.https;
 
   /**
    * Creates a new file URI from an absolute or relative file path.
@@ -259,7 +257,7 @@ abstract class Uri {
    *
    * If the path passed is not a valid file path, an error is thrown.
    */
-  factory Uri.file(String path, {bool windows}) = _Uri.file;
+  factory Uri.file(String path, {bool? windows}) = _Uri.file;
 
   /**
    * Like [Uri.file] except that a non-empty URI path ends in a slash.
@@ -268,7 +266,7 @@ abstract class Uri {
    * then a slash is added to the returned URI's path.
    * In all other cases, the result is the same as returned by `Uri.file`.
    */
-  factory Uri.directory(String path, {bool windows}) = _Uri.directory;
+  factory Uri.directory(String path, {bool? windows}) = _Uri.directory;
 
   /**
    * Creates a `data:` URI containing the [content] string.
@@ -299,9 +297,9 @@ abstract class Uri {
    * To read the content back, use [UriData.contentAsString].
    */
   factory Uri.dataFromString(String content,
-      {String mimeType,
-      Encoding encoding,
-      Map<String, String> parameters,
+      {String? mimeType,
+      Encoding? encoding,
+      Map<String, String>? parameters,
       bool base64 = false}) {
     UriData data = UriData.fromString(content,
         mimeType: mimeType,
@@ -328,9 +326,9 @@ abstract class Uri {
    * encoded.
    */
   factory Uri.dataFromBytes(List<int> bytes,
-      {mimeType = "application/octet-stream",
-      Map<String, String> parameters,
-      percentEncoded = false}) {
+      {String mimeType = "application/octet-stream",
+      Map<String, String>? parameters,
+      bool percentEncoded = false}) {
     UriData data = UriData.fromBytes(bytes,
         mimeType: mimeType,
         parameters: parameters,
@@ -597,7 +595,7 @@ abstract class Uri {
    */
   // TODO(lrn): Deprecate and move functionality to File class or similar.
   // The core libraries should not worry about the platform.
-  String toFilePath({bool windows});
+  String toFilePath({bool? windows});
 
   /**
    * Access the structure of a `data:` URI.
@@ -607,7 +605,7 @@ abstract class Uri {
    * The [UriData] object can be used to access the media type and data
    * of a `data:` URI.
    */
-  UriData get data;
+  UriData? get data;
 
   /// Returns a hash code computed as `toString().hashCode`.
   ///
@@ -661,15 +659,15 @@ abstract class Uri {
    * from this `Uri` need not be checked for validity again.
    */
   Uri replace(
-      {String scheme,
-      String userInfo,
-      String host,
-      int port,
-      String path,
-      Iterable<String> pathSegments,
-      String query,
-      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
-      String fragment});
+      {String? scheme,
+      String? userInfo,
+      String? host,
+      int? port,
+      String? path,
+      Iterable<String>? pathSegments,
+      String? query,
+      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      String? fragment});
 
   /**
    * Returns a `Uri` that differs from this only in not having a fragment.
@@ -734,7 +732,7 @@ abstract class Uri {
    * If the [uri] string is not valid as a URI or URI reference,
    * a [FormatException] is thrown.
    */
-  static Uri parse(String uri, [int start = 0, int end]) {
+  static Uri parse(String uri, [int start = 0, int? end]) {
     // This parsing will not validate percent-encoding, IPv6, etc.
     // When done splitting into parts, it will call, e.g., [_makeFragment]
     // to do the final parsing.
@@ -809,7 +807,7 @@ abstract class Uri {
     // The following index-normalization belongs with the scanning, but is
     // easier to do here because we already have extracted variables from the
     // indices list.
-    var indices = List<int>(8);
+    var indices = List<int>.filled(8, 0, growable: false);
 
     // Set default values for each position.
     // The value will either be correct in some cases where it isn't set
@@ -851,8 +849,8 @@ abstract class Uri {
     int queryStart = indices[_queryStartIndex];
     int fragmentStart = indices[_fragmentStartIndex];
 
-    // We may discover scheme while handling special cases.
-    String scheme;
+    // We may discover the scheme while handling special cases.
+    String? scheme;
 
     // Derive some positions that weren't set to normalize the indices.
     if (fragmentStart < queryStart) queryStart = fragmentStart;
@@ -1034,7 +1032,7 @@ abstract class Uri {
    *
    * Returns `null` if the [uri] string is not valid as a URI or URI reference.
    */
-  static Uri tryParse(String uri, [int start = 0, int end]) {
+  static Uri? tryParse(String uri, [int start = 0, int? end]) {
     // TODO: Optimize to avoid throwing-and-recatching.
     try {
       return parse(uri, start, end);
@@ -1262,7 +1260,7 @@ abstract class Uri {
    *  * `::FFFF:129.144.52.38`
    *  * `2010:836B:4179::836B:4179`
    */
-  static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
+  static List<int> parseIPv6Address(String host, [int start = 0, int? end]) {
     end ??= host.length;
     // An IPv6 address consists of exactly 8 parts of 1-4 hex digits, separated
     // by `:`'s, with the following exceptions:
@@ -1385,7 +1383,7 @@ class _Uri implements Uri {
    * The host name is the only mandatory part of an authority, so we use
    * it to mark whether an authority part was present or not.
    */
-  final String _host;
+  final String? _host;
 
   /**
    * The port number part of the authority.
@@ -1393,7 +1391,7 @@ class _Uri implements Uri {
    * The port. Set to null if there is no port. Normalized to null if
    * the port is the default port for the scheme.
    */
-  int _port;
+  int? _port;
 
   /**
    * The path of the URI.
@@ -1402,44 +1400,38 @@ class _Uri implements Uri {
    */
   final String path;
 
-  // The query content, or null if there is no query.
-  final String _query;
+  /// The query content, or null if there is no query.
+  final String? _query;
 
   // The fragment content, or null if there is no fragment.
-  final String _fragment;
+  final String? _fragment;
 
-  /**
-   * Cache the computed return value of [pathSegments].
-   */
-  List<String> _pathSegments;
+  /// Cache of the full normalized text representation of the URI.
+  late final String _text = this._initializeText();
 
-  /**
-   * Cache of the full normalized text representation of the URI.
-   */
-  String _text;
+  /// Cache of the list of path segments.
+  late final List<String> pathSegments = _computePathSegments(this.path);
 
-  /**
-   * Cache of the hashCode of [_text].
-   *
-   * Is null until computed.
-   */
-  int _hashCodeCache;
+  /// Lazily computed and cached hashCode of [_text].
+  late final int hashCode = this._text.hashCode;
 
-  /**
-   * Cache the computed return value of [queryParameters].
-   */
-  Map<String, String> _queryParameters;
-  Map<String, List<String>> _queryParameterLists;
+  /// Cache the computed return value of [queryParameters].
+  late final Map<String, String> queryParameters =
+      UnmodifiableMapView<String, String>(Uri.splitQueryString(this.query));
+
+  /// Cache the computed return value of [queryParametersAll].
+  late final Map<String, List<String>> queryParametersAll =
+      _computeQueryParametersAll(this.query);
 
   /// Internal non-verifying constructor. Only call with validated arguments.
   ///
   /// The components must be properly normalized.
   ///
   /// Use `null` for [_host] if there is no authority. In that case, always
-  /// pass `null` for [_port] and [_userInfo] as well.
+  /// pass `null` for [_port] and an empty string for [_userInfo] as well.
   ///
-  /// Use `null` for [_port], [_userInfo], [_query] and [_fragment] if there is
-  /// component of that type.
+  /// Use `null` for [_port], [_query] and [_fragment] if there is
+  /// component of that type, and empty string for [_userInfo].
   ///
   /// The [path] and [scheme] are never empty.
   _Uri._internal(this.scheme, this._userInfo, this._host, this._port, this.path,
@@ -1460,7 +1452,7 @@ class _Uri implements Uri {
       int pathStart,
       int queryStart,
       int fragmentStart,
-      String scheme) {
+      String? scheme) {
     if (scheme == null) {
       scheme = "";
       if (schemeEnd > start) {
@@ -1470,8 +1462,8 @@ class _Uri implements Uri {
       }
     }
     String userInfo = "";
-    String host;
-    int port;
+    String? host;
+    int? port;
     if (hostStart > start) {
       int userInfoStart = schemeEnd + 3;
       if (userInfoStart < hostStart) {
@@ -1479,20 +1471,19 @@ class _Uri implements Uri {
       }
       host = _makeHost(uri, hostStart, portStart, false);
       if (portStart + 1 < pathStart) {
-        // Should throw because invalid.
-        port = int.parse(uri.substring(portStart + 1, pathStart), onError: (_) {
-          throw FormatException("Invalid port", uri, portStart + 1);
-        });
-        port = _makePort(port, scheme);
+        int portNumber =
+            int.tryParse(uri.substring(portStart + 1, pathStart)) ??
+                (throw FormatException("Invalid port", uri, portStart + 1));
+        port = _makePort(portNumber, scheme);
       }
     }
     String path =
         _makePath(uri, pathStart, queryStart, null, scheme, host != null);
-    String query;
+    String? query;
     if (queryStart < fragmentStart) {
       query = _makeQuery(uri, queryStart + 1, fragmentStart, null);
     }
-    String fragment;
+    String? fragment;
     if (fragmentStart < end) {
       fragment = _makeFragment(uri, fragmentStart + 1, end);
     }
@@ -1501,17 +1492,25 @@ class _Uri implements Uri {
 
   /// Implementation of [Uri.Uri].
   factory _Uri(
-      {String scheme,
-      String userInfo,
-      String host,
-      int port,
-      String path,
-      Iterable<String> pathSegments,
-      String query,
-      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
-      String fragment}) {
-    scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
+      {String? scheme,
+      String? userInfo,
+      String? host,
+      int? port,
+      String? path,
+      Iterable<String>? pathSegments,
+      String? query,
+      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      String? fragment}) {
+    if (scheme == null) {
+      scheme = "";
+    } else {
+      scheme = _makeScheme(scheme, 0, scheme.length);
+    }
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
+    if (userInfo == null) {
+      // TODO(dart-lang/language#440): Remove when promotion works.
+      throw "unreachable";
+    }
     host = _makeHost(host, 0, _stringOrNullLength(host), false);
     // Special case this constructor for backwards compatibility.
     if (query == "") query = null;
@@ -1525,6 +1524,10 @@ class _Uri implements Uri {
     bool hasAuthority = (host != null);
     path = _makePath(
         path, 0, _stringOrNullLength(path), pathSegments, scheme, hasAuthority);
+    if (path == null) {
+      // TODO(dart-lang/language#440): Remove when promotion works.
+      throw "unreachable";
+    }
     if (scheme.isEmpty && host == null && !path.startsWith('/')) {
       bool allowScheme = scheme.isNotEmpty || host != null;
       path = _normalizeRelativePath(path, allowScheme);
@@ -1539,13 +1542,13 @@ class _Uri implements Uri {
 
   /// Implementation of [Uri.http].
   factory _Uri.http(String authority, String unencodedPath,
-      [Map<String, String> queryParameters]) {
+      [Map<String, String>? queryParameters]) {
     return _makeHttpUri("http", authority, unencodedPath, queryParameters);
   }
 
   /// Implementation of [Uri.https].
   factory _Uri.https(String authority, String unencodedPath,
-      [Map<String, String> queryParameters]) {
+      [Map<String, String>? queryParameters]) {
     return _makeHttpUri("https", authority, unencodedPath, queryParameters);
   }
 
@@ -1559,19 +1562,19 @@ class _Uri implements Uri {
   String get userInfo => _userInfo;
 
   String get host {
-    if (_host == null) return "";
-    if (_host.startsWith('[')) {
-      return _host.substring(1, _host.length - 1);
+    String? host = _host;
+    if (host == null) return "";
+    if (host.startsWith('[')) {
+      return host.substring(1, host.length - 1);
     }
-    return _host;
+    return host;
   }
 
   int get port {
-    if (_port == null) return _defaultPort(scheme);
-    return _port;
+    return _port ?? _defaultPort(scheme);
   }
 
-  // The default port for the scheme of this Uri.
+  /// The default port for the scheme of this Uri.
   static int _defaultPort(String scheme) {
     if (scheme == "http") return 80;
     if (scheme == "https") return 443;
@@ -1620,25 +1623,23 @@ class _Uri implements Uri {
     return true;
   }
 
-  // Report a parse failure.
-  static void _fail(String uri, int index, String message) {
+  /// Report a parse failure.
+  static Never _fail(String uri, int index, String message) {
     throw FormatException(message, uri, index);
   }
 
-  static Uri _makeHttpUri(String scheme, String authority, String unencodedPath,
-      Map<String, String> queryParameters) {
+  static _Uri _makeHttpUri(String scheme, String? authority,
+      String unencodedPath, Map<String, String>? queryParameters) {
     var userInfo = "";
-    String host;
-    int port;
+    String? host;
+    int? port;
 
     if (authority != null && authority.isNotEmpty) {
       var hostStart = 0;
       // Split off the user info.
-      bool hasUserInfo = false;
       for (int i = 0; i < authority.length; i++) {
         const int atSign = 0x40;
         if (authority.codeUnitAt(i) == atSign) {
-          hasUserInfo = true;
           userInfo = authority.substring(0, i);
           hostStart = i + 1;
           break;
@@ -1673,7 +1674,6 @@ class _Uri implements Uri {
         }
       }
       // Split host and port.
-      bool hasPort = false;
       for (; hostEnd < authority.length; hostEnd++) {
         if (authority.codeUnitAt(hostEnd) == _COLON) {
           var portString = authority.substring(hostEnd + 1);
@@ -1684,7 +1684,7 @@ class _Uri implements Uri {
       }
       host = authority.substring(hostStart, hostEnd);
     }
-    return Uri(
+    return _Uri(
         scheme: scheme,
         userInfo: userInfo,
         host: host,
@@ -1694,25 +1694,25 @@ class _Uri implements Uri {
   }
 
   /// Implementation of [Uri.file].
-  factory _Uri.file(String path, {bool windows}) {
-    windows = (windows == null) ? _Uri._isWindows : windows;
-    return windows
+  factory _Uri.file(String path, {bool? windows}) {
+    return (windows ?? _Uri._isWindows)
         ? _makeWindowsFileUrl(path, false)
         : _makeFileUri(path, false);
   }
 
   /// Implementation of [Uri.directory].
-  factory _Uri.directory(String path, {bool windows}) {
-    windows = (windows == null) ? _Uri._isWindows : windows;
-    return windows ? _makeWindowsFileUrl(path, true) : _makeFileUri(path, true);
+  factory _Uri.directory(String path, {bool? windows}) {
+    return (windows ?? _Uri._isWindows)
+        ? _makeWindowsFileUrl(path, true)
+        : _makeFileUri(path, true);
   }
 
   /// Used internally in path-related constructors.
   external static bool get _isWindows;
 
-  static _checkNonWindowsPathReservedCharacters(
+  static void _checkNonWindowsPathReservedCharacters(
       List<String> segments, bool argumentError) {
-    segments.forEach((segment) {
+    for (var segment in segments) {
       if (segment.contains("/")) {
         if (argumentError) {
           throw ArgumentError("Illegal path character $segment");
@@ -1720,10 +1720,10 @@ class _Uri implements Uri {
           throw UnsupportedError("Illegal path character $segment");
         }
       }
-    });
+    }
   }
 
-  static _checkWindowsPathReservedCharacters(
+  static void _checkWindowsPathReservedCharacters(
       List<String> segments, bool argumentError,
       [int firstSegment = 0]) {
     for (var segment in segments.skip(firstSegment)) {
@@ -1737,7 +1737,7 @@ class _Uri implements Uri {
     }
   }
 
-  static _checkWindowsDriveLetter(int charCode, bool argumentError) {
+  static void _checkWindowsDriveLetter(int charCode, bool argumentError) {
     if ((_UPPER_CASE_A <= charCode && charCode <= _UPPER_CASE_Z) ||
         (_LOWER_CASE_A <= charCode && charCode <= _LOWER_CASE_Z)) {
       return;
@@ -1751,7 +1751,7 @@ class _Uri implements Uri {
     }
   }
 
-  static _makeFileUri(String path, bool slashTerminated) {
+  static Uri _makeFileUri(String path, bool slashTerminated) {
     const String sep = "/";
     var segments = path.split(sep);
     if (slashTerminated && segments.isNotEmpty && segments.last.isNotEmpty) {
@@ -1833,15 +1833,15 @@ class _Uri implements Uri {
   }
 
   Uri replace(
-      {String scheme,
-      String userInfo,
-      String host,
-      int port,
-      String path,
-      Iterable<String> pathSegments,
-      String query,
-      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
-      String fragment}) {
+      {String? scheme,
+      String? userInfo,
+      String? host,
+      int? port,
+      String? path,
+      Iterable<String>? pathSegments,
+      String? query,
+      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      String? fragment}) {
     // Set to true if the scheme has (potentially) changed.
     // In that case, the default port may also have changed and we need
     // to check even the existing port.
@@ -1852,12 +1852,14 @@ class _Uri implements Uri {
     } else {
       scheme = this.scheme;
     }
+
     bool isFile = (scheme == "file");
     if (userInfo != null) {
       userInfo = _makeUserInfo(userInfo, 0, userInfo.length);
     } else {
       userInfo = this._userInfo;
     }
+
     if (port != null) {
       port = _makePort(port, scheme);
     } else {
@@ -1880,11 +1882,12 @@ class _Uri implements Uri {
       path = _makePath(path, 0, _stringOrNullLength(path), pathSegments, scheme,
           hasAuthority);
     } else {
-      path = this.path;
-      if ((isFile || (hasAuthority && !path.isEmpty)) &&
-          !path.startsWith('/')) {
-        path = "/" + path;
+      var currentPath = this.path;
+      if ((isFile || (hasAuthority && !currentPath.isEmpty)) &&
+          !currentPath.startsWith('/')) {
+        currentPath = "/" + currentPath;
       }
+      path = currentPath;
     }
 
     if (query != null || queryParameters != null) {
@@ -1907,39 +1910,21 @@ class _Uri implements Uri {
     return _Uri._internal(scheme, _userInfo, _host, _port, path, _query, null);
   }
 
-  List<String> get pathSegments {
-    var result = _pathSegments;
-    if (result != null) return result;
-
-    var pathToSplit = path;
+  static List<String> _computePathSegments(String pathToSplit) {
     if (pathToSplit.isNotEmpty && pathToSplit.codeUnitAt(0) == _SLASH) {
       pathToSplit = pathToSplit.substring(1);
     }
-    result = (pathToSplit == "")
+    return (pathToSplit.isEmpty)
         ? const <String>[]
         : List<String>.unmodifiable(
             pathToSplit.split("/").map(Uri.decodeComponent));
-    _pathSegments = result;
-    return result;
   }
 
-  Map<String, String> get queryParameters {
-    _queryParameters ??=
-        UnmodifiableMapView<String, String>(Uri.splitQueryString(query));
-    return _queryParameters;
-  }
-
-  Map<String, List<String>> get queryParametersAll {
-    if (_queryParameterLists == null) {
-      Map queryParameterLists = _splitQueryStringAll(query);
-      for (var key in queryParameterLists.keys) {
-        queryParameterLists[key] =
-            List<String>.unmodifiable(queryParameterLists[key]);
-      }
-      _queryParameterLists =
-          Map<String, List<String>>.unmodifiable(queryParameterLists);
-    }
-    return _queryParameterLists;
+  static Map<String, List<String>> _computeQueryParametersAll(String? query) {
+    if (query == null || query.isEmpty) return const <String, List<String>>{};
+    Map<String, List<String>> queryParameterLists = _splitQueryStringAll(query);
+    queryParameterLists.updateAll(_toUnmodifiableStringList);
+    return Map<String, List<String>>.unmodifiable(queryParameterLists);
   }
 
   Uri normalizePath() {
@@ -1948,7 +1933,7 @@ class _Uri implements Uri {
     return this.replace(path: path);
   }
 
-  static int _makePort(int port, String scheme) {
+  static int? _makePort(int? port, String scheme) {
     // Perform scheme specific normalization.
     if (port != null && port == _defaultPort(scheme)) return null;
     return port;
@@ -1965,7 +1950,7 @@ class _Uri implements Uri {
    * This escapes all characters not valid in a reg-name,
    * and converts all non-escape upper-case letters to lower-case.
    */
-  static String _makeHost(String host, int start, int end, bool strictIPv6) {
+  static String? _makeHost(String? host, int start, int end, bool strictIPv6) {
     // TODO(lrn): Should we normalize IPv6 addresses according to RFC 5952?
     if (host == null) return null;
     if (start == end) return "";
@@ -2004,8 +1989,8 @@ class _Uri implements Uri {
     return _normalizeRegName(host, start, end);
   }
 
-  // RFC 6874 check for ZoneID
-  // Return the index of first appeared `%`.
+  /// RFC 6874 check for ZoneID
+  /// Return the index of first appeared `%`.
   static int _checkZoneID(String host, int start, int end) {
     int index = host.indexOf('%', start);
     index = (index >= start && index < end) ? index : end;
@@ -2026,7 +2011,7 @@ class _Uri implements Uri {
    */
   static String _normalizeZoneID(String host, int start, int end,
       [String prefix = '']) {
-    StringBuffer buffer;
+    StringBuffer? buffer;
     if (prefix != '') {
       buffer = StringBuffer(prefix);
     }
@@ -2038,7 +2023,7 @@ class _Uri implements Uri {
     while (index < end) {
       int char = host.codeUnitAt(index);
       if (char == _PERCENT) {
-        String replacement = _normalizeEscape(host, index, true);
+        String? replacement = _normalizeEscape(host, index, true);
         if (replacement == null && isNormalized) {
           index += 3;
           continue;
@@ -2076,10 +2061,8 @@ class _Uri implements Uri {
             sourceLength = 2;
           }
         }
-        buffer ??= StringBuffer();
         String slice = host.substring(sectionStart, index);
-        buffer.write(slice);
-        buffer.write(_escapeChar(char));
+        (buffer ??= StringBuffer())..write(slice)..write(_escapeChar(char));
         index += sourceLength;
         sectionStart = index;
       }
@@ -2104,7 +2087,7 @@ class _Uri implements Uri {
    * lower case unreserved characters or upper case escapes.
    */
   static String _normalizeRegName(String host, int start, int end) {
-    StringBuffer buffer;
+    StringBuffer? buffer;
     int sectionStart = start;
     int index = start;
     // Whether all characters between sectionStart and index are normalized,
@@ -2114,7 +2097,7 @@ class _Uri implements Uri {
       int char = host.codeUnitAt(index);
       if (char == _PERCENT) {
         // The _regNameTable contains "%", so we check that first.
-        String replacement = _normalizeEscape(host, index, true);
+        String? replacement = _normalizeEscape(host, index, true);
         if (replacement == null && isNormalized) {
           index += 3;
           continue;
@@ -2156,11 +2139,9 @@ class _Uri implements Uri {
             sourceLength = 2;
           }
         }
-        buffer ??= StringBuffer();
         String slice = host.substring(sectionStart, index);
         if (!isNormalized) slice = slice.toLowerCase();
-        buffer.write(slice);
-        buffer.write(_escapeChar(char));
+        (buffer ??= StringBuffer())..write(slice)..write(_escapeChar(char));
         index += sourceLength;
         sectionStart = index;
       }
@@ -2200,9 +2181,9 @@ class _Uri implements Uri {
     return _canonicalizeScheme(scheme);
   }
 
-  // Canonicalize a few often-used scheme strings.
-  //
-  // This improves memory usage and makes comparison faster.
+  /// Canonicalize a few often-used scheme strings.
+  ///
+  /// This improves memory usage and makes comparison faster.
   static String _canonicalizeScheme(String scheme) {
     if (scheme == "http") return "http";
     if (scheme == "file") return "file";
@@ -2211,27 +2192,26 @@ class _Uri implements Uri {
     return scheme;
   }
 
-  static String _makeUserInfo(String userInfo, int start, int end) {
+  static String _makeUserInfo(String? userInfo, int start, int end) {
     if (userInfo == null) return "";
     return _normalizeOrSubstring(userInfo, start, end, _userinfoTable);
   }
 
-  static String _makePath(String path, int start, int end,
-      Iterable<String> pathSegments, String scheme, bool hasAuthority) {
+  static String _makePath(String? path, int start, int end,
+      Iterable<String>? pathSegments, String scheme, bool hasAuthority) {
     bool isFile = (scheme == "file");
     bool ensureLeadingSlash = isFile || hasAuthority;
-    if (path == null && pathSegments == null) return isFile ? "/" : "";
-    if (path != null && pathSegments != null) {
-      throw ArgumentError('Both path and pathSegments specified');
-    }
     String result;
-    if (path != null) {
-      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable,
-          escapeDelimiters: true);
-    } else {
+    if (path == null) {
+      if (pathSegments == null) return isFile ? "/" : "";
       result = pathSegments
           .map((s) => _uriEncode(_pathCharTable, s, utf8, false))
           .join("/");
+    } else if (pathSegments != null) {
+      throw ArgumentError('Both path and pathSegments specified');
+    } else {
+      result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable,
+          escapeDelimiters: true);
     }
     if (result.isEmpty) {
       if (isFile) return "/";
@@ -2254,8 +2234,8 @@ class _Uri implements Uri {
     return _removeDotSegments(path);
   }
 
-  static String _makeQuery(String query, int start, int end,
-      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters) {
+  static String? _makeQuery(String? query, int start, int end,
+      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters) {
     if (query != null) {
       if (queryParameters != null) {
         throw ArgumentError('Both query and queryParameters specified');
@@ -2268,7 +2248,7 @@ class _Uri implements Uri {
     var result = StringBuffer();
     var separator = "";
 
-    void writeParameter(String key, String value) {
+    void writeParameter(String key, String? value) {
       result.write(separator);
       separator = "&";
       result.write(Uri.encodeQueryComponent(key));
@@ -2291,7 +2271,7 @@ class _Uri implements Uri {
     return result.toString();
   }
 
-  static String _makeFragment(String fragment, int start, int end) {
+  static String? _makeFragment(String? fragment, int start, int end) {
     if (fragment == null) return null;
     return _normalizeOrSubstring(fragment, start, end, _queryCharTable,
         escapeDelimiters: true);
@@ -2310,7 +2290,7 @@ class _Uri implements Uri {
    *
    * If [lowerCase] is true, a single character returned is always lower case,
    */
-  static String _normalizeEscape(String source, int index, bool lowerCase) {
+  static String? _normalizeEscape(String source, int index, bool lowerCase) {
     assert(source.codeUnitAt(index) == _PERCENT);
     if (index + 2 >= source.length) {
       return "%"; // Marks the escape as invalid.
@@ -2343,7 +2323,7 @@ class _Uri implements Uri {
     List<int> codeUnits;
     if (char < 0x80) {
       // ASCII, a single percent encoded sequence.
-      codeUnits = List(3);
+      codeUnits = Uint8List(3);
       codeUnits[0] = _PERCENT;
       codeUnits[1] = _hexDigits.codeUnitAt(char >> 4);
       codeUnits[2] = _hexDigits.codeUnitAt(char & 0xf);
@@ -2359,7 +2339,7 @@ class _Uri implements Uri {
           flag = 0xf0;
         }
       }
-      codeUnits = List(3 * encodedBytes);
+      codeUnits = Uint8List(3 * encodedBytes);
       int index = 0;
       while (--encodedBytes >= 0) {
         int byte = ((char >> (6 * encodedBytes)) & 0x3f) | flag;
@@ -2398,10 +2378,10 @@ class _Uri implements Uri {
    *
    * Returns `null` if the original content was already normalized.
    */
-  static String _normalize(
+  static String? _normalize(
       String component, int start, int end, List<int> charTable,
       {bool escapeDelimiters = false}) {
-    StringBuffer buffer;
+    StringBuffer? buffer;
     int sectionStart = start;
     int index = start;
     // Loop while characters are valid and escapes correct and upper-case.
@@ -2410,7 +2390,7 @@ class _Uri implements Uri {
       if (char < 127 && (charTable[char >> 4] & (1 << (char & 0x0f))) != 0) {
         index++;
       } else {
-        String replacement;
+        String? replacement;
         int sourceLength;
         if (char == _PERCENT) {
           replacement = _normalizeEscape(component, index, false);
@@ -2428,6 +2408,7 @@ class _Uri implements Uri {
           }
         } else if (!escapeDelimiters && _isGeneralDelimiter(char)) {
           _fail(component, index, "Invalid character");
+          throw "unreachable"; // TODO(lrn): Remove when Never-returning functions are recognized as throwing.
         } else {
           sourceLength = 1;
           if ((char & 0xFC00) == 0xD800) {
@@ -2443,9 +2424,9 @@ class _Uri implements Uri {
           }
           replacement = _escapeChar(char);
         }
-        buffer ??= StringBuffer();
-        buffer.write(component.substring(sectionStart, index));
-        buffer.write(replacement);
+        (buffer ??= StringBuffer())
+          ..write(component.substring(sectionStart, index))
+          ..write(replacement);
         index += sourceLength;
         sectionStart = index;
       }
@@ -2615,10 +2596,10 @@ class _Uri implements Uri {
     // From RFC 3986.
     String targetScheme;
     String targetUserInfo = "";
-    String targetHost;
-    int targetPort;
+    String? targetHost;
+    int? targetPort;
     String targetPath;
-    String targetQuery;
+    String? targetQuery;
     if (reference.scheme.isNotEmpty) {
       targetScheme = reference.scheme;
       if (reference.hasAuthority) {
@@ -2687,7 +2668,7 @@ class _Uri implements Uri {
         }
       }
     }
-    String fragment = reference.hasFragment ? reference.fragment : null;
+    String? fragment = reference.hasFragment ? reference.fragment : null;
     return _Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort,
         targetPath, targetQuery, fragment);
   }
@@ -2714,15 +2695,17 @@ class _Uri implements Uri {
       throw StateError(
           "Origin is only applicable schemes http and https: $this");
     }
-    if (_host == null || _host == "") {
+    String? host = _host;
+    if (host == null || host == "") {
       throw StateError(
           "A $scheme: URI should have a non-empty host name: $this");
     }
-    if (_port == null) return "$scheme://$_host";
-    return "$scheme://$_host:$_port";
+    int? port = _port;
+    if (port == null) return "$scheme://$host";
+    return "$scheme://$host:$port";
   }
 
-  String toFilePath({bool windows}) {
+  String toFilePath({bool? windows}) {
     if (scheme != "" && scheme != "file") {
       throw UnsupportedError("Cannot extract a file path from a $scheme URI");
     }
@@ -2734,8 +2717,7 @@ class _Uri implements Uri {
       throw UnsupportedError(
           "Cannot extract a file path from a URI with a fragment component");
     }
-    windows ??= _isWindows;
-    return windows ? _toWindowsFilePath(this) : _toFilePath();
+    return (windows ?? _isWindows) ? _toWindowsFilePath(this) : _toFilePath();
   }
 
   String _toFilePath() {
@@ -2780,10 +2762,6 @@ class _Uri implements Uri {
     return result.toString();
   }
 
-  bool get _isPathAbsolute {
-    return path != null && path.startsWith('/');
-  }
-
   void _writeAuthority(StringSink ss) {
     if (_userInfo.isNotEmpty) {
       ss.write(_userInfo);
@@ -2804,14 +2782,11 @@ class _Uri implements Uri {
    * The [UriData] object can be used to access the media type and data
    * of a `data:` URI.
    */
-  UriData get data => (scheme == "data") ? UriData.fromUri(this) : null;
+  UriData? get data => (scheme == "data") ? UriData.fromUri(this) : null;
 
-  String toString() {
-    return _text ??= _initializeText();
-  }
+  String toString() => _text;
 
   String _initializeText() {
-    assert(_text == null);
     StringBuffer sb = StringBuffer();
     if (scheme.isNotEmpty) sb..write(scheme)..write(":");
     if (hasAuthority || (scheme == "file")) {
@@ -2839,10 +2814,6 @@ class _Uri implements Uri {
         query == other.query &&
         hasFragment == other.hasFragment &&
         fragment == other.fragment;
-  }
-
-  int get hashCode {
-    return _hashCodeCache ??= toString().hashCode;
   }
 
   static List<String> _createList() => <String>[];
@@ -2926,7 +2897,6 @@ class _Uri implements Uri {
     assert(0 <= start);
     assert(start <= end);
     assert(end <= text.length);
-    assert(encoding != null);
     // First check whether there is any characters which need special handling.
     bool simple = true;
     for (int i = start; i < end; i++) {
@@ -2946,7 +2916,7 @@ class _Uri implements Uri {
         bytes = text.substring(start, end).codeUnits;
       }
     } else {
-      bytes = List();
+      bytes = <int>[];
       for (int i = start; i < end; i++) {
         var codeUnit = text.codeUnitAt(i);
         if (codeUnit > 127) {
@@ -3060,50 +3030,6 @@ class _Uri implements Uri {
     0xfffe, // 0x60 - 0x6f  0111111111111111
     //                      pqrstuvwxyz
     0x07ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Characters allowed in scheme except for upper case letters.
-  static const _schemeLowerTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                                 + -.
-    0x6800, // 0x20 - 0x2f  0000000000010110
-    //                      0123456789
-    0x03ff, // 0x30 - 0x3f  1111111111000000
-    //
-    0x0000, // 0x40 - 0x4f  0111111111111111
-    //
-    0x0000, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz
-    0x07ff, // 0x70 - 0x7f  1111111111100010
-  ];
-
-  // Sub delimiter characters combined with unreserved as of 3986.
-  // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
-  //         / "*" / "+" / "," / ";" / "="
-  // RFC 3986 section 2.3.
-  // unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
-  static const _subDelimitersTable = <int>[
-    //                     LSB            MSB
-    //                      |              |
-    0x0000, // 0x00 - 0x0f  0000000000000000
-    0x0000, // 0x10 - 0x1f  0000000000000000
-    //                       !  $ &'()*+,-.
-    0x7fd2, // 0x20 - 0x2f  0100101111111110
-    //                      0123456789 ; =
-    0x2bff, // 0x30 - 0x3f  1111111111010100
-    //                       ABCDEFGHIJKLMNO
-    0xfffe, // 0x40 - 0x4f  0111111111111111
-    //                      PQRSTUVWXYZ    _
-    0x87ff, // 0x50 - 0x5f  1111111111100001
-    //                       abcdefghijklmno
-    0xfffe, // 0x60 - 0x6f  0111111111111111
-    //                      pqrstuvwxyz   ~
-    0x47ff, // 0x70 - 0x7f  1111111111100010
   ];
 
   // General delimiter characters, RFC 3986 section 2.2.
@@ -3310,7 +3236,7 @@ class UriData {
   /**
    * Cache of the result returned by [uri].
    */
-  Uri _uriCache;
+  Uri? _uriCache;
 
   UriData._(this._text, this._separatorIndices, this._uriCache);
 
@@ -3324,15 +3250,14 @@ class UriData {
    * be more efficient if the [uri] itself isn't used.
    */
   factory UriData.fromString(String content,
-      {String mimeType,
-      Encoding encoding,
-      Map<String, String> parameters,
+      {String? mimeType,
+      Encoding? encoding,
+      Map<String, String>? parameters,
       bool base64 = false}) {
     StringBuffer buffer = StringBuffer();
     List<int> indices = [_noScheme];
-    String charsetName;
-    String encodingName;
-    if (parameters != null) charsetName = parameters["charset"];
+    String? charsetName = parameters?["charset"];
+    String? encodingName;
     if (encoding == null) {
       if (charsetName != null) {
         encoding = Encoding.getByName(charsetName);
@@ -3362,9 +3287,9 @@ class UriData {
    * be more efficient if the [uri] itself isn't used.
    */
   factory UriData.fromBytes(List<int> bytes,
-      {mimeType = "application/octet-stream",
-      Map<String, String> parameters,
-      percentEncoded = false}) {
+      {String mimeType = "application/octet-stream",
+      Map<String, String>? parameters,
+      bool percentEncoded = false}) {
     StringBuffer buffer = StringBuffer();
     List<int> indices = [_noScheme];
     _writeUri(mimeType, null, parameters, buffer, indices);
@@ -3405,7 +3330,7 @@ class UriData {
       return _parse(uri.path, 0, uri);
     }
     // Includes path and query (and leading "data:").
-    return _parse("$uri", 5, uri);
+    return _parse(uri.toString(), 5, uri);
   }
 
   /**
@@ -3416,11 +3341,16 @@ class UriData {
    * Of an [indices] list is passed, separator indices are stored in that
    * list.
    */
-  static void _writeUri(String mimeType, String charsetName,
-      Map<String, String> parameters, StringBuffer buffer, List indices) {
+  static void _writeUri(
+      String? mimeType,
+      String? charsetName,
+      Map<String, String>? parameters,
+      StringBuffer buffer,
+      List<int>? indices) {
     if (mimeType == null || mimeType == "text/plain") {
       mimeType = "";
     }
+
     if (mimeType.isEmpty || identical(mimeType, "application/octet-stream")) {
       buffer.write(mimeType); // Common cases need no escaping.
     } else {
@@ -3435,9 +3365,8 @@ class UriData {
           _tokenCharTable, mimeType.substring(slashIndex + 1), utf8, false));
     }
     if (charsetName != null) {
-      if (indices != null) {
-        indices..add(buffer.length)..add(buffer.length + 8);
-      }
+      // TODO(39209): Use ?.. when sequences are properly supported.
+      if (indices != null) indices..add(buffer.length)..add(buffer.length + 8);
       buffer.write(";charset=");
       buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
     }
@@ -3449,11 +3378,11 @@ class UriData {
         throw ArgumentError.value(
             "", "Parameter values must not be empty", 'parameters["$key"]');
       }
-      if (indices != null) indices.add(buffer.length);
+      indices?.add(buffer.length);
       buffer.write(';');
       // Encode any non-RFC2045-token character and both '%' and '#'.
       buffer.write(_Uri._uriEncode(_tokenCharTable, key, utf8, false));
-      if (indices != null) indices.add(buffer.length);
+      indices?.add(buffer.length);
       buffer.write('=');
       buffer.write(_Uri._uriEncode(_tokenCharTable, value, utf8, false));
     });
@@ -3533,9 +3462,12 @@ class UriData {
    * as path.
    */
   Uri get uri {
-    if (_uriCache != null) return _uriCache;
+    return _uriCache ??= _computeUri();
+  }
+
+  Uri _computeUri() {
     String path = _text;
-    String query;
+    String? query;
     int colonIndex = _separatorIndices[0];
     int queryIndex = _text.indexOf('?', colonIndex + 1);
     int end = _text.length;
@@ -3546,8 +3478,7 @@ class UriData {
     }
     path = _Uri._normalizeOrSubstring(
         _text, colonIndex + 1, end, _Uri._pathCharOrSlashTable);
-    _uriCache = _DataUri(this, path, query);
-    return _uriCache;
+    return _DataUri(this, path, query);
   }
 
   /**
@@ -3686,7 +3617,7 @@ class UriData {
    * converted to bytes and then the character codes and byte values are
    * decoded using [encoding].
    */
-  String contentAsString({Encoding encoding}) {
+  String contentAsString({Encoding? encoding}) {
     if (encoding == null) {
       var charset = this.charset; // Returns "US-ASCII" if not present.
       encoding = Encoding.getByName(charset);
@@ -3730,7 +3661,7 @@ class UriData {
     return result;
   }
 
-  static UriData _parse(String text, int start, Uri sourceUri) {
+  static UriData _parse(String text, int start, Uri? sourceUri) {
     assert(start == 0 || start == 5);
     assert((start == 5) == text.startsWith("data:"));
 
@@ -3872,26 +3803,6 @@ class UriData {
   //
   // This is the same characters as in a URI query (which is URI pchar plus '?')
   static const _uricTable = _Uri._queryCharTable;
-
-  // Characters allowed in base-64 encoding (alphanumeric, '/', '+' and '=').
-  static const _base64Table = [
-    //                     LSB             MSB
-    //                      |               |
-    0x0000, // 0x00 - 0x0f  00000000 00000000
-    0x0000, // 0x10 - 0x1f  00000000 00000000
-    //                                  +   /
-    0x8800, // 0x20 - 0x2f  00000000 00010001
-    //                      01234567 89
-    0x03ff, // 0x30 - 0x3f  11111111 11000000
-    //                       ABCDEFG HIJKLMNO
-    0xfffe, // 0x40 - 0x4f  01111111 11111111
-    //                      PQRSTUVW XYZ
-    0x07ff, // 0x50 - 0x5f  11111111 11100000
-    //                       abcdefg hijklmno
-    0xfffe, // 0x60 - 0x6f  01111111 11111111
-    //                      pqrstuvw xyz
-    0x07ff, // 0x70 - 0x7f  11111111 11100000
-  ];
 }
 
 // --------------------------------------------------------------------
@@ -4295,8 +4206,8 @@ class _SimpleUri implements Uri {
   /// The scheme is often used to distinguish URIs.
   /// To make comparisons more efficient, we cache the value, and
   /// canonicalize a few known types.
-  String _schemeCache;
-  int _hashCodeCache;
+  String? _schemeCache;
+  int? _hashCodeCache;
 
   _SimpleUri(
       this._uri,
@@ -4336,20 +4247,16 @@ class _SimpleUri implements Uri {
   }
 
   String get scheme {
+    return _schemeCache ??= _computeScheme();
+  }
+
+  String _computeScheme() {
     if (_schemeEnd <= 0) return "";
-    if (_schemeCache != null) return _schemeCache;
-    if (_isHttp) {
-      _schemeCache = "http";
-    } else if (_isHttps) {
-      _schemeCache = "https";
-    } else if (_isFile) {
-      _schemeCache = "file";
-    } else if (_isPackage) {
-      _schemeCache = "package";
-    } else {
-      _schemeCache = _uri.substring(0, _schemeEnd);
-    }
-    return _schemeCache;
+    if (_isHttp) return "http";
+    if (_isHttps) return "https";
+    if (_isFile) return "file";
+    if (_isPackage) return "package";
+    return _uri.substring(0, _schemeEnd);
   }
 
   String get authority =>
@@ -4419,11 +4326,9 @@ class _SimpleUri implements Uri {
 
   Map<String, List<String>> get queryParametersAll {
     if (!hasQuery) return const <String, List<String>>{};
-    Map queryParameterLists = _Uri._splitQueryStringAll(query);
-    for (var key in queryParameterLists.keys) {
-      queryParameterLists[key] =
-          List<String>.unmodifiable(queryParameterLists[key]);
-    }
+    Map<String, List<String>> queryParameterLists =
+        _Uri._splitQueryStringAll(query);
+    queryParameterLists.updateAll(_toUnmodifiableStringList);
     return Map<String, List<String>>.unmodifiable(queryParameterLists);
   }
 
@@ -4442,15 +4347,15 @@ class _SimpleUri implements Uri {
   }
 
   Uri replace(
-      {String scheme,
-      String userInfo,
-      String host,
-      int port,
-      String path,
-      Iterable<String> pathSegments,
-      String query,
-      Map<String, dynamic /*String|Iterable<String>*/ > queryParameters,
-      String fragment}) {
+      {String? scheme,
+      String? userInfo,
+      String? host,
+      int? port,
+      String? path,
+      Iterable<String>? pathSegments,
+      String? query,
+      Map<String, dynamic /*String|Iterable<String>*/ >? queryParameters,
+      String? fragment}) {
     bool schemeChanged = false;
     if (scheme != null) {
       scheme = _Uri._makeScheme(scheme, 0, scheme.length);
@@ -4702,7 +4607,7 @@ class _SimpleUri implements Uri {
         base._schemeCache);
   }
 
-  String toFilePath({bool windows}) {
+  String toFilePath({bool? windows}) {
     if (_schemeEnd >= 0 && !_isFile) {
       throw UnsupportedError("Cannot extract a file path from a $scheme URI");
     }
@@ -4714,8 +4619,9 @@ class _SimpleUri implements Uri {
       throw UnsupportedError(
           "Cannot extract a file path from a URI with a fragment component");
     }
-    windows ??= _Uri._isWindows;
-    return windows ? _Uri._toWindowsFilePath(this) : _toFilePath();
+    return (windows ?? _Uri._isWindows)
+        ? _Uri._toWindowsFilePath(this)
+        : _toFilePath();
   }
 
   String _toFilePath() {
@@ -4728,7 +4634,7 @@ class _SimpleUri implements Uri {
     return this.path;
   }
 
-  UriData get data {
+  UriData? get data {
     assert(scheme != "data");
     return null;
   }
@@ -4758,10 +4664,10 @@ class _SimpleUri implements Uri {
 class _DataUri extends _Uri {
   final UriData _data;
 
-  _DataUri(this._data, String path, String query)
-      : super._internal("data", null, null, null, path, query, null);
+  _DataUri(this._data, String path, String? query)
+      : super._internal("data", "", null, null, path, query, null);
 
-  UriData get data => _data;
+  UriData? get data => _data;
 }
 
 /// Checks whether [text] starts with "data:" at position [start].
@@ -4783,4 +4689,7 @@ int _startsWithData(String text, int start) {
 }
 
 /// Helper function returning the length of a string, or `0` for `null`.
-int _stringOrNullLength(String s) => (s == null) ? 0 : s.length;
+int _stringOrNullLength(String? s) => (s == null) ? 0 : s.length;
+
+List<String> _toUnmodifiableStringList(String key, List<String> list) =>
+    List<String>.unmodifiable(list);

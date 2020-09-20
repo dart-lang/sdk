@@ -69,7 +69,10 @@ class CompilationUnitParser {
     var errorListener = _ErrorListener();
     var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     var scanner = Scanner(stringSource, reader, errorListener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var startToken = scanner.tokenize();
     errorListener.throwIfErrors();
 

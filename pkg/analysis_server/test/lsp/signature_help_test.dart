@@ -40,8 +40,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: null,
     );
@@ -66,8 +66,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: MarkupKind.Markdown,
     );
@@ -90,8 +90,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: null,
     );
@@ -116,8 +116,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: MarkupKind.PlainText,
     );
@@ -146,11 +146,43 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
       expectedFormat: MarkupKind.Markdown,
     );
+  }
+
+  Future<void> test_manualTrigger_invalidLocation() async {
+    // If the user invokes signature help, we should show it even if it's a
+    // location where we wouldn't automatically trigger (for example in a string).
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo('this is a (^test');
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    await testSignature(
+        content,
+        expectedLabel,
+        expectedDoc,
+        [
+          ParameterInformation(label: 'String s'),
+          ParameterInformation(label: 'int i'),
+        ],
+        expectedFormat: MarkupKind.Markdown,
+        context: SignatureHelpContext(
+          triggerKind: SignatureHelpTriggerKind.Invoked,
+          isRetrigger: false,
+        ));
   }
 
   Future<void> test_nonDartFile() async {
@@ -182,9 +214,9 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-        ParameterInformation('bool a', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool a'),
       ],
     );
   }
@@ -209,9 +241,9 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-        ParameterInformation('bool a', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool a'),
       ],
     );
   }
@@ -236,8 +268,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
       ],
     );
   }
@@ -262,8 +294,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
       ],
     );
   }
@@ -287,10 +319,66 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
     );
+  }
+
+  Future<void> test_triggerCharacter_invalidLocation() async {
+    // The client will automatically trigger when the user types ( so we need to
+    // ignore it when we're not in a suitable location.
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo('this is a (^test');
+    }
+    ''';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    // Expect no result.
+    final res = await getSignatureHelp(
+      mainFileUri,
+      positionFromMarker(content),
+      SignatureHelpContext(
+        triggerKind: SignatureHelpTriggerKind.TriggerCharacter,
+        isRetrigger: false,
+      ),
+    );
+    expect(res, isNull);
+  }
+
+  Future<void> test_triggerCharacter_validLocation() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+        content,
+        expectedLabel,
+        expectedDoc,
+        [
+          ParameterInformation(label: 'String s'),
+          ParameterInformation(label: 'int i'),
+        ],
+        expectedFormat: MarkupKind.Markdown,
+        context: SignatureHelpContext(
+          triggerKind: SignatureHelpTriggerKind.Invoked,
+          isRetrigger: false,
+        ));
   }
 
   Future<void> test_unopenFile() async {
@@ -312,8 +400,8 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       expectedLabel,
       expectedDoc,
       [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'int i'),
       ],
     );
   }
@@ -324,9 +412,10 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     String expectedDoc,
     List<ParameterInformation> expectedParams, {
     MarkupKind expectedFormat = MarkupKind.Markdown,
+    SignatureHelpContext context,
   }) async {
-    final res =
-        await getSignatureHelp(mainFileUri, positionFromMarker(fileContent));
+    final res = await getSignatureHelp(
+        mainFileUri, positionFromMarker(fileContent), context);
 
     // TODO(dantup): Update this when there is clarification on how to handle
     // no valid selected parameter.
@@ -345,7 +434,7 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
       // Plain string.
       expect(doc.valueEquals(expectedDoc), isTrue);
     } else {
-      final expected = MarkupContent(expectedFormat, expectedDoc);
+      final expected = MarkupContent(kind: expectedFormat, value: expectedDoc);
       expect(doc.valueEquals(expected), isTrue);
     }
   }

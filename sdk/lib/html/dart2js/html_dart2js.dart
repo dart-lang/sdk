@@ -1,5 +1,3 @@
-// @dart = 2.6
-
 /**
  * HTML elements and other resources for web-based applications that need to
  * interact with the browser and the DOM (Document Object Model).
@@ -10,7 +8,7 @@
  * check out the [Element] class, the base class for many of the HTML
  * DOM types.
  *
- * For information on writing web apps with Dart, see https://webdev.dartlang.org.
+ * For information on writing web apps with Dart, see https://dart.dev/web.
  *
  * {@category Web}
  */
@@ -98,7 +96,7 @@ HtmlDocument get document =>
 /// On a successful result the native JS result will be converted to a Dart Map.
 /// See [convertNativeToDart_Dictionary]. On a rejected promise the error is
 /// forwarded without change.
-Future<Map<String, dynamic>> promiseToFutureAsMap(jsPromise) =>
+Future<Map<String, dynamic>?> promiseToFutureAsMap(jsPromise) =>
     promiseToFuture(jsPromise).then(convertNativeToDart_Dictionary);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
@@ -117,8 +115,8 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String get nonce native;
-  set nonce(String value) native;
+  String? get nonce native;
+  set nonce(String? value) native;
 }
 
 /**
@@ -160,7 +158,7 @@ class AbsoluteOrientationSensor extends OrientationSensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AbsoluteOrientationSensor([Map sensorOptions]) {
+  factory AbsoluteOrientationSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return AbsoluteOrientationSensor._create_1(sensorOptions_1);
@@ -207,7 +205,7 @@ class Accelerometer extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Accelerometer([Map sensorOptions]) {
+  factory Accelerometer([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return Accelerometer._create_1(sensorOptions_1);
@@ -219,11 +217,11 @@ class Accelerometer extends Sensor {
   static Accelerometer _create_2() =>
       JS('Accelerometer', 'new Accelerometer()');
 
-  num get x native;
+  num? get x native;
 
-  num get y native;
+  num? get y native;
 
-  num get z native;
+  num? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -260,193 +258,193 @@ class AccessibleNode extends EventTarget {
   static AccessibleNode _create_1() =>
       JS('AccessibleNode', 'new AccessibleNode()');
 
-  AccessibleNode get activeDescendant native;
+  AccessibleNode? get activeDescendant native;
 
-  set activeDescendant(AccessibleNode value) native;
+  set activeDescendant(AccessibleNode? value) native;
 
-  bool get atomic native;
+  bool? get atomic native;
 
-  set atomic(bool value) native;
+  set atomic(bool? value) native;
 
-  String get autocomplete native;
+  String? get autocomplete native;
 
-  set autocomplete(String value) native;
+  set autocomplete(String? value) native;
 
-  bool get busy native;
+  bool? get busy native;
 
-  set busy(bool value) native;
+  set busy(bool? value) native;
 
-  String get checked native;
+  String? get checked native;
 
-  set checked(String value) native;
+  set checked(String? value) native;
 
-  int get colCount native;
+  int? get colCount native;
 
-  set colCount(int value) native;
+  set colCount(int? value) native;
 
-  int get colIndex native;
+  int? get colIndex native;
 
-  set colIndex(int value) native;
+  set colIndex(int? value) native;
 
-  int get colSpan native;
+  int? get colSpan native;
 
-  set colSpan(int value) native;
+  set colSpan(int? value) native;
 
-  AccessibleNodeList get controls native;
+  AccessibleNodeList? get controls native;
 
-  set controls(AccessibleNodeList value) native;
+  set controls(AccessibleNodeList? value) native;
 
-  String get current native;
+  String? get current native;
 
-  set current(String value) native;
+  set current(String? value) native;
 
-  AccessibleNodeList get describedBy native;
+  AccessibleNodeList? get describedBy native;
 
-  set describedBy(AccessibleNodeList value) native;
+  set describedBy(AccessibleNodeList? value) native;
 
-  AccessibleNode get details native;
+  AccessibleNode? get details native;
 
-  set details(AccessibleNode value) native;
+  set details(AccessibleNode? value) native;
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
-  AccessibleNode get errorMessage native;
+  AccessibleNode? get errorMessage native;
 
-  set errorMessage(AccessibleNode value) native;
+  set errorMessage(AccessibleNode? value) native;
 
-  bool get expanded native;
+  bool? get expanded native;
 
-  set expanded(bool value) native;
+  set expanded(bool? value) native;
 
-  AccessibleNodeList get flowTo native;
+  AccessibleNodeList? get flowTo native;
 
-  set flowTo(AccessibleNodeList value) native;
+  set flowTo(AccessibleNodeList? value) native;
 
-  String get hasPopUp native;
+  String? get hasPopUp native;
 
-  set hasPopUp(String value) native;
+  set hasPopUp(String? value) native;
 
-  bool get hidden native;
+  bool? get hidden native;
 
-  set hidden(bool value) native;
+  set hidden(bool? value) native;
 
-  String get invalid native;
+  String? get invalid native;
 
-  set invalid(String value) native;
+  set invalid(String? value) native;
 
-  String get keyShortcuts native;
+  String? get keyShortcuts native;
 
-  set keyShortcuts(String value) native;
+  set keyShortcuts(String? value) native;
 
-  String get label native;
+  String? get label native;
 
-  set label(String value) native;
+  set label(String? value) native;
 
-  AccessibleNodeList get labeledBy native;
+  AccessibleNodeList? get labeledBy native;
 
-  set labeledBy(AccessibleNodeList value) native;
+  set labeledBy(AccessibleNodeList? value) native;
 
-  int get level native;
+  int? get level native;
 
-  set level(int value) native;
+  set level(int? value) native;
 
-  String get live native;
+  String? get live native;
 
-  set live(String value) native;
+  set live(String? value) native;
 
-  bool get modal native;
+  bool? get modal native;
 
-  set modal(bool value) native;
+  set modal(bool? value) native;
 
-  bool get multiline native;
+  bool? get multiline native;
 
-  set multiline(bool value) native;
+  set multiline(bool? value) native;
 
-  bool get multiselectable native;
+  bool? get multiselectable native;
 
-  set multiselectable(bool value) native;
+  set multiselectable(bool? value) native;
 
-  String get orientation native;
+  String? get orientation native;
 
-  set orientation(String value) native;
+  set orientation(String? value) native;
 
-  AccessibleNodeList get owns native;
+  AccessibleNodeList? get owns native;
 
-  set owns(AccessibleNodeList value) native;
+  set owns(AccessibleNodeList? value) native;
 
-  String get placeholder native;
+  String? get placeholder native;
 
-  set placeholder(String value) native;
+  set placeholder(String? value) native;
 
-  int get posInSet native;
+  int? get posInSet native;
 
-  set posInSet(int value) native;
+  set posInSet(int? value) native;
 
-  String get pressed native;
+  String? get pressed native;
 
-  set pressed(String value) native;
+  set pressed(String? value) native;
 
-  bool get readOnly native;
+  bool? get readOnly native;
 
-  set readOnly(bool value) native;
+  set readOnly(bool? value) native;
 
-  String get relevant native;
+  String? get relevant native;
 
-  set relevant(String value) native;
+  set relevant(String? value) native;
 
-  bool get required native;
+  bool? get required native;
 
-  set required(bool value) native;
+  set required(bool? value) native;
 
-  String get role native;
+  String? get role native;
 
-  set role(String value) native;
+  set role(String? value) native;
 
-  String get roleDescription native;
+  String? get roleDescription native;
 
-  set roleDescription(String value) native;
+  set roleDescription(String? value) native;
 
-  int get rowCount native;
+  int? get rowCount native;
 
-  set rowCount(int value) native;
+  set rowCount(int? value) native;
 
-  int get rowIndex native;
+  int? get rowIndex native;
 
-  set rowIndex(int value) native;
+  set rowIndex(int? value) native;
 
-  int get rowSpan native;
+  int? get rowSpan native;
 
-  set rowSpan(int value) native;
+  set rowSpan(int? value) native;
 
-  bool get selected native;
+  bool? get selected native;
 
-  set selected(bool value) native;
+  set selected(bool? value) native;
 
-  int get setSize native;
+  int? get setSize native;
 
-  set setSize(int value) native;
+  set setSize(int? value) native;
 
-  String get sort native;
+  String? get sort native;
 
-  set sort(String value) native;
+  set sort(String? value) native;
 
-  num get valueMax native;
+  num? get valueMax native;
 
-  set valueMax(num value) native;
+  set valueMax(num? value) native;
 
-  num get valueMin native;
+  num? get valueMin native;
 
-  set valueMin(num value) native;
+  set valueMin(num? value) native;
 
-  num get valueNow native;
+  num? get valueNow native;
 
-  set valueNow(num value) native;
+  set valueNow(num? value) native;
 
-  String get valueText native;
+  String? get valueText native;
 
-  set valueText(String value) native;
+  set valueText(String? value) native;
 
   void appendChild(AccessibleNode child) native;
 
@@ -477,7 +475,7 @@ class AccessibleNodeList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AccessibleNodeList([List<AccessibleNode> nodes]) {
+  factory AccessibleNodeList([List<AccessibleNode>? nodes]) {
     if (nodes != null) {
       return AccessibleNodeList._create_1(nodes);
     }
@@ -488,15 +486,15 @@ class AccessibleNodeList extends Interceptor {
   static AccessibleNodeList _create_2() =>
       JS('AccessibleNodeList', 'new AccessibleNodeList()');
 
-  int get length native;
+  int? get length native;
 
-  set length(int value) native;
+  set length(int? value) native;
 
   void __setter__(int index, AccessibleNode node) native;
 
-  void add(AccessibleNode node, AccessibleNode before) native;
+  void add(AccessibleNode node, AccessibleNode? before) native;
 
-  AccessibleNode item(int index) native;
+  AccessibleNode? item(int index) native;
 
   void remove(int index) native;
 }
@@ -511,7 +509,7 @@ class AmbientLightSensor extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AmbientLightSensor([Map sensorOptions]) {
+  factory AmbientLightSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return AmbientLightSensor._create_1(sensorOptions_1);
@@ -523,7 +521,7 @@ class AmbientLightSensor extends Sensor {
   static AmbientLightSensor _create_2() =>
       JS('AmbientLightSensor', 'new AmbientLightSensor()');
 
-  num get illuminance native;
+  num? get illuminance native;
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -536,9 +534,12 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnchorElement({String href}) {
-    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true',
-        '#.createElement(#)', document, "a");
+  factory AnchorElement({String? href}) {
+    AnchorElement e = JS<AnchorElement>(
+        'returns:AnchorElement;creates:AnchorElement;new:true',
+        '#.createElement(#)',
+        document,
+        "a");
     if (href != null) e.href = href;
     return e;
   }
@@ -549,17 +550,17 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
    */
   AnchorElement.created() : super.created();
 
-  String get download native;
+  String? get download native;
 
-  set download(String value) native;
+  set download(String? value) native;
 
   String get hreflang native;
 
   set hreflang(String value) native;
 
-  String get referrerPolicy native;
+  String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String get rel native;
 
@@ -575,47 +576,47 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   // From HTMLHyperlinkElementUtils
 
-  String get hash native;
+  String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
-  String get host native;
+  String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
-  String get hostname native;
+  String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
-  String get href native;
+  String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
-  String get origin native;
+  String? get origin native;
 
-  String get password native;
+  String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
-  String get pathname native;
+  String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
-  String get port native;
+  String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
-  String get protocol native;
+  String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
-  String get search native;
+  String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
-  String get username native;
+  String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -637,7 +638,7 @@ class Animation extends EventTarget {
       const EventStreamProvider<Event>('finish');
 
   factory Animation(
-      [AnimationEffectReadOnly effect, AnimationTimeline timeline]) {
+      [AnimationEffectReadOnly? effect, AnimationTimeline? timeline]) {
     if (timeline != null) {
       return Animation._create_1(effect, timeline);
     }
@@ -655,35 +656,35 @@ class Animation extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(document.body.animate)');
 
-  num get currentTime native;
+  num? get currentTime native;
 
-  set currentTime(num value) native;
+  set currentTime(num? value) native;
 
-  AnimationEffectReadOnly get effect native;
+  AnimationEffectReadOnly? get effect native;
 
-  set effect(AnimationEffectReadOnly value) native;
+  set effect(AnimationEffectReadOnly? value) native;
 
   Future<Animation> get finished =>
-      promiseToFuture<Animation>(JS("", "#.finished", this));
+      promiseToFuture<Animation>(JS("creates:Animation;", "#.finished", this));
 
-  String get id native;
+  String? get id native;
 
-  set id(String value) native;
+  set id(String? value) native;
 
-  String get playState native;
+  String? get playState native;
 
-  num get playbackRate native;
+  num? get playbackRate native;
 
-  set playbackRate(num value) native;
+  set playbackRate(num? value) native;
 
   Future<Animation> get ready =>
-      promiseToFuture<Animation>(JS("", "#.ready", this));
+      promiseToFuture<Animation>(JS("creates:Animation;", "#.ready", this));
 
-  num get startTime native;
+  num? get startTime native;
 
-  set startTime(num value) native;
+  set startTime(num? value) native;
 
-  AnimationTimeline get timeline native;
+  AnimationTimeline? get timeline native;
 
   void cancel() native;
 
@@ -710,10 +711,10 @@ class AnimationEffectReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimationEffectTimingReadOnly get timing native;
+  AnimationEffectTimingReadOnly? get timing native;
 
   Map getComputedTiming() {
-    return convertNativeToDart_Dictionary(_getComputedTiming_1());
+    return convertNativeToDart_Dictionary(_getComputedTiming_1())!;
   }
 
   @JSName('getComputedTiming')
@@ -732,51 +733,52 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
 
   // Shadowing definition.
 
-  num get delay native;
+  num? get delay native;
 
-  set delay(num value) native;
-
-  // Shadowing definition.
-
-  String get direction native;
-
-  set direction(String value) native;
+  set delay(num? value) native;
 
   // Shadowing definition.
 
-  Object get duration native;
+  String? get direction native;
 
-  set duration(Object value) native;
-
-  // Shadowing definition.
-
-  String get easing native;
-
-  set easing(String value) native;
+  set direction(String? value) native;
 
   // Shadowing definition.
 
-  num get endDelay native;
+  @Returns('num|String|Null')
+  Object? get duration native;
 
-  set endDelay(num value) native;
-
-  // Shadowing definition.
-
-  String get fill native;
-
-  set fill(String value) native;
+  set duration(Object? value) native;
 
   // Shadowing definition.
 
-  num get iterationStart native;
+  String? get easing native;
 
-  set iterationStart(num value) native;
+  set easing(String? value) native;
 
   // Shadowing definition.
 
-  num get iterations native;
+  num? get endDelay native;
 
-  set iterations(num value) native;
+  set endDelay(num? value) native;
+
+  // Shadowing definition.
+
+  String? get fill native;
+
+  set fill(String? value) native;
+
+  // Shadowing definition.
+
+  num? get iterationStart native;
+
+  set iterationStart(num? value) native;
+
+  // Shadowing definition.
+
+  num? get iterations native;
+
+  set iterations(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -789,21 +791,21 @@ class AnimationEffectTimingReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get delay native;
+  num? get delay native;
 
-  String get direction native;
+  String? get direction native;
 
-  Object get duration native;
+  Object? get duration native;
 
-  String get easing native;
+  String? get easing native;
 
-  num get endDelay native;
+  num? get endDelay native;
 
-  String get fill native;
+  String? get fill native;
 
-  num get iterationStart native;
+  num? get iterationStart native;
 
-  num get iterations native;
+  num? get iterations native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -816,7 +818,7 @@ class AnimationEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnimationEvent(String type, [Map eventInitDict]) {
+  factory AnimationEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return AnimationEvent._create_1(type, eventInitDict_1);
@@ -828,9 +830,9 @@ class AnimationEvent extends Event {
   static AnimationEvent _create_2(type) =>
       JS('AnimationEvent', 'new AnimationEvent(#)', type);
 
-  String get animationName native;
+  String? get animationName native;
 
-  num get elapsedTime native;
+  num? get elapsedTime native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -843,7 +845,7 @@ class AnimationPlaybackEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnimationPlaybackEvent(String type, [Map eventInitDict]) {
+  factory AnimationPlaybackEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return AnimationPlaybackEvent._create_1(type, eventInitDict_1);
@@ -858,9 +860,9 @@ class AnimationPlaybackEvent extends Event {
   static AnimationPlaybackEvent _create_2(type) =>
       JS('AnimationPlaybackEvent', 'new AnimationPlaybackEvent(#)', type);
 
-  num get currentTime native;
+  num? get currentTime native;
 
-  num get timelineTime native;
+  num? get timelineTime native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -873,7 +875,7 @@ class AnimationTimeline extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get currentTime native;
+  num? get currentTime native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -995,7 +997,7 @@ class ApplicationCache extends EventTarget {
 
   static const int UPDATEREADY = 4;
 
-  int get status native;
+  int? get status native;
 
   void abort() native;
 
@@ -1038,7 +1040,7 @@ class ApplicationCacheErrorEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ApplicationCacheErrorEvent(String type, [Map eventInitDict]) {
+  factory ApplicationCacheErrorEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ApplicationCacheErrorEvent._create_1(type, eventInitDict_1);
@@ -1053,13 +1055,13 @@ class ApplicationCacheErrorEvent extends Event {
   static ApplicationCacheErrorEvent _create_2(type) => JS(
       'ApplicationCacheErrorEvent', 'new ApplicationCacheErrorEvent(#)', type);
 
-  String get message native;
+  String? get message native;
 
-  String get reason native;
+  String? get reason native;
 
-  int get status native;
+  int? get status native;
 
-  String get url native;
+  String? get url native;
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1082,7 +1084,7 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AreaElement() => JS(
+  factory AreaElement() => JS<AreaElement>(
       'returns:AreaElement;creates:AreaElement;new:true',
       '#.createElement(#)',
       document,
@@ -1102,13 +1104,13 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   set coords(String value) native;
 
-  String get download native;
+  String? get download native;
 
-  set download(String value) native;
+  set download(String? value) native;
 
-  String get referrerPolicy native;
+  String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String get rel native;
 
@@ -1124,47 +1126,47 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
   // From HTMLHyperlinkElementUtils
 
-  String get hash native;
+  String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
-  String get host native;
+  String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
-  String get hostname native;
+  String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
-  String get href native;
+  String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
-  String get origin native;
+  String? get origin native;
 
-  String get password native;
+  String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
-  String get pathname native;
+  String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
-  String get port native;
+  String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
-  String get protocol native;
+  String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
-  String get search native;
+  String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
-  String get username native;
+  String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -1174,7 +1176,7 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
 @Native("HTMLAudioElement")
 class AudioElement extends MediaElement {
-  factory AudioElement._([String src]) {
+  factory AudioElement._([String? src]) {
     if (src != null) {
       return AudioElement._create_1(src);
     }
@@ -1189,7 +1191,7 @@ class AudioElement extends MediaElement {
    */
   AudioElement.created() : super.created();
 
-  factory AudioElement([String src]) => new AudioElement._(src);
+  factory AudioElement([String? src]) => new AudioElement._(src);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1202,9 +1204,9 @@ class AuthenticatorAssertionResponse extends AuthenticatorResponse {
     throw new UnsupportedError("Not supported");
   }
 
-  ByteBuffer get authenticatorData native;
+  ByteBuffer? get authenticatorData native;
 
-  ByteBuffer get signature native;
+  ByteBuffer? get signature native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1217,7 +1219,7 @@ class AuthenticatorAttestationResponse extends AuthenticatorResponse {
     throw new UnsupportedError("Not supported");
   }
 
-  ByteBuffer get attestationObject native;
+  ByteBuffer? get attestationObject native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1231,7 +1233,7 @@ class AuthenticatorResponse extends Interceptor {
   }
 
   @JSName('clientDataJSON')
-  ByteBuffer get clientDataJson native;
+  ByteBuffer? get clientDataJson native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1244,8 +1246,11 @@ class BRElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BRElement() => JS('returns:BRElement;creates:BRElement;new:true',
-      '#.createElement(#)', document, "br");
+  factory BRElement() => JS<BRElement>(
+      'returns:BRElement;creates:BRElement;new:true',
+      '#.createElement(#)',
+      document,
+      "br");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1274,7 +1279,7 @@ class BackgroundFetchClickEvent extends BackgroundFetchEvent {
       type,
       init);
 
-  String get state native;
+  String? get state native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1294,7 +1299,7 @@ class BackgroundFetchEvent extends ExtendableEvent {
   static BackgroundFetchEvent _create_1(type, init) =>
       JS('BackgroundFetchEvent', 'new BackgroundFetchEvent(#,#)', type, init);
 
-  String get id native;
+  String? get id native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1317,7 +1322,7 @@ class BackgroundFetchFailEvent extends BackgroundFetchEvent {
       type,
       init);
 
-  List<BackgroundFetchSettledFetch> get fetches native;
+  List<BackgroundFetchSettledFetch>? get fetches native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1330,7 +1335,7 @@ class BackgroundFetchFetch extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  _Request get request native;
+  _Request? get request native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1344,18 +1349,23 @@ class BackgroundFetchManager extends Interceptor {
   }
 
   Future<BackgroundFetchRegistration> fetch(String id, Object requests,
-      [Map options]) {
+      [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<BackgroundFetchRegistration>(
-        JS("", "#.fetch(#, #, #)", this, id, requests, options_dict));
+    return promiseToFuture<BackgroundFetchRegistration>(JS(
+        "creates:BackgroundFetchRegistration;",
+        "#.fetch(#, #, #)",
+        this,
+        id,
+        requests,
+        options_dict));
   }
 
   Future<BackgroundFetchRegistration> get(String id) =>
       promiseToFuture<BackgroundFetchRegistration>(
-          JS("", "#.get(#)", this, id));
+          JS("creates:BackgroundFetchRegistration;", "#.get(#)", this, id));
 
   Future<List<dynamic>> getIds() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getIds()", this));
@@ -1371,19 +1381,19 @@ class BackgroundFetchRegistration extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  int get downloadTotal native;
+  int? get downloadTotal native;
 
-  int get downloaded native;
+  int? get downloaded native;
 
-  String get id native;
+  String? get id native;
 
-  String get title native;
+  String? get title native;
 
-  int get totalDownloadSize native;
+  int? get totalDownloadSize native;
 
-  int get uploadTotal native;
+  int? get uploadTotal native;
 
-  int get uploaded native;
+  int? get uploaded native;
 
   Future<bool> abort() => promiseToFuture<bool>(JS("", "#.abort()", this));
 }
@@ -1407,7 +1417,7 @@ class BackgroundFetchSettledFetch extends BackgroundFetchFetch {
       request,
       response);
 
-  _Response get response native;
+  _Response? get response native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1427,7 +1437,7 @@ class BackgroundFetchedEvent extends BackgroundFetchEvent {
   static BackgroundFetchedEvent _create_1(type, init) => JS(
       'BackgroundFetchedEvent', 'new BackgroundFetchedEvent(#,#)', type, init);
 
-  List<BackgroundFetchSettledFetch> get fetches native;
+  List<BackgroundFetchSettledFetch>? get fetches native;
 
   Future updateUI(String title) =>
       promiseToFuture(JS("", "#.updateUI(#)", this, title));
@@ -1445,7 +1455,7 @@ class BarProp extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get visible native;
+  bool? get visible native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1478,7 +1488,7 @@ class BaseElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BaseElement() => JS(
+  factory BaseElement() => JS<BaseElement>(
       'returns:BaseElement;creates:BaseElement;new:true',
       '#.createElement(#)',
       document,
@@ -1509,13 +1519,13 @@ class BatteryManager extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get charging native;
+  bool? get charging native;
 
-  num get chargingTime native;
+  num? get chargingTime native;
 
-  num get dischargingTime native;
+  num? get dischargingTime native;
 
-  num get level native;
+  num? get level native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1528,7 +1538,7 @@ class BeforeInstallPromptEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BeforeInstallPromptEvent(String type, [Map eventInitDict]) {
+  factory BeforeInstallPromptEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return BeforeInstallPromptEvent._create_1(type, eventInitDict_1);
@@ -1543,9 +1553,9 @@ class BeforeInstallPromptEvent extends Event {
   static BeforeInstallPromptEvent _create_2(type) =>
       JS('BeforeInstallPromptEvent', 'new BeforeInstallPromptEvent(#)', type);
 
-  List<String> get platforms native;
+  List<String>? get platforms native;
 
-  Future<Map<String, dynamic>> get userChoice =>
+  Future<Map<String, dynamic>?> get userChoice =>
       promiseToFutureAsMap(JS("", "#.userChoice", this));
 
   Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
@@ -1563,9 +1573,9 @@ class BeforeUnloadEvent extends Event {
 
   // Shadowing definition.
 
-  String get returnValue native;
+  String? get returnValue native;
 
-  set returnValue(String value) native;
+  set returnValue(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1582,9 +1592,9 @@ class Blob extends Interceptor {
 
   String get type native;
 
-  Blob slice([int start, int end, String contentType]) native;
+  Blob slice([int? start, int? end, String? contentType]) native;
 
-  factory Blob(List blobParts, [String type, String endings]) {
+  factory Blob(List blobParts, [String? type, String? endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
     // array to ArrayBuffer if it is a total view.
@@ -1611,7 +1621,7 @@ class Blob extends Interceptor {
 
 // WARNING: Do not edit - generated code.
 
-typedef void BlobCallback(Blob blob);
+typedef void BlobCallback(Blob? blob);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1630,9 +1640,9 @@ class BlobEvent extends Event {
   static BlobEvent _create_1(type, eventInitDict) =>
       JS('BlobEvent', 'new BlobEvent(#,#)', type, eventInitDict);
 
-  Blob get data native;
+  Blob? get data native;
 
-  num get timecode native;
+  num? get timecode native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1645,11 +1655,11 @@ class BluetoothRemoteGattDescriptor extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  _BluetoothRemoteGATTCharacteristic get characteristic native;
+  _BluetoothRemoteGATTCharacteristic? get characteristic native;
 
-  String get uuid native;
+  String? get uuid native;
 
-  ByteData get value native;
+  ByteData? get value native;
 
   Future readValue() => promiseToFuture(JS("", "#.readValue()", this));
 
@@ -1667,14 +1677,15 @@ class Body extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get bodyUsed native;
+  bool? get bodyUsed native;
 
   Future arrayBuffer() => promiseToFuture(JS("", "#.arrayBuffer()", this));
 
-  Future<Blob> blob() => promiseToFuture<Blob>(JS("", "#.blob()", this));
+  Future<Blob> blob() =>
+      promiseToFuture<Blob>(JS("creates:Blob;", "#.blob()", this));
 
   Future<FormData> formData() =>
-      promiseToFuture<FormData>(JS("", "#.formData()", this));
+      promiseToFuture<FormData>(JS("creates:FormData;", "#.formData()", this));
 
   Future json() => promiseToFuture(JS("", "#.json()", this));
 
@@ -1802,7 +1813,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   static const EventStreamProvider<Event> unloadEvent =
       const EventStreamProvider<Event>('unload');
 
-  factory BodyElement() => JS(
+  factory BodyElement() => JS<BodyElement>(
       'returns:BodyElement;creates:BodyElement;new:true',
       '#.createElement(#)',
       document,
@@ -1872,7 +1883,7 @@ class BroadcastChannel extends EventTarget {
   static BroadcastChannel _create_1(name) =>
       JS('BroadcastChannel', 'new BroadcastChannel(#)', name);
 
-  String get name native;
+  String? get name native;
 
   void close() native;
 
@@ -1891,9 +1902,9 @@ class BudgetState extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get budgetAt native;
+  num? get budgetAt native;
 
-  int get time native;
+  int? get time native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1906,7 +1917,7 @@ class ButtonElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ButtonElement() => JS(
+  factory ButtonElement() => JS<ButtonElement>(
       'returns:ButtonElement;creates:ButtonElement;new:true',
       '#.createElement(#)',
       document,
@@ -1926,19 +1937,19 @@ class ButtonElement extends HtmlElement {
 
   set disabled(bool value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
-  String get formAction native;
+  String? get formAction native;
 
-  set formAction(String value) native;
+  set formAction(String? value) native;
 
-  String get formEnctype native;
+  String? get formEnctype native;
 
-  set formEnctype(String value) native;
+  set formEnctype(String? value) native;
 
-  String get formMethod native;
+  String? get formMethod native;
 
-  set formMethod(String value) native;
+  set formMethod(String? value) native;
 
   bool get formNoValidate native;
 
@@ -1949,9 +1960,9 @@ class ButtonElement extends HtmlElement {
   set formTarget(String value) native;
 
   @Unstable()
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
   String get name native;
 
@@ -2009,17 +2020,17 @@ class CacheStorage extends Interceptor {
 
   Future keys() => promiseToFuture(JS("", "#.keys()", this));
 
-  Future match(/*RequestInfo*/ request, [Map options]) {
+  Future match(/*RequestInfo*/ request, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture(
-        JS("", "#.match(#, #)", this, request, options_dict));
+        JS("creates:_Response;", "#.match(#, #)", this, request, options_dict));
   }
 
   Future open(String cacheName) =>
-      promiseToFuture(JS("", "#.open(#)", this, cacheName));
+      promiseToFuture(JS("creates:_Cache;", "#.open(#)", this, cacheName));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2042,13 +2053,13 @@ class CanMakePaymentEvent extends ExtendableEvent {
       type,
       eventInitDict);
 
-  List get methodData native;
+  List? get methodData native;
 
-  List get modifiers native;
+  List? get modifiers native;
 
-  String get paymentRequestOrigin native;
+  String? get paymentRequestOrigin native;
 
-  String get topLevelOrigin native;
+  String? get topLevelOrigin native;
 
   void respondWith(Future canMakePaymentResponse) native;
 }
@@ -2063,7 +2074,7 @@ class CanvasCaptureMediaStreamTrack extends MediaStreamTrack {
     throw new UnsupportedError("Not supported");
   }
 
-  CanvasElement get canvas native;
+  CanvasElement? get canvas native;
 
   void requestFrame() native;
 }
@@ -2096,9 +2107,12 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   static const EventStreamProvider<gl.ContextEvent> webGlContextRestoredEvent =
       const EventStreamProvider<gl.ContextEvent>('webglcontextrestored');
 
-  factory CanvasElement({int width, int height}) {
-    CanvasElement e = JS('returns:CanvasElement;creates:CanvasElement;new:true',
-        '#.createElement(#)', document, "canvas");
+  factory CanvasElement({int? width, int? height}) {
+    CanvasElement e = JS<CanvasElement>(
+        'returns:CanvasElement;creates:CanvasElement;new:true',
+        '#.createElement(#)',
+        document,
+        "canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -2112,21 +2126,21 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
 
   /// The height of this canvas element in CSS pixels.
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
   /// The width of this canvas element in CSS pixels.
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
-  MediaStream captureStream([num frameRate]) native;
+  MediaStream captureStream([num? frameRate]) native;
 
   @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
   @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
-  Object getContext(String contextId, [Map attributes]) {
+  Object? getContext(String contextId, [Map? attributes]) {
     if (attributes != null) {
       var attributes_1 = convertDartToNative_Dictionary(attributes);
       return _getContext_1(contextId, attributes_1);
@@ -2137,14 +2151,14 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @JSName('getContext')
   @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
   @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
-  Object _getContext_1(contextId, attributes) native;
+  Object? _getContext_1(contextId, attributes) native;
   @JSName('getContext')
   @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
   @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
-  Object _getContext_2(contextId) native;
+  Object? _getContext_2(contextId) native;
 
   @JSName('toDataURL')
-  String _toDataUrl(String type, [arguments_OR_quality]) native;
+  String _toDataUrl(String? type, [arguments_OR_quality]) native;
 
   OffscreenCanvas transferControlToOffscreen() native;
 
@@ -2190,7 +2204,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context;
+    return context as gl.RenderingContext;
   }
 
   /**
@@ -2234,13 +2248,13 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    *
    * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
    */
-  String toDataUrl([String type = 'image/png', num quality]) =>
+  String toDataUrl([String type = 'image/png', num? quality]) =>
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
-  void _toBlob(BlobCallback callback, [String type, Object arguments]) native;
+  void _toBlob(BlobCallback callback, [String? type, Object? arguments]) native;
 
-  Future<Blob> toBlob([String type, Object arguments]) {
+  Future<Blob> toBlob([String? type, Object? arguments]) {
     var completer = new Completer<Blob>();
     _toBlob((value) {
       completer.complete(value);
@@ -2359,23 +2373,23 @@ class CanvasRenderingContext2D extends Interceptor
 
   CanvasElement get canvas native;
 
-  Matrix get currentTransform native;
+  Matrix? get currentTransform native;
 
-  set currentTransform(Matrix value) native;
+  set currentTransform(Matrix? value) native;
 
-  String get direction native;
+  String? get direction native;
 
-  set direction(String value) native;
+  set direction(String? value) native;
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
-  Object get fillStyle native;
+  Object? get fillStyle native;
 
-  set fillStyle(Object value) native;
+  set fillStyle(Object? value) native;
 
-  String get filter native;
+  String? get filter native;
 
-  set filter(String value) native;
+  set filter(String? value) native;
 
   String get font native;
 
@@ -2400,13 +2414,13 @@ class CanvasRenderingContext2D extends Interceptor
    *   from WHATWG.
    */
 
-  bool get imageSmoothingEnabled native;
+  bool? get imageSmoothingEnabled native;
 
-  set imageSmoothingEnabled(bool value) native;
+  set imageSmoothingEnabled(bool? value) native;
 
-  String get imageSmoothingQuality native;
+  String? get imageSmoothingQuality native;
 
-  set imageSmoothingQuality(String value) native;
+  set imageSmoothingQuality(String? value) native;
 
   String get lineCap native;
 
@@ -2442,9 +2456,9 @@ class CanvasRenderingContext2D extends Interceptor
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
-  Object get strokeStyle native;
+  Object? get strokeStyle native;
 
-  set strokeStyle(Object value) native;
+  set strokeStyle(Object? value) native;
 
   String get textAlign native;
 
@@ -2454,7 +2468,7 @@ class CanvasRenderingContext2D extends Interceptor
 
   set textBaseline(String value) native;
 
-  void addHitRegion([Map options]) {
+  void addHitRegion([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       _addHitRegion_1(options_1);
@@ -2475,13 +2489,13 @@ class CanvasRenderingContext2D extends Interceptor
 
   void clearRect(num x, num y, num width, num height) native;
 
-  void clip([path_OR_winding, String winding]) native;
+  void clip([path_OR_winding, String? winding]) native;
 
   @Creates('ImageData|=Object')
   ImageData createImageData(data_OR_imagedata_OR_sw,
-      [int sh_OR_sw,
+      [int? sh_OR_sw,
       imageDataColorSettings_OR_sh,
-      Map imageDataColorSettings]) {
+      Map? imageDataColorSettings]) {
     if ((data_OR_imagedata_OR_sw is ImageData) &&
         sh_OR_sw == null &&
         imageDataColorSettings_OR_sh == null &&
@@ -2538,26 +2552,26 @@ class CanvasRenderingContext2D extends Interceptor
   _createImageData_3(int sw, sh, imageDataColorSettings) native;
   @JSName('createImageData')
   @Creates('ImageData|=Object')
-  _createImageData_4(data, sw, int sh) native;
+  _createImageData_4(data, sw, int? sh) native;
   @JSName('createImageData')
   @Creates('ImageData|=Object')
-  _createImageData_5(data, sw, int sh, imageDataColorSettings) native;
+  _createImageData_5(data, sw, int? sh, imageDataColorSettings) native;
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  CanvasPattern createPattern(Object image, String repetitionType) native;
+  CanvasPattern? createPattern(Object image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  void drawFocusIfNeeded(element_OR_path, [Element element]) native;
+  void drawFocusIfNeeded(element_OR_path, [Element? element]) native;
 
-  void fill([path_OR_winding, String winding]) native;
+  void fill([path_OR_winding, String? winding]) native;
 
   void fillRect(num x, num y, num width, num height) native;
 
   Map getContextAttributes() {
-    return convertNativeToDart_Dictionary(_getContextAttributes_1());
+    return convertNativeToDart_Dictionary(_getContextAttributes_1())!;
   }
 
   @JSName('getContextAttributes')
@@ -2577,15 +2591,15 @@ class CanvasRenderingContext2D extends Interceptor
 
   bool isContextLost() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String winding])
+  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
       native;
 
-  bool isPointInStroke(path_OR_x, num x_OR_y, [num y]) native;
+  bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   TextMetrics measureText(String text) native;
 
   void putImageData(ImageData imagedata, int dx, int dy,
-      [int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight]) {
+      [int? dirtyX, int? dirtyY, int? dirtyWidth, int? dirtyHeight]) {
     if (dirtyX == null &&
         dirtyY == null &&
         dirtyWidth == null &&
@@ -2624,15 +2638,15 @@ class CanvasRenderingContext2D extends Interceptor
 
   void scale(num x, num y) native;
 
-  void scrollPathIntoView([Path2D path]) native;
+  void scrollPathIntoView([Path2D? path]) native;
 
   void setTransform(num a, num b, num c, num d, num e, num f) native;
 
-  void stroke([Path2D path]) native;
+  void stroke([Path2D? path]) native;
 
   void strokeRect(num x, num y, num width, num height) native;
 
-  void strokeText(String text, num x, num y, [num maxWidth]) native;
+  void strokeText(String text, num x, num y, [num? maxWidth]) native;
 
   void transform(num a, num b, num c, num d, num e, num f) native;
 
@@ -2642,7 +2656,7 @@ class CanvasRenderingContext2D extends Interceptor
 
   @JSName('arc')
   void _arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -2652,7 +2666,7 @@ class CanvasRenderingContext2D extends Interceptor
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -2753,7 +2767,7 @@ class CanvasRenderingContext2D extends Interceptor
    * from the WHATWG.
    */
   void drawImageToRect(CanvasImageSource source, Rectangle destRect,
-      {Rectangle sourceRect}) {
+      {Rectangle? sourceRect}) {
     if (sourceRect == null) {
       drawImageScaled(
           source, destRect.left, destRect.top, destRect.width, destRect.height);
@@ -2944,7 +2958,7 @@ class CanvasRenderingContext2D extends Interceptor
    * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
    * drawn text.
    */
-  void fillText(String text, num x, num y, [num maxWidth]) {
+  void fillText(String text, num x, num y, [num? maxWidth]) {
     if (maxWidth != null) {
       JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
     } else {
@@ -2968,11 +2982,11 @@ class CharacterData extends Node
     throw new UnsupportedError("Not supported");
   }
 
-  String get data native;
+  String? get data native;
 
-  set data(String value) native;
+  set data(String? value) native;
 
-  int get length native;
+  int? get length native;
 
   void appendData(String data) native;
 
@@ -2992,9 +3006,9 @@ class CharacterData extends Node
 
   // From NonDocumentTypeChildNode
 
-  Element get nextElementSibling native;
+  Element? get nextElementSibling native;
 
-  Element get previousElementSibling native;
+  Element? get previousElementSibling native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3023,15 +3037,15 @@ class Client extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get frameType native;
+  String? get frameType native;
 
-  String get id native;
+  String? get id native;
 
-  String get type native;
+  String? get type native;
 
-  String get url native;
+  String? get url native;
 
-  void postMessage(Object message, [List<Object> transfer]) native;
+  void postMessage(Object message, [List<Object>? transfer]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3048,7 +3062,7 @@ class Clients extends Interceptor {
 
   Future get(String id) => promiseToFuture(JS("", "#.get(#)", this, id));
 
-  Future<List<dynamic>> matchAll([Map options]) {
+  Future<List<dynamic>> matchAll([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -3057,8 +3071,8 @@ class Clients extends Interceptor {
         JS("", "#.matchAll(#)", this, options_dict));
   }
 
-  Future<WindowClient> openWindow(String url) =>
-      promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
+  Future<WindowClient> openWindow(String url) => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.openWindow(#)", this, url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3071,7 +3085,7 @@ class ClipboardEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ClipboardEvent(String type, [Map eventInitDict]) {
+  factory ClipboardEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ClipboardEvent._create_1(type, eventInitDict_1);
@@ -3083,7 +3097,7 @@ class ClipboardEvent extends Event {
   static ClipboardEvent _create_2(type) =>
       JS('ClipboardEvent', 'new ClipboardEvent(#)', type);
 
-  DataTransfer get clipboardData native;
+  DataTransfer? get clipboardData native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3096,7 +3110,7 @@ class CloseEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CloseEvent(String type, [Map eventInitDict]) {
+  factory CloseEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CloseEvent._create_1(type, eventInitDict_1);
@@ -3108,11 +3122,11 @@ class CloseEvent extends Event {
   static CloseEvent _create_2(type) =>
       JS('CloseEvent', 'new CloseEvent(#)', type);
 
-  int get code native;
+  int? get code native;
 
-  String get reason native;
+  String? get reason native;
 
-  bool get wasClean native;
+  bool? get wasClean native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3120,7 +3134,7 @@ class CloseEvent extends Event {
 
 @Native("Comment")
 class Comment extends CharacterData {
-  factory Comment([String data]) {
+  factory Comment([String? data]) {
     return JS('returns:Comment;depends:none;effects:none;new:true',
         '#.createComment(#)', document, data == null ? "" : data);
   }
@@ -3140,13 +3154,14 @@ class CompositionEvent extends UIEvent {
   factory CompositionEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      Window view,
-      String data,
-      String locale}) {
+      Window? view,
+      String? data,
+      String? locale}) {
     if (view == null) {
       view = window;
     }
-    CompositionEvent e = document._createEvent("CompositionEvent");
+    CompositionEvent e =
+        document._createEvent("CompositionEvent") as CompositionEvent;
 
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.
@@ -3159,7 +3174,7 @@ class CompositionEvent extends UIEvent {
     return e;
   }
 
-  factory CompositionEvent._(String type, [Map eventInitDict]) {
+  factory CompositionEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CompositionEvent._create_1(type, eventInitDict_1);
@@ -3171,11 +3186,11 @@ class CompositionEvent extends UIEvent {
   static CompositionEvent _create_2(type) =>
       JS('CompositionEvent', 'new CompositionEvent(#)', type);
 
-  String get data native;
+  String? get data native;
 
   @JSName('initCompositionEvent')
-  void _initCompositionEvent(String type, bool bubbles, bool cancelable,
-      Window view, String data) native;
+  void _initCompositionEvent(String? type, bool? bubbles, bool? cancelable,
+      Window? view, String? data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3189,7 +3204,8 @@ class ContentElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ContentElement() => document.createElement("content");
+  factory ContentElement() =>
+      document.createElement("content") as ContentElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3200,11 +3216,11 @@ class ContentElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
 
-  String get select native;
+  String? get select native;
 
-  set select(String value) native;
+  set select(String? value) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getDistributedNodes() native;
 }
@@ -3219,7 +3235,7 @@ class CookieStore extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future getAll([Map options]) {
+  Future getAll([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -3227,7 +3243,7 @@ class CookieStore extends Interceptor {
     return promiseToFuture(JS("", "#.getAll(#)", this, options_dict));
   }
 
-  Future set(String name, String value, [Map options]) {
+  Future set(String name, String value, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -3247,19 +3263,19 @@ class Coordinates extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get accuracy native;
+  num? get accuracy native;
 
-  num get altitude native;
+  num? get altitude native;
 
-  num get altitudeAccuracy native;
+  num? get altitudeAccuracy native;
 
-  num get heading native;
+  num? get heading native;
 
-  num get latitude native;
+  num? get latitude native;
 
-  num get longitude native;
+  num? get longitude native;
 
-  num get speed native;
+  num? get speed native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3272,9 +3288,9 @@ class Credential extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get id native;
+  String? get id native;
 
-  String get type native;
+  String? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3288,9 +3304,9 @@ class CredentialUserData extends Interceptor {
   }
 
   @JSName('iconURL')
-  String get iconUrl native;
+  String? get iconUrl native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3303,20 +3319,22 @@ class CredentialsContainer extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future create([Map options]) {
+  Future create([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(JS("", "#.create(#)", this, options_dict));
+    return promiseToFuture(
+        JS("creates:Credential;", "#.create(#)", this, options_dict));
   }
 
-  Future get([Map options]) {
+  Future get([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(JS("", "#.get(#)", this, options_dict));
+    return promiseToFuture(
+        JS("creates:Credential;", "#.get(#)", this, options_dict));
   }
 
   Future preventSilentAccess() =>
@@ -3325,8 +3343,8 @@ class CredentialsContainer extends Interceptor {
   Future requireUserMediation() =>
       promiseToFuture(JS("", "#.requireUserMediation()", this));
 
-  Future store(Credential credential) =>
-      promiseToFuture(JS("", "#.store(#)", this, credential));
+  Future store(Credential credential) => promiseToFuture(
+      JS("creates:Credential;", "#.store(#)", this, credential));
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3349,7 +3367,7 @@ class Crypto extends Interceptor {
   static bool get supported =>
       JS('bool', '!!(window.crypto && window.crypto.getRandomValues)');
 
-  _SubtleCrypto get subtle native;
+  _SubtleCrypto? get subtle native;
 
   @JSName('getRandomValues')
   @Creates('TypedData')
@@ -3368,13 +3386,13 @@ class CryptoKey extends Interceptor {
   }
 
   @Creates('Null')
-  Object get algorithm native;
+  Object? get algorithm native;
 
-  bool get extractable native;
+  bool? get extractable native;
 
-  String get type native;
+  String? get type native;
 
-  Object get usages native;
+  Object? get usages native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3387,7 +3405,7 @@ class Css extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  static _Worklet get paintWorklet native;
+  static _Worklet? get paintWorklet native;
 
   static CssUnitValue Hz(num value) native;
 
@@ -3473,9 +3491,9 @@ class CssCharsetRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String get encoding native;
+  String? get encoding native;
 
-  set encoding(String value) native;
+  set encoding(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3488,7 +3506,7 @@ class CssConditionRule extends CssGroupingRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String get conditionText native;
+  String? get conditionText native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3501,7 +3519,7 @@ class CssFontFaceRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  CssStyleDeclaration get style native;
+  CssStyleDeclaration? get style native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3514,9 +3532,9 @@ class CssGroupingRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  @Returns('_CssRuleList|Null')
+  @Returns('_CssRuleList')
   @Creates('_CssRuleList')
-  List<CssRule> get cssRules native;
+  List<CssRule>? get cssRules native;
 
   void deleteRule(int index) native;
 
@@ -3533,11 +3551,11 @@ class CssImageValue extends CssResourceValue {
     throw new UnsupportedError("Not supported");
   }
 
-  num get intrinsicHeight native;
+  num? get intrinsicHeight native;
 
-  num get intrinsicRatio native;
+  num? get intrinsicRatio native;
 
-  num get intrinsicWidth native;
+  num? get intrinsicWidth native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3550,11 +3568,11 @@ class CssImportRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String get href native;
+  String? get href native;
 
-  MediaList get media native;
+  MediaList? get media native;
 
-  CssStyleSheet get styleSheet native;
+  CssStyleSheet? get styleSheet native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3567,11 +3585,11 @@ class CssKeyframeRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String get keyText native;
+  String? get keyText native;
 
-  set keyText(String value) native;
+  set keyText(String? value) native;
 
-  CssStyleDeclaration get style native;
+  CssStyleDeclaration? get style native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3584,13 +3602,13 @@ class CssKeyframesRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  @Returns('_CssRuleList|Null')
+  @Returns('_CssRuleList')
   @Creates('_CssRuleList')
-  List<CssRule> get cssRules native;
+  List<CssRule>? get cssRules native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   CssKeyframeRule __getter__(int index) native;
 
@@ -3598,7 +3616,7 @@ class CssKeyframesRule extends CssRule {
 
   void deleteRule(String select) native;
 
-  CssKeyframeRule findRule(String select) native;
+  CssKeyframeRule? findRule(String select) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3617,9 +3635,9 @@ class CssKeywordValue extends CssStyleValue {
   static CssKeywordValue _create_1(keyword) =>
       JS('CssKeywordValue', 'new CSSKeywordValue(#)', keyword);
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3632,7 +3650,7 @@ class CssMatrixComponent extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssMatrixComponent(DomMatrixReadOnly matrix, [Map options]) {
+  factory CssMatrixComponent(DomMatrixReadOnly matrix, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return CssMatrixComponent._create_1(matrix, options_1);
@@ -3644,9 +3662,9 @@ class CssMatrixComponent extends CssTransformComponent {
   static CssMatrixComponent _create_2(matrix) =>
       JS('CssMatrixComponent', 'new CSSMatrixComponent(#)', matrix);
 
-  DomMatrix get matrix native;
+  DomMatrix? get matrix native;
 
-  set matrix(DomMatrix value) native;
+  set matrix(DomMatrix? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3659,7 +3677,7 @@ class CssMediaRule extends CssConditionRule {
     throw new UnsupportedError("Not supported");
   }
 
-  MediaList get media native;
+  MediaList? get media native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3673,9 +3691,9 @@ class CssNamespaceRule extends CssRule {
   }
 
   @JSName('namespaceURI')
-  String get namespaceUri native;
+  String? get namespaceUri native;
 
-  String get prefix native;
+  String? get prefix native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3711,11 +3729,11 @@ class CssPageRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String get selectorText native;
+  String? get selectorText native;
 
-  set selectorText(String value) native;
+  set selectorText(String? value) native;
 
-  CssStyleDeclaration get style native;
+  CssStyleDeclaration? get style native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3734,9 +3752,9 @@ class CssPerspective extends CssTransformComponent {
   static CssPerspective _create_1(length) =>
       JS('CssPerspective', 'new CSSPerspective(#)', length);
 
-  CssNumericValue get length native;
+  CssNumericValue? get length native;
 
-  set length(CssNumericValue value) native;
+  set length(CssNumericValue? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3755,13 +3773,13 @@ class CssPositionValue extends CssStyleValue {
   static CssPositionValue _create_1(x, y) =>
       JS('CssPositionValue', 'new CSSPositionValue(#,#)', x, y);
 
-  CssNumericValue get x native;
+  CssNumericValue? get x native;
 
-  set x(CssNumericValue value) native;
+  set x(CssNumericValue? value) native;
 
-  CssNumericValue get y native;
+  CssNumericValue? get y native;
 
-  set y(CssNumericValue value) native;
+  set y(CssNumericValue? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3774,7 +3792,7 @@ class CssResourceValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  String get state native;
+  String? get state native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3787,7 +3805,8 @@ class CssRotation extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssRotation(angleValue_OR_x, [num y, num z, CssNumericValue angle]) {
+  factory CssRotation(angleValue_OR_x,
+      [num? y, num? z, CssNumericValue? angle]) {
     if ((angleValue_OR_x is CssNumericValue) &&
         y == null &&
         z == null &&
@@ -3807,21 +3826,21 @@ class CssRotation extends CssTransformComponent {
   static CssRotation _create_2(angleValue_OR_x, y, z, angle) => JS(
       'CssRotation', 'new CSSRotation(#,#,#,#)', angleValue_OR_x, y, z, angle);
 
-  CssNumericValue get angle native;
+  CssNumericValue? get angle native;
 
-  set angle(CssNumericValue value) native;
+  set angle(CssNumericValue? value) native;
 
-  num get x native;
+  num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
-  num get y native;
+  num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
-  num get z native;
+  num? get z native;
 
-  set z(num value) native;
+  set z(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3856,15 +3875,15 @@ class CssRule extends Interceptor {
 
   static const int VIEWPORT_RULE = 15;
 
-  String get cssText native;
+  String? get cssText native;
 
-  set cssText(String value) native;
+  set cssText(String? value) native;
 
-  CssRule get parentRule native;
+  CssRule? get parentRule native;
 
-  CssStyleSheet get parentStyleSheet native;
+  CssStyleSheet? get parentStyleSheet native;
 
-  int get type native;
+  int? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3877,7 +3896,7 @@ class CssScale extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssScale(num x, num y, [num z]) {
+  factory CssScale(num x, num y, [num? z]) {
     if ((y is num) && (x is num) && z == null) {
       return CssScale._create_1(x, y);
     }
@@ -3890,17 +3909,17 @@ class CssScale extends CssTransformComponent {
   static CssScale _create_2(x, y, z) =>
       JS('CssScale', 'new CSSScale(#,#,#)', x, y, z);
 
-  num get x native;
+  num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
-  num get y native;
+  num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
-  num get z native;
+  num? get z native;
 
-  set z(num value) native;
+  set z(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3918,13 +3937,13 @@ class CssSkew extends CssTransformComponent {
   }
   static CssSkew _create_1(ax, ay) => JS('CssSkew', 'new CSSSkew(#,#)', ax, ay);
 
-  CssNumericValue get ax native;
+  CssNumericValue? get ax native;
 
-  set ax(CssNumericValue value) native;
+  set ax(CssNumericValue? value) native;
 
-  CssNumericValue get ay native;
+  CssNumericValue? get ay native;
 
-  set ay(CssNumericValue value) native;
+  set ay(CssNumericValue? value) native;
 }
 
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
@@ -3977,13 +3996,13 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     return JS('bool', '# in #', propertyName, this);
   }
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String? value, [String? priority]) {
     return _setPropertyHelper(
         _browserPropertyName(propertyName), value, priority);
   }
 
   String _browserPropertyName(String propertyName) {
-    String name = _readCache(propertyName);
+    String? name = _readCache(propertyName);
     if (name is String) return name;
     name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
@@ -4003,7 +4022,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   }
 
   static final _propertyCache = JS('', '{}');
-  static String _readCache(String key) =>
+  static String? _readCache(String key) =>
       JS('String|Null', '#[#]', _propertyCache, key);
   static void _writeCache(String key, String value) {
     JS('void', '#[#] = #', _propertyCache, key, value);
@@ -4018,8 +4037,8 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
         replacedMs);
   }
 
-  void _setPropertyHelper(String propertyName, String value,
-      [String priority]) {
+  void _setPropertyHelper(String propertyName, String? value,
+      [String? priority]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
     JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
@@ -4029,7 +4048,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions {
-    return document.body.style.supportsProperty('transition');
+    return document.body!.style.supportsProperty('transition');
   }
 
   // To suppress missing implicit constructor warnings.
@@ -4037,17 +4056,17 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     throw new UnsupportedError("Not supported");
   }
 
-  String get cssFloat native;
+  String? get cssFloat native;
 
-  set cssFloat(String value) native;
+  set cssFloat(String? value) native;
 
-  String get cssText native;
+  String? get cssText native;
 
-  set cssText(String value) native;
+  set cssText(String? value) native;
 
   int get length native;
 
-  CssRule get parentRule native;
+  CssRule? get parentRule native;
 
   String getPropertyPriority(String property) native;
 
@@ -4062,7 +4081,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get background => this._background;
 
   /** Sets the value of "background" */
-  set background(String value) {
+  set background(String? value) {
     _background = value == null ? '' : value;
   }
 
@@ -4077,7 +4096,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundAttachment => this._backgroundAttachment;
 
   /** Sets the value of "background-attachment" */
-  set backgroundAttachment(String value) {
+  set backgroundAttachment(String? value) {
     _backgroundAttachment = value == null ? '' : value;
   }
 
@@ -4092,7 +4111,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundColor => this._backgroundColor;
 
   /** Sets the value of "background-color" */
-  set backgroundColor(String value) {
+  set backgroundColor(String? value) {
     _backgroundColor = value == null ? '' : value;
   }
 
@@ -4107,7 +4126,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundImage => this._backgroundImage;
 
   /** Sets the value of "background-image" */
-  set backgroundImage(String value) {
+  set backgroundImage(String? value) {
     _backgroundImage = value == null ? '' : value;
   }
 
@@ -4122,7 +4141,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundPosition => this._backgroundPosition;
 
   /** Sets the value of "background-position" */
-  set backgroundPosition(String value) {
+  set backgroundPosition(String? value) {
     _backgroundPosition = value == null ? '' : value;
   }
 
@@ -4137,7 +4156,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundRepeat => this._backgroundRepeat;
 
   /** Sets the value of "background-repeat" */
-  set backgroundRepeat(String value) {
+  set backgroundRepeat(String? value) {
     _backgroundRepeat = value == null ? '' : value;
   }
 
@@ -4152,7 +4171,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get border => this._border;
 
   /** Sets the value of "border" */
-  set border(String value) {
+  set border(String? value) {
     _border = value == null ? '' : value;
   }
 
@@ -4167,7 +4186,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottom => this._borderBottom;
 
   /** Sets the value of "border-bottom" */
-  set borderBottom(String value) {
+  set borderBottom(String? value) {
     _borderBottom = value == null ? '' : value;
   }
 
@@ -4182,7 +4201,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottomColor => this._borderBottomColor;
 
   /** Sets the value of "border-bottom-color" */
-  set borderBottomColor(String value) {
+  set borderBottomColor(String? value) {
     _borderBottomColor = value == null ? '' : value;
   }
 
@@ -4197,7 +4216,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottomStyle => this._borderBottomStyle;
 
   /** Sets the value of "border-bottom-style" */
-  set borderBottomStyle(String value) {
+  set borderBottomStyle(String? value) {
     _borderBottomStyle = value == null ? '' : value;
   }
 
@@ -4212,7 +4231,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottomWidth => this._borderBottomWidth;
 
   /** Sets the value of "border-bottom-width" */
-  set borderBottomWidth(String value) {
+  set borderBottomWidth(String? value) {
     _borderBottomWidth = value == null ? '' : value;
   }
 
@@ -4227,7 +4246,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderCollapse => this._borderCollapse;
 
   /** Sets the value of "border-collapse" */
-  set borderCollapse(String value) {
+  set borderCollapse(String? value) {
     _borderCollapse = value == null ? '' : value;
   }
 
@@ -4242,7 +4261,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderColor => this._borderColor;
 
   /** Sets the value of "border-color" */
-  set borderColor(String value) {
+  set borderColor(String? value) {
     _borderColor = value == null ? '' : value;
   }
 
@@ -4257,7 +4276,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeft => this._borderLeft;
 
   /** Sets the value of "border-left" */
-  set borderLeft(String value) {
+  set borderLeft(String? value) {
     _borderLeft = value == null ? '' : value;
   }
 
@@ -4272,7 +4291,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeftColor => this._borderLeftColor;
 
   /** Sets the value of "border-left-color" */
-  set borderLeftColor(String value) {
+  set borderLeftColor(String? value) {
     _borderLeftColor = value == null ? '' : value;
   }
 
@@ -4287,7 +4306,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeftStyle => this._borderLeftStyle;
 
   /** Sets the value of "border-left-style" */
-  set borderLeftStyle(String value) {
+  set borderLeftStyle(String? value) {
     _borderLeftStyle = value == null ? '' : value;
   }
 
@@ -4302,7 +4321,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeftWidth => this._borderLeftWidth;
 
   /** Sets the value of "border-left-width" */
-  set borderLeftWidth(String value) {
+  set borderLeftWidth(String? value) {
     _borderLeftWidth = value == null ? '' : value;
   }
 
@@ -4317,7 +4336,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRight => this._borderRight;
 
   /** Sets the value of "border-right" */
-  set borderRight(String value) {
+  set borderRight(String? value) {
     _borderRight = value == null ? '' : value;
   }
 
@@ -4332,7 +4351,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRightColor => this._borderRightColor;
 
   /** Sets the value of "border-right-color" */
-  set borderRightColor(String value) {
+  set borderRightColor(String? value) {
     _borderRightColor = value == null ? '' : value;
   }
 
@@ -4347,7 +4366,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRightStyle => this._borderRightStyle;
 
   /** Sets the value of "border-right-style" */
-  set borderRightStyle(String value) {
+  set borderRightStyle(String? value) {
     _borderRightStyle = value == null ? '' : value;
   }
 
@@ -4362,7 +4381,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRightWidth => this._borderRightWidth;
 
   /** Sets the value of "border-right-width" */
-  set borderRightWidth(String value) {
+  set borderRightWidth(String? value) {
     _borderRightWidth = value == null ? '' : value;
   }
 
@@ -4377,7 +4396,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderSpacing => this._borderSpacing;
 
   /** Sets the value of "border-spacing" */
-  set borderSpacing(String value) {
+  set borderSpacing(String? value) {
     _borderSpacing = value == null ? '' : value;
   }
 
@@ -4392,7 +4411,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderStyle => this._borderStyle;
 
   /** Sets the value of "border-style" */
-  set borderStyle(String value) {
+  set borderStyle(String? value) {
     _borderStyle = value == null ? '' : value;
   }
 
@@ -4407,7 +4426,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTop => this._borderTop;
 
   /** Sets the value of "border-top" */
-  set borderTop(String value) {
+  set borderTop(String? value) {
     _borderTop = value == null ? '' : value;
   }
 
@@ -4422,7 +4441,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTopColor => this._borderTopColor;
 
   /** Sets the value of "border-top-color" */
-  set borderTopColor(String value) {
+  set borderTopColor(String? value) {
     _borderTopColor = value == null ? '' : value;
   }
 
@@ -4437,7 +4456,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTopStyle => this._borderTopStyle;
 
   /** Sets the value of "border-top-style" */
-  set borderTopStyle(String value) {
+  set borderTopStyle(String? value) {
     _borderTopStyle = value == null ? '' : value;
   }
 
@@ -4452,7 +4471,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTopWidth => this._borderTopWidth;
 
   /** Sets the value of "border-top-width" */
-  set borderTopWidth(String value) {
+  set borderTopWidth(String? value) {
     _borderTopWidth = value == null ? '' : value;
   }
 
@@ -4467,7 +4486,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderWidth => this._borderWidth;
 
   /** Sets the value of "border-width" */
-  set borderWidth(String value) {
+  set borderWidth(String? value) {
     _borderWidth = value == null ? '' : value;
   }
 
@@ -4482,7 +4501,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get bottom => this._bottom;
 
   /** Sets the value of "bottom" */
-  set bottom(String value) {
+  set bottom(String? value) {
     _bottom = value == null ? '' : value;
   }
 
@@ -4497,7 +4516,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get captionSide => this._captionSide;
 
   /** Sets the value of "caption-side" */
-  set captionSide(String value) {
+  set captionSide(String? value) {
     _captionSide = value == null ? '' : value;
   }
 
@@ -4512,7 +4531,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get clear => this._clear;
 
   /** Sets the value of "clear" */
-  set clear(String value) {
+  set clear(String? value) {
     _clear = value == null ? '' : value;
   }
 
@@ -4527,7 +4546,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get clip => this._clip;
 
   /** Sets the value of "clip" */
-  set clip(String value) {
+  set clip(String? value) {
     _clip = value == null ? '' : value;
   }
 
@@ -4542,7 +4561,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get color => this._color;
 
   /** Sets the value of "color" */
-  set color(String value) {
+  set color(String? value) {
     _color = value == null ? '' : value;
   }
 
@@ -4557,7 +4576,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get content => this._content;
 
   /** Sets the value of "content" */
-  set content(String value) {
+  set content(String? value) {
     _content = value == null ? '' : value;
   }
 
@@ -4572,7 +4591,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get cursor => this._cursor;
 
   /** Sets the value of "cursor" */
-  set cursor(String value) {
+  set cursor(String? value) {
     _cursor = value == null ? '' : value;
   }
 
@@ -4587,7 +4606,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get direction => this._direction;
 
   /** Sets the value of "direction" */
-  set direction(String value) {
+  set direction(String? value) {
     _direction = value == null ? '' : value;
   }
 
@@ -4602,7 +4621,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get display => this._display;
 
   /** Sets the value of "display" */
-  set display(String value) {
+  set display(String? value) {
     _display = value == null ? '' : value;
   }
 
@@ -4617,7 +4636,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get emptyCells => this._emptyCells;
 
   /** Sets the value of "empty-cells" */
-  set emptyCells(String value) {
+  set emptyCells(String? value) {
     _emptyCells = value == null ? '' : value;
   }
 
@@ -4632,7 +4651,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get font => this._font;
 
   /** Sets the value of "font" */
-  set font(String value) {
+  set font(String? value) {
     _font = value == null ? '' : value;
   }
 
@@ -4647,7 +4666,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontFamily => this._fontFamily;
 
   /** Sets the value of "font-family" */
-  set fontFamily(String value) {
+  set fontFamily(String? value) {
     _fontFamily = value == null ? '' : value;
   }
 
@@ -4662,7 +4681,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontSize => this._fontSize;
 
   /** Sets the value of "font-size" */
-  set fontSize(String value) {
+  set fontSize(String? value) {
     _fontSize = value == null ? '' : value;
   }
 
@@ -4677,7 +4696,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontStyle => this._fontStyle;
 
   /** Sets the value of "font-style" */
-  set fontStyle(String value) {
+  set fontStyle(String? value) {
     _fontStyle = value == null ? '' : value;
   }
 
@@ -4692,7 +4711,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontVariant => this._fontVariant;
 
   /** Sets the value of "font-variant" */
-  set fontVariant(String value) {
+  set fontVariant(String? value) {
     _fontVariant = value == null ? '' : value;
   }
 
@@ -4707,7 +4726,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontWeight => this._fontWeight;
 
   /** Sets the value of "font-weight" */
-  set fontWeight(String value) {
+  set fontWeight(String? value) {
     _fontWeight = value == null ? '' : value;
   }
 
@@ -4722,7 +4741,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get height => this._height;
 
   /** Sets the value of "height" */
-  set height(String value) {
+  set height(String? value) {
     _height = value == null ? '' : value;
   }
 
@@ -4737,7 +4756,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get left => this._left;
 
   /** Sets the value of "left" */
-  set left(String value) {
+  set left(String? value) {
     _left = value == null ? '' : value;
   }
 
@@ -4752,7 +4771,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get letterSpacing => this._letterSpacing;
 
   /** Sets the value of "letter-spacing" */
-  set letterSpacing(String value) {
+  set letterSpacing(String? value) {
     _letterSpacing = value == null ? '' : value;
   }
 
@@ -4767,7 +4786,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get lineHeight => this._lineHeight;
 
   /** Sets the value of "line-height" */
-  set lineHeight(String value) {
+  set lineHeight(String? value) {
     _lineHeight = value == null ? '' : value;
   }
 
@@ -4782,7 +4801,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStyle => this._listStyle;
 
   /** Sets the value of "list-style" */
-  set listStyle(String value) {
+  set listStyle(String? value) {
     _listStyle = value == null ? '' : value;
   }
 
@@ -4797,7 +4816,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStyleImage => this._listStyleImage;
 
   /** Sets the value of "list-style-image" */
-  set listStyleImage(String value) {
+  set listStyleImage(String? value) {
     _listStyleImage = value == null ? '' : value;
   }
 
@@ -4812,7 +4831,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStylePosition => this._listStylePosition;
 
   /** Sets the value of "list-style-position" */
-  set listStylePosition(String value) {
+  set listStylePosition(String? value) {
     _listStylePosition = value == null ? '' : value;
   }
 
@@ -4827,7 +4846,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStyleType => this._listStyleType;
 
   /** Sets the value of "list-style-type" */
-  set listStyleType(String value) {
+  set listStyleType(String? value) {
     _listStyleType = value == null ? '' : value;
   }
 
@@ -4842,7 +4861,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get margin => this._margin;
 
   /** Sets the value of "margin" */
-  set margin(String value) {
+  set margin(String? value) {
     _margin = value == null ? '' : value;
   }
 
@@ -4857,7 +4876,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginBottom => this._marginBottom;
 
   /** Sets the value of "margin-bottom" */
-  set marginBottom(String value) {
+  set marginBottom(String? value) {
     _marginBottom = value == null ? '' : value;
   }
 
@@ -4872,7 +4891,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginLeft => this._marginLeft;
 
   /** Sets the value of "margin-left" */
-  set marginLeft(String value) {
+  set marginLeft(String? value) {
     _marginLeft = value == null ? '' : value;
   }
 
@@ -4887,7 +4906,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginRight => this._marginRight;
 
   /** Sets the value of "margin-right" */
-  set marginRight(String value) {
+  set marginRight(String? value) {
     _marginRight = value == null ? '' : value;
   }
 
@@ -4902,7 +4921,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginTop => this._marginTop;
 
   /** Sets the value of "margin-top" */
-  set marginTop(String value) {
+  set marginTop(String? value) {
     _marginTop = value == null ? '' : value;
   }
 
@@ -4917,7 +4936,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get maxHeight => this._maxHeight;
 
   /** Sets the value of "max-height" */
-  set maxHeight(String value) {
+  set maxHeight(String? value) {
     _maxHeight = value == null ? '' : value;
   }
 
@@ -4932,7 +4951,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get maxWidth => this._maxWidth;
 
   /** Sets the value of "max-width" */
-  set maxWidth(String value) {
+  set maxWidth(String? value) {
     _maxWidth = value == null ? '' : value;
   }
 
@@ -4947,7 +4966,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get minHeight => this._minHeight;
 
   /** Sets the value of "min-height" */
-  set minHeight(String value) {
+  set minHeight(String? value) {
     _minHeight = value == null ? '' : value;
   }
 
@@ -4962,7 +4981,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get minWidth => this._minWidth;
 
   /** Sets the value of "min-width" */
-  set minWidth(String value) {
+  set minWidth(String? value) {
     _minWidth = value == null ? '' : value;
   }
 
@@ -4977,7 +4996,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outline => this._outline;
 
   /** Sets the value of "outline" */
-  set outline(String value) {
+  set outline(String? value) {
     _outline = value == null ? '' : value;
   }
 
@@ -4992,7 +5011,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outlineColor => this._outlineColor;
 
   /** Sets the value of "outline-color" */
-  set outlineColor(String value) {
+  set outlineColor(String? value) {
     _outlineColor = value == null ? '' : value;
   }
 
@@ -5007,7 +5026,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outlineStyle => this._outlineStyle;
 
   /** Sets the value of "outline-style" */
-  set outlineStyle(String value) {
+  set outlineStyle(String? value) {
     _outlineStyle = value == null ? '' : value;
   }
 
@@ -5022,7 +5041,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outlineWidth => this._outlineWidth;
 
   /** Sets the value of "outline-width" */
-  set outlineWidth(String value) {
+  set outlineWidth(String? value) {
     _outlineWidth = value == null ? '' : value;
   }
 
@@ -5037,7 +5056,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get overflow => this._overflow;
 
   /** Sets the value of "overflow" */
-  set overflow(String value) {
+  set overflow(String? value) {
     _overflow = value == null ? '' : value;
   }
 
@@ -5052,7 +5071,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get padding => this._padding;
 
   /** Sets the value of "padding" */
-  set padding(String value) {
+  set padding(String? value) {
     _padding = value == null ? '' : value;
   }
 
@@ -5067,7 +5086,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingBottom => this._paddingBottom;
 
   /** Sets the value of "padding-bottom" */
-  set paddingBottom(String value) {
+  set paddingBottom(String? value) {
     _paddingBottom = value == null ? '' : value;
   }
 
@@ -5082,7 +5101,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingLeft => this._paddingLeft;
 
   /** Sets the value of "padding-left" */
-  set paddingLeft(String value) {
+  set paddingLeft(String? value) {
     _paddingLeft = value == null ? '' : value;
   }
 
@@ -5097,7 +5116,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingRight => this._paddingRight;
 
   /** Sets the value of "padding-right" */
-  set paddingRight(String value) {
+  set paddingRight(String? value) {
     _paddingRight = value == null ? '' : value;
   }
 
@@ -5112,7 +5131,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingTop => this._paddingTop;
 
   /** Sets the value of "padding-top" */
-  set paddingTop(String value) {
+  set paddingTop(String? value) {
     _paddingTop = value == null ? '' : value;
   }
 
@@ -5127,7 +5146,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get pageBreakAfter => this._pageBreakAfter;
 
   /** Sets the value of "page-break-after" */
-  set pageBreakAfter(String value) {
+  set pageBreakAfter(String? value) {
     _pageBreakAfter = value == null ? '' : value;
   }
 
@@ -5142,7 +5161,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get pageBreakBefore => this._pageBreakBefore;
 
   /** Sets the value of "page-break-before" */
-  set pageBreakBefore(String value) {
+  set pageBreakBefore(String? value) {
     _pageBreakBefore = value == null ? '' : value;
   }
 
@@ -5157,7 +5176,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get pageBreakInside => this._pageBreakInside;
 
   /** Sets the value of "page-break-inside" */
-  set pageBreakInside(String value) {
+  set pageBreakInside(String? value) {
     _pageBreakInside = value == null ? '' : value;
   }
 
@@ -5172,7 +5191,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get position => this._position;
 
   /** Sets the value of "position" */
-  set position(String value) {
+  set position(String? value) {
     _position = value == null ? '' : value;
   }
 
@@ -5187,7 +5206,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get quotes => this._quotes;
 
   /** Sets the value of "quotes" */
-  set quotes(String value) {
+  set quotes(String? value) {
     _quotes = value == null ? '' : value;
   }
 
@@ -5202,7 +5221,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get right => this._right;
 
   /** Sets the value of "right" */
-  set right(String value) {
+  set right(String? value) {
     _right = value == null ? '' : value;
   }
 
@@ -5217,7 +5236,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get tableLayout => this._tableLayout;
 
   /** Sets the value of "table-layout" */
-  set tableLayout(String value) {
+  set tableLayout(String? value) {
     _tableLayout = value == null ? '' : value;
   }
 
@@ -5232,7 +5251,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textAlign => this._textAlign;
 
   /** Sets the value of "text-align" */
-  set textAlign(String value) {
+  set textAlign(String? value) {
     _textAlign = value == null ? '' : value;
   }
 
@@ -5247,7 +5266,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textDecoration => this._textDecoration;
 
   /** Sets the value of "text-decoration" */
-  set textDecoration(String value) {
+  set textDecoration(String? value) {
     _textDecoration = value == null ? '' : value;
   }
 
@@ -5262,7 +5281,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textIndent => this._textIndent;
 
   /** Sets the value of "text-indent" */
-  set textIndent(String value) {
+  set textIndent(String? value) {
     _textIndent = value == null ? '' : value;
   }
 
@@ -5277,7 +5296,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textTransform => this._textTransform;
 
   /** Sets the value of "text-transform" */
-  set textTransform(String value) {
+  set textTransform(String? value) {
     _textTransform = value == null ? '' : value;
   }
 
@@ -5292,7 +5311,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get top => this._top;
 
   /** Sets the value of "top" */
-  set top(String value) {
+  set top(String? value) {
     _top = value == null ? '' : value;
   }
 
@@ -5307,7 +5326,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get unicodeBidi => this._unicodeBidi;
 
   /** Sets the value of "unicode-bidi" */
-  set unicodeBidi(String value) {
+  set unicodeBidi(String? value) {
     _unicodeBidi = value == null ? '' : value;
   }
 
@@ -5322,7 +5341,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get verticalAlign => this._verticalAlign;
 
   /** Sets the value of "vertical-align" */
-  set verticalAlign(String value) {
+  set verticalAlign(String? value) {
     _verticalAlign = value == null ? '' : value;
   }
 
@@ -5337,7 +5356,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get visibility => this._visibility;
 
   /** Sets the value of "visibility" */
-  set visibility(String value) {
+  set visibility(String? value) {
     _visibility = value == null ? '' : value;
   }
 
@@ -5352,7 +5371,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get whiteSpace => this._whiteSpace;
 
   /** Sets the value of "white-space" */
-  set whiteSpace(String value) {
+  set whiteSpace(String? value) {
     _whiteSpace = value == null ? '' : value;
   }
 
@@ -5367,7 +5386,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get width => this._width;
 
   /** Sets the value of "width" */
-  set width(String value) {
+  set width(String? value) {
     _width = value == null ? '' : value;
   }
 
@@ -5382,7 +5401,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get wordSpacing => this._wordSpacing;
 
   /** Sets the value of "word-spacing" */
-  set wordSpacing(String value) {
+  set wordSpacing(String? value) {
     _wordSpacing = value == null ? '' : value;
   }
 
@@ -5397,7 +5416,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get zIndex => this._zIndex;
 
   /** Sets the value of "z-index" */
-  set zIndex(String value) {
+  set zIndex(String? value) {
     _zIndex = value == null ? '' : value;
   }
 
@@ -5411,7 +5430,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration>? _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable) {
     _elementCssStyleDeclarationSetIterable =
@@ -5419,15 +5438,15 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable.first
+      _elementCssStyleDeclarationSetIterable!.first
           .getPropertyValue(propertyName);
 
-  void setProperty(String propertyName, String value, [String priority]) {
-    _elementCssStyleDeclarationSetIterable
+  void setProperty(String propertyName, String? value, [String? priority]) {
+    _elementCssStyleDeclarationSetIterable!
         .forEach((e) => e.setProperty(propertyName, value, priority));
   }
 
-  void _setAll(String propertyName, String value) {
+  void _setAll(String propertyName, String? value) {
     value = value == null ? '' : value;
     for (Element element in _elementIterable) {
       JS('void', '#.style[#] = #', element, propertyName, value);
@@ -5893,7 +5912,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+  void setProperty(String propertyName, String? value, [String? priority]);
 
   /** Gets the value of "align-content" */
   String get alignContent => getPropertyValue('align-content');
@@ -8680,23 +8699,23 @@ class CssStyleSheet extends StyleSheet {
     throw new UnsupportedError("Not supported");
   }
 
-  @Returns('_CssRuleList|Null')
+  @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   List<CssRule> get cssRules native;
 
-  CssRule get ownerRule native;
+  CssRule? get ownerRule native;
 
-  @Returns('_CssRuleList|Null')
+  @Returns('_CssRuleList')
   @Creates('_CssRuleList')
-  List<CssRule> get rules native;
+  List<CssRule>? get rules native;
 
-  int addRule(String selector, String style, [int index]) native;
+  int addRule(String? selector, String? style, [int? index]) native;
 
   void deleteRule(int index) native;
 
-  int insertRule(String rule, [int index]) native;
+  int insertRule(String rule, [int? index]) native;
 
-  void removeRule(int index) native;
+  void removeRule(int? index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8709,7 +8728,7 @@ class CssStyleValue extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  static Object parse(String property, String cssText) native;
+  static Object? parse(String property, String cssText) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8733,9 +8752,9 @@ class CssTransformComponent extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get is2D native;
+  bool? get is2D native;
 
-  set is2D(bool value) native;
+  set is2D(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8748,7 +8767,8 @@ class CssTransformValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssTransformValue([List<CssTransformComponent> transformComponents]) {
+  factory CssTransformValue(
+      [List<CssTransformComponent>? transformComponents]) {
     if (transformComponents == null) {
       return CssTransformValue._create_1();
     }
@@ -8762,9 +8782,9 @@ class CssTransformValue extends CssStyleValue {
   static CssTransformValue _create_2(transformComponents) =>
       JS('CssTransformValue', 'new CSSTransformValue(#)', transformComponents);
 
-  bool get is2D native;
+  bool? get is2D native;
 
-  int get length native;
+  int? get length native;
 
   CssTransformComponent componentAtIndex(int index) native;
 
@@ -8782,7 +8802,7 @@ class CssTranslation extends CssTransformComponent {
   }
 
   factory CssTranslation(CssNumericValue x, CssNumericValue y,
-      [CssNumericValue z]) {
+      [CssNumericValue? z]) {
     if ((y is CssNumericValue) && (x is CssNumericValue) && z == null) {
       return CssTranslation._create_1(x, y);
     }
@@ -8798,17 +8818,17 @@ class CssTranslation extends CssTransformComponent {
   static CssTranslation _create_2(x, y, z) =>
       JS('CssTranslation', 'new CSSTranslation(#,#,#)', x, y, z);
 
-  CssNumericValue get x native;
+  CssNumericValue? get x native;
 
-  set x(CssNumericValue value) native;
+  set x(CssNumericValue? value) native;
 
-  CssNumericValue get y native;
+  CssNumericValue? get y native;
 
-  set y(CssNumericValue value) native;
+  set y(CssNumericValue? value) native;
 
-  CssNumericValue get z native;
+  CssNumericValue? get z native;
 
-  set z(CssNumericValue value) native;
+  set z(CssNumericValue? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8827,15 +8847,15 @@ class CssUnitValue extends CssNumericValue {
   static CssUnitValue _create_1(value, unit) =>
       JS('CssUnitValue', 'new CSSUnitValue(#,#)', value, unit);
 
-  String get type native;
+  String? get type native;
 
-  String get unit native;
+  String? get unit native;
 
-  set unit(String value) native;
+  set unit(String? value) native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8848,9 +8868,9 @@ class CssUnparsedValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  int get length native;
+  int? get length native;
 
-  Object fragmentAtIndex(int index) native;
+  Object? fragmentAtIndex(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8863,9 +8883,9 @@ class CssVariableReferenceValue extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  CssUnparsedValue get fallback native;
+  CssUnparsedValue? get fallback native;
 
-  String get variable native;
+  String? get variable native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8878,7 +8898,7 @@ class CssViewportRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  CssStyleDeclaration get style native;
+  CssStyleDeclaration? get style native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8897,7 +8917,7 @@ class CssurlImageValue extends CssImageValue {
   static CssurlImageValue _create_1(url) =>
       JS('CssurlImageValue', 'new CSSURLImageValue(#)', url);
 
-  String get url native;
+  String? get url native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8919,7 +8939,7 @@ class CustomElementRegistry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  void define(String name, Object constructor, [Map options]) {
+  void define(String name, Object constructor, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       _define_1(name, constructor, options_1);
@@ -8934,7 +8954,7 @@ class CustomElementRegistry extends Interceptor {
   @JSName('define')
   void _define_2(name, constructor) native;
 
-  Object get(String name) native;
+  Object? get(String name) native;
 
   Future whenDefined(String name) =>
       promiseToFuture(JS("", "#.whenDefined(#)", this, name));
@@ -8951,8 +8971,8 @@ class CustomEvent extends Event {
   var _dartDetail;
 
   factory CustomEvent(String type,
-      {bool canBubble: true, bool cancelable: true, Object detail}) {
-    final CustomEvent e = document._createEvent('CustomEvent');
+      {bool canBubble: true, bool cancelable: true, Object? detail}) {
+    final CustomEvent e = document._createEvent('CustomEvent') as CustomEvent;
 
     e._dartDetail = detail;
 
@@ -8979,7 +8999,7 @@ class CustomEvent extends Event {
     return _detail;
   }
 
-  factory CustomEvent._(String type, [Map eventInitDict]) {
+  factory CustomEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CustomEvent._create_1(type, eventInitDict_1);
@@ -8999,7 +9019,7 @@ class CustomEvent extends Event {
 
   @JSName('initCustomEvent')
   void _initCustomEvent(String type,
-      [bool bubbles, bool cancelable, Object detail]) native;
+      [bool? bubbles, bool? cancelable, Object? detail]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9012,7 +9032,7 @@ class DListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DListElement() => JS(
+  factory DListElement() => JS<DListElement>(
       'returns:DListElement;creates:DListElement;new:true',
       '#.createElement(#)',
       document,
@@ -9041,9 +9061,9 @@ class DataElement extends HtmlElement {
    */
   DataElement.created() : super.created();
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9060,7 +9080,8 @@ class DataListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DataListElement() => document.createElement("datalist");
+  factory DataListElement() =>
+      document.createElement("datalist") as DataListElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9071,9 +9092,9 @@ class DataListElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('datalist');
 
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
-  List<Node> get options native;
+  List<Node>? get options native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9091,23 +9112,23 @@ class DataTransfer extends Interceptor {
   }
   static DataTransfer _create_1() => JS('DataTransfer', 'new DataTransfer()');
 
-  String get dropEffect native;
+  String? get dropEffect native;
 
-  set dropEffect(String value) native;
+  set dropEffect(String? value) native;
 
-  String get effectAllowed native;
+  String? get effectAllowed native;
 
-  set effectAllowed(String value) native;
+  set effectAllowed(String? value) native;
 
-  @Returns('FileList|Null')
+  @Returns('FileList')
   @Creates('FileList')
-  List<File> get files native;
+  List<File>? get files native;
 
-  DataTransferItemList get items native;
+  DataTransferItemList? get items native;
 
-  List<String> get types native;
+  List<String>? get types native;
 
-  void clearData([String format]) native;
+  void clearData([String? format]) native;
 
   String getData(String format) native;
 
@@ -9122,11 +9143,11 @@ class DataTransfer extends Interceptor {
 @Native("DataTransferItem")
 class DataTransferItem extends Interceptor {
   Entry getAsEntry() {
-    Entry entry = _webkitGetAsEntry();
+    Entry entry = _webkitGetAsEntry() as Entry;
 
-    if (entry.isFile)
+    if (entry.isFile!)
       applyExtension('FileEntry', entry);
-    else if (entry.isDirectory)
+    else if (entry.isDirectory!)
       applyExtension('DirectoryEntry', entry);
     else
       applyExtension('Entry', entry);
@@ -9139,16 +9160,16 @@ class DataTransferItem extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get kind native;
+  String? get kind native;
 
-  String get type native;
+  String? get type native;
 
-  File getAsFile() native;
+  File? getAsFile() native;
 
   @JSName('webkitGetAsEntry')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Entry _webkitGetAsEntry() native;
+  Entry? _webkitGetAsEntry() native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9161,15 +9182,15 @@ class DataTransferItemList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get length native;
+  int? get length native;
 
-  DataTransferItem add(data_OR_file, [String type]) native;
-
-  @JSName('add')
-  DataTransferItem addData(String data, String type) native;
+  DataTransferItem? add(data_OR_file, [String? type]) native;
 
   @JSName('add')
-  DataTransferItem addFile(File file) native;
+  DataTransferItem? addData(String data, String type) native;
+
+  @JSName('add')
+  DataTransferItem? addFile(File file) native;
 
   void clear() native;
 
@@ -9228,7 +9249,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 
   void close() native;
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -9248,8 +9269,8 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitRequestFileSystem(int type, int size,
-      [_FileSystemCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [_FileSystemCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9266,7 +9287,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitResolveLocalFileSystemUrl(
       String url, _EntryCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -9292,12 +9313,12 @@ class DeprecatedStorageInfo extends Interceptor {
   static const int TEMPORARY = 0;
 
   void queryUsageAndQuota(int storageType,
-      [StorageUsageCallback usageCallback,
-      StorageErrorCallback errorCallback]) native;
+      [StorageUsageCallback? usageCallback,
+      StorageErrorCallback? errorCallback]) native;
 
   void requestQuota(int storageType, int newQuotaInBytes,
-      [StorageQuotaCallback quotaCallback,
-      StorageErrorCallback errorCallback]) native;
+      [StorageQuotaCallback? quotaCallback,
+      StorageErrorCallback? errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9311,11 +9332,11 @@ class DeprecatedStorageQuota extends Interceptor {
   }
 
   void queryUsageAndQuota(StorageUsageCallback usageCallback,
-      [StorageErrorCallback errorCallback]) native;
+      [StorageErrorCallback? errorCallback]) native;
 
   void requestQuota(int newQuotaInBytes,
-      [StorageQuotaCallback quotaCallback,
-      StorageErrorCallback errorCallback]) native;
+      [StorageQuotaCallback? quotaCallback,
+      StorageErrorCallback? errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9328,11 +9349,11 @@ class DeprecationReport extends ReportBody {
     throw new UnsupportedError("Not supported");
   }
 
-  int get lineNumber native;
+  int? get lineNumber native;
 
-  String get message native;
+  String? get message native;
 
-  String get sourceFile native;
+  String? get sourceFile native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9347,7 +9368,8 @@ class DetailsElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DetailsElement() => document.createElement("details");
+  factory DetailsElement() =>
+      document.createElement("details") as DetailsElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9358,9 +9380,9 @@ class DetailsElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
 
-  bool get open native;
+  bool? get open native;
 
-  set open(bool value) native;
+  set open(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9379,11 +9401,11 @@ class DetectedBarcode extends Interceptor {
   static DetectedBarcode _create_1() =>
       JS('DetectedBarcode', 'new DetectedBarcode()');
 
-  Rectangle get boundingBox native;
+  Rectangle? get boundingBox native;
 
-  List get cornerPoints native;
+  List? get cornerPoints native;
 
-  String get rawValue native;
+  String? get rawValue native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9401,9 +9423,9 @@ class DetectedFace extends Interceptor {
   }
   static DetectedFace _create_1() => JS('DetectedFace', 'new DetectedFace()');
 
-  Rectangle get boundingBox native;
+  Rectangle? get boundingBox native;
 
-  List get landmarks native;
+  List? get landmarks native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9421,11 +9443,11 @@ class DetectedText extends Interceptor {
   }
   static DetectedText _create_1() => JS('DetectedText', 'new DetectedText()');
 
-  Rectangle get boundingBox native;
+  Rectangle? get boundingBox native;
 
-  List get cornerPoints native;
+  List? get cornerPoints native;
 
-  String get rawValue native;
+  String? get rawValue native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9438,11 +9460,11 @@ class DeviceAcceleration extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get x native;
+  num? get x native;
 
-  num get y native;
+  num? get y native;
 
-  num get z native;
+  num? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9455,7 +9477,7 @@ class DeviceMotionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DeviceMotionEvent(String type, [Map eventInitDict]) {
+  factory DeviceMotionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return DeviceMotionEvent._create_1(type, eventInitDict_1);
@@ -9467,13 +9489,13 @@ class DeviceMotionEvent extends Event {
   static DeviceMotionEvent _create_2(type) =>
       JS('DeviceMotionEvent', 'new DeviceMotionEvent(#)', type);
 
-  DeviceAcceleration get acceleration native;
+  DeviceAcceleration? get acceleration native;
 
-  DeviceAcceleration get accelerationIncludingGravity native;
+  DeviceAcceleration? get accelerationIncludingGravity native;
 
-  num get interval native;
+  num? get interval native;
 
-  DeviceRotationRate get rotationRate native;
+  DeviceRotationRate? get rotationRate native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9486,7 +9508,7 @@ class DeviceOrientationEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DeviceOrientationEvent(String type, [Map eventInitDict]) {
+  factory DeviceOrientationEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return DeviceOrientationEvent._create_1(type, eventInitDict_1);
@@ -9501,13 +9523,13 @@ class DeviceOrientationEvent extends Event {
   static DeviceOrientationEvent _create_2(type) =>
       JS('DeviceOrientationEvent', 'new DeviceOrientationEvent(#)', type);
 
-  bool get absolute native;
+  bool? get absolute native;
 
-  num get alpha native;
+  num? get alpha native;
 
-  num get beta native;
+  num? get beta native;
 
-  num get gamma native;
+  num? get gamma native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9520,11 +9542,11 @@ class DeviceRotationRate extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get alpha native;
+  num? get alpha native;
 
-  num get beta native;
+  num? get beta native;
 
-  num get gamma native;
+  num? get gamma native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9544,15 +9566,15 @@ class DialogElement extends HtmlElement {
    */
   DialogElement.created() : super.created();
 
-  bool get open native;
+  bool? get open native;
 
-  set open(bool value) native;
+  set open(bool? value) native;
 
-  String get returnValue native;
+  String? get returnValue native;
 
-  set returnValue(String value) native;
+  set returnValue(String? value) native;
 
-  void close([String returnValue]) native;
+  void close([String? returnValue]) native;
 
   void show() native;
 
@@ -9615,10 +9637,10 @@ class DirectoryEntry extends Entry {
   @JSName('createReader')
   DirectoryReader _createReader() native;
 
-  void __getDirectory(String path,
-      [Map options,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) {
+  void __getDirectory(String? path,
+      [Map? options,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -9639,17 +9661,17 @@ class DirectoryEntry extends Entry {
   }
 
   @JSName('getDirectory')
-  void __getDirectory_1(path, options, _EntryCallback successCallback,
-      _ErrorCallback errorCallback) native;
+  void __getDirectory_1(path, options, _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback) native;
   @JSName('getDirectory')
-  void __getDirectory_2(path, options, _EntryCallback successCallback) native;
+  void __getDirectory_2(path, options, _EntryCallback? successCallback) native;
   @JSName('getDirectory')
   void __getDirectory_3(path, options) native;
   @JSName('getDirectory')
   void __getDirectory_4(path) native;
 
   @JSName('getDirectory')
-  Future<Entry> _getDirectory(String path, {Map options}) {
+  Future<Entry> _getDirectory(String? path, {Map? options}) {
     var completer = new Completer<Entry>();
     __getDirectory(path, options, (value) {
       completer.complete(value);
@@ -9659,10 +9681,10 @@ class DirectoryEntry extends Entry {
     return completer.future;
   }
 
-  void __getFile(String path,
-      [Map options,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) {
+  void __getFile(String? path,
+      [Map? options,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getFile_1(path, options_1, successCallback, errorCallback);
@@ -9683,17 +9705,17 @@ class DirectoryEntry extends Entry {
   }
 
   @JSName('getFile')
-  void __getFile_1(path, options, _EntryCallback successCallback,
-      _ErrorCallback errorCallback) native;
+  void __getFile_1(path, options, _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback) native;
   @JSName('getFile')
-  void __getFile_2(path, options, _EntryCallback successCallback) native;
+  void __getFile_2(path, options, _EntryCallback? successCallback) native;
   @JSName('getFile')
   void __getFile_3(path, options) native;
   @JSName('getFile')
   void __getFile_4(path) native;
 
   @JSName('getFile')
-  Future<Entry> _getFile(String path, {Map options}) {
+  Future<Entry> _getFile(String? path, {Map? options}) {
     var completer = new Completer<Entry>();
     __getFile(path, options, (value) {
       applyExtension('FileEntry', value);
@@ -9706,7 +9728,7 @@ class DirectoryEntry extends Entry {
 
   @JSName('removeRecursively')
   void _removeRecursively(VoidCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('removeRecursively')
   Future removeRecursively() {
@@ -9732,7 +9754,7 @@ class DirectoryReader extends Interceptor {
 
   @JSName('readEntries')
   void _readEntries(_EntriesCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
@@ -9740,9 +9762,9 @@ class DirectoryReader extends Interceptor {
       values.forEach((value) {
         applyExtension('Entry', value);
         Entry entry = value as Entry;
-        if (entry.isFile)
+        if (entry.isFile!)
           applyExtension('FileEntry', entry);
-        else if (entry.isDirectory) applyExtension('DirectoryEntry', entry);
+        else if (entry.isDirectory!) applyExtension('DirectoryEntry', entry);
       });
       completer.complete(new List<Entry>.from(values));
     }, (error) {
@@ -9785,8 +9807,11 @@ class DivElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DivElement() => JS('returns:DivElement;creates:DivElement;new:true',
-      '#.createElement(#)', document, "div");
+  factory DivElement() => JS<DivElement>(
+      'returns:DivElement;creates:DivElement;new:true',
+      '#.createElement(#)',
+      document,
+      "div");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9854,23 +9879,23 @@ class Document extends Node {
   }
   static Document _create_1() => JS('Document', 'new Document()');
 
-  String get addressSpace native;
+  String? get addressSpace native;
 
   @JSName('body')
-  HtmlElement get _body native;
+  HtmlElement? get _body native;
 
   @JSName('body')
-  set _body(HtmlElement value) native;
+  set _body(HtmlElement? value) native;
 
-  String get contentType native;
+  String? get contentType native;
 
-  String get cookie native;
+  String? get cookie native;
 
-  set cookie(String value) native;
+  set cookie(String? value) native;
 
-  ScriptElement get currentScript native;
+  ScriptElement? get currentScript native;
 
-  WindowBase get window => _convertNativeToDart_Window(this._get_window);
+  WindowBase? get window => _convertNativeToDart_Window(this._get_window);
   @JSName('defaultView')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -9878,49 +9903,49 @@ class Document extends Node {
   @Returns('Window|=Object|Null')
   dynamic get _get_window native;
 
-  Element get documentElement native;
+  Element? get documentElement native;
 
-  String get domain native;
+  String? get domain native;
 
-  bool get fullscreenEnabled native;
+  bool? get fullscreenEnabled native;
 
   @JSName('head')
-  HeadElement get _head native;
+  HeadElement? get _head native;
 
-  bool get hidden native;
+  bool? get hidden native;
 
-  DomImplementation get implementation native;
+  DomImplementation? get implementation native;
 
   @JSName('lastModified')
-  String get _lastModified native;
+  String? get _lastModified native;
 
-  String get origin native;
+  String? get origin native;
 
   @JSName('preferredStylesheetSet')
-  String get _preferredStylesheetSet native;
+  String? get _preferredStylesheetSet native;
 
-  String get readyState native;
+  String? get readyState native;
 
   @JSName('referrer')
   String get _referrer native;
 
-  SvgSvgElement get rootElement native;
+  SvgSvgElement? get rootElement native;
 
-  Element get rootScroller native;
+  Element? get rootScroller native;
 
-  set rootScroller(Element value) native;
+  set rootScroller(Element? value) native;
 
-  Element get scrollingElement native;
-
-  @JSName('selectedStylesheetSet')
-  String get _selectedStylesheetSet native;
+  Element? get scrollingElement native;
 
   @JSName('selectedStylesheetSet')
-  set _selectedStylesheetSet(String value) native;
+  String? get _selectedStylesheetSet native;
 
-  String get suborigin native;
+  @JSName('selectedStylesheetSet')
+  set _selectedStylesheetSet(String? value) native;
 
-  DocumentTimeline get timeline native;
+  String? get suborigin native;
+
+  DocumentTimeline? get timeline native;
 
   @JSName('title')
   String get _title native;
@@ -9929,32 +9954,32 @@ class Document extends Node {
   set _title(String value) native;
 
   @JSName('visibilityState')
-  String get _visibilityState native;
+  String? get _visibilityState native;
 
   @JSName('webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Element get _webkitFullscreenElement native;
+  Element? get _webkitFullscreenElement native;
 
   @JSName('webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  bool get _webkitFullscreenEnabled native;
+  bool? get _webkitFullscreenEnabled native;
 
   @JSName('webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  bool get _webkitHidden native;
+  bool? get _webkitHidden native;
 
   @JSName('webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  String get _webkitVisibilityState native;
+  String? get _webkitVisibilityState native;
 
   Node adoptNode(Node node) native;
 
   @JSName('caretRangeFromPoint')
-  Range _caretRangeFromPoint(int x, int y) native;
+  Range _caretRangeFromPoint(int? x, int? y) native;
 
   DocumentFragment createDocumentFragment() native;
 
@@ -9963,7 +9988,7 @@ class Document extends Node {
       [options_OR_typeExtension]) native;
 
   @JSName('createElementNS')
-  Element _createElementNS(String namespaceURI, String qualifiedName,
+  Element _createElementNS(String? namespaceURI, String qualifiedName,
       [options_OR_typeExtension]) native;
 
   @JSName('createEvent')
@@ -9976,7 +10001,7 @@ class Document extends Node {
 
   Touch _createTouch(Window view, EventTarget target, int identifier, num pageX,
       num pageY, num screenX, num screenY,
-      [num radiusX, num radiusY, num rotationAngle, num force]) {
+      [num? radiusX, num? radiusY, num? rotationAngle, num? force]) {
     if (force != null) {
       var target_1 = _convertDartToNative_EventTarget(target);
       return _createTouch_1(view, target_1, identifier, pageX, pageY, screenX,
@@ -10021,7 +10046,7 @@ class Document extends Node {
   @JSName('createTouchList')
   TouchList _createTouchList(Touch touches) native;
 
-  bool execCommand(String commandId, [bool showUI, String value]) native;
+  bool execCommand(String commandId, [bool? showUI, String? value]) native;
 
   void exitFullscreen() native;
 
@@ -10041,7 +10066,7 @@ class Document extends Node {
   @Returns('NodeList|HtmlCollection')
   List<Node> getElementsByTagName(String localName) native;
 
-  Node importNode(Node node, [bool deep]) native;
+  Node importNode(Node node, [bool? deep]) native;
 
   bool queryCommandEnabled(String commandId) native;
 
@@ -10053,7 +10078,7 @@ class Document extends Node {
 
   String queryCommandValue(String commandId) native;
 
-  Function registerElement2(String type, [Map options]) {
+  Function registerElement2(String type, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _registerElement2_1(type, options_1);
@@ -10073,29 +10098,29 @@ class Document extends Node {
 
   // From NonElementParentNode
 
-  Element getElementById(String elementId) native;
+  Element? getElementById(String elementId) native;
 
   // From DocumentOrShadowRoot
 
-  Element get activeElement native;
+  Element? get activeElement native;
 
-  Element get fullscreenElement native;
+  Element? get fullscreenElement native;
 
-  Element get pointerLockElement native;
+  Element? get pointerLockElement native;
 
   @JSName('styleSheets')
-  @Returns('_StyleSheetList|Null')
+  @Returns('_StyleSheetList')
   @Creates('_StyleSheetList')
-  List<StyleSheet> get _styleSheets native;
+  List<StyleSheet>? get _styleSheets native;
 
   @JSName('elementFromPoint')
-  Element _elementFromPoint(int x, int y) native;
+  Element? _elementFromPoint(int x, int y) native;
 
   List<Element> elementsFromPoint(int x, int y) native;
 
   // From FontFaceSource
 
-  FontFaceSet get fonts native;
+  FontFaceSet? get fonts native;
 
   // From ParentNode
 
@@ -10103,15 +10128,15 @@ class Document extends Node {
   int get _childElementCount native;
 
   @JSName('children')
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
-  List<Node> get _children native;
+  List<Node>? get _children native;
 
   @JSName('firstElementChild')
-  Element get _firstElementChild native;
+  Element? get _firstElementChild native;
 
   @JSName('lastElementChild')
-  Element get _lastElementChild native;
+  Element? get _lastElementChild native;
 
   /**
    * Finds the first descendant element of this document that matches the
@@ -10130,7 +10155,7 @@ class Document extends Node {
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  Element querySelector(String selectors) native;
+  Element? querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
   @Creates('NodeList')
@@ -10372,13 +10397,13 @@ class Document extends Node {
   bool get supportsRegister => supportsRegisterElement;
 
   void registerElement(String tag, Type customElementClass,
-      {String extendsTag}) {
+      {String? extendsTag}) {
     registerElement2(
         tag, {'prototype': customElementClass, 'extends': extendsTag});
   }
 
   @pragma('dart2js:tryInline') // Almost all call sites have one argument.
-  Element createElement(String tagName, [String typeExtension]) {
+  Element createElement(String tagName, [String? typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)
         : _createElement(tagName, typeExtension);
@@ -10395,19 +10420,19 @@ class Document extends Node {
       'Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
 
   Element createElementNS(String namespaceURI, String qualifiedName,
-      [String typeExtension]) {
+      [String? typeExtension]) {
     return (typeExtension == null)
         ? _createElementNS_2(namespaceURI, qualifiedName)
         : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
   NodeIterator _createNodeIterator(Node root,
-          [int whatToShow, NodeFilter filter]) =>
+          [int? whatToShow, NodeFilter? filter]) =>
       JS('NodeIterator', '#.createNodeIterator(#, #, #, false)', this, root,
           whatToShow, filter);
 
   TreeWalker _createTreeWalker(Node root,
-          [int whatToShow, NodeFilter filter]) =>
+          [int? whatToShow, NodeFilter? filter]) =>
       JS('TreeWalker', '#.createTreeWalker(#, #, #, false)', this, root,
           whatToShow, filter);
 
@@ -10432,14 +10457,14 @@ class DocumentFragment extends Node
     implements NonElementParentNode, ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
-    return document.body.createFragment(html,
+  factory DocumentFragment.html(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+    return document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
-  factory DocumentFragment.svg(String svgContent,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  factory DocumentFragment.svg(String? svgContent,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
   }
@@ -10450,13 +10475,13 @@ class DocumentFragment extends Node
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
   @Creates('Null')
-  List<Element> _docChildren;
+  List<Element>? _docChildren;
 
   List<Element> get children {
     if (_docChildren == null) {
       _docChildren = new FilteredElementList(this);
     }
-    return _docChildren;
+    return _docChildren!;
   }
 
   set children(List<Element> value) {
@@ -10481,20 +10506,23 @@ class DocumentFragment extends Node
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
       new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-  String get innerHtml {
+  // innerHtml is marked as nullable, even though it is guaranteed to return a
+  // non-nullable, because ShadowRoot.innerHtml overrides it and can be
+  // incompatible.
+  String? get innerHtml {
     final e = new DivElement();
     e.append(this.clone(true));
     return e.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  void setInnerHtml(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  void setInnerHtml(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.nodes.clear();
-    append(document.body.createFragment(html,
+    append(document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer));
   }
 
@@ -10511,7 +10539,7 @@ class DocumentFragment extends Node
    * last child of this document fragment.
    */
   void appendHtml(String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.append(new DocumentFragment.html(text,
         validator: validator, treeSanitizer: treeSanitizer));
   }
@@ -10523,7 +10551,7 @@ class DocumentFragment extends Node
 
   // From NonElementParentNode
 
-  Element getElementById(String elementId) native;
+  Element? getElementById(String elementId) native;
 
   // From ParentNode
 
@@ -10531,10 +10559,10 @@ class DocumentFragment extends Node
   int get _childElementCount native;
 
   @JSName('firstElementChild')
-  Element get _firstElementChild native;
+  Element? get _firstElementChild native;
 
   @JSName('lastElementChild')
-  Element get _lastElementChild native;
+  Element? get _lastElementChild native;
 
   /**
    * Finds the first descendant element of this document fragment that matches
@@ -10548,7 +10576,7 @@ class DocumentFragment extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  Element querySelector(String selectors) native;
+  Element? querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
   @Creates('NodeList')
@@ -10566,21 +10594,21 @@ class DocumentOrShadowRoot extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Element get activeElement native;
+  Element? get activeElement native;
 
-  Element get fullscreenElement native;
+  Element? get fullscreenElement native;
 
-  Element get pointerLockElement native;
+  Element? get pointerLockElement native;
 
-  @Returns('_StyleSheetList|Null')
+  @Returns('_StyleSheetList')
   @Creates('_StyleSheetList')
-  List<StyleSheet> get styleSheets native;
+  List<StyleSheet>? get styleSheets native;
 
-  Element elementFromPoint(int x, int y) native;
+  Element? elementFromPoint(int x, int y) native;
 
   List<Element> elementsFromPoint(int x, int y) native;
 
-  Selection getSelection() native;
+  Selection? getSelection() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10593,7 +10621,7 @@ class DocumentTimeline extends AnimationTimeline {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DocumentTimeline([Map options]) {
+  factory DocumentTimeline([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return DocumentTimeline._create_1(options_1);
@@ -10616,7 +10644,7 @@ class DomError extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomError(String name, [String message]) {
+  factory DomError(String name, [String? message]) {
     if (message != null) {
       return DomError._create_1(name, message);
     }
@@ -10626,9 +10654,9 @@ class DomError extends Interceptor {
       JS('DomError', 'new DOMError(#,#)', name, message);
   static DomError _create_2(name) => JS('DomError', 'new DOMError(#)', name);
 
-  String get message native;
+  String? get message native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10678,7 +10706,7 @@ class DomException extends Interceptor {
     // Chrome release still uses old string, remove this line when Chrome stable
     // also prints out SyntaxError.
     if (Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
-    return errorName;
+    return errorName as String;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -10686,7 +10714,7 @@ class DomException extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get message native;
+  String? get message native;
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -10701,14 +10729,14 @@ class DomImplementation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  XmlDocument createDocument(
-      String namespaceURI, String qualifiedName, _DocumentType doctype) native;
+  XmlDocument createDocument(String? namespaceURI, String qualifiedName,
+      _DocumentType? doctype) native;
 
   _DocumentType createDocumentType(
       String qualifiedName, String publicId, String systemId) native;
 
   @JSName('createHTMLDocument')
-  HtmlDocument createHtmlDocument([String title]) native;
+  HtmlDocument createHtmlDocument([String? title]) native;
 
   bool hasFeature() native;
 }
@@ -10723,7 +10751,7 @@ class DomIterator extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Object next([Object value]) native;
+  Object? next([Object? value]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10736,7 +10764,7 @@ class DomMatrix extends DomMatrixReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomMatrix([Object init]) {
+  factory DomMatrix([Object? init]) {
     if (init != null) {
       return DomMatrix._create_1(init);
     }
@@ -10747,141 +10775,141 @@ class DomMatrix extends DomMatrixReadOnly {
 
   // Shadowing definition.
 
-  num get a native;
+  num? get a native;
 
-  set a(num value) native;
-
-  // Shadowing definition.
-
-  num get b native;
-
-  set b(num value) native;
+  set a(num? value) native;
 
   // Shadowing definition.
 
-  num get c native;
+  num? get b native;
 
-  set c(num value) native;
-
-  // Shadowing definition.
-
-  num get d native;
-
-  set d(num value) native;
+  set b(num? value) native;
 
   // Shadowing definition.
 
-  num get e native;
+  num? get c native;
 
-  set e(num value) native;
-
-  // Shadowing definition.
-
-  num get f native;
-
-  set f(num value) native;
+  set c(num? value) native;
 
   // Shadowing definition.
 
-  num get m11 native;
+  num? get d native;
 
-  set m11(num value) native;
-
-  // Shadowing definition.
-
-  num get m12 native;
-
-  set m12(num value) native;
+  set d(num? value) native;
 
   // Shadowing definition.
 
-  num get m13 native;
+  num? get e native;
 
-  set m13(num value) native;
-
-  // Shadowing definition.
-
-  num get m14 native;
-
-  set m14(num value) native;
+  set e(num? value) native;
 
   // Shadowing definition.
 
-  num get m21 native;
+  num? get f native;
 
-  set m21(num value) native;
-
-  // Shadowing definition.
-
-  num get m22 native;
-
-  set m22(num value) native;
+  set f(num? value) native;
 
   // Shadowing definition.
 
-  num get m23 native;
+  num? get m11 native;
 
-  set m23(num value) native;
-
-  // Shadowing definition.
-
-  num get m24 native;
-
-  set m24(num value) native;
+  set m11(num? value) native;
 
   // Shadowing definition.
 
-  num get m31 native;
+  num? get m12 native;
 
-  set m31(num value) native;
-
-  // Shadowing definition.
-
-  num get m32 native;
-
-  set m32(num value) native;
+  set m12(num? value) native;
 
   // Shadowing definition.
 
-  num get m33 native;
+  num? get m13 native;
 
-  set m33(num value) native;
-
-  // Shadowing definition.
-
-  num get m34 native;
-
-  set m34(num value) native;
+  set m13(num? value) native;
 
   // Shadowing definition.
 
-  num get m41 native;
+  num? get m14 native;
 
-  set m41(num value) native;
-
-  // Shadowing definition.
-
-  num get m42 native;
-
-  set m42(num value) native;
+  set m14(num? value) native;
 
   // Shadowing definition.
 
-  num get m43 native;
+  num? get m21 native;
 
-  set m43(num value) native;
+  set m21(num? value) native;
 
   // Shadowing definition.
 
-  num get m44 native;
+  num? get m22 native;
 
-  set m44(num value) native;
+  set m22(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m23 native;
+
+  set m23(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m24 native;
+
+  set m24(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m31 native;
+
+  set m31(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m32 native;
+
+  set m32(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m33 native;
+
+  set m33(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m34 native;
+
+  set m34(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m41 native;
+
+  set m41(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m42 native;
+
+  set m42(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m43 native;
+
+  set m43(num? value) native;
+
+  // Shadowing definition.
+
+  num? get m44 native;
+
+  set m44(num? value) native;
 
   static DomMatrix fromFloat32Array(Float32List array32) native;
 
   static DomMatrix fromFloat64Array(Float64List array64) native;
 
-  static DomMatrix fromMatrix([Map other]) {
+  static DomMatrix fromMatrix([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromMatrix_1(other_1);
@@ -10896,7 +10924,7 @@ class DomMatrix extends DomMatrixReadOnly {
 
   DomMatrix invertSelf() native;
 
-  DomMatrix multiplySelf([Map other]) {
+  DomMatrix multiplySelf([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _multiplySelf_1(other_1);
@@ -10909,7 +10937,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @JSName('multiplySelf')
   DomMatrix _multiplySelf_2() native;
 
-  DomMatrix preMultiplySelf([Map other]) {
+  DomMatrix preMultiplySelf([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _preMultiplySelf_1(other_1);
@@ -10922,30 +10950,30 @@ class DomMatrix extends DomMatrixReadOnly {
   @JSName('preMultiplySelf')
   DomMatrix _preMultiplySelf_2() native;
 
-  DomMatrix rotateAxisAngleSelf([num x, num y, num z, num angle]) native;
+  DomMatrix rotateAxisAngleSelf([num? x, num? y, num? z, num? angle]) native;
 
-  DomMatrix rotateFromVectorSelf([num x, num y]) native;
+  DomMatrix rotateFromVectorSelf([num? x, num? y]) native;
 
-  DomMatrix rotateSelf([num rotX, num rotY, num rotZ]) native;
+  DomMatrix rotateSelf([num? rotX, num? rotY, num? rotZ]) native;
 
-  DomMatrix scale3dSelf([num scale, num originX, num originY, num originZ])
+  DomMatrix scale3dSelf([num? scale, num? originX, num? originY, num? originZ])
       native;
 
   DomMatrix scaleSelf(
-      [num scaleX,
-      num scaleY,
-      num scaleZ,
-      num originX,
-      num originY,
-      num originZ]) native;
+      [num? scaleX,
+      num? scaleY,
+      num? scaleZ,
+      num? originX,
+      num? originY,
+      num? originZ]) native;
 
   DomMatrix setMatrixValue(String transformList) native;
 
-  DomMatrix skewXSelf([num sx]) native;
+  DomMatrix skewXSelf([num? sx]) native;
 
-  DomMatrix skewYSelf([num sy]) native;
+  DomMatrix skewYSelf([num? sy]) native;
 
-  DomMatrix translateSelf([num tx, num ty, num tz]) native;
+  DomMatrix translateSelf([num? tx, num? ty, num? tz]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10958,7 +10986,7 @@ class DomMatrixReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomMatrixReadOnly([Object init]) {
+  factory DomMatrixReadOnly([Object? init]) {
     if (init != null) {
       return DomMatrixReadOnly._create_1(init);
     }
@@ -10969,53 +10997,53 @@ class DomMatrixReadOnly extends Interceptor {
   static DomMatrixReadOnly _create_2() =>
       JS('DomMatrixReadOnly', 'new DOMMatrixReadOnly()');
 
-  num get a native;
+  num? get a native;
 
-  num get b native;
+  num? get b native;
 
-  num get c native;
+  num? get c native;
 
-  num get d native;
+  num? get d native;
 
-  num get e native;
+  num? get e native;
 
-  num get f native;
+  num? get f native;
 
-  bool get is2D native;
+  bool? get is2D native;
 
-  bool get isIdentity native;
+  bool? get isIdentity native;
 
-  num get m11 native;
+  num? get m11 native;
 
-  num get m12 native;
+  num? get m12 native;
 
-  num get m13 native;
+  num? get m13 native;
 
-  num get m14 native;
+  num? get m14 native;
 
-  num get m21 native;
+  num? get m21 native;
 
-  num get m22 native;
+  num? get m22 native;
 
-  num get m23 native;
+  num? get m23 native;
 
-  num get m24 native;
+  num? get m24 native;
 
-  num get m31 native;
+  num? get m31 native;
 
-  num get m32 native;
+  num? get m32 native;
 
-  num get m33 native;
+  num? get m33 native;
 
-  num get m34 native;
+  num? get m34 native;
 
-  num get m41 native;
+  num? get m41 native;
 
-  num get m42 native;
+  num? get m42 native;
 
-  num get m43 native;
+  num? get m43 native;
 
-  num get m44 native;
+  num? get m44 native;
 
   DomMatrix flipX() native;
 
@@ -11025,7 +11053,7 @@ class DomMatrixReadOnly extends Interceptor {
 
   static DomMatrixReadOnly fromFloat64Array(Float64List array64) native;
 
-  static DomMatrixReadOnly fromMatrix([Map other]) {
+  static DomMatrixReadOnly fromMatrix([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromMatrix_1(other_1);
@@ -11040,7 +11068,7 @@ class DomMatrixReadOnly extends Interceptor {
 
   DomMatrix inverse() native;
 
-  DomMatrix multiply([Map other]) {
+  DomMatrix multiply([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _multiply_1(other_1);
@@ -11053,31 +11081,32 @@ class DomMatrixReadOnly extends Interceptor {
   @JSName('multiply')
   DomMatrix _multiply_2() native;
 
-  DomMatrix rotate([num rotX, num rotY, num rotZ]) native;
+  DomMatrix rotate([num? rotX, num? rotY, num? rotZ]) native;
 
-  DomMatrix rotateAxisAngle([num x, num y, num z, num angle]) native;
+  DomMatrix rotateAxisAngle([num? x, num? y, num? z, num? angle]) native;
 
-  DomMatrix rotateFromVector([num x, num y]) native;
+  DomMatrix rotateFromVector([num? x, num? y]) native;
 
   DomMatrix scale(
-      [num scaleX,
-      num scaleY,
-      num scaleZ,
-      num originX,
-      num originY,
-      num originZ]) native;
+      [num? scaleX,
+      num? scaleY,
+      num? scaleZ,
+      num? originX,
+      num? originY,
+      num? originZ]) native;
 
-  DomMatrix scale3d([num scale, num originX, num originY, num originZ]) native;
+  DomMatrix scale3d([num? scale, num? originX, num? originY, num? originZ])
+      native;
 
-  DomMatrix skewX([num sx]) native;
+  DomMatrix skewX([num? sx]) native;
 
-  DomMatrix skewY([num sy]) native;
+  DomMatrix skewY([num? sy]) native;
 
   Float32List toFloat32Array() native;
 
   Float64List toFloat64Array() native;
 
-  DomPoint transformPoint([Map point]) {
+  DomPoint transformPoint([Map? point]) {
     if (point != null) {
       var point_1 = convertDartToNative_Dictionary(point);
       return _transformPoint_1(point_1);
@@ -11090,7 +11119,7 @@ class DomMatrixReadOnly extends Interceptor {
   @JSName('transformPoint')
   DomPoint _transformPoint_2() native;
 
-  DomMatrix translate([num tx, num ty, num tz]) native;
+  DomMatrix translate([num? tx, num? ty, num? tz]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11121,7 +11150,7 @@ class DomPoint extends DomPointReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomPoint([num x, num y, num z, num w]) {
+  factory DomPoint([num? x, num? y, num? z, num? w]) {
     if (w != null) {
       return DomPoint._create_1(x, y, z, w);
     }
@@ -11150,29 +11179,29 @@ class DomPoint extends DomPointReadOnly {
 
   // Shadowing definition.
 
-  num get w native;
+  num? get w native;
 
-  set w(num value) native;
-
-  // Shadowing definition.
-
-  num get x native;
-
-  set x(num value) native;
+  set w(num? value) native;
 
   // Shadowing definition.
 
-  num get y native;
+  num? get x native;
 
-  set y(num value) native;
+  set x(num? value) native;
 
   // Shadowing definition.
 
-  num get z native;
+  num? get y native;
 
-  set z(num value) native;
+  set y(num? value) native;
 
-  static DomPoint fromPoint([Map other]) {
+  // Shadowing definition.
+
+  num? get z native;
+
+  set z(num? value) native;
+
+  static DomPoint fromPoint([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromPoint_1(other_1);
@@ -11196,7 +11225,7 @@ class DomPointReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomPointReadOnly([num x, num y, num z, num w]) {
+  factory DomPointReadOnly([num? x, num? y, num? z, num? w]) {
     if (w != null) {
       return DomPointReadOnly._create_1(x, y, z, w);
     }
@@ -11222,15 +11251,15 @@ class DomPointReadOnly extends Interceptor {
   static DomPointReadOnly _create_5() =>
       JS('DomPointReadOnly', 'new DOMPointReadOnly()');
 
-  num get w native;
+  num? get w native;
 
-  num get x native;
+  num? get x native;
 
-  num get y native;
+  num? get y native;
 
-  num get z native;
+  num? get z native;
 
-  static DomPointReadOnly fromPoint([Map other]) {
+  static DomPointReadOnly fromPoint([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromPoint_1(other_1);
@@ -11243,7 +11272,7 @@ class DomPointReadOnly extends Interceptor {
   @JSName('fromPoint')
   static DomPointReadOnly _fromPoint_2() native;
 
-  DomPoint matrixTransform([Map matrix]) {
+  DomPoint matrixTransform([Map? matrix]) {
     if (matrix != null) {
       var matrix_1 = convertDartToNative_Dictionary(matrix);
       return _matrixTransform_1(matrix_1);
@@ -11267,7 +11296,7 @@ class DomQuad extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomQuad([Map p1, Map p2, Map p3, Map p4]) {
+  factory DomQuad([Map? p1, Map? p2, Map? p3, Map? p4]) {
     if (p4 != null) {
       var p1_1 = convertDartToNative_Dictionary(p1);
       var p2_2 = convertDartToNative_Dictionary(p2);
@@ -11300,15 +11329,15 @@ class DomQuad extends Interceptor {
   static DomQuad _create_4(p1) => JS('DomQuad', 'new DOMQuad(#)', p1);
   static DomQuad _create_5() => JS('DomQuad', 'new DOMQuad()');
 
-  DomPoint get p1 native;
+  DomPoint? get p1 native;
 
-  DomPoint get p2 native;
+  DomPoint? get p2 native;
 
-  DomPoint get p3 native;
+  DomPoint? get p3 native;
 
-  DomPoint get p4 native;
+  DomPoint? get p4 native;
 
-  static DomQuad fromQuad([Map other]) {
+  static DomQuad fromQuad([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromQuad_1(other_1);
@@ -11321,7 +11350,7 @@ class DomQuad extends Interceptor {
   @JSName('fromQuad')
   static DomQuad _fromQuad_2() native;
 
-  static DomQuad fromRect([Map other]) {
+  static DomQuad fromRect([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromRect_1(other_1);
@@ -11394,7 +11423,7 @@ class DomRectList extends Interceptor
   Rectangle elementAt(int index) => this[index];
   // -- end List<Rectangle> mixins.
 
-  Rectangle item(int index) native;
+  Rectangle? item(int index) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11426,7 +11455,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
    * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
-  Rectangle intersection(Rectangle other) {
+  Rectangle? intersection(Rectangle other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -11495,7 +11524,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomRectReadOnly([num x, num y, num width, num height]) {
+  factory DomRectReadOnly([num? x, num? y, num? width, num? height]) {
     if (height != null) {
       return DomRectReadOnly._create_1(x, y, width, height);
     }
@@ -11521,23 +11550,59 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
   static DomRectReadOnly _create_5() =>
       JS('DomRectReadOnly', 'new DOMRectReadOnly()');
 
-  num get bottom native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
 
-  num get height native;
+  @JSName('bottom')
+  num? get _bottom native;
 
-  num get left native;
+  num get bottom => _bottom!;
 
-  num get right native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
 
-  num get top native;
+  @JSName('height')
+  num? get _height native;
 
-  num get width native;
+  num get height => _height!;
 
-  num get x native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
 
-  num get y native;
+  @JSName('left')
+  num? get _left native;
 
-  static DomRectReadOnly fromRect([Map other]) {
+  num get left => _left!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('right')
+  num? get _right native;
+
+  num get right => _right!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('top')
+  num? get _top native;
+
+  num get top => _top!;
+
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('width')
+  num? get _width native;
+
+  num get width => _width!;
+
+  num? get x native;
+
+  num? get y native;
+
+  static DomRectReadOnly fromRect([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromRect_1(other_1);
@@ -11609,7 +11674,7 @@ class DomStringList extends Interceptor
   String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
-  String item(int index) native;
+  String? item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11641,15 +11706,15 @@ class DomTokenList extends Interceptor {
 
   int get length native;
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   void add(String tokens) native;
 
   bool contains(String token) native;
 
-  String item(int index) native;
+  String? item(int index) native;
 
   void remove(String tokens) native;
 
@@ -11657,7 +11722,7 @@ class DomTokenList extends Interceptor {
 
   bool supports(String token) native;
 
-  bool toggle(String token, [bool force]) native;
+  bool toggle(String token, [bool? force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11670,10 +11735,10 @@ class _ChildrenElementList extends ListBase<Element>
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-      : _childElements = element._children,
+      : _childElements = element._children as HtmlCollection,
         _element = element;
 
-  bool contains(Object element) => _childElements.contains(element);
+  bool contains(Object? element) => _childElements.contains(element);
 
   bool get isEmpty {
     return _element._firstElementChild == null;
@@ -11684,7 +11749,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   Element operator [](int index) {
-    return _childElements[index];
+    return _childElements[index] as Element;
   }
 
   void operator []=(int index, Element value) {
@@ -11704,6 +11769,10 @@ class _ChildrenElementList extends ListBase<Element>
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
+    _addAll(_element, iterable);
+  }
+
+  static void _addAll(Element _element, Iterable<Element> iterable) {
     if (iterable is _ChildNodeListLazy) {
       iterable = new List.from(iterable);
     }
@@ -11713,11 +11782,11 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
-  void sort([int compare(Element a, Element b)]) {
+  void sort([int compare(Element a, Element b)?]) {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -11739,7 +11808,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void fillRange(int start, int end, [Element? fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -11756,7 +11825,11 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
+    return _remove(_element, object);
+  }
+
+  static bool _remove(Element _element, Object? object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
@@ -11792,6 +11865,7 @@ class _ChildrenElementList extends ListBase<Element>
 
   Element removeAt(int index) {
     final result = this[index];
+    // TODO(41258): Remove null check after unfork/strong mode.
     if (result != null) {
       _element._removeChild(result);
     }
@@ -11804,14 +11878,17 @@ class _ChildrenElementList extends ListBase<Element>
     return result;
   }
 
-  Element get first {
-    Element result = _element._firstElementChild;
+  Element get first => _first(_element);
+
+  @pragma('dart2js:noInline')
+  static Element _first(Element _element) {
+    Element? result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
   Element get last {
-    Element result = _element._lastElementChild;
+    Element? result = _element._lastElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -12217,7 +12294,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 
   int get length => _nodeList.length;
 
-  E operator [](int index) => _nodeList[index];
+  E operator [](int index) => _nodeList[index] as E;
 
   void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
@@ -12227,19 +12304,19 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([Comparator<E>? compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  E get first => _nodeList.first;
+  E get first => _nodeList.first as E;
 
-  E get last => _nodeList.last;
+  E get last => _nodeList.last as E;
 
-  E get single => _nodeList.single;
+  E get single => _nodeList.single as E;
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -12646,12 +12723,12 @@ class Element extends Node
    * * [NodeValidator]
    *
    */
-  factory Element.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
-    var fragment = document.body.createFragment(html,
+  factory Element.html(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
+    var fragment = document.body!.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
-    return fragment.nodes.where((e) => e is Element).single;
+    return fragment.nodes.where((e) => e is Element).single as Element;
   }
 
   /**
@@ -12696,7 +12773,7 @@ class Element extends Node
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag, [String typeExtension]) =>
+  factory Element.tag(String tag, [String? typeExtension]) =>
       _ElementFactoryProvider.createElement_tag(tag, typeExtension);
 
   /// Creates a new `<a>` element.
@@ -12860,19 +12937,21 @@ class Element extends Node
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
-      attributes[key] = value[key];
+      attributes[key] = value[key]!;
     }
   }
 
   @pragma('dart2js:tryInline')
-  String getAttribute(String name) {
+  String? getAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  String getAttributeNS(String namespaceURI, String name) {
+  String? getAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12881,13 +12960,15 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  bool hasAttributeNS(String namespaceURI, String name) {
+  bool hasAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
     assert(name != null, 'Attribute name cannot be null');
@@ -12896,13 +12977,15 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  void removeAttributeNS(String namespaceURI, String name) {
+  void removeAttributeNS(String? namespaceURI, String name) {
+    // TODO(41258): Delete this assertion after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
@@ -12910,6 +12993,7 @@ class Element extends Node
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -12917,7 +13001,8 @@ class Element extends Node
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String namespaceURI, String name, String value) {
+  void setAttributeNS(String? namespaceURI, String name, String value) {
+    // TODO(41258): Delete these assertions after forcing strong mode.
     // Protect [name] against string conversion to "null" or "undefined".
     assert(name != null, 'Attribute name cannot be null');
     // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
@@ -12937,6 +13022,16 @@ class Element extends Node
    *     }
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  List<Node> get _children =>
+      // Element.children always returns the same list-like object which is a
+      // live view on the underlying DOM tree. So we can GVN it and remove it if
+      // unused.
+      JS(
+          'returns:HtmlCollection;creates:HtmlCollection;'
+              'depends:none;effects:none;gvn:true',
+          '#.children',
+          this);
 
   set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -13034,7 +13129,7 @@ class Element extends Node
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
-      data[key] = value[key];
+      data[key] = value[key]!;
     }
   }
 
@@ -13066,7 +13161,7 @@ class Element extends Node
    * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
    *   from MDN.
    */
-  CssStyleDeclaration getComputedStyle([String pseudoElement]) {
+  CssStyleDeclaration getComputedStyle([String? pseudoElement]) {
     if (pseudoElement == null) {
       pseudoElement = '';
     }
@@ -13078,7 +13173,7 @@ class Element extends Node
    * Gets the position of this element relative to the client area of the page.
    */
   Rectangle get client =>
-      new Rectangle(clientLeft, clientTop, clientWidth, clientHeight);
+      new Rectangle(clientLeft!, clientTop!, clientWidth, clientHeight);
 
   /**
    * Gets the offset of this element relative to its offsetParent.
@@ -13098,7 +13193,7 @@ class Element extends Node
    * last child of this element.
    */
   void appendHtml(String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.insertAdjacentHtml('beforeend', text,
         validator: validator, treeSanitizer: treeSanitizer);
   }
@@ -13223,7 +13318,7 @@ class Element extends Node
    * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
    *   from W3C.
    */
-  String get namespaceUri => _namespaceUri;
+  String? get namespaceUri => _namespaceUri;
 
   /**
    * The string representation of this element.
@@ -13251,7 +13346,7 @@ class Element extends Node
    * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
    *   from MDN.
    */
-  void scrollIntoView([ScrollAlignment alignment]) {
+  void scrollIntoView([ScrollAlignment? alignment]) {
     var hasScrollIntoViewIfNeeded = true;
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
@@ -13346,7 +13441,7 @@ class Element extends Node
    * * [insertAdjacentElement]
    */
   void insertAdjacentHtml(String where, String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _insertAdjacentHtml(where, html);
     } else {
@@ -13385,7 +13480,7 @@ class Element extends Node
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
       case 'beforebegin':
-        this.parentNode.insertBefore(node, this);
+        this.parentNode!.insertBefore(node, this);
         break;
       case 'afterbegin':
         var first = this.nodes.length > 0 ? this.nodes[0] : null;
@@ -13395,7 +13490,7 @@ class Element extends Node
         this.append(node);
         break;
       case 'afterend':
-        this.parentNode.insertBefore(node, this.nextNode);
+        this.parentNode!.insertBefore(node, this.nextNode);
         break;
       default:
         throw new ArgumentError("Invalid position ${where}");
@@ -13423,9 +13518,9 @@ class Element extends Node
 
   /** Checks if this element or any of its parents match the CSS selectors. */
   bool matchesWithAncestors(String selectors) {
-    var elem = this;
+    var elem = this as Element?;
     do {
-      if (elem.matches(selectors)) return true;
+      if (elem!.matches(selectors)) return true;
       elem = elem.parent;
     } while (elem != null);
     return false;
@@ -13461,7 +13556,7 @@ class Element extends Node
    *   from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
-  ShadowRoot get shadowRoot =>
+  ShadowRoot? get shadowRoot =>
       JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
 
   /**
@@ -13541,7 +13636,7 @@ class Element extends Node
    * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
-  Point get documentOffset => offsetTo(document.documentElement);
+  Point get documentOffset => offsetTo(document.documentElement!);
 
   /**
    * Provides the offset of this element's [borderEdge] relative to the
@@ -13558,7 +13653,7 @@ class Element extends Node
     return Element._offsetToHelper(this, parent);
   }
 
-  static Point _offsetToHelper(Element current, Element parent) {
+  static Point _offsetToHelper(Element? current, Element parent) {
     // We're hopping from _offsetParent_ to offsetParent (not just parent), so
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
@@ -13570,15 +13665,15 @@ class Element extends Node
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
-    Element parentOffset = current.offsetParent;
+    Element? parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
-  static HtmlDocument _parseDocument;
-  static Range _parseRange;
-  static NodeValidatorBuilder _defaultValidator;
-  static _ValidatingTreeSanitizer _defaultSanitizer;
+  static HtmlDocument? _parseDocument;
+  static Range? _parseRange;
+  static NodeValidatorBuilder? _defaultValidator;
+  static _ValidatingTreeSanitizer? _defaultSanitizer;
 
   /**
    * Create a DocumentFragment from the HTML fragment and ensure that it follows
@@ -13600,8 +13695,8 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  DocumentFragment createFragment(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         if (_defaultValidator == null) {
@@ -13610,9 +13705,9 @@ class Element extends Node
         validator = _defaultValidator;
       }
       if (_defaultSanitizer == null) {
-        _defaultSanitizer = new _ValidatingTreeSanitizer(validator);
+        _defaultSanitizer = new _ValidatingTreeSanitizer(validator!);
       } else {
-        _defaultSanitizer.validator = validator;
+        _defaultSanitizer!.validator = validator!;
       }
       treeSanitizer = _defaultSanitizer;
     } else if (validator != null) {
@@ -13621,48 +13716,49 @@ class Element extends Node
     }
 
     if (_parseDocument == null) {
-      _parseDocument = document.implementation.createHtmlDocument('');
-      _parseRange = _parseDocument.createRange();
+      _parseDocument = document.implementation!.createHtmlDocument('');
+      _parseRange = _parseDocument!.createRange();
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base');
-      base.href = document.baseUri;
-      _parseDocument.head.append(base);
+      BaseElement base = _parseDocument!.createElement('base') as BaseElement;
+      base.href = document.baseUri!;
+      _parseDocument!.head!.append(base);
     }
 
     // TODO(terry): Fixes Chromium 50 change no body after createHtmlDocument()
-    if (_parseDocument.body == null) {
-      _parseDocument.body = _parseDocument.createElement("body");
+    if (_parseDocument!.body == null) {
+      _parseDocument!.body =
+          _parseDocument!.createElement("body") as BodyElement;
     }
 
     var contextElement;
     if (this is BodyElement) {
-      contextElement = _parseDocument.body;
+      contextElement = _parseDocument!.body!;
     } else {
-      contextElement = _parseDocument.createElement(tagName);
-      _parseDocument.body.append(contextElement);
+      contextElement = _parseDocument!.createElement(tagName);
+      _parseDocument!.body!.append(contextElement);
     }
     var fragment;
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
-      _parseRange.selectNodeContents(contextElement);
+      _parseRange!.selectNodeContents(contextElement);
       // createContextualFragment expects a non-nullable html string.
       // If null is passed, it gets converted to 'null' instead.
-      fragment = _parseRange.createContextualFragment(html ?? 'null');
+      fragment = _parseRange!.createContextualFragment(html ?? 'null');
     } else {
       contextElement._innerHtml = html;
 
-      fragment = _parseDocument.createDocumentFragment();
+      fragment = _parseDocument!.createDocumentFragment();
       while (contextElement.firstChild != null) {
         fragment.append(contextElement.firstChild);
       }
     }
-    if (contextElement != _parseDocument.body) {
+    if (contextElement != _parseDocument!.body) {
       contextElement.remove();
     }
 
-    treeSanitizer.sanitizeTree(fragment);
+    treeSanitizer!.sanitizeTree(fragment);
     // Copy the fragment over to the main document (fix for 14184)
     document.adoptNode(fragment);
 
@@ -13712,7 +13808,7 @@ class Element extends Node
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  set innerHtml(String html) {
+  set innerHtml(String? html) {
     this.setInnerHtml(html);
   }
 
@@ -13737,8 +13833,8 @@ class Element extends Node
    * * [NodeValidator]
    * * [NodeTreeSanitizer]
    */
-  void setInnerHtml(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  void setInnerHtml(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
@@ -13748,7 +13844,7 @@ class Element extends Node
     }
   }
 
-  String get innerHtml => _innerHtml;
+  String? get innerHtml => _innerHtml;
 
   @JSName('innerText')
   String get innerText native;
@@ -13832,7 +13928,7 @@ class Element extends Node
     return result;
   }
 
-  Element get offsetParent native;
+  Element? get offsetParent native;
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
@@ -14421,9 +14517,9 @@ class Element extends Node
 
   set contentEditable(String value) native;
 
-  String get dir native;
+  String? get dir native;
 
-  set dir(String value) native;
+  set dir(String? value) native;
 
   /**
    * Indicates whether the element can be dragged and dropped.
@@ -14457,33 +14553,33 @@ class Element extends Node
 
   set hidden(bool value) native;
 
-  bool get inert native;
+  bool? get inert native;
 
-  set inert(bool value) native;
+  set inert(bool? value) native;
 
-  String get inputMode native;
+  String? get inputMode native;
 
-  set inputMode(String value) native;
+  set inputMode(String? value) native;
 
-  bool get isContentEditable native;
+  bool? get isContentEditable native;
 
-  String get lang native;
+  String? get lang native;
 
-  set lang(String value) native;
+  set lang(String? value) native;
 
-  bool get spellcheck native;
+  bool? get spellcheck native;
 
-  set spellcheck(bool value) native;
+  set spellcheck(bool? value) native;
 
   CssStyleDeclaration get style native;
 
-  int get tabIndex native;
+  int? get tabIndex native;
 
-  set tabIndex(int value) native;
+  set tabIndex(int? value) native;
 
-  String get title native;
+  String? get title native;
 
-  set title(String value) native;
+  set title(String? value) native;
 
   /**
    * Specifies whether this element's text content changes when the page is
@@ -14496,9 +14592,9 @@ class Element extends Node
    *   from WHATWG.
    */
 
-  bool get translate native;
+  bool? get translate native;
 
-  set translate(bool value) native;
+  set translate(bool? value) native;
 
   void blur() native;
 
@@ -14506,12 +14602,12 @@ class Element extends Node
 
   void focus() native;
 
-  AccessibleNode get accessibleNode native;
+  AccessibleNode? get accessibleNode native;
 
-  SlotElement get assignedSlot native;
+  SlotElement? get assignedSlot native;
 
   @JSName('attributes')
-  _NamedNodeMap get _attributes native;
+  _NamedNodeMap? get _attributes native;
 
   String get className native;
 
@@ -14519,37 +14615,37 @@ class Element extends Node
 
   int get clientHeight native;
 
-  int get clientLeft native;
+  int? get clientLeft native;
 
-  int get clientTop native;
+  int? get clientTop native;
 
   int get clientWidth native;
 
-  String get computedName native;
+  String? get computedName native;
 
-  String get computedRole native;
+  String? get computedRole native;
 
   String get id native;
 
   set id(String value) native;
 
   @JSName('innerHTML')
-  String get _innerHtml native;
+  String? get _innerHtml native;
 
   @JSName('innerHTML')
-  set _innerHtml(String value) native;
+  set _innerHtml(String? value) native;
 
   @JSName('localName')
-  String get _localName native;
+  String? get _localName native;
 
   @JSName('namespaceURI')
-  String get _namespaceUri native;
+  String? get _namespaceUri native;
 
   @JSName('outerHTML')
-  String get outerHtml native;
+  String? get outerHtml native;
 
   @JSName('scrollHeight')
-  int get _scrollHeight native;
+  int? get _scrollHeight native;
 
   @JSName('scrollLeft')
   num get _scrollLeft native;
@@ -14564,13 +14660,13 @@ class Element extends Node
   set _scrollTop(num value) native;
 
   @JSName('scrollWidth')
-  int get _scrollWidth native;
+  int? get _scrollWidth native;
 
-  String get slot native;
+  String? get slot native;
 
-  set slot(String value) native;
+  set slot(String? value) native;
 
-  StylePropertyMap get styleMap native;
+  StylePropertyMap? get styleMap native;
 
   String get tagName native;
 
@@ -14583,15 +14679,15 @@ class Element extends Node
   @JSName('attachShadow')
   ShadowRoot _attachShadow_1(shadowRootInitDict) native;
 
-  Element closest(String selectors) native;
+  Element? closest(String selectors) native;
 
   List<Animation> getAnimations() native;
 
   @JSName('getAttribute')
-  String _getAttribute(String name) native;
+  String? _getAttribute(String name) native;
 
   @JSName('getAttributeNS')
-  String _getAttributeNS(String namespaceURI, String localName) native;
+  String? _getAttributeNS(String? namespaceURI, String localName) native;
 
   List<String> getAttributeNames() native;
 
@@ -14638,7 +14734,7 @@ class Element extends Node
    *   specification](https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
    *   from W3C.
    */
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getDestinationInsertionPoints() native;
 
@@ -14664,7 +14760,7 @@ class Element extends Node
   bool _hasAttribute(String name) native;
 
   @JSName('hasAttributeNS')
-  bool _hasAttributeNS(String namespaceURI, String localName) native;
+  bool _hasAttributeNS(String? namespaceURI, String localName) native;
 
   bool hasPointerCapture(int pointerId) native;
 
@@ -14674,11 +14770,11 @@ class Element extends Node
   void _removeAttribute(String name) native;
 
   @JSName('removeAttributeNS')
-  void _removeAttributeNS(String namespaceURI, String localName) native;
+  void _removeAttributeNS(String? namespaceURI, String localName) native;
 
   void requestPointerLock() native;
 
-  void scroll([options_OR_x, num y]) {
+  void scroll([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
       _scroll_1();
       return;
@@ -14700,9 +14796,9 @@ class Element extends Node
   @JSName('scroll')
   void _scroll_2(options) native;
   @JSName('scroll')
-  void _scroll_3(num x, y) native;
+  void _scroll_3(num? x, y) native;
 
-  void scrollBy([options_OR_x, num y]) {
+  void scrollBy([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
       _scrollBy_1();
       return;
@@ -14724,15 +14820,15 @@ class Element extends Node
   @JSName('scrollBy')
   void _scrollBy_2(options) native;
   @JSName('scrollBy')
-  void _scrollBy_3(num x, y) native;
+  void _scrollBy_3(num? x, y) native;
 
   @JSName('scrollIntoView')
-  void _scrollIntoView([Object arg]) native;
+  void _scrollIntoView([Object? arg]) native;
 
   @JSName('scrollIntoViewIfNeeded')
-  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) native;
+  void _scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
 
-  void scrollTo([options_OR_x, num y]) {
+  void scrollTo([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
       _scrollTo_1();
       return;
@@ -14754,13 +14850,13 @@ class Element extends Node
   @JSName('scrollTo')
   void _scrollTo_2(options) native;
   @JSName('scrollTo')
-  void _scrollTo_3(num x, y) native;
+  void _scrollTo_3(num? x, y) native;
 
   @JSName('setAttribute')
   void _setAttribute(String name, String value) native;
 
   @JSName('setAttributeNS')
-  void _setAttributeNS(String namespaceURI, String name, String value) native;
+  void _setAttributeNS(String? namespaceURI, String name, String value) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -14787,25 +14883,20 @@ class Element extends Node
 
   // From NonDocumentTypeChildNode
 
-  Element get nextElementSibling native;
+  Element? get nextElementSibling native;
 
-  Element get previousElementSibling native;
+  Element? get previousElementSibling native;
 
   // From ParentNode
 
   @JSName('childElementCount')
   int get _childElementCount native;
 
-  @JSName('children')
-  @Returns('HtmlCollection|Null')
-  @Creates('HtmlCollection')
-  List<Node> get _children native;
-
   @JSName('firstElementChild')
-  Element get _firstElementChild native;
+  Element? get _firstElementChild native;
 
   @JSName('lastElementChild')
-  Element get _lastElementChild native;
+  Element? get _lastElementChild native;
 
   /**
    * Finds the first descendant element of this element that matches the
@@ -14823,7 +14914,7 @@ class Element extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  Element querySelector(String selectors) native;
+  Element? querySelector(String selectors) native;
 
   @JSName('querySelectorAll')
   @Creates('NodeList')
@@ -15137,7 +15228,7 @@ class Element extends Node
 class _ElementFactoryProvider {
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static dynamic createElement_tag(String tag, String typeExtension) {
+  static dynamic createElement_tag(String tag, String? typeExtension) {
     // Firefox may return a JS function for some types (Embed, Object).
     if (typeExtension != null) {
       return JS('Element|=Object', 'document.createElement(#, #)', tag,
@@ -15183,7 +15274,7 @@ class EmbedElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory EmbedElement() => document.createElement("embed");
+  factory EmbedElement() => document.createElement("embed") as EmbedElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -15198,9 +15289,9 @@ class EmbedElement extends HtmlElement {
 
   set height(String value) native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   String get src native;
 
@@ -15236,24 +15327,24 @@ class Entry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  FileSystem get filesystem native;
+  FileSystem? get filesystem native;
 
-  String get fullPath native;
+  String? get fullPath native;
 
-  bool get isDirectory native;
+  bool? get isDirectory native;
 
-  bool get isFile native;
+  bool? get isFile native;
 
-  String get name native;
+  String? get name native;
 
   @JSName('copyTo')
   void _copyTo(DirectoryEntry parent,
-      [String name,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [String? name,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('copyTo')
-  Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
+  Future<Entry> copyTo(DirectoryEntry parent, {String? name}) {
     var completer = new Completer<Entry>();
     _copyTo(parent, name, (value) {
       completer.complete(value);
@@ -15265,7 +15356,7 @@ class Entry extends Interceptor {
 
   @JSName('getMetadata')
   void _getMetadata(MetadataCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('getMetadata')
   Future<Metadata> getMetadata() {
@@ -15281,7 +15372,7 @@ class Entry extends Interceptor {
 
   @JSName('getParent')
   void _getParent(
-      [_EntryCallback successCallback, _ErrorCallback errorCallback]) native;
+      [_EntryCallback? successCallback, _ErrorCallback? errorCallback]) native;
 
   @JSName('getParent')
   Future<Entry> getParent() {
@@ -15297,12 +15388,12 @@ class Entry extends Interceptor {
 
   @JSName('moveTo')
   void _moveTo(DirectoryEntry parent,
-      [String name,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [String? name,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('moveTo')
-  Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
+  Future<Entry> moveTo(DirectoryEntry parent, {String? name}) {
     var completer = new Completer<Entry>();
     _moveTo(parent, name, (value) {
       completer.complete(value);
@@ -15313,7 +15404,7 @@ class Entry extends Interceptor {
   }
 
   @JSName('remove')
-  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback])
+  void _remove(VoidCallback successCallback, [_ErrorCallback? errorCallback])
       native;
 
   @JSName('remove')
@@ -15356,7 +15447,7 @@ class ErrorEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ErrorEvent(String type, [Map eventInitDict]) {
+  factory ErrorEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ErrorEvent._create_1(type, eventInitDict_1);
@@ -15368,16 +15459,16 @@ class ErrorEvent extends Event {
   static ErrorEvent _create_2(type) =>
       JS('ErrorEvent', 'new ErrorEvent(#)', type);
 
-  int get colno native;
+  int? get colno native;
 
   @Creates('Null')
-  Object get error native;
+  Object? get error native;
 
-  String get filename native;
+  String? get filename native;
 
-  int get lineno native;
+  int? get lineno native;
 
-  String get message native;
+  String? get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15414,8 +15505,8 @@ class Event extends Interceptor {
   }
 
   /** The CSS selector involved with event delegation. */
-  String get _selector native;
-  set _selector(String value) native;
+  String? get _selector native;
+  set _selector(String? value) native;
 
   /**
    * A pointer to the element whose CSS selector matched within which an event
@@ -15427,20 +15518,20 @@ class Event extends Interceptor {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
+    Element? currentTarget = this.currentTarget as Element?;
+    Element? target = this.target as Element?;
     var matchedTarget;
     do {
-      if (target.matches(_selector)) return target;
+      if (target!.matches(_selector!)) return target;
       target = target.parent;
-    } while (target != null && target != currentTarget.parent);
+    } while (target != null && target != currentTarget!.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
 
   List<EventTarget> get path =>
       JS<bool>('bool', '!!#.composedPath', this) ? composedPath() : [];
 
-  factory Event._(String type, [Map eventInitDict]) {
+  factory Event._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return Event._create_1(type, eventInitDict_1);
@@ -15482,13 +15573,13 @@ class Event extends Interceptor {
    */
   static const int CAPTURING_PHASE = 1;
 
-  bool get bubbles native;
+  bool? get bubbles native;
 
-  bool get cancelable native;
+  bool? get cancelable native;
 
-  bool get composed native;
+  bool? get composed native;
 
-  EventTarget get currentTarget =>
+  EventTarget? get currentTarget =>
       _convertNativeToDart_EventTarget(this._get_currentTarget);
   @JSName('currentTarget')
   @Creates('Null')
@@ -15499,22 +15590,22 @@ class Event extends Interceptor {
 
   int get eventPhase native;
 
-  bool get isTrusted native;
+  bool? get isTrusted native;
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
+  EventTarget? get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @Creates('Node')
   @Returns('EventTarget|=Object')
   dynamic get _get_target native;
 
-  num get timeStamp native;
+  num? get timeStamp native;
 
   String get type native;
 
   List<EventTarget> composedPath() native;
 
   @JSName('initEvent')
-  void _initEvent(String type, [bool bubbles, bool cancelable]) native;
+  void _initEvent(String type, [bool? bubbles, bool? cancelable]) native;
 
   void preventDefault() native;
 
@@ -15567,7 +15658,7 @@ class EventSource extends EventTarget {
       const EventStreamProvider<Event>('open');
 
   static EventSource _factoryEventSource(String url,
-      [Map eventSourceInitDict]) {
+      [Map? eventSourceInitDict]) {
     if (eventSourceInitDict != null) {
       var eventSourceInitDict_1 =
           convertDartToNative_Dictionary(eventSourceInitDict);
@@ -15587,11 +15678,11 @@ class EventSource extends EventTarget {
 
   static const int OPEN = 1;
 
-  int get readyState native;
+  int? get readyState native;
 
-  String get url native;
+  String? get url native;
 
-  bool get withCredentials native;
+  bool? get withCredentials native;
 
   void close() native;
 
@@ -15703,8 +15794,8 @@ class EventTarget extends Interceptor {
    */
   Events get on => new Events(this);
 
-  void addEventListener(String type, EventListener listener,
-      [bool useCapture]) {
+  void addEventListener(String type, EventListener? listener,
+      [bool? useCapture]) {
     // TODO(leafp): This check is avoid a bug in our dispatch code when
     // listener is null.  The browser treats this call as a no-op in this
     // case, so it's fine to short-circuit it, but we should not have to.
@@ -15713,8 +15804,8 @@ class EventTarget extends Interceptor {
     }
   }
 
-  void removeEventListener(String type, EventListener listener,
-      [bool useCapture]) {
+  void removeEventListener(String type, EventListener? listener,
+      [bool? useCapture]) {
     // TODO(leafp): This check is avoid a bug in our dispatch code when
     // listener is null.  The browser treats this call as a no-op in this
     // case, so it's fine to short-circuit it, but we should not have to.
@@ -15729,14 +15820,14 @@ class EventTarget extends Interceptor {
   }
 
   @JSName('addEventListener')
-  void _addEventListener(String type, EventListener listener, [bool options])
+  void _addEventListener(String type, EventListener? listener, [bool? options])
       native;
 
   bool dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  void _removeEventListener(String type, EventListener listener, [bool options])
-      native;
+  void _removeEventListener(String type, EventListener? listener,
+      [bool? options]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15749,7 +15840,7 @@ class ExtendableEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ExtendableEvent(String type, [Map eventInitDict]) {
+  factory ExtendableEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ExtendableEvent._create_1(type, eventInitDict_1);
@@ -15776,17 +15867,17 @@ class ExtendableMessageEvent extends ExtendableEvent {
 
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  Object get data native;
+  Object? get data native;
 
-  String get lastEventId native;
+  String? get lastEventId native;
 
-  String get origin native;
+  String? get origin native;
 
-  List<MessagePort> get ports native;
+  List<MessagePort>? get ports native;
 
   @Creates('Client|ServiceWorker|MessagePort')
   @Returns('Client|ServiceWorker|MessagePort|Null')
-  Object get source native;
+  Object? get source native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15814,7 +15905,7 @@ class FaceDetector extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FaceDetector([Map faceDetectorOptions]) {
+  factory FaceDetector([Map? faceDetectorOptions]) {
     if (faceDetectorOptions != null) {
       var faceDetectorOptions_1 =
           convertDartToNative_Dictionary(faceDetectorOptions);
@@ -15847,16 +15938,16 @@ class FederatedCredential extends Credential implements CredentialUserData {
   static FederatedCredential _create_1(data) =>
       JS('FederatedCredential', 'new FederatedCredential(#)', data);
 
-  String get protocol native;
+  String? get protocol native;
 
-  String get provider native;
+  String? get provider native;
 
   // From CredentialUserData
 
   @JSName('iconURL')
-  String get iconUrl native;
+  String? get iconUrl native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15876,14 +15967,14 @@ class FetchEvent extends ExtendableEvent {
   static FetchEvent _create_1(type, eventInitDict) =>
       JS('FetchEvent', 'new FetchEvent(#,#)', type, eventInitDict);
 
-  String get clientId native;
+  String? get clientId native;
 
-  bool get isReload native;
+  bool? get isReload native;
 
   Future get preloadResponse =>
       promiseToFuture(JS("", "#.preloadResponse", this));
 
-  _Request get request native;
+  _Request? get request native;
 
   void respondWith(Future r) native;
 }
@@ -15899,7 +15990,7 @@ class FieldSetElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FieldSetElement() => JS(
+  factory FieldSetElement() => JS<FieldSetElement>(
       'returns:FieldSetElement;creates:FieldSetElement;new:true',
       '#.createElement(#)',
       document,
@@ -15911,15 +16002,15 @@ class FieldSetElement extends HtmlElement {
    */
   FieldSetElement.created() : super.created();
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
-  List<Node> get elements native;
+  List<Node>? get elements native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   String get name native;
 
@@ -15950,7 +16041,7 @@ class File extends Blob {
     throw new UnsupportedError("Not supported");
   }
 
-  factory File(List<Object> fileBits, String fileName, [Map options]) {
+  factory File(List<Object> fileBits, String fileName, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return File._create_1(fileBits, fileName, options_1);
@@ -15962,7 +16053,7 @@ class File extends Blob {
   static File _create_2(fileBits, fileName) =>
       JS('File', 'new File(#,#)', fileBits, fileName);
 
-  int get lastModified native;
+  int? get lastModified native;
 
   DateTime get lastModifiedDate =>
       convertNativeToDart_DateTime(this._get_lastModifiedDate);
@@ -15975,7 +16066,7 @@ class File extends Blob {
   @JSName('webkitRelativePath')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  String get relativePath native;
+  String? get relativePath native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15983,7 +16074,7 @@ class File extends Blob {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _FileCallback(File file);
+typedef void _FileCallback(File? file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15997,7 +16088,7 @@ class FileEntry extends Entry {
 
   @JSName('createWriter')
   void _createWriter(_FileWriterCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('createWriter')
   Future<FileWriter> createWriter() {
@@ -16012,7 +16103,7 @@ class FileEntry extends Entry {
   }
 
   @JSName('file')
-  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback])
+  void _file(_FileCallback successCallback, [_ErrorCallback? errorCallback])
       native;
 
   @JSName('file')
@@ -16085,7 +16176,7 @@ class FileList extends Interceptor
   File elementAt(int index) => this[index];
   // -- end List<File> mixins.
 
-  File item(int index) native;
+  File? item(int index) native;
 }
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16093,7 +16184,7 @@ class FileList extends Interceptor
 
 @Native("FileReader")
 class FileReader extends EventTarget {
-  Object get result {
+  Object? get result {
     var res = JS('Null|String|NativeByteBuffer', '#.result', this);
     if (res is ByteBuffer) {
       return new Uint8List.view(res);
@@ -16171,7 +16262,7 @@ class FileReader extends EventTarget {
 
   static const int LOADING = 1;
 
-  DomException get error native;
+  DomException? get error native;
 
   int get readyState native;
 
@@ -16182,7 +16273,7 @@ class FileReader extends EventTarget {
   @JSName('readAsDataURL')
   void readAsDataUrl(Blob blob) native;
 
-  void readAsText(Blob blob, [String label]) native;
+  void readAsText(Blob blob, [String? label]) native;
 
   /// Stream of `abort` events handled by this [FileReader].
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -16217,9 +16308,9 @@ class FileSystem extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
 
-  String get name native;
+  String? get name native;
 
-  DirectoryEntry get root native;
+  DirectoryEntry? get root native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16299,13 +16390,13 @@ class FileWriter extends EventTarget {
 
   static const int WRITING = 1;
 
-  DomException get error native;
+  DomException? get error native;
 
-  int get length native;
+  int? get length native;
 
-  int get position native;
+  int? get position native;
 
-  int get readyState native;
+  int? get readyState native;
 
   void abort() native;
 
@@ -16351,7 +16442,7 @@ class FocusEvent extends UIEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FocusEvent(String type, [Map eventInitDict]) {
+  factory FocusEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return FocusEvent._create_1(type, eventInitDict_1);
@@ -16363,7 +16454,7 @@ class FocusEvent extends UIEvent {
   static FocusEvent _create_2(type) =>
       JS('FocusEvent', 'new FocusEvent(#)', type);
 
-  EventTarget get relatedTarget =>
+  EventTarget? get relatedTarget =>
       _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @Creates('Null')
@@ -16380,7 +16471,7 @@ class FontFace extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FontFace(String family, Object source, [Map descriptors]) {
+  factory FontFace(String family, Object source, [Map? descriptors]) {
     if (descriptors != null) {
       var descriptors_1 = convertDartToNative_Dictionary(descriptors);
       return FontFace._create_1(family, source, descriptors_1);
@@ -16392,45 +16483,45 @@ class FontFace extends Interceptor {
   static FontFace _create_2(family, source) =>
       JS('FontFace', 'new FontFace(#,#)', family, source);
 
-  String get display native;
+  String? get display native;
 
-  set display(String value) native;
+  set display(String? value) native;
 
-  String get family native;
+  String? get family native;
 
-  set family(String value) native;
+  set family(String? value) native;
 
-  String get featureSettings native;
+  String? get featureSettings native;
 
-  set featureSettings(String value) native;
+  set featureSettings(String? value) native;
 
   Future<FontFace> get loaded =>
-      promiseToFuture<FontFace>(JS("", "#.loaded", this));
+      promiseToFuture<FontFace>(JS("creates:FontFace;", "#.loaded", this));
 
-  String get status native;
+  String? get status native;
 
-  String get stretch native;
+  String? get stretch native;
 
-  set stretch(String value) native;
+  set stretch(String? value) native;
 
-  String get style native;
+  String? get style native;
 
-  set style(String value) native;
+  set style(String? value) native;
 
-  String get unicodeRange native;
+  String? get unicodeRange native;
 
-  set unicodeRange(String value) native;
+  set unicodeRange(String? value) native;
 
-  String get variant native;
+  String? get variant native;
 
-  set variant(String value) native;
+  set variant(String? value) native;
 
-  String get weight native;
+  String? get weight native;
 
-  set weight(String value) native;
+  set weight(String? value) native;
 
   Future<FontFace> load() =>
-      promiseToFuture<FontFace>(JS("", "#.load()", this));
+      promiseToFuture<FontFace>(JS("creates:FontFace;", "#.load()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16452,17 +16543,17 @@ class FontFaceSet extends EventTarget {
   static const EventStreamProvider<FontFaceSetLoadEvent> loadingErrorEvent =
       const EventStreamProvider<FontFaceSetLoadEvent>('loadingerror');
 
-  String get status native;
+  String? get status native;
 
   FontFaceSet add(FontFace arg) native;
 
-  bool check(String font, [String text]) native;
+  bool check(String font, [String? text]) native;
 
   void clear() native;
 
   bool delete(FontFace arg) native;
 
-  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) native;
+  void forEach(FontFaceSetForEachCallback callback, [Object? thisArg]) native;
 
   bool has(FontFace arg) native;
 
@@ -16485,7 +16576,7 @@ class FontFaceSetLoadEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FontFaceSetLoadEvent(String type, [Map eventInitDict]) {
+  factory FontFaceSetLoadEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return FontFaceSetLoadEvent._create_1(type, eventInitDict_1);
@@ -16500,7 +16591,7 @@ class FontFaceSetLoadEvent extends Event {
   static FontFaceSetLoadEvent _create_2(type) =>
       JS('FontFaceSetLoadEvent', 'new FontFaceSetLoadEvent(#)', type);
 
-  List<FontFace> get fontfaces native;
+  List<FontFace>? get fontfaces native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16513,7 +16604,7 @@ class FontFaceSource extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  FontFaceSet get fonts native;
+  FontFaceSet? get fonts native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16533,9 +16624,9 @@ class ForeignFetchEvent extends ExtendableEvent {
   static ForeignFetchEvent _create_1(type, eventInitDict) => JS(
       'ForeignFetchEvent', 'new ForeignFetchEvent(#,#)', type, eventInitDict);
 
-  String get origin native;
+  String? get origin native;
 
-  _Request get request native;
+  _Request? get request native;
 
   void respondWith(Future r) native;
 }
@@ -16554,7 +16645,7 @@ class FormData extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FormData([FormElement form]) {
+  factory FormData([FormElement? form]) {
     if (form != null) {
       return FormData._create_1(form);
     }
@@ -16569,17 +16660,17 @@ class FormData extends Interceptor {
   void append(String name, String value) native;
 
   @JSName('append')
-  void appendBlob(String name, Blob value, [String filename]) native;
+  void appendBlob(String name, Blob value, [String? filename]) native;
 
   void delete(String name) native;
 
-  Object get(String name) native;
+  Object? get(String name) native;
 
   List<Object> getAll(String name) native;
 
   bool has(String name) native;
 
-  void set(String name, value, [String filename]) native;
+  void set(String name, value, [String? filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16592,7 +16683,7 @@ class FormElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FormElement() => JS(
+  factory FormElement() => JS<FormElement>(
       'returns:FormElement;creates:FormElement;new:true',
       '#.createElement(#)',
       document,
@@ -16604,45 +16695,45 @@ class FormElement extends HtmlElement {
    */
   FormElement.created() : super.created();
 
-  String get acceptCharset native;
+  String? get acceptCharset native;
 
-  set acceptCharset(String value) native;
+  set acceptCharset(String? value) native;
 
-  String get action native;
+  String? get action native;
 
-  set action(String value) native;
+  set action(String? value) native;
 
-  String get autocomplete native;
+  String? get autocomplete native;
 
-  set autocomplete(String value) native;
+  set autocomplete(String? value) native;
 
-  String get encoding native;
+  String? get encoding native;
 
-  set encoding(String value) native;
+  set encoding(String? value) native;
 
-  String get enctype native;
+  String? get enctype native;
 
-  set enctype(String value) native;
+  set enctype(String? value) native;
 
-  int get length native;
+  int? get length native;
 
-  String get method native;
+  String? get method native;
 
-  set method(String value) native;
+  set method(String? value) native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  bool get noValidate native;
+  bool? get noValidate native;
 
-  set noValidate(bool value) native;
+  set noValidate(bool? value) native;
 
-  String get target native;
+  String? get target native;
 
-  set target(String value) native;
+  set target(String? value) native;
 
-  Object __getter__(String name) native;
+  Object? __getter__(String name) native;
 
   bool checkValidity() native;
 
@@ -16650,7 +16741,7 @@ class FormElement extends HtmlElement {
 
   bool reportValidity() native;
 
-  void requestAutocomplete(Map details) {
+  void requestAutocomplete(Map? details) {
     var details_1 = convertDartToNative_Dictionary(details);
     _requestAutocomplete_1(details_1);
     return;
@@ -16688,27 +16779,27 @@ class Gamepad extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  List<num> get axes native;
+  List<num>? get axes native;
 
   @Creates('JSExtendableArray|GamepadButton')
   @Returns('JSExtendableArray')
-  List<GamepadButton> get buttons native;
+  List<GamepadButton>? get buttons native;
 
-  bool get connected native;
+  bool? get connected native;
 
-  int get displayId native;
+  int? get displayId native;
 
-  String get hand native;
+  String? get hand native;
 
-  String get id native;
+  String? get id native;
 
-  int get index native;
+  int? get index native;
 
-  String get mapping native;
+  String? get mapping native;
 
-  GamepadPose get pose native;
+  GamepadPose? get pose native;
 
-  int get timestamp native;
+  int? get timestamp native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16721,11 +16812,11 @@ class GamepadButton extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get pressed native;
+  bool? get pressed native;
 
-  bool get touched native;
+  bool? get touched native;
 
-  num get value native;
+  num? get value native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16738,7 +16829,7 @@ class GamepadEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory GamepadEvent(String type, [Map eventInitDict]) {
+  factory GamepadEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return GamepadEvent._create_1(type, eventInitDict_1);
@@ -16750,7 +16841,7 @@ class GamepadEvent extends Event {
   static GamepadEvent _create_2(type) =>
       JS('GamepadEvent', 'new GamepadEvent(#)', type);
 
-  Gamepad get gamepad native;
+  Gamepad? get gamepad native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16763,21 +16854,21 @@ class GamepadPose extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Float32List get angularAcceleration native;
+  Float32List? get angularAcceleration native;
 
-  Float32List get angularVelocity native;
+  Float32List? get angularVelocity native;
 
-  bool get hasOrientation native;
+  bool? get hasOrientation native;
 
-  bool get hasPosition native;
+  bool? get hasPosition native;
 
-  Float32List get linearAcceleration native;
+  Float32List? get linearAcceleration native;
 
-  Float32List get linearVelocity native;
+  Float32List? get linearVelocity native;
 
-  Float32List get orientation native;
+  Float32List? get orientation native;
 
-  Float32List get position native;
+  Float32List? get position native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16787,7 +16878,7 @@ class GamepadPose extends Interceptor {
 @Native("Geolocation")
 class Geolocation extends Interceptor {
   Future<Geoposition> getCurrentPosition(
-      {bool enableHighAccuracy, Duration timeout, Duration maximumAge}) {
+      {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -16812,7 +16903,7 @@ class Geolocation extends Interceptor {
   }
 
   Stream<Geoposition> watchPosition(
-      {bool enableHighAccuracy, Duration timeout, Duration maximumAge}) {
+      {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -16824,13 +16915,13 @@ class Geolocation extends Interceptor {
       options['maximumAge'] = maximumAge.inMilliseconds;
     }
 
-    int watchId;
+    int? watchId;
     StreamController<Geoposition> controller =
         new StreamController<Geoposition>(
             sync: true,
             onCancel: () {
               assert(watchId != null);
-              _clearWatch(watchId);
+              _clearWatch(watchId!);
             });
     controller.onListen = () {
       assert(watchId == null);
@@ -16863,7 +16954,7 @@ class Geolocation extends Interceptor {
   void _clearWatch(int watchID) native;
 
   void _getCurrentPosition(_PositionCallback successCallback,
-      [_PositionErrorCallback errorCallback, Map options]) {
+      [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
       var successCallback_1 = convertDartClosureToJS(successCallback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -16882,15 +16973,15 @@ class Geolocation extends Interceptor {
 
   @JSName('getCurrentPosition')
   void _getCurrentPosition_1(
-      successCallback, _PositionErrorCallback errorCallback, options) native;
+      successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('getCurrentPosition')
   void _getCurrentPosition_2(
-      successCallback, _PositionErrorCallback errorCallback) native;
+      successCallback, _PositionErrorCallback? errorCallback) native;
   @JSName('getCurrentPosition')
   void _getCurrentPosition_3(successCallback) native;
 
   int _watchPosition(_PositionCallback successCallback,
-      [_PositionErrorCallback errorCallback, Map options]) {
+      [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
       var successCallback_1 = convertDartClosureToJS(successCallback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -16906,9 +16997,9 @@ class Geolocation extends Interceptor {
 
   @JSName('watchPosition')
   int _watchPosition_1(
-      successCallback, _PositionErrorCallback errorCallback, options) native;
+      successCallback, _PositionErrorCallback? errorCallback, options) native;
   @JSName('watchPosition')
-  int _watchPosition_2(successCallback, _PositionErrorCallback errorCallback)
+  int _watchPosition_2(successCallback, _PositionErrorCallback? errorCallback)
       native;
   @JSName('watchPosition')
   int _watchPosition_3(successCallback) native;
@@ -16937,9 +17028,9 @@ class Geoposition extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Coordinates get coords native;
+  Coordinates? get coords native;
 
-  int get timestamp native;
+  int? get timestamp native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16949,11 +17040,11 @@ class Geoposition extends Interceptor {
 // convince the scripts to make our instance methods abstract, and the bodies that
 // get generated require `this` to be an EventTarget.
 abstract class GlobalEventHandlers implements EventTarget {
-  void addEventListener(String type, dynamic listener(Event event),
-      [bool useCapture]);
+  void addEventListener(String type, dynamic listener(Event event)?,
+      [bool? useCapture]);
   bool dispatchEvent(Event event);
-  void removeEventListener(String type, dynamic listener(Event event),
-      [bool useCapture]);
+  void removeEventListener(String type, dynamic listener(Event event)?,
+      [bool? useCapture]);
   Events get on;
 
   // To suppress missing implicit constructor warnings.
@@ -17259,7 +17350,7 @@ class Gyroscope extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Gyroscope([Map sensorOptions]) {
+  factory Gyroscope([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return Gyroscope._create_1(sensorOptions_1);
@@ -17270,11 +17361,11 @@ class Gyroscope extends Sensor {
       JS('Gyroscope', 'new Gyroscope(#)', sensorOptions);
   static Gyroscope _create_2() => JS('Gyroscope', 'new Gyroscope()');
 
-  num get x native;
+  num? get x native;
 
-  num get y native;
+  num? get y native;
 
-  num get z native;
+  num? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17290,8 +17381,11 @@ class HRElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HRElement() => JS('returns:HRElement;creates:HRElement;new:true',
-      '#.createElement(#)', document, "hr");
+  factory HRElement() => JS<HRElement>(
+      'returns:HRElement;creates:HRElement;new:true',
+      '#.createElement(#)',
+      document,
+      "hr");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -17318,8 +17412,8 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true,
       bool cancelable: true,
-      String oldUrl,
-      String newUrl}) {
+      String? oldUrl,
+      String? newUrl}) {
     var options = {
       'canBubble': canBubble,
       'cancelable': cancelable,
@@ -17330,7 +17424,7 @@ class HashChangeEvent extends Event {
         convertDartToNative_Dictionary(options));
   }
 
-  factory HashChangeEvent._(String type, [Map eventInitDict]) {
+  factory HashChangeEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return HashChangeEvent._create_1(type, eventInitDict_1);
@@ -17346,10 +17440,10 @@ class HashChangeEvent extends Event {
   static bool get supported => Device.isEventTypeSupported('HashChangeEvent');
 
   @JSName('newURL')
-  String get newUrl native;
+  String? get newUrl native;
 
   @JSName('oldURL')
-  String get oldUrl native;
+  String? get oldUrl native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17362,7 +17456,7 @@ class HeadElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HeadElement() => JS(
+  factory HeadElement() => JS<HeadElement>(
       'returns:HeadElement;creates:HeadElement;new:true',
       '#.createElement(#)',
       document,
@@ -17385,7 +17479,7 @@ class Headers extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Headers([Object init]) {
+  factory Headers([Object? init]) {
     if (init != null) {
       return Headers._create_1(init);
     }
@@ -17405,37 +17499,37 @@ class HeadingElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HeadingElement.h1() => JS(
+  factory HeadingElement.h1() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h1");
 
-  factory HeadingElement.h2() => JS(
+  factory HeadingElement.h2() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h2");
 
-  factory HeadingElement.h3() => JS(
+  factory HeadingElement.h3() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h3");
 
-  factory HeadingElement.h4() => JS(
+  factory HeadingElement.h4() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h4");
 
-  factory HeadingElement.h5() => JS(
+  factory HeadingElement.h5() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h5");
 
-  factory HeadingElement.h6() => JS(
+  factory HeadingElement.h6() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
@@ -17470,9 +17564,9 @@ class History extends Interceptor implements HistoryBase {
 
   int get length native;
 
-  String get scrollRestoration native;
+  String? get scrollRestoration native;
 
-  set scrollRestoration(String value) native;
+  set scrollRestoration(String? value) native;
 
   dynamic get state =>
       convertNativeToDart_SerializedScriptValue(this._get_state);
@@ -17485,13 +17579,13 @@ class History extends Interceptor implements HistoryBase {
 
   void forward() native;
 
-  void go([int delta]) native;
+  void go([int? delta]) native;
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(/*SerializedScriptValue*/ data, String title, String url) {
+  void pushState(/*SerializedScriptValue*/ data, String title, String? url) {
     var data_1 = convertDartToNative_SerializedScriptValue(data);
     _pushState_1(data_1, title, url);
     return;
@@ -17508,7 +17602,7 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(/*SerializedScriptValue*/ data, String title, String url) {
+  void replaceState(/*SerializedScriptValue*/ data, String title, String? url) {
     var data_1 = convertDartToNative_SerializedScriptValue(data);
     _replaceState_1(data_1, title, url);
     return;
@@ -17579,9 +17673,9 @@ class HtmlCollection extends Interceptor
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
-  Node item(int index) native;
+  Node? item(int? index) native;
 
-  Object namedItem(String name) native;
+  Object? namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17596,33 +17690,33 @@ class HtmlDocument extends Document {
     throw new UnsupportedError("Not supported");
   }
 
-  BodyElement get body native;
-  set body(BodyElement value) native;
+  BodyElement? get body native;
+  set body(BodyElement? value) native;
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
   @Unstable()
-  Range caretRangeFromPoint(int x, int y) {
+  Range caretRangeFromPoint(int? x, int? y) {
     return _caretRangeFromPoint(x, y);
   }
 
-  Element elementFromPoint(int x, int y) {
+  Element? elementFromPoint(int x, int y) {
     return _elementFromPoint(x, y);
   }
 
-  HeadElement get head => _head;
+  HeadElement? get head => _head;
 
-  String get lastModified => _lastModified;
+  String? get lastModified => _lastModified;
 
-  String get preferredStylesheetSet => _preferredStylesheetSet;
+  String? get preferredStylesheetSet => _preferredStylesheetSet;
 
   String get referrer => _referrer;
 
-  String get selectedStylesheetSet => _selectedStylesheetSet;
-  set selectedStylesheetSet(String value) {
+  String? get selectedStylesheetSet => _selectedStylesheetSet;
+  set selectedStylesheetSet(String? value) {
     _selectedStylesheetSet = value;
   }
 
-  List<StyleSheet> get styleSheets => _styleSheets;
+  List<StyleSheet>? get styleSheets => _styleSheets;
 
   String get title => _title;
 
@@ -17689,13 +17783,13 @@ class HtmlDocument extends Document {
    * `<input is="x-bar"></input>`
    *
    */
-  Function registerElement2(String tag, [Map options]) {
+  Function registerElement2(String tag, [Map? options]) {
     return _registerCustomElement(JS('', 'window'), this, tag, options);
   }
 
   /** *Deprecated*: use [registerElement] instead. */
   @deprecated
-  void register(String tag, Type customElementClass, {String extendsTag}) {
+  void register(String tag, Type customElementClass, {String? extendsTag}) {
     return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
@@ -17739,7 +17833,7 @@ class HtmlDocument extends Document {
   ///
   /// If the type is not a direct subclass of HtmlElement then the extendsTag
   /// parameter must be provided.
-  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+  ElementUpgrader createElementUpgrader(Type type, {String? extendsTag}) {
     return new _JSElementUpgrader(this, type, extendsTag);
   }
 }
@@ -17754,7 +17848,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
     throw new UnsupportedError("Not supported");
   }
 
-  Object namedItem(String name) native;
+  Object? namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17767,7 +17861,7 @@ class HtmlHtmlElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HtmlHtmlElement() => JS(
+  factory HtmlHtmlElement() => JS<HtmlHtmlElement>(
       'returns:HtmlHtmlElement;creates:HtmlHtmlElement;new:true',
       '#.createElement(#)',
       document,
@@ -17790,47 +17884,47 @@ class HtmlHyperlinkElementUtils extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get hash native;
+  String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
-  String get host native;
+  String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
-  String get hostname native;
+  String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
-  String get href native;
+  String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
-  String get origin native;
+  String? get origin native;
 
-  String get password native;
+  String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
-  String get pathname native;
+  String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
-  String get port native;
+  String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
-  String get protocol native;
+  String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
-  String get search native;
+  String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
-  String get username native;
+  String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17844,7 +17938,7 @@ class HtmlOptionsCollection extends HtmlCollection {
   }
 
   @JSName('item')
-  Element _item(int index) native;
+  Element? _item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17879,19 +17973,12 @@ class HtmlOptionsCollection extends HtmlCollection {
   * as the requested resource.
   * In the example above, the myData.json file must be co-located with the
   * app that uses it.
-  * You might be able to
-  * [get around this restriction](http://www.dartlang.org/articles/json-web-service/#a-note-on-cors-and-httprequest)
-  * by using CORS headers or JSONP.
   *
   * ## Other resources
   *
-  * * [Fetch Data Dynamically](https://www.dartlang.org/docs/tutorials/fetchdata/),
-  * a tutorial from _A Game of Darts_,
-  * shows two different ways to use HttpRequest to get a JSON file.
-  * * [Get Input from a Form](https://www.dartlang.org/docs/tutorials/forms/),
-  * another tutorial from _A Game of Darts_,
-  * shows using HttpRequest with a custom server.
-  * * [Dart article on using HttpRequests](http://www.dartlang.org/articles/json-web-service/#getting-data)
+  * * [Fetch data dynamically](https://dart.dev/tutorials/web/fetch-data/),
+  * a tutorial shows how to load data from a static file or from a server.
+  * * [Dart article on using HttpRequests](https://dart.dev/guides/libraries/library-tour#using-http-resources-with-httprequest)
   * * [JS XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest)
   * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
@@ -17919,10 +18006,10 @@ class HttpRequest extends HttpRequestEventTarget {
    * * [request]
    */
   static Future<String> getString(String url,
-      {bool withCredentials, void onProgress(ProgressEvent e)}) {
+      {bool? withCredentials, void onProgress(ProgressEvent e)?}) {
     return request(url,
             withCredentials: withCredentials, onProgress: onProgress)
-        .then((HttpRequest xhr) => xhr.responseText);
+        .then((HttpRequest xhr) => xhr.responseText!);
   }
 
   /**
@@ -17951,10 +18038,10 @@ class HttpRequest extends HttpRequestEventTarget {
    * * [request]
    */
   static Future<HttpRequest> postFormData(String url, Map<String, String> data,
-      {bool withCredentials,
-      String responseType,
-      Map<String, String> requestHeaders,
-      void onProgress(ProgressEvent e)}) {
+      {bool? withCredentials,
+      String? responseType,
+      Map<String, String>? requestHeaders,
+      void onProgress(ProgressEvent e)?}) {
     var parts = [];
     data.forEach((key, value) {
       parts.add('${Uri.encodeQueryComponent(key)}='
@@ -18032,13 +18119,13 @@ class HttpRequest extends HttpRequestEventTarget {
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method,
-      bool withCredentials,
-      String responseType,
-      String mimeType,
-      Map<String, String> requestHeaders,
+      {String? method,
+      bool? withCredentials,
+      String? responseType,
+      String? mimeType,
+      Map<String, String>? requestHeaders,
       sendData,
-      void onProgress(ProgressEvent e)}) {
+      void onProgress(ProgressEvent e)?}) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
@@ -18070,15 +18157,16 @@ class HttpRequest extends HttpRequestEventTarget {
     }
 
     xhr.onLoad.listen((e) {
-      var accepted = xhr.status >= 200 && xhr.status < 300;
-      var fileUri = xhr.status == 0; // file:// URIs have status of 0.
-      var notModified = xhr.status == 304;
+      var status = xhr.status!;
+      var accepted = status >= 200 && status < 300;
+      var fileUri = status == 0; // file:// URIs have status of 0.
+      var notModified = status == 304;
       // Redirect status is specified up to 307, but others have been used in
       // practice. Notably Google Drive uses 308 Resume Incomplete for
       // resumable uploads, and it's also been used as a redirect. The
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
-      var unknownRedirect = xhr.status > 307 && xhr.status < 400;
+      var unknownRedirect = status > 307 && status < 400;
 
       if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
@@ -18142,10 +18230,10 @@ class HttpRequest extends HttpRequestEventTarget {
    * cross-origin support is not required then [request] should be used instead.
    */
   static Future<String> requestCrossOrigin(String url,
-      {String method, String sendData}) {
+      {String? method, String? sendData}) {
     if (supportsCrossOrigin) {
       return request(url, method: method, sendData: sendData).then((xhr) {
-        return xhr.responseText;
+        return xhr.responseText!;
       });
     }
     var completer = new Completer<String>();
@@ -18160,7 +18248,7 @@ class HttpRequest extends HttpRequestEventTarget {
         xhr,
         convertDartClosureToJS((e) {
           var response = JS('String', '#.responseText', xhr);
-          completer.complete(response);
+          completer.complete(response as FutureOr<String>?);
         }, 1));
     JS(
         '',
@@ -18238,7 +18326,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * finer-grained control is needed.
    */
   void open(String method, String url,
-      {bool async, String user, String password}) native;
+      {bool? async, String? user, String? password}) native;
 
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() {
@@ -18352,7 +18440,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * The response in String form or empty String on failure.
    */
 
-  String get responseText native;
+  String? get responseText native;
 
   /**
    * [String] telling the server the desired response format.
@@ -18371,7 +18459,7 @@ class HttpRequest extends HttpRequestEventTarget {
   set responseType(String value) native;
 
   @JSName('responseURL')
-  String get responseUrl native;
+  String? get responseUrl native;
 
   @JSName('responseXML')
 
@@ -18383,21 +18471,21 @@ class HttpRequest extends HttpRequestEventTarget {
    * synchronous.
    */
 
-  Document get responseXml native;
+  Document? get responseXml native;
 
   /**
    * The HTTP result code from the request (200, 404, etc).
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
 
-  int get status native;
+  int? get status native;
 
   /**
    * The request response string (such as \"OK\").
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
 
-  String get statusText native;
+  String? get statusText native;
 
   /**
    * Length of time in milliseconds before a request is automatically
@@ -18415,9 +18503,9 @@ class HttpRequest extends HttpRequestEventTarget {
    *   from W3C.
    */
 
-  int get timeout native;
+  int? get timeout native;
 
-  set timeout(int value) native;
+  set timeout(int? value) native;
 
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
@@ -18433,9 +18521,9 @@ class HttpRequest extends HttpRequestEventTarget {
    * This value is ignored for same-site requests.
    */
 
-  bool get withCredentials native;
+  bool? get withCredentials native;
 
-  set withCredentials(bool value) native;
+  set withCredentials(bool? value) native;
 
   /**
    * Stop the current request.
@@ -18468,7 +18556,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * for a list of common response headers.
    */
   @Unstable()
-  String getResponseHeader(String name) native;
+  String? getResponseHeader(String name) native;
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -18648,7 +18736,7 @@ class IFrameElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory IFrameElement() => JS(
+  factory IFrameElement() => JS<IFrameElement>(
       'returns:IFrameElement;creates:IFrameElement;new:true',
       '#.createElement(#)',
       document,
@@ -18660,54 +18748,54 @@ class IFrameElement extends HtmlElement {
    */
   IFrameElement.created() : super.created();
 
-  String get allow native;
+  String? get allow native;
 
-  set allow(String value) native;
+  set allow(String? value) native;
 
-  bool get allowFullscreen native;
+  bool? get allowFullscreen native;
 
-  set allowFullscreen(bool value) native;
+  set allowFullscreen(bool? value) native;
 
-  bool get allowPaymentRequest native;
+  bool? get allowPaymentRequest native;
 
-  set allowPaymentRequest(bool value) native;
+  set allowPaymentRequest(bool? value) native;
 
-  WindowBase get contentWindow =>
+  WindowBase? get contentWindow =>
       _convertNativeToDart_Window(this._get_contentWindow);
   @JSName('contentWindow')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   dynamic get _get_contentWindow native;
 
-  String get csp native;
+  String? get csp native;
 
-  set csp(String value) native;
+  set csp(String? value) native;
 
-  String get height native;
+  String? get height native;
 
-  set height(String value) native;
+  set height(String? value) native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  String get referrerPolicy native;
+  String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
-  DomTokenList get sandbox native;
+  DomTokenList? get sandbox native;
 
-  String get src native;
+  String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
-  String get srcdoc native;
+  String? get srcdoc native;
 
-  set srcdoc(String value) native;
+  set srcdoc(String? value) native;
 
-  String get width native;
+  String? get width native;
 
-  set width(String value) native;
+  set width(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18720,7 +18808,7 @@ class IdleDeadline extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get didTimeout native;
+  bool? get didTimeout native;
 
   double timeRemaining() native;
 }
@@ -18742,9 +18830,9 @@ class ImageBitmap extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get height native;
+  int? get height native;
 
-  int get width native;
+  int? get width native;
 
   void close() native;
 }
@@ -18759,9 +18847,9 @@ class ImageBitmapRenderingContext extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  CanvasElement get canvas native;
+  CanvasElement? get canvas native;
 
-  void transferFromImageBitmap(ImageBitmap bitmap) native;
+  void transferFromImageBitmap(ImageBitmap? bitmap) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18780,30 +18868,30 @@ class ImageCapture extends Interceptor {
   static ImageCapture _create_1(track) =>
       JS('ImageCapture', 'new ImageCapture(#)', track);
 
-  MediaStreamTrack get track native;
+  MediaStreamTrack? get track native;
 
   Future<PhotoCapabilities> getPhotoCapabilities() =>
       promiseToFuture<PhotoCapabilities>(
-          JS("", "#.getPhotoCapabilities()", this));
+          JS("creates:PhotoCapabilities;", "#.getPhotoCapabilities()", this));
 
-  Future<Map<String, dynamic>> getPhotoSettings() =>
+  Future<Map<String, dynamic>?> getPhotoSettings() =>
       promiseToFutureAsMap(JS("", "#.getPhotoSettings()", this));
 
-  Future<ImageBitmap> grabFrame() =>
-      promiseToFuture<ImageBitmap>(JS("", "#.grabFrame()", this));
+  Future<ImageBitmap> grabFrame() => promiseToFuture<ImageBitmap>(
+      JS("creates:ImageBitmap;", "#.grabFrame()", this));
 
   Future setOptions(Map photoSettings) {
     var photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
     return promiseToFuture(JS("", "#.setOptions(#)", this, photoSettings_dict));
   }
 
-  Future<Blob> takePhoto([Map photoSettings]) {
+  Future<Blob> takePhoto([Map? photoSettings]) {
     var photoSettings_dict = null;
     if (photoSettings != null) {
       photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
     }
     return promiseToFuture<Blob>(
-        JS("", "#.takePhoto(#)", this, photoSettings_dict));
+        JS("creates:Blob;", "#.takePhoto(#)", this, photoSettings_dict));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -18817,7 +18905,7 @@ class ImageData extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ImageData(data_OR_sw, int sh_OR_sw, [int sh]) {
+  factory ImageData(data_OR_sw, int sh_OR_sw, [int? sh]) {
     if ((sh_OR_sw is int) && (data_OR_sw is int) && sh == null) {
       return ImageData._create_1(data_OR_sw, sh_OR_sw);
     }
@@ -18855,9 +18943,12 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ImageElement({String src, int width, int height}) {
-    ImageElement e = JS('returns:ImageElement;creates:ImageElement;new:true',
-        '#.createElement(#)', document, "img");
+  factory ImageElement({String? src, int? width, int? height}) {
+    ImageElement e = JS<ImageElement>(
+        'returns:ImageElement;creates:ImageElement;new:true',
+        '#.createElement(#)',
+        document,
+        "img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -18870,57 +18961,57 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
    */
   ImageElement.created() : super.created();
 
-  String get alt native;
+  String? get alt native;
 
-  set alt(String value) native;
+  set alt(String? value) native;
 
-  String get async native;
+  String? get async native;
 
-  set async(String value) native;
+  set async(String? value) native;
 
-  bool get complete native;
+  bool? get complete native;
 
-  String get crossOrigin native;
+  String? get crossOrigin native;
 
-  set crossOrigin(String value) native;
+  set crossOrigin(String? value) native;
 
-  String get currentSrc native;
+  String? get currentSrc native;
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
-  bool get isMap native;
+  bool? get isMap native;
 
-  set isMap(bool value) native;
+  set isMap(bool? value) native;
 
   int get naturalHeight native;
 
   int get naturalWidth native;
 
-  String get referrerPolicy native;
+  String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
-  String get sizes native;
+  String? get sizes native;
 
-  set sizes(String value) native;
+  set sizes(String? value) native;
 
-  String get src native;
+  String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
-  String get srcset native;
+  String? get srcset native;
 
-  set srcset(String value) native;
+  set srcset(String? value) native;
 
-  String get useMap native;
+  String? get useMap native;
 
-  set useMap(String value) native;
+  set useMap(String? value) native;
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   Future decode() => promiseToFuture(JS("", "#.decode()", this));
 }
@@ -18935,7 +19026,7 @@ class InputDeviceCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory InputDeviceCapabilities([Map deviceInitDict]) {
+  factory InputDeviceCapabilities([Map? deviceInitDict]) {
     if (deviceInitDict != null) {
       var deviceInitDict_1 = convertDartToNative_Dictionary(deviceInitDict);
       return InputDeviceCapabilities._create_1(deviceInitDict_1);
@@ -18949,7 +19040,7 @@ class InputDeviceCapabilities extends Interceptor {
   static InputDeviceCapabilities _create_2() =>
       JS('InputDeviceCapabilities', 'new InputDeviceCapabilities()');
 
-  bool get firesTouchEvents native;
+  bool? get firesTouchEvents native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18979,8 +19070,8 @@ class InputElement extends HtmlElement
         ImageButtonInputElement,
         ResetButtonInputElement,
         ButtonInputElement {
-  factory InputElement({String type}) {
-    InputElement e = document.createElement("input");
+  factory InputElement({String? type}) {
+    InputElement e = document.createElement("input") as InputElement;
     if (type != null) {
       try {
         // IE throws an exception for unknown types.
@@ -19001,17 +19092,17 @@ class InputElement extends HtmlElement
    */
   InputElement.created() : super.created();
 
-  String get accept native;
+  String? get accept native;
 
-  set accept(String value) native;
+  set accept(String? value) native;
 
-  String get alt native;
+  String? get alt native;
 
-  set alt(String value) native;
+  set alt(String? value) native;
 
-  String get autocapitalize native;
+  String? get autocapitalize native;
 
-  set autocapitalize(String value) native;
+  set autocapitalize(String? value) native;
 
   String get autocomplete native;
 
@@ -19021,37 +19112,37 @@ class InputElement extends HtmlElement
 
   set autofocus(bool value) native;
 
-  String get capture native;
+  String? get capture native;
 
-  set capture(String value) native;
+  set capture(String? value) native;
 
-  bool get checked native;
+  bool? get checked native;
 
-  set checked(bool value) native;
+  set checked(bool? value) native;
 
-  bool get defaultChecked native;
+  bool? get defaultChecked native;
 
-  set defaultChecked(bool value) native;
+  set defaultChecked(bool? value) native;
 
-  String get defaultValue native;
+  String? get defaultValue native;
 
-  set defaultValue(String value) native;
+  set defaultValue(String? value) native;
 
-  String get dirName native;
+  String? get dirName native;
 
-  set dirName(String value) native;
+  set dirName(String? value) native;
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   @Returns('FileList|Null')
   @Creates('FileList')
-  List<File> get files native;
+  List<File>? get files native;
 
-  set files(List<File> value) native;
+  set files(List<File>? value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   String get formAction native;
 
@@ -19073,47 +19164,47 @@ class InputElement extends HtmlElement
 
   set formTarget(String value) native;
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
-  bool get incremental native;
+  bool? get incremental native;
 
-  set incremental(bool value) native;
+  set incremental(bool? value) native;
 
-  bool get indeterminate native;
+  bool? get indeterminate native;
 
-  set indeterminate(bool value) native;
+  set indeterminate(bool? value) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
-  HtmlElement get list native;
+  HtmlElement? get list native;
 
-  String get max native;
+  String? get max native;
 
-  set max(String value) native;
+  set max(String? value) native;
 
-  int get maxLength native;
+  int? get maxLength native;
 
-  set maxLength(int value) native;
+  set maxLength(int? value) native;
 
-  String get min native;
+  String? get min native;
 
-  set min(String value) native;
+  set min(String? value) native;
 
-  int get minLength native;
+  int? get minLength native;
 
-  set minLength(int value) native;
+  set minLength(int? value) native;
 
-  bool get multiple native;
+  bool? get multiple native;
 
-  set multiple(bool value) native;
+  set multiple(bool? value) native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   String get pattern native;
 
@@ -19123,49 +19214,49 @@ class InputElement extends HtmlElement
 
   set placeholder(String value) native;
 
-  bool get readOnly native;
+  bool? get readOnly native;
 
-  set readOnly(bool value) native;
+  set readOnly(bool? value) native;
 
   bool get required native;
 
   set required(bool value) native;
 
-  String get selectionDirection native;
+  String? get selectionDirection native;
 
-  set selectionDirection(String value) native;
+  set selectionDirection(String? value) native;
 
-  int get selectionEnd native;
+  int? get selectionEnd native;
 
-  set selectionEnd(int value) native;
+  set selectionEnd(int? value) native;
 
-  int get selectionStart native;
+  int? get selectionStart native;
 
-  set selectionStart(int value) native;
+  set selectionStart(int? value) native;
 
-  int get size native;
+  int? get size native;
 
-  set size(int value) native;
+  set size(int? value) native;
 
-  String get src native;
+  String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
-  String get step native;
+  String? get step native;
 
-  set step(String value) native;
+  set step(String? value) native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 
   String get validationMessage native;
 
   ValidityState get validity native;
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   DateTime get valueAsDate =>
       convertNativeToDart_DateTime(this._get_valueAsDate);
@@ -19173,34 +19264,34 @@ class InputElement extends HtmlElement
   @Creates('Null')
   dynamic get _get_valueAsDate native;
 
-  set valueAsDate(DateTime value) {
-    this._set_valueAsDate = convertDartToNative_DateTime(value);
+  set valueAsDate(DateTime? value) {
+    this._set_valueAsDate = convertDartToNative_DateTime(value!);
   }
 
   set _set_valueAsDate(/*dynamic*/ value) {
     JS("void", "#.valueAsDate = #", this, value);
   }
 
-  num get valueAsNumber native;
+  num? get valueAsNumber native;
 
-  set valueAsNumber(num value) native;
+  set valueAsNumber(num? value) native;
 
   @JSName('webkitEntries')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  List<Entry> get entries native;
+  List<Entry>? get entries native;
 
   @JSName('webkitdirectory')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  bool get directory native;
+  bool? get directory native;
 
   @JSName('webkitdirectory')
-  set directory(bool value) native;
+  set directory(bool? value) native;
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
   bool get willValidate native;
 
@@ -19213,13 +19304,13 @@ class InputElement extends HtmlElement
   void setCustomValidity(String error) native;
 
   void setRangeText(String replacement,
-      {int start, int end, String selectionMode}) native;
+      {int? start, int? end, String? selectionMode}) native;
 
-  void setSelectionRange(int start, int end, [String direction]) native;
+  void setSelectionRange(int start, int end, [String? direction]) native;
 
-  void stepDown([int n]) native;
+  void stepDown([int? n]) native;
 
-  void stepUp([int n]) native;
+  void stepUp([int? n]) native;
 }
 
 // Interfaces representing the InputElement APIs which are supported
@@ -19233,22 +19324,22 @@ abstract class InputElementBase implements Element {
   bool get autofocus;
   set autofocus(bool value);
 
-  bool get disabled;
-  set disabled(bool value);
+  bool? get disabled;
+  set disabled(bool? value);
 
-  bool get incremental;
-  set incremental(bool value);
+  bool? get incremental;
+  set incremental(bool? value);
 
-  bool get indeterminate;
-  set indeterminate(bool value);
+  bool? get indeterminate;
+  set indeterminate(bool? value);
 
-  String get name;
-  set name(String value);
+  String? get name;
+  set name(String? value);
 
-  String get value;
-  set value(String value);
+  String? get value;
+  set value(String? value);
 
-  List<Node> get labels;
+  List<Node>? get labels;
 
   String get validationMessage;
 
@@ -19275,8 +19366,8 @@ abstract class TextInputElementBase implements InputElementBase {
   String get autocomplete;
   set autocomplete(String value);
 
-  int get maxLength;
-  set maxLength(int value);
+  int? get maxLength;
+  set maxLength(int? value);
 
   String get pattern;
   set pattern(String value);
@@ -19284,27 +19375,27 @@ abstract class TextInputElementBase implements InputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
 
-  int get size;
-  set size(int value);
+  int? get size;
+  set size(int? value);
 
   void select();
 
-  String get selectionDirection;
-  set selectionDirection(String value);
+  String? get selectionDirection;
+  set selectionDirection(String? value);
 
-  int get selectionEnd;
-  set selectionEnd(int value);
+  int? get selectionEnd;
+  set selectionEnd(int? value);
 
-  int get selectionStart;
-  set selectionStart(int value);
+  int? get selectionStart;
+  set selectionStart(int? value);
 
-  void setSelectionRange(int start, int end, [String direction]);
+  void setSelectionRange(int start, int end, [String? direction]);
 }
 
 /**
@@ -19320,10 +19411,10 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  String get dirName;
-  set dirName(String value);
+  String? get dirName;
+  set dirName(String? value);
 
-  Element get list;
+  Element? get list;
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19337,10 +19428,10 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  String get dirName;
-  set dirName(String value);
+  String? get dirName;
+  set dirName(String? value);
 
-  Element get list;
+  Element? get list;
 }
 
 /**
@@ -19355,7 +19446,7 @@ abstract class TextInputElement implements TextInputElementBase {
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
-  Element get list;
+  Element? get list;
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19378,7 +19469,7 @@ abstract class UrlInputElement implements TextInputElementBase {
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
-  Element get list;
+  Element? get list;
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19404,13 +19495,13 @@ abstract class EmailInputElement implements TextInputElementBase {
   bool get autofocus;
   set autofocus(bool value);
 
-  Element get list;
+  Element? get list;
 
-  int get maxLength;
-  set maxLength(int value);
+  int? get maxLength;
+  set maxLength(int? value);
 
-  bool get multiple;
-  set multiple(bool value);
+  bool? get multiple;
+  set multiple(bool? value);
 
   String get pattern;
   set pattern(String value);
@@ -19418,14 +19509,14 @@ abstract class EmailInputElement implements TextInputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
 
-  int get size;
-  set size(int value);
+  int? get size;
+  set size(int? value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -19444,23 +19535,23 @@ abstract class PasswordInputElement implements TextInputElementBase {
  * Base interface for all input element types which involve ranges.
  */
 abstract class RangeInputElementBase implements InputElementBase {
-  Element get list;
+  Element? get list;
 
-  String get max;
-  set max(String value);
+  String? get max;
+  set max(String? value);
 
-  String get min;
-  set min(String value);
+  String? get min;
+  set min(String? value);
 
-  String get step;
-  set step(String value);
+  String? get step;
+  set step(String? value);
 
-  num get valueAsNumber;
-  set valueAsNumber(num value);
+  num? get valueAsNumber;
+  set valueAsNumber(num? value);
 
-  void stepDown([int n]);
+  void stepDown([int? n]);
 
-  void stepUp([int n]);
+  void stepUp([int? n]);
 }
 
 /**
@@ -19475,8 +19566,8 @@ abstract class DateInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19499,8 +19590,8 @@ abstract class MonthInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19523,8 +19614,8 @@ abstract class WeekInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19547,8 +19638,8 @@ abstract class TimeInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19570,8 +19661,8 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19594,8 +19685,8 @@ abstract class NumberInputElement implements RangeInputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool? get readOnly;
+  set readOnly(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19632,8 +19723,8 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  bool get checked;
-  set checked(bool value);
+  bool? get checked;
+  set checked(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19653,8 +19744,8 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  bool get checked;
-  set checked(bool value);
+  bool? get checked;
+  set checked(bool? value);
 
   bool get required;
   set required(bool value);
@@ -19666,16 +19757,16 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  String get accept;
-  set accept(String value);
+  String? get accept;
+  set accept(String? value);
 
-  bool get multiple;
-  set multiple(bool value);
+  bool? get multiple;
+  set multiple(bool? value);
 
   bool get required;
   set required(bool value);
 
-  List<File> files;
+  List<File>? files;
 }
 
 /**
@@ -19707,8 +19798,8 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  String get alt;
-  set alt(String value);
+  String? get alt;
+  set alt(String? value);
 
   String get formAction;
   set formAction(String value);
@@ -19725,14 +19816,14 @@ abstract class ImageButtonInputElement implements InputElementBase {
   String get formTarget;
   set formTarget(String value);
 
-  int get height;
-  set height(int value);
+  int? get height;
+  set height(int? value);
 
-  String get src;
-  set src(String value);
+  String? get src;
+  set src(String? value);
 
-  int get width;
-  set width(int value);
+  int? get width;
+  set width(int? value);
 }
 
 /**
@@ -19759,7 +19850,7 @@ class InstallEvent extends ExtendableEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory InstallEvent(String type, [Map eventInitDict]) {
+  factory InstallEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return InstallEvent._create_1(type, eventInitDict_1);
@@ -19792,7 +19883,7 @@ class IntersectionObserver extends Interceptor {
   }
 
   factory IntersectionObserver(IntersectionObserverCallback callback,
-      [Map options]) {
+      [Map? options]) {
     if (options != null) {
       var callback_1 = convertDartClosureToJS(callback, 2);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -19809,11 +19900,11 @@ class IntersectionObserver extends Interceptor {
   static IntersectionObserver _create_2(callback) =>
       JS('IntersectionObserver', 'new IntersectionObserver(#)', callback);
 
-  Element get root native;
+  Element? get root native;
 
-  String get rootMargin native;
+  String? get rootMargin native;
 
-  List<num> get thresholds native;
+  List<num>? get thresholds native;
 
   void disconnect() native;
 
@@ -19842,19 +19933,19 @@ class IntersectionObserverEntry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  DomRectReadOnly get boundingClientRect native;
+  DomRectReadOnly? get boundingClientRect native;
 
-  num get intersectionRatio native;
+  num? get intersectionRatio native;
 
-  DomRectReadOnly get intersectionRect native;
+  DomRectReadOnly? get intersectionRect native;
 
-  bool get isIntersecting native;
+  bool? get isIntersecting native;
 
-  DomRectReadOnly get rootBounds native;
+  DomRectReadOnly? get rootBounds native;
 
-  Element get target native;
+  Element? get target native;
 
-  num get time native;
+  num? get time native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19867,11 +19958,11 @@ class InterventionReport extends ReportBody {
     throw new UnsupportedError("Not supported");
   }
 
-  int get lineNumber native;
+  int? get lineNumber native;
 
-  String get message native;
+  String? get message native;
 
-  String get sourceFile native;
+  String? get sourceFile native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19899,11 +19990,11 @@ class KeyboardEvent extends UIEvent {
    * Event [KeyEvent].
    */
   factory KeyboardEvent(String type,
-      {Window view,
+      {Window? view,
       bool canBubble: true,
       bool cancelable: true,
-      int location,
-      int keyLocation, // Legacy alias for location
+      int? location,
+      int? keyLocation, // Legacy alias for location
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -19912,7 +20003,7 @@ class KeyboardEvent extends UIEvent {
       view = window;
     }
     location ??= keyLocation ?? 1;
-    KeyboardEvent e = document._createEvent("KeyboardEvent");
+    KeyboardEvent e = document._createEvent("KeyboardEvent") as KeyboardEvent;
     e._initKeyboardEvent(type, canBubble, cancelable, view, "", location,
         ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -19922,9 +20013,9 @@ class KeyboardEvent extends UIEvent {
       String type,
       bool canBubble,
       bool cancelable,
-      Window view,
+      Window? view,
       String keyIdentifier,
-      int location,
+      int? location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -19959,9 +20050,9 @@ class KeyboardEvent extends UIEvent {
 
   int get charCode native;
 
-  int get which => _which;
+  int? get which => _which;
 
-  factory KeyboardEvent._(String type, [Map eventInitDict]) {
+  factory KeyboardEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return KeyboardEvent._create_1(type, eventInitDict_1);
@@ -19986,13 +20077,13 @@ class KeyboardEvent extends UIEvent {
   @JSName('charCode')
   int get _charCode native;
 
-  String get code native;
+  String? get code native;
 
   bool get ctrlKey native;
 
-  bool get isComposing native;
+  bool? get isComposing native;
 
-  String get key native;
+  String? get key native;
 
   @JSName('keyCode')
   int get _keyCode native;
@@ -20001,7 +20092,7 @@ class KeyboardEvent extends UIEvent {
 
   bool get metaKey native;
 
-  bool get repeat native;
+  bool? get repeat native;
 
   bool get shiftKey native;
 
@@ -20018,7 +20109,7 @@ class KeyframeEffect extends KeyframeEffectReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory KeyframeEffect(Element target, Object effect, [Object options]) {
+  factory KeyframeEffect(Element? target, Object? effect, [Object? options]) {
     if (options != null) {
       return KeyframeEffect._create_1(target, effect, options);
     }
@@ -20040,8 +20131,8 @@ class KeyframeEffectReadOnly extends AnimationEffectReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory KeyframeEffectReadOnly(Element target, Object effect,
-      [Object options]) {
+  factory KeyframeEffectReadOnly(Element? target, Object? effect,
+      [Object? options]) {
     if (options != null) {
       return KeyframeEffectReadOnly._create_1(target, effect, options);
     }
@@ -20070,8 +20161,11 @@ class LIElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LIElement() => JS('returns:LIElement;creates:LIElement;new:true',
-      '#.createElement(#)', document, "li");
+  factory LIElement() => JS<LIElement>(
+      'returns:LIElement;creates:LIElement;new:true',
+      '#.createElement(#)',
+      document,
+      "li");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20094,7 +20188,7 @@ class LabelElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LabelElement() => JS(
+  factory LabelElement() => JS<LabelElement>(
       'returns:LabelElement;creates:LabelElement;new:true',
       '#.createElement(#)',
       document,
@@ -20106,9 +20200,9 @@ class LabelElement extends HtmlElement {
    */
   LabelElement.created() : super.created();
 
-  HtmlElement get control native;
+  HtmlElement? get control native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   String get htmlFor native;
 
@@ -20125,7 +20219,7 @@ class LegendElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LegendElement() => JS(
+  factory LegendElement() => JS<LegendElement>(
       'returns:LegendElement;creates:LegendElement;new:true',
       '#.createElement(#)',
       document,
@@ -20137,7 +20231,7 @@ class LegendElement extends HtmlElement {
    */
   LegendElement.created() : super.created();
 
-  FormElement get form native;
+  FormElement? get form native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20150,7 +20244,7 @@ class LinearAccelerationSensor extends Accelerometer {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LinearAccelerationSensor([Map sensorOptions]) {
+  factory LinearAccelerationSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return LinearAccelerationSensor._create_1(sensorOptions_1);
@@ -20175,7 +20269,7 @@ class LinkElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LinkElement() => JS(
+  factory LinkElement() => JS<LinkElement>(
       'returns:LinkElement;creates:LinkElement;new:true',
       '#.createElement(#)',
       document,
@@ -20187,17 +20281,17 @@ class LinkElement extends HtmlElement {
    */
   LinkElement.created() : super.created();
 
-  String get as native;
+  String? get as native;
 
-  set as(String value) native;
+  set as(String? value) native;
 
-  String get crossOrigin native;
+  String? get crossOrigin native;
 
-  set crossOrigin(String value) native;
+  set crossOrigin(String? value) native;
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
   String get href native;
 
@@ -20207,33 +20301,33 @@ class LinkElement extends HtmlElement {
 
   set hreflang(String value) native;
 
-  Document get import native;
+  Document? get import native;
 
-  String get integrity native;
+  String? get integrity native;
 
-  set integrity(String value) native;
+  set integrity(String? value) native;
 
   String get media native;
 
   set media(String value) native;
 
-  String get referrerPolicy native;
+  String? get referrerPolicy native;
 
-  set referrerPolicy(String value) native;
+  set referrerPolicy(String? value) native;
 
   String get rel native;
 
   set rel(String value) native;
 
-  DomTokenList get relList native;
+  DomTokenList? get relList native;
 
-  String get scope native;
+  String? get scope native;
 
-  set scope(String value) native;
+  set scope(String? value) native;
 
-  StyleSheet get sheet native;
+  StyleSheet? get sheet native;
 
-  DomTokenList get sizes native;
+  DomTokenList? get sizes native;
 
   String get type native;
 
@@ -20255,9 +20349,9 @@ class Location extends Interceptor implements LocationBase {
     throw new UnsupportedError("Not supported");
   }
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
-  List<String> get ancestorOrigins native;
+  List<String>? get ancestorOrigins native;
 
   String get hash native;
 
@@ -20267,17 +20361,17 @@ class Location extends Interceptor implements LocationBase {
 
   set host(String value) native;
 
-  String get hostname native;
+  String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
   String get href native;
 
   set href(String value) native;
 
-  String get pathname native;
+  String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
   String get port native;
 
@@ -20287,19 +20381,19 @@ class Location extends Interceptor implements LocationBase {
 
   set protocol(String value) native;
 
-  String get search native;
+  String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
-  TrustedUrl get trustedHref native;
+  TrustedUrl? get trustedHref native;
 
-  set trustedHref(TrustedUrl value) native;
+  set trustedHref(TrustedUrl? value) native;
 
-  void assign([String url]) native;
+  void assign([String? url]) native;
 
   void reload() native;
 
-  void replace(String url) native;
+  void replace(String? url) native;
 
   String get origin {
     if (JS('bool', '("origin" in #)', this)) {
@@ -20321,7 +20415,7 @@ class Magnetometer extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Magnetometer([Map sensorOptions]) {
+  factory Magnetometer([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return Magnetometer._create_1(sensorOptions_1);
@@ -20332,11 +20426,11 @@ class Magnetometer extends Sensor {
       JS('Magnetometer', 'new Magnetometer(#)', sensorOptions);
   static Magnetometer _create_2() => JS('Magnetometer', 'new Magnetometer()');
 
-  num get x native;
+  num? get x native;
 
-  num get y native;
+  num? get y native;
 
-  num get z native;
+  num? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20349,8 +20443,11 @@ class MapElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MapElement() => JS('returns:MapElement;creates:MapElement;new:true',
-      '#.createElement(#)', document, "map");
+  factory MapElement() => JS<MapElement>(
+      'returns:MapElement;creates:MapElement;new:true',
+      '#.createElement(#)',
+      document,
+      "map");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20358,7 +20455,7 @@ class MapElement extends HtmlElement {
    */
   MapElement.created() : super.created();
 
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
   List<Node> get areas native;
 
@@ -20379,14 +20476,20 @@ class MediaCapabilities extends Interceptor {
 
   Future<MediaCapabilitiesInfo> decodingInfo(Map configuration) {
     var configuration_dict = convertDartToNative_Dictionary(configuration);
-    return promiseToFuture<MediaCapabilitiesInfo>(
-        JS("", "#.decodingInfo(#)", this, configuration_dict));
+    return promiseToFuture<MediaCapabilitiesInfo>(JS(
+        "creates:MediaCapabilitiesInfo;",
+        "#.decodingInfo(#)",
+        this,
+        configuration_dict));
   }
 
   Future<MediaCapabilitiesInfo> encodingInfo(Map configuration) {
     var configuration_dict = convertDartToNative_Dictionary(configuration);
-    return promiseToFuture<MediaCapabilitiesInfo>(
-        JS("", "#.encodingInfo(#)", this, configuration_dict));
+    return promiseToFuture<MediaCapabilitiesInfo>(JS(
+        "creates:MediaCapabilitiesInfo;",
+        "#.encodingInfo(#)",
+        this,
+        configuration_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20400,11 +20503,11 @@ class MediaCapabilitiesInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get powerEfficient native;
+  bool? get powerEfficient native;
 
-  bool get smooth native;
+  bool? get smooth native;
 
-  bool get supported native;
+  bool? get supported native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20417,13 +20520,13 @@ class MediaDeviceInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get deviceId native;
+  String? get deviceId native;
 
-  String get groupId native;
+  String? get groupId native;
 
-  String get kind native;
+  String? get kind native;
 
-  String get label native;
+  String? get label native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20440,19 +20543,19 @@ class MediaDevices extends EventTarget {
       promiseToFuture<List<dynamic>>(JS("", "#.enumerateDevices()", this));
 
   Map getSupportedConstraints() {
-    return convertNativeToDart_Dictionary(_getSupportedConstraints_1());
+    return convertNativeToDart_Dictionary(_getSupportedConstraints_1())!;
   }
 
   @JSName('getSupportedConstraints')
   _getSupportedConstraints_1() native;
 
-  Future<MediaStream> getUserMedia([Map constraints]) {
+  Future<MediaStream> getUserMedia([Map? constraints]) {
     var constraints_dict = null;
     if (constraints != null) {
       constraints_dict = convertDartToNative_Dictionary(constraints);
     }
-    return promiseToFuture<MediaStream>(
-        JS("", "#.getUserMedia(#)", this, constraints_dict));
+    return promiseToFuture<MediaStream>(JS(
+        "creates:MediaStream;", "#.getUserMedia(#)", this, constraints_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20491,7 +20594,7 @@ class MediaElement extends HtmlElement {
 
   static const int NETWORK_NO_SOURCE = 3;
 
-  AudioTrackList get audioTracks native;
+  AudioTrackList? get audioTracks native;
 
   bool get autoplay native;
 
@@ -20503,11 +20606,11 @@ class MediaElement extends HtmlElement {
 
   set controls(bool value) native;
 
-  DomTokenList get controlsList native;
+  DomTokenList? get controlsList native;
 
-  String get crossOrigin native;
+  String? get crossOrigin native;
 
-  set crossOrigin(String value) native;
+  set crossOrigin(String? value) native;
 
   String get currentSrc native;
 
@@ -20515,9 +20618,9 @@ class MediaElement extends HtmlElement {
 
   set currentTime(num value) native;
 
-  bool get defaultMuted native;
+  bool? get defaultMuted native;
 
-  set defaultMuted(bool value) native;
+  set defaultMuted(bool? value) native;
 
   num get defaultPlaybackRate native;
 
@@ -20531,19 +20634,19 @@ class MediaElement extends HtmlElement {
 
   bool get ended native;
 
-  MediaError get error native;
+  MediaError? get error native;
 
   bool get loop native;
 
   set loop(bool value) native;
 
-  MediaKeys get mediaKeys native;
+  MediaKeys? get mediaKeys native;
 
   bool get muted native;
 
   set muted(bool value) native;
 
-  int get networkState native;
+  int? get networkState native;
 
   bool get paused native;
 
@@ -20559,25 +20662,25 @@ class MediaElement extends HtmlElement {
 
   int get readyState native;
 
-  RemotePlayback get remote native;
+  RemotePlayback? get remote native;
 
   TimeRanges get seekable native;
 
   bool get seeking native;
 
-  String get sinkId native;
+  String? get sinkId native;
 
   String get src native;
 
   set src(String value) native;
 
-  MediaStream get srcObject native;
+  MediaStream? get srcObject native;
 
-  set srcObject(MediaStream value) native;
+  set srcObject(MediaStream? value) native;
 
-  TextTrackList get textTracks native;
+  TextTrackList? get textTracks native;
 
-  VideoTrackList get videoTracks native;
+  VideoTrackList? get videoTracks native;
 
   num get volume native;
 
@@ -20586,17 +20689,17 @@ class MediaElement extends HtmlElement {
   @JSName('webkitAudioDecodedByteCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  int get audioDecodedByteCount native;
+  int? get audioDecodedByteCount native;
 
   @JSName('webkitVideoDecodedByteCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  int get videoDecodedByteCount native;
+  int? get videoDecodedByteCount native;
 
-  TextTrack addTextTrack(String kind, [String label, String language]) native;
+  TextTrack addTextTrack(String kind, [String? label, String? language]) native;
 
   @Unstable()
-  String canPlayType(String type, [String keySystem]) native;
+  String canPlayType(String? type, [String? keySystem]) native;
 
   MediaStream captureStream() native;
 
@@ -20606,7 +20709,7 @@ class MediaElement extends HtmlElement {
 
   Future play() => promiseToFuture(JS("", "#.play()", this));
 
-  Future setMediaKeys(MediaKeys mediaKeys) =>
+  Future setMediaKeys(MediaKeys? mediaKeys) =>
       promiseToFuture(JS("", "#.setMediaKeys(#)", this, mediaKeys));
 
   Future setSinkId(String sinkId) =>
@@ -20623,7 +20726,7 @@ class MediaEncryptedEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaEncryptedEvent(String type, [Map eventInitDict]) {
+  factory MediaEncryptedEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MediaEncryptedEvent._create_1(type, eventInitDict_1);
@@ -20638,9 +20741,9 @@ class MediaEncryptedEvent extends Event {
   static MediaEncryptedEvent _create_2(type) =>
       JS('MediaEncryptedEvent', 'new MediaEncryptedEvent(#)', type);
 
-  ByteBuffer get initData native;
+  ByteBuffer? get initData native;
 
-  String get initDataType native;
+  String? get initDataType native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20664,7 +20767,7 @@ class MediaError extends Interceptor {
 
   int get code native;
 
-  String get message native;
+  String? get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20687,9 +20790,9 @@ class MediaKeyMessageEvent extends Event {
       type,
       eventInitDict);
 
-  ByteBuffer get message native;
+  ByteBuffer? get message native;
 
-  String get messageType native;
+  String? get messageType native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20707,11 +20810,11 @@ class MediaKeySession extends EventTarget {
 
   Future<void> get closed => promiseToFuture<void>(JS("", "#.closed", this));
 
-  num get expiration native;
+  num? get expiration native;
 
-  MediaKeyStatusMap get keyStatuses native;
+  MediaKeyStatusMap? get keyStatuses native;
 
-  String get sessionId native;
+  String? get sessionId native;
 
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
@@ -20740,9 +20843,9 @@ class MediaKeyStatusMap extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get size native;
+  int? get size native;
 
-  Object get(/*BufferSource*/ keyId) native;
+  Object? get(/*BufferSource*/ keyId) native;
 
   bool has(/*BufferSource*/ keyId) native;
 }
@@ -20757,13 +20860,13 @@ class MediaKeySystemAccess extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get keySystem native;
+  String? get keySystem native;
 
   Future createMediaKeys() =>
-      promiseToFuture(JS("", "#.createMediaKeys()", this));
+      promiseToFuture(JS("creates:MediaKeys;", "#.createMediaKeys()", this));
 
   Map getConfiguration() {
-    return convertNativeToDart_Dictionary(_getConfiguration_1());
+    return convertNativeToDart_Dictionary(_getConfiguration_1())!;
   }
 
   @JSName('getConfiguration')
@@ -20781,7 +20884,7 @@ class MediaKeys extends Interceptor {
   }
 
   @JSName('createSession')
-  MediaKeySession _createSession([String sessionType]) native;
+  MediaKeySession _createSession([String? sessionType]) native;
 
   Future getStatusForPolicy(MediaKeysPolicy policy) =>
       promiseToFuture(JS("", "#.getStatusForPolicy(#)", this, policy));
@@ -20808,7 +20911,7 @@ class MediaKeysPolicy extends Interceptor {
   static MediaKeysPolicy _create_1(init) =>
       JS('MediaKeysPolicy', 'new MediaKeysPolicy(#)', init);
 
-  String get minHdcpVersion native;
+  String? get minHdcpVersion native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20822,17 +20925,17 @@ class MediaList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get length native;
+  int? get length native;
 
-  String get mediaText native;
+  String? get mediaText native;
 
-  set mediaText(String value) native;
+  set mediaText(String? value) native;
 
   void appendMedium(String medium) native;
 
   void deleteMedium(String medium) native;
 
-  String item(int index) native;
+  String? item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20845,7 +20948,7 @@ class MediaMetadata extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaMetadata([Map metadata]) {
+  factory MediaMetadata([Map? metadata]) {
     if (metadata != null) {
       var metadata_1 = convertDartToNative_Dictionary(metadata);
       return MediaMetadata._create_1(metadata_1);
@@ -20857,21 +20960,21 @@ class MediaMetadata extends Interceptor {
   static MediaMetadata _create_2() =>
       JS('MediaMetadata', 'new MediaMetadata()');
 
-  String get album native;
+  String? get album native;
 
-  set album(String value) native;
+  set album(String? value) native;
 
-  String get artist native;
+  String? get artist native;
 
-  set artist(String value) native;
+  set artist(String? value) native;
 
-  List get artwork native;
+  List? get artwork native;
 
-  set artwork(List value) native;
+  set artwork(List? value) native;
 
-  String get title native;
+  String? get title native;
 
-  set title(String value) native;
+  set title(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20892,9 +20995,9 @@ class MediaQueryList extends EventTarget {
 
   String get media native;
 
-  void addListener(EventListener listener) native;
+  void addListener(EventListener? listener) native;
 
-  void removeListener(EventListener listener) native;
+  void removeListener(EventListener? listener) native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -20909,7 +21012,7 @@ class MediaQueryListEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaQueryListEvent(String type, [Map eventInitDict]) {
+  factory MediaQueryListEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MediaQueryListEvent._create_1(type, eventInitDict_1);
@@ -20924,9 +21027,9 @@ class MediaQueryListEvent extends Event {
   static MediaQueryListEvent _create_2(type) =>
       JS('MediaQueryListEvent', 'new MediaQueryListEvent(#)', type);
 
-  bool get matches native;
+  bool? get matches native;
 
-  String get media native;
+  String? get media native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20945,7 +21048,7 @@ class MediaRecorder extends EventTarget {
   static const EventStreamProvider<Event> pauseEvent =
       const EventStreamProvider<Event>('pause');
 
-  factory MediaRecorder(MediaStream stream, [Map options]) {
+  factory MediaRecorder(MediaStream stream, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return MediaRecorder._create_1(stream, options_1);
@@ -20957,15 +21060,15 @@ class MediaRecorder extends EventTarget {
   static MediaRecorder _create_2(stream) =>
       JS('MediaRecorder', 'new MediaRecorder(#)', stream);
 
-  int get audioBitsPerSecond native;
+  int? get audioBitsPerSecond native;
 
-  String get mimeType native;
+  String? get mimeType native;
 
-  String get state native;
+  String? get state native;
 
-  MediaStream get stream native;
+  MediaStream? get stream native;
 
-  int get videoBitsPerSecond native;
+  int? get videoBitsPerSecond native;
 
   static bool isTypeSupported(String type) native;
 
@@ -20975,7 +21078,7 @@ class MediaRecorder extends EventTarget {
 
   void resume() native;
 
-  void start([int timeslice]) native;
+  void start([int? timeslice]) native;
 
   void stop() native;
 
@@ -20994,15 +21097,15 @@ class MediaSession extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  MediaMetadata get metadata native;
+  MediaMetadata? get metadata native;
 
-  set metadata(MediaMetadata value) native;
+  set metadata(MediaMetadata? value) native;
 
-  String get playbackState native;
+  String? get playbackState native;
 
-  set playbackState(String value) native;
+  set playbackState(String? value) native;
 
-  void setActionHandler(String action, MediaSessionActionHandler handler)
+  void setActionHandler(String action, MediaSessionActionHandler? handler)
       native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21023,11 +21126,11 @@ class MediaSettingsRange extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get max native;
+  num? get max native;
 
-  num get min native;
+  num? get min native;
 
-  num get step native;
+  num? get step native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21050,21 +21153,21 @@ class MediaSource extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.MediaSource)');
 
-  SourceBufferList get activeSourceBuffers native;
+  SourceBufferList? get activeSourceBuffers native;
 
-  num get duration native;
+  num? get duration native;
 
-  set duration(num value) native;
+  set duration(num? value) native;
 
-  String get readyState native;
+  String? get readyState native;
 
-  SourceBufferList get sourceBuffers native;
+  SourceBufferList? get sourceBuffers native;
 
   SourceBuffer addSourceBuffer(String type) native;
 
   void clearLiveSeekableRange() native;
 
-  void endOfStream([String error]) native;
+  void endOfStream([String? error]) native;
 
   static bool isTypeSupported(String type) native;
 
@@ -21120,9 +21223,9 @@ class MediaStream extends EventTarget {
   static MediaStream _create_3(stream_OR_tracks) =>
       JS('MediaStream', 'new MediaStream(#)', stream_OR_tracks);
 
-  bool get active native;
+  bool? get active native;
 
-  String get id native;
+  String? get id native;
 
   void addTrack(MediaStreamTrack track) native;
 
@@ -21132,7 +21235,7 @@ class MediaStream extends EventTarget {
   @Returns('JSExtendableArray')
   List<MediaStreamTrack> getAudioTracks() native;
 
-  MediaStreamTrack getTrackById(String trackId) native;
+  MediaStreamTrack? getTrackById(String trackId) native;
 
   List<MediaStreamTrack> getTracks() native;
 
@@ -21176,7 +21279,7 @@ class MediaStreamEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaStreamEvent(String type, [Map eventInitDict]) {
+  factory MediaStreamEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MediaStreamEvent._create_1(type, eventInitDict_1);
@@ -21191,7 +21294,7 @@ class MediaStreamEvent extends Event {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('MediaStreamEvent');
 
-  MediaStream get stream native;
+  MediaStream? get stream native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21232,25 +21335,25 @@ class MediaStreamTrack extends EventTarget {
   static const EventStreamProvider<Event> unmuteEvent =
       const EventStreamProvider<Event>('unmute');
 
-  String get contentHint native;
+  String? get contentHint native;
 
-  set contentHint(String value) native;
+  set contentHint(String? value) native;
 
-  bool get enabled native;
+  bool? get enabled native;
 
-  set enabled(bool value) native;
+  set enabled(bool? value) native;
 
-  String get id native;
+  String? get id native;
 
-  String get kind native;
+  String? get kind native;
 
-  String get label native;
+  String? get label native;
 
-  bool get muted native;
+  bool? get muted native;
 
-  String get readyState native;
+  String? get readyState native;
 
-  Future applyConstraints([Map constraints]) {
+  Future applyConstraints([Map? constraints]) {
     var constraints_dict = null;
     if (constraints != null) {
       constraints_dict = convertDartToNative_Dictionary(constraints);
@@ -21262,21 +21365,21 @@ class MediaStreamTrack extends EventTarget {
   MediaStreamTrack clone() native;
 
   Map getCapabilities() {
-    return convertNativeToDart_Dictionary(_getCapabilities_1());
+    return convertNativeToDart_Dictionary(_getCapabilities_1())!;
   }
 
   @JSName('getCapabilities')
   _getCapabilities_1() native;
 
   Map getConstraints() {
-    return convertNativeToDart_Dictionary(_getConstraints_1());
+    return convertNativeToDart_Dictionary(_getConstraints_1())!;
   }
 
   @JSName('getConstraints')
   _getConstraints_1() native;
 
   Map getSettings() {
-    return convertNativeToDart_Dictionary(_getSettings_1());
+    return convertNativeToDart_Dictionary(_getSettings_1())!;
   }
 
   @JSName('getSettings')
@@ -21319,7 +21422,7 @@ class MediaStreamTrackEvent extends Event {
   static bool get supported =>
       Device.isEventTypeSupported('MediaStreamTrackEvent');
 
-  MediaStreamTrack get track native;
+  MediaStreamTrack? get track native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21332,11 +21435,11 @@ class MemoryInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get jsHeapSizeLimit native;
+  int? get jsHeapSizeLimit native;
 
-  int get totalJSHeapSize native;
+  int? get totalJSHeapSize native;
 
-  int get usedJSHeapSize native;
+  int? get usedJSHeapSize native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21359,7 +21462,7 @@ class MenuElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MenuElement() => JS(
+  factory MenuElement() => JS<MenuElement>(
       'returns:MenuElement;creates:MenuElement;new:true',
       '#.createElement(#)',
       document,
@@ -21411,10 +21514,10 @@ class MessageEvent extends Event {
   factory MessageEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      Object data,
-      String origin,
-      String lastEventId,
-      Window source,
+      Object? data,
+      String? origin,
+      String? lastEventId,
+      Window? source,
       List<MessagePort> messagePorts: const []}) {
     if (source == null) {
       source = window;
@@ -21434,7 +21537,7 @@ class MessageEvent extends Event {
           source,
           messagePorts);
     }
-    MessageEvent event = document._createEvent("MessageEvent");
+    MessageEvent event = document._createEvent("MessageEvent") as MessageEvent;
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
@@ -21450,7 +21553,7 @@ class MessageEvent extends Event {
   @annotation_Returns_SerializedScriptValue
   dynamic get _get_data native;
 
-  factory MessageEvent._(String type, [Map eventInitDict]) {
+  factory MessageEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MessageEvent._create_1(type, eventInitDict_1);
@@ -21471,23 +21574,23 @@ class MessageEvent extends Event {
   @Creates('JSExtendableArray')
   List<MessagePort> get ports native;
 
-  EventTarget get source => _convertNativeToDart_EventTarget(this._get_source);
+  EventTarget? get source => _convertNativeToDart_EventTarget(this._get_source);
   @JSName('source')
   @Creates('Null')
   @Returns('EventTarget|=Object')
   dynamic get _get_source native;
 
-  String get suborigin native;
+  String? get suborigin native;
 
   void _initMessageEvent(
-      String typeArg,
-      bool canBubbleArg,
-      bool cancelableArg,
-      Object dataArg,
-      String originArg,
-      String lastEventIdArg,
-      EventTarget sourceArg,
-      List<MessagePort> portsArg) {
+      String? typeArg,
+      bool? canBubbleArg,
+      bool? cancelableArg,
+      Object? dataArg,
+      String? originArg,
+      String? lastEventIdArg,
+      EventTarget? sourceArg,
+      List<MessagePort>? portsArg) {
     var sourceArg_1 = _convertDartToNative_EventTarget(sourceArg);
     _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
         originArg, lastEventIdArg, sourceArg_1, portsArg);
@@ -21496,7 +21599,7 @@ class MessageEvent extends Event {
 
   @JSName('initMessageEvent')
   void _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
-      originArg, lastEventIdArg, sourceArg, List<MessagePort> portsArg) native;
+      originArg, lastEventIdArg, sourceArg, List<MessagePort>? portsArg) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21507,8 +21610,8 @@ class MessageEvent extends Event {
 @Unstable()
 @Native("MessagePort")
 class MessagePort extends EventTarget {
-  void addEventListener(String type, EventListener listener,
-      [bool useCapture]) {
+  void addEventListener(String type, EventListener? listener,
+      [bool? useCapture]) {
     // Messages posted to ports are initially paused, allowing listeners to be
     // setup, start() needs to be explicitly invoked to begin handling messages.
     if (type == 'message') {
@@ -21534,7 +21637,7 @@ class MessagePort extends EventTarget {
 
   void close() native;
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -21568,7 +21671,7 @@ class MetaElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MetaElement() => JS(
+  factory MetaElement() => JS<MetaElement>(
       'returns:MetaElement;creates:MetaElement;new:true',
       '#.createElement(#)',
       document,
@@ -21584,9 +21687,9 @@ class MetaElement extends HtmlElement {
 
   set content(String value) native;
 
-  String get httpEquiv native;
+  String? get httpEquiv native;
 
-  set httpEquiv(String value) native;
+  set httpEquiv(String? value) native;
 
   String get name native;
 
@@ -21609,7 +21712,7 @@ class Metadata extends Interceptor {
   @Creates('Null')
   dynamic get _get_modificationTime native;
 
-  int get size native;
+  int? get size native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21633,7 +21736,7 @@ class MeterElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MeterElement() => document.createElement("meter");
+  factory MeterElement() => document.createElement("meter") as MeterElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -21644,34 +21747,34 @@ class MeterElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  num get high native;
+  num? get high native;
 
-  set high(num value) native;
+  set high(num? value) native;
 
   @Unstable()
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
-  num get low native;
+  num? get low native;
 
-  set low(num value) native;
+  set low(num? value) native;
 
-  num get max native;
+  num? get max native;
 
-  set max(num value) native;
+  set max(num? value) native;
 
-  num get min native;
+  num? get min native;
 
-  set min(num value) native;
+  set min(num? value) native;
 
-  num get optimum native;
+  num? get optimum native;
 
-  set optimum(num value) native;
+  set optimum(num? value) native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21684,11 +21787,11 @@ class MidiAccess extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  MidiInputMap get inputs native;
+  MidiInputMap? get inputs native;
 
-  MidiOutputMap get outputs native;
+  MidiOutputMap? get outputs native;
 
-  bool get sysexEnabled native;
+  bool? get sysexEnabled native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21701,7 +21804,7 @@ class MidiConnectionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MidiConnectionEvent(String type, [Map eventInitDict]) {
+  factory MidiConnectionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MidiConnectionEvent._create_1(type, eventInitDict_1);
@@ -21716,7 +21819,7 @@ class MidiConnectionEvent extends Event {
   static MidiConnectionEvent _create_2(type) =>
       JS('MidiConnectionEvent', 'new MIDIConnectionEvent(#)', type);
 
-  MidiPort get port native;
+  MidiPort? get port native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21753,7 +21856,7 @@ class MidiInputMap extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -21764,7 +21867,7 @@ class MidiInputMap extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
@@ -21821,7 +21924,7 @@ class MidiMessageEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MidiMessageEvent(String type, [Map eventInitDict]) {
+  factory MidiMessageEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MidiMessageEvent._create_1(type, eventInitDict_1);
@@ -21833,7 +21936,7 @@ class MidiMessageEvent extends Event {
   static MidiMessageEvent _create_2(type) =>
       JS('MidiMessageEvent', 'new MIDIMessageEvent(#)', type);
 
-  Uint8List get data native;
+  Uint8List? get data native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21846,7 +21949,7 @@ class MidiOutput extends MidiPort {
     throw new UnsupportedError("Not supported");
   }
 
-  void send(Uint8List data, [num timestamp]) native;
+  void send(Uint8List data, [num? timestamp]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21859,7 +21962,7 @@ class MidiOutputMap extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -21870,7 +21973,7 @@ class MidiOutputMap extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
@@ -21927,19 +22030,19 @@ class MidiPort extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  String get connection native;
+  String? get connection native;
 
-  String get id native;
+  String? get id native;
 
-  String get manufacturer native;
+  String? get manufacturer native;
 
-  String get name native;
+  String? get name native;
 
-  String get state native;
+  String? get state native;
 
-  String get type native;
+  String? get type native;
 
-  String get version native;
+  String? get version native;
 
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
@@ -21956,13 +22059,13 @@ class MimeType extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get description native;
+  String? get description native;
 
-  Plugin get enabledPlugin native;
+  Plugin? get enabledPlugin native;
 
-  String get suffixes native;
+  String? get suffixes native;
 
-  String get type native;
+  String? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22022,9 +22125,9 @@ class MimeTypeArray extends Interceptor
   MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
 
-  MimeType item(int index) native;
+  MimeType? item(int index) native;
 
-  MimeType namedItem(String name) native;
+  MimeType? namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22066,7 +22169,7 @@ typedef void MojoWatchCallback(int result);
 @Native("MouseEvent,DragEvent")
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type,
-      {Window view,
+      {Window? view,
       int detail: 0,
       int screenX: 0,
       int screenY: 0,
@@ -22079,11 +22182,11 @@ class MouseEvent extends UIEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget relatedTarget}) {
+      EventTarget? relatedTarget}) {
     if (view == null) {
       view = window;
     }
-    MouseEvent event = document._createEvent('MouseEvent');
+    MouseEvent event = document._createEvent('MouseEvent') as MouseEvent;
     event._initMouseEvent(
         type,
         canBubble,
@@ -22103,7 +22206,7 @@ class MouseEvent extends UIEvent {
     return event;
   }
 
-  factory MouseEvent._(String type, [Map eventInitDict]) {
+  factory MouseEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MouseEvent._create_1(type, eventInitDict_1);
@@ -22119,7 +22222,7 @@ class MouseEvent extends UIEvent {
 
   int get button native;
 
-  int get buttons native;
+  int? get buttons native;
 
   @JSName('clientX')
   num get _clientX native;
@@ -22137,31 +22240,31 @@ class MouseEvent extends UIEvent {
    * relatedTarget to get the same information in the standard way.
    */
   @deprecated
-  Node get fromElement native;
+  Node? get fromElement native;
 
   @JSName('layerX')
-  int get _layerX native;
+  int? get _layerX native;
 
   @JSName('layerY')
-  int get _layerY native;
+  int? get _layerY native;
 
   bool get metaKey native;
 
   @JSName('movementX')
-  int get _movementX native;
+  int? get _movementX native;
 
   @JSName('movementY')
-  int get _movementY native;
+  int? get _movementY native;
 
   @JSName('pageX')
-  num get _pageX native;
+  num? get _pageX native;
 
   @JSName('pageY')
-  num get _pageY native;
+  num? get _pageY native;
 
-  String get region native;
+  String? get region native;
 
-  EventTarget get relatedTarget =>
+  EventTarget? get relatedTarget =>
       _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @Creates('Node')
@@ -22184,26 +22287,26 @@ class MouseEvent extends UIEvent {
    * relatedTarget to get the same information in the standard way.
    */
   @deprecated
-  Node get toElement native;
+  Node? get toElement native;
 
   bool getModifierState(String keyArg) native;
 
   void _initMouseEvent(
-      String type,
-      bool bubbles,
-      bool cancelable,
-      Window view,
-      int detail,
-      int screenX,
-      int screenY,
-      int clientX,
-      int clientY,
-      bool ctrlKey,
-      bool altKey,
-      bool shiftKey,
-      bool metaKey,
-      int button,
-      EventTarget relatedTarget) {
+      String? type,
+      bool? bubbles,
+      bool? cancelable,
+      Window? view,
+      int? detail,
+      int? screenX,
+      int? screenY,
+      int? clientX,
+      int? clientY,
+      bool? ctrlKey,
+      bool? altKey,
+      bool? shiftKey,
+      bool? metaKey,
+      int? button,
+      EventTarget? relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _initMouseEvent_1(
         type,
@@ -22229,7 +22332,7 @@ class MouseEvent extends UIEvent {
       type,
       bubbles,
       cancelable,
-      Window view,
+      Window? view,
       detail,
       screenX,
       screenY,
@@ -22246,7 +22349,7 @@ class MouseEvent extends UIEvent {
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
-  Point get movement => new Point(_movementX, _movementY);
+  Point get movement => new Point(_movementX!, _movementY!);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -22259,13 +22362,13 @@ class MouseEvent extends UIEvent {
     if (JS('bool', '!!#.offsetX', this)) {
       var x = JS('int', '#.offsetX', this);
       var y = JS('int', '#.offsetY', this);
-      return new Point(x, y);
+      return new Point(x as num, y as num);
     } else {
       // Firefox does not support offsetX.
       if (!(this.target is Element)) {
         throw new UnsupportedError('offsetX is only supported on elements');
       }
-      Element target = this.target;
+      Element target = this.target as Element;
       var point = (this.client - target.getBoundingClientRect().topLeft);
       return new Point(point.x.toInt(), point.y.toInt());
     }
@@ -22273,9 +22376,9 @@ class MouseEvent extends UIEvent {
 
   Point get screen => new Point(_screenX, _screenY);
 
-  Point get layer => new Point(_layerX, _layerY);
+  Point get layer => new Point(_layerX!, _layerY!);
 
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(_pageX!, _pageY!);
 
   DataTransfer get dataTransfer =>
       JS('DataTransfer', "#['dataTransfer']", this);
@@ -22306,25 +22409,25 @@ class MutationEvent extends Event {
 
   static const int REMOVAL = 3;
 
-  int get attrChange native;
+  int? get attrChange native;
 
-  String get attrName native;
+  String? get attrName native;
 
-  String get newValue native;
+  String? get newValue native;
 
-  String get prevValue native;
+  String? get prevValue native;
 
-  Node get relatedNode native;
+  Node? get relatedNode native;
 
   void initMutationEvent(
-      String type,
-      bool bubbles,
-      bool cancelable,
-      Node relatedNode,
-      String prevValue,
-      String newValue,
-      String attrName,
-      int attrChange) native;
+      String? type,
+      bool? bubbles,
+      bool? cancelable,
+      Node? relatedNode,
+      String? prevValue,
+      String? newValue,
+      String? attrName,
+      int? attrChange) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22337,7 +22440,7 @@ class MutationEvent extends Event {
 class MutationObserver extends Interceptor {
   void disconnect() native;
 
-  void _observe(Node target, [Map options]) {
+  void _observe(Node target, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       _observe_1(target, options_1);
@@ -22374,13 +22477,13 @@ class MutationObserver extends Interceptor {
    * * If characterDataOldValue is true then characterData must be true.
    */
   void observe(Node target,
-      {bool childList,
-      bool attributes,
-      bool characterData,
-      bool subtree,
-      bool attributeOldValue,
-      bool characterDataOldValue,
-      List<String> attributeFilter}) {
+      {bool? childList,
+      bool? attributes,
+      bool? characterData,
+      bool? subtree,
+      bool? attributeOldValue,
+      bool? characterDataOldValue,
+      List<String>? attributeFilter}) {
     // Parse options into map of known type.
     var parsedOptions = _createDict();
 
@@ -22445,27 +22548,27 @@ class MutationRecord extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get addedNodes native;
+  List<Node>? get addedNodes native;
 
-  String get attributeName native;
+  String? get attributeName native;
 
-  String get attributeNamespace native;
+  String? get attributeNamespace native;
 
-  Node get nextSibling native;
+  Node? get nextSibling native;
 
-  String get oldValue native;
+  String? get oldValue native;
 
-  Node get previousSibling native;
+  Node? get previousSibling native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get removedNodes native;
+  List<Node>? get removedNodes native;
 
-  Node get target native;
+  Node? get target native;
 
-  String get type native;
+  String? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22482,7 +22585,7 @@ class NavigationPreloadManager extends Interceptor {
 
   Future enable() => promiseToFuture(JS("", "#.enable()", this));
 
-  Future<Map<String, dynamic>> getState() =>
+  Future<Map<String, dynamic>?> getState() =>
       promiseToFutureAsMap(JS("", "#.getState()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22497,7 +22600,7 @@ class Navigator extends NavigatorConcurrentHardware
         NavigatorOnLine,
         NavigatorAutomationInformation,
         NavigatorID {
-  List<Gamepad> getGamepads() {
+  List<Gamepad?> getGamepads() {
     var gamepadList = _getGamepads();
 
     // If no prototype we need one for the world to hookup to the proper Dart class.
@@ -22586,43 +22689,43 @@ class Navigator extends NavigatorConcurrentHardware
     throw new UnsupportedError("Not supported");
   }
 
-  _BudgetService get budget native;
+  _BudgetService? get budget native;
 
-  _Clipboard get clipboard native;
+  _Clipboard? get clipboard native;
 
-  NetworkInformation get connection native;
+  NetworkInformation? get connection native;
 
-  CredentialsContainer get credentials native;
+  CredentialsContainer? get credentials native;
 
-  num get deviceMemory native;
+  num? get deviceMemory native;
 
-  String get doNotTrack native;
+  String? get doNotTrack native;
 
   @Unstable()
   Geolocation get geolocation native;
 
-  int get maxTouchPoints native;
+  int? get maxTouchPoints native;
 
-  MediaCapabilities get mediaCapabilities native;
+  MediaCapabilities? get mediaCapabilities native;
 
-  MediaDevices get mediaDevices native;
+  MediaDevices? get mediaDevices native;
 
-  MediaSession get mediaSession native;
+  MediaSession? get mediaSession native;
 
-  MimeTypeArray get mimeTypes native;
+  MimeTypeArray? get mimeTypes native;
 
-  _NFC get nfc native;
+  _NFC? get nfc native;
 
-  Permissions get permissions native;
+  Permissions? get permissions native;
 
-  Presentation get presentation native;
+  Presentation? get presentation native;
 
   @Unstable()
-  String get productSub native;
+  String? get productSub native;
 
-  ServiceWorkerContainer get serviceWorker native;
+  ServiceWorkerContainer? get serviceWorker native;
 
-  StorageManager get storage native;
+  StorageManager? get storage native;
 
   @Unstable()
   String get vendor native;
@@ -22630,37 +22733,38 @@ class Navigator extends NavigatorConcurrentHardware
   @Unstable()
   String get vendorSub native;
 
-  VR get vr native;
+  VR? get vr native;
 
   @JSName('webkitPersistentStorage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  DeprecatedStorageQuota get persistentStorage native;
+  DeprecatedStorageQuota? get persistentStorage native;
 
   @JSName('webkitTemporaryStorage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  DeprecatedStorageQuota get temporaryStorage native;
+  DeprecatedStorageQuota? get temporaryStorage native;
 
   void cancelKeyboardLock() native;
 
   Future getBattery() => promiseToFuture(JS("", "#.getBattery()", this));
 
   @JSName('getGamepads')
-  @Returns('_GamepadList|Null')
+  @Returns('_GamepadList')
   @Creates('_GamepadList')
-  List<Gamepad> _getGamepads() native;
+  List<Gamepad?> _getGamepads() native;
 
   Future<RelatedApplication> getInstalledRelatedApps() =>
-      promiseToFuture<RelatedApplication>(
-          JS("", "#.getInstalledRelatedApps()", this));
+      promiseToFuture<RelatedApplication>(JS(
+          "creates:RelatedApplication;", "#.getInstalledRelatedApps()", this));
 
-  Future getVRDisplays() => promiseToFuture(JS("", "#.getVRDisplays()", this));
+  Future getVRDisplays() =>
+      promiseToFuture(JS("creates:VRDisplay;", "#.getVRDisplays()", this));
 
   @Unstable()
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  Future requestKeyboardLock([List<String> keyCodes]) {
+  Future requestKeyboardLock([List<String>? keyCodes]) {
     if (keyCodes != null) {
       List keyCodes_1 = convertDartToNative_StringArray(keyCodes);
       return _requestKeyboardLock_1(keyCodes_1);
@@ -22676,7 +22780,7 @@ class Navigator extends NavigatorConcurrentHardware
       promiseToFuture(JS("", "#.requestKeyboardLock()", this));
 
   @JSName('requestMIDIAccess')
-  Future requestMidiAccess([Map options]) {
+  Future requestMidiAccess([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -22687,12 +22791,16 @@ class Navigator extends NavigatorConcurrentHardware
 
   Future requestMediaKeySystemAccess(
           String keySystem, List<Map> supportedConfigurations) =>
-      promiseToFuture(JS("", "#.requestMediaKeySystemAccess(#, #)", this,
-          keySystem, supportedConfigurations));
+      promiseToFuture(JS(
+          "creates:MediaKeySystemAccess;",
+          "#.requestMediaKeySystemAccess(#, #)",
+          this,
+          keySystem,
+          supportedConfigurations));
 
-  bool sendBeacon(String url, Object data) native;
+  bool sendBeacon(String url, Object? data) native;
 
-  Future share([Map data]) {
+  Future share([Map? data]) {
     var data_dict = null;
     if (data != null) {
       data_dict = convertDartToNative_Dictionary(data);
@@ -22702,12 +22810,12 @@ class Navigator extends NavigatorConcurrentHardware
 
   // From NavigatorAutomationInformation
 
-  bool get webdriver native;
+  bool? get webdriver native;
 
   // From NavigatorCookies
 
   @Unstable()
-  bool get cookieEnabled native;
+  bool? get cookieEnabled native;
 
   // From NavigatorID
 
@@ -22717,9 +22825,9 @@ class Navigator extends NavigatorConcurrentHardware
 
   String get appVersion native;
 
-  bool get dartEnabled native;
+  bool? get dartEnabled native;
 
-  String get platform native;
+  String? get platform native;
 
   @Unstable()
   String get product native;
@@ -22728,12 +22836,12 @@ class Navigator extends NavigatorConcurrentHardware
 
   // From NavigatorLanguage
 
-  List<String> get languages native;
+  List<String>? get languages native;
 
   // From NavigatorOnLine
 
   @Unstable()
-  bool get onLine native;
+  bool? get onLine native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22746,7 +22854,7 @@ class NavigatorAutomationInformation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get webdriver native;
+  bool? get webdriver native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22759,7 +22867,7 @@ class NavigatorConcurrentHardware extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get hardwareConcurrency native;
+  int? get hardwareConcurrency native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22772,7 +22880,7 @@ class NavigatorCookies extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get cookieEnabled native;
+  bool? get cookieEnabled native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22790,9 +22898,9 @@ abstract class NavigatorID extends Interceptor {
 
   String get appVersion native;
 
-  bool get dartEnabled native;
+  bool? get dartEnabled native;
 
-  String get platform native;
+  String? get platform native;
 
   String get product native;
 
@@ -22808,9 +22916,9 @@ abstract class NavigatorLanguage extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get language native;
+  String? get language native;
 
-  List<String> get languages native;
+  List<String>? get languages native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22822,7 +22930,7 @@ abstract class NavigatorOnLine extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get onLine native;
+  bool? get onLine native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22835,11 +22943,11 @@ class NavigatorUserMediaError extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get constraintName native;
+  String? get constraintName native;
 
-  String get message native;
+  String? get message native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22869,15 +22977,15 @@ class NetworkInformation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  num get downlink native;
+  num? get downlink native;
 
-  num get downlinkMax native;
+  num? get downlinkMax native;
 
-  String get effectiveType native;
+  String? get effectiveType native;
 
-  int get rtt native;
+  int? get rtt native;
 
-  String get type native;
+  String? get type native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -22896,13 +23004,13 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   _ChildNodeListLazy(this._this);
 
   Node get first {
-    Node result = JS('Node|Null', '#.firstChild', _this);
+    Node? result = JS('Node|Null', '#.firstChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
   Node get last {
-    Node result = JS('Node|Null', '#.lastChild', _this);
+    Node? result = JS('Node|Null', '#.lastChild', _this);
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -22911,7 +23019,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     int l = this.length;
     if (l == 0) throw new StateError("No elements");
     if (l > 1) throw new StateError("More than one element");
-    return JS('Node|Null', '#.firstChild', _this);
+    return JS('Node|Null', '#.firstChild', _this)!;
   }
 
   void add(Node value) {
@@ -22924,7 +23032,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
       if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = otherList.length; i < len; ++i) {
-          _this.append(otherList._this.firstChild);
+          _this.append(otherList._this.firstChild!);
         }
       }
       return;
@@ -22974,7 +23082,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     return result;
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
@@ -22986,9 +23094,9 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
-    Node child = _this.firstChild;
+    Node? child = _this.firstChild;
     while (child != null) {
-      Node nextChild = child.nextNode;
+      Node? nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this._removeChild(child);
       }
@@ -23018,11 +23126,11 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare]) {
+  void sort([Comparator<Node>? compare]) {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -23032,7 +23140,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     throw new UnsupportedError("Cannot setRange on Node list");
   }
 
-  void fillRange(int start, int end, [Node fill]) {
+  void fillRange(int start, int end, [Node? fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
   }
 
@@ -23083,7 +23191,7 @@ class Node extends EventTarget {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
-      final Node parent = this.parentNode;
+      final Node parent = this.parentNode!;
       parent._removeChild(this);
     }
   }
@@ -23093,7 +23201,7 @@ class Node extends EventTarget {
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parentNode;
+      final Node parent = this.parentNode!;
       parent._replaceChild(otherNode, this);
     } catch (e) {}
     return this;
@@ -23115,7 +23223,7 @@ class Node extends EventTarget {
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild, refChild);
+        this.insertBefore(otherList._this.firstChild!, refChild);
       }
     } else {
       for (var node in newNodes) {
@@ -23126,7 +23234,7 @@ class Node extends EventTarget {
 
   void _clearChildren() {
     while (firstChild != null) {
-      _removeChild(firstChild);
+      _removeChild(firstChild!);
     }
   }
 
@@ -23134,7 +23242,7 @@ class Node extends EventTarget {
    * Print out a String representation of this Node.
    */
   String toString() {
-    String value = nodeValue; // Fetch DOM Node property once.
+    String? value = nodeValue; // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
 
@@ -23180,7 +23288,7 @@ class Node extends EventTarget {
   static const int TEXT_NODE = 3;
 
   @JSName('baseURI')
-  String get baseUri native;
+  String? get baseUri native;
 
   /**
    * The first child of this node.
@@ -23191,9 +23299,9 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  Node get firstChild native;
+  Node? get firstChild native;
 
-  bool get isConnected native;
+  bool? get isConnected native;
 
   /**
    * The last child of this node.
@@ -23204,7 +23312,7 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  Node get lastChild native;
+  Node? get lastChild native;
 
   @JSName('nextSibling')
 
@@ -23217,7 +23325,7 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  Node get nextNode native;
+  Node? get nextNode native;
 
   /**
    * The name of this node.
@@ -23231,7 +23339,7 @@ class Node extends EventTarget {
    *   [nodeType].
    */
 
-  String get nodeName native;
+  String? get nodeName native;
 
   /**
    * The type of node.
@@ -23271,7 +23379,7 @@ class Node extends EventTarget {
    *   [nodeType].
    */
 
-  String get nodeValue native;
+  String? get nodeValue native;
 
   /**
    * The document this node belongs to.
@@ -23284,7 +23392,7 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  Document get ownerDocument native;
+  Document? get ownerDocument native;
 
   @JSName('parentElement')
 
@@ -23300,7 +23408,7 @@ class Node extends EventTarget {
    *   from W3C.
    */
 
-  Element get parent native;
+  Element? get parent native;
 
   /**
    * The parent node of this node.
@@ -23311,7 +23419,7 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  Node get parentNode native;
+  Node? get parentNode native;
 
   @JSName('previousSibling')
 
@@ -23324,7 +23432,7 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  Node get previousNode native;
+  Node? get previousNode native;
 
   @JSName('textContent')
 
@@ -23337,10 +23445,10 @@ class Node extends EventTarget {
    *   from MDN.
    */
 
-  String get text native;
+  String? get text native;
 
   @JSName('textContent')
-  set text(String value) native;
+  set text(String? value) native;
 
   @JSName('appendChild')
   /**
@@ -23366,7 +23474,7 @@ class Node extends EventTarget {
    * * [Node.cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode)
    *   from MDN.
    */
-  Node clone(bool deep) native;
+  Node clone(bool? deep) native;
 
   /**
    * Returns true if this node contains the specified node.
@@ -23376,9 +23484,9 @@ class Node extends EventTarget {
    * * [Node.contains](https://developer.mozilla.org/en-US/docs/Web/API/Node.contains)
    *   from MDN.
    */
-  bool contains(Node other) native;
+  bool contains(Node? other) native;
 
-  Node getRootNode([Map options]) {
+  Node getRootNode([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _getRootNode_1(options_1);
@@ -23409,7 +23517,7 @@ class Node extends EventTarget {
    * * [Node.insertBefore](https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore)
    *   from MDN.
    */
-  Node insertBefore(Node node, Node child) native;
+  Node insertBefore(Node node, Node? child) native;
 
   @JSName('removeChild')
   Node _removeChild(Node child) native;
@@ -23466,9 +23574,9 @@ class NodeIterator extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get pointerBeforeReferenceNode native;
+  bool? get pointerBeforeReferenceNode native;
 
-  Node get referenceNode native;
+  Node? get referenceNode native;
 
   Node get root native;
 
@@ -23476,9 +23584,9 @@ class NodeIterator extends Interceptor {
 
   void detach() native;
 
-  Node nextNode() native;
+  Node? nextNode() native;
 
-  Node previousNode() native;
+  Node? previousNode() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23539,7 +23647,7 @@ class NodeList extends Interceptor
   // -- end List<Node> mixins.
 
   @JSName('item')
-  Node _item(int index) native;
+  Node? _item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23552,9 +23660,9 @@ class NonDocumentTypeChildNode extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Element get nextElementSibling native;
+  Element? get nextElementSibling native;
 
-  Element get previousElementSibling native;
+  Element? get previousElementSibling native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23567,7 +23675,7 @@ class NonElementParentNode extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Element getElementById(String elementId) native;
+  Element? getElementById(String elementId) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23580,9 +23688,9 @@ class NoncedElement extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get nonce native;
+  String? get nonce native;
 
-  set nonce(String value) native;
+  set nonce(String? value) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23591,7 +23699,7 @@ class NoncedElement extends Interceptor {
 @Native("Notification")
 class Notification extends EventTarget {
   factory Notification(String title,
-      {String dir, String body, String lang, String tag, String icon}) {
+      {String? dir, String? body, String? lang, String? tag, String? icon}) {
     var parsedOptions = {};
     if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
@@ -23641,7 +23749,7 @@ class Notification extends EventTarget {
   static const EventStreamProvider<Event> showEvent =
       const EventStreamProvider<Event>('show');
 
-  static Notification _factoryNotification(String title, [Map options]) {
+  static Notification _factoryNotification(String title, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return Notification._create_1(title, options_1);
@@ -23657,47 +23765,47 @@ class Notification extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.Notification)');
 
-  List get actions native;
+  List? get actions native;
 
-  String get badge native;
+  String? get badge native;
 
-  String get body native;
+  String? get body native;
 
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  Object get data native;
+  Object? get data native;
 
-  String get dir native;
+  String? get dir native;
 
-  String get icon native;
+  String? get icon native;
 
-  String get image native;
+  String? get image native;
 
-  String get lang native;
+  String? get lang native;
 
-  static int get maxActions native;
+  static int? get maxActions native;
 
-  static String get permission native;
+  static String? get permission native;
 
-  bool get renotify native;
+  bool? get renotify native;
 
-  bool get requireInteraction native;
+  bool? get requireInteraction native;
 
-  bool get silent native;
+  bool? get silent native;
 
-  String get tag native;
+  String? get tag native;
 
-  int get timestamp native;
+  int? get timestamp native;
 
-  String get title native;
+  String? get title native;
 
-  List<int> get vibrate native;
+  List<int>? get vibrate native;
 
   void close() native;
 
   @JSName('requestPermission')
   static Future _requestPermission(
-      [_NotificationPermissionCallback deprecatedCallback]) native;
+      [_NotificationPermissionCallback? deprecatedCallback]) native;
 
   @JSName('requestPermission')
   static Future<String> requestPermission() {
@@ -23738,11 +23846,11 @@ class NotificationEvent extends ExtendableEvent {
   static NotificationEvent _create_1(type, eventInitDict) => JS(
       'NotificationEvent', 'new NotificationEvent(#,#)', type, eventInitDict);
 
-  String get action native;
+  String? get action native;
 
-  Notification get notification native;
+  Notification? get notification native;
 
-  String get reply native;
+  String? get reply native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23762,7 +23870,7 @@ class OListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OListElement() => JS(
+  factory OListElement() => JS<OListElement>(
       'returns:OListElement;creates:OListElement;new:true',
       '#.createElement(#)',
       document,
@@ -23774,9 +23882,9 @@ class OListElement extends HtmlElement {
    */
   OListElement.created() : super.created();
 
-  bool get reversed native;
+  bool? get reversed native;
 
-  set reversed(bool value) native;
+  set reversed(bool? value) native;
 
   int get start native;
 
@@ -23801,7 +23909,7 @@ class ObjectElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ObjectElement() => document.createElement("object");
+  factory ObjectElement() => document.createElement("object") as ObjectElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23812,7 +23920,7 @@ class ObjectElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
 
-  WindowBase get contentWindow =>
+  WindowBase? get contentWindow =>
       _convertNativeToDart_Window(this._get_contentWindow);
   @JSName('contentWindow')
   @Creates('Window|=Object')
@@ -23823,7 +23931,7 @@ class ObjectElement extends HtmlElement {
 
   set data(String value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   String get height native;
 
@@ -23878,24 +23986,24 @@ class OffscreenCanvas extends EventTarget {
   static OffscreenCanvas _create_1(width, height) =>
       JS('OffscreenCanvas', 'new OffscreenCanvas(#,#)', width, height);
 
-  int get height native;
+  int? get height native;
 
-  set height(int value) native;
+  set height(int? value) native;
 
-  int get width native;
+  int? get width native;
 
-  set width(int value) native;
+  set width(int? value) native;
 
-  Future<Blob> convertToBlob([Map options]) {
+  Future<Blob> convertToBlob([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<Blob>(
-        JS("", "#.convertToBlob(#)", this, options_dict));
+        JS("creates:Blob;", "#.convertToBlob(#)", this, options_dict));
   }
 
-  Object getContext(String contextType, [Map attributes]) {
+  Object? getContext(String contextType, [Map? attributes]) {
     if (attributes != null) {
       var attributes_1 = convertDartToNative_Dictionary(attributes);
       return _getContext_1(contextType, attributes_1);
@@ -23904,9 +24012,9 @@ class OffscreenCanvas extends EventTarget {
   }
 
   @JSName('getContext')
-  Object _getContext_1(contextType, attributes) native;
+  Object? _getContext_1(contextType, attributes) native;
   @JSName('getContext')
-  Object _getContext_2(contextType) native;
+  Object? _getContext_2(contextType) native;
 
   ImageBitmap transferToImageBitmap() native;
 }
@@ -23922,100 +24030,100 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  OffscreenCanvas get canvas native;
+  OffscreenCanvas? get canvas native;
 
-  String get direction native;
+  String? get direction native;
 
-  set direction(String value) native;
+  set direction(String? value) native;
 
-  Object get fillStyle native;
+  Object? get fillStyle native;
 
-  set fillStyle(Object value) native;
+  set fillStyle(Object? value) native;
 
-  String get filter native;
+  String? get filter native;
 
-  set filter(String value) native;
+  set filter(String? value) native;
 
-  String get font native;
+  String? get font native;
 
-  set font(String value) native;
+  set font(String? value) native;
 
-  num get globalAlpha native;
+  num? get globalAlpha native;
 
-  set globalAlpha(num value) native;
+  set globalAlpha(num? value) native;
 
-  String get globalCompositeOperation native;
+  String? get globalCompositeOperation native;
 
-  set globalCompositeOperation(String value) native;
+  set globalCompositeOperation(String? value) native;
 
-  bool get imageSmoothingEnabled native;
+  bool? get imageSmoothingEnabled native;
 
-  set imageSmoothingEnabled(bool value) native;
+  set imageSmoothingEnabled(bool? value) native;
 
-  String get imageSmoothingQuality native;
+  String? get imageSmoothingQuality native;
 
-  set imageSmoothingQuality(String value) native;
+  set imageSmoothingQuality(String? value) native;
 
-  String get lineCap native;
+  String? get lineCap native;
 
-  set lineCap(String value) native;
+  set lineCap(String? value) native;
 
-  num get lineDashOffset native;
+  num? get lineDashOffset native;
 
-  set lineDashOffset(num value) native;
+  set lineDashOffset(num? value) native;
 
-  String get lineJoin native;
+  String? get lineJoin native;
 
-  set lineJoin(String value) native;
+  set lineJoin(String? value) native;
 
-  num get lineWidth native;
+  num? get lineWidth native;
 
-  set lineWidth(num value) native;
+  set lineWidth(num? value) native;
 
-  num get miterLimit native;
+  num? get miterLimit native;
 
-  set miterLimit(num value) native;
+  set miterLimit(num? value) native;
 
-  num get shadowBlur native;
+  num? get shadowBlur native;
 
-  set shadowBlur(num value) native;
+  set shadowBlur(num? value) native;
 
-  String get shadowColor native;
+  String? get shadowColor native;
 
-  set shadowColor(String value) native;
+  set shadowColor(String? value) native;
 
-  num get shadowOffsetX native;
+  num? get shadowOffsetX native;
 
-  set shadowOffsetX(num value) native;
+  set shadowOffsetX(num? value) native;
 
-  num get shadowOffsetY native;
+  num? get shadowOffsetY native;
 
-  set shadowOffsetY(num value) native;
+  set shadowOffsetY(num? value) native;
 
-  Object get strokeStyle native;
+  Object? get strokeStyle native;
 
-  set strokeStyle(Object value) native;
+  set strokeStyle(Object? value) native;
 
-  String get textAlign native;
+  String? get textAlign native;
 
-  set textAlign(String value) native;
+  set textAlign(String? value) native;
 
-  String get textBaseline native;
+  String? get textBaseline native;
 
-  set textBaseline(String value) native;
+  set textBaseline(String? value) native;
 
   void beginPath() native;
 
   void clearRect(num x, num y, num width, num height) native;
 
-  void clip([Path2D path]) native;
+  void clip([Path2D? path]) native;
 
   Future commit() => promiseToFuture(JS("", "#.commit()", this));
 
   ImageData createImageData(data_OR_imagedata_OR_sw,
-      [int sh_OR_sw,
+      [int? sh_OR_sw,
       imageDataColorSettings_OR_sh,
-      Map imageDataColorSettings]) {
+      Map? imageDataColorSettings]) {
     if ((data_OR_imagedata_OR_sw is ImageData) &&
         sh_OR_sw == null &&
         imageDataColorSettings_OR_sh == null &&
@@ -24061,29 +24169,29 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   @JSName('createImageData')
   _createImageData_3(int sw, sh, imageDataColorSettings) native;
   @JSName('createImageData')
-  _createImageData_4(data, sw, int sh, imageDataColorSettings) native;
+  _createImageData_4(data, sw, int? sh, imageDataColorSettings) native;
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  CanvasPattern createPattern(
+  CanvasPattern? createPattern(
       /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(/*CanvasImageSource*/ image, num sx_OR_x, num sy_OR_y,
-      [num sw_OR_width,
-      num height_OR_sh,
-      num dx,
-      num dy,
-      num dw,
-      num dh]) native;
+      [num? sw_OR_width,
+      num? height_OR_sh,
+      num? dx,
+      num? dy,
+      num? dw,
+      num? dh]) native;
 
-  void fill([path_OR_winding, String winding]) native;
+  void fill([path_OR_winding, String? winding]) native;
 
   void fillRect(num x, num y, num width, num height) native;
 
-  void fillText(String text, num x, num y, [num maxWidth]) native;
+  void fillText(String text, num x, num y, [num? maxWidth]) native;
 
   ImageData getImageData(int sx, int sy, int sw, int sh) {
     return convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
@@ -24094,15 +24202,15 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   List<num> getLineDash() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String winding])
+  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
       native;
 
-  bool isPointInStroke(path_OR_x, num x_OR_y, [num y]) native;
+  bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   TextMetrics measureText(String text) native;
 
   void putImageData(ImageData imagedata, int dx, int dy,
-      [int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight]) {
+      [int? dirtyX, int? dirtyY, int? dirtyWidth, int? dirtyHeight]) {
     if (dirtyX == null &&
         dirtyY == null &&
         dirtyWidth == null &&
@@ -24143,11 +24251,11 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   void setTransform(num a, num b, num c, num d, num e, num f) native;
 
-  void stroke([Path2D path]) native;
+  void stroke([Path2D? path]) native;
 
   void strokeRect(num x, num y, num width, num height) native;
 
-  void strokeText(String text, num x, num y, [num maxWidth]) native;
+  void strokeText(String text, num x, num y, [num? maxWidth]) native;
 
   void transform(num a, num b, num c, num d, num e, num f) native;
 
@@ -24156,7 +24264,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   // From CanvasPath
 
   void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -24166,7 +24274,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -24187,7 +24295,7 @@ class OptGroupElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OptGroupElement() => JS(
+  factory OptGroupElement() => JS<OptGroupElement>(
       'returns:OptGroupElement;creates:OptGroupElement;new:true',
       '#.createElement(#)',
       document,
@@ -24219,7 +24327,7 @@ class OptionElement extends HtmlElement {
   }
 
   factory OptionElement._(
-      [String data, String value, bool defaultSelected, bool selected]) {
+      [String? data, String? value, bool? defaultSelected, bool? selected]) {
     if (selected != null) {
       return OptionElement._create_1(data, value, defaultSelected, selected);
     }
@@ -24263,13 +24371,13 @@ class OptionElement extends HtmlElement {
 
   set disabled(bool value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   int get index native;
 
-  String get label native;
+  String? get label native;
 
-  set label(String value) native;
+  set label(String? value) native;
 
   bool get selected native;
 
@@ -24290,7 +24398,7 @@ class OrientationSensor extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  List<num> get quaternion native;
+  List<num>? get quaternion native;
 
   void populateMatrix(Object targetBuffer) native;
 }
@@ -24308,7 +24416,7 @@ class OutputElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OutputElement() => document.createElement("output");
+  factory OutputElement() => document.createElement("output") as OutputElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24319,34 +24427,34 @@ class OutputElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
 
-  String get defaultValue native;
+  String? get defaultValue native;
 
-  set defaultValue(String value) native;
+  set defaultValue(String? value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
-  DomTokenList get htmlFor native;
+  DomTokenList? get htmlFor native;
 
   @Unstable()
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  String get type native;
+  String? get type native;
 
-  String get validationMessage native;
+  String? get validationMessage native;
 
-  ValidityState get validity native;
+  ValidityState? get validity native;
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
-  bool get willValidate native;
+  bool? get willValidate native;
 
   bool checkValidity() native;
 
@@ -24374,11 +24482,11 @@ class OverconstrainedError extends Interceptor {
       constraint,
       message);
 
-  String get constraint native;
+  String? get constraint native;
 
-  String get message native;
+  String? get message native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24391,7 +24499,7 @@ class PageTransitionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PageTransitionEvent(String type, [Map eventInitDict]) {
+  factory PageTransitionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PageTransitionEvent._create_1(type, eventInitDict_1);
@@ -24406,7 +24514,7 @@ class PageTransitionEvent extends Event {
   static PageTransitionEvent _create_2(type) =>
       JS('PageTransitionEvent', 'new PageTransitionEvent(#)', type);
 
-  bool get persisted native;
+  bool? get persisted native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24419,106 +24527,106 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
     throw new UnsupportedError("Not supported");
   }
 
-  Matrix get currentTransform native;
+  Matrix? get currentTransform native;
 
-  set currentTransform(Matrix value) native;
+  set currentTransform(Matrix? value) native;
 
-  Object get fillStyle native;
+  Object? get fillStyle native;
 
-  set fillStyle(Object value) native;
+  set fillStyle(Object? value) native;
 
-  String get filter native;
+  String? get filter native;
 
-  set filter(String value) native;
+  set filter(String? value) native;
 
-  num get globalAlpha native;
+  num? get globalAlpha native;
 
-  set globalAlpha(num value) native;
+  set globalAlpha(num? value) native;
 
-  String get globalCompositeOperation native;
+  String? get globalCompositeOperation native;
 
-  set globalCompositeOperation(String value) native;
+  set globalCompositeOperation(String? value) native;
 
-  bool get imageSmoothingEnabled native;
+  bool? get imageSmoothingEnabled native;
 
-  set imageSmoothingEnabled(bool value) native;
+  set imageSmoothingEnabled(bool? value) native;
 
-  String get imageSmoothingQuality native;
+  String? get imageSmoothingQuality native;
 
-  set imageSmoothingQuality(String value) native;
+  set imageSmoothingQuality(String? value) native;
 
-  String get lineCap native;
+  String? get lineCap native;
 
-  set lineCap(String value) native;
+  set lineCap(String? value) native;
 
-  num get lineDashOffset native;
+  num? get lineDashOffset native;
 
-  set lineDashOffset(num value) native;
+  set lineDashOffset(num? value) native;
 
-  String get lineJoin native;
+  String? get lineJoin native;
 
-  set lineJoin(String value) native;
+  set lineJoin(String? value) native;
 
-  num get lineWidth native;
+  num? get lineWidth native;
 
-  set lineWidth(num value) native;
+  set lineWidth(num? value) native;
 
-  num get miterLimit native;
+  num? get miterLimit native;
 
-  set miterLimit(num value) native;
+  set miterLimit(num? value) native;
 
-  num get shadowBlur native;
+  num? get shadowBlur native;
 
-  set shadowBlur(num value) native;
+  set shadowBlur(num? value) native;
 
-  String get shadowColor native;
+  String? get shadowColor native;
 
-  set shadowColor(String value) native;
+  set shadowColor(String? value) native;
 
-  num get shadowOffsetX native;
+  num? get shadowOffsetX native;
 
-  set shadowOffsetX(num value) native;
+  set shadowOffsetX(num? value) native;
 
-  num get shadowOffsetY native;
+  num? get shadowOffsetY native;
 
-  set shadowOffsetY(num value) native;
+  set shadowOffsetY(num? value) native;
 
-  Object get strokeStyle native;
+  Object? get strokeStyle native;
 
-  set strokeStyle(Object value) native;
+  set strokeStyle(Object? value) native;
 
   void beginPath() native;
 
   void clearRect(num x, num y, num width, num height) native;
 
-  void clip([path_OR_winding, String winding]) native;
+  void clip([path_OR_winding, String? winding]) native;
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  CanvasPattern createPattern(
+  CanvasPattern? createPattern(
       /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(/*CanvasImageSource*/ image, num sx_OR_x, num sy_OR_y,
-      [num sw_OR_width,
-      num height_OR_sh,
-      num dx,
-      num dy,
-      num dw,
-      num dh]) native;
+      [num? sw_OR_width,
+      num? height_OR_sh,
+      num? dx,
+      num? dy,
+      num? dw,
+      num? dh]) native;
 
-  void fill([path_OR_winding, String winding]) native;
+  void fill([path_OR_winding, String? winding]) native;
 
   void fillRect(num x, num y, num width, num height) native;
 
   List<num> getLineDash() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String winding])
+  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
       native;
 
-  bool isPointInStroke(path_OR_x, num x_OR_y, [num y]) native;
+  bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   void resetTransform() native;
 
@@ -24534,7 +24642,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 
   void setTransform(num a, num b, num c, num d, num e, num f) native;
 
-  void stroke([Path2D path]) native;
+  void stroke([Path2D? path]) native;
 
   void strokeRect(num x, num y, num width, num height) native;
 
@@ -24545,7 +24653,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   // From CanvasPath
 
   void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -24555,7 +24663,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -24576,9 +24684,9 @@ class PaintSize extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get height native;
+  num? get height native;
 
-  num get width native;
+  num? get width native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24591,7 +24699,7 @@ class PaintWorkletGlobalScope extends WorkletGlobalScope {
     throw new UnsupportedError("Not supported");
   }
 
-  num get devicePixelRatio native;
+  num? get devicePixelRatio native;
 
   void registerPaint(String name, Object paintCtor) native;
 }
@@ -24606,7 +24714,7 @@ class ParagraphElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ParagraphElement() => JS(
+  factory ParagraphElement() => JS<ParagraphElement>(
       'returns:ParagraphElement;creates:ParagraphElement;new:true',
       '#.createElement(#)',
       document,
@@ -24630,7 +24738,7 @@ class ParamElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ParamElement() => JS(
+  factory ParamElement() => JS<ParamElement>(
       'returns:ParamElement;creates:ParamElement;new:true',
       '#.createElement(#)',
       document,
@@ -24662,13 +24770,13 @@ abstract class ParentNode extends Interceptor {
 
   int get _childElementCount native;
 
-  List<Node> get _children native;
+  List<Node>? get _children native;
 
-  Element get _firstElementChild native;
+  Element? get _firstElementChild native;
 
-  Element get _lastElementChild native;
+  Element? get _lastElementChild native;
 
-  Element querySelector(String selectors);
+  Element? querySelector(String selectors);
 
   List<Node> _querySelectorAll(String selectors);
 }
@@ -24698,26 +24806,26 @@ class PasswordCredential extends Credential implements CredentialUserData {
   static PasswordCredential _create_2(data_OR_form) =>
       JS('PasswordCredential', 'new PasswordCredential(#)', data_OR_form);
 
-  Object get additionalData native;
+  Object? get additionalData native;
 
-  set additionalData(Object value) native;
+  set additionalData(Object? value) native;
 
-  String get idName native;
+  String? get idName native;
 
-  set idName(String value) native;
+  set idName(String? value) native;
 
-  String get password native;
+  String? get password native;
 
-  String get passwordName native;
+  String? get passwordName native;
 
-  set passwordName(String value) native;
+  set passwordName(String? value) native;
 
   // From CredentialUserData
 
   @JSName('iconURL')
-  String get iconUrl native;
+  String? get iconUrl native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24748,12 +24856,12 @@ class Path2D extends Interceptor implements _CanvasPath {
   static Path2D _create_3(path_OR_text) =>
       JS('Path2D', 'new Path2D(#)', path_OR_text);
 
-  void addPath(Path2D path, [Matrix transform]) native;
+  void addPath(Path2D path, [Matrix? transform]) native;
 
   // From CanvasPath
 
   void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -24763,7 +24871,7 @@ class Path2D extends Interceptor implements _CanvasPath {
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -24784,27 +24892,27 @@ class PaymentAddress extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  List<String> get addressLine native;
+  List<String>? get addressLine native;
 
-  String get city native;
+  String? get city native;
 
-  String get country native;
+  String? get country native;
 
-  String get dependentLocality native;
+  String? get dependentLocality native;
 
-  String get languageCode native;
+  String? get languageCode native;
 
-  String get organization native;
+  String? get organization native;
 
-  String get phone native;
+  String? get phone native;
 
-  String get postalCode native;
+  String? get postalCode native;
 
-  String get recipient native;
+  String? get recipient native;
 
-  String get region native;
+  String? get region native;
 
-  String get sortingCode native;
+  String? get sortingCode native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24822,7 +24930,7 @@ class PaymentInstruments extends Interceptor {
   Future<bool> delete(String instrumentKey) =>
       promiseToFuture<bool>(JS("", "#.delete(#)", this, instrumentKey));
 
-  Future<Map<String, dynamic>> get(String instrumentKey) =>
+  Future<Map<String, dynamic>?> get(String instrumentKey) =>
       promiseToFutureAsMap(JS("", "#.get(#)", this, instrumentKey));
 
   Future has(String instrumentKey) =>
@@ -24848,11 +24956,11 @@ class PaymentManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  PaymentInstruments get instruments native;
+  PaymentInstruments? get instruments native;
 
-  String get userHint native;
+  String? get userHint native;
 
-  set userHint(String value) native;
+  set userHint(String? value) native;
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24860,7 +24968,7 @@ class PaymentManager extends Interceptor {
 
 @Native("PaymentRequest")
 class PaymentRequest extends EventTarget {
-  factory PaymentRequest(List<Map> methodData, Map details, [Map options]) {
+  factory PaymentRequest(List<Map> methodData, Map details, [Map? options]) {
     var methodData_1 = [];
     for (var i in methodData) {
       methodData_1.add(convertDartToNative_Dictionary(i));
@@ -24888,21 +24996,21 @@ class PaymentRequest extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  String get id native;
+  String? get id native;
 
-  PaymentAddress get shippingAddress native;
+  PaymentAddress? get shippingAddress native;
 
-  String get shippingOption native;
+  String? get shippingOption native;
 
-  String get shippingType native;
+  String? get shippingType native;
 
   Future abort() => promiseToFuture(JS("", "#.abort()", this));
 
   Future<bool> canMakePayment() =>
       promiseToFuture<bool>(JS("", "#.canMakePayment()", this));
 
-  Future<PaymentResponse> show() =>
-      promiseToFuture<PaymentResponse>(JS("", "#.show()", this));
+  Future<PaymentResponse> show() => promiseToFuture<PaymentResponse>(
+      JS("creates:PaymentResponse;", "#.show()", this));
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24926,22 +25034,22 @@ class PaymentRequestEvent extends ExtendableEvent {
       type,
       eventInitDict);
 
-  String get instrumentKey native;
+  String? get instrumentKey native;
 
-  List get methodData native;
+  List? get methodData native;
 
-  List get modifiers native;
+  List? get modifiers native;
 
-  String get paymentRequestId native;
+  String? get paymentRequestId native;
 
-  String get paymentRequestOrigin native;
+  String? get paymentRequestOrigin native;
 
-  String get topLevelOrigin native;
+  String? get topLevelOrigin native;
 
-  Object get total native;
+  Object? get total native;
 
-  Future<WindowClient> openWindow(String url) =>
-      promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
+  Future<WindowClient> openWindow(String url) => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.openWindow(#)", this, url));
 
   void respondWith(Future response) native;
 }
@@ -24956,7 +25064,7 @@ class PaymentRequestUpdateEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PaymentRequestUpdateEvent(String type, [Map eventInitDict]) {
+  factory PaymentRequestUpdateEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PaymentRequestUpdateEvent._create_1(type, eventInitDict_1);
@@ -24984,23 +25092,23 @@ class PaymentResponse extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Object get details native;
+  Object? get details native;
 
-  String get methodName native;
+  String? get methodName native;
 
-  String get payerEmail native;
+  String? get payerEmail native;
 
-  String get payerName native;
+  String? get payerName native;
 
-  String get payerPhone native;
+  String? get payerPhone native;
 
-  String get requestId native;
+  String? get requestId native;
 
-  PaymentAddress get shippingAddress native;
+  PaymentAddress? get shippingAddress native;
 
-  String get shippingOption native;
+  String? get shippingOption native;
 
-  Future complete([String paymentResult]) =>
+  Future complete([String? paymentResult]) =>
       promiseToFuture(JS("", "#.complete(#)", this, paymentResult));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25020,29 +25128,30 @@ class Performance extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
-  MemoryInfo get memory native;
+  MemoryInfo? get memory native;
 
   PerformanceNavigation get navigation native;
 
-  num get timeOrigin native;
+  num? get timeOrigin native;
 
   PerformanceTiming get timing native;
 
-  void clearMarks(String markName) native;
+  void clearMarks(String? markName) native;
 
-  void clearMeasures(String measureName) native;
+  void clearMeasures(String? measureName) native;
 
   void clearResourceTimings() native;
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
+      native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   void mark(String markName) native;
 
-  void measure(String measureName, String startMark, String endMark) native;
+  void measure(String measureName, String? startMark, String? endMark) native;
 
   double now() native;
 
@@ -25078,7 +25187,7 @@ class PerformanceLongTaskTiming extends PerformanceEntry {
     throw new UnsupportedError("Not supported");
   }
 
-  List<TaskAttributionTiming> get attribution native;
+  List<TaskAttributionTiming>? get attribution native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25122,9 +25231,9 @@ class PerformanceNavigation extends Interceptor {
 
   static const int TYPE_RESERVED = 255;
 
-  int get redirectCount native;
+  int? get redirectCount native;
 
-  int get type native;
+  int? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25137,25 +25246,25 @@ class PerformanceNavigationTiming extends PerformanceResourceTiming {
     throw new UnsupportedError("Not supported");
   }
 
-  num get domComplete native;
+  num? get domComplete native;
 
-  num get domContentLoadedEventEnd native;
+  num? get domContentLoadedEventEnd native;
 
-  num get domContentLoadedEventStart native;
+  num? get domContentLoadedEventStart native;
 
-  num get domInteractive native;
+  num? get domInteractive native;
 
-  num get loadEventEnd native;
+  num? get loadEventEnd native;
 
-  num get loadEventStart native;
+  num? get loadEventStart native;
 
-  int get redirectCount native;
+  int? get redirectCount native;
 
-  String get type native;
+  String? get type native;
 
-  num get unloadEventEnd native;
+  num? get unloadEventEnd native;
 
-  num get unloadEventStart native;
+  num? get unloadEventStart native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25207,7 +25316,8 @@ class PerformanceObserverEntryList extends Interceptor {
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
+      native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 }
@@ -25237,37 +25347,37 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   num get connectStart native;
 
-  int get decodedBodySize native;
+  int? get decodedBodySize native;
 
-  num get domainLookupEnd native;
+  num? get domainLookupEnd native;
 
-  num get domainLookupStart native;
+  num? get domainLookupStart native;
 
-  int get encodedBodySize native;
+  int? get encodedBodySize native;
 
-  num get fetchStart native;
+  num? get fetchStart native;
 
-  String get initiatorType native;
+  String? get initiatorType native;
 
-  String get nextHopProtocol native;
+  String? get nextHopProtocol native;
 
-  num get redirectEnd native;
+  num? get redirectEnd native;
 
-  num get redirectStart native;
+  num? get redirectStart native;
 
-  num get requestStart native;
+  num? get requestStart native;
 
-  num get responseEnd native;
+  num? get responseEnd native;
 
-  num get responseStart native;
+  num? get responseStart native;
 
-  num get secureConnectionStart native;
+  num? get secureConnectionStart native;
 
-  List<PerformanceServerTiming> get serverTiming native;
+  List<PerformanceServerTiming>? get serverTiming native;
 
-  int get transferSize native;
+  int? get transferSize native;
 
-  num get workerStart native;
+  num? get workerStart native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25280,11 +25390,11 @@ class PerformanceServerTiming extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get description native;
+  String? get description native;
 
-  num get duration native;
+  num? get duration native;
 
-  String get name native;
+  String? get name native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25354,7 +25464,7 @@ class PermissionStatus extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  String get state native;
+  String? get state native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -25372,23 +25482,23 @@ class Permissions extends Interceptor {
   Future<PermissionStatus> query(Map permission) {
     var permission_dict = convertDartToNative_Dictionary(permission);
     return promiseToFuture<PermissionStatus>(
-        JS("", "#.query(#)", this, permission_dict));
+        JS("creates:PermissionStatus;", "#.query(#)", this, permission_dict));
   }
 
   Future<PermissionStatus> request(Map permissions) {
     var permissions_dict = convertDartToNative_Dictionary(permissions);
-    return promiseToFuture<PermissionStatus>(
-        JS("", "#.request(#)", this, permissions_dict));
+    return promiseToFuture<PermissionStatus>(JS(
+        "creates:PermissionStatus;", "#.request(#)", this, permissions_dict));
   }
 
   Future<PermissionStatus> requestAll(List<Map> permissions) =>
-      promiseToFuture<PermissionStatus>(
-          JS("", "#.requestAll(#)", this, permissions));
+      promiseToFuture<PermissionStatus>(JS(
+          "creates:PermissionStatus;", "#.requestAll(#)", this, permissions));
 
   Future<PermissionStatus> revoke(Map permission) {
     var permission_dict = convertDartToNative_Dictionary(permission);
     return promiseToFuture<PermissionStatus>(
-        JS("", "#.revoke(#)", this, permission_dict));
+        JS("creates:PermissionStatus;", "#.revoke(#)", this, permission_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25402,13 +25512,13 @@ class PhotoCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  List get fillLightMode native;
+  List? get fillLightMode native;
 
-  MediaSettingsRange get imageHeight native;
+  MediaSettingsRange? get imageHeight native;
 
-  MediaSettingsRange get imageWidth native;
+  MediaSettingsRange? get imageWidth native;
 
-  String get redEyeReduction native;
+  String? get redEyeReduction native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25438,17 +25548,17 @@ class Plugin extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get description native;
+  String? get description native;
 
-  String get filename native;
+  String? get filename native;
 
-  int get length native;
+  int? get length native;
 
-  String get name native;
+  String? get name native;
 
-  MimeType item(int index) native;
+  MimeType? item(int index) native;
 
-  MimeType namedItem(String name) native;
+  MimeType? namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25508,11 +25618,11 @@ class PluginArray extends Interceptor
   Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
 
-  Plugin item(int index) native;
+  Plugin? item(int index) native;
 
-  Plugin namedItem(String name) native;
+  Plugin? namedItem(String name) native;
 
-  void refresh(bool reload) native;
+  void refresh(bool? reload) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25527,7 +25637,7 @@ class PointerEvent extends MouseEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PointerEvent(String type, [Map eventInitDict]) {
+  factory PointerEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PointerEvent._create_1(type, eventInitDict_1);
@@ -25539,25 +25649,25 @@ class PointerEvent extends MouseEvent {
   static PointerEvent _create_2(type) =>
       JS('PointerEvent', 'new PointerEvent(#)', type);
 
-  num get height native;
+  num? get height native;
 
-  bool get isPrimary native;
+  bool? get isPrimary native;
 
-  int get pointerId native;
+  int? get pointerId native;
 
-  String get pointerType native;
+  String? get pointerType native;
 
-  num get pressure native;
+  num? get pressure native;
 
-  num get tangentialPressure native;
+  num? get tangentialPressure native;
 
-  int get tiltX native;
+  int? get tiltX native;
 
-  int get tiltY native;
+  int? get tiltY native;
 
-  int get twist native;
+  int? get twist native;
 
-  num get width native;
+  num? get width native;
 
   List<PointerEvent> getCoalescedEvents() native;
 
@@ -25587,7 +25697,7 @@ class PopStateEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PopStateEvent(String type, [Map eventInitDict]) {
+  factory PopStateEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PopStateEvent._create_1(type, eventInitDict_1);
@@ -25632,9 +25742,9 @@ class PositionError extends Interceptor {
 
   static const int TIMEOUT = 3;
 
-  int get code native;
+  int? get code native;
 
-  String get message native;
+  String? get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25655,8 +25765,11 @@ class PreElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PreElement() => JS('returns:PreElement;creates:PreElement;new:true',
-      '#.createElement(#)', document, "pre");
+  factory PreElement() => JS<PreElement>(
+      'returns:PreElement;creates:PreElement;new:true',
+      '#.createElement(#)',
+      document,
+      "pre");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25675,11 +25788,11 @@ class Presentation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  PresentationRequest get defaultRequest native;
+  PresentationRequest? get defaultRequest native;
 
-  set defaultRequest(PresentationRequest value) native;
+  set defaultRequest(PresentationRequest? value) native;
 
-  PresentationReceiver get receiver native;
+  PresentationReceiver? get receiver native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25695,7 +25808,7 @@ class PresentationAvailability extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  bool get value native;
+  bool? get value native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -25713,15 +25826,15 @@ class PresentationConnection extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  String get binaryType native;
+  String? get binaryType native;
 
-  set binaryType(String value) native;
+  set binaryType(String? value) native;
 
-  String get id native;
+  String? get id native;
 
-  String get state native;
+  String? get state native;
 
-  String get url native;
+  String? get url native;
 
   void close() native;
 
@@ -25751,7 +25864,7 @@ class PresentationConnectionAvailableEvent extends Event {
       JS('PresentationConnectionAvailableEvent',
           'new PresentationConnectionAvailableEvent(#,#)', type, eventInitDict);
 
-  PresentationConnection get connection native;
+  PresentationConnection? get connection native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25774,9 +25887,9 @@ class PresentationConnectionCloseEvent extends Event {
       type,
       eventInitDict);
 
-  String get message native;
+  String? get message native;
 
-  String get reason native;
+  String? get reason native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25789,7 +25902,7 @@ class PresentationConnectionList extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  List<PresentationConnection> get connections native;
+  List<PresentationConnection>? get connections native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25804,7 +25917,7 @@ class PresentationReceiver extends Interceptor {
 
   Future<PresentationConnectionList> get connectionList =>
       promiseToFuture<PresentationConnectionList>(
-          JS("", "#.connectionList", this));
+          JS("creates:PresentationConnectionList;", "#.connectionList", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25834,14 +25947,15 @@ class PresentationRequest extends EventTarget {
 
   Future<PresentationAvailability> getAvailability() =>
       promiseToFuture<PresentationAvailability>(
-          JS("", "#.getAvailability()", this));
+          JS("creates:PresentationAvailability;", "#.getAvailability()", this));
 
   Future<PresentationConnection> reconnect(String id) =>
       promiseToFuture<PresentationConnection>(
-          JS("", "#.reconnect(#)", this, id));
+          JS("creates:PresentationConnection;", "#.reconnect(#)", this, id));
 
   Future<PresentationConnection> start() =>
-      promiseToFuture<PresentationConnection>(JS("", "#.start()", this));
+      promiseToFuture<PresentationConnection>(
+          JS("creates:PresentationConnection;", "#.start()", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25855,9 +25969,9 @@ class ProcessingInstruction extends CharacterData {
     throw new UnsupportedError("Not supported");
   }
 
-  StyleSheet get sheet native;
+  StyleSheet? get sheet native;
 
-  String get target native;
+  String? get target native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25874,7 +25988,8 @@ class ProgressElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ProgressElement() => document.createElement("progress");
+  factory ProgressElement() =>
+      document.createElement("progress") as ProgressElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -25886,9 +26001,9 @@ class ProgressElement extends HtmlElement {
   static bool get supported => Element.isTagSupported('progress');
 
   @Unstable()
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
   num get max native;
 
@@ -25911,7 +26026,7 @@ class ProgressEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ProgressEvent(String type, [Map eventInitDict]) {
+  factory ProgressEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ProgressEvent._create_1(type, eventInitDict_1);
@@ -25925,9 +26040,9 @@ class ProgressEvent extends Event {
 
   bool get lengthComputable native;
 
-  int get loaded native;
+  int? get loaded native;
 
-  int get total native;
+  int? get total native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25952,7 +26067,7 @@ class PromiseRejectionEvent extends Event {
 
   Future get promise => promiseToFuture(JS("", "#.promise", this));
 
-  Object get reason native;
+  Object? get reason native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25965,9 +26080,9 @@ class PublicKeyCredential extends Credential {
     throw new UnsupportedError("Not supported");
   }
 
-  ByteBuffer get rawId native;
+  ByteBuffer? get rawId native;
 
-  AuthenticatorResponse get response native;
+  AuthenticatorResponse? get response native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25980,7 +26095,7 @@ class PushEvent extends ExtendableEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PushEvent(String type, [Map eventInitDict]) {
+  factory PushEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PushEvent._create_1(type, eventInitDict_1);
@@ -25991,7 +26106,7 @@ class PushEvent extends ExtendableEvent {
       JS('PushEvent', 'new PushEvent(#,#)', type, eventInitDict);
   static PushEvent _create_2(type) => JS('PushEvent', 'new PushEvent(#)', type);
 
-  PushMessageData get data native;
+  PushMessageData? get data native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26004,12 +26119,13 @@ class PushManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  static List<String> get supportedContentEncodings native;
+  static List<String>? get supportedContentEncodings native;
 
   Future<PushSubscription> getSubscription() =>
-      promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
+      promiseToFuture<PushSubscription>(
+          JS("creates:PushSubscription;", "#.getSubscription()", this));
 
-  Future permissionState([Map options]) {
+  Future permissionState([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -26017,13 +26133,13 @@ class PushManager extends Interceptor {
     return promiseToFuture(JS("", "#.permissionState(#)", this, options_dict));
   }
 
-  Future<PushSubscription> subscribe([Map options]) {
+  Future<PushSubscription> subscribe([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
     return promiseToFuture<PushSubscription>(
-        JS("", "#.subscribe(#)", this, options_dict));
+        JS("creates:PushSubscription;", "#.subscribe(#)", this, options_dict));
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26056,13 +26172,13 @@ class PushSubscription extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get endpoint native;
+  String? get endpoint native;
 
-  int get expirationTime native;
+  int? get expirationTime native;
 
-  PushSubscriptionOptions get options native;
+  PushSubscriptionOptions? get options native;
 
-  ByteBuffer getKey(String name) native;
+  ByteBuffer? getKey(String name) native;
 
   Future<bool> unsubscribe() =>
       promiseToFuture<bool>(JS("", "#.unsubscribe()", this));
@@ -26078,9 +26194,9 @@ class PushSubscriptionOptions extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  ByteBuffer get applicationServerKey native;
+  ByteBuffer? get applicationServerKey native;
 
-  bool get userVisibleOnly native;
+  bool? get userVisibleOnly native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26093,7 +26209,7 @@ class QuoteElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory QuoteElement() => JS(
+  factory QuoteElement() => JS<QuoteElement>(
       'returns:QuoteElement;creates:QuoteElement;new:true',
       '#.createElement(#)',
       document,
@@ -26172,7 +26288,7 @@ class Range extends Interceptor {
 
   Range cloneRange() native;
 
-  void collapse([bool toStart]) native;
+  void collapse([bool? toStart]) native;
 
   int compareBoundaryPoints(int how, Range sourceRange) native;
 
@@ -26184,14 +26300,14 @@ class Range extends Interceptor {
 
   void detach() native;
 
-  void expand(String unit) native;
+  void expand(String? unit) native;
 
   DocumentFragment extractContents() native;
 
   Rectangle getBoundingClientRect() native;
 
   @JSName('getClientRects')
-  @Returns('DomRectList|Null')
+  @Returns('DomRectList')
   @Creates('DomRectList')
   List<Rectangle> _getClientRects() native;
 
@@ -26252,11 +26368,11 @@ class RelatedApplication extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get id native;
+  String? get id native;
 
-  String get platform native;
+  String? get platform native;
 
-  String get url native;
+  String? get url native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26269,7 +26385,7 @@ class RelativeOrientationSensor extends OrientationSensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory RelativeOrientationSensor([Map sensorOptions]) {
+  factory RelativeOrientationSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return RelativeOrientationSensor._create_1(sensorOptions_1);
@@ -26294,9 +26410,9 @@ class RemotePlayback extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  String get state native;
+  String? get state native;
 
-  Future cancelWatchAvailability([int id]) =>
+  Future cancelWatchAvailability([int? id]) =>
       promiseToFuture(JS("", "#.cancelWatchAvailability(#)", this, id));
 
   Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
@@ -26401,9 +26517,9 @@ class ResizeObserverEntry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  DomRectReadOnly get contentRect native;
+  DomRectReadOnly? get contentRect native;
 
-  Element get target native;
+  Element? get target native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26416,7 +26532,7 @@ class RtcCertificate extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get expires native;
+  int? get expires native;
 
   List<Map> getFingerprints() native;
 }
@@ -26467,33 +26583,33 @@ class RtcDataChannel extends EventTarget {
   static const EventStreamProvider<Event> openEvent =
       const EventStreamProvider<Event>('open');
 
-  String get binaryType native;
+  String? get binaryType native;
 
-  set binaryType(String value) native;
+  set binaryType(String? value) native;
 
-  int get bufferedAmount native;
+  int? get bufferedAmount native;
 
-  int get bufferedAmountLowThreshold native;
+  int? get bufferedAmountLowThreshold native;
 
-  set bufferedAmountLowThreshold(int value) native;
+  set bufferedAmountLowThreshold(int? value) native;
 
-  int get id native;
+  int? get id native;
 
-  String get label native;
+  String? get label native;
 
-  int get maxRetransmitTime native;
+  int? get maxRetransmitTime native;
 
-  int get maxRetransmits native;
+  int? get maxRetransmits native;
 
-  bool get negotiated native;
+  bool? get negotiated native;
 
-  bool get ordered native;
+  bool? get ordered native;
 
-  String get protocol native;
+  String? get protocol native;
 
-  String get readyState native;
+  String? get readyState native;
 
-  bool get reliable native;
+  bool? get reliable native;
 
   void close() native;
 
@@ -26544,7 +26660,7 @@ class RtcDataChannelEvent extends Event {
       type,
       eventInitDict);
 
-  RtcDataChannel get channel native;
+  RtcDataChannel? get channel native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26567,18 +26683,18 @@ class RtcDtmfSender extends EventTarget {
       const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
 
   @JSName('canInsertDTMF')
-  bool get canInsertDtmf native;
+  bool? get canInsertDtmf native;
 
-  int get duration native;
+  int? get duration native;
 
-  int get interToneGap native;
+  int? get interToneGap native;
 
-  String get toneBuffer native;
+  String? get toneBuffer native;
 
-  MediaStreamTrack get track native;
+  MediaStreamTrack? get track native;
 
   @JSName('insertDTMF')
-  void insertDtmf(String tones, [int duration, int interToneGap]) native;
+  void insertDtmf(String tones, [int? duration, int? interToneGap]) native;
 
   /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   Stream<RtcDtmfToneChangeEvent> get onToneChange =>
@@ -26605,7 +26721,7 @@ class RtcDtmfToneChangeEvent extends Event {
       type,
       eventInitDict);
 
-  String get tone native;
+  String? get tone native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26624,17 +26740,17 @@ class RtcIceCandidate extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get candidate native;
+  String? get candidate native;
 
-  set candidate(String value) native;
+  set candidate(String? value) native;
 
-  int get sdpMLineIndex native;
+  int? get sdpMLineIndex native;
 
-  set sdpMLineIndex(int value) native;
+  set sdpMLineIndex(int? value) native;
 
-  String get sdpMid native;
+  String? get sdpMid native;
 
-  set sdpMid(String value) native;
+  set sdpMid(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26647,13 +26763,13 @@ class RtcLegacyStatsReport extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get id native;
+  String? get id native;
 
   DateTime get timestamp => convertNativeToDart_DateTime(this._get_timestamp);
   @JSName('timestamp')
   dynamic get _get_timestamp native;
 
-  String get type native;
+  String? get type native;
 
   List<String> names() native;
 
@@ -26666,7 +26782,7 @@ class RtcLegacyStatsReport extends Interceptor {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Native("RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection")
 class RtcPeerConnection extends EventTarget {
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+  factory RtcPeerConnection(Map rtcIceServers, [Map? mediaConstraints]) {
     var constructorName =
         JS('RtcPeerConnection', 'window[#]', 'RTCPeerConnection');
     if (mediaConstraints != null) {
@@ -26708,7 +26824,7 @@ class RtcPeerConnection extends EventTarget {
   * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
   * new getStats API.
   */
-  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack selector]) {
+  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack? selector]) {
     var completer = new Completer<RtcStatsResponse>();
     _getStats((value) {
       completer.complete(value);
@@ -26718,7 +26834,7 @@ class RtcPeerConnection extends EventTarget {
 
   @JSName('getStats')
   Future _getStats(
-      [RtcStatsCallback successCallback, MediaStreamTrack selector]) native;
+      [RtcStatsCallback? successCallback, MediaStreamTrack? selector]) native;
 
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
@@ -26792,23 +26908,32 @@ class RtcPeerConnection extends EventTarget {
   static const EventStreamProvider<Event> signalingStateChangeEvent =
       const EventStreamProvider<Event>('signalingstatechange');
 
-  String get iceConnectionState native;
+  /**
+   * Static factory designed to expose `track` events to event
+   * handlers that are not necessarily instances of [RtcPeerConnection].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  static const EventStreamProvider<RtcTrackEvent> trackEvent =
+      const EventStreamProvider<RtcTrackEvent>('track');
 
-  String get iceGatheringState native;
+  String? get iceConnectionState native;
 
-  RtcSessionDescription get localDescription native;
+  String? get iceGatheringState native;
 
-  RtcSessionDescription get remoteDescription native;
+  RtcSessionDescription? get localDescription native;
 
-  String get signalingState native;
+  RtcSessionDescription? get remoteDescription native;
+
+  String? get signalingState native;
 
   Future addIceCandidate(Object candidate,
-          [VoidCallback successCallback,
-          RtcPeerConnectionErrorCallback failureCallback]) =>
+          [VoidCallback? successCallback,
+          RtcPeerConnectionErrorCallback? failureCallback]) =>
       promiseToFuture(JS("", "#.addIceCandidate(#, #, #)", this, candidate,
           successCallback, failureCallback));
 
-  void addStream(MediaStream stream, [Map mediaConstraints]) {
+  void addStream(MediaStream? stream, [Map? mediaConstraints]) {
     if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _addStream_1(stream, mediaConstraints_1);
@@ -26819,27 +26944,30 @@ class RtcPeerConnection extends EventTarget {
   }
 
   @JSName('addStream')
-  void _addStream_1(MediaStream stream, mediaConstraints) native;
+  void _addStream_1(MediaStream? stream, mediaConstraints) native;
   @JSName('addStream')
-  void _addStream_2(MediaStream stream) native;
+  void _addStream_2(MediaStream? stream) native;
 
   RtcRtpSender addTrack(MediaStreamTrack track, MediaStream streams) native;
 
   void close() native;
 
-  Future<RtcSessionDescription> createAnswer([Map options]) {
+  Future<RtcSessionDescription> createAnswer([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<RtcSessionDescription>(
-        JS("", "#.createAnswer(#)", this, options_dict));
+    return promiseToFuture<RtcSessionDescription>(JS(
+        "creates:RtcSessionDescription;",
+        "#.createAnswer(#)",
+        this,
+        options_dict));
   }
 
   @JSName('createDTMFSender')
   RtcDtmfSender createDtmfSender(MediaStreamTrack track) native;
 
-  RtcDataChannel createDataChannel(String label, [Map dataChannelDict]) {
+  RtcDataChannel createDataChannel(String label, [Map? dataChannelDict]) {
     if (dataChannelDict != null) {
       var dataChannelDict_1 = convertDartToNative_Dictionary(dataChannelDict);
       return _createDataChannel_1(label, dataChannelDict_1);
@@ -26852,13 +26980,16 @@ class RtcPeerConnection extends EventTarget {
   @JSName('createDataChannel')
   RtcDataChannel _createDataChannel_2(label) native;
 
-  Future<RtcSessionDescription> createOffer([Map options]) {
+  Future<RtcSessionDescription> createOffer([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<RtcSessionDescription>(
-        JS("", "#.createOffer(#)", this, options_dict));
+    return promiseToFuture<RtcSessionDescription>(JS(
+        "creates:RtcSessionDescription;",
+        "#.createOffer(#)",
+        this,
+        options_dict));
   }
 
   List<MediaStream> getLocalStreams() native;
@@ -26869,10 +27000,10 @@ class RtcPeerConnection extends EventTarget {
 
   List<RtcRtpSender> getSenders() native;
 
-  Future<RtcStatsReport> getStats() =>
-      promiseToFuture<RtcStatsReport>(JS("", "#.getStats()", this));
+  Future<RtcStatsReport> getStats() => promiseToFuture<RtcStatsReport>(
+      JS("creates:RtcStatsReport;", "#.getStats()", this));
 
-  void removeStream(MediaStream stream) native;
+  void removeStream(MediaStream? stream) native;
 
   void removeTrack(RtcRtpSender sender) native;
 
@@ -26923,6 +27054,9 @@ class RtcPeerConnection extends EventTarget {
   /// Stream of `signalingstatechange` events handled by this [RtcPeerConnection].
   Stream<Event> get onSignalingStateChange =>
       signalingStateChangeEvent.forTarget(this);
+
+  /// Stream of `track` events handled by this [RtcPeerConnection].
+  Stream<RtcTrackEvent> get onTrack => trackEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26935,7 +27069,7 @@ class RtcPeerConnectionIceEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory RtcPeerConnectionIceEvent(String type, [Map eventInitDict]) {
+  factory RtcPeerConnectionIceEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return RtcPeerConnectionIceEvent._create_1(type, eventInitDict_1);
@@ -26950,7 +27084,7 @@ class RtcPeerConnectionIceEvent extends Event {
   static RtcPeerConnectionIceEvent _create_2(type) =>
       JS('RtcPeerConnectionIceEvent', 'new RTCPeerConnectionIceEvent(#)', type);
 
-  RtcIceCandidate get candidate native;
+  RtcIceCandidate? get candidate native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26963,9 +27097,9 @@ class RtcRtpContributingSource extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get source native;
+  int? get source native;
 
-  num get timestamp native;
+  num? get timestamp native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26978,7 +27112,7 @@ class RtcRtpReceiver extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  MediaStreamTrack get track native;
+  MediaStreamTrack? get track native;
 
   List<RtcRtpContributingSource> getContributingSources() native;
 }
@@ -26993,7 +27127,7 @@ class RtcRtpSender extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  MediaStreamTrack get track native;
+  MediaStreamTrack? get track native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27012,13 +27146,13 @@ class RtcSessionDescription extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get sdp native;
+  String? get sdp native;
 
-  set sdp(String value) native;
+  set sdp(String? value) native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27031,7 +27165,7 @@ class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -27042,7 +27176,7 @@ class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
@@ -27099,7 +27233,7 @@ class RtcStatsResponse extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  RtcLegacyStatsReport namedItem(String name) native;
+  RtcLegacyStatsReport namedItem(String? name) native;
 
   List<RtcLegacyStatsReport> result() native;
 }
@@ -27121,11 +27255,11 @@ class RtcTrackEvent extends Event {
   static RtcTrackEvent _create_1(type, eventInitDict) =>
       JS('RtcTrackEvent', 'new RTCTrackEvent(#,#)', type, eventInitDict);
 
-  RtcRtpReceiver get receiver native;
+  RtcRtpReceiver? get receiver native;
 
-  List<MediaStream> get streams native;
+  List<MediaStream>? get streams native;
 
-  MediaStreamTrack get track native;
+  MediaStreamTrack? get track native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27134,37 +27268,37 @@ class RtcTrackEvent extends Event {
 @Native("Screen")
 class Screen extends Interceptor {
   Rectangle get available =>
-      new Rectangle(_availLeft, _availTop, _availWidth, _availHeight);
+      new Rectangle(_availLeft!, _availTop!, _availWidth!, _availHeight!);
   // To suppress missing implicit constructor warnings.
   factory Screen._() {
     throw new UnsupportedError("Not supported");
   }
 
   @JSName('availHeight')
-  int get _availHeight native;
+  int? get _availHeight native;
 
   @JSName('availLeft')
-  int get _availLeft native;
+  int? get _availLeft native;
 
   @JSName('availTop')
-  int get _availTop native;
+  int? get _availTop native;
 
   @JSName('availWidth')
-  int get _availWidth native;
+  int? get _availWidth native;
 
-  int get colorDepth native;
+  int? get colorDepth native;
 
-  int get height native;
+  int? get height native;
 
-  bool get keepAwake native;
+  bool? get keepAwake native;
 
-  set keepAwake(bool value) native;
+  set keepAwake(bool? value) native;
 
-  ScreenOrientation get orientation native;
+  ScreenOrientation? get orientation native;
 
-  int get pixelDepth native;
+  int? get pixelDepth native;
 
-  int get width native;
+  int? get width native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27180,9 +27314,9 @@ class ScreenOrientation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  int get angle native;
+  int? get angle native;
 
-  String get type native;
+  String? get type native;
 
   Future lock(String orientation) =>
       promiseToFuture(JS("", "#.lock(#)", this, orientation));
@@ -27202,7 +27336,7 @@ class ScriptElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ScriptElement() => JS(
+  factory ScriptElement() => JS<ScriptElement>(
       'returns:ScriptElement;creates:ScriptElement;new:true',
       '#.createElement(#)',
       document,
@@ -27214,29 +27348,29 @@ class ScriptElement extends HtmlElement {
    */
   ScriptElement.created() : super.created();
 
-  bool get async native;
+  bool? get async native;
 
-  set async(bool value) native;
+  set async(bool? value) native;
 
   String get charset native;
 
   set charset(String value) native;
 
-  String get crossOrigin native;
+  String? get crossOrigin native;
 
-  set crossOrigin(String value) native;
+  set crossOrigin(String? value) native;
 
-  bool get defer native;
+  bool? get defer native;
 
-  set defer(bool value) native;
+  set defer(bool? value) native;
 
-  String get integrity native;
+  String? get integrity native;
 
-  set integrity(String value) native;
+  set integrity(String? value) native;
 
-  bool get noModule native;
+  bool? get noModule native;
 
-  set noModule(bool value) native;
+  set noModule(bool? value) native;
 
   String get src native;
 
@@ -27257,7 +27391,7 @@ class ScrollState extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ScrollState([Map scrollStateInit]) {
+  factory ScrollState([Map? scrollStateInit]) {
     if (scrollStateInit != null) {
       var scrollStateInit_1 = convertDartToNative_Dictionary(scrollStateInit);
       return ScrollState._create_1(scrollStateInit_1);
@@ -27268,29 +27402,29 @@ class ScrollState extends Interceptor {
       JS('ScrollState', 'new ScrollState(#)', scrollStateInit);
   static ScrollState _create_2() => JS('ScrollState', 'new ScrollState()');
 
-  num get deltaGranularity native;
+  num? get deltaGranularity native;
 
-  num get deltaX native;
+  num? get deltaX native;
 
-  num get deltaY native;
+  num? get deltaY native;
 
-  bool get fromUserInput native;
+  bool? get fromUserInput native;
 
-  bool get inInertialPhase native;
+  bool? get inInertialPhase native;
 
-  bool get isBeginning native;
+  bool? get isBeginning native;
 
-  bool get isDirectManipulation native;
+  bool? get isDirectManipulation native;
 
-  bool get isEnding native;
+  bool? get isEnding native;
 
-  int get positionX native;
+  int? get positionX native;
 
-  int get positionY native;
+  int? get positionY native;
 
-  num get velocityX native;
+  num? get velocityX native;
 
-  num get velocityY native;
+  num? get velocityY native;
 
   void consumeDelta(num x, num y) native;
 
@@ -27314,7 +27448,7 @@ class ScrollTimeline extends AnimationTimeline {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ScrollTimeline([Map options]) {
+  factory ScrollTimeline([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return ScrollTimeline._create_1(options_1);
@@ -27326,11 +27460,11 @@ class ScrollTimeline extends AnimationTimeline {
   static ScrollTimeline _create_2() =>
       JS('ScrollTimeline', 'new ScrollTimeline()');
 
-  String get orientation native;
+  String? get orientation native;
 
-  Element get scrollSource native;
+  Element? get scrollSource native;
 
-  Object get timeRange native;
+  Object? get timeRange native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27343,7 +27477,7 @@ class SecurityPolicyViolationEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SecurityPolicyViolationEvent(String type, [Map eventInitDict]) {
+  factory SecurityPolicyViolationEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return SecurityPolicyViolationEvent._create_1(type, eventInitDict_1);
@@ -27361,30 +27495,30 @@ class SecurityPolicyViolationEvent extends Event {
       type);
 
   @JSName('blockedURI')
-  String get blockedUri native;
+  String? get blockedUri native;
 
-  int get columnNumber native;
+  int? get columnNumber native;
 
-  String get disposition native;
+  String? get disposition native;
 
   @JSName('documentURI')
-  String get documentUri native;
+  String? get documentUri native;
 
-  String get effectiveDirective native;
+  String? get effectiveDirective native;
 
-  int get lineNumber native;
+  int? get lineNumber native;
 
-  String get originalPolicy native;
+  String? get originalPolicy native;
 
-  String get referrer native;
+  String? get referrer native;
 
-  String get sample native;
+  String? get sample native;
 
-  String get sourceFile native;
+  String? get sourceFile native;
 
-  int get statusCode native;
+  int? get statusCode native;
 
-  String get violatedDirective native;
+  String? get violatedDirective native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27397,7 +27531,7 @@ class SelectElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SelectElement() => JS(
+  factory SelectElement() => JS<SelectElement>(
       'returns:SelectElement;creates:SelectElement;new:true',
       '#.createElement(#)',
       document,
@@ -27417,36 +27551,36 @@ class SelectElement extends HtmlElement {
 
   set disabled(bool value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   @Unstable()
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
-  int get length native;
+  int? get length native;
 
-  set length(int value) native;
+  set length(int? value) native;
 
-  bool get multiple native;
+  bool? get multiple native;
 
-  set multiple(bool value) native;
+  set multiple(bool? value) native;
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  bool get required native;
+  bool? get required native;
 
-  set required(bool value) native;
+  set required(bool? value) native;
 
-  int get selectedIndex native;
+  int? get selectedIndex native;
 
-  set selectedIndex(int value) native;
+  set selectedIndex(int? value) native;
 
-  int get size native;
+  int? get size native;
 
-  set size(int value) native;
+  set size(int? value) native;
 
   String get type native;
 
@@ -27454,21 +27588,21 @@ class SelectElement extends HtmlElement {
 
   ValidityState get validity native;
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
   bool get willValidate native;
 
-  void __setter__(int index, OptionElement option) native;
+  void __setter__(int index, OptionElement? option) native;
 
-  void add(Object element, Object before) native;
+  void add(Object element, Object? before) native;
 
   bool checkValidity() native;
 
-  Element item(int index) native;
+  Element? item(int index) native;
 
-  OptionElement namedItem(String name) native;
+  OptionElement? namedItem(String name) native;
 
   bool reportValidity() native;
 
@@ -27483,11 +27617,11 @@ class SelectElement extends HtmlElement {
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
-    if (this.multiple) {
+    if (this.multiple!) {
       var options = this.options.where((o) => o.selected).toList();
       return new UnmodifiableListView(options);
     } else {
-      return [this.options[this.selectedIndex]];
+      return [this.options[this.selectedIndex!]];
     }
   }
 }
@@ -27502,47 +27636,47 @@ class Selection extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Node get anchorNode native;
+  Node? get anchorNode native;
 
-  int get anchorOffset native;
+  int? get anchorOffset native;
 
-  Node get baseNode native;
+  Node? get baseNode native;
 
-  int get baseOffset native;
+  int? get baseOffset native;
 
-  Node get extentNode native;
+  Node? get extentNode native;
 
-  int get extentOffset native;
+  int? get extentOffset native;
 
-  Node get focusNode native;
+  Node? get focusNode native;
 
-  int get focusOffset native;
+  int? get focusOffset native;
 
-  bool get isCollapsed native;
+  bool? get isCollapsed native;
 
-  int get rangeCount native;
+  int? get rangeCount native;
 
-  String get type native;
+  String? get type native;
 
   void addRange(Range range) native;
 
-  void collapse(Node node, [int offset]) native;
+  void collapse(Node? node, [int? offset]) native;
 
   void collapseToEnd() native;
 
   void collapseToStart() native;
 
-  bool containsNode(Node node, [bool allowPartialContainment]) native;
+  bool containsNode(Node node, [bool? allowPartialContainment]) native;
 
   void deleteFromDocument() native;
 
   void empty() native;
 
-  void extend(Node node, [int offset]) native;
+  void extend(Node node, [int? offset]) native;
 
   Range getRangeAt(int index) native;
 
-  void modify(String alter, String direction, String granularity) native;
+  void modify(String? alter, String? direction, String? granularity) native;
 
   void removeAllRanges() native;
 
@@ -27550,10 +27684,10 @@ class Selection extends Interceptor {
 
   void selectAllChildren(Node node) native;
 
-  void setBaseAndExtent(
-      Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
+  void setBaseAndExtent(Node? baseNode, int baseOffset, Node? extentNode,
+      int extentOffset) native;
 
-  void setPosition(Node node, [int offset]) native;
+  void setPosition(Node? node, [int? offset]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27569,11 +27703,11 @@ class Sensor extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  bool get activated native;
+  bool? get activated native;
 
-  bool get hasReading native;
+  bool? get hasReading native;
 
-  num get timestamp native;
+  num? get timestamp native;
 
   void start() native;
 
@@ -27599,7 +27733,7 @@ class SensorErrorEvent extends Event {
   static SensorErrorEvent _create_1(type, eventInitDict) =>
       JS('SensorErrorEvent', 'new SensorErrorEvent(#,#)', type, eventInitDict);
 
-  DomException get error native;
+  DomException? get error native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27616,11 +27750,11 @@ class ServiceWorker extends EventTarget implements AbstractWorker {
       const EventStreamProvider<Event>('error');
 
   @JSName('scriptURL')
-  String get scriptUrl native;
+  String? get scriptUrl native;
 
-  String get state native;
+  String? get state native;
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -27632,7 +27766,7 @@ class ServiceWorker extends EventTarget implements AbstractWorker {
   }
 
   @JSName('postMessage')
-  void _postMessage_1(message, List<Object> transfer) native;
+  void _postMessage_1(message, List<Object>? transfer) native;
   @JSName('postMessage')
   void _postMessage_2(message) native;
 
@@ -27652,25 +27786,33 @@ class ServiceWorkerContainer extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  ServiceWorker get controller native;
+  ServiceWorker? get controller native;
 
   Future<ServiceWorkerRegistration> get ready =>
-      promiseToFuture<ServiceWorkerRegistration>(JS("", "#.ready", this));
-
-  Future<ServiceWorkerRegistration> getRegistration([String documentURL]) =>
       promiseToFuture<ServiceWorkerRegistration>(
-          JS("", "#.getRegistration(#)", this, documentURL));
+          JS("creates:ServiceWorkerRegistration;", "#.ready", this));
+
+  Future<ServiceWorkerRegistration> getRegistration([String? documentURL]) =>
+      promiseToFuture<ServiceWorkerRegistration>(JS(
+          "creates:ServiceWorkerRegistration;",
+          "#.getRegistration(#)",
+          this,
+          documentURL));
 
   Future<List<dynamic>> getRegistrations() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getRegistrations()", this));
 
-  Future<ServiceWorkerRegistration> register(String url, [Map options]) {
+  Future<ServiceWorkerRegistration> register(String url, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture<ServiceWorkerRegistration>(
-        JS("", "#.register(#, #)", this, url, options_dict));
+    return promiseToFuture<ServiceWorkerRegistration>(JS(
+        "creates:ServiceWorkerRegistration;",
+        "#.register(#, #)",
+        this,
+        url,
+        options_dict));
   }
 
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -27701,9 +27843,9 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  Clients get clients native;
+  Clients? get clients native;
 
-  ServiceWorkerRegistration get registration native;
+  ServiceWorkerRegistration? get registration native;
 
   Future skipWaiting() => promiseToFuture(JS("", "#.skipWaiting()", this));
 
@@ -27734,25 +27876,25 @@ class ServiceWorkerRegistration extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  ServiceWorker get active native;
+  ServiceWorker? get active native;
 
-  BackgroundFetchManager get backgroundFetch native;
+  BackgroundFetchManager? get backgroundFetch native;
 
-  ServiceWorker get installing native;
+  ServiceWorker? get installing native;
 
-  NavigationPreloadManager get navigationPreload native;
+  NavigationPreloadManager? get navigationPreload native;
 
-  PaymentManager get paymentManager native;
+  PaymentManager? get paymentManager native;
 
-  PushManager get pushManager native;
+  PushManager? get pushManager native;
 
-  String get scope native;
+  String? get scope native;
 
-  SyncManager get sync native;
+  SyncManager? get sync native;
 
-  ServiceWorker get waiting native;
+  ServiceWorker? get waiting native;
 
-  Future<List<dynamic>> getNotifications([Map filter]) {
+  Future<List<dynamic>> getNotifications([Map? filter]) {
     var filter_dict = null;
     if (filter != null) {
       filter_dict = convertDartToNative_Dictionary(filter);
@@ -27761,7 +27903,7 @@ class ServiceWorkerRegistration extends EventTarget {
         JS("", "#.getNotifications(#)", this, filter_dict));
   }
 
-  Future showNotification(String title, [Map options]) {
+  Future showNotification(String title, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -27787,7 +27929,7 @@ class ShadowElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ShadowElement() => document.createElement("shadow");
+  factory ShadowElement() => document.createElement("shadow") as ShadowElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -27798,7 +27940,7 @@ class ShadowElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getDistributedNodes() native;
 }
@@ -27816,37 +27958,37 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get delegatesFocus native;
+  bool? get delegatesFocus native;
 
-  Element get host native;
-
-  @JSName('innerHTML')
-  String get innerHtml native;
+  Element? get host native;
 
   @JSName('innerHTML')
-  set innerHtml(String value) native;
+  String? get innerHtml native;
 
-  String get mode native;
+  @JSName('innerHTML')
+  set innerHtml(String? value) native;
 
-  ShadowRoot get olderShadowRoot native;
+  String? get mode native;
+
+  ShadowRoot? get olderShadowRoot native;
 
   // From DocumentOrShadowRoot
 
-  Element get activeElement native;
+  Element? get activeElement native;
 
-  Element get fullscreenElement native;
+  Element? get fullscreenElement native;
 
-  Element get pointerLockElement native;
+  Element? get pointerLockElement native;
 
-  @Returns('_StyleSheetList|Null')
+  @Returns('_StyleSheetList')
   @Creates('_StyleSheetList')
-  List<StyleSheet> get styleSheets native;
+  List<StyleSheet>? get styleSheets native;
 
-  Element elementFromPoint(int x, int y) native;
+  Element? elementFromPoint(int x, int y) native;
 
   List<Element> elementsFromPoint(int x, int y) native;
 
-  Selection getSelection() native;
+  Selection? getSelection() native;
 
   static bool get supported => JS(
       'bool',
@@ -27899,7 +28041,7 @@ class SharedArrayBuffer extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get byteLength native;
+  int? get byteLength native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27915,7 +28057,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  factory SharedWorker(String scriptURL, [String name]) {
+  factory SharedWorker(String scriptURL, [String? name]) {
     if (name != null) {
       return SharedWorker._create_1(scriptURL, name);
     }
@@ -27926,7 +28068,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   static SharedWorker _create_2(scriptURL) =>
       JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
 
-  MessagePort get port native;
+  MessagePort? get port native;
 
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
@@ -27954,7 +28096,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
 
   static const int TEMPORARY = 0;
 
-  String get name native;
+  String? get name native;
 
   void close() native;
 
@@ -27962,8 +28104,8 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitRequestFileSystem(int type, int size,
-      [_FileSystemCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [_FileSystemCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27980,7 +28122,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitResolveLocalFileSystemUrl(
       String url, _EntryCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   Stream<Event> get onConnect => connectEvent.forTarget(this);
@@ -28007,11 +28149,11 @@ class SlotElement extends HtmlElement {
    */
   SlotElement.created() : super.created();
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
-  List<Node> assignedNodes([Map options]) {
+  List<Node> assignedNodes([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _assignedNodes_1(options_1);
@@ -28041,33 +28183,33 @@ class SourceBuffer extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  num get appendWindowEnd native;
+  num? get appendWindowEnd native;
 
-  set appendWindowEnd(num value) native;
+  set appendWindowEnd(num? value) native;
 
-  num get appendWindowStart native;
+  num? get appendWindowStart native;
 
-  set appendWindowStart(num value) native;
+  set appendWindowStart(num? value) native;
 
-  AudioTrackList get audioTracks native;
+  AudioTrackList? get audioTracks native;
 
-  TimeRanges get buffered native;
+  TimeRanges? get buffered native;
 
-  String get mode native;
+  String? get mode native;
 
-  set mode(String value) native;
+  set mode(String? value) native;
 
-  num get timestampOffset native;
+  num? get timestampOffset native;
 
-  set timestampOffset(num value) native;
+  set timestampOffset(num? value) native;
 
-  TrackDefaultList get trackDefaults native;
+  TrackDefaultList? get trackDefaults native;
 
-  set trackDefaults(TrackDefaultList value) native;
+  set trackDefaults(TrackDefaultList? value) native;
 
-  bool get updating native;
+  bool? get updating native;
 
-  VideoTrackList get videoTracks native;
+  VideoTrackList? get videoTracks native;
 
   void abort() native;
 
@@ -28153,7 +28295,7 @@ class SourceElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SourceElement() => JS(
+  factory SourceElement() => JS<SourceElement>(
       'returns:SourceElement;creates:SourceElement;new:true',
       '#.createElement(#)',
       document,
@@ -28169,17 +28311,17 @@ class SourceElement extends HtmlElement {
 
   set media(String value) native;
 
-  String get sizes native;
+  String? get sizes native;
 
-  set sizes(String value) native;
+  set sizes(String? value) native;
 
   String get src native;
 
   set src(String value) native;
 
-  String get srcset native;
+  String? get srcset native;
 
-  set srcset(String value) native;
+  set srcset(String? value) native;
 
   String get type native;
 
@@ -28196,7 +28338,7 @@ class SpanElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SpanElement() => JS(
+  factory SpanElement() => JS<SpanElement>(
       'returns:SpanElement;creates:SpanElement;new:true',
       '#.createElement(#)',
       document,
@@ -28225,13 +28367,13 @@ class SpeechGrammar extends Interceptor {
   static SpeechGrammar _create_1() =>
       JS('SpeechGrammar', 'new SpeechGrammar()');
 
-  String get src native;
+  String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
-  num get weight native;
+  num? get weight native;
 
-  set weight(num value) native;
+  set weight(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28297,9 +28439,9 @@ class SpeechGrammarList extends Interceptor
   SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(String string, [num weight]) native;
+  void addFromString(String string, [num? weight]) native;
 
-  void addFromUri(String src, [num weight]) native;
+  void addFromUri(String src, [num? weight]) native;
 
   SpeechGrammar item(int index) native;
 }
@@ -28418,29 +28560,29 @@ class SpeechRecognition extends EventTarget {
   static bool get supported => JS(
       'bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
 
-  MediaStreamTrack get audioTrack native;
+  MediaStreamTrack? get audioTrack native;
 
-  set audioTrack(MediaStreamTrack value) native;
+  set audioTrack(MediaStreamTrack? value) native;
 
-  bool get continuous native;
+  bool? get continuous native;
 
-  set continuous(bool value) native;
+  set continuous(bool? value) native;
 
-  SpeechGrammarList get grammars native;
+  SpeechGrammarList? get grammars native;
 
-  set grammars(SpeechGrammarList value) native;
+  set grammars(SpeechGrammarList? value) native;
 
-  bool get interimResults native;
+  bool? get interimResults native;
 
-  set interimResults(bool value) native;
+  set interimResults(bool? value) native;
 
-  String get lang native;
+  String? get lang native;
 
-  set lang(String value) native;
+  set lang(String? value) native;
 
-  int get maxAlternatives native;
+  int? get maxAlternatives native;
 
-  set maxAlternatives(int value) native;
+  set maxAlternatives(int? value) native;
 
   void abort() native;
 
@@ -28498,9 +28640,9 @@ class SpeechRecognitionAlternative extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get confidence native;
+  num? get confidence native;
 
-  String get transcript native;
+  String? get transcript native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28514,7 +28656,7 @@ class SpeechRecognitionError extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SpeechRecognitionError(String type, [Map initDict]) {
+  factory SpeechRecognitionError(String type, [Map? initDict]) {
     if (initDict != null) {
       var initDict_1 = convertDartToNative_Dictionary(initDict);
       return SpeechRecognitionError._create_1(type, initDict_1);
@@ -28529,9 +28671,9 @@ class SpeechRecognitionError extends Event {
   static SpeechRecognitionError _create_2(type) =>
       JS('SpeechRecognitionError', 'new SpeechRecognitionError(#)', type);
 
-  String get error native;
+  String? get error native;
 
-  String get message native;
+  String? get message native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28545,7 +28687,7 @@ class SpeechRecognitionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SpeechRecognitionEvent(String type, [Map initDict]) {
+  factory SpeechRecognitionEvent(String type, [Map? initDict]) {
     if (initDict != null) {
       var initDict_1 = convertDartToNative_Dictionary(initDict);
       return SpeechRecognitionEvent._create_1(type, initDict_1);
@@ -28560,15 +28702,15 @@ class SpeechRecognitionEvent extends Event {
   static SpeechRecognitionEvent _create_2(type) =>
       JS('SpeechRecognitionEvent', 'new SpeechRecognitionEvent(#)', type);
 
-  Document get emma native;
+  Document? get emma native;
 
-  Document get interpretation native;
+  Document? get interpretation native;
 
-  int get resultIndex native;
+  int? get resultIndex native;
 
   @Returns('_SpeechRecognitionResultList|Null')
   @Creates('_SpeechRecognitionResultList')
-  List<SpeechRecognitionResult> get results native;
+  List<SpeechRecognitionResult>? get results native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28582,9 +28724,9 @@ class SpeechRecognitionResult extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get isFinal native;
+  bool? get isFinal native;
 
-  int get length native;
+  int? get length native;
 
   SpeechRecognitionAlternative item(int index) native;
 }
@@ -28605,11 +28747,11 @@ class SpeechSynthesis extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get paused native;
+  bool? get paused native;
 
-  bool get pending native;
+  bool? get pending native;
 
-  bool get speaking native;
+  bool? get speaking native;
 
   void cancel() native;
 
@@ -28633,13 +28775,13 @@ class SpeechSynthesisEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  int get charIndex native;
+  int? get charIndex native;
 
-  num get elapsedTime native;
+  num? get elapsedTime native;
 
-  String get name native;
+  String? get name native;
 
-  SpeechSynthesisUtterance get utterance native;
+  SpeechSynthesisUtterance? get utterance native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28715,7 +28857,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   static const EventStreamProvider<SpeechSynthesisEvent> startEvent =
       const EventStreamProvider<SpeechSynthesisEvent>('start');
 
-  factory SpeechSynthesisUtterance([String text]) {
+  factory SpeechSynthesisUtterance([String? text]) {
     if (text != null) {
       return SpeechSynthesisUtterance._create_1(text);
     }
@@ -28726,29 +28868,29 @@ class SpeechSynthesisUtterance extends EventTarget {
   static SpeechSynthesisUtterance _create_2() =>
       JS('SpeechSynthesisUtterance', 'new SpeechSynthesisUtterance()');
 
-  String get lang native;
+  String? get lang native;
 
-  set lang(String value) native;
+  set lang(String? value) native;
 
-  num get pitch native;
+  num? get pitch native;
 
-  set pitch(num value) native;
+  set pitch(num? value) native;
 
-  num get rate native;
+  num? get rate native;
 
-  set rate(num value) native;
+  set rate(num? value) native;
 
-  String get text native;
+  String? get text native;
 
-  set text(String value) native;
+  set text(String? value) native;
 
-  SpeechSynthesisVoice get voice native;
+  SpeechSynthesisVoice? get voice native;
 
-  set voice(SpeechSynthesisVoice value) native;
+  set voice(SpeechSynthesisVoice? value) native;
 
-  num get volume native;
+  num? get volume native;
 
-  set volume(num value) native;
+  set volume(num? value) native;
 
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
@@ -28783,16 +28925,16 @@ class SpeechSynthesisVoice extends Interceptor {
   }
 
   @JSName('default')
-  bool get defaultValue native;
+  bool? get defaultValue native;
 
-  String get lang native;
+  String? get lang native;
 
-  bool get localService native;
+  bool? get localService native;
 
-  String get name native;
+  String? get name native;
 
   @JSName('voiceURI')
-  String get voiceUri native;
+  String? get voiceUri native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28805,15 +28947,15 @@ class StaticRange extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get collapsed native;
+  bool? get collapsed native;
 
-  Node get endContainer native;
+  Node? get endContainer native;
 
-  int get endOffset native;
+  int? get endOffset native;
 
-  Node get startContainer native;
+  Node? get startContainer native;
 
-  int get startOffset native;
+  int? get startOffset native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28831,18 +28973,13 @@ class StaticRange extends Interceptor {
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
  *     window.localStorage.clear();
  *     assert(window.localStorage.length == 0);
  *
- * For more examples of using this API, see
- * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
- * For details on using the Map API, see the
- * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
- * section of the library tour.
  */
 @Unstable()
 @Native("Storage")
@@ -28854,11 +28991,11 @@ class Storage extends Interceptor with MapMixin<String, String> {
   }
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(Object value) => values.any((e) => e == value);
+  bool containsValue(Object? value) => values.any((e) => e == value);
 
-  bool containsKey(Object key) => _getItem(key) != null;
+  bool containsKey(Object? key) => _getItem(key as String) != null;
 
-  String operator [](Object key) => _getItem(key);
+  String? operator [](Object? key) => _getItem(key as String);
 
   void operator []=(String key, String value) {
     _setItem(key, value);
@@ -28866,12 +29003,12 @@ class Storage extends Interceptor with MapMixin<String, String> {
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
-    return this[key];
+    return this[key] as String;
   }
 
-  String remove(Object key) {
+  String? remove(Object? key) {
     final value = this[key];
-    _removeItem(key);
+    _removeItem(key as String);
     return value;
   }
 
@@ -28882,7 +29019,7 @@ class Storage extends Interceptor with MapMixin<String, String> {
       final key = _key(i);
       if (key == null) return;
 
-      f(key, this[key]);
+      f(key, this[key]!);
     }
   }
 
@@ -28915,10 +29052,10 @@ class Storage extends Interceptor with MapMixin<String, String> {
   void _clear() native;
 
   @JSName('getItem')
-  String _getItem(String key) native;
+  String? _getItem(String key) native;
 
   @JSName('key')
-  String _key(int index) native;
+  String? _key(int index) native;
 
   @JSName('removeItem')
   void _removeItem(String key) native;
@@ -28945,18 +29082,18 @@ class StorageEvent extends Event {
   factory StorageEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      String key,
-      String oldValue,
-      String newValue,
-      String url,
-      Storage storageArea}) {
-    StorageEvent e = document._createEvent("StorageEvent");
+      String? key,
+      String? oldValue,
+      String? newValue,
+      String? url,
+      Storage? storageArea}) {
+    StorageEvent e = document._createEvent("StorageEvent") as StorageEvent;
     e._initStorageEvent(
         type, canBubble, cancelable, key, oldValue, newValue, url, storageArea);
     return e;
   }
 
-  factory StorageEvent._(String type, [Map eventInitDict]) {
+  factory StorageEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return StorageEvent._create_1(type, eventInitDict_1);
@@ -28968,26 +29105,26 @@ class StorageEvent extends Event {
   static StorageEvent _create_2(type) =>
       JS('StorageEvent', 'new StorageEvent(#)', type);
 
-  String get key native;
+  String? get key native;
 
-  String get newValue native;
+  String? get newValue native;
 
-  String get oldValue native;
+  String? get oldValue native;
 
-  Storage get storageArea native;
+  Storage? get storageArea native;
 
-  String get url native;
+  String? get url native;
 
   @JSName('initStorageEvent')
   void _initStorageEvent(
-      String typeArg,
-      bool canBubbleArg,
-      bool cancelableArg,
-      String keyArg,
-      String oldValueArg,
-      String newValueArg,
-      String urlArg,
-      Storage storageAreaArg) native;
+      String? typeArg,
+      bool? canBubbleArg,
+      bool? cancelableArg,
+      String? keyArg,
+      String? oldValueArg,
+      String? newValueArg,
+      String? urlArg,
+      Storage? storageAreaArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29000,7 +29137,7 @@ class StorageManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<Map<String, dynamic>> estimate() =>
+  Future<Map<String, dynamic>?> estimate() =>
       promiseToFutureAsMap(JS("", "#.estimate()", this));
 
   Future<bool> persist() => promiseToFuture<bool>(JS("", "#.persist()", this));
@@ -29034,7 +29171,7 @@ class StyleElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory StyleElement() => JS(
+  factory StyleElement() => JS<StyleElement>(
       'returns:StyleElement;creates:StyleElement;new:true',
       '#.createElement(#)',
       document,
@@ -29054,11 +29191,11 @@ class StyleElement extends HtmlElement {
 
   set media(String value) native;
 
-  StyleSheet get sheet native;
+  StyleSheet? get sheet native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29071,9 +29208,9 @@ class StyleMedia extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get type native;
+  String? get type native;
 
-  bool matchMedium(String mediaquery) native;
+  bool matchMedium(String? mediaquery) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29103,7 +29240,7 @@ class StylePropertyMapReadonly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  CssStyleValue get(String property) native;
+  CssStyleValue? get(String property) native;
 
   List<CssStyleValue> getAll(String property) native;
 
@@ -29122,21 +29259,21 @@ class StyleSheet extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
-  String get href native;
+  String? get href native;
 
-  MediaList get media native;
+  MediaList? get media native;
 
-  Node get ownerNode native;
+  Node? get ownerNode native;
 
-  StyleSheet get parentStyleSheet native;
+  StyleSheet? get parentStyleSheet native;
 
-  String get title native;
+  String? get title native;
 
-  String get type native;
+  String? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29156,9 +29293,9 @@ class SyncEvent extends ExtendableEvent {
   static SyncEvent _create_1(type, init) =>
       JS('SyncEvent', 'new SyncEvent(#,#)', type, init);
 
-  bool get lastChance native;
+  bool? get lastChance native;
 
-  String get tag native;
+  String? get tag native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29188,7 +29325,7 @@ class TableCaptionElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableCaptionElement() => JS(
+  factory TableCaptionElement() => JS<TableCaptionElement>(
       'returns:TableCaptionElement;creates:TableCaptionElement;new:true',
       '#.createElement(#)',
       document,
@@ -29212,7 +29349,7 @@ class TableCellElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableCellElement() => JS(
+  factory TableCellElement() => JS<TableCellElement>(
       'returns:TableCellElement;creates:TableCellElement;new:true',
       '#.createElement(#)',
       document,
@@ -29232,7 +29369,7 @@ class TableCellElement extends HtmlElement {
 
   String get headers native;
 
-  set headers(String value) native;
+  set headers(String? value) native;
 
   int get rowSpan native;
 
@@ -29249,7 +29386,7 @@ class TableColElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableColElement() => JS(
+  factory TableColElement() => JS<TableColElement>(
       'returns:TableColElement;creates:TableColElement;new:true',
       '#.createElement(#)',
       document,
@@ -29292,14 +29429,14 @@ class TableElement extends HtmlElement {
     }
     var tbody = new Element.tag('tbody');
     this.children.add(tbody);
-    return tbody;
+    return tbody as TableSectionElement;
   }
 
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
-  DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  DocumentFragment createFragment(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer);
@@ -29319,7 +29456,7 @@ class TableElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableElement() => JS(
+  factory TableElement() => JS<TableElement>(
       'returns:TableElement;creates:TableElement;new:true',
       '#.createElement(#)',
       document,
@@ -29331,27 +29468,27 @@ class TableElement extends HtmlElement {
    */
   TableElement.created() : super.created();
 
-  TableCaptionElement get caption native;
+  TableCaptionElement? get caption native;
 
-  set caption(TableCaptionElement value) native;
+  set caption(TableCaptionElement? value) native;
 
   @JSName('rows')
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
   List<Node> get _rows native;
 
   @JSName('tBodies')
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
   List<Node> get _tBodies native;
 
-  TableSectionElement get tFoot native;
+  TableSectionElement? get tFoot native;
 
-  set tFoot(TableSectionElement value) native;
+  set tFoot(TableSectionElement? value) native;
 
-  TableSectionElement get tHead native;
+  TableSectionElement? get tHead native;
 
-  set tHead(TableSectionElement value) native;
+  set tHead(TableSectionElement? value) native;
 
   @JSName('createCaption')
   TableCaptionElement _createCaption() native;
@@ -29371,7 +29508,7 @@ class TableElement extends HtmlElement {
   void deleteTHead() native;
 
   @JSName('insertRow')
-  TableRowElement _insertRow([int index]) native;
+  TableRowElement _insertRow([int? index]) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29386,10 +29523,11 @@ class TableRowElement extends HtmlElement {
     return insertCell(-1);
   }
 
-  TableCellElement insertCell(int index) => _insertCell(index);
+  TableCellElement insertCell(int index) =>
+      _insertCell(index) as TableCellElement;
 
-  DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  DocumentFragment createFragment(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer);
@@ -29411,7 +29549,7 @@ class TableRowElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableRowElement() => JS(
+  factory TableRowElement() => JS<TableRowElement>(
       'returns:TableRowElement;creates:TableRowElement;new:true',
       '#.createElement(#)',
       document,
@@ -29424,7 +29562,7 @@ class TableRowElement extends HtmlElement {
   TableRowElement.created() : super.created();
 
   @JSName('cells')
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
   List<Node> get _cells native;
 
@@ -29435,7 +29573,7 @@ class TableRowElement extends HtmlElement {
   void deleteCell(int index) native;
 
   @JSName('insertCell')
-  HtmlElement _insertCell([int index]) native;
+  HtmlElement _insertCell([int? index]) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29449,10 +29587,10 @@ class TableSectionElement extends HtmlElement {
     return insertRow(-1);
   }
 
-  TableRowElement insertRow(int index) => _insertRow(index);
+  TableRowElement insertRow(int index) => _insertRow(index) as TableRowElement;
 
-  DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  DocumentFragment createFragment(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer);
@@ -29480,14 +29618,14 @@ class TableSectionElement extends HtmlElement {
   TableSectionElement.created() : super.created();
 
   @JSName('rows')
-  @Returns('HtmlCollection|Null')
+  @Returns('HtmlCollection')
   @Creates('HtmlCollection')
   List<Node> get _rows native;
 
   void deleteRow(int index) native;
 
   @JSName('insertRow')
-  HtmlElement _insertRow([int index]) native;
+  HtmlElement _insertRow([int? index]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29500,16 +29638,16 @@ class TaskAttributionTiming extends PerformanceEntry {
     throw new UnsupportedError("Not supported");
   }
 
-  String get containerId native;
+  String? get containerId native;
 
-  String get containerName native;
+  String? get containerName native;
 
-  String get containerSrc native;
+  String? get containerSrc native;
 
-  String get containerType native;
+  String? get containerType native;
 
   @JSName('scriptURL')
-  String get scriptUrl native;
+  String? get scriptUrl native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29525,7 +29663,8 @@ class TemplateElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TemplateElement() => document.createElement("template");
+  factory TemplateElement() =>
+      document.createElement("template") as TemplateElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29536,7 +29675,7 @@ class TemplateElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('template');
 
-  DocumentFragment get content native;
+  DocumentFragment? get content native;
 
   /**
    * An override to place the contents into content rather than as child nodes.
@@ -29545,14 +29684,14 @@ class TemplateElement extends HtmlElement {
    *
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
-  void setInnerHtml(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  void setInnerHtml(String? html,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
-    content.nodes.clear();
+    content!.nodes.clear();
     var fragment = createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
-    content.append(fragment);
+    content!.append(fragment);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29573,11 +29712,11 @@ class Text extends CharacterData {
     throw new UnsupportedError("Not supported");
   }
 
-  SlotElement get assignedSlot native;
+  SlotElement? get assignedSlot native;
 
   String get wholeText native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getDestinationInsertionPoints() native;
 
@@ -29594,7 +29733,7 @@ class TextAreaElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TextAreaElement() => JS(
+  factory TextAreaElement() => JS<TextAreaElement>(
       'returns:TextAreaElement;creates:TextAreaElement;new:true',
       '#.createElement(#)',
       document,
@@ -29606,9 +29745,9 @@ class TextAreaElement extends HtmlElement {
    */
   TextAreaElement.created() : super.created();
 
-  String get autocapitalize native;
+  String? get autocapitalize native;
 
-  set autocapitalize(String value) native;
+  set autocapitalize(String? value) native;
 
   bool get autofocus native;
 
@@ -29618,24 +29757,24 @@ class TextAreaElement extends HtmlElement {
 
   set cols(int value) native;
 
-  String get defaultValue native;
+  String? get defaultValue native;
 
-  set defaultValue(String value) native;
+  set defaultValue(String? value) native;
 
-  String get dirName native;
+  String? get dirName native;
 
-  set dirName(String value) native;
+  set dirName(String? value) native;
 
   bool get disabled native;
 
   set disabled(bool value) native;
 
-  FormElement get form native;
+  FormElement? get form native;
 
   @Unstable()
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get labels native;
+  List<Node>? get labels native;
 
   int get maxLength native;
 
@@ -29665,31 +29804,31 @@ class TextAreaElement extends HtmlElement {
 
   set rows(int value) native;
 
-  String get selectionDirection native;
+  String? get selectionDirection native;
 
-  set selectionDirection(String value) native;
+  set selectionDirection(String? value) native;
 
-  int get selectionEnd native;
+  int? get selectionEnd native;
 
-  set selectionEnd(int value) native;
+  set selectionEnd(int? value) native;
 
-  int get selectionStart native;
+  int? get selectionStart native;
 
-  set selectionStart(int value) native;
+  set selectionStart(int? value) native;
 
-  int get textLength native;
+  int? get textLength native;
 
-  String get type native;
+  String? get type native;
 
-  String get validationMessage native;
+  String? get validationMessage native;
 
-  ValidityState get validity native;
+  ValidityState? get validity native;
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 
-  bool get willValidate native;
+  bool? get willValidate native;
 
   String get wrap native;
 
@@ -29704,9 +29843,9 @@ class TextAreaElement extends HtmlElement {
   void setCustomValidity(String error) native;
 
   void setRangeText(String replacement,
-      {int start, int end, String selectionMode}) native;
+      {int? start, int? end, String? selectionMode}) native;
 
-  void setSelectionRange(int start, int end, [String direction]) native;
+  void setSelectionRange(int start, int end, [String? direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29739,12 +29878,12 @@ class TextEvent extends UIEvent {
   factory TextEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      Window view,
-      String data}) {
+      Window? view,
+      String? data}) {
     if (view == null) {
       view = window;
     }
-    TextEvent e = document._createEvent("TextEvent");
+    TextEvent e = document._createEvent("TextEvent") as TextEvent;
     e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
@@ -29753,11 +29892,11 @@ class TextEvent extends UIEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  String get data native;
+  String? get data native;
 
   @JSName('initTextEvent')
-  void _initTextEvent(String type, bool bubbles, bool cancelable, Window view,
-      String data) native;
+  void _initTextEvent(String? type, bool? bubbles, bool? cancelable,
+      Window? view, String? data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29770,29 +29909,29 @@ class TextMetrics extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get actualBoundingBoxAscent native;
+  num? get actualBoundingBoxAscent native;
 
-  num get actualBoundingBoxDescent native;
+  num? get actualBoundingBoxDescent native;
 
-  num get actualBoundingBoxLeft native;
+  num? get actualBoundingBoxLeft native;
 
-  num get actualBoundingBoxRight native;
+  num? get actualBoundingBoxRight native;
 
-  num get alphabeticBaseline native;
+  num? get alphabeticBaseline native;
 
-  num get emHeightAscent native;
+  num? get emHeightAscent native;
 
-  num get emHeightDescent native;
+  num? get emHeightDescent native;
 
-  num get fontBoundingBoxAscent native;
+  num? get fontBoundingBoxAscent native;
 
-  num get fontBoundingBoxDescent native;
+  num? get fontBoundingBoxDescent native;
 
-  num get hangingBaseline native;
+  num? get hangingBaseline native;
 
-  num get ideographicBaseline native;
+  num? get ideographicBaseline native;
 
-  num get width native;
+  num? get width native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29814,9 +29953,9 @@ class TextTrack extends EventTarget {
   static const EventStreamProvider<Event> cueChangeEvent =
       const EventStreamProvider<Event>('cuechange');
 
-  TextTrackCueList get activeCues native;
+  TextTrackCueList? get activeCues native;
 
-  TextTrackCueList get cues native;
+  TextTrackCueList? get cues native;
 
   String get id native;
 
@@ -29826,9 +29965,9 @@ class TextTrack extends EventTarget {
 
   String get language native;
 
-  String get mode native;
+  String? get mode native;
 
-  set mode(String value) native;
+  set mode(String? value) native;
 
   void addCue(TextTrackCue cue) native;
 
@@ -29866,23 +30005,23 @@ class TextTrackCue extends EventTarget {
   static const EventStreamProvider<Event> exitEvent =
       const EventStreamProvider<Event>('exit');
 
-  num get endTime native;
+  num? get endTime native;
 
-  set endTime(num value) native;
+  set endTime(num? value) native;
 
-  String get id native;
+  String? get id native;
 
-  set id(String value) native;
+  set id(String? value) native;
 
-  bool get pauseOnExit native;
+  bool? get pauseOnExit native;
 
-  set pauseOnExit(bool value) native;
+  set pauseOnExit(bool? value) native;
 
-  num get startTime native;
+  num? get startTime native;
 
-  set startTime(num value) native;
+  set startTime(num? value) native;
 
-  TextTrack get track native;
+  TextTrack? get track native;
 
   /// Stream of `enter` events handled by this [TextTrackCue].
   Stream<Event> get onEnter => enterEvent.forTarget(this);
@@ -29950,7 +30089,7 @@ class TextTrackCueList extends Interceptor
 
   TextTrackCue __getter__(int index) native;
 
-  TextTrackCue getCueById(String id) native;
+  TextTrackCue? getCueById(String id) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30024,7 +30163,7 @@ class TextTrackList extends EventTarget
 
   TextTrack __getter__(int index) native;
 
-  TextTrack getTrackById(String id) native;
+  TextTrack? getTrackById(String id) native;
 
   /// Stream of `addtrack` events handled by this [TextTrackList].
   Stream<TrackEvent> get onAddTrack => addTrackEvent.forTarget(this);
@@ -30048,9 +30187,9 @@ class TimeElement extends HtmlElement {
    */
   TimeElement.created() : super.created();
 
-  String get dateTime native;
+  String? get dateTime native;
 
-  set dateTime(String value) native;
+  set dateTime(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30088,7 +30227,7 @@ class TitleElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TitleElement() => JS(
+  factory TitleElement() => JS<TitleElement>(
       'returns:TitleElement;creates:TitleElement;new:true',
       '#.createElement(#)',
       document,
@@ -30118,38 +30257,38 @@ class Touch extends Interceptor {
   static Touch _create_1(initDict) => JS('Touch', 'new Touch(#)', initDict);
 
   @JSName('clientX')
-  num get _clientX native;
+  num? get _clientX native;
 
   @JSName('clientY')
-  num get _clientY native;
+  num? get _clientY native;
 
-  num get force native;
+  num? get force native;
 
-  int get identifier native;
+  int? get identifier native;
 
   @JSName('pageX')
-  num get _pageX native;
+  num? get _pageX native;
 
   @JSName('pageY')
-  num get _pageY native;
+  num? get _pageY native;
 
   @JSName('radiusX')
-  num get _radiusX native;
+  num? get _radiusX native;
 
   @JSName('radiusY')
-  num get _radiusY native;
+  num? get _radiusY native;
 
-  String get region native;
+  String? get region native;
 
-  num get rotationAngle native;
+  num? get rotationAngle native;
 
   @JSName('screenX')
-  num get _screenX native;
+  num? get _screenX native;
 
   @JSName('screenY')
-  num get _screenY native;
+  num? get _screenY native;
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
+  EventTarget? get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @Creates('Element|Document')
   @Returns('Element|Document')
@@ -30193,7 +30332,7 @@ class TouchEvent extends UIEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TouchEvent(String type, [Map eventInitDict]) {
+  factory TouchEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return TouchEvent._create_1(type, eventInitDict_1);
@@ -30205,19 +30344,19 @@ class TouchEvent extends UIEvent {
   static TouchEvent _create_2(type) =>
       JS('TouchEvent', 'new TouchEvent(#)', type);
 
-  bool get altKey native;
+  bool? get altKey native;
 
-  TouchList get changedTouches native;
+  TouchList? get changedTouches native;
 
-  bool get ctrlKey native;
+  bool? get ctrlKey native;
 
-  bool get metaKey native;
+  bool? get metaKey native;
 
-  bool get shiftKey native;
+  bool? get shiftKey native;
 
-  TouchList get targetTouches native;
+  TouchList? get targetTouches native;
 
-  TouchList get touches native;
+  TouchList? get touches native;
 
   /**
    * Checks if touch events supported on the current platform.
@@ -30291,7 +30430,7 @@ class TouchList extends Interceptor
   Touch elementAt(int index) => this[index];
   // -- end List<Touch> mixins.
 
-  Touch item(int index) native;
+  Touch? item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30306,7 +30445,7 @@ class TrackDefault extends Interceptor {
 
   factory TrackDefault(
       String type, String language, String label, List<String> kinds,
-      [String byteStreamTrackID]) {
+      [String? byteStreamTrackID]) {
     if (byteStreamTrackID != null) {
       List kinds_1 = convertDartToNative_StringArray(kinds);
       return TrackDefault._create_1(
@@ -30327,15 +30466,15 @@ class TrackDefault extends Interceptor {
       label,
       kinds);
 
-  String get byteStreamTrackID native;
+  String? get byteStreamTrackID native;
 
-  Object get kinds native;
+  Object? get kinds native;
 
-  String get label native;
+  String? get label native;
 
-  String get language native;
+  String? get language native;
 
-  String get type native;
+  String? get type native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30348,7 +30487,7 @@ class TrackDefaultList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TrackDefaultList([List<TrackDefault> trackDefaults]) {
+  factory TrackDefaultList([List<TrackDefault>? trackDefaults]) {
     if (trackDefaults != null) {
       return TrackDefaultList._create_1(trackDefaults);
     }
@@ -30359,7 +30498,7 @@ class TrackDefaultList extends Interceptor {
   static TrackDefaultList _create_2() =>
       JS('TrackDefaultList', 'new TrackDefaultList()');
 
-  int get length native;
+  int? get length native;
 
   TrackDefault item(int index) native;
 }
@@ -30377,7 +30516,7 @@ class TrackElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TrackElement() => document.createElement("track");
+  factory TrackElement() => document.createElement("track") as TrackElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -30397,30 +30536,30 @@ class TrackElement extends HtmlElement {
   static const int NONE = 0;
 
   @JSName('default')
-  bool get defaultValue native;
+  bool? get defaultValue native;
 
   @JSName('default')
-  set defaultValue(bool value) native;
+  set defaultValue(bool? value) native;
 
-  String get kind native;
+  String? get kind native;
 
-  set kind(String value) native;
+  set kind(String? value) native;
 
-  String get label native;
+  String? get label native;
 
-  set label(String value) native;
+  set label(String? value) native;
 
-  int get readyState native;
+  int? get readyState native;
 
-  String get src native;
+  String? get src native;
 
-  set src(String value) native;
+  set src(String? value) native;
 
-  String get srclang native;
+  String? get srclang native;
 
-  set srclang(String value) native;
+  set srclang(String? value) native;
 
-  TextTrack get track native;
+  TextTrack? get track native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30434,7 +30573,7 @@ class TrackEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TrackEvent(String type, [Map eventInitDict]) {
+  factory TrackEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return TrackEvent._create_1(type, eventInitDict_1);
@@ -30447,7 +30586,7 @@ class TrackEvent extends Event {
       JS('TrackEvent', 'new TrackEvent(#)', type);
 
   @Creates('Null')
-  Object get track native;
+  Object? get track native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30460,7 +30599,7 @@ class TransitionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TransitionEvent(String type, [Map eventInitDict]) {
+  factory TransitionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return TransitionEvent._create_1(type, eventInitDict_1);
@@ -30472,11 +30611,11 @@ class TransitionEvent extends Event {
   static TransitionEvent _create_2(type) =>
       JS('TransitionEvent', 'new TransitionEvent(#)', type);
 
-  num get elapsedTime native;
+  num? get elapsedTime native;
 
-  String get propertyName native;
+  String? get propertyName native;
 
-  String get pseudoElement native;
+  String? get pseudoElement native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30497,25 +30636,25 @@ class TreeWalker extends Interceptor {
 
   set currentNode(Node value) native;
 
-  NodeFilter get filter native;
+  NodeFilter? get filter native;
 
   Node get root native;
 
   int get whatToShow native;
 
-  Node firstChild() native;
+  Node? firstChild() native;
 
-  Node lastChild() native;
+  Node? lastChild() native;
 
-  Node nextNode() native;
+  Node? nextNode() native;
 
-  Node nextSibling() native;
+  Node? nextSibling() native;
 
-  Node parentNode() native;
+  Node? parentNode() native;
 
-  Node previousNode() native;
+  Node? previousNode() native;
 
-  Node previousSibling() native;
+  Node? previousSibling() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30575,19 +30714,19 @@ class UIEvent extends Event {
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
   factory UIEvent(String type,
-      {Window view,
+      {Window? view,
       int detail: 0,
       bool canBubble: true,
       bool cancelable: true}) {
     if (view == null) {
       view = window;
     }
-    UIEvent e = document._createEvent("UIEvent");
+    UIEvent e = document._createEvent("UIEvent") as UIEvent;
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
 
-  factory UIEvent._(String type, [Map eventInitDict]) {
+  factory UIEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return UIEvent._create_1(type, eventInitDict_1);
@@ -30598,11 +30737,11 @@ class UIEvent extends Event {
       JS('UIEvent', 'new UIEvent(#,#)', type, eventInitDict);
   static UIEvent _create_2(type) => JS('UIEvent', 'new UIEvent(#)', type);
 
-  int get detail native;
+  int? get detail native;
 
-  InputDeviceCapabilities get sourceCapabilities native;
+  InputDeviceCapabilities? get sourceCapabilities native;
 
-  WindowBase get view => _convertNativeToDart_Window(this._get_view);
+  WindowBase? get view => _convertNativeToDart_Window(this._get_view);
   @JSName('view')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -30610,10 +30749,10 @@ class UIEvent extends Event {
 
   @JSName('which')
   @Unstable()
-  int get _which native;
+  int? get _which native;
 
   @JSName('initUIEvent')
-  void _initUIEvent(String type, bool bubbles, bool cancelable, Window view,
+  void _initUIEvent(String type, bool bubbles, bool cancelable, Window? view,
       int detail) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30627,7 +30766,7 @@ class UListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory UListElement() => JS(
+  factory UListElement() => JS<UListElement>(
       'returns:UListElement;creates:UListElement;new:true',
       '#.createElement(#)',
       document,
@@ -30650,7 +30789,7 @@ class UnderlyingSourceBase extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future cancel(Object reason) =>
+  Future cancel(Object? reason) =>
       promiseToFuture(JS("", "#.cancel(#)", this, reason));
 
   void notifyLockAcquired() native;
@@ -30709,49 +30848,49 @@ class Url extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get hash native;
+  String? get hash native;
 
-  set hash(String value) native;
+  set hash(String? value) native;
 
-  String get host native;
+  String? get host native;
 
-  set host(String value) native;
+  set host(String? value) native;
 
-  String get hostname native;
+  String? get hostname native;
 
-  set hostname(String value) native;
+  set hostname(String? value) native;
 
-  String get href native;
+  String? get href native;
 
-  set href(String value) native;
+  set href(String? value) native;
 
-  String get origin native;
+  String? get origin native;
 
-  String get password native;
+  String? get password native;
 
-  set password(String value) native;
+  set password(String? value) native;
 
-  String get pathname native;
+  String? get pathname native;
 
-  set pathname(String value) native;
+  set pathname(String? value) native;
 
-  String get port native;
+  String? get port native;
 
-  set port(String value) native;
+  set port(String? value) native;
 
-  String get protocol native;
+  String? get protocol native;
 
-  set protocol(String value) native;
+  set protocol(String? value) native;
 
-  String get search native;
+  String? get search native;
 
-  set search(String value) native;
+  set search(String? value) native;
 
-  UrlSearchParams get searchParams native;
+  UrlSearchParams? get searchParams native;
 
-  String get username native;
+  String? get username native;
 
-  set username(String value) native;
+  set username(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30764,7 +30903,7 @@ class UrlSearchParams extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory UrlSearchParams([Object init]) {
+  factory UrlSearchParams([Object? init]) {
     if (init != null) {
       return UrlSearchParams._create_1(init);
     }
@@ -30779,7 +30918,7 @@ class UrlSearchParams extends Interceptor {
 
   void delete(String name) native;
 
-  String get(String name) native;
+  String? get(String name) native;
 
   List<String> getAll(String name) native;
 
@@ -30799,23 +30938,23 @@ abstract class UrlUtilsReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get hash native;
+  String? get hash native;
 
-  String get host native;
+  String? get host native;
 
-  String get hostname native;
+  String? get hostname native;
 
-  String get href native;
+  String? get href native;
 
-  String get origin native;
+  String? get origin native;
 
-  String get pathname native;
+  String? get pathname native;
 
-  String get port native;
+  String? get port native;
 
-  String get protocol native;
+  String? get protocol native;
 
-  String get search native;
+  String? get search native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30841,7 +30980,7 @@ class VRCoordinateSystem extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Float32List getTransformTo(VRCoordinateSystem other) native;
+  Float32List? getTransformTo(VRCoordinateSystem other) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30854,11 +30993,11 @@ class VRDevice extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  String get deviceName native;
+  String? get deviceName native;
 
-  bool get isExternal native;
+  bool? get isExternal native;
 
-  Future requestSession([Map options]) {
+  Future requestSession([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -30866,7 +31005,7 @@ class VRDevice extends EventTarget {
     return promiseToFuture(JS("", "#.requestSession(#)", this, options_dict));
   }
 
-  Future supportsSession([Map options]) {
+  Future supportsSession([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -30892,7 +31031,7 @@ class VRDeviceEvent extends Event {
   static VRDeviceEvent _create_1(type, eventInitDict) =>
       JS('VRDeviceEvent', 'new VRDeviceEvent(#,#)', type, eventInitDict);
 
-  VRDevice get device native;
+  VRDevice? get device native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30905,23 +31044,23 @@ class VRDisplay extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  VRDisplayCapabilities get capabilities native;
+  VRDisplayCapabilities? get capabilities native;
 
-  num get depthFar native;
+  num? get depthFar native;
 
-  set depthFar(num value) native;
+  set depthFar(num? value) native;
 
-  num get depthNear native;
+  num? get depthNear native;
 
-  set depthNear(num value) native;
+  set depthNear(num? value) native;
 
-  int get displayId native;
+  int? get displayId native;
 
-  String get displayName native;
+  String? get displayName native;
 
-  bool get isPresenting native;
+  bool? get isPresenting native;
 
-  VRStageParameters get stageParameters native;
+  VRStageParameters? get stageParameters native;
 
   void cancelAnimationFrame(int handle) native;
 
@@ -30951,13 +31090,13 @@ class VRDisplayCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get canPresent native;
+  bool? get canPresent native;
 
-  bool get hasExternalDisplay native;
+  bool? get hasExternalDisplay native;
 
-  bool get hasPosition native;
+  bool? get hasPosition native;
 
-  int get maxLayers native;
+  int? get maxLayers native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30970,7 +31109,7 @@ class VRDisplayEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory VRDisplayEvent(String type, [Map eventInitDict]) {
+  factory VRDisplayEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return VRDisplayEvent._create_1(type, eventInitDict_1);
@@ -30982,9 +31121,9 @@ class VRDisplayEvent extends Event {
   static VRDisplayEvent _create_2(type) =>
       JS('VRDisplayEvent', 'new VRDisplayEvent(#)', type);
 
-  VRDisplay get display native;
+  VRDisplay? get display native;
 
-  String get reason native;
+  String? get reason native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30997,11 +31136,11 @@ class VREyeParameters extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Float32List get offset native;
+  Float32List? get offset native;
 
-  int get renderHeight native;
+  int? get renderHeight native;
 
-  int get renderWidth native;
+  int? get renderWidth native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31019,15 +31158,15 @@ class VRFrameData extends Interceptor {
   }
   static VRFrameData _create_1() => JS('VRFrameData', 'new VRFrameData()');
 
-  Float32List get leftProjectionMatrix native;
+  Float32List? get leftProjectionMatrix native;
 
-  Float32List get leftViewMatrix native;
+  Float32List? get leftViewMatrix native;
 
-  VRPose get pose native;
+  VRPose? get pose native;
 
-  Float32List get rightProjectionMatrix native;
+  Float32List? get rightProjectionMatrix native;
 
-  Float32List get rightViewMatrix native;
+  Float32List? get rightViewMatrix native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31040,9 +31179,9 @@ class VRFrameOfReference extends VRCoordinateSystem {
     throw new UnsupportedError("Not supported");
   }
 
-  VRStageBounds get bounds native;
+  VRStageBounds? get bounds native;
 
-  num get emulatedHeight native;
+  num? get emulatedHeight native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31055,17 +31194,17 @@ class VRPose extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Float32List get angularAcceleration native;
+  Float32List? get angularAcceleration native;
 
-  Float32List get angularVelocity native;
+  Float32List? get angularVelocity native;
 
-  Float32List get linearAcceleration native;
+  Float32List? get linearAcceleration native;
 
-  Float32List get linearVelocity native;
+  Float32List? get linearVelocity native;
 
-  Float32List get orientation native;
+  Float32List? get orientation native;
 
-  Float32List get position native;
+  Float32List? get position native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31084,27 +31223,27 @@ class VRSession extends EventTarget {
   static const EventStreamProvider<Event> focusEvent =
       const EventStreamProvider<Event>('focus');
 
-  num get depthFar native;
+  num? get depthFar native;
 
-  set depthFar(num value) native;
+  set depthFar(num? value) native;
 
-  num get depthNear native;
+  num? get depthNear native;
 
-  set depthNear(num value) native;
+  set depthNear(num? value) native;
 
-  VRDevice get device native;
+  VRDevice? get device native;
 
-  bool get exclusive native;
+  bool? get exclusive native;
 
   Future end() => promiseToFuture(JS("", "#.end()", this));
 
-  Future requestFrameOfReference(String type, [Map options]) {
+  Future requestFrameOfReference(String type, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
     }
-    return promiseToFuture(
-        JS("", "#.requestFrameOfReference(#, #)", this, type, options_dict));
+    return promiseToFuture(JS("creates:VRFrameOfReference;",
+        "#.requestFrameOfReference(#, #)", this, type, options_dict));
   }
 
   Stream<Event> get onBlur => blurEvent.forTarget(this);
@@ -31129,7 +31268,7 @@ class VRSessionEvent extends Event {
   static VRSessionEvent _create_1(type, eventInitDict) =>
       JS('VRSessionEvent', 'new VRSessionEvent(#,#)', type, eventInitDict);
 
-  VRSession get session native;
+  VRSession? get session native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31142,7 +31281,7 @@ class VRStageBounds extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  List<VRStageBoundsPoint> get geometry native;
+  List<VRStageBoundsPoint>? get geometry native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31155,9 +31294,9 @@ class VRStageBoundsPoint extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get x native;
+  num? get x native;
 
-  num get z native;
+  num? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31170,11 +31309,11 @@ class VRStageParameters extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Float32List get sittingToStandingTransform native;
+  Float32List? get sittingToStandingTransform native;
 
-  num get sizeX native;
+  num? get sizeX native;
 
-  num get sizeZ native;
+  num? get sizeZ native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31187,27 +31326,27 @@ class ValidityState extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get badInput native;
+  bool? get badInput native;
 
-  bool get customError native;
+  bool? get customError native;
 
-  bool get patternMismatch native;
+  bool? get patternMismatch native;
 
-  bool get rangeOverflow native;
+  bool? get rangeOverflow native;
 
-  bool get rangeUnderflow native;
+  bool? get rangeUnderflow native;
 
-  bool get stepMismatch native;
+  bool? get stepMismatch native;
 
-  bool get tooLong native;
+  bool? get tooLong native;
 
-  bool get tooShort native;
+  bool? get tooShort native;
 
-  bool get typeMismatch native;
+  bool? get typeMismatch native;
 
-  bool get valid native;
+  bool? get valid native;
 
-  bool get valueMissing native;
+  bool? get valueMissing native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31220,7 +31359,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
     throw new UnsupportedError("Not supported");
   }
 
-  factory VideoElement() => JS(
+  factory VideoElement() => JS<VideoElement>(
       'returns:VideoElement;creates:VideoElement;new:true',
       '#.createElement(#)',
       document,
@@ -31247,12 +31386,12 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @JSName('webkitDecodedFrameCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  int get decodedFrameCount native;
+  int? get decodedFrameCount native;
 
   @JSName('webkitDroppedFrameCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  int get droppedFrameCount native;
+  int? get droppedFrameCount native;
 
   int get width native;
 
@@ -31281,13 +31420,13 @@ class VideoPlaybackQuality extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get corruptedVideoFrames native;
+  int? get corruptedVideoFrames native;
 
-  num get creationTime native;
+  num? get creationTime native;
 
-  int get droppedVideoFrames native;
+  int? get droppedVideoFrames native;
 
-  int get totalVideoFrames native;
+  int? get totalVideoFrames native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31300,19 +31439,19 @@ class VideoTrack extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get id native;
+  String? get id native;
 
-  String get kind native;
+  String? get kind native;
 
-  String get label native;
+  String? get label native;
 
-  String get language native;
+  String? get language native;
 
-  bool get selected native;
+  bool? get selected native;
 
-  set selected(bool value) native;
+  set selected(bool? value) native;
 
-  SourceBuffer get sourceBuffer native;
+  SourceBuffer? get sourceBuffer native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31328,13 +31467,13 @@ class VideoTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  int get length native;
+  int? get length native;
 
-  int get selectedIndex native;
+  int? get selectedIndex native;
 
   VideoTrack __getter__(int index) native;
 
-  VideoTrack getTrackById(String id) native;
+  VideoTrack? getTrackById(String id) native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -31355,19 +31494,19 @@ class VisualViewport extends EventTarget {
   static const EventStreamProvider<Event> scrollEvent =
       const EventStreamProvider<Event>('scroll');
 
-  num get height native;
+  num? get height native;
 
-  num get offsetLeft native;
+  num? get offsetLeft native;
 
-  num get offsetTop native;
+  num? get offsetTop native;
 
-  num get pageLeft native;
+  num? get pageLeft native;
 
-  num get pageTop native;
+  num? get pageTop native;
 
-  num get scale native;
+  num? get scale native;
 
-  num get width native;
+  num? get width native;
 
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
@@ -31397,41 +31536,41 @@ class VttCue extends TextTrackCue {
   static VttCue _create_1(startTime, endTime, text) =>
       JS('VttCue', 'new VTTCue(#,#,#)', startTime, endTime, text);
 
-  String get align native;
+  String? get align native;
 
-  set align(String value) native;
-
-  @Creates('Null')
-  @Returns('num|String')
-  Object get line native;
-
-  set line(Object value) native;
+  set align(String? value) native;
 
   @Creates('Null')
   @Returns('num|String')
-  Object get position native;
+  Object? get line native;
 
-  set position(Object value) native;
+  set line(Object? value) native;
 
-  VttRegion get region native;
+  @Creates('Null')
+  @Returns('num|String')
+  Object? get position native;
 
-  set region(VttRegion value) native;
+  set position(Object? value) native;
 
-  num get size native;
+  VttRegion? get region native;
 
-  set size(num value) native;
+  set region(VttRegion? value) native;
 
-  bool get snapToLines native;
+  num? get size native;
 
-  set snapToLines(bool value) native;
+  set size(num? value) native;
 
-  String get text native;
+  bool? get snapToLines native;
 
-  set text(String value) native;
+  set snapToLines(bool? value) native;
 
-  String get vertical native;
+  String? get text native;
 
-  set vertical(String value) native;
+  set text(String? value) native;
+
+  String? get vertical native;
+
+  set vertical(String? value) native;
 
   @JSName('getCueAsHTML')
   DocumentFragment getCueAsHtml() native;
@@ -31452,37 +31591,37 @@ class VttRegion extends Interceptor {
   }
   static VttRegion _create_1() => JS('VttRegion', 'new VTTRegion()');
 
-  String get id native;
+  String? get id native;
 
-  set id(String value) native;
+  set id(String? value) native;
 
-  int get lines native;
+  int? get lines native;
 
-  set lines(int value) native;
+  set lines(int? value) native;
 
-  num get regionAnchorX native;
+  num? get regionAnchorX native;
 
-  set regionAnchorX(num value) native;
+  set regionAnchorX(num? value) native;
 
-  num get regionAnchorY native;
+  num? get regionAnchorY native;
 
-  set regionAnchorY(num value) native;
+  set regionAnchorY(num? value) native;
 
-  String get scroll native;
+  String? get scroll native;
 
-  set scroll(String value) native;
+  set scroll(String? value) native;
 
-  num get viewportAnchorX native;
+  num? get viewportAnchorX native;
 
-  set viewportAnchorX(num value) native;
+  set viewportAnchorX(num? value) native;
 
-  num get viewportAnchorY native;
+  num? get viewportAnchorY native;
 
-  set viewportAnchorY(num value) native;
+  set viewportAnchorY(num? value) native;
 
-  num get width native;
+  num? get width native;
 
-  set width(num value) native;
+  set width(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31570,7 +31709,7 @@ class WebSocket extends EventTarget {
   static const EventStreamProvider<Event> openEvent =
       const EventStreamProvider<Event>('open');
 
-  factory WebSocket(String url, [Object protocols]) {
+  factory WebSocket(String url, [Object? protocols]) {
     if (protocols != null) {
       return WebSocket._create_1(url, protocols);
     }
@@ -31592,21 +31731,21 @@ class WebSocket extends EventTarget {
 
   static const int OPEN = 1;
 
-  String get binaryType native;
+  String? get binaryType native;
 
-  set binaryType(String value) native;
+  set binaryType(String? value) native;
 
-  int get bufferedAmount native;
+  int? get bufferedAmount native;
 
-  String get extensions native;
+  String? get extensions native;
 
-  String get protocol native;
+  String? get protocol native;
 
   int get readyState native;
 
-  String get url native;
+  String? get url native;
 
-  void close([int code, String reason]) native;
+  void close([int? code, String? reason]) native;
 
   /**
    * Transmit data to the server over this connection.
@@ -31676,7 +31815,7 @@ class WebSocket extends EventTarget {
 @Native("WheelEvent")
 class WheelEvent extends MouseEvent {
   factory WheelEvent(String type,
-      {Window view,
+      {Window? view,
       num deltaX: 0,
       num deltaY: 0,
       num deltaZ: 0,
@@ -31693,7 +31832,7 @@ class WheelEvent extends MouseEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget relatedTarget}) {
+      EventTarget? relatedTarget}) {
     var options = {
       'view': view,
       'deltaMode': deltaMode,
@@ -31723,7 +31862,7 @@ class WheelEvent extends MouseEvent {
         convertDartToNative_Dictionary(options));
   }
 
-  factory WheelEvent._(String type, [Map eventInitDict]) {
+  factory WheelEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return WheelEvent._create_1(type, eventInitDict_1);
@@ -31742,12 +31881,12 @@ class WheelEvent extends MouseEvent {
   static const int DOM_DELTA_PIXEL = 0x00;
 
   @JSName('deltaX')
-  num get _deltaX native;
+  num? get _deltaX native;
 
   @JSName('deltaY')
-  num get _deltaY native;
+  num? get _deltaY native;
 
-  num get deltaZ native;
+  num? get deltaZ native;
 
   /**
    * The amount that is expected to scroll vertically, in units determined by
@@ -31758,10 +31897,9 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   num get deltaY {
-    if (JS('bool', '#.deltaY !== undefined', this)) {
-      // W3C WheelEvent
-      return this._deltaY;
-    }
+    // deltaY may be missing or undefined.
+    num? value = JS('', '#.deltaY', this);
+    if (value != null) return value;
     throw new UnsupportedError('deltaY is not supported');
   }
 
@@ -31774,10 +31912,9 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   num get deltaX {
-    if (JS('bool', '#.deltaX !== undefined', this)) {
-      // W3C WheelEvent
-      return this._deltaX;
-    }
+    // deltaX may be missing or undefined.
+    num? value = JS('', '#.deltaX', this);
+    if (value != null) return value;
     throw new UnsupportedError('deltaX is not supported');
   }
 
@@ -31914,10 +32051,10 @@ class Window extends EventTarget
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) =>
+  WindowBase? _open2(url, name) =>
       JS('Window|Null', '#.open(#,#)', this, url, name);
 
-  WindowBase _open3(url, name, options) =>
+  WindowBase? _open3(url, name, options) =>
       JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
@@ -31928,7 +32065,7 @@ class Window extends EventTarget
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
    */
-  WindowBase open(String url, String name, [String options]) {
+  WindowBase open(String url, String name, [String? options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
     } else {
@@ -31979,7 +32116,7 @@ class Window extends EventTarget
    */
   int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
-    return _requestAnimationFrame(_wrapZone(callback));
+    return _requestAnimationFrame(_wrapZone(callback)!);
   }
 
   /**
@@ -32039,7 +32176,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  IdbFactory get indexedDB => JS(
+  IdbFactory? get indexedDB => JS(
       'IdbFactory|Null', // If not supported, returns null.
       '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
       this,
@@ -32246,7 +32383,7 @@ class Window extends EventTarget
    */
   static const int TEMPORARY = 0;
 
-  _Worklet get animationWorklet native;
+  _Worklet? get animationWorklet native;
 
   /**
    * The application cache for this window.
@@ -32261,15 +32398,15 @@ class Window extends EventTarget
    *   from WHATWG.
    */
 
-  ApplicationCache get applicationCache native;
+  ApplicationCache? get applicationCache native;
 
-  _Worklet get audioWorklet native;
+  _Worklet? get audioWorklet native;
 
-  CacheStorage get caches native;
+  CacheStorage? get caches native;
 
-  bool get closed native;
+  bool? get closed native;
 
-  CookieStore get cookieStore native;
+  CookieStore? get cookieStore native;
 
   /**
    * Entrypoint for the browser's cryptographic functions.
@@ -32279,21 +32416,21 @@ class Window extends EventTarget
    * * [Web cryptography API](http://www.w3.org/TR/WebCryptoAPI/) from W3C.
    */
 
-  Crypto get crypto native;
+  Crypto? get crypto native;
 
-  CustomElementRegistry get customElements native;
-
-  /// *Deprecated*.
-
-  String get defaultStatus native;
-
-  set defaultStatus(String value) native;
+  CustomElementRegistry? get customElements native;
 
   /// *Deprecated*.
 
-  String get defaultstatus native;
+  String? get defaultStatus native;
 
-  set defaultstatus(String value) native;
+  set defaultStatus(String? value) native;
+
+  /// *Deprecated*.
+
+  String? get defaultstatus native;
+
+  set defaultstatus(String? value) native;
 
   /**
    * The ratio between physical pixels and logical CSS pixels.
@@ -32308,7 +32445,7 @@ class Window extends EventTarget
 
   num get devicePixelRatio native;
 
-  External get external native;
+  External? get external native;
 
   /**
    * The current session history for this window's newest document.
@@ -32330,7 +32467,7 @@ class Window extends EventTarget
    *   from MDN.
    */
 
-  int get innerHeight native;
+  int? get innerHeight native;
 
   /**
    * The width of the viewport including scrollbars.
@@ -32341,9 +32478,9 @@ class Window extends EventTarget
    *   from MDN.
    */
 
-  int get innerWidth native;
+  int? get innerWidth native;
 
-  bool get isSecureContext native;
+  bool? get isSecureContext native;
 
   /**
    * Storage for this window that persists across sessions.
@@ -32370,7 +32507,7 @@ class Window extends EventTarget
    *   from WHATWG.
    */
 
-  BarProp get locationbar native;
+  BarProp? get locationbar native;
 
   /**
    * This window's menu bar, which displays menu commands.
@@ -32382,7 +32519,7 @@ class Window extends EventTarget
    *   from WHATWG.
    */
 
-  BarProp get menubar native;
+  BarProp? get menubar native;
 
   /**
    * The name of this window.
@@ -32393,9 +32530,9 @@ class Window extends EventTarget
    *   from MDN.
    */
 
-  String get name native;
+  String? get name native;
 
-  set name(String value) native;
+  set name(String? value) native;
 
   /**
    * The user agent accessing this window.
@@ -32418,19 +32555,19 @@ class Window extends EventTarget
    *   from WebPlatform.org.
    */
 
-  bool get offscreenBuffering native;
+  bool? get offscreenBuffering native;
 
-  WindowBase get opener => _convertNativeToDart_Window(this._get_opener);
+  WindowBase? get opener => _convertNativeToDart_Window(this._get_opener);
   @JSName('opener')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   dynamic get _get_opener native;
 
-  set opener(WindowBase value) native;
+  set opener(WindowBase? value) native;
 
-  int get orientation native;
+  int? get orientation native;
 
-  String get origin native;
+  String? get origin native;
 
   /**
    * The height of this window including all user interface elements.
@@ -32490,7 +32627,7 @@ class Window extends EventTarget
 
   num get _pageYOffset native;
 
-  WindowBase get parent => _convertNativeToDart_Window(this._get_parent);
+  WindowBase? get parent => _convertNativeToDart_Window(this._get_parent);
   @JSName('parent')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -32521,7 +32658,7 @@ class Window extends EventTarget
    *   from W3C.
    */
 
-  Screen get screen native;
+  Screen? get screen native;
 
   /**
    * The distance from the left side of the screen to the left side of this
@@ -32533,7 +32670,7 @@ class Window extends EventTarget
    *   from W3C.
    */
 
-  int get screenLeft native;
+  int? get screenLeft native;
 
   /**
    * The distance from the top of the screen to the top of this window.
@@ -32544,7 +32681,7 @@ class Window extends EventTarget
    *   from W3C.
    */
 
-  int get screenTop native;
+  int? get screenTop native;
 
   /**
    * The distance from the left side of the screen to the mouse pointer.
@@ -32555,7 +32692,7 @@ class Window extends EventTarget
    *   from W3C.
    */
 
-  int get screenX native;
+  int? get screenX native;
 
   /**
    * The distance from the top of the screen to the mouse pointer.
@@ -32566,7 +32703,7 @@ class Window extends EventTarget
    *   from W3C.
    */
 
-  int get screenY native;
+  int? get screenY native;
 
   /**
    * This window's scroll bars.
@@ -32578,7 +32715,7 @@ class Window extends EventTarget
    *   from WHATWG.
    */
 
-  BarProp get scrollbars native;
+  BarProp? get scrollbars native;
 
   /**
    * The current window.
@@ -32588,7 +32725,7 @@ class Window extends EventTarget
    * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)
    *   from MDN.
    */
-  WindowBase get self => _convertNativeToDart_Window(this._get_self);
+  WindowBase? get self => _convertNativeToDart_Window(this._get_self);
   @JSName('self')
   /**
    * The current window.
@@ -32628,13 +32765,13 @@ class Window extends EventTarget
    *   from W3C.
    */
 
-  SpeechSynthesis get speechSynthesis native;
+  SpeechSynthesis? get speechSynthesis native;
 
   /// *Deprecated*.
 
-  String get status native;
+  String? get status native;
 
-  set status(String value) native;
+  set status(String? value) native;
 
   /**
    * This window's status bar.
@@ -32646,7 +32783,7 @@ class Window extends EventTarget
    *   from WHATWG.
    */
 
-  BarProp get statusbar native;
+  BarProp? get statusbar native;
 
   /**
    * Access to CSS media queries.
@@ -32658,7 +32795,7 @@ class Window extends EventTarget
    *   from Safari Developer Library.
    */
 
-  StyleMedia get styleMedia native;
+  StyleMedia? get styleMedia native;
 
   /**
    * This window's tool bar.
@@ -32670,15 +32807,15 @@ class Window extends EventTarget
    *   from WHATWG.
    */
 
-  BarProp get toolbar native;
+  BarProp? get toolbar native;
 
-  WindowBase get top => _convertNativeToDart_Window(this._get_top);
+  WindowBase? get top => _convertNativeToDart_Window(this._get_top);
   @JSName('top')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   dynamic get _get_top native;
 
-  VisualViewport get visualViewport native;
+  VisualViewport? get visualViewport native;
 
   /**
    * The current window.
@@ -32688,7 +32825,7 @@ class Window extends EventTarget
    * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)
    *   from MDN.
    */
-  WindowBase get window => _convertNativeToDart_Window(this._get_window);
+  WindowBase? get window => _convertNativeToDart_Window(this._get_window);
   @JSName('window')
   /**
    * The current window.
@@ -32706,10 +32843,10 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int)) {
-      return _convertNativeToDart_Window(__getter___1(index_OR_name));
+      return _convertNativeToDart_Window(__getter___1(index_OR_name))!;
     }
     if ((index_OR_name is String)) {
-      return _convertNativeToDart_Window(__getter___2(index_OR_name));
+      return _convertNativeToDart_Window(__getter___2(index_OR_name))!;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -32731,7 +32868,7 @@ class Window extends EventTarget
    * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)
    *   from WHATWG.
    */
-  void alert([String message]) native;
+  void alert([String? message]) native;
 
   void cancelIdleCallback(int handle) native;
 
@@ -32745,14 +32882,15 @@ class Window extends EventTarget
    * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)
    *   from WHATWG.
    */
-  bool confirm([String message]) native;
+  bool confirm([String? message]) native;
 
-  Future fetch(/*RequestInfo*/ input, [Map init]) {
+  Future fetch(/*RequestInfo*/ input, [Map? init]) {
     var init_dict = null;
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
     }
-    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
+    return promiseToFuture(
+        JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
   }
 
   /**
@@ -32763,22 +32901,23 @@ class Window extends EventTarget
    * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)
    *   from MDN.
    */
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap,
-      bool wholeWord, bool searchInFrames, bool showDialog) native;
+  bool find(String? string, bool? caseSensitive, bool? backwards, bool? wrap,
+      bool? wholeWord, bool? searchInFrames, bool? showDialog) native;
 
   @JSName('getComputedStyle')
-  CssStyleDeclaration _getComputedStyle(Element elt, [String pseudoElt]) native;
+  CssStyleDeclaration _getComputedStyle(Element elt, [String? pseudoElt])
+      native;
 
   StylePropertyMapReadonly getComputedStyleMap(
-      Element element, String pseudoElement) native;
+      Element element, String? pseudoElement) native;
 
   @JSName('getMatchedCSSRules')
   /**
    * Returns all CSS rules that apply to the element's pseudo-element.
    */
-  @Returns('_CssRuleList|Null')
+  @Returns('_CssRuleList')
   @Creates('_CssRuleList')
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement)
+  List<CssRule> getMatchedCssRules(Element? element, String? pseudoElement)
       native;
 
   /**
@@ -32789,7 +32928,7 @@ class Window extends EventTarget
    * * [Window.getSelection](https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
    *   from MDN.
    */
-  Selection getSelection() native;
+  Selection? getSelection() native;
 
   /**
    * Returns a list of media queries for the given query string.
@@ -32828,10 +32967,10 @@ class Window extends EventTarget
   @Creates('SqlDatabase')
   SqlDatabase _openDatabase(
       String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback creationCallback]) native;
+      [DatabaseCallback? creationCallback]) native;
 
   void postMessage(/*any*/ message, String targetOrigin,
-      [List<Object> transfer]) {
+      [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin, transfer);
@@ -32857,7 +32996,7 @@ class Window extends EventTarget
    */
   void print() native;
 
-  int requestIdleCallback(IdleRequestCallback callback, [Map options]) {
+  int requestIdleCallback(IdleRequestCallback callback, [Map? options]) {
     if (options != null) {
       var callback_1 = convertDartClosureToJS(callback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -32902,7 +33041,7 @@ class Window extends EventTarget
    * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
-  void scroll([options_OR_x, y, Map scrollOptions]) {
+  void scroll([options_OR_x, y, Map? scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
       _scroll_1();
       return;
@@ -32963,7 +33102,7 @@ class Window extends EventTarget
    * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
-  void _scroll_3(num x, num y) native;
+  void _scroll_3(num? x, num? y) native;
   @JSName('scroll')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -32975,7 +33114,7 @@ class Window extends EventTarget
    * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
-  void _scroll_4(int x, int y) native;
+  void _scroll_4(int? x, int? y) native;
   @JSName('scroll')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -32987,7 +33126,7 @@ class Window extends EventTarget
    * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
-  void _scroll_5(int x, int y, scrollOptions) native;
+  void _scroll_5(int? x, int? y, scrollOptions) native;
 
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -32997,7 +33136,7 @@ class Window extends EventTarget
    * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
-  void scrollBy([options_OR_x, y, Map scrollOptions]) {
+  void scrollBy([options_OR_x, y, Map? scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
       _scrollBy_1();
       return;
@@ -33052,7 +33191,7 @@ class Window extends EventTarget
    * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
-  void _scrollBy_3(num x, num y) native;
+  void _scrollBy_3(num? x, num? y) native;
   @JSName('scrollBy')
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -33062,7 +33201,7 @@ class Window extends EventTarget
    * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
-  void _scrollBy_4(int x, int y) native;
+  void _scrollBy_4(int? x, int? y) native;
   @JSName('scrollBy')
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -33072,7 +33211,7 @@ class Window extends EventTarget
    * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
-  void _scrollBy_5(int x, int y, scrollOptions) native;
+  void _scrollBy_5(int? x, int? y, scrollOptions) native;
 
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33084,7 +33223,7 @@ class Window extends EventTarget
    * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
-  void scrollTo([options_OR_x, y, Map scrollOptions]) {
+  void scrollTo([options_OR_x, y, Map? scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
       _scrollTo_1();
       return;
@@ -33145,7 +33284,7 @@ class Window extends EventTarget
    * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
-  void _scrollTo_3(num x, num y) native;
+  void _scrollTo_3(num? x, num? y) native;
   @JSName('scrollTo')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33157,7 +33296,7 @@ class Window extends EventTarget
    * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
-  void _scrollTo_4(int x, int y) native;
+  void _scrollTo_4(int? x, int? y) native;
   @JSName('scrollTo')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33169,7 +33308,7 @@ class Window extends EventTarget
    * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
-  void _scrollTo_5(int x, int y, scrollOptions) native;
+  void _scrollTo_5(int? x, int? y, scrollOptions) native;
 
   /**
    * Stops the window from loading.
@@ -33186,7 +33325,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   void __requestFileSystem(
       int type, int size, _FileSystemCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -33214,7 +33353,7 @@ class Window extends EventTarget
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
   /**
@@ -33246,24 +33385,24 @@ class Window extends EventTarget
   // From WindowTimers
 
   @JSName('setInterval')
-  int _setInterval_String(String handler, [int timeout, Object arguments])
+  int _setInterval_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('setTimeout')
-  int _setTimeout_String(String handler, [int timeout, Object arguments])
+  int _setTimeout_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('clearInterval')
-  void _clearInterval([int handle]) native;
+  void _clearInterval([int? handle]) native;
 
   @JSName('clearTimeout')
-  void _clearTimeout([int handle]) native;
+  void _clearTimeout([int? handle]) native;
 
   @JSName('setInterval')
-  int _setInterval(Object handler, [int timeout]) native;
+  int _setInterval(Object handler, [int? timeout]) native;
 
   @JSName('setTimeout')
-  int _setTimeout(Object handler, [int timeout]) native;
+  int _setTimeout(Object handler, [int? timeout]) native;
 
   /// Stream of `contentloaded` events handled by this [Window].
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
@@ -33523,7 +33662,7 @@ class Window extends EventTarget
   @Creates('SqlDatabase')
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback creationCallback]) {
+      [DatabaseCallback? creationCallback]) {
     var db;
     if (creationCallback == null)
       db = _openDatabase(name, version, displayName, estimatedSize);
@@ -33552,7 +33691,7 @@ class Window extends EventTarget
    */
   int get scrollX => JS<bool>('bool', '("scrollX" in #)', this)
       ? JS<num>('num', '#.scrollX', this).round()
-      : document.documentElement.scrollLeft;
+      : document.documentElement!.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -33566,18 +33705,21 @@ class Window extends EventTarget
    */
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
-      : document.documentElement.scrollTop;
+      : document.documentElement!.scrollTop;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
-  _BeforeUnloadEvent(Event base) : super(base);
+  _BeforeUnloadEvent(Event base)
+      : _returnValue = '',
+        super(base);
 
   String get returnValue => _returnValue;
 
-  set returnValue(String value) {
-    _returnValue = value;
+  set returnValue(String? value) {
+    // Typed as nullable only to be compatible with the overriden method.
+    _returnValue = value!;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
     if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
@@ -33592,7 +33734,8 @@ class _BeforeUnloadEventStreamProvider
 
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
-  Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<BeforeUnloadEvent> forTarget(EventTarget? e,
+      {bool useCapture: false}) {
     // Specify the generic type for EventStream only in dart2js.
     var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);
@@ -33648,15 +33791,15 @@ class WindowClient extends Client {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get focused native;
+  bool? get focused native;
 
-  String get visibilityState native;
+  String? get visibilityState native;
 
-  Future<WindowClient> focus() =>
-      promiseToFuture<WindowClient>(JS("", "#.focus()", this));
+  Future<WindowClient> focus() => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.focus()", this));
 
-  Future<WindowClient> navigate(String url) =>
-      promiseToFuture<WindowClient>(JS("", "#.navigate(#)", this, url));
+  Future<WindowClient> navigate(String url) => promiseToFuture<WindowClient>(
+      JS("creates:WindowClient;", "#.navigate(#)", this, url));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33746,7 +33889,7 @@ class Worker extends EventTarget implements AbstractWorker {
   static bool get supported =>
       JS('bool', '(typeof window.Worker != "undefined")');
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -33758,7 +33901,7 @@ class Worker extends EventTarget implements AbstractWorker {
   }
 
   @JSName('postMessage')
-  void _postMessage_1(message, List<Object> transfer) native;
+  void _postMessage_1(message, List<Object>? transfer) native;
   @JSName('postMessage')
   void _postMessage_2(message) native;
 
@@ -33791,32 +33934,33 @@ class WorkerGlobalScope extends EventTarget
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  String get addressSpace native;
+  String? get addressSpace native;
 
-  CacheStorage get caches native;
+  CacheStorage? get caches native;
 
-  Crypto get crypto native;
+  Crypto? get crypto native;
 
-  IdbFactory get indexedDB native;
+  IdbFactory? get indexedDB native;
 
-  bool get isSecureContext native;
+  bool? get isSecureContext native;
 
   _WorkerLocation get location native;
 
   _WorkerNavigator get navigator native;
 
-  String get origin native;
+  String? get origin native;
 
-  WorkerPerformance get performance native;
+  WorkerPerformance? get performance native;
 
   WorkerGlobalScope get self native;
 
-  Future fetch(/*RequestInfo*/ input, [Map init]) {
+  Future fetch(/*RequestInfo*/ input, [Map? init]) {
     var init_dict = null;
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
     }
-    return promiseToFuture(JS("", "#.fetch(#, #)", this, input, init_dict));
+    return promiseToFuture(
+        JS("creates:_Response;", "#.fetch(#, #)", this, input, init_dict));
   }
 
   void importScripts(String urls) native;
@@ -33830,24 +33974,24 @@ class WorkerGlobalScope extends EventTarget
   // From WindowTimers
 
   @JSName('setInterval')
-  int _setInterval_String(String handler, [int timeout, Object arguments])
+  int _setInterval_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('setTimeout')
-  int _setTimeout_String(String handler, [int timeout, Object arguments])
+  int _setTimeout_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('clearInterval')
-  void _clearInterval([int handle]) native;
+  void _clearInterval([int? handle]) native;
 
   @JSName('clearTimeout')
-  void _clearTimeout([int handle]) native;
+  void _clearTimeout([int? handle]) native;
 
   @JSName('setInterval')
-  int _setInterval(Object handler, [int timeout]) native;
+  int _setInterval(Object handler, [int? timeout]) native;
 
   @JSName('setTimeout')
-  int _setTimeout(Object handler, [int timeout]) native;
+  int _setTimeout(Object handler, [int? timeout]) native;
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -33866,25 +34010,26 @@ class WorkerPerformance extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  MemoryInfo get memory native;
+  MemoryInfo? get memory native;
 
-  num get timeOrigin native;
+  num? get timeOrigin native;
 
-  void clearMarks(String markName) native;
+  void clearMarks(String? markName) native;
 
-  void clearMeasures(String measureName) native;
+  void clearMeasures(String? measureName) native;
 
   void clearResourceTimings() native;
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
+      native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   void mark(String markName) native;
 
-  void measure(String measureName, String startMark, String endMark) native;
+  void measure(String measureName, String? startMark, String? endMark) native;
 
   double now() native;
 
@@ -33915,7 +34060,7 @@ class WorkletAnimation extends Interceptor {
       JS('WorkletAnimation', 'new WorkletAnimation(#,#,#,#)', animatorName,
           effects, timelines, options);
 
-  String get playState native;
+  String? get playState native;
 
   void cancel() native;
 
@@ -33951,14 +34096,14 @@ class XPathEvaluator extends Interceptor {
   static XPathEvaluator _create_1() =>
       JS('XPathEvaluator', 'new XPathEvaluator()');
 
-  XPathExpression createExpression(String expression, XPathNSResolver resolver)
+  XPathExpression createExpression(String expression, XPathNSResolver? resolver)
       native;
 
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
   XPathResult evaluate(
-      String expression, Node contextNode, XPathNSResolver resolver,
-      [int type, Object inResult]) native;
+      String expression, Node contextNode, XPathNSResolver? resolver,
+      [int? type, Object? inResult]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33973,7 +34118,7 @@ class XPathExpression extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  XPathResult evaluate(Node contextNode, [int type, Object inResult]) native;
+  XPathResult evaluate(Node contextNode, [int? type, Object? inResult]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33989,7 +34134,7 @@ class XPathNSResolver extends Interceptor {
   }
 
   @JSName('lookupNamespaceURI')
-  String lookupNamespaceUri(String prefix) native;
+  String? lookupNamespaceUri(String? prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34024,23 +34169,23 @@ class XPathResult extends Interceptor {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  bool get booleanValue native;
+  bool? get booleanValue native;
 
-  bool get invalidIteratorState native;
+  bool? get invalidIteratorState native;
 
-  num get numberValue native;
+  num? get numberValue native;
 
-  int get resultType native;
+  int? get resultType native;
 
-  Node get singleNodeValue native;
+  Node? get singleNodeValue native;
 
-  int get snapshotLength native;
+  int? get snapshotLength native;
 
-  String get stringValue native;
+  String? get stringValue native;
 
-  Node iterateNext() native;
+  Node? iterateNext() native;
 
-  Node snapshotItem(int index) native;
+  Node? snapshotItem(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34100,19 +34245,20 @@ class XsltProcessor extends Interceptor {
 
   void clearParameters() native;
 
-  String getParameter(String namespaceURI, String localName) native;
+  String? getParameter(String? namespaceURI, String localName) native;
 
   void importStylesheet(Node style) native;
 
-  void removeParameter(String namespaceURI, String localName) native;
+  void removeParameter(String? namespaceURI, String localName) native;
 
   void reset() native;
 
-  void setParameter(String namespaceURI, String localName, String value) native;
+  void setParameter(String? namespaceURI, String localName, String value)
+      native;
 
-  Document transformToDocument(Node source) native;
+  Document? transformToDocument(Node source) native;
 
-  DocumentFragment transformToFragment(Node source, Document output) native;
+  DocumentFragment? transformToFragment(Node source, Document output) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34126,16 +34272,16 @@ class _Attr extends Node {
   }
 
   @JSName('localName')
-  String get _localName native;
+  String? get _localName native;
 
-  String get name native;
+  String? get name native;
 
   @JSName('namespaceURI')
-  String get _namespaceUri native;
+  String? get _namespaceUri native;
 
-  String get value native;
+  String? get value native;
 
-  set value(String value) native;
+  set value(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34225,8 +34371,8 @@ class _BudgetService extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<BudgetState> getBudget() =>
-      promiseToFuture<BudgetState>(JS("", "#.getBudget()", this));
+  Future<BudgetState> getBudget() => promiseToFuture<BudgetState>(
+      JS("creates:BudgetState;", "#.getBudget()", this));
 
   Future<double> getCost(String operation) =>
       promiseToFuture<double>(JS("", "#.getCost(#)", this, operation));
@@ -34266,8 +34412,8 @@ class _Clipboard extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<DataTransfer> read() =>
-      promiseToFuture<DataTransfer>(JS("", "#.read()", this));
+  Future<DataTransfer> read() => promiseToFuture<DataTransfer>(
+      JS("creates:DataTransfer;", "#.read()", this));
 
   Future<String> readText() =>
       promiseToFuture<String>(JS("", "#.readText()", this));
@@ -34336,7 +34482,7 @@ class _CssRuleList extends Interceptor
   CssRule elementAt(int index) => this[index];
   // -- end List<CssRule> mixins.
 
-  CssRule item(int index) native;
+  CssRule? item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34419,7 +34565,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
    * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
-  Rectangle intersection(Rectangle other) {
+  Rectangle? intersection(Rectangle other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -34488,7 +34634,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _DomRect([num x, num y, num width, num height]) {
+  factory _DomRect([num? x, num? y, num? width, num? height]) {
     if (height != null) {
       return _DomRect._create_1(x, y, width, height);
     }
@@ -34513,27 +34659,39 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
 
   // Shadowing definition.
 
-  num get height native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('height')
+  num? get _height native;
+
+  num get height => _height!;
 
   set height(num value) native;
 
   // Shadowing definition.
 
-  num get width native;
+  // The following getter is incompatible with some browsers but
+  // must be made non-nullable to match the overridden method.
+
+  @JSName('width')
+  num? get _width native;
+
+  num get width => _width!;
 
   set width(num value) native;
 
   // Shadowing definition.
 
-  num get x native;
+  num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
   // Shadowing definition.
 
-  num get y native;
+  num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 }
 
 /**
@@ -34628,8 +34786,8 @@ abstract class _FileWriterSync extends Interceptor {
 
 @Native("GamepadList")
 class _GamepadList extends Interceptor
-    with ListMixin<Gamepad>, ImmutableListMixin<Gamepad>
-    implements List<Gamepad>, JavaScriptIndexingBehavior<Gamepad> {
+    with ListMixin<Gamepad?>, ImmutableListMixin<Gamepad?>
+    implements List<Gamepad?>, JavaScriptIndexingBehavior<Gamepad?> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() {
     throw new UnsupportedError("Not supported");
@@ -34637,30 +34795,30 @@ class _GamepadList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  Gamepad operator [](int index) {
+  Gamepad? operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
       throw new RangeError.index(index, this);
     return JS("Gamepad|Null", "#[#]", this, index);
   }
 
-  void operator []=(int index, Gamepad value) {
+  void operator []=(int index, Gamepad? value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<Gamepad> mixins.
-  // Gamepad is the element type.
+  // -- start List<Gamepad?> mixins.
+  // Gamepad? is the element type.
 
   set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
-  Gamepad get first {
+  Gamepad? get first {
     if (this.length > 0) {
       return JS('Gamepad|Null', '#[0]', this);
     }
     throw new StateError("No elements");
   }
 
-  Gamepad get last {
+  Gamepad? get last {
     int len = this.length;
     if (len > 0) {
       return JS('Gamepad|Null', '#[#]', this, len - 1);
@@ -34668,7 +34826,7 @@ class _GamepadList extends Interceptor
     throw new StateError("No elements");
   }
 
-  Gamepad get single {
+  Gamepad? get single {
     int len = this.length;
     if (len == 1) {
       return JS('Gamepad|Null', '#[0]', this);
@@ -34677,10 +34835,10 @@ class _GamepadList extends Interceptor
     throw new StateError("More than one element");
   }
 
-  Gamepad elementAt(int index) => this[index];
-  // -- end List<Gamepad> mixins.
+  Gamepad? elementAt(int index) => this[index];
+  // -- end List<Gamepad?> mixins.
 
-  Gamepad item(int index) native;
+  Gamepad item(int? index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34696,7 +34854,7 @@ abstract class _HTMLAllCollection extends Interceptor {
   }
 
   @JSName('item')
-  Element _item(int index) native;
+  Element _item(int? index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34828,7 +34986,7 @@ abstract class _MojoInterfaceInterceptor extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _MojoInterfaceInterceptor(String interfaceName, [String scope]) {
+  factory _MojoInterfaceInterceptor(String interfaceName, [String? scope]) {
     if (scope != null) {
       return _MojoInterfaceInterceptor._create_1(interfaceName, scope);
     }
@@ -34855,7 +35013,7 @@ abstract class _MojoInterfaceRequestEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _MojoInterfaceRequestEvent(String type, [Map eventInitDict]) {
+  factory _MojoInterfaceRequestEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return _MojoInterfaceRequestEvent._create_1(type, eventInitDict_1);
@@ -34952,19 +35110,19 @@ class _NamedNodeMap extends Interceptor
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
-  _Attr getNamedItem(String name) native;
+  _Attr? getNamedItem(String name) native;
 
-  _Attr getNamedItemNS(String namespaceURI, String localName) native;
+  _Attr? getNamedItemNS(String? namespaceURI, String localName) native;
 
-  _Attr item(int index) native;
+  _Attr? item(int index) native;
 
   _Attr removeNamedItem(String name) native;
 
-  _Attr removeNamedItemNS(String namespaceURI, String localName) native;
+  _Attr removeNamedItemNS(String? namespaceURI, String localName) native;
 
-  _Attr setNamedItem(_Attr attr) native;
+  _Attr? setNamedItem(_Attr attr) native;
 
-  _Attr setNamedItemNS(_Attr attr) native;
+  _Attr? setNamedItemNS(_Attr attr) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34997,11 +35155,11 @@ class _Report extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  ReportBody get body native;
+  ReportBody? get body native;
 
-  String get type native;
+  String? get type native;
 
-  String get url native;
+  String? get url native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35014,7 +35172,7 @@ class _Request extends Body {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _Request(Object input, [Map requestInitDict]) {
+  factory _Request(Object input, [Map? requestInitDict]) {
     if (requestInitDict != null) {
       var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
       return _Request._create_1(input, requestInitDict_1);
@@ -35025,23 +35183,23 @@ class _Request extends Body {
       JS('_Request', 'new Request(#,#)', input, requestInitDict);
   static _Request _create_2(input) => JS('_Request', 'new Request(#)', input);
 
-  String get cache native;
+  String? get cache native;
 
-  String get credentials native;
+  String? get credentials native;
 
-  Headers get headers native;
+  Headers? get headers native;
 
-  String get integrity native;
+  String? get integrity native;
 
-  String get mode native;
+  String? get mode native;
 
-  String get redirect native;
+  String? get redirect native;
 
-  String get referrer native;
+  String? get referrer native;
 
-  String get referrerPolicy native;
+  String? get referrerPolicy native;
 
-  String get url native;
+  String? get url native;
 
   _Request clone() native;
 }
@@ -35069,7 +35227,7 @@ abstract class _Response extends Body {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _Response([Object body, Map init]) {
+  factory _Response([Object? body, Map? init]) {
     if (init != null) {
       var init_1 = convertDartToNative_Dictionary(init);
       return _Response._create_1(body, init_1);
@@ -35208,7 +35366,7 @@ class _StyleSheetList extends Interceptor
 
   CssStyleSheet __getter__(String name) native;
 
-  StyleSheet item(int index) native;
+  StyleSheet? item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35336,7 +35494,7 @@ abstract class _USBInTransferResult extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBInTransferResult(String status, [ByteData data]) {
+  factory _USBInTransferResult(String status, [ByteData? data]) {
     if (data != null) {
       return _USBInTransferResult._create_1(status, data);
     }
@@ -35375,7 +35533,7 @@ abstract class _USBIsochronousInTransferPacket extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBIsochronousInTransferPacket(String status, [ByteData data]) {
+  factory _USBIsochronousInTransferPacket(String status, [ByteData? data]) {
     if (data != null) {
       return _USBIsochronousInTransferPacket._create_1(status, data);
     }
@@ -35404,7 +35562,7 @@ abstract class _USBIsochronousInTransferResult extends Interceptor {
 
   factory _USBIsochronousInTransferResult(
       List<_USBIsochronousInTransferPacket> packets,
-      [ByteData data]) {
+      [ByteData? data]) {
     if (data != null) {
       return _USBIsochronousInTransferResult._create_1(packets, data);
     }
@@ -35431,7 +35589,7 @@ abstract class _USBIsochronousOutTransferPacket extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBIsochronousOutTransferPacket(String status, [int bytesWritten]) {
+  factory _USBIsochronousOutTransferPacket(String status, [int? bytesWritten]) {
     if (bytesWritten != null) {
       return _USBIsochronousOutTransferPacket._create_1(status, bytesWritten);
     }
@@ -35478,7 +35636,7 @@ abstract class _USBOutTransferResult extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBOutTransferResult(String status, [int bytesWritten]) {
+  factory _USBOutTransferResult(String status, [int? bytesWritten]) {
     if (bytesWritten != null) {
       return _USBOutTransferResult._create_1(status, bytesWritten);
     }
@@ -35502,17 +35660,17 @@ abstract class _WindowTimers extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int _setInterval_String(String handler, [int timeout, Object arguments]);
+  int _setInterval_String(String handler, [int? timeout, Object? arguments]);
 
-  int _setTimeout_String(String handler, [int timeout, Object arguments]);
+  int _setTimeout_String(String handler, [int? timeout, Object? arguments]);
 
-  void _clearInterval([int handle]);
+  void _clearInterval([int? handle]);
 
-  void _clearTimeout([int handle]);
+  void _clearTimeout([int? handle]);
 
-  int _setInterval(Object handler, [int timeout]);
+  int _setInterval(Object handler, [int? timeout]);
 
-  int _setTimeout(Object handler, [int timeout]);
+  int _setTimeout(Object handler, [int? timeout]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35574,7 +35732,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
   }
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in this.values) {
       if (value == v) {
         return true;
@@ -35587,7 +35745,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
-    return this[key];
+    return this[key] as String;
   }
 
   void clear() {
@@ -35599,18 +35757,18 @@ abstract class _AttributeMap extends MapBase<String, String> {
   void forEach(void f(String key, String value)) {
     for (var key in keys) {
       var value = this[key];
-      f(key, value);
+      f(key, value as String);
     }
   }
 
   Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
-    var attributes = _element._attributes;
+    var attributes = _element._attributes!;
     var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      _Attr attr = attributes[i];
+      _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
-        keys.add(attr.name);
+        keys.add(attr.name!);
       }
     }
     return keys;
@@ -35618,12 +35776,12 @@ abstract class _AttributeMap extends MapBase<String, String> {
 
   Iterable<String> get values {
     // TODO: generate a lazy collection instead.
-    var attributes = _element._attributes;
+    var attributes = _element._attributes!;
     var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      _Attr attr = attributes[i];
+      _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
-        values.add(attr.value);
+        values.add(attr.value!);
       }
     }
     return values;
@@ -35653,12 +35811,12 @@ abstract class _AttributeMap extends MapBase<String, String> {
 class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
-  bool containsKey(Object key) {
-    return _element._hasAttribute(key);
+  bool containsKey(Object? key) {
+    return key is String && _element._hasAttribute(key);
   }
 
-  String operator [](Object key) {
-    return _element.getAttribute(key);
+  String? operator [](Object? key) {
+    return _element.getAttribute(key as String);
   }
 
   void operator []=(String key, String value) {
@@ -35666,7 +35824,7 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   @pragma('dart2js:tryInline')
-  String remove(Object key) => key is String ? _remove(_element, key) : null;
+  String? remove(Object? key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -35680,8 +35838,8 @@ class _ElementAttributeMap extends _AttributeMap {
   // Inline this because almost all call sites of [remove] do not use [value],
   // and the annotations on the `getAttribute` call allow it to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(Element element, String key) {
-    String value = JS(
+  static String? _remove(Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -35697,16 +35855,16 @@ class _ElementAttributeMap extends _AttributeMap {
  * Wrapper to expose namespaced attributes as a typed map.
  */
 class _NamespacedAttributeMap extends _AttributeMap {
-  final String _namespace;
+  final String? _namespace;
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
-  bool containsKey(Object key) {
-    return _element._hasAttributeNS(_namespace, key);
+  bool containsKey(Object? key) {
+    return key is String && _element._hasAttributeNS(_namespace, key);
   }
 
-  String operator [](Object key) {
-    return _element.getAttributeNS(_namespace, key);
+  String? operator [](Object? key) {
+    return _element.getAttributeNS(_namespace, key as String);
   }
 
   void operator []=(String key, String value) {
@@ -35714,7 +35872,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   @pragma('dart2js:tryInline')
-  String remove(Object key) =>
+  String? remove(Object? key) =>
       key is String ? _remove(_namespace, _element, key) : null;
 
   /**
@@ -35730,8 +35888,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
   // returned [value], and the annotations on the `getAttributeNS` call allow it
   // to be removed.
   @pragma('dart2js:tryInline')
-  static String _remove(String namespace, Element element, String key) {
-    String value = JS(
+  static String? _remove(String? namespace, Element element, String key) {
+    String? value = JS(
         // throws:null(1) is not accurate since [key] could be malformed, but
         // [key] is checked again by `removeAttributeNS`.
         'returns:String|Null;depends:all;effects:none;throws:null(1)',
@@ -35763,11 +35921,12 @@ class _DataAttributeMap extends MapBase<String, String> {
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(Object value) => values.any((v) => v == value);
+  bool containsValue(Object? value) => values.any((v) => v == value);
 
-  bool containsKey(Object key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object? key) =>
+      _attributes.containsKey(_attr(key as String));
 
-  String operator [](Object key) => _attributes[_attr(key)];
+  String? operator [](Object? key) => _attributes[_attr(key as String)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -35776,7 +35935,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(Object key) => _attributes.remove(_attr(key));
+  String? remove(Object? key) => _attributes.remove(_attr(key as String));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -35945,8 +36104,11 @@ abstract class WindowBase implements EventTarget {
    *     print(window.closed); // 'false'
    *     window.close();
    *     print(window.closed); // 'true'
+   *
+   * MDN does not have compatibility info on this attribute, and therefore is
+   * marked nullable.
    */
-  bool get closed;
+  bool? get closed;
 
   /**
    * A reference to the window that opened this one.
@@ -35955,7 +36117,7 @@ abstract class WindowBase implements EventTarget {
    *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  WindowBase get opener;
+  WindowBase? get opener;
 
   /**
    * A reference to the parent of this window.
@@ -35969,7 +36131,7 @@ abstract class WindowBase implements EventTarget {
    *
    *     print(window.parent == window) // 'true'
    */
-  WindowBase get parent;
+  WindowBase? get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
@@ -35990,7 +36152,7 @@ abstract class WindowBase implements EventTarget {
    *
    *     print(window.top == window) // 'true'
    */
-  WindowBase get top;
+  WindowBase? get top;
 
   // Methods.
   /**
@@ -36036,7 +36198,7 @@ abstract class WindowBase implements EventTarget {
    *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin,
-      [List<MessagePort> messagePorts]);
+      [List<MessagePort>? messagePorts]);
 }
 
 abstract class LocationBase {
@@ -36072,7 +36234,7 @@ abstract class CssClassSet implements Set<String> {
    * non-empty string containing no whitespace.  To toggle multiple classes, use
    * [toggleAll].
    */
-  bool toggle(String value, [bool shouldAdd]);
+  bool toggle(String value, [bool? shouldAdd]);
 
   /**
    * Returns [:true:] if classes cannot be added or removed from this
@@ -36089,7 +36251,7 @@ abstract class CssClassSet implements Set<String> {
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.
    */
-  bool contains(Object value);
+  bool contains(Object? value);
 
   /**
    * Add the class [value] to element.
@@ -36120,7 +36282,7 @@ abstract class CssClassSet implements Set<String> {
    * non-empty string containing no whitespace.  To remove multiple classes, use
    * [removeAll].
    */
-  bool remove(Object value);
+  bool remove(Object? value);
 
   /**
    * Add all classes specified in [iterable] to element.
@@ -36142,7 +36304,7 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void removeAll(Iterable<Object> iterable);
+  void removeAll(Iterable<Object?> iterable);
 
   /**
    * Toggles all classes specified in [iterable] on element.
@@ -36157,7 +36319,7 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
+  void toggleAll(Iterable<String> iterable, [bool? shouldAdd]);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36234,9 +36396,9 @@ class _ContentCssRect extends CssRect {
 class _ContentCssListRect extends _ContentCssRect {
   List<Element> _elementList;
 
-  _ContentCssListRect(List<Element> elementList) : super(elementList.first) {
-    _elementList = elementList;
-  }
+  _ContentCssListRect(List<Element> elementList)
+      : _elementList = elementList,
+        super(elementList.first);
 
   /**
    * Set the height to `newHeight`.
@@ -36458,7 +36620,7 @@ abstract class CssRect implements Rectangle<num> {
    * Returns the intersection of this and `other`, or `null` if they don't
    * intersect.
    */
-  Rectangle<num> intersection(Rectangle<num> other) {
+  Rectangle<num>? intersection(Rectangle<num> other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -36583,7 +36745,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * TODO(sra): It seems wrong to collect a 'changed' flag like this when the
    * underlying toggle returns an 'is set' flag.
    */
-  bool toggle(String value, [bool shouldAdd]) => _sets.fold(
+  bool toggle(String value, [bool? shouldAdd]) => _sets.fold(
       false,
       (bool changed, CssClassSetImpl e) =>
           e.toggle(value, shouldAdd) || changed);
@@ -36595,7 +36757,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) => _sets.fold(
+  bool remove(Object? value) => _sets.fold(
       false, (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
 }
 
@@ -36629,7 +36791,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _element.className = '';
   }
 
-  bool contains(Object value) {
+  bool contains(Object? value) {
     return _contains(_element, value);
   }
 
@@ -36637,11 +36799,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return _add(_element, value);
   }
 
-  bool remove(Object value) {
+  bool remove(Object? value) {
     return value is String && _remove(_element, value);
   }
 
-  bool toggle(String value, [bool shouldAdd]) {
+  bool toggle(String value, [bool? shouldAdd]) {
     return _toggle(_element, value, shouldAdd);
   }
 
@@ -36649,11 +36811,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _addAll(_element, iterable);
   }
 
-  void removeAll(Iterable<Object> iterable) {
+  void removeAll(Iterable<Object?> iterable) {
     _removeAll(_element, iterable);
   }
 
-  void retainAll(Iterable<Object> iterable) {
+  void retainAll(Iterable<Object?> iterable) {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 
@@ -36665,7 +36827,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, test, false);
   }
 
-  static bool _contains(Element _element, Object value) {
+  static bool _contains(Element _element, Object? value) {
     return value is String && _classListContains(_classListOf(_element), value);
   }
 
@@ -36686,7 +36848,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return removed;
   }
 
-  static bool _toggle(Element _element, String value, bool shouldAdd) {
+  static bool _toggle(Element _element, String value, bool? shouldAdd) {
     // There is no value that can be passed as the second argument of
     // DomTokenList.toggle that behaves the same as passing one argument.
     // `null` is seen as false, meaning 'remove'.
@@ -36700,13 +36862,13 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return _classListToggle1(list, value);
   }
 
-  static bool _toggleOnOff(Element _element, String value, bool shouldAdd) {
+  static bool _toggleOnOff(Element _element, String value, bool? shouldAdd) {
     DomTokenList list = _classListOf(_element);
     // IE's toggle does not take a second parameter. We would prefer:
     //
     //    return _classListToggle2(list, value, shouldAdd);
     //
-    if (shouldAdd) {
+    if (shouldAdd ?? false) {
       _classListAdd(list, value);
       return true;
     } else {
@@ -36722,10 +36884,10 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<Object> iterable) {
+  static void _removeAll(Element _element, Iterable<Object?> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (String value in iterable) {
-      _classListRemove(list, value);
+    for (Object? value in iterable) {
+      _classListRemove(list, value as String);
     }
   }
 
@@ -36734,7 +36896,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     DomTokenList list = _classListOf(_element);
     int i = 0;
     while (i < _classListLength(list)) {
-      String item = list.item(i);
+      String item = list.item(i)!;
       if (doRemove == test(item)) {
         _classListRemove(list, item);
       } else {
@@ -36783,7 +36945,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   static bool _classListToggle2(
-      DomTokenList list, String value, bool shouldAdd) {
+      DomTokenList list, String value, bool? shouldAdd) {
     return JS('bool', '#.toggle(#, #)', list, value, shouldAdd);
   }
 }
@@ -36845,7 +37007,9 @@ class Dimension {
    * `inherit` or invalid CSS will cause this constructor to throw a
    * FormatError.
    */
-  Dimension.css(String cssValue) {
+  Dimension.css(String cssValue)
+      : _unit = '',
+        _value = 0 {
     if (cssValue == '') cssValue = '0px';
     if (cssValue.endsWith('%')) {
       _unit = '%';
@@ -36907,7 +37071,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
@@ -36999,7 +37163,7 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
  * Adapter for exposing DOM events as Dart streams.
  */
 class _EventStream<T extends Event> extends Stream<T> {
-  final EventTarget _target;
+  final EventTarget? _target;
   final String _eventType;
   final bool _useCapture;
 
@@ -37007,16 +37171,16 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription),
-          void onCancel(StreamSubscription<T> subscription)}) =>
+          {void onListen(StreamSubscription<T> subscription)?,
+          void onCancel(StreamSubscription<T> subscription)?}) =>
       this;
   bool get isBroadcast => true;
 
   // TODO(9757): Inlining should be smart and inline only when inlining would
   // enable scalar replacement of an immediately allocated receiver.
   @pragma('dart2js:tryInline')
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
   }
@@ -37067,8 +37231,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       });
 
   // Delegate all regular Stream behavior to a wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
       pool.add(new _EventStream<T>(target, _eventType, _useCapture));
@@ -37086,8 +37250,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription),
-          void onCancel(StreamSubscription<T> subscription)}) =>
+          {void onListen(StreamSubscription<T> subscription)?,
+          void onCancel(StreamSubscription<T> subscription)?}) =>
       this;
   bool get isBroadcast => true;
 }
@@ -37098,9 +37262,9 @@ typedef _EventListener<T extends Event>(T event);
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
-  EventTarget _target;
+  EventTarget? _target;
   final String _eventType;
-  EventListener _onData;
+  EventListener? _onData;
   final bool _useCapture;
 
   // TODO(leafp): It would be better to write this as
@@ -37113,7 +37277,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   // which are typed correctly.  But this currently runs afoul of restrictions
   // on is checks for compatibility with the VM.
   _EventStreamSubscription(
-      this._target, this._eventType, void onData(T event), this._useCapture)
+      this._target, this._eventType, void onData(T event)?, this._useCapture)
       : _onData = onData == null
             ? null
             : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
@@ -37121,18 +37285,23 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    if (_canceled) return null;
+    // Check for strong mode. This function can no longer return null in strong
+    // mode, so only return null in weak mode to preserve synchronous timing.
+    // See issue 41653 for more details.
+    dynamic emptyFuture =
+        typeAcceptsNull<Event>() ? null : Future<void>.value();
+    if (_canceled) return emptyFuture as Future;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return null;
+    return emptyFuture as Future;
   }
 
   bool get _canceled => _target == null;
 
-  void onData(void handleData(T event)) {
+  void onData(void handleData(T event)?) {
     if (_canceled) {
       throw new StateError("Subscription has been canceled.");
     }
@@ -37145,12 +37314,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(Function handleError) {}
+  void onError(Function? handleError) {}
 
   /// Has no effect.
-  void onDone(void handleDone()) {}
+  void onDone(void handleDone()?) {}
 
-  void pause([Future resumeSignal]) {
+  void pause([Future? resumeSignal]) {
     if (_canceled) return;
     ++_pauseCount;
     _unlisten();
@@ -37170,17 +37339,17 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !isPaused) {
-      _target.addEventListener(_eventType, _onData, _useCapture);
+      _target!.addEventListener(_eventType, _onData, _useCapture);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.removeEventListener(_eventType, _onData, _useCapture);
+      _target!.removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 
-  Future<E> asFuture<E>([E futureValue]) {
+  Future<E> asFuture<E>([E? futureValue]) {
     // We just need a future that will never succeed or fail.
     var completer = new Completer<E>();
     return completer.future;
@@ -37205,21 +37374,20 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
   /** The type of event this stream is providing (e.g. "keydown"). */
   String _type;
 
-  _CustomEventStreamImpl(String type) {
-    _type = type;
-    _streamController = new StreamController.broadcast(sync: true);
-  }
+  _CustomEventStreamImpl(String type)
+      : _type = type,
+        _streamController = new StreamController.broadcast(sync: true);
 
   // Delegate all regular Stream behavior to our wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _streamController.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription),
-          void onCancel(StreamSubscription<T> subscription)}) =>
+          {void onListen(StreamSubscription<T> subscription)?,
+          void onCancel(StreamSubscription<T> subscription)?}) =>
       _streamController.stream;
 
   bool get isBroadcast => true;
@@ -37235,7 +37403,7 @@ class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
 
   void add(KeyEvent event) {
     if (event.type == _type) {
-      event.currentTarget.dispatchEvent(event._parent);
+      event.currentTarget!.dispatchEvent(event._parent);
       _streamController.add(event);
     }
   }
@@ -37247,7 +37415,7 @@ class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
  */
 // TODO (efortuna): Remove this when Issue 12218 is addressed.
 class _StreamPool<T> {
-  StreamController<T> _controller;
+  StreamController<T>? _controller;
 
   /// Subscriptions to the streams that make up the pool.
   var _subscriptions = new Map<Stream<T>, StreamSubscription<T>>();
@@ -37267,7 +37435,7 @@ class _StreamPool<T> {
   /**
    * The stream through which all events from streams in the pool are emitted.
    */
-  Stream<T> get stream => _controller.stream;
+  Stream<T> get stream => _controller!.stream;
 
   /**
    * Adds [stream] as a member of this pool.
@@ -37278,8 +37446,8 @@ class _StreamPool<T> {
    */
   void add(Stream<T> stream) {
     if (_subscriptions.containsKey(stream)) return;
-    _subscriptions[stream] = stream.listen(_controller.add,
-        onError: _controller.addError, onDone: () => remove(stream));
+    _subscriptions[stream] = stream.listen(_controller!.add,
+        onError: _controller!.addError, onDone: () => remove(stream));
   }
 
   /** Removes [stream] as a member of this pool. */
@@ -37294,7 +37462,7 @@ class _StreamPool<T> {
       subscription.cancel();
     }
     _subscriptions.clear();
-    _controller.close();
+    _controller!.close();
   }
 }
 
@@ -37307,7 +37475,7 @@ class _CustomEventStreamProvider<T extends Event>
   final _eventTypeGetter;
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) {
     return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 
@@ -37736,8 +37904,8 @@ class _Html5NodeValidator implements NodeValidator {
    * All known URI attributes will be validated against the UriPolicy, if
    * [uriPolicy] is null then a default UriPolicy will be used.
    */
-  _Html5NodeValidator({UriPolicy uriPolicy})
-      : uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy() {
+  _Html5NodeValidator({UriPolicy? uriPolicy})
+      : uriPolicy = uriPolicy ?? UriPolicy() {
     if (_attributeValidators.isEmpty) {
       for (var attr in _standardAttributes) {
         _attributeValidators[attr] = _standardAttributeValidator;
@@ -37797,11 +37965,11 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 
@@ -37825,7 +37993,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -37849,7 +38017,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     throw new UnsupportedError("Cannot modify an immutable List.");
   }
 }
@@ -38740,7 +38908,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   final String _type;
 
   /** The element we are watching for events to happen on. */
-  final EventTarget _target;
+  final EventTarget? _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
@@ -38783,7 +38951,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
-  CustomStream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture: false}) {
     var handler =
         new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
     return handler._stream;
@@ -38803,7 +38971,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * and charcodes when they are not provided.
    */
   _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target)
-      : super(_EVENT_TYPE) {
+      : _stream = new _CustomKeyEventStreamImpl(_type),
+        super(_EVENT_TYPE) {
     Element.keyDownEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyDown);
@@ -38813,7 +38982,6 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     Element.keyUpEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyUp);
-    _stream = new _CustomKeyEventStreamImpl(_type);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -39055,7 +39223,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
         _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
       // This is needed for Safari Windows because it currently doesn't give a
       // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier]!;
     }
     e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
     _stream.add(e);
@@ -39064,7 +39232,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /** Handle keyup events. */
   void processKeyUp(KeyboardEvent event) {
     var e = new KeyEvent.wrap(event);
-    KeyboardEvent toRemove = null;
+    KeyboardEvent? toRemove = null;
     for (var key in _keyDownList) {
       if (key.keyCode == e.keyCode) {
         toRemove = key;
@@ -39168,7 +39336,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * The UriPolicy can be used to restrict the locations the navigation elements
    * are allowed to direct to. By default this will use the default [UriPolicy].
    */
-  void allowNavigation([UriPolicy uriPolicy]) {
+  void allowNavigation([UriPolicy? uriPolicy]) {
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -39181,7 +39349,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * The UriPolicy can be used to restrict the locations the images may be
    * loaded from. By default this will use the default [UriPolicy].
    */
-  void allowImages([UriPolicy uriPolicy]) {
+  void allowImages([UriPolicy? uriPolicy]) {
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -39222,7 +39390,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * If [tagName] is not specified then this allows inline styles on all
    * elements. Otherwise tagName limits the styles to the specified elements.
    */
-  void allowInlineStyles({String tagName}) {
+  void allowInlineStyles({String? tagName}) {
     if (tagName == null) {
       tagName = '*';
     } else {
@@ -39240,7 +39408,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * Common things which are not allowed are script elements, style attributes
    * and any script handlers.
    */
-  void allowHtml5({UriPolicy uriPolicy}) {
+  void allowHtml5({UriPolicy? uriPolicy}) {
     add(new _Html5NodeValidator(uriPolicy: uriPolicy));
   }
 
@@ -39259,9 +39427,9 @@ class NodeValidatorBuilder implements NodeValidator {
    * tag extensions.
    */
   void allowCustomElement(String tagName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
         ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
@@ -39284,9 +39452,9 @@ class NodeValidatorBuilder implements NodeValidator {
    * custom tags.
    */
   void allowTagExtension(String tagName, String baseName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
@@ -39302,9 +39470,9 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   void allowElement(String tagName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     allowCustomElement(tagName,
         uriPolicy: uriPolicy,
         attributes: attributes,
@@ -39346,7 +39514,7 @@ class _SimpleNodeValidator implements NodeValidator {
   final Set<String> allowedElements = new Set<String>();
   final Set<String> allowedAttributes = new Set<String>();
   final Set<String> allowedUriAttributes = new Set<String>();
-  final UriPolicy uriPolicy;
+  final UriPolicy? uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
@@ -39421,9 +39589,9 @@ class _SimpleNodeValidator implements NodeValidator {
    * lowercase attribute name. For example `'IMG:src'`.
    */
   _SimpleNodeValidator(this.uriPolicy,
-      {Iterable<String> allowedElements,
-      Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes}) {
+      {Iterable<String>? allowedElements,
+      Iterable<String>? allowedAttributes,
+      Iterable<String>? allowedUriAttributes}) {
     this.allowedElements.addAll(allowedElements ?? const []);
     allowedAttributes = allowedAttributes ?? const [];
     allowedUriAttributes = allowedUriAttributes ?? const [];
@@ -39443,9 +39611,9 @@ class _SimpleNodeValidator implements NodeValidator {
   bool allowsAttribute(Element element, String attributeName, String value) {
     var tagName = Element._safeTagName(element);
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
-      return uriPolicy.allowsUri(value);
+      return uriPolicy!.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
-      return uriPolicy.allowsUri(value);
+      return uriPolicy!.allowsUri(value);
     } else if (allowedAttributes.contains('$tagName::$attributeName')) {
       return true;
     } else if (allowedAttributes.contains('*::$attributeName')) {
@@ -39466,8 +39634,8 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
   _CustomElementNodeValidator(
       UriPolicy uriPolicy,
       Iterable<String> allowedElements,
-      Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes,
+      Iterable<String>? allowedAttributes,
+      Iterable<String>? allowedUriAttributes,
       bool allowTypeExtension,
       bool allowCustomTag)
       : this.allowTypeExtension = allowTypeExtension == true,
@@ -39612,7 +39780,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.add(element);
   }
 
-  bool remove(Object element) => _list.remove(element);
+  bool remove(Object? element) => _list.remove(element);
 
   void clear() {
     _list.clear();
@@ -39620,7 +39788,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // List APIs
 
-  E operator [](int index) => _list[index];
+  E operator [](int index) => _list[index] as E;
 
   void operator []=(int index, E value) {
     _list[index] = value;
@@ -39630,19 +39798,23 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.length = newLength;
   }
 
-  void sort([int compare(E a, E b)]) {
-    // Implicit downcast on argument from Node to E-extends-Node.
-    _list.sort((Node a, Node b) => compare(a, b));
+  void sort([int compare(E a, E b)?]) {
+    if (compare == null) {
+      _list.sort();
+    } else {
+      _list.sort((Node a, Node b) => compare(a as E, b as E));
+    }
   }
 
-  int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
+  int indexOf(Object? element, [int start = 0]) =>
+      _list.indexOf(element as Node, start);
 
-  int lastIndexOf(Object element, [int start]) =>
-      _list.lastIndexOf(element, start);
+  int lastIndexOf(Object? element, [int? start]) =>
+      _list.lastIndexOf(element as Node, start);
 
   void insert(int index, E element) => _list.insert(index, element);
 
-  E removeAt(int index) => _list.removeAt(index);
+  E removeAt(int index) => _list.removeAt(index) as E;
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _list.setRange(start, end, iterable, skipCount);
@@ -39656,7 +39828,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.replaceRange(start, end, iterable);
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     _list.fillRange(start, end, fillValue);
   }
 
@@ -39675,7 +39847,7 @@ class _WrappedIterator<E extends Node> implements Iterator<E> {
     return _iterator.moveNext();
   }
 
-  E get current => _iterator.current;
+  E get current => _iterator.current as E;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39710,7 +39882,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
   final int _length; // Cache array length for faster access.
   int _position;
-  T _current;
+  T? _current;
 
   FixedSizeListIterator(List<T> array)
       : _array = array,
@@ -39729,14 +39901,14 @@ class FixedSizeListIterator<T> implements Iterator<T> {
     return false;
   }
 
-  T get current => _current;
+  T get current => _current as T;
 }
 
 // Iterator for arrays with variable size.
 class _VariableSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
   int _position;
-  T _current;
+  T? _current;
 
   _VariableSizeListIterator(List<T> array)
       : _array = array,
@@ -39754,7 +39926,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
     return false;
   }
 
-  T get current => _current;
+  T get current => _current as T;
 }
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39766,75 +39938,99 @@ class Console {
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
-  MemoryInfo get memory =>
+  MemoryInfo? get memory =>
       _isConsoleDefined ? JS('MemoryInfo', 'window.console.memory') : null;
 
-  void assertCondition(bool condition, Object arg) => _isConsoleDefined
-      ? JS('void', 'window.console.assertCondition(#, #)', condition, arg)
+  // Even though many of the following JS methods can take in multiple
+  // arguments, we historically and currently limit the number of variable
+  // arguments to 1. Depending on the need, these methods may be updated to
+  // allow for more.
+
+  // We rename assert to assertCondition here.
+  void assertCondition([bool? condition, Object? arg]) => _isConsoleDefined
+      ? JS('void', 'window.console.assert(#, #)', condition, arg)
       : null;
 
-  void clear(Object arg) =>
+  // clear no longer takes in an argument, but we keep this as optional to
+  // maintain backwards compatibility.
+  void clear([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.clear(#)', arg) : null;
 
-  void count(Object arg) =>
+  // count takes in a String instead, but we keep this as an Object for
+  // backwards compatibility.
+  void count([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.count(#)', arg) : null;
 
-  void debug(Object arg) =>
+  void countReset([String? arg]) => _isConsoleDefined
+      ? JS('void', 'window.console.countReset(#)', arg)
+      : null;
+
+  void debug(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.debug(#)', arg) : null;
 
-  void dir(Object arg) =>
-      _isConsoleDefined ? JS('void', 'window.console.dir(#)', arg) : null;
+  void dir([Object? item, Object? options]) => _isConsoleDefined
+      ? JS('void', 'window.console.dir(#, #)', item, options)
+      : null;
 
-  void dirxml(Object arg) =>
+  void dirxml(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.dirxml(#)', arg) : null;
 
-  void error(Object arg) =>
+  void error(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.error(#)', arg) : null;
 
-  void group(Object arg) =>
+  void group(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.group(#)', arg) : null;
 
-  void groupCollapsed(Object arg) => _isConsoleDefined
+  void groupCollapsed(Object? arg) => _isConsoleDefined
       ? JS('void', 'window.console.groupCollapsed(#)', arg)
       : null;
 
   void groupEnd() =>
       _isConsoleDefined ? JS('void', 'window.console.groupEnd()') : null;
 
-  void info(Object arg) =>
+  void info(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.info(#)', arg) : null;
 
-  void log(Object arg) =>
+  void log(Object? arg) =>
       _isConsoleDefined ? JS('void', 'window.console.log(#)', arg) : null;
 
-  void markTimeline(Object arg) => _isConsoleDefined
-      ? JS('void', 'window.console.markTimeline(#)', arg)
+  void table([Object? tabularData, List<String>? properties]) =>
+      _isConsoleDefined
+          ? JS('void', 'window.console.table(#, #)', tabularData, properties)
+          : null;
+
+  void time([String? label]) =>
+      _isConsoleDefined ? JS('void', 'window.console.time(#)', label) : null;
+
+  void timeEnd([String? label]) =>
+      _isConsoleDefined ? JS('void', 'window.console.timeEnd(#)', label) : null;
+
+  void timeLog([String? label, Object? arg]) => _isConsoleDefined
+      ? JS('void', 'window.console.timeLog(#, #)', label, arg)
       : null;
 
-  void profile(String title) =>
+  void trace(Object? arg) =>
+      _isConsoleDefined ? JS('void', 'window.console.trace(#)', arg) : null;
+
+  void warn(Object? arg) =>
+      _isConsoleDefined ? JS('void', 'window.console.warn(#)', arg) : null;
+
+  // The following are non-standard methods.
+  void profile([String? title]) =>
       _isConsoleDefined ? JS('void', 'window.console.profile(#)', title) : null;
 
-  void profileEnd(String title) => _isConsoleDefined
+  void profileEnd([String? title]) => _isConsoleDefined
       ? JS('void', 'window.console.profileEnd(#)', title)
       : null;
 
-  void table(Object arg) =>
-      _isConsoleDefined ? JS('void', 'window.console.table(#)', arg) : null;
-
-  void time(String title) =>
-      _isConsoleDefined ? JS('void', 'window.console.time(#)', title) : null;
-
-  void timeEnd(String title) =>
-      _isConsoleDefined ? JS('void', 'window.console.timeEnd(#)', title) : null;
-
-  void timeStamp(Object arg) =>
+  void timeStamp([Object? arg]) =>
       _isConsoleDefined ? JS('void', 'window.console.timeStamp(#)', arg) : null;
 
-  void trace(Object arg) =>
-      _isConsoleDefined ? JS('void', 'window.console.trace(#)', arg) : null;
-
-  void warn(Object arg) =>
-      _isConsoleDefined ? JS('void', 'window.console.warn(#)', arg) : null;
+  // The following is deprecated and should be removed once we drop support for
+  // older Safari browsers.
+  void markTimeline(Object? arg) => _isConsoleDefined
+      ? JS('void', 'window.console.markTimeline(#)', arg)
+      : null;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39846,12 +40042,12 @@ class Console {
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
-WindowBase _convertNativeToDart_Window(win) {
+WindowBase? _convertNativeToDart_Window(win) {
   if (win == null) return null;
   return _DOMWindowCrossFrame._createSafe(win);
 }
 
-EventTarget _convertNativeToDart_EventTarget(e) {
+EventTarget? _convertNativeToDart_EventTarget(e) {
   if (e == null) {
     return null;
   }
@@ -39869,7 +40065,7 @@ EventTarget _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-EventTarget _convertDartToNative_EventTarget(e) {
+EventTarget? _convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
@@ -39949,7 +40145,7 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-Function _registerCustomElement(context, document, String tag, [Map options]) {
+Function _registerCustomElement(context, document, String tag, [Map? options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -39965,7 +40161,7 @@ Function _registerCustomElement(context, document, String tag, [Map options]) {
   //    var e = document.createElement('x-foo');
 
   var extendsTagName = '';
-  Type type;
+  Type? type;
   if (options != null) {
     extendsTagName = options['extends'];
     type = options['prototype'];
@@ -40045,7 +40241,7 @@ class _JSElementUpgrader implements ElementUpgrader {
   var _constructor;
   var _nativeType;
 
-  _JSElementUpgrader(Document document, Type type, String extendsTag) {
+  _JSElementUpgrader(Document document, Type type, String? extendsTag) {
     var interceptorClass = findInterceptorConstructorForType(type);
     if (interceptorClass == null) {
       throw new ArgumentError(type);
@@ -40125,8 +40321,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Methods.
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(var message, String targetOrigin,
-      [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List? messagePorts]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window,
           convertDartToNative_SerializedScriptValue(message), targetOrigin);
@@ -40158,26 +40353,26 @@ class _DOMWindowCrossFrame implements WindowBase {
   Events get on => throw new UnsupportedError(
       'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _addEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void _addEventListener(String? type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void addEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   bool dispatchEvent(Event event) => throw new UnsupportedError(
       'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _removeEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void _removeEventListener(String? type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void removeEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void removeEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
 }
@@ -40293,9 +40488,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
   /** Shadows on top of the parent's currentTarget. */
-  EventTarget _currentTarget;
+  EventTarget? _currentTarget;
 
-  final InputDeviceCapabilities sourceCapabilities;
+  InputDeviceCapabilities? get sourceCapabilities =>
+      JS('InputDeviceCapabilities', '#.sourceCapabilities', this);
 
   /**
    * The value we want to use for this object's dispatch. Created here so it is
@@ -40310,7 +40506,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent) : super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent)
+      : _parent = parent,
+        _shadowAltKey = false,
+        _shadowCharCode = 0,
+        _shadowKeyCode = 0,
+        super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -40320,7 +40521,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
   factory KeyEvent(String type,
-      {Window view,
+      {Window? view,
       bool canBubble: true,
       bool cancelable: true,
       int keyCode: 0,
@@ -40330,12 +40531,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget currentTarget}) {
+      EventTarget? currentTarget}) {
     if (view == null) {
       view = window;
     }
 
-    var eventObj;
+    dynamic eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -40388,7 +40589,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
           '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
-  EventTarget get currentTarget => _currentTarget;
+  EventTarget? get currentTarget => _currentTarget;
 
   // This is an experimental method to be sure.
   static String _convertToHexString(int charCode, int keyCode) {
@@ -40415,12 +40616,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  String get code => _parent.code;
+  String get code => _parent.code!;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
-  int get detail => _parent.detail;
-  bool get isComposing => _parent.isComposing;
-  String get key => _parent.key;
+  int get detail => _parent.detail!;
+  bool get isComposing => _parent.isComposing!;
+  String get key => _parent.key!;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
@@ -40431,9 +40632,9 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  Window get view => _parent.view;
+  WindowBase? get view => _parent.view;
   void _initUIEvent(
-      String type, bool canBubble, bool cancelable, Window view, int detail) {
+      String type, bool canBubble, bool cancelable, Window? view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
 
@@ -40451,9 +40652,9 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       String type,
       bool canBubble,
       bool cancelable,
-      Window view,
+      Window? view,
       String keyIdentifier,
-      int location,
+      int? location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -40478,7 +40679,7 @@ class Platform {
    * browser.  If false, using these types will generate a runtime
    * error.
    */
-  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+  static final bool supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
 
   /**
    * Returns true if SIMD types in dart:typed_data types are supported
@@ -40498,31 +40699,31 @@ class _WrappedEvent implements Event {
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */
-  String _selector;
+  String? _selector;
 
   _WrappedEvent(this.wrapped);
 
-  bool get bubbles => wrapped.bubbles;
+  bool get bubbles => wrapped.bubbles!;
 
-  bool get cancelable => wrapped.cancelable;
+  bool get cancelable => wrapped.cancelable!;
 
-  bool get composed => wrapped.composed;
+  bool get composed => wrapped.composed!;
 
-  EventTarget get currentTarget => wrapped.currentTarget;
+  EventTarget? get currentTarget => wrapped.currentTarget;
 
   bool get defaultPrevented => wrapped.defaultPrevented;
 
   int get eventPhase => wrapped.eventPhase;
 
-  bool get isTrusted => wrapped.isTrusted;
+  bool get isTrusted => wrapped.isTrusted!;
 
-  EventTarget get target => wrapped.target;
+  EventTarget? get target => wrapped.target;
 
-  double get timeStamp => wrapped.timeStamp;
+  double get timeStamp => wrapped.timeStamp as double;
 
   String get type => wrapped.type;
 
-  void _initEvent(String type, [bool bubbles, bool cancelable]) {
+  void _initEvent(String type, [bool? bubbles, bool? cancelable]) {
     throw new UnsupportedError('Cannot initialize this Event.');
   }
 
@@ -40550,13 +40751,12 @@ class _WrappedEvent implements Event {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
-    var matchedTarget;
+    Element? currentTarget = this.currentTarget as Element?;
+    Element? target = this.target as Element?;
     do {
-      if (target.matches(_selector)) return target;
+      if (target!.matches(_selector!)) return target;
       target = target.parent;
-    } while (target != null && target != currentTarget.parent);
+    } while (target != null && target != currentTarget!.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
 
@@ -40570,7 +40770,7 @@ class _WrappedEvent implements Event {
    *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  List<Node> get path => wrapped.path;
+  List<Node> get path => wrapped.path as List<Node>;
 
   dynamic get _get_currentTarget => wrapped._get_currentTarget;
 
@@ -40580,14 +40780,15 @@ class _WrappedEvent implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void Function(T) _wrapZone<T>(void Function(T) callback) {
+void Function(T)? _wrapZone<T>(void Function(T)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+void Function(T1, T2)? _wrapBinaryZone<T1, T2>(
+    void Function(T1, T2)? callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
@@ -40611,7 +40812,7 @@ void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-Element querySelector(String selectors) => document.querySelector(selectors);
+Element? querySelector(String selectors) => document.querySelector(selectors);
 
 /**
  * Finds all descendant elements of this document that match the specified
@@ -40659,7 +40860,7 @@ abstract class NodeValidator {
    *
    * If a uriPolicy is not specified then the default uriPolicy will be used.
    */
-  factory NodeValidator({UriPolicy uriPolicy}) =>
+  factory NodeValidator({UriPolicy? uriPolicy}) =>
       new _Html5NodeValidator(uriPolicy: uriPolicy);
 
   factory NodeValidator.throws(NodeValidator base) =>
@@ -40803,12 +41004,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node, Node parent) {
+    void walk(Node node, Node? parent) {
       sanitizeNode(node, parent);
 
       var child = node.lastChild;
       while (null != child) {
-        Node nextChild;
+        Node? nextChild;
         try {
           // Child may be removed during the walk, and we may not even be able
           // to get its previousNode. But it's also possible that previousNode
@@ -40839,7 +41040,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Aggressively try to remove node.
-  void _removeNode(Node node, Node parent) {
+  void _removeNode(Node node, Node? parent) {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
@@ -40852,7 +41053,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node? parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -40901,8 +41102,8 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// Having done basic sanity checking on the element, and computed the
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
-  void _sanitizeElement(Element element, Node parent, bool corrupted,
-      String text, String tag, Map attrs, String isAttr) {
+  void _sanitizeElement(Element element, Node? parent, bool corrupted,
+      String text, String tag, Map attrs, String? isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
       window.console
@@ -40939,12 +41140,12 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
 
     if (element is TemplateElement) {
       TemplateElement template = element;
-      sanitizeTree(template.content);
+      sanitizeTree(template.content!);
     }
   }
 
   /// Sanitize the node and its children recursively.
-  void sanitizeNode(Node node, Node parent) {
+  void sanitizeNode(Node node, Node? parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         _sanitizeUntrustedElement(node, parent);

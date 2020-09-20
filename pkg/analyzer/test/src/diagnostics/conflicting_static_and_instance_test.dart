@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class ConflictingStaticAndInstanceClassTest extends DriverResolutionTest {
+class ConflictingStaticAndInstanceClassTest extends PubPackageResolutionTest {
   test_inClass_getter_getter() async {
     await assertErrorsInCode(r'''
 class C {
@@ -363,6 +363,26 @@ class B extends A {
     ]);
   }
 
+  test_inSuper_implicitObject_method_getter() async {
+    await assertErrorsInCode(r'''
+class A {
+  static String runtimeType() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
+    ]);
+  }
+
+  test_inSuper_implicitObject_method_method() async {
+    await assertErrorsInCode(r'''
+class A {
+  static String toString() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
+    ]);
+  }
+
   test_inSuper_method_getter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -430,7 +450,17 @@ class B extends A {
 }
 
 @reflectiveTest
-class ConflictingStaticAndInstanceEnumTest extends DriverResolutionTest {
+class ConflictingStaticAndInstanceEnumTest extends PubPackageResolutionTest {
+  test_hashCode() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, hashCode, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 8),
+    ]);
+  }
+
   test_index() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -438,6 +468,26 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 5),
+    ]);
+  }
+
+  test_noSuchMethod() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, noSuchMethod, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 12),
+    ]);
+  }
+
+  test_runtimeType() async {
+    await assertErrorsInCode(r'''
+enum E {
+  a, runtimeType, b
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 14, 11),
     ]);
   }
 
@@ -453,7 +503,7 @@ enum E {
 }
 
 @reflectiveTest
-class ConflictingStaticAndInstanceMixinTest extends DriverResolutionTest {
+class ConflictingStaticAndInstanceMixinTest extends PubPackageResolutionTest {
   test_inConstraint_getter_getter() async {
     await assertErrorsInCode(r'''
 class A {
@@ -490,6 +540,26 @@ mixin M on A {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 60, 3),
+    ]);
+  }
+
+  test_inConstraint_implicitObject_method_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static String runtimeType() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 11),
+    ]);
+  }
+
+  test_inConstraint_implicitObject_method_method() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static String toString() => 'x';
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 26, 8),
     ]);
   }
 

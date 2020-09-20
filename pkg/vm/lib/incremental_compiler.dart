@@ -156,6 +156,14 @@ class IncrementalCompiler {
     if (incrementalSerializer != null) {
       incrementalSerializer = new IncrementalSerializer();
     }
+    // Make sure the last known good component is linked to itself, i.e. if the
+    // rejected delta was an "advanced incremental recompilation" that updated
+    // old libraries to point to a new library (that we're now rejecting), make
+    // sure it's "updated back".
+    // Note that if accept was never called [_lastKnownGood] is null (and
+    // loading from it below is basically nonsense, it will just start over).
+    _lastKnownGood?.relink();
+
     _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
         _entryPoint, _lastKnownGood, false, incrementalSerializer);
     await _generator.computeDelta(entryPoints: [_entryPoint]);

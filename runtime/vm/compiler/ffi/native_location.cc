@@ -210,47 +210,46 @@ compiler::Address NativeLocationToStackSlotAddress(
   return compiler::Address(loc.base_register(), loc.offset_in_bytes());
 }
 
-static void PrintRepresentations(BufferFormatter* f,
-                                 const NativeLocation& loc) {
-  f->Print(" ");
+static void PrintRepresentations(BaseTextBuffer* f, const NativeLocation& loc) {
+  f->AddString(" ");
   loc.container_type().PrintTo(f);
   if (!loc.container_type().Equals(loc.payload_type())) {
-    f->Print("[");
+    f->AddString("[");
     loc.payload_type().PrintTo(f);
-    f->Print("]");
+    f->AddString("]");
   }
 }
 
-void NativeLocation::PrintTo(BufferFormatter* f) const {
-  f->Print("I");
+void NativeLocation::PrintTo(BaseTextBuffer* f) const {
+  f->AddString("I");
   PrintRepresentations(f, *this);
 }
 
-void NativeRegistersLocation::PrintTo(BufferFormatter* f) const {
+void NativeRegistersLocation::PrintTo(BaseTextBuffer* f) const {
   if (num_regs() == 1) {
-    f->Print("%s", RegisterNames::RegisterName(regs_->At(0)));
+    f->Printf("%s", RegisterNames::RegisterName(regs_->At(0)));
   } else {
-    f->Print("(");
+    f->AddString("(");
     for (intptr_t i = 0; i < num_regs(); i++) {
-      if (i != 0) f->Print(", ");
-      f->Print("%s", RegisterNames::RegisterName(regs_->At(i)));
+      if (i != 0) f->Printf(", ");
+      f->Printf("%s", RegisterNames::RegisterName(regs_->At(i)));
     }
-    f->Print(")");
+    f->AddString(")");
   }
   PrintRepresentations(f, *this);
 }
 
-void NativeFpuRegistersLocation::PrintTo(BufferFormatter* f) const {
+void NativeFpuRegistersLocation::PrintTo(BaseTextBuffer* f) const {
   switch (fpu_reg_kind()) {
     case kQuadFpuReg:
-      f->Print("%s", RegisterNames::FpuRegisterName(fpu_reg()));
+      f->Printf("%s", RegisterNames::FpuRegisterName(fpu_reg()));
       break;
 #if defined(TARGET_ARCH_ARM)
     case kDoubleFpuReg:
-      f->Print("%s", RegisterNames::FpuDRegisterName(fpu_d_reg()));
+      f->Printf("%s", RegisterNames::FpuDRegisterName(fpu_d_reg()));
       break;
     case kSingleFpuReg:
-      f->Print("%s", RegisterNames::FpuSRegisterName(fpu_s_reg()));
+      f->Printf("%s", RegisterNames::FpuSRegisterName(fpu_s_reg()));
       break;
 #endif  // defined(TARGET_ARCH_ARM)
     default:
@@ -260,8 +259,8 @@ void NativeFpuRegistersLocation::PrintTo(BufferFormatter* f) const {
   PrintRepresentations(f, *this);
 }
 
-void NativeStackLocation::PrintTo(BufferFormatter* f) const {
-  f->Print("S%+" Pd, offset_in_bytes_);
+void NativeStackLocation::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("S%+" Pd, offset_in_bytes_);
   PrintRepresentations(f, *this);
 }
 

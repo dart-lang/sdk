@@ -231,6 +231,10 @@ class OptimizationTestLog {
     _registerSpecializer(original, null, null, 'Round');
   }
 
+  void registerToInt(HInvokeDynamic original) {
+    _registerSpecializer(original, null, null, 'ToInt');
+  }
+
   void registerPrimitiveCheck(HInstruction original, HPrimitiveCheck check) {
     Features features = new Features();
 

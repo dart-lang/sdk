@@ -16,47 +16,7 @@ class E {}
 
 /*member: Class1.:static=[Object.(0)]*/
 class Class1 {
-  /*spec:nnbd-off.member: Class1.field1:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    inst:JSNull,
-    param:A]
-  */
-  /*spec:nnbd-sdk.member: Class1.field1:
+  /*member: Class1.field1:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -102,48 +62,7 @@ class Class1 {
   A field1;
 }
 
-/*spec:nnbd-off.member: method1:
- dynamic=[Class1.field1=],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  impl:A,
-  inst:Closure,
-  inst:JSBool,
-  is:Class1]
-*/
-/*spec:nnbd-sdk.member: method1:
+/*member: method1:
  dynamic=[Class1.field1=],
  static=[
   Rti._bind(1),
@@ -194,11 +113,7 @@ method1(dynamic o, dynamic value) {
 
 /*member: Class2.:static=[Object.(0)]*/
 class Class2<T> {
-  /*spec:nnbd-off.member: Class2.field2:
-   static=%,
-   type=[inst:%,param:Class2.T]
-   */
-  /*spec:nnbd-sdk.member: Class2.field2:
+  /*member: Class2.field2:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -233,13 +148,7 @@ class Class2<T> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -256,15 +165,7 @@ class Class2<T> {
   T field2;
 }
 
-/*spec:nnbd-off.member: method2:
- dynamic=[Class2.field2=],
- static=%,
- type=[
-  impl:A,
-  inst:%,
-  is:Class2<A>]
-*/
-/*spec:nnbd-sdk.member: method2:
+/*member: method2:
  dynamic=[Class2.field2=],
  static=[
   Rti._bind(1),
@@ -300,12 +201,7 @@ class Class2<T> {
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -326,49 +222,7 @@ method2(dynamic o, dynamic value) {
 
 /*member: Class3.:static=[Object.(0)]*/
 class Class3 {
-  /*spec:nnbd-off.member: Class3.method3:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    inst:JSNull,
-    param:A,
-    param:B,
-    param:C]
-  */
-  /*spec:nnbd-sdk.member: Class3.method3:
+  /*member: Class3.method3:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -416,50 +270,7 @@ class Class3 {
   method3(A a, [B b, C c]) {}
 }
 
-/*spec:nnbd-off.member: method3:
- dynamic=[Class3.method3(3)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  impl:A,
-  impl:C,
-  inst:Closure,
-  inst:JSBool,
-  is:Class3,
-  param:B]
-*/
-/*spec:nnbd-sdk.member: method3:
+/*member: method3:
  dynamic=[Class3.method3(3)],
  static=[
   Rti._bind(1),
@@ -512,49 +323,7 @@ method3(dynamic o, dynamic a, B b, dynamic c) {
 
 /*member: Class4.:static=[Object.(0)]*/
 class Class4 {
-  /*spec:nnbd-off.member: Class4.method4:
-   static=[
-    Rti._bind(1),
-    Rti._eval(1),
-    _arrayInstanceType(1),
-    _asBool(1),
-    _asBoolQ(1),
-    _asBoolS(1),
-    _asDouble(1),
-    _asDoubleQ(1),
-    _asDoubleS(1),
-    _asInt(1),
-    _asIntQ(1),
-    _asIntS(1),
-    _asNum(1),
-    _asNumQ(1),
-    _asNumS(1),
-    _asObject(1),
-    _asString(1),
-    _asStringQ(1),
-    _asStringS(1),
-    _asTop(1),
-    _generalAsCheckImplementation(1),
-    _generalIsTestImplementation(1),
-    _installSpecializedIsTest(1),
-    _instanceType(1),
-    _isBool(1),
-    _isInt(1),
-    _isNum(1),
-    _isObject(1),
-    _isString(1),
-    _isTop(1),
-    findType(1),
-    instanceType(1)],
-   type=[
-    inst:Closure,
-    inst:JSBool,
-    inst:JSNull,
-    param:A,
-    param:B,
-    param:C]
-  */
-  /*spec:nnbd-sdk.member: Class4.method4:
+  /*member: Class4.method4:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -602,50 +371,7 @@ class Class4 {
   method4(A a, {B b, C c}) {}
 }
 
-/*spec:nnbd-off.member: method4:
- dynamic=[Class4.method4(1,b,c)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  impl:A,
-  impl:C,
-  inst:Closure,
-  inst:JSBool,
-  is:Class4,
-  param:B]
-*/
-/*spec:nnbd-sdk.member: method4:
+/*member: method4:
  dynamic=[Class4.method4(1,b,c)],
  static=[
   Rti._bind(1),
@@ -698,18 +424,7 @@ method4(dynamic o, dynamic a, B b, dynamic c) {
 
 /*member: Class5.:static=[Object.(0)]*/
 class Class5<T1, T2> {
-  /*spec:nnbd-off.member: Class5.method5:
-   static=%,
-   type=[
-    inst:%,
-    param:C,
-    param:Class5.T1,
-    param:Class5.T2,
-    param:Object,
-    param:method5.S1,
-    param:method5.S2]
-  */
-  /*spec:nnbd-sdk.member: Class5.method5:
+  /*member: Class5.method5:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -744,13 +459,7 @@ class Class5<T1, T2> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -772,19 +481,7 @@ class Class5<T1, T2> {
   method5<S1, S2>(T1 a, [T2 b, C c, S1 d, S2 e]) {}
 }
 
-/*spec:nnbd-off.member: method5:
- dynamic=[Class5.method5<D,E>(5)],
- static=%,
- type=[
-  impl:A,
-  impl:D,
-  inst:%,
-  is:Class5<A,B>,
-  param:B,
-  param:C,
-  param:E]
-*/
-/*spec:nnbd-sdk.member: method5:
+/*member: method5:
  dynamic=[Class5.method5<D*,E*>(5)],
  static=[
   Rti._bind(1),
@@ -820,12 +517,7 @@ class Class5<T1, T2> {
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -850,18 +542,7 @@ method5(dynamic o, dynamic a, B b, C c, dynamic d, E e) {
 
 /*member: Class6.:static=[Object.(0)]*/
 class Class6<T1, T2> {
-  /*spec:nnbd-off.member: Class6.method6:
-   static=%,
-   type=[
-    inst:%,
-    param:C,
-    param:Class6.T1,
-    param:Class6.T2,
-    param:Object,
-    param:method6.S1,
-    param:method6.S2]
-  */
-  /*spec:nnbd-sdk.member: Class6.method6:
+  /*member: Class6.method6:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -896,13 +577,7 @@ class Class6<T1, T2> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -924,19 +599,7 @@ class Class6<T1, T2> {
   method6<S1, S2>(T1 a, {T2 b, C c, S1 d, S2 e}) {}
 }
 
-/*spec:nnbd-off.member: method6:
- dynamic=[Class6.method6<D,E>(1,b,c,d,e)],
- static=%,
- type=[
-  impl:A,
-  impl:D,
-  inst:%,
-  is:Class6<A,B>,
-  param:B,
-  param:C,
-  param:E]
-*/
-/*spec:nnbd-sdk.member: method6:
+/*member: method6:
  dynamic=[Class6.method6<D*,E*>(1,b,c,d,e)],
  static=[
   Rti._bind(1),
@@ -972,12 +635,7 @@ class Class6<T1, T2> {
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1006,50 +664,7 @@ class Class7 {
   A Function(A) get f => null;
 }
 
-/*spec:nnbd-off.member: method7:
- dynamic=[
-  Class7.f(1),
-  call(1)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  impl:A,
-  inst:Closure,
-  inst:JSBool,
-  is:Class7]
-*/
-/*spec:nnbd-sdk.member: method7:
+/*member: method7:
  dynamic=[
   Class7.f(1),
   call(1)],
@@ -1102,8 +717,7 @@ method7(dynamic o, dynamic a) {
 
 /*member: F.:static=[Object.(0)]*/
 class F<T> {
-  /*spec:nnbd-off.member: F.method:static=%,type=[inst:%,param:List<F.T>]*/
-  /*spec:nnbd-sdk.member: F.method:
+  /*member: F.method:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -1138,12 +752,7 @@ class F<T> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1159,8 +768,7 @@ class F<T> {
   */
   T method(List<T> list) => null;
 
-  /*spec:nnbd-off.member: F.field:static=%,type=[inst:%,param:F.T]*/
-  /*spec:nnbd-sdk.member: F.field:
+  /*member: F.field:
    static=[
     Rti._bind(1),
     Rti._eval(1),
@@ -1195,13 +803,7 @@ class F<T> {
     _isObject(1),
     _isString(1),
     _isTop(1),
-    checkSubtype(4),
-    checkSubtypeOfRuntimeType(2),
     findType(1),
-    getRuntimeTypeArgument(3),
-    getRuntimeTypeArgumentIntercepted(4),
-    getRuntimeTypeInfo(1),
-    getTypeArgumentByIndex(2),
     instanceType(1),
     setRuntimeTypeInfo(2)],
    type=[
@@ -1221,12 +823,7 @@ class F<T> {
 /*member: G.:static=[F.(0)]*/
 class G extends F<int> {}
 
-/*spec:nnbd-off.member: method8:
- dynamic=[G.method(1)],
- static=%,
- type=[impl:List<int>,inst:%,is:G,param:Iterable<int>]
-*/
-/*spec:nnbd-sdk.member: method8:
+/*member: method8:
  dynamic=[G.method(1)],
  static=[
   Rti._bind(1),
@@ -1262,12 +859,7 @@ class G extends F<int> {}
   _isObject(1),
   _isString(1),
   _isTop(1),
-  checkSubtype(4),
   findType(1),
-  getRuntimeTypeArgument(3),
-  getRuntimeTypeArgumentIntercepted(4),
-  getRuntimeTypeInfo(1),
-  getTypeArgumentByIndex(2),
   instanceType(1),
   setRuntimeTypeInfo(2)],
  type=[
@@ -1288,50 +880,7 @@ method8(dynamic g, Iterable<int> iterable) {
   return g.method(iterable);
 }
 
-/*spec:nnbd-off.member: method9:
- dynamic=[G.field=],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  impl:int,
-  inst:Closure,
-  inst:JSBool,
-  inst:JSNull,
-  is:G,
-  param:num]
-*/
-/*spec:nnbd-sdk.member: method9:
+/*member: method9:
  dynamic=[G.field=],
  static=[
   Rti._bind(1),

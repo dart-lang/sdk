@@ -538,9 +538,10 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   if (receiver_maybe_null) {
     const Class& null_class =
         Class::Handle(zone(), isolate()->object_store()->null_class());
-    const Function& target = Function::Handle(
-        zone(),
-        Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name));
+    Function& target = Function::Handle(zone());
+    if (null_class.EnsureIsFinalized(thread()) == Error::null()) {
+      target = Resolver::ResolveDynamicAnyArgs(zone(), null_class, method_name);
+    }
     if (!target.IsNull()) {
       return ToCheck::kCheckCid;
     }
@@ -1295,6 +1296,14 @@ void FlowGraph::AttachEnvironment(Instruction* instr,
     // Trim extra inputs of ClosureCall and LoadField instructions from
     // the environment. Inputs of those instructions are not pushed onto
     // the stack at the point where deoptimization can occur.
+    // Note that in case of LoadField there can be two possible situations,
+    // the code here handles LoadField to LoadField lazy deoptimization in
+    // which we are transitioning from position after the call to initialization
+    // stub in optimized code to a similar position after the call to
+    // initialization stub in unoptimized code. There is another variant
+    // (LoadField deoptimizing into a position after a getter call) which is
+    // handled in a different way (see
+    // CallSpecializer::InlineImplicitInstanceGetter).
     deopt_env =
         deopt_env->DeepCopy(zone(), deopt_env->Length() - instr->InputCount() +
                                         instr->ArgumentCount());
@@ -1669,21 +1678,12 @@ void FlowGraph::RemoveRedefinitions(bool keep_checks) {
         instr_it.RemoveCurrentFromGraph();
       } else if (keep_checks) {
         continue;
-      } else if (auto check = instruction->AsCheckArrayBound()) {
-        check->ReplaceUsesWith(check->index()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsGenericCheckBound()) {
-        check->ReplaceUsesWith(check->index()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsCheckNull()) {
-        check->ReplaceUsesWith(check->value()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsAssertAssignable()) {
-        check->ReplaceUsesWith(check->value()->definition());
-        check->ClearSSATempIndex();
-      } else if (auto check = instruction->AsAssertBoolean()) {
-        check->ReplaceUsesWith(check->value()->definition());
-        check->ClearSSATempIndex();
+      } else if (auto def = instruction->AsDefinition()) {
+        Value* value = def->RedefinedValue();
+        if (value != nullptr) {
+          def->ReplaceUsesWith(value->definition());
+          def->ClearSSATempIndex();
+        }
       }
     }
   }

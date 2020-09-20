@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 
@@ -13,15 +9,15 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 /// import directives.
 class LibraryPrefixContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     if (!request.includeIdentifiers) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     var imports = request.libraryElement.imports;
     if (imports == null) {
-      return const <CompletionSuggestion>[];
+      return;
     }
 
     for (var element in imports) {
@@ -33,6 +29,5 @@ class LibraryPrefixContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 }

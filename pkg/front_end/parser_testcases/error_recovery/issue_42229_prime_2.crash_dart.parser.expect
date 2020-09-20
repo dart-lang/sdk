@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+Stream<List<>> foo() {}
+
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken][SyntheticStringToken]>[SimpleToken]>[SimpleToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken][SimpleToken]

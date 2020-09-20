@@ -33,7 +33,7 @@ See [LICENSE][license] and [PATENT_GRANT][patent_grant].
 
 ## Using Dart
 
-Visit the [dart.dev][website] to learn more about the
+Visit [dart.dev][website] to learn more about the
 [language][lang], [tools][tools],
 [getting started][codelab], and more.
 

@@ -5,11 +5,11 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,7 +30,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     expect(sdk.allowedExperimentsJson, isNull);
 
@@ -45,7 +49,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     expect(sdk.urlMappings, hasLength(5));
   }
@@ -54,7 +62,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     expectSource(String posixPath, String dartUri) {
       Uri uri = Uri.parse(posixToOSFileUri(posixPath));
@@ -73,7 +85,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     SdkLibrary lib = sdk.getSdkLibrary('dart:fox');
     expect(lib, isNotNull);
@@ -85,7 +101,11 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
       'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
-    EmbedderSdk sdk = EmbedderSdk(resourceProvider, locator.embedderYamls);
+    EmbedderSdk sdk = EmbedderSdk(
+      resourceProvider,
+      locator.embedderYamls,
+      languageVersion: Version.parse('2.10.0'),
+    );
 
     void expectSource(String dartUri, String posixPath) {
       Source source = sdk.mapDartUri(dartUri);
@@ -112,24 +132,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     expect(sdk.sdkLibraries, contains(predicate((SdkLibrary library) {
       return library.shortName == uri;
     })));
-  }
-
-  void test_analysisOptions_afterContextCreation() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.context;
-    expect(() {
-      sdk.analysisOptions = AnalysisOptionsImpl();
-    }, throwsStateError);
-  }
-
-  void test_analysisOptions_beforeContextCreation() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.analysisOptions = AnalysisOptionsImpl();
-    sdk.context;
-    // cannot change "analysisOptions" in the context
-    expect(() {
-      sdk.context.analysisOptions = AnalysisOptionsImpl();
-    }, throwsStateError);
   }
 
   void test_creation() {
@@ -220,29 +222,13 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     expect(version.isNotEmpty, isTrue);
   }
 
-  /**
-   * The "part" format should result in the same source as the non-part format
-   * when the file is the library file.
-   */
+  /// The "part" format should result in the same source as the non-part format
+  /// when the file is the library file.
   void test_mapDartUri_partFormatForLibrary() {
     FolderBasedDartSdk sdk = _createDartSdk();
     Source normalSource = sdk.mapDartUri('dart:core');
     Source partSource = sdk.mapDartUri('dart:core/core.dart');
     expect(partSource, normalSource);
-  }
-
-  void test_useSummary_afterContextCreation() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.context;
-    expect(() {
-      sdk.useSummary = true;
-    }, throwsStateError);
-  }
-
-  void test_useSummary_beforeContextCreation() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    sdk.useSummary = true;
-    sdk.context;
   }
 
   FolderBasedDartSdk _createDartSdk() {

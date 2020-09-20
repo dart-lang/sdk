@@ -20,7 +20,7 @@ import 'package:analyzer/dart/element/type.dart';
 /// Checks that the static type of every node, as well as the elements of many
 /// nodes, have legacy types, and asserts that the legacy types are deep legacy
 /// types.
-class LegacyTypeAsserter extends GeneralizingAstVisitor {
+class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   final Set<DartType> _visitedTypes = {};
 
   LegacyTypeAsserter({bool requireIsDebug = true}) {
@@ -40,7 +40,16 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassMember(ClassMember node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _assertLegacyElement(node.readElement);
+    _assertLegacyElement(node.writeElement);
+    _assertLegacyType(node.readType);
+    _assertLegacyType(node.writeType);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitClassMember(ClassMember node) {
     final element = node.declaredElement;
     if (element is ExecutableElement) {
       _assertLegacyType(element?.type);
@@ -49,60 +58,68 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     if (!node.featureSet.isEnabled(Feature.non_nullable)) {
       super.visitCompilationUnit(node);
     }
   }
 
   @override
-  visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitDeclaredIdentifier(node);
   }
 
   @override
-  visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     _assertLegacyType(node.staticType);
     _assertLegacyType(node.staticParameterElement?.type);
     super.visitExpression(node);
   }
 
   @override
-  visitFormalParameter(FormalParameter node) {
+  void visitFormalParameter(FormalParameter node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitFormalParameter(node);
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitFunctionDeclaration(node);
   }
 
   @override
-  visitInvocationExpression(InvocationExpression node) {
+  void visitInvocationExpression(InvocationExpression node) {
     _assertLegacyType(node.staticInvokeType);
     node.typeArgumentTypes?.forEach(_assertLegacyType);
     return super.visitInvocationExpression(node);
   }
 
   @override
-  visitTypeAnnotation(TypeAnnotation node) {
+  void visitTypeAnnotation(TypeAnnotation node) {
     _assertLegacyType(node.type);
     super.visitTypeAnnotation(node);
   }
 
   @override
-  visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     _assertLegacyType(node.type);
     super.visitTypeName(node);
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitVariableDeclaration(node);
+  }
+
+  void _assertLegacyElement(Element element) {
+    if (element is ExecutableElement) {
+      _assertLegacyType(element.type);
+    } else if (element is VariableElement) {
+      _assertLegacyType(element.type);
+    }
   }
 
   void _assertLegacyType(DartType type) {
@@ -114,7 +131,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
       return;
     }
 
-    if (type.isBottom && type.isDartCoreNull) {
+    if (type is NeverType && type.isDartCoreNull) {
       // Never?, which is ok.
       //
       // Note: we could allow Null? and Null, but we really should be able to

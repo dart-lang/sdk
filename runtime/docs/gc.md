@@ -67,7 +67,7 @@ With the mutator and marker running concurrently, the mutator could write a poin
 
 The barrier is equivalent to
 
-```
+```c++
 StorePoint(RawObject* source, RawObject** slot, RawObject* target) {
   *slot = target;
   if (target->IsSmi()) return;
@@ -84,7 +84,7 @@ StorePoint(RawObject* source, RawObject** slot, RawObject* target) {
 
 But we combine the generational and incremental checks with a shift-and-mask.
 
-```
+```c++
 enum HeaderBits {
   ...
   kOldAndNotMarkedBit,      // Incremental barrier target.

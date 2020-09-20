@@ -9,7 +9,8 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
-import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
+import 'package:dev_compiler/dev_compiler.dart'
+    show DevCompilerTarget, ExpressionCompiler;
 
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
@@ -19,6 +20,7 @@ import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
@@ -39,7 +41,6 @@ import 'package:vm/kernel_front_end.dart';
 
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
-import 'src/expression_compiler.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -64,6 +65,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('protobuf-tree-shaker',
       help: 'Enable protobuf tree shaker transformation in AOT mode.',
       defaultsTo: false)
+  ..addFlag('protobuf-tree-shaker-v2',
+      help: 'Enable protobuf tree shaker v2 in AOT mode.', defaultsTo: false)
   ..addFlag('minimal-kernel',
       help: 'Produce minimal tree-shaken kernel file.', defaultsTo: false)
   ..addFlag('link-platform',
@@ -75,6 +78,9 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addOption('import-dill',
       help: 'Import libraries from existing dill file', defaultsTo: null)
+  ..addOption('from-dill',
+      help: 'Read existing dill file instead of compiling from sources',
+      defaultsTo: null)
   ..addOption('output-dill',
       help: 'Output path for the generated dill', defaultsTo: null)
   ..addOption('output-incremental-dill',
@@ -149,10 +155,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
-  ..addFlag('null-safety',
-      help:
-          'Respect the nullability of types at runtime in casts and instance checks.',
-      defaultsTo: null)
+  ..addFlag('sound-null-safety',
+      help: 'Respect the nullability of types at runtime.', defaultsTo: null)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -167,10 +171,16 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false)
+      help: 'Use debugger-friendly modules names', defaultsTo: true)
+  ..addFlag('experimental-emit-debug-metadata',
+      help: 'Emit module and library metadata for the debugger',
+      defaultsTo: false)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
-      defaultsTo: 'amd');
+      defaultsTo: 'amd')
+  ..addFlag('flutter-widget-cache',
+      help: 'Enable the widget cache to track changes to Widget subtypes',
+      defaultsTo: false);
 
 String usage = '''
 Usage: server [options] [input.dart]
@@ -317,7 +327,8 @@ class FrontendCompiler implements CompilerInterface {
       this.transformer,
       this.unsafePackageSerialization,
       this.incrementalSerialization: true,
-      this.useDebuggerModuleNames: false}) {
+      this.useDebuggerModuleNames: false,
+      this.emitDebugMetadata: false}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
   }
@@ -327,6 +338,7 @@ class FrontendCompiler implements CompilerInterface {
   bool unsafePackageSerialization;
   bool incrementalSerialization;
   bool useDebuggerModuleNames;
+  bool emitDebugMetadata;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -336,6 +348,8 @@ class FrontendCompiler implements CompilerInterface {
 
   IncrementalCompiler _generator;
   JavaScriptBundler _bundler;
+
+  WidgetCache _widgetCache;
 
   String _kernelBinaryFilename;
   String _kernelBinaryFilenameIncremental;
@@ -397,6 +411,7 @@ class FrontendCompiler implements CompilerInterface {
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String packagesOption = _options['packages'];
+    final bool nullSafety = _options['sound-null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -408,8 +423,7 @@ class FrontendCompiler implements CompilerInterface {
       ..experimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode =
-          (options['null-safety'] == true) ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
       ..onDiagnostic = _onDiagnostic;
 
     if (options.wasParsed('libraries-spec')) {
@@ -452,7 +466,14 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    if (options['null-safety'] == null &&
+    if (options['incremental']) {
+      if (options['from-dill'] != null) {
+        print('Error: --from-dill option cannot be used with --incremental');
+        return false;
+      }
+    }
+
+    if (nullSafety == null &&
         compilerOptions.experimentalFlags[ExperimentalFlag.nonNullable]) {
       await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
@@ -515,6 +536,9 @@ class FrontendCompiler implements CompilerInterface {
           component.uriToSource.keys);
 
       incrementalSerializer = _generator.incrementalSerializer;
+      if (options['flutter-widget-cache']) {
+        _widgetCache = WidgetCache(component);
+      }
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -532,8 +556,10 @@ class FrontendCompiler implements CompilerInterface {
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker'],
+          useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],
           minimalKernel: options['minimal-kernel'],
-          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields']));
+          treeShakeWriteOnlyFields: options['tree-shake-write-only-fields'],
+          fromDillFile: options['from-dill']));
     }
     if (results.component != null) {
       transformer?.transform(results.component);
@@ -625,27 +651,33 @@ class FrontendCompiler implements CompilerInterface {
     final File sourceFile = File('$filename.sources');
     final File manifestFile = File('$filename.json');
     final File sourceMapsFile = File('$filename.map');
+    final File metadataFile = File('$filename.metadata');
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
     _bundler = JavaScriptBundler(
         component, strongComponents, fileSystemScheme, packageConfig,
         useDebuggerModuleNames: useDebuggerModuleNames,
+        emitDebugMetadata: emitDebugMetadata,
         moduleFormat: moduleFormat);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
+    final metadataFileSink =
+        emitDebugMetadata ? metadataFile.openWrite() : null;
     await _bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
         sourceFileSink,
         manifestFileSink,
-        sourceMapsFileSink);
+        sourceMapsFileSink,
+        metadataFileSink);
     await Future.wait([
       sourceFileSink.close(),
       manifestFileSink.close(),
-      sourceMapsFileSink.close()
+      sourceMapsFileSink.close(),
+      if (metadataFileSink != null) metadataFileSink.close()
     ]);
   }
 
@@ -881,6 +913,7 @@ class FrontendCompiler implements CompilerInterface {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
     }
+    _updateWidgetCache(deltaProgram);
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(results.compiledSources);
@@ -945,7 +978,8 @@ class FrontendCompiler implements CompilerInterface {
     var evaluator = new ExpressionCompiler(
         _generator.generator, kernel2jsCompiler, component,
         verbose: _compilerOptions.verbose,
-        onDiagnostic: _compilerOptions.onDiagnostic);
+        onDiagnostic: _compilerOptions.onDiagnostic,
+        errors: errors);
 
     var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
         column, jsModules, jsFrameValues, moduleName, expression);
@@ -1071,6 +1105,7 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void acceptLastDelta() {
     _generator.accept();
+    _widgetCache?.reset();
   }
 
   @override
@@ -1084,11 +1119,13 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void invalidate(Uri uri) {
     _generator.invalidate(uri);
+    _widgetCache?.invalidate(uri);
   }
 
   @override
   void resetIncrementalCompiler() {
     _generator.resetDeltaState();
+    _widgetCache?.reset();
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
@@ -1096,6 +1133,29 @@ class FrontendCompiler implements CompilerInterface {
     return IncrementalCompiler(_compilerOptions, _mainSource,
         initializeFromDillUri: initializeFromDillUri,
         incrementalSerialization: incrementalSerialization);
+  }
+
+  /// If the flutter widget cache is enabled, check if a single class was modified.
+  ///
+  /// The resulting class name is written as a String to
+  /// `_kernelBinaryFilename`.widget_cache, or else the file is deleted
+  /// if it exists.
+  void _updateWidgetCache(Component partialComponent) {
+    if (_widgetCache == null) {
+      return;
+    }
+    final String singleModifiedClassName =
+        _widgetCache.checkSingleWidgetTypeModified(
+      _generator.lastKnownGoodComponent,
+      partialComponent,
+      _generator.getClassHierarchy(),
+    );
+    final File outputFile = File('$_kernelBinaryFilename.widget_cache');
+    if (singleModifiedClassName != null) {
+      outputFile.writeAsStringSync(singleModifiedClassName);
+    } else if (outputFile.existsSync()) {
+      outputFile.deleteSync();
+    }
   }
 
   Uri _ensureFolderPath(String path) {
@@ -1398,7 +1458,8 @@ Future<int> starter(
       printerFactory: binaryPrinterFactory,
       unsafePackageSerialization: options["unsafe-package-serialization"],
       incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names']);
+      useDebuggerModuleNames: options['debugger-module-names'],
+      emitDebugMetadata: options['experimental-emit-debug-metadata']);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

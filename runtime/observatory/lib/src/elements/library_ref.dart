@@ -8,12 +8,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, LibraryRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class LibraryRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<LibraryRefElement>('library-ref');
-
   RenderingScheduler<LibraryRefElement> _r;
 
   Stream<RenderedEvent<LibraryRefElement>> get onRendered => _r.onRendered;
@@ -35,7 +33,7 @@ class LibraryRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  LibraryRefElement.created() : super.created(tag);
+  LibraryRefElement.created() : super.created('library-ref');
 
   @override
   void attached() {

@@ -11,9 +11,57 @@
 
 namespace dart {
 
+#define REP_IN_SET_CLAUSE(name, __, ___)                                       \
+  case k##name:                                                                \
+    return true;
+#define REP_SIZEOF_CLAUSE(name, __, type)                                      \
+  case k##name:                                                                \
+    return sizeof(type);
+#define REP_IS_UNSIGNED_CLAUSE(name, unsigned, ___)                            \
+  case k##name:                                                                \
+    return unsigned;
+
+bool RepresentationUtils::IsUnboxedInteger(Representation rep) {
+  switch (rep) {
+    FOR_EACH_INTEGER_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
+    default:
+      return false;
+  }
+}
+
+bool RepresentationUtils::IsUnboxed(Representation rep) {
+  switch (rep) {
+    FOR_EACH_UNBOXED_REPRESENTATION_KIND(REP_IN_SET_CLAUSE)
+    default:
+      return false;
+  }
+}
+
+size_t RepresentationUtils::ValueSize(Representation rep) {
+  switch (rep) {
+    FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_SIZEOF_CLAUSE)
+    default:
+      UNREACHABLE();
+      return compiler::target::kWordSize;
+  }
+}
+
+bool RepresentationUtils::IsUnsigned(Representation rep) {
+  switch (rep) {
+    FOR_EACH_SIMPLE_REPRESENTATION_KIND(REP_IS_UNSIGNED_CLAUSE)
+    default:
+      UNREACHABLE();
+      return false;
+  }
+}
+
+#undef REP_IS_UNSIGNED_CLAUSE
+#undef REP_SIZEOF_CLAUSE
+#undef REP_IN_SET_CLAUSE
+
 const char* Location::RepresentationToCString(Representation repr) {
   switch (repr) {
-#define REPR_CASE(Name)                                                        \
+#define REPR_CASE(Name, __, ___)                                               \
   case k##Name:                                                                \
     return #Name;
     FOR_EACH_REPRESENTATION_KIND(REPR_CASE)
@@ -26,7 +74,7 @@ const char* Location::RepresentationToCString(Representation repr) {
 
 bool Location::ParseRepresentation(const char* str, Representation* out) {
   ASSERT(str != nullptr && out != nullptr);
-#define KIND_CASE(Name)                                                        \
+#define KIND_CASE(Name, __, ___)                                               \
   if (strcmp(str, #Name) == 0) {                                               \
     *out = k##Name;                                                            \
     return true;                                                               \
@@ -249,24 +297,24 @@ const char* Location::Name() const {
   return "?";
 }
 
-void Location::PrintTo(BufferFormatter* f) const {
+void Location::PrintTo(BaseTextBuffer* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
   if (kind() == kStackSlot) {
-    f->Print("S%+" Pd "", stack_index());
+    f->Printf("S%+" Pd "", stack_index());
   } else if (kind() == kDoubleStackSlot) {
-    f->Print("DS%+" Pd "", stack_index());
+    f->Printf("DS%+" Pd "", stack_index());
   } else if (kind() == kQuadStackSlot) {
-    f->Print("QS%+" Pd "", stack_index());
+    f->Printf("QS%+" Pd "", stack_index());
   } else if (IsPairLocation()) {
-    f->Print("(");
+    f->AddString("(");
     AsPairLocation()->At(0).PrintTo(f);
-    f->Print(", ");
+    f->AddString(", ");
     AsPairLocation()->At(1).PrintTo(f);
-    f->Print(")");
+    f->AddString(")");
   } else {
-    f->Print("%s", Name());
+    f->Printf("%s", Name());
   }
 }
 
@@ -371,34 +419,34 @@ Location LocationRemapForSlowPath(Location loc,
   return loc;
 }
 
-void LocationSummary::PrintTo(BufferFormatter* f) const {
+void LocationSummary::PrintTo(BaseTextBuffer* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
   if (input_count() > 0) {
-    f->Print(" (");
+    f->AddString(" (");
     for (intptr_t i = 0; i < input_count(); i++) {
-      if (i != 0) f->Print(", ");
+      if (i != 0) f->AddString(", ");
       in(i).PrintTo(f);
     }
-    f->Print(")");
+    f->AddString(")");
   }
 
   if (temp_count() > 0) {
-    f->Print(" [");
+    f->AddString(" [");
     for (intptr_t i = 0; i < temp_count(); i++) {
-      if (i != 0) f->Print(", ");
+      if (i != 0) f->AddString(", ");
       temp(i).PrintTo(f);
     }
-    f->Print("]");
+    f->AddString("]");
   }
 
   if (!out(0).IsInvalid()) {
-    f->Print(" => ");
+    f->AddString(" => ");
     out(0).PrintTo(f);
   }
 
-  if (always_calls()) f->Print(" C");
+  if (always_calls()) f->AddString(" C");
 }
 
 #if defined(DEBUG)

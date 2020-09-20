@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,10 +22,15 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await openFile(mainFileUri, '');
     // Attempt to make an illegal modification to the file. This indicates the
     // client and server are out of sync and we expect the server to shut down.
-    final error = await expectErrorNotification<ShowMessageParams>(() async {
+    final error = await expectErrorNotification(() async {
       await changeFile(222, mainFileUri, [
-        TextDocumentContentChangeEvent(
-            Range(Position(99, 99), Position(99, 99)), null, ' '),
+        Either2<TextDocumentContentChangeEvent1,
+                TextDocumentContentChangeEvent2>.t1(
+            TextDocumentContentChangeEvent1(
+                range: Range(
+                    start: Position(line: 99, character: 99),
+                    end: Position(line: 99, character: 99)),
+                text: ' ')),
       ]);
     });
 
@@ -52,7 +58,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     final notification =
         makeNotification(Method.fromJson(r'some/randomNotification'), null);
 
-    final notificationParams = await expectErrorNotification<ShowMessageParams>(
+    final notificationParams = await expectErrorNotification(
       () => channel.sendNotificationToServer(notification),
     );
     expect(notificationParams, isNotNull);

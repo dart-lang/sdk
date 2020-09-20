@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -17,7 +15,7 @@ abstract class Link implements FileSystemEntity {
    */
   @pragma("vm:entry-point")
   factory Link(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Link(path);
     }
@@ -55,7 +53,7 @@ abstract class Link implements FileSystemEntity {
    * On the Windows platform, this call will create a true symbolic link
    * instead of a Junction. In order to create a symbolic link on Windows, Dart
    * must be run in Administrator mode or the system must have Developer Mode
-   * enabled, otherwise a [FileSystemException] will be raised with 
+   * enabled, otherwise a [FileSystemException] will be raised with
    * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
@@ -76,7 +74,7 @@ abstract class Link implements FileSystemEntity {
    * On the Windows platform, this call will create a true symbolic link
    * instead of a Junction. In order to create a symbolic link on Windows, Dart
    * must be run in Administrator mode or the system must have Developer Mode
-   * enabled, otherwise a [FileSystemException] will be raised with 
+   * enabled, otherwise a [FileSystemException] will be raised with
    * `ERROR_PRIVILEGE_NOT_HELD` set as the errno when this call is made.
    *
    * On other platforms, the posix symlink() call is used to make a symbolic
@@ -155,19 +153,16 @@ abstract class Link implements FileSystemEntity {
 }
 
 class _Link extends FileSystemEntity implements Link {
-  String _path;
-  Uint8List _rawPath;
+  final String _path;
+  final Uint8List _rawPath;
 
-  _Link(String path) {
-    ArgumentError.checkNotNull(path, 'path');
-    _path = path;
-    _rawPath = FileSystemEntity._toUtf8Array(path);
-  }
+  _Link(String path)
+      : _path = path,
+        _rawPath = FileSystemEntity._toUtf8Array(path);
 
-  _Link.fromRawPath(Uint8List rawPath) {
-    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
-    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
-  }
+  _Link.fromRawPath(Uint8List rawPath)
+      : _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath),
+        _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
 
   String get path => _path;
 
@@ -177,7 +172,7 @@ class _Link extends FileSystemEntity implements Link {
 
   bool existsSync() => FileSystemEntity._isLinkRawSync(_rawPath);
 
-  Link get absolute => new Link.fromRawPath(_rawAbsolutePath);
+  Link get absolute => isAbsolute ? this : _Link(_absolutePath);
 
   Future<Link> create(String target, {bool recursive: false}) {
     var result =
@@ -276,7 +271,7 @@ class _Link extends FileSystemEntity implements Link {
     return result;
   }
 
-  static throwIfError(Object result, String msg, [String path = ""]) {
+  static throwIfError(Object? result, String msg, [String path = ""]) {
     if (result is OSError) {
       throw new FileSystemException(msg, path, result);
     }

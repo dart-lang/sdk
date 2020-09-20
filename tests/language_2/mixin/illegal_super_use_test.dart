@@ -11,22 +11,22 @@ class P0 {
     super.toString();
     super.foo();
     //    ^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
     // [cfe] Superclass has no method named 'foo'.
     super.bar = 100;
     //    ^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
     // [cfe] Superclass has no setter named 'bar'.
 
     void inner() {
       super.toString();
       super.foo();
       //    ^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no method named 'foo'.
       super.bar = 100;
       //    ^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_SETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no setter named 'bar'.
     }
     inner();
@@ -35,11 +35,11 @@ class P0 {
       super.toString();
       super.foo();
       //    ^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_METHOD
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no method named 'foo'.
       super.bar = 100;
       //    ^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SUPER_SETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
       // [cfe] Superclass has no setter named 'bar'.
     })();
 
@@ -76,14 +76,8 @@ class P2 {
 
 class C = Object with M;
 class D = Object with P0;
-//                    ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_REFERENCES_SUPER
 class E = Object with M, P1;
-//                       ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_REFERENCES_SUPER
 class F = Object with P2, M;
-//                    ^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_REFERENCES_SUPER
 
 main() {
   var p1 = new P1();

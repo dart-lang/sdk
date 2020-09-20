@@ -7,7 +7,6 @@
 # io_impl_sources.gypi.
 
 builtin_impl_sources = [
-  "abi_version.h",
   "crypto.cc",
   "crypto.h",
   "crypto_android.cc",
@@ -15,8 +14,6 @@ builtin_impl_sources = [
   "crypto_linux.cc",
   "crypto_macos.cc",
   "crypto_win.cc",
-  "dartdev_utils.cc",
-  "dartdev_utils.h",
   "dartutils.cc",
   "dartutils.h",
   "directory.cc",

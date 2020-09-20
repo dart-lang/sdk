@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of html_common;
 
 /**
@@ -64,7 +62,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
     }
   }
 
-  bool contains(Object needle) {
+  bool contains(Object? needle) {
     if (needle is! Element) return false;
     Element element = needle;
     return element.parentNode == _node;
@@ -72,7 +70,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
 
   Iterable<Element> get reversed => _filtered.reversed;
 
-  void sort([int compare(Element a, Element b)]) {
+  void sort([int compare(Element a, Element b)?]) {
     throw new UnsupportedError('Cannot sort filtered list');
   }
 
@@ -81,7 +79,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
     throw new UnsupportedError('Cannot setRange on filtered list');
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void fillRange(int start, int end, [Element? fillValue]) {
     throw new UnsupportedError('Cannot fillRange on filtered list');
   }
 
@@ -113,7 +111,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
       add(value);
     } else {
       var element = _iterable.elementAt(index);
-      element.parentNode.insertBefore(value, element);
+      element.parentNode!.insertBefore(value, element);
     }
   }
 
@@ -122,7 +120,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
       addAll(iterable);
     } else {
       var element = _iterable.elementAt(index);
-      element.parentNode.insertAllBefore(iterable, element);
+      element.parentNode!.insertAllBefore(iterable, element);
     }
   }
 
@@ -132,7 +130,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
     return result;
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     if (element is! Element) return false;
     if (contains(element)) {
       (element as Element).remove(); // Placate the type checker

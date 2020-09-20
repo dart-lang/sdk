@@ -21,7 +21,7 @@ Future writeAppendedExecutable(
   final offset = dartaotruntimeLength + padding;
 
   // Note: The offset is always Little Endian regardless of host.
-  final offsetBytes = new ByteData(8) // 64 bit in bytes.
+  final offsetBytes = ByteData(8) // 64 bit in bytes.
     ..setUint64(0, offset, Endian.little);
 
   final outputFile = File(outputPath).openWrite();
@@ -39,11 +39,13 @@ Future markExecutable(String outputFile) {
 
 Future generateAotKernel(String dart, String genKernel, String platformDill,
     String sourceFile, String kernelFile, String packages, List<String> defines,
-    {List<String> extraGenKernelOptions = const []}) {
+    {String enableExperiment = '',
+    List<String> extraGenKernelOptions = const []}) {
   return Process.run(dart, [
     genKernel,
     '--platform',
     platformDill,
+    if (enableExperiment.isNotEmpty) '--enable-experiment=${enableExperiment}',
     '--aot',
     '-Ddart.vm.product=true',
     ...(defines.map((d) => '-D${d}')),

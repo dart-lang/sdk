@@ -48,13 +48,14 @@ import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
-import 'package:kernel/src/future_or.dart';
 import 'package:kernel/type_algebra.dart' show substitute;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
+
+import 'package:kernel/transformations/value_class.dart' as valueClass;
 
 import 'package:package_config/package_config.dart';
 
@@ -64,19 +65,19 @@ import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
-import '../builder/dynamic_type_builder.dart';
+import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/never_type_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/void_type_builder.dart';
+import '../builder/void_type_declaration_builder.dart';
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -98,7 +99,6 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
-        messageStrongModeNNBDButOptOut,
         noLength,
         templateFieldNonNullableNotInitializedByConstructorError,
         templateFieldNonNullableWithoutInitializerError,
@@ -123,7 +123,7 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 
 import 'constant_evaluator.dart' as constants
-    show EvaluationMode, transformLibraries;
+    show EvaluationMode, transformLibraries, transformProcedure;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
@@ -148,18 +148,38 @@ class KernelTarget extends TargetImplementation {
   Component component;
 
   // 'dynamic' is always nullable.
+  // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final TypeBuilder dynamicType = new NamedTypeBuilder(
-      "dynamic", const NullabilityBuilder.nullable(), null);
+      "dynamic",
+      const NullabilityBuilder.nullable(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null);
 
-  final NamedTypeBuilder objectType =
-      new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null);
+  final NamedTypeBuilder objectType = new NamedTypeBuilder(
+      "Object",
+      const NullabilityBuilder.omitted(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null);
 
   // Null is always nullable.
-  final TypeBuilder nullType =
-      new NamedTypeBuilder("Null", const NullabilityBuilder.nullable(), null);
+  // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
+  //  have NullType?
+  final TypeBuilder nullType = new NamedTypeBuilder(
+      "Null",
+      const NullabilityBuilder.nullable(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null);
 
-  final TypeBuilder bottomType =
-      new NamedTypeBuilder("Never", const NullabilityBuilder.omitted(), null);
+  // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
+  final TypeBuilder bottomType = new NamedTypeBuilder(
+      "Never",
+      const NullabilityBuilder.omitted(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
@@ -246,6 +266,7 @@ class KernelTarget extends TargetImplementation {
   LibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
+      Uri packageUri,
       SourceLibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {
@@ -255,13 +276,13 @@ class KernelTarget extends TargetImplementation {
         if (loader.nnbdMode == NnbdMode.Strong ||
             loader.nnbdMode == NnbdMode.Agnostic) {
           if (!builder.isNonNullableByDefault) {
-            loader.addProblem(messageStrongModeNNBDButOptOut, -1, 1, fileUri);
+            loader.registerStrongOptOutLibrary(builder);
           }
         }
         return builder;
       }
     }
-    return new SourceLibraryBuilder(uri, fileUri, loader, origin,
+    return new SourceLibraryBuilder(uri, fileUri, packageUri, loader, origin,
         referencesFrom: referencesFrom,
         referenceIsPartOwner: referenceIsPartOwner);
   }
@@ -288,9 +309,13 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertypeBuilder =
-        new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null)
-          ..bind(objectClassBuilder);
+    builder.supertypeBuilder = new NamedTypeBuilder(
+        "Object",
+        const NullabilityBuilder.omitted(),
+        /* arguments = */ null,
+        /* fileUri = */ null,
+        /* charOffset = */ null)
+      ..bind(objectClassBuilder);
     builder.interfaceBuilders = null;
     builder.mixedInTypeBuilder = null;
   }
@@ -327,12 +352,12 @@ class KernelTarget extends TargetImplementation {
       loader.computeHierarchy();
       loader.performTopLevelInference(myClasses);
       loader.checkSupertypes(myClasses);
-      loader.checkTypes();
       loader.checkOverrides(myClasses);
       loader.checkAbstractMembers(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      loader.checkTypes();
       loader.checkRedirectingFactories(myClasses);
       _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
@@ -455,7 +480,11 @@ class KernelTarget extends TargetImplementation {
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
               declaration.supertypeBuilder ??= new NamedTypeBuilder(
-                  "Object", const NullabilityBuilder.omitted(), null)
+                  "Object",
+                  const NullabilityBuilder.omitted(),
+                  /* arguments = */ null,
+                  /* fileUri = */ null,
+                  /* charOffset = */ null)
                 ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {
@@ -580,7 +609,7 @@ class KernelTarget extends TargetImplementation {
             builder.getSubstitutionMap(supertype.cls);
         for (Constructor constructor in supertype.cls.constructors) {
           Constructor referenceFrom =
-              indexedClass?.lookupConstructor(constructor.name.name);
+              indexedClass?.lookupConstructor(constructor.name.text);
 
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
               builder.cls,
@@ -592,9 +621,9 @@ class KernelTarget extends TargetImplementation {
       }
     } else if (supertype is InvalidTypeDeclarationBuilder ||
         supertype is TypeVariableBuilder ||
-        supertype is DynamicTypeBuilder ||
-        supertype is VoidTypeBuilder ||
-        supertype is NeverTypeBuilder) {
+        supertype is DynamicTypeDeclarationBuilder ||
+        supertype is VoidTypeDeclarationBuilder ||
+        supertype is NeverTypeDeclarationBuilder) {
       builder.addSyntheticConstructor(
           makeDefaultConstructor(builder.cls, referenceFrom));
     } else {
@@ -770,9 +799,9 @@ class KernelTarget extends TargetImplementation {
     List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
 
     builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
-      if (fieldBuilder.isExternal) {
-        // Skip external fields. These are external getters/setters and have
-        // no initialization.
+      if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
+        // Skip abstract and external fields. These are abstract/external
+        // getters/setters and have no initialization.
         return;
       }
       if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
@@ -820,7 +849,7 @@ class KernelTarget extends TargetImplementation {
         }
       });
       Set<String> kernelConstructorNames =
-          cls.constructors.map((c) => c.name.name).toSet().difference({""});
+          cls.constructors.map((c) => c.name.text).toSet().difference({""});
       return kernelConstructorNames.containsAll(patchConstructorNames);
     }(),
         "Constructors of class '${builder.fullNameForErrors}' "
@@ -831,7 +860,7 @@ class KernelTarget extends TargetImplementation {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             builder.addProblem(messageConstConstructorRedirectionToNonConst,
-                initializer.fileOffset, initializer.target.name.name.length);
+                initializer.fileOffset, initializer.target.name.text.length);
           }
           isRedirecting = true;
           break;
@@ -871,27 +900,6 @@ class KernelTarget extends TargetImplementation {
           constructor.function.body.parent = constructor.function;
         }
 
-        Set<Field> myInitializedFields = new Set<Field>();
-        for (Initializer initializer in constructor.initializers) {
-          if (initializer is FieldInitializer) {
-            myInitializedFields.add(initializer.field);
-          }
-        }
-        for (VariableDeclaration formal
-            in constructor.function.positionalParameters) {
-          if (formal.isFieldFormal) {
-            Builder fieldBuilder =
-                builder.scope.lookupLocalMember(formal.name, setter: false) ??
-                    builder.origin.scope
-                        .lookupLocalMember(formal.name, setter: false);
-            // If next is not null it's a duplicated field,
-            // and it doesn't need to be initialized to null below
-            // (and doing it will crash serialization).
-            if (fieldBuilder?.next == null && fieldBuilder is FieldBuilder) {
-              myInitializedFields.add(fieldBuilder.field);
-            }
-          }
-        }
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addProblem(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength,
@@ -975,8 +983,7 @@ class KernelTarget extends TargetImplementation {
                   fieldBuilder.fileUri);
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
-              isPotentiallyNonNullable(
-                  fieldBuilder.fieldType, loader.coreTypes.futureOrClass) &&
+              fieldBuilder.fieldType.isPotentiallyNonNullable &&
               (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
@@ -1019,10 +1026,9 @@ class KernelTarget extends TargetImplementation {
                       .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.charOffset, fieldBuilder.name.length)
                 ]);
-          } else if (fieldBuilder.type is! InvalidType &&
+          } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
-              isPotentiallyNonNullable(
-                  fieldBuilder.field.type, loader.coreTypes.futureOrClass)) {
+              fieldBuilder.field.type.isPotentiallyNonNullable) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
               library.addProblem(
@@ -1066,7 +1072,7 @@ class KernelTarget extends TargetImplementation {
           patchFieldNames.remove(name);
         }
       });
-      Set<String> kernelFieldNames = cls.fields.map((f) => f.name.name).toSet();
+      Set<String> kernelFieldNames = cls.fields.map((f) => f.name.text).toSet();
       return kernelFieldNames.containsAll(patchFieldNames);
     }(),
         "Fields of class '${builder.fullNameForErrors}' "
@@ -1094,6 +1100,68 @@ class KernelTarget extends TargetImplementation {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
+
+    constants.transformLibraries(
+        loader.libraries,
+        backendTarget.constantsBackend(loader.coreTypes),
+        environmentDefines,
+        environment,
+        new KernelConstantErrorReporter(loader),
+        evaluationMode,
+        evaluateAnnotations: true,
+        desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift:
+            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    ticker.logMs("Evaluated constants");
+
+    if (loader.target.context.options
+        .isExperimentEnabledGlobally(ExperimentalFlag.valueClass)) {
+      valueClass.transformComponent(
+          component, loader.coreTypes, loader.hierarchy);
+      ticker.logMs("Lowered value classes");
+    }
+
+    backendTarget.performModularTransformationsOnLibraries(
+        component,
+        loader.coreTypes,
+        loader.hierarchy,
+        loader.libraries,
+        environmentDefines,
+        new KernelDiagnosticReporter(loader),
+        loader.referenceFromIndex,
+        logger: (String msg) => ticker.logMs(msg),
+        changedStructureNotifier: changedStructureNotifier);
+  }
+
+  ChangedStructureNotifier get changedStructureNotifier => null;
+
+  void runProcedureTransformations(Procedure procedure) {
+    TypeEnvironment environment =
+        new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.EvaluationMode evaluationMode = _getConstantEvaluationMode();
+
+    constants.transformProcedure(
+        procedure,
+        backendTarget.constantsBackend(loader.coreTypes),
+        environmentDefines,
+        environment,
+        new KernelConstantErrorReporter(loader),
+        evaluationMode,
+        evaluateAnnotations: true,
+        desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift:
+            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    ticker.logMs("Evaluated constants");
+
+    backendTarget.performTransformationsOnProcedure(
+        loader.coreTypes, loader.hierarchy, procedure,
+        logger: (String msg) => ticker.logMs(msg));
+  }
+
+  constants.EvaluationMode _getConstantEvaluationMode() {
     constants.EvaluationMode evaluationMode;
     // If nnbd is not enabled we will use weak evaluation mode. This is needed
     // because the SDK might be agnostic and therefore needs to be weakened
@@ -1114,38 +1182,7 @@ class KernelTarget extends TargetImplementation {
         evaluationMode = constants.EvaluationMode.agnostic;
         break;
     }
-
-    constants.transformLibraries(
-        loader.libraries,
-        backendTarget.constantsBackend(loader.coreTypes),
-        environmentDefines,
-        environment,
-        new KernelConstantErrorReporter(loader),
-        evaluationMode,
-        desugarSets: !backendTarget.supportsSetLiterals,
-        enableTripleShift:
-            isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
-        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
-    ticker.logMs("Evaluated constants");
-
-    backendTarget.performModularTransformationsOnLibraries(
-        component,
-        loader.coreTypes,
-        loader.hierarchy,
-        loader.libraries,
-        environmentDefines,
-        new KernelDiagnosticReporter(loader),
-        loader.referenceFromIndex,
-        logger: (String msg) => ticker.logMs(msg),
-        changedStructureNotifier: changedStructureNotifier);
-  }
-
-  ChangedStructureNotifier get changedStructureNotifier => null;
-
-  void runProcedureTransformations(Procedure procedure) {
-    backendTarget.performTransformationsOnProcedure(
-        loader.coreTypes, loader.hierarchy, procedure,
-        logger: (String msg) => ticker.logMs(msg));
+    return evaluationMode;
   }
 
   void verify() {
@@ -1202,7 +1239,7 @@ Constructor defaultSuperConstructor(Class cls) {
   Class superclass = cls.superclass;
   if (superclass != null) {
     for (Constructor constructor in superclass.constructors) {
-      if (constructor.name.name.isEmpty) {
+      if (constructor.name.text.isEmpty) {
         return constructor.function.requiredParameterCount == 0
             ? constructor
             : null;

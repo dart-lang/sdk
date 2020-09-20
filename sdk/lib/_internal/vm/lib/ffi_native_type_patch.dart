@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
@@ -72,6 +70,10 @@ class Double extends _NativeDouble {}
 @patch
 @pragma("vm:entry-point")
 abstract class Void extends NativeType {}
+
+@patch
+@pragma("vm:entry-point")
+abstract class Handle extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")

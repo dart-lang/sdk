@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 
 class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   OrganizeImportsCommandHandler(LspAnalysisServer server) : super(server);
@@ -21,9 +19,9 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
   Future<ErrorOr<void>> handle(List<dynamic> arguments) async {
     if (arguments == null || arguments.length != 1 || arguments[0] is! String) {
       return ErrorOr.error(ResponseError(
-        ServerErrorCodes.InvalidCommandArguments,
-        '$commandName requires a single String parameter containing the path of a Dart file',
-        null,
+        code: ServerErrorCodes.InvalidCommandArguments,
+        message:
+            '$commandName requires a single String parameter containing the path of a Dart file',
       ));
     }
 
@@ -39,14 +37,16 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       final unit = result.unit;
 
       if (hasScanParseErrors(result.errors)) {
-        return ErrorOr.error(ResponseError(
-          ServerErrorCodes.FileHasErrors,
-          'Unable to $commandName because the file contains parse errors',
-          path,
-        ));
+        // It's not uncommon for editors to run this command automatically on-save
+        // so if the file in in an invalid state it's better to fail silently
+        // than trigger errors (VS Code recently started showing popups when
+        // LSP requests return errors).
+        server.instrumentationService.logInfo(
+            'Unable to $commandName because the file contains parse errors');
+        return success();
       }
 
-      final organizer = DirectiveOrganizer(code, unit, result.errors);
+      final organizer = ImportOrganizer(code, unit, result.errors);
       final edits = organizer.organize();
 
       return sendSourceEditsToClient(docIdentifier, unit, edits);

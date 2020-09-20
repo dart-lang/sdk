@@ -289,10 +289,10 @@ class NullabilityGraph {
   /// Returns the edge created by the connection.
   NullabilityEdge connect(NullabilityNode sourceNode,
       NullabilityNode destinationNode, EdgeOrigin origin,
-      {bool hard: false,
+      {bool hard = false,
       bool checkable = true,
-      List<NullabilityNode> guards: const []}) {
-    var upstreamNodes = [sourceNode]..addAll(guards);
+      List<NullabilityNode> guards = const []}) {
+    var upstreamNodes = [sourceNode, ...guards];
     var kind = hard
         ? _NullabilityEdgeKind.hard
         : checkable
@@ -381,7 +381,7 @@ class NullabilityGraph {
   /// Creates a graph edge that will try to force the given [node] to be
   /// non-nullable.
   NullabilityEdge makeNonNullable(NullabilityNode node, EdgeOrigin origin,
-      {bool hard: true, List<NullabilityNode> guards: const []}) {
+      {bool hard = true, List<NullabilityNode> guards = const []}) {
     return connect(node, never, origin, hard: hard, guards: guards);
   }
 
@@ -394,7 +394,7 @@ class NullabilityGraph {
   /// Creates a graph edge that will try to force the given [node] to be
   /// nullable.
   void makeNullable(NullabilityNode node, EdgeOrigin origin,
-      {List<NullabilityNode> guards: const []}) {
+      {List<NullabilityNode> guards = const []}) {
     connect(always, node, origin, guards: guards);
   }
 

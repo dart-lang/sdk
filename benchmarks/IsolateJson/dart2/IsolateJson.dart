@@ -30,7 +30,7 @@ class JsonDecodingBenchmark {
       await Future.wait(decodedFutures);
     }
 
-    print("$name(RunTime): ${stopwatch.elapsedMicroseconds} us.");
+    print('$name(RunTime): ${stopwatch.elapsedMicroseconds} us.');
   }
 
   final String name;
@@ -119,40 +119,40 @@ Future<void> main() async {
   final json250KB = utf8.encode(jsonString); // 294356 bytes
   final decoded = json.decode(utf8.decode(json250KB));
   final decoded1MB = <dynamic, dynamic>{
-    "1": decoded["1"],
-    "2": decoded["1"],
-    "3": decoded["1"],
-    "4": decoded["1"],
+    '1': decoded['1'],
+    '2': decoded['1'],
+    '3': decoded['1'],
+    '4': decoded['1'],
   };
   final json1MB = utf8.encode(json.encode(decoded1MB)); // 1177397 bytes
-  decoded["1"] = (decoded["1"] as List).sublist(0, 200);
+  decoded['1'] = (decoded['1'] as List).sublist(0, 200);
   final json100KB = utf8.encode(json.encode(decoded)); // 104685 bytes
-  decoded["1"] = (decoded["1"] as List).sublist(0, 100);
+  decoded['1'] = (decoded['1'] as List).sublist(0, 100);
   final json50KB = utf8.encode(json.encode(decoded)); // 51760 bytes
 
   final configs = <BenchmarkConfig>[
-    BenchmarkConfig("50KB", json50KB),
-    BenchmarkConfig("100KB", json100KB),
-    BenchmarkConfig("250KB", json250KB),
-    BenchmarkConfig("1MB", json1MB),
+    BenchmarkConfig('50KB', json50KB),
+    BenchmarkConfig('100KB', json100KB),
+    BenchmarkConfig('250KB', json250KB),
+    BenchmarkConfig('1MB', json1MB),
   ];
 
-  for (BenchmarkConfig config in configs) {
+  for (final config in configs) {
     for (final iterations in <int>[1, 4]) {
       await JsonDecodingBenchmark(
-              "IsolateJson.Decode${config.suffix}x$iterations",
+              'IsolateJson.Decode${config.suffix}x$iterations',
               useSendAndExit: false,
               sample: config.sample,
               numTasks: iterations)
           .report();
       await JsonDecodingBenchmark(
-              "IsolateJson.SendAndExit_Decode${config.suffix}x$iterations",
+              'IsolateJson.SendAndExit_Decode${config.suffix}x$iterations',
               useSendAndExit: true,
               sample: config.sample,
               numTasks: iterations)
           .report();
       SyncJsonDecodingBenchmark(
-              "IsolateJson.SyncDecode${config.suffix}x$iterations",
+              'IsolateJson.SyncDecode${config.suffix}x$iterations',
               sample: config.sample,
               iterations: iterations)
           .report();

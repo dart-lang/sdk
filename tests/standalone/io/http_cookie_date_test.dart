@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._http;
 
 import "dart:async";
@@ -13,10 +11,13 @@ import "dart:developer";
 import "dart:io";
 import "dart:math";
 import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
+import "../../../sdk/lib/internal/internal.dart"
+    show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+
 part "../../../sdk/lib/_http/crypto.dart";
-part "../../../sdk/lib/_http/embedder_config.dart";
 part "../../../sdk/lib/_http/http_impl.dart";
 part "../../../sdk/lib/_http/http_date.dart";
 part "../../../sdk/lib/_http/http_parser.dart";

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:math';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
@@ -975,7 +974,7 @@ class StatementCompletionProcessor {
       if (catchNode.onKeyword != null) {
         if (catchNode.exceptionType.length == 0 ||
             null !=
-                _findError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+                _findError(CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
                     partialMatch: "name 'catch")) {
           var src = utils.getNodeText(catchNode);
           if (src.startsWith(RegExp(r'on[ \t]+'))) {

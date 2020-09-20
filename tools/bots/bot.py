@@ -44,10 +44,7 @@ class BuildInfo(object):
   - dart2js_full: Boolean indicating whether this builder will run dart2js
     on several different runtimes.
   - builder_tag: A tag indicating a special builder setup.
-  - cps_ir: Run the compiler with the cps based backend
-  - use_nnbd: Whether to use the NNBD fork of the SDK.
   """
-    # TODO: Remove use_nnbd when the fork is merged back in.
 
     def __init__(self,
                  compiler,
@@ -65,9 +62,7 @@ class BuildInfo(object):
                  arch=None,
                  dart2js_full=False,
                  builder_tag=None,
-                 batch=False,
-                 cps_ir=False,
-                 use_nnbd=False):
+                 batch=False):
         self.compiler = compiler
         self.runtime = runtime
         self.mode = mode
@@ -83,8 +78,6 @@ class BuildInfo(object):
         self.dart2js_full = dart2js_full
         self.builder_tag = builder_tag
         self.batch = batch
-        self.cps_ir = cps_ir
-        self.use_nnbd = use_nnbd
         if (arch == None):
             self.arch = 'ia32'
         else:
@@ -272,20 +265,12 @@ def RunTestRunner(build_info, path):
     """
   Runs the test package's runner on the package at 'path'.
   """
-    # TODO(38701): Once bots are set up to run NNBD configurations, update
-    # the various name parsing functions to detect that and pass "use_nnbd" to
-    # the BuildInfo() constructor.
 
     sdk_bin = os.path.join(
         bot_utils.DART_DIR,
-        utils.GetBuildSdkBin(BUILD_OS, build_info.mode, build_info.arch,
-                             build_info.use_nnbd))
+        utils.GetBuildSdkBin(BUILD_OS, build_info.mode, build_info.arch))
 
-    build_root = utils.GetBuildRoot(
-        BUILD_OS,
-        build_info.mode,
-        build_info.arch,
-        use_nnbd=build_info.use_nnbd)
+    build_root = utils.GetBuildRoot(BUILD_OS, build_info.mode, build_info.arch)
 
     dart_name = 'dart.exe' if build_info.system == 'windows' else 'dart'
     dart_bin = os.path.join(sdk_bin, dart_name)

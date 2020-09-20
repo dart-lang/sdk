@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
@@ -24,6 +22,6 @@ class DiagnosticServerHandler
   Future<ErrorOr<DartDiagnosticServer>> handle(
       void _, CancellationToken token) async {
     final port = await server.diagnosticServer.getServerPort();
-    return success(DartDiagnosticServer(port));
+    return success(DartDiagnosticServer(port: port));
   }
 }

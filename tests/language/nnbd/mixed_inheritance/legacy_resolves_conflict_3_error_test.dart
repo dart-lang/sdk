@@ -232,62 +232,62 @@ void main() {
   List<List<int? Function(int?)>> xsBq = [
     DwB0().a,
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBO0().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwB1().a,
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBO1().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwB2().a,
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBO2().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwB3().a,
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBO3().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwB4().a,
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBO4().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwB5().a,
 //  ^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBO5().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
   ];
 
@@ -295,62 +295,62 @@ void main() {
   List<List<int Function(int)>> xsB = [
     DwBq0().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBqOq0().a,
 //  ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq1().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBqOq1().a,
 //  ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq2().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBqOq2().a,
 //  ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq3().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBqOq3().a,
 //  ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq4().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBqOq4().a,
 //  ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DwBq5().a,
 //  ^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 
     DiBqOq5().a,
 //  ^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
   ];
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._js_names;
 
 import 'dart:_js_embedded_names'
@@ -50,7 +48,7 @@ class _LazyMangledNamesMap {
 
   _LazyMangledNamesMap(this._jsMangledNames);
 
-  String operator [](String key) {
+  String? operator [](String key) {
     var result = JS('var', '#[#]', _jsMangledNames, key);
     // Filter out all non-string values to protect against polution from
     // ancillary fields in [_jsMangledNames].
@@ -67,8 +65,8 @@ class _LazyMangledNamesMap {
 class _LazyMangledInstanceNamesMap extends _LazyMangledNamesMap {
   _LazyMangledInstanceNamesMap(_jsMangledNames) : super(_jsMangledNames);
 
-  String operator [](String key) {
-    String result = super[key];
+  String? operator [](String key) {
+    String? result = super[key];
     String setterPrefix = JS_GET_NAME(JsGetName.SETTER_PREFIX);
     if (result == null && key.startsWith(setterPrefix)) {
       String getterPrefix = JS_GET_NAME(JsGetName.GETTER_PREFIX);
@@ -96,7 +94,7 @@ class _LazyReflectiveNamesMap {
   final _jsMangledNames;
   final bool _isInstance;
   int _cacheLength = 0;
-  Map<String, String> _cache;
+  Map<String, String>? _cache;
 
   _LazyReflectiveNamesMap(this._jsMangledNames, this._isInstance);
 
@@ -126,12 +124,12 @@ class _LazyReflectiveNamesMap {
   int get _jsMangledNamesLength =>
       JS('int', 'Object.keys(#).length', _jsMangledNames);
 
-  String operator [](String key) {
+  String? operator [](String key) {
     if (_cache == null || _jsMangledNamesLength != _cacheLength) {
       _cache = _updateReflectiveNames();
       _cacheLength = _jsMangledNamesLength;
     }
-    return _cache[key];
+    return _cache![key];
   }
 }
 
@@ -150,7 +148,7 @@ List extractKeys(victim) {
 /// This is used, for example, to return unmangled names from TypeImpl.toString
 /// *if* names are being preserved for other reasons (use of dart:mirrors, for
 /// example).
-String unmangleGlobalNameIfPreservedAnyways(String name) {
+String? unmangleGlobalNameIfPreservedAnyways(String name) {
   var names = JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES);
   return JS('String|Null', '#', JsCache.fetch(names, name));
 }

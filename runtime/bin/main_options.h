@@ -8,6 +8,7 @@
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
 #include "platform/globals.h"
+#include "platform/growable_array.h"
 #include "platform/hashmap.h"
 
 namespace dart {
@@ -18,7 +19,6 @@ namespace bin {
 // The value of the flag can then be accessed with Options::field_name().
 #define STRING_OPTIONS_LIST(V)                                                 \
   V(packages, packages_file)                                                   \
-  V(package_root, package_root)                                                \
   V(snapshot, snapshot_filename)                                               \
   V(snapshot_depfile, snapshot_deps_filename)                                  \
   V(depfile, depfile)                                                          \
@@ -69,7 +69,8 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
-  V(ProcessAbiVersionOption)
+  V(ProcessEnableExperimentOption)                                             \
+  V(ProcessVMDebuggingOptions)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
@@ -77,6 +78,10 @@ enum SnapshotKind {
   kKernel,
   kAppJIT,
 };
+
+static const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
+static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
+static const int INVALID_VM_SERVICE_SERVER_PORT = -1;
 
 class Options {
  public:
@@ -124,9 +129,6 @@ class Options {
 
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
-
-  static constexpr int kAbiVersionUnset = -1;
-  static int target_abi_version() { return target_abi_version_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static DFE* dfe() { return dfe_; }
@@ -176,7 +178,7 @@ class Options {
                                     int default_port,
                                     const char* default_ip);
 
-  static int target_abi_version_;
+  static MallocGrowableArray<const char*> enabled_experiments_;
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)

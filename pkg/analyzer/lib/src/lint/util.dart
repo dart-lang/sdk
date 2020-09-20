@@ -87,8 +87,8 @@ class Spelunker {
   FeatureSet featureSet;
 
   Spelunker(this.path, {IOSink sink, FeatureSet featureSet})
-      : this.sink = sink ?? stdout,
-        featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
+      : sink = sink ?? stdout,
+        featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
   void spelunk() {
     var contents = File(path).readAsStringSync();
@@ -137,16 +137,15 @@ class _SourceVisitor extends GeneralizingAstVisitor {
   String typeInfo(Type type) => type.toString();
 
   @override
-  visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     write(node);
 
     ++indent;
     node.visitChildren(this);
     --indent;
-    return null;
   }
 
-  write(AstNode node) {
+  void write(AstNode node) {
     //EOL comments
     var comments = getPrecedingComments(node.beginToken);
     comments.forEach((c) => sink.writeln('${"  " * indent}$c'));

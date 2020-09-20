@@ -159,6 +159,24 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
+  DartType visitFutureOrType(FutureOrType node) {
+    Nullability newNullability = visitNullability(node);
+    DartType newTypeArgument = node.typeArgument.accept(this);
+    return createFutureOrType(node, newNullability, newTypeArgument);
+  }
+
+  DartType createFutureOrType(
+      FutureOrType node, Nullability newNullability, DartType newTypeArgument) {
+    if (newNullability == null && newTypeArgument == null) {
+      // No nullability or type arguments needed to be substituted.
+      return null;
+    } else {
+      return new FutureOrType(newTypeArgument ?? node.typeArgument,
+          newNullability ?? node.declaredNullability);
+    }
+  }
+
+  @override
   DartType visitDynamicType(DynamicType node) => null;
 
   @override

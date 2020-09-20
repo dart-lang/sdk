@@ -13,25 +13,28 @@ IsolateGroupData::IsolateGroupData(const char* url,
                                    const char* packages_file,
                                    AppSnapshot* app_snapshot,
                                    bool isolate_run_app_snapshot)
-    : script_url((url != NULL) ? strdup(url) : NULL),
+    : script_url((url != NULL) ? Utils::StrDup(url) : NULL),
       app_snapshot_(app_snapshot),
       resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
       kernel_buffer_size_(0),
       isolate_run_app_snapshot_(isolate_run_app_snapshot) {
   if (packages_file != NULL) {
-    packages_file_ = strdup(packages_file);
+    packages_file_ = Utils::StrDup(packages_file);
   }
 }
 
 IsolateGroupData::~IsolateGroupData() {
+  for (intptr_t i = 0; i < loading_units_.length(); i++) {
+    delete loading_units_[i];
+  }
   free(script_url);
-  script_url = NULL;
+  script_url = nullptr;
   free(packages_file_);
-  packages_file_ = NULL;
+  packages_file_ = nullptr;
   free(resolved_packages_config_);
-  resolved_packages_config_ = NULL;
-  kernel_buffer_ = NULL;
+  resolved_packages_config_ = nullptr;
+  kernel_buffer_ = nullptr;
   kernel_buffer_size_ = 0;
 }
 
@@ -40,7 +43,7 @@ IsolateData::IsolateData(IsolateGroupData* isolate_group_data)
       loader_(nullptr),
       packages_file_(nullptr) {
   if (isolate_group_data->packages_file_ != nullptr) {
-    packages_file_ = strdup(isolate_group_data->packages_file_);
+    packages_file_ = Utils::StrDup(isolate_group_data->packages_file_);
   }
 }
 

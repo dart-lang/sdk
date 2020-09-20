@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -345,7 +343,7 @@ abstract class int extends num {
    * and the result of that call is returned by [parse].
    */
   external static int parse(String source,
-      {int radix, @deprecated int onError(String source)});
+      {int? radix, @deprecated int onError(String source)?});
 
   /**
    * Parse [source] as a, possibly signed, integer literal and return its value.
@@ -354,5 +352,5 @@ abstract class int extends num {
    * similar call to [parse] would throw a [FormatException],
    * and the [source] must still not be `null`.
    */
-  external static int tryParse(String source, {int radix});
+  external static int? tryParse(String source, {int? radix});
 }

@@ -115,6 +115,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
+  api_flags.null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolateGroup(
@@ -630,6 +631,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
   } else {
     Dart_KernelCompilationResult compilation_result =
         KernelIsolate::CompileExpressionToKernel(
+            /* platform_kernel= */ nullptr, /* platform_kernel_size= */ 0,
             expr.ToCString(), param_names, Array::empty_array(),
             String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
             /* is_static= */ true);

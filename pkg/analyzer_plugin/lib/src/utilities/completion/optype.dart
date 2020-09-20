@@ -1135,7 +1135,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    if (identical(entity, node.expression)) {
+    if (identical(entity, node.expression) ||
+        (identical(entity, node.semicolon) && node.expression == null)) {
       optype.completionLocation = 'ReturnStatement_expression';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;

@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,16 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class InvalidUseOfNeverTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_binaryExpression_never_eqEq() async {
     await assertErrorsInCode(r'''
 void main(Never x) {
@@ -88,7 +77,7 @@ void main(Never? x) {
   x + (1 + 2);
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertBinaryExpression(
@@ -132,7 +121,7 @@ void main(Never? x) {
   x();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
   }
 
@@ -200,8 +189,7 @@ void main(Never? x) {
   x[0];
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertIndexExpression(
@@ -218,9 +206,7 @@ void main(Never? x) {
   x[0] += 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertIndexExpression(
@@ -239,8 +225,7 @@ void main(Never? x) {
   x[0] = 1 + 2;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertIndexExpression(
@@ -334,6 +319,10 @@ void main(Never x) {
 
     assertPostfixExpression(
       findNode.postfix('x++'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never',
       element: null,
       type: 'Never',
     );
@@ -345,11 +334,15 @@ void main(Never? x) {
   x++;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertPostfixExpression(
       findNode.postfix('x++'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never?',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never?',
       element: null,
       type: 'Never?',
     );
@@ -367,6 +360,10 @@ void main(Never x) {
 
     assertPrefixExpression(
       findNode.prefix('++x'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never',
       element: null,
       type: 'Never',
     );
@@ -378,11 +375,15 @@ void main(Never? x) {
   ++x;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
     ]);
 
     assertPrefixExpression(
       findNode.prefix('++x'),
+      readElement: findElement.parameter('x'),
+      readType: 'Never?',
+      writeElement: findElement.parameter('x'),
+      writeType: 'Never?',
       element: null,
       type: 'dynamic',
     );
@@ -397,7 +398,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'Never',
     );
   }
@@ -411,7 +413,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
+      readElement: objectElement.getGetter('hashCode'),
+      writeElement: null,
       type: 'Never',
     );
   }
@@ -427,14 +430,19 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
-      type: 'Never',
+      readElement: null,
+      writeElement: null,
+      type: 'dynamic',
     );
 
     assertAssignment(
       findNode.assignment('foo += 0'),
+      readElement: null,
+      readType: 'dynamic',
+      writeElement: null,
+      writeType: 'dynamic',
       operatorElement: null,
-      type: 'int',
+      type: 'dynamic',
     );
   }
 
@@ -447,7 +455,8 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
+      readElement: objectElement.getMethod('toString'),
+      writeElement: null,
       type: 'Never',
     );
   }
@@ -463,12 +472,17 @@ void main(Never x) {
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'Never',
     );
 
     assertAssignment(
       findNode.assignment('foo = 0'),
+      readElement: null,
+      readType: null,
+      writeElement: null,
+      writeType: 'dynamic',
       operatorElement: null,
       type: 'int',
     );
@@ -480,12 +494,13 @@ void main(Never? x) {
   x.foo;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+      error(CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
     ]);
 
     assertSimpleIdentifier(
       findNode.simple('foo'),
-      element: null,
+      readElement: null,
+      writeElement: null,
       type: 'dynamic',
     );
   }
@@ -499,7 +514,8 @@ void main(Never? x) {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
+      readElement: objectElement.getGetter('hashCode'),
+      writeElement: null,
       type: 'int',
     );
   }
@@ -513,14 +529,15 @@ void main(Never? x) {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
+      readElement: objectElement.getMethod('toString'),
+      writeElement: null,
       type: 'String Function()',
     );
   }
 }
 
 @reflectiveTest
-class InvalidUseOfNeverTest_Legacy extends DriverResolutionTest {
+class InvalidUseOfNeverTest_Legacy extends PubPackageResolutionTest {
   test_binaryExpression_eqEq() async {
     await assertNoErrorsInCode(r'''
 void main() {
@@ -541,13 +558,11 @@ void main() {
   }
 
   test_binaryExpression_plus() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   (throw '') + (1 + 2);
 }
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 27, 1),
-    ]);
+''');
 
     assertBinaryExpression(
       findNode.binary('+ ('),
@@ -582,10 +597,11 @@ void main() {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: elementMatcher(
+      readElement: elementMatcher(
         objectElement.getMethod('toString'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
+      writeElement: null,
       type: 'String Function()',
     );
   }
@@ -599,10 +615,11 @@ void main() {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: elementMatcher(
+      readElement: elementMatcher(
         objectElement.getGetter('hashCode'),
         isLegacy: isNullSafetySdkAndLegacyLibrary,
       ),
+      writeElement: null,
       type: 'int',
     );
   }

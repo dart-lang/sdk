@@ -68,7 +68,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return this.{self::Class::_#Class#lateGenericInstanceField};
   }
-  set lateGenericInstanceField(self::Class::T? #t4) → void {
+  set lateGenericInstanceField(generic-covariant-impl self::Class::T? #t4) → void {
     this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
   }

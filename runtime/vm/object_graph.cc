@@ -48,6 +48,8 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
     object_ids_ = nullptr;
   }
 
+  virtual bool trace_values_through_fields() const { return true; }
+
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
   // won't be in use while handling a service request (ObjectGraph's only use).
@@ -472,6 +474,8 @@ class InboundReferencesVisitor : public ObjectVisitor,
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
+  virtual bool trace_values_through_fields() const { return true; }
+
   intptr_t length() const { return length_; }
 
   virtual void VisitObject(ObjectPtr raw_obj) {
@@ -643,7 +647,7 @@ void HeapSnapshotWriter::Flush(bool last) {
   }
 
   Service::SendEventWithData(Service::heapsnapshot_stream.id(), "HeapSnapshot",
-                             kMetadataReservation, js.buffer()->buf(),
+                             kMetadataReservation, js.buffer()->buffer(),
                              js.buffer()->length(), buffer_, size_);
   buffer_ = nullptr;
   size_ = 0;
@@ -765,6 +769,8 @@ class Pass1Visitor : public ObjectVisitor,
         HandleVisitor(Thread::Current()),
         writer_(writer) {}
 
+  virtual bool trace_values_through_fields() const { return true; }
+
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
 
@@ -818,6 +824,8 @@ class Pass2Visitor : public ObjectVisitor,
         HandleVisitor(Thread::Current()),
         isolate_(thread()->isolate()),
         writer_(writer) {}
+
+  virtual bool trace_values_through_fields() const { return true; }
 
   void VisitObject(ObjectPtr obj) {
     if (obj->IsPseudoObject()) return;
@@ -982,7 +990,7 @@ class Pass2Visitor : public ObjectVisitor,
     writer_->WriteUnsigned(weak_persistent_handle->external_size());
     // Attempt to include a native symbol name.
     auto const name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
+        weak_persistent_handle->callback_address(), nullptr);
     writer_->WriteUtf8((name == nullptr) ? "Unknown native function" : name);
     if (name != nullptr) {
       NativeSymbolResolver::FreeSymbolName(name);
@@ -1169,35 +1177,6 @@ void HeapSnapshotWriter::Write() {
     // External properties.
     WriteUnsigned(external_property_count_);
     isolate()->group()->VisitWeakPersistentHandles(&visitor);
-  }
-
-  {
-    WriteUtf8("RSS");
-    WriteUnsigned(Service::CurrentRSS());
-
-    WriteUtf8("Dart Profiler Samples");
-    WriteUnsigned(Profiler::Size());
-
-    WriteUtf8("Dart Timeline Events");
-    WriteUnsigned(Timeline::recorder()->Size());
-
-    class WriteIsolateHeaps : public IsolateVisitor {
-     public:
-      explicit WriteIsolateHeaps(HeapSnapshotWriter* writer)
-          : writer_(writer) {}
-
-      virtual void VisitIsolate(Isolate* isolate) {
-        writer_->WriteUtf8(isolate->name());
-        writer_->WriteUnsigned((isolate->heap()->TotalCapacityInWords() +
-                                isolate->heap()->TotalExternalInWords()) *
-                               kWordSize);
-      }
-
-     private:
-      HeapSnapshotWriter* const writer_;
-    };
-    WriteIsolateHeaps visitor(this);
-    Isolate::VisitIsolates(&visitor);
   }
 
   ClearObjectIds();

@@ -11,7 +11,7 @@ import 'native_testing.dart';
 
 @Native("Node")
 class Node {
-  final parentNode;
+  get parentNode native;
 }
 
 makeNode(parent) native;

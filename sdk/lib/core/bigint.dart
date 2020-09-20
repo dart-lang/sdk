@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -37,7 +35,7 @@ abstract class BigInt implements Comparable<BigInt> {
    * Throws a [FormatException] if the [source] is not a valid integer literal,
    * optionally prefixed by a sign.
    */
-  external static BigInt parse(String source, {int radix});
+  external static BigInt parse(String source, {int? radix});
 
   /**
    * Parses [source] as a, possibly signed, integer literal and returns its
@@ -46,7 +44,7 @@ abstract class BigInt implements Comparable<BigInt> {
    * As [parse] except that this method returns `null` if the input is not
    * valid
    */
-  external static BigInt tryParse(String source, {int radix});
+  external static BigInt? tryParse(String source, {int? radix});
 
   /// Allocates a big integer from the provided [value] number.
   external factory BigInt.from(num value);

@@ -23,7 +23,6 @@ TypeTestingStubNamer::TypeTestingStubNamer()
     : lib_(Library::Handle()),
       klass_(Class::Handle()),
       type_(AbstractType::Handle()),
-      type_arguments_(TypeArguments::Handle()),
       string_(String::Handle()) {}
 
 const char* TypeTestingStubNamer::StubNameForType(
@@ -56,16 +55,18 @@ const char* TypeTestingStubNamer::StringifyType(
         OS::SCreate(Z, "%s_%s", curl, klass_.ScrubbedNameCString()));
 
     const intptr_t type_parameters = klass_.NumTypeParameters();
+    auto& type_arguments = TypeArguments::Handle();
     if (type.arguments() != TypeArguments::null() && type_parameters > 0) {
-      type_arguments_ = type.arguments();
-      ASSERT(type_arguments_.Length() >= type_parameters);
-      const intptr_t length = type_arguments_.Length();
+      type_arguments = type.arguments();
+      ASSERT(type_arguments.Length() >= type_parameters);
+      const intptr_t length = type_arguments.Length();
       for (intptr_t i = 0; i < type_parameters; ++i) {
-        type_ = type_arguments_.TypeAt(length - type_parameters + i);
+        type_ = type_arguments.TypeAt(length - type_parameters + i);
         concatenated =
             OS::SCreate(Z, "%s__%s", concatenated, StringifyType(type_));
       }
     }
+
     return concatenated;
   } else if (type.IsTypeParameter()) {
     string_ = TypeParameter::Cast(type).name();
@@ -91,10 +92,11 @@ const char* TypeTestingStubNamer::AssemblerSafeName(char* cname) {
 CodePtr TypeTestingStubGenerator::DefaultCodeForType(
     const AbstractType& type,
     bool lazy_specialize /* = true */) {
+  auto isolate = Isolate::Current();
+
   if (type.IsTypeRef()) {
-    return Isolate::Current()->null_safety()
-               ? StubCode::DefaultTypeTest().raw()
-               : StubCode::DefaultNullableTypeTest().raw();
+    return isolate->null_safety() ? StubCode::DefaultTypeTest().raw()
+                                  : StubCode::DefaultNullableTypeTest().raw();
   }
 
   // During bootstrapping we have no access to stubs yet, so we'll just return
@@ -109,8 +111,16 @@ CodePtr TypeTestingStubGenerator::DefaultCodeForType(
   if (type.IsTopTypeForSubtyping()) {
     return StubCode::TopTypeTypeTest().raw();
   }
+  if (type.IsTypeParameter()) {
+    const bool nullable = Instance::NullIsAssignableTo(type);
+    if (nullable) {
+      return StubCode::NullableTypeParameterTypeTest().raw();
+    } else {
+      return StubCode::TypeParameterTypeTest().raw();
+    }
+  }
 
-  if (type.IsType() || type.IsTypeParameter()) {
+  if (type.IsType()) {
     const bool should_specialize = !FLAG_precompiled_mode && lazy_specialize;
     const bool nullable = Instance::NullIsAssignableTo(type);
     if (should_specialize) {
@@ -144,7 +154,7 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
   ASSERT(StubCode::HasBeenInitialized());
 
-  if (type.IsTypeRef()) {
+  if (type.IsTypeRef() || type.IsTypeParameter()) {
     return TypeTestingStubGenerator::DefaultCodeForType(
         type, /*lazy_specialize=*/false);
   }
@@ -226,8 +236,8 @@ CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   //   a) We allocate an instructions object, which might cause us to
   //      temporarily flip page protections from (RX -> RW -> RX).
   //
-  thread->isolate_group()->RunWithStoppedMutators(
-      install_code_fun, install_code_fun, /*use_force_growth=*/true);
+  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
+                                                  /*use_force_growth=*/true);
 
   Code::NotifyCodeObservers(name, code, /*optimized=*/false);
 
@@ -267,6 +277,14 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
     compiler::Label continue_checking;
     __ CompareImmediate(TTSInternalRegs::kScratchReg, kClosureCid);
     __ BranchIf(NOT_EQUAL, &continue_checking);
+    __ Ret();
+    __ Bind(&continue_checking);
+
+  } else if (type.IsObjectType()) {
+    ASSERT(type.IsNonNullable() && Isolate::Current()->null_safety());
+    compiler::Label continue_checking;
+    __ CompareObject(TypeTestABI::kInstanceReg, Object::null_object());
+    __ BranchIf(EQUAL, &continue_checking);
     __ Ret();
     __ Bind(&continue_checking);
 
@@ -477,7 +495,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     // ("Right Legacy", "Right Nullable" rules).
     if (Isolate::Current()->null_safety() && !type_arg.IsNullable() &&
         !type_arg.IsLegacy()) {
-      compiler::Label skip_nullable_check;
       // Nullable type is not a subtype of non-nullable type.
       // TODO(dartbug.com/40736): Allocate a register for instance type argument
       // and avoid reloading it.
@@ -489,10 +506,6 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
       __ CompareTypeNullabilityWith(TTSInternalRegs::kScratchReg,
                                     compiler::target::Nullability::kNullable);
       __ BranchIf(EQUAL, check_failed);
-
-      if (type_arg.IsTypeParameter()) {
-        __ Bind(&skip_nullable_check);
-      }
     }
   }
 
@@ -511,8 +524,8 @@ void RegisterTypeArgumentsUse(const Function& function,
   //      type_arguments <- Constant(#TypeArguments: [ ... ])
   //
   //   Case b)
-  //      type_arguments <- InstantiateTypeArguments(
-  //          <type-expr-with-parameters>, ita, fta)
+  //      type_arguments <- InstantiateTypeArguments(ita, fta, uta)
+  //      (where uta may or may not be a constant TypeArguments object)
   //
   //   Case c)
   //      type_arguments <- LoadField(vx)
@@ -531,8 +544,10 @@ void RegisterTypeArgumentsUse(const Function& function,
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, type_arguments);
   } else if (InstantiateTypeArgumentsInstr* instantiate =
                  type_arguments->AsInstantiateTypeArguments()) {
-    const TypeArguments& ta = instantiate->type_arguments();
-    ASSERT(!ta.IsNull());
+    ASSERT(instantiate->type_arguments()->BindsToConstant());
+    ASSERT(!instantiate->type_arguments()->BoundConstant().IsNull());
+    const auto& ta =
+        TypeArguments::Cast(instantiate->type_arguments()->BoundConstant());
     type_usage_info->UseTypeArgumentsInInstanceCreation(klass, ta);
   } else if (LoadFieldInstr* load_field = type_arguments->AsLoadField()) {
     Definition* instance = load_field->instance()->definition();

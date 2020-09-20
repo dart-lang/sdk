@@ -15,7 +15,6 @@ import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'js_model/locals.dart';
 import 'kernel/dart2js_target.dart';
-import 'options.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -111,6 +110,9 @@ abstract class CommonElements {
 
   /// The package:js library.
   LibraryEntity get packageJsLibrary;
+
+  /// The dart:_js_annotations library.
+  LibraryEntity get dartJsAnnotationsLibrary;
 
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
@@ -209,15 +211,6 @@ abstract class CommonElements {
   ///
   /// If no type argument is provided, the canonical raw type is returned.
   InterfaceType streamType([DartType elementType]);
-
-  /// Returns `true` if [element] is a superclass of `String` or `num`.
-  bool isNumberOrStringSupertype(ClassEntity element);
-
-  /// Returns `true` if [element] is a superclass of `String`.
-  bool isStringOnlySupertype(ClassEntity element);
-
-  /// Returns `true` if [element] is a superclass of `List`.
-  bool isListSupertype(ClassEntity element);
 
   InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
@@ -349,8 +342,6 @@ abstract class CommonElements {
 
   ClassEntity get constSetLiteralClass;
 
-  ClassEntity get typeVariableClass;
-
   ClassEntity get jsInvocationMirrorClass;
 
   ClassEntity get requiredSentinelClass;
@@ -378,8 +369,6 @@ abstract class CommonElements {
 
   /// The class for native annotations defined in dart:_js_helper.
   ClassEntity get nativeAnnotationClass;
-
-  ConstructorEntity get typeVariableConstructor;
 
   FunctionEntity get assertTest;
 
@@ -414,13 +403,13 @@ abstract class CommonElements {
 
   FunctionEntity get exceptionUnwrapper;
 
-  FunctionEntity get throwRuntimeError;
-
   FunctionEntity get throwUnsupportedError;
 
   FunctionEntity get throwTypeError;
 
-  FunctionEntity get throwAbstractClassInstantiationError;
+  /// Recognizes the `checkConcurrentModificationError` helper without needing
+  /// it to be resolved.
+  bool isCheckConcurrentModificationError(MemberEntity member);
 
   FunctionEntity get checkConcurrentModificationError;
 
@@ -435,38 +424,6 @@ abstract class CommonElements {
   FunctionEntity get closureConverter;
 
   FunctionEntity get traceFromException;
-
-  FunctionEntity get setRuntimeTypeInfo;
-
-  FunctionEntity get getRuntimeTypeInfo;
-
-  FunctionEntity get getTypeArgumentByIndex;
-
-  FunctionEntity get computeSignature;
-
-  FunctionEntity get getRuntimeTypeArguments;
-
-  FunctionEntity get getRuntimeTypeArgument;
-
-  FunctionEntity get getRuntimeTypeArgumentIntercepted;
-
-  FunctionEntity get assertIsSubtype;
-
-  FunctionEntity get checkSubtype;
-
-  FunctionEntity get assertSubtype;
-
-  FunctionEntity get subtypeCast;
-
-  FunctionEntity get functionTypeTest;
-
-  FunctionEntity get futureOrTest;
-
-  FunctionEntity get checkSubtypeOfRuntimeType;
-
-  FunctionEntity get assertSubtypeOfRuntimeType;
-
-  FunctionEntity get subtypeOfRuntimeTypeCast;
 
   FunctionEntity get checkDeferredIsLoaded;
 
@@ -484,17 +441,17 @@ abstract class CommonElements {
 
   FunctionEntity get defineProperty;
 
+  FunctionEntity get throwLateInitializationError;
+
   bool isExtractTypeArguments(FunctionEntity member);
 
   ClassEntity getInstantiationClass(int typeArgumentCount);
 
   FunctionEntity getInstantiateFunction(int typeArgumentCount);
 
-  FunctionEntity get instantiatedGenericFunctionType;
-
-  FunctionEntity get extractFunctionTypeObjectFromInternal;
-
   // From dart:_rti
+
+  FunctionEntity get setRuntimeTypeInfo;
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
@@ -572,13 +529,35 @@ abstract class CommonElements {
       ClassEntity cls, NativeBasicData nativeBasicData);
 
   // From package:js
-  FunctionEntity get jsAllowInterop;
+  FunctionEntity get jsAllowInterop1;
+
+  // From dart:_js_annotations;
+  FunctionEntity get jsAllowInterop2;
+
+  /// Returns `true` if [function] is `allowInterop`.
+  ///
+  /// This function can come from either `package:js` or `dart:_js_annotations`.
+  bool isJsAllowInterop(FunctionEntity function);
 }
 
 abstract class KCommonElements implements CommonElements {
   // From package:js
-  ClassEntity get jsAnnotationClass;
-  ClassEntity get jsAnonymousClass;
+  ClassEntity get jsAnnotationClass1;
+  ClassEntity get jsAnonymousClass1;
+
+  // From dart:_js_annotations
+  ClassEntity get jsAnnotationClass2;
+  ClassEntity get jsAnonymousClass2;
+
+  /// Returns `true` if [cls] is a @JS() annotation.
+  ///
+  /// The class can come from either `package:js` or `dart:_js_annotations`.
+  bool isJsAnnotationClass(ClassEntity cls);
+
+  /// Returns `true` if [cls] is an @anonymous annotation.
+  ///
+  /// The class can come from either `package:js` or `dart:_js_annotations`.
+  bool isJsAnonymousClass(ClassEntity cls);
 
   ClassEntity get pragmaClass;
   FieldEntity get pragmaClassNameField;
@@ -609,11 +588,12 @@ abstract class JCommonElements implements CommonElements {
   /// compilation.
   bool isUnnamedListConstructor(ConstructorEntity element);
 
-  /// Returns `true` if [element] is the 'filled' constructor of `List`.
+  /// Returns `true` if [element] is the named constructor of `List`,
+  /// e.g. `List.of`.
   ///
   /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
-  bool isFilledListConstructor(ConstructorEntity element);
+  bool isNamedListConstructor(String name, ConstructorEntity element);
 
   bool isDefaultEqualityImplementation(MemberEntity element);
 
@@ -676,9 +656,8 @@ class CommonElementsImpl
   @override
   final DartTypes dartTypes;
   final ElementEnvironment _env;
-  final CompilerOptions _options;
 
-  CommonElementsImpl(this.dartTypes, this._env, this._options);
+  CommonElementsImpl(this.dartTypes, this._env);
 
   ClassEntity _objectClass;
   @override
@@ -826,6 +805,11 @@ class CommonElementsImpl
   LibraryEntity get packageJsLibrary =>
       _packageJsLibrary ??= _env.lookupLibrary(Uris.package_js);
 
+  LibraryEntity _dartJsAnnotationsLibrary;
+  @override
+  LibraryEntity get dartJsAnnotationsLibrary => _dartJsAnnotationsLibrary ??=
+      _env.lookupLibrary(Uris.dart__js_annotations);
+
   ClassEntity _typedDataClass;
   @override
   ClassEntity get typedDataClass =>
@@ -898,8 +882,8 @@ class CommonElementsImpl
   /// This will not resolve the constructor if it hasn't been seen yet during
   /// compilation.
   @override
-  bool isFilledListConstructor(ConstructorEntity element) =>
-      element.name == 'filled' && element.enclosingClass == listClass;
+  bool isNamedListConstructor(String name, ConstructorEntity element) =>
+      element.name == name && element.enclosingClass == listClass;
 
   @override
   DynamicType get dynamicType => _env.dynamicType;
@@ -991,19 +975,6 @@ class CommonElementsImpl
     }
     return _createInterfaceType(streamClass, [elementType]);
   }
-
-  @override
-  bool isNumberOrStringSupertype(ClassEntity element) {
-    return element == _findClass(coreLibrary, 'Comparable', required: false);
-  }
-
-  @override
-  bool isStringOnlySupertype(ClassEntity element) {
-    return element == _findClass(coreLibrary, 'Pattern', required: false);
-  }
-
-  @override
-  bool isListSupertype(ClassEntity element) => element == iterableClass;
 
   ClassEntity _findClass(LibraryEntity library, String name,
       {bool required: true}) {
@@ -1483,21 +1454,56 @@ class CommonElementsImpl
       _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
 
   // From dart:js
-  FunctionEntity _jsAllowInterop;
+  FunctionEntity _jsAllowInterop1;
   @override
-  FunctionEntity get jsAllowInterop => _jsAllowInterop ??=
+  FunctionEntity get jsAllowInterop1 => _jsAllowInterop1 ??=
       _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
 
-  // From package:js
-  ClassEntity _jsAnnotationClass;
+  // From dart:_js_annotations
+  FunctionEntity _jsAllowInterop2;
   @override
-  ClassEntity get jsAnnotationClass => _jsAnnotationClass ??=
+  FunctionEntity get jsAllowInterop2 => _jsAllowInterop2 ??= _findLibraryMember(
+      dartJsAnnotationsLibrary, 'allowInterop',
+      required: false);
+
+  @override
+  bool isJsAllowInterop(FunctionEntity function) {
+    return function == jsAllowInterop1 || function == jsAllowInterop2;
+  }
+
+  // From package:js
+  ClassEntity _jsAnnotationClass1;
+  @override
+  ClassEntity get jsAnnotationClass1 => _jsAnnotationClass1 ??=
       _findClass(packageJsLibrary, 'JS', required: false);
 
-  ClassEntity _jsAnonymousClass;
+  // From dart:_js_annotations
+  ClassEntity _jsAnnotationClass2;
   @override
-  ClassEntity get jsAnonymousClass => _jsAnonymousClass ??=
+  ClassEntity get jsAnnotationClass2 => _jsAnnotationClass2 ??=
+      _findClass(dartJsAnnotationsLibrary, 'JS', required: false);
+
+  @override
+  bool isJsAnnotationClass(ClassEntity cls) {
+    return cls == jsAnnotationClass1 || cls == jsAnnotationClass2;
+  }
+
+  // From dart:js
+  ClassEntity _jsAnonymousClass1;
+  @override
+  ClassEntity get jsAnonymousClass1 => _jsAnonymousClass1 ??=
       _findClass(packageJsLibrary, '_Anonymous', required: false);
+
+  // From dart:_js_annotations
+  ClassEntity _jsAnonymousClass2;
+  @override
+  ClassEntity get jsAnonymousClass2 => _jsAnonymousClass2 ??=
+      _findClass(dartJsAnnotationsLibrary, '_Anonymous', required: false);
+
+  @override
+  bool isJsAnonymousClass(ClassEntity cls) {
+    return cls == jsAnonymousClass1 || cls == jsAnonymousClass2;
+  }
 
   @override
   FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
@@ -1519,9 +1525,8 @@ class CommonElementsImpl
 
   ClassEntity _typeLiteralClass;
   @override
-  ClassEntity get typeLiteralClass => _typeLiteralClass ??= _options.useNewRti
-      ? _findRtiClass('_Type')
-      : _findHelperClass('TypeImpl');
+  ClassEntity get typeLiteralClass =>
+      _typeLiteralClass ??= _findRtiClass('_Type');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1534,11 +1539,6 @@ class CommonElementsImpl
   @override
   ClassEntity get constSetLiteralClass =>
       _constSetLiteralClass ??= unmodifiableSetClass;
-
-  ClassEntity _typeVariableClass;
-  @override
-  ClassEntity get typeVariableClass =>
-      _typeVariableClass ??= _findHelperClass('TypeVariable');
 
   ClassEntity _pragmaClass;
   @override
@@ -1609,11 +1609,6 @@ class CommonElementsImpl
   ClassEntity get nativeAnnotationClass =>
       _nativeAnnotationClass ??= _findHelperClass('Native');
 
-  ConstructorEntity _typeVariableConstructor;
-  @override
-  ConstructorEntity get typeVariableConstructor => _typeVariableConstructor ??=
-      _env.lookupConstructor(typeVariableClass, '');
-
   FunctionEntity _assertTest;
   @override
   FunctionEntity get assertTest =>
@@ -1680,19 +1675,19 @@ class CommonElementsImpl
       _findHelperFunction('unwrapException');
 
   @override
-  FunctionEntity get throwRuntimeError =>
-      _findHelperFunction('throwRuntimeError');
-
-  @override
   FunctionEntity get throwUnsupportedError =>
       _findHelperFunction('throwUnsupportedError');
 
   @override
-  FunctionEntity get throwTypeError => _findHelperFunction('throwTypeError');
+  FunctionEntity get throwTypeError => _findRtiFunction('throwTypeError');
 
   @override
-  FunctionEntity get throwAbstractClassInstantiationError =>
-      _findHelperFunction('throwAbstractClassInstantiationError');
+  bool isCheckConcurrentModificationError(MemberEntity member) {
+    return member.name == 'checkConcurrentModificationError' &&
+        member.isFunction &&
+        member.isTopLevel &&
+        member.library == jsHelperLibrary;
+  }
 
   FunctionEntity _cachedCheckConcurrentModificationError;
   @override
@@ -1748,65 +1743,6 @@ class CommonElementsImpl
       _findHelperFunction('getTraceFromException');
 
   @override
-  FunctionEntity get setRuntimeTypeInfo =>
-      _findHelperFunction('setRuntimeTypeInfo');
-
-  @override
-  FunctionEntity get getRuntimeTypeInfo =>
-      _findHelperFunction('getRuntimeTypeInfo');
-
-  @override
-  FunctionEntity get getTypeArgumentByIndex =>
-      _findHelperFunction('getTypeArgumentByIndex');
-
-  @override
-  FunctionEntity get computeSignature =>
-      _findHelperFunction('computeSignature');
-
-  @override
-  FunctionEntity get getRuntimeTypeArguments =>
-      _findHelperFunction('getRuntimeTypeArguments');
-
-  @override
-  FunctionEntity get getRuntimeTypeArgument =>
-      _findHelperFunction('getRuntimeTypeArgument');
-
-  @override
-  FunctionEntity get getRuntimeTypeArgumentIntercepted =>
-      _findHelperFunction('getRuntimeTypeArgumentIntercepted');
-
-  @override
-  FunctionEntity get assertIsSubtype => _findHelperFunction('assertIsSubtype');
-
-  @override
-  FunctionEntity get checkSubtype => _findHelperFunction('checkSubtype');
-
-  @override
-  FunctionEntity get assertSubtype => _findHelperFunction('assertSubtype');
-
-  @override
-  FunctionEntity get subtypeCast => _findHelperFunction('subtypeCast');
-
-  @override
-  FunctionEntity get functionTypeTest =>
-      _findHelperFunction('functionTypeTest');
-
-  @override
-  FunctionEntity get futureOrTest => _findHelperFunction('futureOrTest');
-
-  @override
-  FunctionEntity get checkSubtypeOfRuntimeType =>
-      _findHelperFunction('checkSubtypeOfRuntimeType');
-
-  @override
-  FunctionEntity get assertSubtypeOfRuntimeType =>
-      _findHelperFunction('assertSubtypeOfRuntimeType');
-
-  @override
-  FunctionEntity get subtypeOfRuntimeTypeCast =>
-      _findHelperFunction('subtypeOfRuntimeTypeCast');
-
-  @override
   FunctionEntity get checkDeferredIsLoaded =>
       _findHelperFunction('checkDeferredIsLoaded');
 
@@ -1815,9 +1751,7 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType => _options.useNewRti
-      ? _findRtiFunction('createRuntimeType')
-      : _findHelperFunction('createRuntimeType');
+  FunctionEntity get createRuntimeType => _findRtiFunction('createRuntimeType');
 
   @override
   FunctionEntity get fallThroughError =>
@@ -1844,6 +1778,10 @@ class CommonElementsImpl
 
   @override
   FunctionEntity get defineProperty => _findHelperFunction('defineProperty');
+
+  @override
+  FunctionEntity get throwLateInitializationError =>
+      _findHelperFunction('throwLateInitializationError');
 
   @override
   bool isExtractTypeArguments(FunctionEntity member) {
@@ -1875,14 +1813,6 @@ class CommonElementsImpl
   }
 
   @override
-  FunctionEntity get instantiatedGenericFunctionType =>
-      _findHelperFunction('instantiatedGenericFunctionType');
-
-  @override
-  FunctionEntity get extractFunctionTypeObjectFromInternal =>
-      _findHelperFunction('extractFunctionTypeObjectFromInternal');
-
-  @override
   bool isInstantiationClass(ClassEntity cls) {
     return cls.library == _jsHelperLibrary &&
         cls.name != 'Instantiation' &&
@@ -1895,6 +1825,11 @@ class CommonElementsImpl
 
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
+
+  FunctionEntity _setRuntimeTypeInfo;
+  @override
+  FunctionEntity get setRuntimeTypeInfo =>
+      _setRuntimeTypeInfo ??= _findRtiFunction('setRuntimeTypeInfo');
 
   FunctionEntity _findType;
   @override
@@ -2333,6 +2268,15 @@ abstract class ElementEnvironment {
   /// Calls [f] for each supertype of [cls].
   void forEachSupertype(ClassEntity cls, void f(InterfaceType supertype));
 
+  /// Calls [f] for each SuperClass of [cls].
+  void forEachSuperClass(ClassEntity cls, void f(ClassEntity superClass)) {
+    for (var superClass = getSuperClass(cls);
+        superClass != null;
+        superClass = getSuperClass(superClass)) {
+      f(superClass);
+    }
+  }
+
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
@@ -2386,6 +2330,23 @@ abstract class ElementEnvironment {
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);
+
+  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
+  /// `null` otherwise.
+  ///
+  /// The 'effective' mixin class is the class from which members are mixed in.
+  /// Normally this is the mixin class itself, but not if the mixin class itself
+  /// is a mixin application.
+  ///
+  /// Consider this hierarchy:
+  ///
+  ///     class A {}
+  ///     class B = Object with A {}
+  ///     class C = Object with B {}
+  ///
+  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
+  /// _effective_ mixin class of both is `A`.
+  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 }
 
 abstract class KElementEnvironment extends ElementEnvironment {
@@ -2426,23 +2387,6 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// Returns `true` if [cls] is a mixin application that mixes in methods with
   /// super calls.
   bool isSuperMixinApplication(ClassEntity cls);
-
-  /// Returns the 'effective' mixin class if [cls] is a mixin application, and
-  /// `null` otherwise.
-  ///
-  /// The 'effective' mixin class is the class from which members are mixed in.
-  /// Normally this is the mixin class itself, but not if the mixin class itself
-  /// is a mixin application.
-  ///
-  /// Consider this hierarchy:
-  ///
-  ///     class A {}
-  ///     class B = Object with A {}
-  ///     class C = Object with B {}
-  ///
-  /// The mixin classes of `B` and `C` are `A` and `B`, respectively, but the
-  /// _effective_ mixin class of both is `A`.
-  ClassEntity getEffectiveMixinClass(ClassEntity cls);
 
   /// The default type of the [typeVariable].
   ///

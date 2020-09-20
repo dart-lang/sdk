@@ -123,6 +123,7 @@ Future main(List<String> args) async {
     const bool useGlobalTypeFlowAnalysis = true;
     const bool enableAsserts = false;
     const bool useProtobufAwareTreeShaker = true;
+    const bool useProtobufAwareTreeShakerV2 = false;
     final nopErrorDetector = ErrorDetector();
     runGlobalTransformations(
       target,
@@ -130,6 +131,7 @@ Future main(List<String> args) async {
       useGlobalTypeFlowAnalysis,
       enableAsserts,
       useProtobufAwareTreeShaker,
+      useProtobufAwareTreeShakerV2,
       nopErrorDetector,
     );
   } else {

@@ -67,12 +67,16 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -112,12 +116,16 @@ class CombinatorIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -152,8 +160,9 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
+      // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
     }
     return identifier;
   }
@@ -189,12 +198,16 @@ class DottedNameIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -224,12 +237,16 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -250,15 +267,21 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-        identifier, codes.templateExpectedIdentifier);
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         isOneOfOrEof(identifier, const [',', '}'])) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, codes.templateExpectedIdentifier);
       return parser.rewriter.insertSyntheticIdentifier(token);
     } else if (!identifier.isKeywordOrIdentifier) {
+      parser.reportRecoverableErrorWithToken(
+          identifier, codes.templateExpectedIdentifier);
       // When in doubt, consume the token to ensure we make progress
       // but insert a synthetic identifier to satisfy listeners.
       return parser.rewriter.insertSyntheticIdentifier(identifier);
+    } else {
+      // Use the keyword as the identifier.
+      parser.reportRecoverableErrorWithToken(
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
     }
     return identifier;
   }
@@ -296,16 +319,20 @@ class ExpressionIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-        identifier, codes.templateExpectedIdentifier);
+    Token reportErrorAt = identifier;
     if (optional(r'$', token) &&
         identifier.isKeyword &&
         identifier.next.kind == STRING_TOKEN) {
       // Keyword used as identifier in string interpolation
+      parser.reportRecoverableErrorWithToken(
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
       return identifier;
     } else if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
         if (isContinuation || !isOneOfOrEof(identifier, const ['as', 'is'])) {
+          // Use the keyword as the identifier.
+          parser.reportRecoverableErrorWithToken(
+              identifier, codes.templateExpectedIdentifierButGotKeyword);
           return identifier;
         }
       } else if (!identifier.isOperator &&
@@ -316,6 +343,10 @@ class ExpressionIdentifierContext extends IdentifierContext {
         identifier = token.next;
       }
     }
+
+    parser.reportRecoverableErrorWithToken(
+        reportErrorAt, codes.templateExpectedIdentifier);
+
     // Insert a synthetic identifier to satisfy listeners.
     return parser.rewriter.insertSyntheticIdentifier(token);
   }
@@ -337,6 +368,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
     // Recovery
     if (isOneOfOrEof(identifier, const [';', '=', ',', '}']) ||
         looksLikeStartOfNextClassMember(identifier)) {
+      // TODO(jensj): Why aren't an error reported here?
       return parser.insertSyntheticIdentifier(token, this);
     } else if (!identifier.isKeywordOrIdentifier) {
       // When in doubt, consume the token to ensure we make progress
@@ -345,8 +377,9 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
           message: codes.templateExpectedIdentifier.withArguments(identifier),
           messageOnToken: identifier);
     } else {
+      // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
       return identifier;
     }
   }
@@ -360,13 +393,13 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
       return identifier;
     }
     // If not recovered, recover as normal.
-    if (!isRecovered || !token.isKeywordOrIdentifier) {
+    if (!isRecovered || !identifier.isKeywordOrIdentifier) {
       return ensureIdentifier(token, parser);
     }
 
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
-        identifier, codes.templateExpectedIdentifier);
+        identifier, codes.templateExpectedIdentifierButGotKeyword);
     return identifier;
   }
 }
@@ -425,12 +458,16 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -469,12 +506,16 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -528,12 +569,16 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -560,12 +605,16 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -590,12 +639,16 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -644,12 +697,16 @@ class LibraryIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -677,12 +734,16 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -719,12 +780,16 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -768,8 +833,9 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
           message: codes.templateExpectedIdentifier.withArguments(identifier),
           messageOnToken: identifier);
     } else {
+      // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
+          identifier, codes.templateExpectedIdentifierButGotKeyword);
       return identifier;
     }
   }
@@ -783,13 +849,13 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return identifier;
     }
     // If not recovered, recover as normal.
-    if (!isRecovered || !token.isKeywordOrIdentifier) {
+    if (!isRecovered || !identifier.isKeywordOrIdentifier) {
       return ensureIdentifier(token, parser);
     }
 
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
-        identifier, codes.templateExpectedIdentifier);
+        identifier, codes.templateExpectedIdentifierButGotKeyword);
     return identifier;
   }
 }
@@ -813,12 +879,16 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -858,12 +928,16 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -883,13 +957,13 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
       }
     }
     // If not recovered, recover as normal.
-    if (!isRecovered || !token.isKeywordOrIdentifier) {
+    if (!isRecovered || !identifier.isKeywordOrIdentifier) {
       return ensureIdentifier(token, parser);
     }
 
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
-        identifier, codes.templateExpectedIdentifier);
+        identifier, codes.templateExpectedIdentifierButGotKeyword);
     return identifier;
   }
 }
@@ -907,7 +981,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     if (identifier.type.isPseudo) {
       if (optional('Function', identifier)) {
         parser.reportRecoverableErrorWithToken(
-            identifier, codes.templateExpectedIdentifier);
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
       return identifier;
     }
@@ -923,12 +997,16 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(token, this,
           message: codes.templateExpectedIdentifier.withArguments(identifier));
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;
@@ -942,19 +1020,19 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     if (identifier.type.isPseudo) {
       if (optional('Function', identifier)) {
         parser.reportRecoverableErrorWithToken(
-            identifier, codes.templateExpectedIdentifier);
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
       return identifier;
     }
 
     // If not recovered, recover as normal.
-    if (!isRecovered || !token.isKeywordOrIdentifier) {
+    if (!isRecovered || !identifier.isKeywordOrIdentifier) {
       return ensureIdentifier(token, parser);
     }
 
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
-        identifier, codes.templateExpectedIdentifier);
+        identifier, codes.templateExpectedIdentifierButGotKeyword);
     return identifier;
   }
 }
@@ -1045,12 +1123,16 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
       parser.reportRecoverableErrorWithToken(
           identifier, codes.templateBuiltInIdentifierInDeclaration);
     } else {
-      parser.reportRecoverableErrorWithToken(
-          identifier, codes.templateExpectedIdentifier);
       if (!identifier.isKeywordOrIdentifier) {
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifier);
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
         identifier = parser.rewriter.insertSyntheticIdentifier(identifier);
+      } else {
+        // Use the keyword as the identifier.
+        parser.reportRecoverableErrorWithToken(
+            identifier, codes.templateExpectedIdentifierButGotKeyword);
       }
     }
     return identifier;

@@ -8,12 +8,17 @@
 set -e
 
 prepareOnly=false
+leakTest=false
 
 REMAINING_ARGS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     --prepareOnly|--prepare-only|--prepare_only)
       prepareOnly=true
+      shift
+      ;;
+    --leakTest|--leak-test|--leak_test)
+      leakTest=true
       shift
       ;;
     *)
@@ -27,6 +32,8 @@ set -- "${REMAINING_ARGS[@]}"
 
 if $prepareOnly; then
   echo "Will prepare only!"
+elif $leakTest; then
+  echo "Will run leak test"
 fi
 
 checkout=$(pwd)
@@ -81,7 +88,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --nnbd-agnostic \
     --single-root-scheme=org-dartlang-sdk \
     --single-root-base=$checkout/ \
-    org-dartlang-sdk:///sdk_nnbd/lib/libraries.json \
+    org-dartlang-sdk:///sdk/lib/libraries.json \
     vm_outline_strong.dill \
     vm_platform_strong.dill \
     vm_outline_strong.dill
@@ -106,6 +113,11 @@ if $prepareOnly; then
   echo "Preparations complete!"
   echo "Flutter is now in $tmpdir/flutter and the patched sdk in $tmpdir/flutter_patched_sdk"
   echo "You can run the test with $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk"
+elif $leakTest; then
+  $dart \
+      --enable-asserts \
+      pkg/front_end/test/flutter_gallery_leak_tester.dart \
+      --path=$tmpdir
 else
   $dart \
       --enable-asserts \

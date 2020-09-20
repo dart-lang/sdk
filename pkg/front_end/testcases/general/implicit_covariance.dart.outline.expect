@@ -1,0 +1,69 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    ;
+  abstract method foo(generic-covariant-impl self::A::T* x) → dynamic;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B<T extends core::Object* = dynamic> extends core::Object implements self::A<self::B::T*> {
+  synthetic constructor •() → self::B<self::B::T*>*
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    ;
+  method foo(core::num* x) → dynamic
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _D&C&B<T extends core::num* = core::num*> = self::C with self::B<self::_D&C&B::T*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_D&C&B<self::_D&C&B::T*>*
+    : super self::C::•()
+    ;
+  forwarding-stub method foo(generic-covariant-impl core::num* x) → dynamic
+    return super.{self::C::foo}(x);
+}
+class D<T extends core::num* = core::num*> extends self::_D&C&B<self::D::T*> {
+  synthetic constructor •() → self::D<self::D::T*>*
+    ;
+}
+class E<T extends core::num* = core::num*> = self::C with self::B<self::E::T*> {
+  synthetic constructor •() → self::E<self::E::T*>*
+    : super self::C::•()
+    ;
+  forwarding-stub method foo(generic-covariant-impl core::num* x) → dynamic
+    return super.{self::C::foo}(x);
+}
+static method main() → dynamic
+  ;

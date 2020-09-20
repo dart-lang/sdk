@@ -4,18 +4,17 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|prod:nnbd-off.class: I1:*/
 class I1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: I2:checkedInstance*/
+/*spec.class: I2:checkedInstance*/
 class I2 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checks=[$isI2],instance*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A:checks=[],instance*/
+/*spec.class: A:checks=[$isI2],instance*/
+/*prod.class: A:checks=[],instance*/
 class A implements I1, I2 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B:checks=[$isI2],instance*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B:checks=[],instance*/
+/*spec.class: B:checks=[$isI2],instance*/
+/*prod.class: B:checks=[],instance*/
 class B implements I1, I2 {}
 
 @pragma('dart2js:noInline')

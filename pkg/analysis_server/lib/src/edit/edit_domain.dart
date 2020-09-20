@@ -15,11 +15,13 @@ import 'package:analysis_server/src/edit/edit_dartfix.dart' show EditDartFix;
 import 'package:analysis_server/src/edit/fix/dartfix_info.dart' show allFixes;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
-import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide AnalysisError, Element;
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
@@ -27,7 +29,7 @@ import 'package:analysis_server/src/services/correction/fix/dart/top_level_decla
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -38,15 +40,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-// ignore: deprecated_member_use
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/library_context.dart'
-    show LibraryCycleLinkException;
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' as engine;
@@ -91,6 +91,36 @@ class EditDomainHandler extends AbstractRequestHandler {
     refactoringWorkspace =
         RefactoringWorkspace(server.driverMap.values, searchEngine);
     _newRefactoringManager();
+  }
+
+  Future bulkFixes(Request request) async {
+    //
+    // Compute bulk fixes
+    //
+    try {
+      var params = EditBulkFixesParams.fromRequest(request);
+      for (var file in params.included) {
+        if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+          return;
+        }
+      }
+
+      var paths = <String>[];
+      for (var include in params.included) {
+        var resource = server.resourceProvider.getResource(include);
+        resource.collectDartFilePaths(paths);
+      }
+
+      var workspace = DartChangeWorkspace(server.currentSessions);
+      var processor = BulkFixProcessor(workspace);
+      var changeBuilder = await processor.fixErrorsInLibraries(paths);
+      var response = EditBulkFixesResult(changeBuilder.sourceChange.edits)
+          .toResponse(request.id);
+      server.sendResponse(response);
+    } catch (exception, stackTrace) {
+      server.sendServerErrorNotification('Exception while getting bulk fixes',
+          CaughtException(exception, stackTrace), stackTrace);
+    }
   }
 
   Future dartfix(Request request) async {
@@ -357,6 +387,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
+      } else if (requestName == EDIT_REQUEST_BULK_FIXES) {
+        bulkFixes(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_REQUEST_GET_DARTFIX_INFO) {
         return getDartfixInfo(request);
       } else if (requestName == EDIT_REQUEST_GET_FIXES) {
@@ -502,7 +535,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // do organize
-    var sorter = DirectiveOrganizer(code, unit, errors);
+    var sorter = ImportOrganizer(code, unit, errors);
     var edits = sorter.organize();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(
@@ -619,8 +652,7 @@ offset: $offset
 error: $error
 error.errorCode: ${error.errorCode}
 ''';
-            // TODO(scheglov) Use CaughtExceptionWithFiles when patch changed.
-            throw LibraryCycleLinkException(exception, stackTrace, {
+            throw CaughtExceptionWithFiles(exception, stackTrace, {
               file: result.content,
               'parameters': parametersFile,
             });
@@ -1277,3 +1309,15 @@ class _RefactoringManager {
 /// [_RefactoringManager] throws instances of this class internally to stop
 /// processing in a manager that was reset.
 class _ResetError {}
+
+extension ResourceExtension on Resource {
+  void collectDartFilePaths(List<String> paths) {
+    if (this is File && AnalysisEngine.isDartFileName(path)) {
+      paths.add(path);
+    } else if (this is Folder) {
+      for (var child in (this as Folder).getChildren()) {
+        child.collectDartFilePaths(paths);
+      }
+    }
+  }
+}

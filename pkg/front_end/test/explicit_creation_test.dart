@@ -39,6 +39,8 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import "package:vm/target/vm.dart" show VmTarget;
 
+import 'testing_utils.dart' show getGitFiles;
+
 final Uri repoDir = _computeRepoDir();
 
 Uri _computeRepoDir() {
@@ -77,10 +79,13 @@ Future<void> main(List<String> args) async {
     }
   }
   for (Uri uri in libUris) {
+    Set<Uri> gitFiles = await getGitFiles(uri);
     List<FileSystemEntity> entities =
         new Directory.fromUri(uri).listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
-      if (entity is File && entity.path.endsWith(".dart")) {
+      if (entity is File &&
+          entity.path.endsWith(".dart") &&
+          gitFiles.contains(entity.uri)) {
         options.inputs.add(entity.uri);
       }
     }

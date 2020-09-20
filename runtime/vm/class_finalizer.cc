@@ -59,8 +59,8 @@ static void RemoveCHAOptimizedCode(
   }
 }
 
-void AddSuperType(const AbstractType& type,
-                  GrowableArray<intptr_t>* finalized_super_classes) {
+static void AddSuperType(const AbstractType& type,
+                         GrowableArray<intptr_t>* finalized_super_classes) {
   ASSERT(type.HasTypeClass());
   ASSERT(!type.IsDynamicType());
   if (type.IsObjectType()) {
@@ -213,12 +213,6 @@ bool ClassFinalizer::ProcessPendingClasses() {
       }
     }
 
-    if (FLAG_print_classes) {
-      for (intptr_t i = 0; i < class_array.Length(); i++) {
-        cls ^= class_array.At(i);
-        PrintClassInformation(cls);
-      }
-    }
     // Clear pending classes array.
     class_array = GrowableObjectArray::New();
     object_store->set_pending_classes(class_array);
@@ -300,13 +294,13 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
-                                            PendingTypes* pending_types) {
+void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
   if (FLAG_trace_type_finalization) {
     THR_Print("Finalizing type parameters of '%s'\n",
               String::Handle(cls.Name()).ToCString());
   }
   // The type parameter bounds are not finalized here.
+  const intptr_t offset = cls.NumTypeArguments() - cls.NumTypeParameters();
   const TypeArguments& type_parameters =
       TypeArguments::Handle(cls.type_parameters());
   if (!type_parameters.IsNull()) {
@@ -314,9 +308,13 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls,
     const intptr_t num_types = type_parameters.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
-      type_parameter ^=
-          FinalizeType(cls, type_parameter, kFinalize, pending_types);
-      type_parameters.SetTypeAt(i, type_parameter);
+      if (!type_parameter.IsFinalized()) {
+        type_parameter.set_index(type_parameter.index() + offset);
+        type_parameter.SetIsFinalized();
+      }
+      // The declaration of a type parameter is canonical.
+      ASSERT(type_parameter.IsDeclaration());
+      ASSERT(type_parameter.IsCanonical());
     }
   }
 }
@@ -425,7 +423,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   Class& type_class = Class::Handle(zone, type.type_class());
   type_class.EnsureDeclarationLoaded();
   if (!type_class.is_type_finalized()) {
-    FinalizeTypeParameters(type_class, pending_types);
+    FinalizeTypeParameters(type_class);
   }
 
   // The finalized type argument vector needs num_type_arguments types.
@@ -559,7 +557,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                                            TrailPtr trail) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
   if (!cls.is_type_finalized()) {
-    FinalizeTypeParameters(cls, pending_types);
+    FinalizeTypeParameters(cls);
   }
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
@@ -628,22 +626,26 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
-            ASSERT(super_type_arg.IsTypeRef());
-            AbstractType& ref_super_type_arg =
-                AbstractType::Handle(TypeRef::Cast(super_type_arg).type());
-            if (FLAG_trace_type_finalization) {
-              THR_Print("Instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+            AbstractType& unfinalized_type = AbstractType::Handle();
+            if (super_type_arg.IsTypeRef()) {
+              unfinalized_type = TypeRef::Cast(super_type_arg).type();
+            } else {
+              ASSERT(super_type_arg.IsType());
+              unfinalized_type = super_type_arg.raw();
             }
-            CheckRecursiveType(cls, ref_super_type_arg, pending_types);
-            pending_types->Add(ref_super_type_arg);
+            if (FLAG_trace_type_finalization) {
+              THR_Print("Instantiated unfinalized '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
+            }
+            CheckRecursiveType(cls, unfinalized_type, pending_types);
+            pending_types->Add(unfinalized_type);
             const Class& super_cls =
-                Class::Handle(ref_super_type_arg.type_class());
+                Class::Handle(unfinalized_type.type_class());
             const TypeArguments& super_args =
-                TypeArguments::Handle(ref_super_type_arg.arguments());
+                TypeArguments::Handle(unfinalized_type.arguments());
             // Mark as finalized before finalizing to avoid cycles.
-            ref_super_type_arg.SetIsFinalized();
+            unfinalized_type.SetIsFinalized();
             // Although the instantiator is different between cls and super_cls,
             // we still need to pass the current instantiation trail as to avoid
             // divergence. Finalizing the type arguments of super_cls may indeed
@@ -654,9 +656,9 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
                 pending_types, trail);
             if (FLAG_trace_type_finalization) {
-              THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+              THR_Print("Finalized instantiated '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
             }
           }
         }
@@ -677,8 +679,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
   ASSERT((pending_types == NULL) || (finalization < kCanonicalize));
   if (type.IsFinalized()) {
     // Ensure type is canonical if canonicalization is requested.
-    if ((finalization >= kCanonicalize) && !type.IsCanonical() &&
-        type.IsType()) {
+    if ((finalization >= kCanonicalize) && !type.IsCanonical()) {
       return type.Canonicalize();
     }
     return type.raw();
@@ -731,8 +732,12 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const Class& cls,
                 type_parameter.index());
     }
 
-    // We do not canonicalize type parameters.
-    return type_parameter.raw();
+    if (type_parameter.IsDeclaration()) {
+      // The declaration of a type parameter is canonical.
+      ASSERT(type_parameter.IsCanonical());
+      return type_parameter.raw();
+    }
+    return type_parameter.Canonicalize();
   }
 
   // At this point, we can only have a Type.
@@ -846,6 +851,12 @@ void ClassFinalizer::FinalizeSignature(const Class& cls,
         type_param.set_index(num_parent_type_params + i);
         type_param.SetIsFinalized();
       }
+      // The declaration of a type parameter is canonical.
+      ASSERT(type_param.IsDeclaration());
+      ASSERT(type_param.IsCanonical());
+    }
+    for (intptr_t i = 0; i < num_type_params; i++) {
+      type_param ^= type_params.TypeAt(i);
       type = type_param.bound();
       finalized_type = FinalizeType(cls, type, finalization);
       if (finalized_type.raw() != type.raw()) {
@@ -1138,14 +1149,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  if (cls.is_patch()) {
-    // The fields and functions of a patch class are copied to the
-    // patched class after parsing. There is nothing to finalize.
-    ASSERT(Array::Handle(cls.functions()).Length() == 0);
-    ASSERT(Array::Handle(cls.fields()).Length() == 0);
-    cls.set_is_finalized();
-    return;
-  }
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
@@ -1156,34 +1159,73 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
+  if (FLAG_print_classes) {
+    PrintClassInformation(cls);
+  }
   FinalizeMemberTypes(cls);
-  // Run additional checks after all types are finalized.
-  if (FLAG_use_cha_deopt) {
-    GrowableArray<intptr_t> cids;
-    CollectFinalizedSuperClasses(cls, &cids);
-    CollectImmediateSuperInterfaces(cls, &cids);
-    RemoveCHAOptimizedCode(cls, cids);
-  }
-
-  if (FLAG_use_cha_deopt) {
-    Zone* zone = thread->zone();
-    ClassTable* class_table = thread->isolate()->class_table();
-    auto& interface_class = Class::Handle(zone);
-
-    // We scan every interface this [cls] implements and invalidate all CHA code
-    // which depends on knowing the implementors of that interface.
-    GrowableArray<intptr_t> cids;
-    InterfaceFinder finder(zone, class_table, &cids);
-    finder.FindAllInterfaces(cls);
-    for (intptr_t j = 0; j < cids.length(); ++j) {
-      interface_class = class_table->At(cids[j]);
-      interface_class.DisableCHAImplementorUsers();
-    }
-  }
 
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
+
+  // The rest of finalization for non-top-level class has to be done with
+  // stopped mutators. It will be done by AllocateFinalizeClass. before new
+  // instance of a class is created in GetAllocationStubForClass.
+  if (cls.IsTopLevel()) {
+    cls.set_is_allocate_finalized();
+  }
+}
+
+ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
+  ASSERT(cls.is_finalized());
+  if (cls.is_allocate_finalized()) {
+    return Error::null();
+  }
+
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+
+  if (FLAG_trace_class_finalization) {
+    THR_Print("Allocate finalize %s\n", cls.ToCString());
+  }
+
+#if defined(SUPPORT_TIMELINE)
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "AllocateFinalizeClass");
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "class", cls.ToCString());
+  }
+#endif  // defined(SUPPORT_TIMELINE)
+
+  // Run additional checks after all types are finalized.
+  if (FLAG_use_cha_deopt && !cls.IsTopLevel()) {
+    {
+      GrowableArray<intptr_t> cids;
+      CollectFinalizedSuperClasses(cls, &cids);
+      CollectImmediateSuperInterfaces(cls, &cids);
+      RemoveCHAOptimizedCode(cls, cids);
+    }
+
+    Zone* zone = thread->zone();
+    ClassTable* class_table = thread->isolate()->class_table();
+    auto& interface_class = Class::Handle(zone);
+
+    // We scan every interface this [cls] implements and invalidate all CHA
+    // code which depends on knowing the implementors of that interface.
+    {
+      GrowableArray<intptr_t> cids;
+      InterfaceFinder finder(zone, class_table, &cids);
+      finder.FindAllInterfaces(cls);
+      for (intptr_t j = 0; j < cids.length(); ++j) {
+        interface_class = class_table->At(cids[j]);
+        interface_class.DisableCHAImplementorUsers();
+      }
+    }
+  }
+
+  cls.set_is_allocate_finalized();
+  return Error::null();
 }
 
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
@@ -1413,7 +1455,7 @@ void ClassFinalizer::SortClasses() {
       continue;
     }
     cls = table->At(cid);
-    if (cls.is_patch() || !cls.is_declaration_loaded()) {
+    if (!cls.is_declaration_loaded()) {
       continue;
     }
     if (cls.SuperClass() == I->object_store()->object_class()) {
@@ -1477,7 +1519,12 @@ class CidRewriteVisitor : public ObjectVisitor {
   void VisitObject(ObjectPtr obj) {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
-      cls->ptr()->id_ = Map(cls->ptr()->id_);
+      const classid_t old_cid = cls->ptr()->id_;
+      if (ClassTable::IsTopLevelCid(old_cid)) {
+        // We don't remap cids of top level classes.
+        return;
+      }
+      cls->ptr()->id_ = Map(old_cid);
     } else if (obj->IsField()) {
       FieldPtr field = Field::RawCast(obj);
       field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);
@@ -1586,6 +1633,7 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 // Usages of canonical hash codes are:
 //
 //   * ObjectStore::canonical_types()
+//   * ObjectStore::canonical_type_parameters()
 //   * ObjectStore::canonical_type_arguments()
 //   * Class::constants()
 //
@@ -1629,23 +1677,17 @@ void ClassFinalizer::RehashTypes() {
 
   // Rehash the canonical Types table.
   ObjectStore* object_store = I->object_store();
-  GrowableObjectArray& types =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
-  Array& types_array = Array::Handle(Z);
+  Array& types = Array::Handle(Z);
   Type& type = Type::Handle(Z);
   {
     CanonicalTypeSet types_table(Z, object_store->canonical_types());
-    types_array = HashTables::ToArray(types_table, false);
-    for (intptr_t i = 0; i < types_array.Length(); i++) {
-      type ^= types_array.At(i);
-      types.Add(type);
-    }
+    types = HashTables::ToArray(types_table, false);
     types_table.Release();
   }
 
   intptr_t dict_size = Utils::RoundUpToPowerOfTwo(types.Length() * 4 / 3);
-  types_array = HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld);
-  CanonicalTypeSet types_table(Z, types_array.raw());
+  CanonicalTypeSet types_table(
+      Z, HashTables::New<CanonicalTypeSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < types.Length(); i++) {
     type ^= types.At(i);
     bool present = types_table.Insert(type);
@@ -1654,19 +1696,33 @@ void ClassFinalizer::RehashTypes() {
   }
   object_store->set_canonical_types(types_table.Release());
 
+  // Rehash the canonical TypeParameters table.
+  Array& typeparams = Array::Handle(Z);
+  TypeParameter& typeparam = TypeParameter::Handle(Z);
+  {
+    CanonicalTypeParameterSet typeparams_table(
+        Z, object_store->canonical_type_parameters());
+    typeparams = HashTables::ToArray(typeparams_table, false);
+    typeparams_table.Release();
+  }
+
+  dict_size = Utils::RoundUpToPowerOfTwo(typeparams.Length() * 4 / 3);
+  CanonicalTypeParameterSet typeparams_table(
+      Z, HashTables::New<CanonicalTypeParameterSet>(dict_size, Heap::kOld));
+  for (intptr_t i = 0; i < typeparams.Length(); i++) {
+    typeparam ^= typeparams.At(i);
+    bool present = typeparams_table.Insert(typeparam);
+    ASSERT(!present);
+  }
+  object_store->set_canonical_type_parameters(typeparams_table.Release());
+
   // Rehash the canonical TypeArguments table.
-  Array& typeargs_array = Array::Handle(Z);
-  GrowableObjectArray& typeargs =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Array& typeargs = Array::Handle(Z);
   TypeArguments& typearg = TypeArguments::Handle(Z);
   {
     CanonicalTypeArgumentsSet typeargs_table(
         Z, object_store->canonical_type_arguments());
-    typeargs_array = HashTables::ToArray(typeargs_table, false);
-    for (intptr_t i = 0; i < typeargs_array.Length(); i++) {
-      typearg ^= typeargs_array.At(i);
-      typeargs.Add(typearg);
-    }
+    typeargs = HashTables::ToArray(typeargs_table, false);
     typeargs_table.Release();
   }
 
@@ -1675,9 +1731,8 @@ void ClassFinalizer::RehashTypes() {
   I->RehashConstants();
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
-  typeargs_array =
-      HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld);
-  CanonicalTypeArgumentsSet typeargs_table(Z, typeargs_array.raw());
+  CanonicalTypeArgumentsSet typeargs_table(
+      Z, HashTables::New<CanonicalTypeArgumentsSet>(dict_size, Heap::kOld));
   for (intptr_t i = 0; i < typeargs.Length(); i++) {
     typearg ^= typeargs.At(i);
     bool present = typeargs_table.Insert(typearg);

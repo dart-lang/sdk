@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import 'core.dart';
+
 final Sdk sdk = Sdk();
 
 String get _computeSdkPath {
@@ -45,16 +47,68 @@ class Sdk {
   // if the SDK isn't completely built.
   String get dart => Platform.resolvedExecutable;
 
-  String get analysis_server_snapshot => path.absolute(
-      sdkPath, 'bin', 'snapshots', 'analysis_server.dart.snapshot');
+  String get analysisServerSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'analysis_server.dart.snapshot',
+      );
 
-  String get dartfmt => path.absolute(sdkPath, 'bin', _binName('dartfmt'));
+  String get dart2jsSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart2js.dart.snapshot',
+      );
 
-  String get pub => path.absolute(sdkPath, 'bin', _binName('pub'));
+  String get ddsSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dds.dart.snapshot',
+      );
 
-  static String _binName(String base) =>
-      Platform.isWindows ? '$base.bat' : base;
+  String get pubSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'pub.dart.snapshot',
+      );
 
-  static String _exeName(String base) =>
-      Platform.isWindows ? '$base.exe' : base;
+  static bool checkArtifactExists(String path) {
+    if (!File(path).existsSync()) {
+      log.stderr('Could not find $path. Have you built the full '
+          'Dart SDK?');
+      return false;
+    }
+    return true;
+  }
+}
+
+/// Return information about the current runtime.
+class Runtime {
+  static Runtime runtime = Runtime._();
+
+  // Match "2.10.0-edge.0b2da6e7 (be) ...".
+  static RegExp channelRegex = RegExp(r'.* \(([\d\w]+)\) .*');
+
+  String _channel;
+
+  Runtime._() {
+    _parseVersion();
+  }
+
+  /// The SDK's release channel (`be`, `dev`, `beta`, `stable`).
+  String get channel => _channel;
+
+  /// Return whether the SDK is from the stable release channel.
+  bool get stableChannel => channel == 'stable';
+
+  void _parseVersion() {
+    final version = Platform.version;
+    final match = channelRegex.firstMatch(version);
+    if (match != null) {
+      _channel = match.group(1);
+    }
+  }
 }

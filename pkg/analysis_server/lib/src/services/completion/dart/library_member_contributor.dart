@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
+import 'package:analysis_server/src/protocol_server.dart'
+    show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-
-import '../../../protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind;
 
 /// A contributor that produces suggestions based on the members of a library
 /// when the library was imported using a prefix. More concretely, this class
@@ -18,7 +15,7 @@ import '../../../protocol_server.dart'
 /// prefix.
 class LibraryMemberContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     // Determine if the target looks like a library prefix.
     var targetId = request.dotTarget;
@@ -31,15 +28,15 @@ class LibraryMemberContributor extends DartCompletionContributor {
         if (containingLibrary != null) {
           var imports = containingLibrary.imports;
           if (imports != null) {
-            return _buildSuggestions(request, builder, elem, imports);
+            _buildSuggestions(request, builder, elem, imports);
+            return;
           }
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 
-  List<CompletionSuggestion> _buildSuggestions(
+  void _buildSuggestions(
       DartCompletionRequest request,
       SuggestionBuilder builder,
       PrefixElement elem,
@@ -83,6 +80,5 @@ class LibraryMemberContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 }

@@ -7,12 +7,10 @@ import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/utils.dart';
 
 class LoggingListElement extends CustomElement implements Renderable {
-  static const tag = const Tag<LoggingListElement>('logging-list');
-
   RenderingScheduler<LoggingListElement> _r;
 
   Stream<RenderedEvent<LoggingListElement>> get onRendered => _r.onRendered;
@@ -39,7 +37,7 @@ class LoggingListElement extends CustomElement implements Renderable {
     return e;
   }
 
-  LoggingListElement.created() : super.created(tag);
+  LoggingListElement.created() : super.created('logging-list');
 
   @override
   attached() {

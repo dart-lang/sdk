@@ -5,9 +5,7 @@
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/**
- * Parse the given map into a lint config.
- */
+/// Parse the given map into a lint config.
 LintConfig parseConfig(YamlMap optionsMap) {
   if (optionsMap != null) {
     var options = getValue(optionsMap, 'linter');
@@ -19,10 +17,8 @@ LintConfig parseConfig(YamlMap optionsMap) {
   return null;
 }
 
-/**
- * Process the given option [fileContents] and produce a corresponding
- * [LintConfig].
- */
+/// Process the given option [fileContents] and produce a corresponding
+/// [LintConfig].
 LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
   var yaml = loadYamlNode(fileContents, sourceUrl: fileUrl);
   if (yaml is YamlMap) {
@@ -31,9 +27,7 @@ LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
   return null;
 }
 
-/**
- * The configuration of lint rules within an analysis options file.
- */
+/// The configuration of lint rules within an analysis options file.
 abstract class LintConfig {
   factory LintConfig.parse(String source, {String sourceUrl}) =>
       _LintConfig().._parse(source, sourceUrl: sourceUrl);
@@ -45,9 +39,7 @@ abstract class LintConfig {
   List<RuleConfig> get ruleConfigs;
 }
 
-/**
- * The configuration of a single lint rule within an analysis options file.
- */
+/// The configuration of a single lint rule within an analysis options file.
 abstract class RuleConfig {
   Map<String, dynamic> args = <String, dynamic>{};
   String get group;
@@ -68,7 +60,7 @@ class _LintConfig implements LintConfig {
   @override
   final ruleConfigs = <RuleConfig>[];
 
-  void addAsListOrString(value, List<String> list) {
+  void addAsListOrString(Object value, List<String> list) {
     if (value is List) {
       value.forEach((v) => list.add(v));
     } else if (value is String) {
@@ -76,7 +68,7 @@ class _LintConfig implements LintConfig {
     }
   }
 
-  bool asBool(scalar) {
+  bool asBool(Object scalar) {
     Object value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is bool) {
       return value;
@@ -92,7 +84,7 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  String asString(scalar) {
+  String asString(Object scalar) {
     Object value = scalar is YamlScalar ? scalar.value : scalar;
     if (value is String) {
       return value;
@@ -100,7 +92,7 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  Map<String, dynamic> parseArgs(args) {
+  Map<String, dynamic> parseArgs(Object args) {
     bool enabled = asBool(args);
     if (enabled != null) {
       return {'enabled': enabled};

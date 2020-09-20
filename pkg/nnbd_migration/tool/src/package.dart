@@ -4,7 +4,6 @@
 
 /// Abstractions for the different sources of truth for different packages.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
@@ -114,7 +113,7 @@ class GitPackage extends Package {
     return pathParts[indexOfName];
   }
 
-  static RegExp _pathAndPeriodSplitter = new RegExp('[\\/.]');
+  static final RegExp _pathAndPeriodSplitter = RegExp('[\\/.]');
 
   /// Initialize the package with a shallow clone.  Run only once per
   /// [GitPackage] instance.
@@ -172,7 +171,7 @@ class PubPackage extends Package {
 /// Abstraction for a package located within pkg or third_party/pkg.
 class SdkPackage extends Package {
   /// Where to find packages.  Constructor searches in-order.
-  static List<String> _searchPaths = [
+  static final List<String> _searchPaths = [
     'pkg',
     path.join('third_party', 'pkg'),
   ];
@@ -184,8 +183,9 @@ class SdkPackage extends Package {
         _packagePath = potentialPath;
       }
     }
-    if (_packagePath == null)
+    if (_packagePath == null) {
       throw ArgumentError('Package $name not found in SDK');
+    }
   }
 
   /* late final */ String _packagePath;
@@ -216,16 +216,5 @@ class Sdk {
 
   Sdk(String sdkPath) {
     this.sdkPath = path.canonicalize(sdkPath);
-  }
-
-  /// Returns true if the SDK was built with --nnbd.
-  ///
-  /// May throw if [sdkPath] is invalid, or there is an error parsing
-  /// the libraries.json file.
-  bool get isNnbdSdk {
-    // TODO(jcollins-g): contact eng-prod for a more foolproof detection method
-    String libraries = path.join(sdkPath, 'lib', 'libraries.json');
-    var decodedJson = JsonDecoder().convert(File(libraries).readAsStringSync());
-    return ((decodedJson['comment:1'] as String).contains('sdk_nnbd'));
   }
 }

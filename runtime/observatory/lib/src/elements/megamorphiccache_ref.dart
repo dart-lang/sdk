@@ -7,13 +7,10 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M
     show IsolateRef, MegamorphicCacheRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class MegamorphicCacheRefElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<MegamorphicCacheRefElement>('megamorphic-cache-ref');
-
   RenderingScheduler<MegamorphicCacheRefElement> _r;
 
   Stream<RenderedEvent<MegamorphicCacheRefElement>> get onRendered =>
@@ -37,7 +34,7 @@ class MegamorphicCacheRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  MegamorphicCacheRefElement.created() : super.created(tag);
+  MegamorphicCacheRefElement.created() : super.created('megamorphic-cache-ref');
 
   @override
   void attached() {

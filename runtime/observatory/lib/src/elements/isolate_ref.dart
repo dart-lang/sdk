@@ -8,12 +8,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, EventRepository;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class IsolateRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<IsolateRefElement>('isolate-ref');
-
   RenderingScheduler<IsolateRefElement> _r;
 
   Stream<RenderedEvent<IsolateRefElement>> get onRendered => _r.onRendered;
@@ -35,7 +33,7 @@ class IsolateRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  IsolateRefElement.created() : super.created(tag);
+  IsolateRefElement.created() : super.created('isolate-ref');
 
   @override
   void attached() {
@@ -58,9 +56,10 @@ class IsolateRefElement extends CustomElement implements Renderable {
   }
 
   void render() {
+    final isolateType = isolate.isSystemIsolate ? 'System Isolate' : 'Isolate';
     children = <Element>[
       new AnchorElement(href: Uris.inspect(isolate))
-        ..text = 'Isolate ${isolate.number} (${isolate.name})'
+        ..text = '$isolateType ${isolate.number} (${isolate.name})'
         ..classes = ['isolate-ref']
     ];
   }

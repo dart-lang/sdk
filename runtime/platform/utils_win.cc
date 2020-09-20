@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
+#include <io.h>  // NOLINT
 #include "platform/utils.h"
 
 namespace dart {
@@ -23,6 +24,10 @@ char* Utils::StrNDup(const char* s, intptr_t n) {
   }
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
+}
+
+char* Utils::StrDup(const char* s) {
+  return _strdup(s);
 }
 
 intptr_t Utils::StrNLen(const char* s, intptr_t n) {
@@ -69,6 +74,16 @@ int Utils::VSNPrint(char* str, size_t size, const char* format, va_list args) {
     str[size - 1] = '\0';
   }
   return written;
+}
+
+int Utils::Close(int fildes) {
+  return _close(fildes);
+}
+size_t Utils::Read(int filedes, void* buf, size_t nbyte) {
+  return _read(filedes, buf, nbyte);
+}
+int Utils::Unlink(const char* path) {
+  return _unlink(path);
 }
 
 }  // namespace dart

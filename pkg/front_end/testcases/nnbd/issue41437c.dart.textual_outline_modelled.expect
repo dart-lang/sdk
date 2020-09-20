@@ -1,0 +1,12 @@
+Stream<bool> getStreamBool() async* {}
+Stream<bool> test1() async* {}
+Stream<bool> test2() => getNull();
+Stream<bool> test4() async* {}
+Stream<bool> test5() => getStreamNull();
+Stream<bool> test6() => getStreamBool();
+Stream<bool> test7() async* {}
+Stream<dynamic> getStreamNull() async* {}
+bool test3() => getNull();
+dynamic getNull() => null;
+main() {}
+test() async {}

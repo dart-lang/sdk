@@ -62,8 +62,6 @@ class JsClosedWorldBuilder {
       OutputUnitData kOutputUnitData) {
     JsToFrontendMap map = new JsToFrontendMapImpl(_elementMap);
 
-    BackendUsage backendUsage =
-        _convertBackendUsage(map, closedWorld.backendUsage);
     NativeData nativeData = _convertNativeData(map, closedWorld.nativeData);
     _elementMap.nativeData = nativeData;
     InterceptorData interceptorData =
@@ -162,7 +160,7 @@ class JsClosedWorldBuilder {
       }
 
       RuntimeTypesNeedImpl jRtiNeed =
-          _convertRuntimeTypesNeed(map, backendUsage, kernelRtiNeed);
+          _convertRuntimeTypesNeed(map, kernelRtiNeed);
       closureData = _closureDataBuilder.createClosureEntities(
           this,
           map.toBackendMemberMap(closureModels, identity),
@@ -188,6 +186,11 @@ class JsClosedWorldBuilder {
 
       rtiNeed = jRtiNeed;
     }
+
+    map.registerClosureData(closureData);
+
+    BackendUsage backendUsage =
+        _convertBackendUsage(map, closedWorld.backendUsage);
 
     NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
     NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
@@ -378,8 +381,8 @@ class JsClosedWorldBuilder {
             interceptorData.classesMixedIntoInterceptedClasses));
   }
 
-  RuntimeTypesNeed _convertRuntimeTypesNeed(JsToFrontendMap map,
-      BackendUsage backendUsage, RuntimeTypesNeedImpl rtiNeed) {
+  RuntimeTypesNeed _convertRuntimeTypesNeed(
+      JsToFrontendMap map, RuntimeTypesNeedImpl rtiNeed) {
     Set<ClassEntity> classesNeedingTypeArguments =
         map.toBackendClassSet(rtiNeed.classesNeedingTypeArguments);
     Set<FunctionEntity> methodsNeedingTypeArguments =
@@ -597,6 +600,13 @@ abstract class JsToFrontendMap {
 
   ConstantValue toBackendConstant(ConstantValue value, {bool allowNull: false});
 
+  /// Register [closureData] with this map.
+  ///
+  /// [ClosureData] holds the relation between local function and the backend
+  /// entities. Before this has been registered, type variables of local
+  /// functions cannot be converted into backend equivalents.
+  void registerClosureData(ClosureData closureData);
+
   Set<LibraryEntity> toBackendLibrarySet(Iterable<LibraryEntity> set) {
     return set.map(toBackendLibrary).toSet();
   }
@@ -671,6 +681,7 @@ Map<K, V2> convertMap<K, V1, V2>(
 
 class JsToFrontendMapImpl extends JsToFrontendMap {
   final JsKernelToElementMap _backend;
+  ClosureData _closureData;
 
   JsToFrontendMapImpl(this._backend);
 
@@ -707,10 +718,23 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
     return _backend.members.getEntity(member.memberIndex);
   }
 
+  @override
+  void registerClosureData(ClosureData closureData) {
+    assert(_closureData == null, "Closure data has already been registered.");
+    _closureData = closureData;
+  }
+
   TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
     if (typeVariable is KLocalTypeVariable) {
-      failedAt(
-          typeVariable, "Local function type variables are not supported.");
+      if (_closureData == null) {
+        failedAt(
+            typeVariable, "Local function type variables are not supported.");
+      }
+      ClosureRepresentationInfo info =
+          _closureData.getClosureInfo(typeVariable.typeDeclaration.node);
+      return _backend.elementEnvironment
+          .getFunctionTypeVariables(info.callMethod)[typeVariable.index]
+          .element;
     }
     IndexedTypeVariable indexedTypeVariable = typeVariable;
     return _backend.typeVariables

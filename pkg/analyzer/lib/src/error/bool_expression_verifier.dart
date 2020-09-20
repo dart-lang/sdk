@@ -8,9 +8,9 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for verifying expression that should be of type bool.
@@ -35,11 +35,11 @@ class BoolExpressionVerifier {
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
   ///
-  /// See [StaticTypeWarningCode.NON_BOOL_CONDITION].
+  /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
   void checkForNonBoolCondition(Expression condition) {
     checkForNonBoolExpression(
       condition,
-      errorCode: StaticTypeWarningCode.NON_BOOL_CONDITION,
+      errorCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
     );
   }
 
@@ -62,17 +62,14 @@ class BoolExpressionVerifier {
   void checkForNonBoolNegationExpression(Expression expression) {
     checkForNonBoolExpression(
       expression,
-      errorCode: StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
+      errorCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
     );
   }
 
-  /**
-   * Check for situations where the result of a method or function is used, when
-   * it returns 'void'. Or, in rare cases, when other types of expressions are
-   * void, such as identifiers.
-   *
-   * TODO(scheglov) Move this in a separate verifier.
-   */
+  /// Check for situations where the result of a method or function is used,
+  /// when it returns 'void'. Or, in rare cases, when other types of expressions
+  /// are void, such as identifiers.
+  // TODO(scheglov) Move this in a separate verifier.
   bool _checkForUseOfVoidResult(Expression expression) {
     if (expression == null ||
         !identical(expression.staticType, VoidTypeImpl.instance)) {
@@ -82,12 +79,12 @@ class BoolExpressionVerifier {
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         methodName,
       );
     } else {
       _errorReporter.reportErrorForNode(
-        StaticWarningCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
         expression,
       );
     }

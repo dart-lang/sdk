@@ -93,6 +93,8 @@ class LocalVariable : public ZoneAllocated {
         is_forced_stack_(false),
         is_explicit_covariant_parameter_(false),
         is_late_(false),
+        is_chained_future_(false),
+        expected_context_index_(-1),
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_() {
@@ -124,12 +126,20 @@ class LocalVariable : public ZoneAllocated {
   // Variables marked as forced to stack are skipped and not captured by
   // CaptureLocalVariables - which iterates scope chain between two scopes
   // and indiscriminately marks all variables as captured.
-  // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
+  // TODO(27590) remove the hardcoded list of names from CaptureLocalVariables
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
 
   bool is_late() const { return is_late_; }
   void set_is_late() { is_late_ = true; }
+
+  bool is_chained_future() const { return is_chained_future_; }
+  void set_is_chained_future() { is_chained_future_ = true; }
+
+  intptr_t expected_context_index() const { return expected_context_index_; }
+  void set_expected_context_index(int index) {
+    expected_context_index_ = index;
+  }
 
   intptr_t late_init_offset() const { return late_init_offset_; }
   void set_late_init_offset(intptr_t late_init_offset) {
@@ -220,6 +230,8 @@ class LocalVariable : public ZoneAllocated {
   bool is_forced_stack_;
   bool is_explicit_covariant_parameter_;
   bool is_late_;
+  bool is_chained_future_;
+  intptr_t expected_context_index_;
   intptr_t late_init_offset_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
@@ -499,9 +511,9 @@ class LocalScope : public ZoneAllocated {
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;
-  int function_level_;         // Reflects the nesting level of local functions.
-  int loop_level_;             // Reflects the loop nesting level.
-  int context_level_;          // Reflects the level of the runtime context.
+  int function_level_;  // Reflects the nesting level of local functions.
+  int loop_level_;      // Reflects the loop nesting level.
+  int context_level_;   // Reflects the level of the runtime context.
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;

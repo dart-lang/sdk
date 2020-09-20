@@ -125,7 +125,7 @@ intptr_t Log::cursor() const {
 
 bool Log::ShouldLogForIsolateGroup(const IsolateGroup* isolate_group) {
   if (FLAG_isolate_log_filter == nullptr) {
-    if (IsolateGroup::IsVMInternalIsolateGroup(isolate_group)) {
+    if (IsolateGroup::IsSystemIsolateGroup(isolate_group)) {
       // By default, do not log for the service or kernel isolates.
       return false;
     }

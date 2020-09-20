@@ -12,7 +12,7 @@ import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -21,14 +21,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
 class HeapMapElement extends CustomElement implements Renderable {
-  static const tag = const Tag<HeapMapElement>('heap-map', dependencies: const [
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-  ]);
-
   RenderingScheduler<HeapMapElement> _r;
 
   Stream<RenderedEvent<HeapMapElement>> get onRendered => _r.onRendered;
@@ -57,7 +49,7 @@ class HeapMapElement extends CustomElement implements Renderable {
     return e;
   }
 
-  HeapMapElement.created() : super.created(tag);
+  HeapMapElement.created() : super.created('heap-map');
 
   @override
   attached() {

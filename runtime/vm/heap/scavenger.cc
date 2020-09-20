@@ -15,6 +15,7 @@
 #include "vm/heap/weak_table.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_set.h"
@@ -178,43 +179,69 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void ProcessRoots() {
     thread_ = Thread::Current();
     page_space_->AcquireLock(freelist_);
-    scavenger_->IterateRoots(this);
+
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      scavenger_->IterateRoots(this);
+    } else {
+      ASSERT(scavenger_->abort_);
+      thread_->ClearStickyError();
+    }
   }
 
   void ProcessSurvivors() {
-    // Iterate until all work has been drained.
-    do {
-      ProcessToSpace();
-      ProcessPromotedList();
-    } while (HasWork());
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      // Iterate until all work has been drained.
+      do {
+        ProcessToSpace();
+        ProcessPromotedList();
+      } while (HasWork());
+    } else {
+      ASSERT(scavenger_->abort_);
+      thread_->ClearStickyError();
+    }
   }
 
   void ProcessAll() {
-    do {
-      ProcessSurvivors();
-      ProcessWeakProperties();
-    } while (HasWork());
+    LongJumpScope jump;
+    if (setjmp(*jump.Set()) == 0) {
+      do {
+        do {
+          ProcessToSpace();
+          ProcessPromotedList();
+        } while (HasWork());
+        ProcessWeakProperties();
+      } while (HasWork());
+    } else {
+      ASSERT(scavenger_->abort_);
+      thread_->ClearStickyError();
+    }
   }
 
   inline void ProcessWeakProperties();
 
   bool HasWork() {
+    if (scavenger_->abort_) return false;
     return (scan_ != tail_) || (scan_ != nullptr && !scan_->IsResolved()) ||
            !promoted_list_.IsEmpty();
   }
 
   void Finalize() {
-    ASSERT(!HasWork());
+    if (scavenger_->abort_) {
+      promoted_list_.AbandonWork();
+    } else {
+      ASSERT(!HasWork());
 
-    for (NewPage* page = head_; page != nullptr; page = page->next()) {
-      ASSERT(page->IsResolved());
-      page->RecordSurvivors();
+      for (NewPage* page = head_; page != nullptr; page = page->next()) {
+        ASSERT(page->IsResolved());
+        page->RecordSurvivors();
+      }
+
+      promoted_list_.Finalize();
+
+      MournWeakProperties();
     }
-
-    promoted_list_.Finalize();
-
-    MournWeakProperties();
-
     page_space_->ReleaseLock(freelist_);
     thread_ = nullptr;
   }
@@ -278,7 +305,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           // To-space was exhausted by fragmentation and old-space could not
           // grow.
           if (UNLIKELY(new_addr == 0)) {
-            OUT_OF_MEMORY();
+            AbortScavenge();
           }
         }
       }
@@ -374,6 +401,14 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   DART_NOINLINE inline uword TryAllocateCopySlow(intptr_t size);
+
+  DART_NOINLINE DART_NORETURN void AbortScavenge() {
+    if (FLAG_verbose_gc) {
+      OS::PrintErr("Aborting scavenge\n");
+    }
+    scavenger_->abort_ = true;
+    thread_->long_jump_base()->Jump(1, Object::out_of_memory_error());
+  }
 
   inline void ProcessToSpace();
   DART_FORCE_INLINE intptr_t ProcessCopied(ObjectPtr raw_obj);
@@ -564,6 +599,10 @@ void SemiSpace::Cleanup() {
   page_cache_mutex = nullptr;
 }
 
+intptr_t SemiSpace::CachedSize() {
+  return page_cache_size * kNewPageSize;
+}
+
 NewPage* NewPage::Allocate() {
   const intptr_t size = kNewPageSize;
   VirtualMemory* memory = nullptr;
@@ -583,9 +622,7 @@ NewPage* NewPage::Allocate() {
         VirtualMemory::AllocateAligned(size, alignment, is_executable, name);
   }
   if (memory == nullptr) {
-    // TODO(koda): We could try to recover (collect old space, wait for another
-    // isolate to finish scavenge, etc.).
-    OUT_OF_MEMORY();
+    return nullptr;  // Out of memory.
   }
 
 #if defined(DEBUG)
@@ -635,6 +672,9 @@ NewPage* SemiSpace::TryAllocatePageLocked(bool link) {
     return nullptr;  // Full.
   }
   NewPage* page = NewPage::Allocate();
+  if (page == nullptr) {
+    return nullptr;  // Out of memory;
+  }
   capacity_in_words_ += kNewPageSizeInWords;
   if (link) {
     if (head_ == nullptr) {
@@ -673,6 +713,19 @@ void SemiSpace::AddList(NewPage* head, NewPage* tail) {
   tail_ = tail;
 }
 
+void SemiSpace::MergeFrom(SemiSpace* donor) {
+  for (NewPage* page = donor->head_; page != nullptr; page = page->next()) {
+    page->Release();
+  }
+
+  AddList(donor->head_, donor->tail_);
+  capacity_in_words_ += donor->capacity_in_words_;
+
+  donor->head_ = nullptr;
+  donor->tail_ = nullptr;
+  donor->capacity_in_words_ = 0;
+}
+
 // The initial estimate of how many words we can scavenge per microsecond (usage
 // before / scavenge time). This is a conservative value observed running
 // Flutter on a Nexus 4. After the first scavenge, we instead use a value based
@@ -688,7 +741,8 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
       scavenge_words_per_micro_(kConservativeInitialScavengeSpeed),
       idle_scavenge_threshold_in_words_(0),
       external_size_(0),
-      failed_to_promote_(false) {
+      failed_to_promote_(false),
+      abort_(false) {
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -1120,6 +1174,8 @@ void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
 
 template <bool parallel>
 void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
+  if (scavenger_->abort_) return;
+
   // Finished this round of scavenging. Process the pending weak properties
   // for which the keys have become reachable. Potentially this adds more
   // objects to the to space.
@@ -1268,6 +1324,8 @@ void Scavenger::MournWeakTables() {
 
 template <bool parallel>
 void ScavengerVisitorBase<parallel>::MournWeakProperties() {
+  ASSERT(!scavenger_->abort_);
+
   // The queued weak properties at this point do not refer to reachable keys,
   // so we clear their key and value fields.
   WeakPropertyPtr cur_weak = delayed_weak_properties_;
@@ -1430,6 +1488,7 @@ void Scavenger::Scavenge() {
 
   // Prepare for a scavenge.
   failed_to_promote_ = false;
+  abort_ = false;
   root_slices_started_ = 0;
   intptr_t abandoned_bytes = 0;  // TODO(rmacnak): Count fragmentation?
   SpaceUsage usage_before = GetCurrentUsage();
@@ -1449,6 +1508,11 @@ void Scavenger::Scavenge() {
   } else {
     bytes_promoted = ParallelScavenge(from);
   }
+  if (abort_) {
+    ReverseScavenge(&from);
+    bytes_promoted = 0;
+  }
+  ASSERT(promotion_stack_.IsEmpty());
   MournWeakHandles();
   MournWeakTables();
 
@@ -1527,6 +1591,65 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
   return bytes_promoted;
 }
 
+void Scavenger::ReverseScavenge(SemiSpace** from) {
+  Thread* thread = Thread::Current();
+  TIMELINE_FUNCTION_GC_DURATION(thread, "ReverseScavenge");
+
+  class ReverseFromForwardingVisitor : public ObjectVisitor {
+    uword ReadHeader(ObjectPtr raw_obj) {
+      return reinterpret_cast<std::atomic<uword>*>(
+                 ObjectLayout::ToAddr(raw_obj))
+          ->load(std::memory_order_relaxed);
+    }
+    void WriteHeader(ObjectPtr raw_obj, uword header) {
+      reinterpret_cast<std::atomic<uword>*>(ObjectLayout::ToAddr(raw_obj))
+          ->store(header, std::memory_order_relaxed);
+    }
+    void VisitObject(ObjectPtr from_obj) {
+      uword from_header = ReadHeader(from_obj);
+      if (IsForwarding(from_header)) {
+        ObjectPtr to_obj = ForwardedObj(from_header);
+        uword to_header = ReadHeader(to_obj);
+        intptr_t size = to_obj->ptr()->HeapSize();
+
+        // Reset the ages bits in case this was a promotion.
+        uint32_t tags = static_cast<uint32_t>(to_header);
+        tags = ObjectLayout::OldBit::update(false, tags);
+        tags = ObjectLayout::OldAndNotRememberedBit::update(false, tags);
+        tags = ObjectLayout::NewBit::update(true, tags);
+        tags = ObjectLayout::OldAndNotMarkedBit::update(false, tags);
+        uword original_header =
+            (to_header & ~static_cast<uword>(0xFFFFFFFF)) | tags;
+
+        WriteHeader(from_obj, original_header);
+
+        ForwardingCorpse::AsForwarder(ObjectLayout::ToAddr(to_obj), size)
+            ->set_target(from_obj);
+      }
+    }
+  };
+
+  ReverseFromForwardingVisitor visitor;
+  for (NewPage* page = (*from)->head(); page != nullptr; page = page->next()) {
+    page->VisitObjects(&visitor);
+  }
+
+  // Swap from-space and to-space. The abandoned to-space will be deleted in
+  // the epilogue.
+  SemiSpace* temp = to_;
+  to_ = *from;
+  *from = temp;
+
+  promotion_stack_.Reset();
+
+  // This also rebuilds the remembered set.
+  Become::FollowForwardingPointers(thread);
+
+  // Don't scavenge again until the next old-space GC has occurred. Prevents
+  // performing one scavenge per allocation as the heap limit is approached.
+  heap_->assume_scavenge_will_fail_ = true;
+}
+
 void Scavenger::WriteProtect(bool read_only) {
   ASSERT(!scavenging_);
   to_->WriteProtect(read_only);
@@ -1576,6 +1699,15 @@ void Scavenger::Evacuate() {
   // It is possible for objects to stay in the new space
   // if the VM cannot create more pages for these objects.
   ASSERT((UsedInWords() == 0) || failed_to_promote_);
+}
+
+void Scavenger::MergeFrom(Scavenger* donor) {
+  MutexLocker ml(&space_lock_);
+  MutexLocker ml2(&donor->space_lock_);
+  to_->MergeFrom(donor->to_);
+
+  external_size_ += donor->external_size_;
+  donor->external_size_ = 0;
 }
 
 }  // namespace dart

@@ -3,24 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidLiteralAnnotationTest);
+    defineReflectiveTests(InvalidSealedAnnotationTest);
   });
 }
 
 @reflectiveTest
-class InvalidLiteralAnnotationTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidSealedAnnotationTest extends PubPackageResolutionTest {
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
   test_class() async {

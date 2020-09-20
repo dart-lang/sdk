@@ -37,7 +37,7 @@ void main(List<String> argv) {
 
   var librariesJson = args['libraries'] != null
       ? resolveInputUri(args['libraries'] as String)
-      : Platform.script.resolve('../../../sdk_nnbd/lib/libraries.json');
+      : Platform.script.resolve('../../../sdk/lib/libraries.json');
   var target = args['target'] as String;
   patch.main([
     '--libraries',
@@ -115,8 +115,7 @@ main() {}
   var result = Process.runSync(dart.toFilePath(), [
     // The NNBD dart binaries / snapshots require this flag to be enabled at
     // VM level.
-    if (analyzerSnapshot.contains('NNBD'))
-      '--enable-experiment=non-nullable',
+    if (analyzerSnapshot.contains('NNBD')) '--enable-experiment=non-nullable',
     analyzerSnapshot,
     '--dart-sdk=${sdkDir}',
     '--format',
@@ -198,7 +197,7 @@ main() {}
 final _parser = ArgParser()
   ..addOption('libraries',
       help: 'Path to the nnbd libraries.json (defaults to the one under '
-          'sdk_nnbd/lib/libraries.json.')
+          'sdk/lib/libraries.json.')
   ..addOption('out',
       help: 'Path to an output folder (defaults to a new tmp folder).')
   ..addOption('target',

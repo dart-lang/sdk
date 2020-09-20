@@ -9,14 +9,14 @@ class B extends A {}
 B f1(A a) {
   return a;
   //     ^
-  // [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
-  // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
+  // [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+  // [cfe] A value of type 'A' can't be returned from a function with return type 'B'.
 }
 
 B f2(A a) => a;
 //           ^
-// [analyzer] STATIC_TYPE_WARNING.RETURN_OF_INVALID_TYPE
-// [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
+// [analyzer] COMPILE_TIME_ERROR.RETURN_OF_INVALID_TYPE
+// [cfe] A value of type 'A' can't be returned from a function with return type 'B'.
 
 void main() {
   Object b;

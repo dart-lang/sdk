@@ -16,6 +16,7 @@ from htmlrenamer import convert_to_future_members, custom_html_constructors, \
     removed_html_members
 from generator import TypeOrVar
 import logging
+from mdnreader import MDNReader
 import monitored
 import sys
 
@@ -49,6 +50,7 @@ class HtmlDartGenerator(object):
         self._renamer = options.renamer
         self._metadata = options.metadata
         self._library_name = self._renamer.GetLibraryName(self._interface)
+        self._mdn_reader = MDNReader()
         _logger.setLevel(logger.level)
 
     def EmitSupportCheck(self):
@@ -114,7 +116,6 @@ class HtmlDartGenerator(object):
         for id in sorted(operationsByName.keys()):
             operations = operationsByName[id]
             info = AnalyzeOperation(interface, operations)
-            info.nnbd = self._nnbd
             self.AddOperation(info, declare_only, dart_js_interop)
             if ('%s.%s' % (interface.id,
                            info.declared_name) in convert_to_future_members):
@@ -319,10 +320,7 @@ class HtmlDartGenerator(object):
             attribute.type.nullable = True
 
         if declare_only:
-            self.DeclareAttribute(attribute,
-                                  self.SecureOutputType(attribute.type.id,
-                                    nullable=attribute.type.nullable),
-                                  attr_name, read_only)
+            self.DeclareAttribute(attribute, attr_name, read_only)
         else:
             self.EmitAttribute(attribute, attr_name, read_only)
 
@@ -519,8 +517,7 @@ class HtmlDartGenerator(object):
         if self._interface_type_info.list_item_type():
             item_type = self._type_registry.TypeInfo(
                 self._interface_type_info.list_item_type()).dart_type()
-            if self._nnbd and \
-                    self._interface_type_info.list_item_type_nullable():
+            if self._interface_type_info.list_item_type_nullable():
                 item_type += '?'
             implements.append('List<%s>' % item_type)
         return implements
@@ -530,8 +527,7 @@ class HtmlDartGenerator(object):
         if self._interface_type_info.list_item_type():
             item_type = self._type_registry.TypeInfo(
                 self._interface_type_info.list_item_type()).dart_type()
-            if self._nnbd and \
-                    self._interface_type_info.list_item_type_nullable():
+            if self._interface_type_info.list_item_type_nullable():
                 item_type += '?'
             mixins.append('ListMixin<%s>' % item_type)
             mixins.append('ImmutableListMixin<%s>' % item_type)
@@ -827,7 +823,7 @@ class HtmlDartGenerator(object):
                 'throw new UnsupportedError("Not supported"); }\n',
                 CLASSNAME=self._interface_type_info.implementation_name())
 
-    def DeclareAttribute(self, attribute, type_name, attr_name, read_only):
+    def DeclareAttribute(self, attribute, attr_name, read_only):
         """ Declares an attribute but does not include the code to invoke it.
     """
         if read_only:
@@ -840,9 +836,16 @@ class HtmlDartGenerator(object):
                 template = '\n  $TYPE get $NAME;\n'
         else:
             template = '\n  $TYPE get $NAME native;\n' \
-                       '\n  void set $NAME native;\n'
+                       '\n  set $NAME($TYPE value) native;\n'
 
-        self._members_emitter.Emit(template, NAME=attr_name, TYPE=type_name)
+        # Nullability is determined by attribute compatibility.
+        is_compat = self._mdn_reader.is_compatible(attribute)
+        nullable = attribute.type.nullable or not is_compat
+
+        self._members_emitter.Emit(template,
+                                   NAME=attr_name,
+                                   TYPE=self.SecureOutputType(
+                                       attribute.type.id, nullable=nullable))
 
     def DeclareOperation(self, operation, return_type_name, method_name):
         """ Declares an operation but does not include the code to invoke it.
@@ -907,8 +910,7 @@ class HtmlDartGenerator(object):
             })
         if nullable:
             element_js = element_name + "|Null"
-            if self._nnbd:
-                element_name += '?'
+            element_name += '?'
         else:
             element_js = element_name
         self._members_emitter.Emit(
@@ -938,11 +940,10 @@ class HtmlDartGenerator(object):
         assert (dart_name != 'HistoryBase' and dart_name != 'LocationBase')
         if dart_name == 'Window':
             dart_name = _secure_base_types[dart_name]
-        if self._nnbd:
-            if type_name == 'any':
-                dart_name = 'Object'
-            if nullable and dart_name != 'dynamic':
-                dart_name = dart_name + '?'
+        if type_name == 'any':
+            dart_name = 'Object'
+        if nullable and dart_name != 'dynamic':
+            dart_name = dart_name + '?'
         return dart_name
 
     def SecureBaseName(self, type_name):
@@ -1006,7 +1007,7 @@ class HtmlDartGenerator(object):
                     NAME=temp_name,
                     CONVERT=conversion.function_name,
                     ARG=info.param_infos[position].name,
-                    NULLASSERT='!' if null_assert_needed and self._nnbd else '',
+                    NULLASSERT='!' if null_assert_needed else '',
                     ARITY=callBackInfo)
                 converted_arguments.append(temp_name)
                 param_type = temp_type

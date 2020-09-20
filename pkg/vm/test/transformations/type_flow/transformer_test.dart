@@ -28,9 +28,25 @@ runTestCase(
   final coreTypes = new CoreTypes(component);
 
   component = transformComponent(target, coreTypes, component,
-      matcher: new ConstantPragmaAnnotationParser(coreTypes));
+      matcher: new ConstantPragmaAnnotationParser(coreTypes),
+      treeShakeProtobufs: true);
 
-  final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+  String actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
+
+  // Tests in /protobuf_handler consist of multiple libraries.
+  // Include libraries with protobuf generated messages into the result.
+  if (source.toString().contains('/protobuf_handler/')) {
+    for (var lib in component.libraries) {
+      if (lib.importUri
+          .toString()
+          .contains('/protobuf_handler/lib/generated/')) {
+        lib.name ??= lib.importUri.pathSegments.last;
+        actual += kernelLibraryToString(lib);
+      }
+    }
+    // Remove library paths.
+    actual = actual.replaceAll(Uri.file(pkgVmDir).toString(), 'file:pkg/vm');
+  }
 
   compareResultWithExpectationsFile(source, actual);
 
@@ -42,19 +58,18 @@ main() {
     final testCasesDir = new Directory(
         pkgVmDir + '/testcases/transformations/type_flow/transformer');
 
-    for (var entry in testCasesDir
-        .listSync(recursive: true, followLinks: false)
-        .reversed) {
-      if (entry.path.endsWith('.dart')) {
-        final bool enableNullSafety = entry.path.endsWith('_nnbd_strong.dart');
-        final bool enableNNBD =
-            enableNullSafety || entry.path.endsWith('_nnbd.dart');
+    for (var entry
+        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+      final path = entry.path;
+      if (path.endsWith('.dart') && !path.endsWith('.pb.dart')) {
+        final bool enableNullSafety = path.endsWith('_nnbd_strong.dart');
+        final bool enableNNBD = enableNullSafety || path.endsWith('_nnbd.dart');
         final List<String> experimentalFlags = [
           if (enableNNBD) 'non-nullable',
         ];
-        test(entry.path,
+        test(path,
             () => runTestCase(entry.uri, experimentalFlags, enableNullSafety));
       }
     }
-  });
+  }, timeout: Timeout.none);
 }

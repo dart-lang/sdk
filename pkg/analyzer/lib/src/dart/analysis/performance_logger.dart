@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 /// This class is used to gather and print performance information.
 class PerformanceLog {
   final StringSink sink;
@@ -66,12 +64,10 @@ class PerformanceLog {
   }
 }
 
-/**
- * The performance measurement section for operations that start and end
- * at different place in code, so cannot be run using [PerformanceLog.run].
- *
- * The client must call [exit] for every [PerformanceLog.enter].
- */
+/// The performance measurement section for operations that start and end
+/// at different place in code, so cannot be run using [PerformanceLog.run].
+///
+/// The client must call [exit] for every [PerformanceLog.enter].
 class PerformanceLogSection {
   final PerformanceLog _logger;
   final String _msg;
@@ -79,9 +75,7 @@ class PerformanceLogSection {
 
   PerformanceLogSection(this._logger, this._msg);
 
-  /**
-   * Stop the timer, log the time.
-   */
+  /// Stop the timer, log the time.
   void exit() {
     _timer.stop();
     _logger._level--;

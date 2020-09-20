@@ -4,7 +4,7 @@
 //
 // Dart test program for testing dart:ffi extra checks
 //
-// SharedObjects=ffi_test_dynamic_library
+// SharedObjects=ffi_test_dynamic_library ffi_test_functions
 
 import 'dart:ffi';
 
@@ -44,6 +44,7 @@ void main() {
   testNativeFunctionSignatureInvalidParam();
   testNativeFunctionSignatureInvalidOptionalNamed();
   testNativeFunctionSignatureInvalidOptionalPositional();
+  testHandleVariance();
 }
 
 typedef Int8UnOp = Int8 Function(Int8);
@@ -447,3 +448,31 @@ class INativeFunction //# 813: compile-time error
 class IPointer implements Pointer {} //# 814: compile-time error
 
 class IStruct implements Struct {} //# 815: compile-time error
+
+class MyClass {
+  int x;
+  MyClass(this.x);
+}
+
+final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
+
+void testHandleVariance() {
+  // Taking a more specific argument is okay.
+  testLibrary.lookupFunction<Handle Function(Handle), Object Function(MyClass)>(
+      "PassObjectToC");
+
+  // Requiring a more specific return type is not, this requires a cast from
+  // the user.
+  testLibrary.lookupFunction< //# 1000: compile-time error
+      Handle Function(Handle), //# 1000: compile-time error
+      MyClass Function(Object)>("PassObjectToC"); //# 1000: compile-time error
+}
+
+class TestStruct1001 extends Struct {
+  Handle handle; //# 1001: compile-time error
+}
+
+class TestStruct1002 extends Struct {
+  @Handle() //# 1002: compile-time error
+  Object handle; //# 1002: compile-time error
+}

@@ -203,9 +203,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
           diagnosticReporter.report(
-              templateFfiFieldInitializer.withArguments(f.name.name),
+              templateFfiFieldInitializer.withArguments(f.name.text),
               f.fileOffset,
-              f.name.name.length,
+              f.name.text.length,
               f.fileUri);
         }
       }
@@ -214,24 +214,24 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (_isPointerType(type)) {
         if (nativeTypeAnnos.length != 0) {
           diagnosticReporter.report(
-              templateFfiFieldNoAnnotation.withArguments(f.name.name),
+              templateFfiFieldNoAnnotation.withArguments(f.name.text),
               f.fileOffset,
-              f.name.name.length,
+              f.name.text.length,
               f.fileUri);
         }
       } else if (nativeTypeAnnos.length != 1) {
         diagnosticReporter.report(
-            templateFfiFieldAnnotation.withArguments(f.name.name),
+            templateFfiFieldAnnotation.withArguments(f.name.text),
             f.fileOffset,
-            f.name.name.length,
+            f.name.text.length,
             f.fileUri);
       } else {
         final DartType nativeType = InterfaceType(
             nativeTypesClasses[nativeTypeAnnos.first.index],
             Nullability.legacy);
         // TODO(36730): Support structs inside structs.
-        final DartType shouldBeDartType =
-            convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
+        final DartType shouldBeDartType = convertNativeTypeToDartType(
+            nativeType, /*allowStructs=*/ false, /*allowHandle=*/ false);
         if (shouldBeDartType == null ||
             !env.isSubtypeOf(type, shouldBeDartType,
                 SubtypeCheckMode.ignoringNullabilities)) {
@@ -258,7 +258,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (i is FieldInitializer) {
           toRemove.add(i);
           diagnosticReporter.report(
-              templateFfiFieldInitializer.withArguments(i.field.name.name),
+              templateFfiFieldInitializer.withArguments(i.field.name.text),
               i.fileOffset,
               1,
               i.location.file);
@@ -274,7 +274,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // C.#fromPointer(Pointer<Void> address) : super.fromPointer(address);
     final VariableDeclaration pointer = new VariableDeclaration("#pointer");
     final name = Name("#fromPointer");
-    final referenceFrom = indexedClass?.lookupConstructor(name.name);
+    final referenceFrom = indexedClass?.lookupConstructor(name.text);
     final Constructor ctor = Constructor(
         FunctionNode(EmptyStatement(), positionalParameters: [pointer]),
         name: name,
@@ -406,7 +406,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     //   _fromAddress<Int8>(_loadIntPtr(pointer, offset));
     final loadMethod = isPointer
         ? loadMethods[NativeType.kIntptr]
-        : optimizedTypes.contains(type) ? loadMethods[type] : loadStructMethod;
+        : optimizedTypes.contains(type)
+            ? loadMethods[type]
+            : loadStructMethod;
     Expression getterReturnValue = StaticInvocation(
         loadMethod,
         Arguments([
@@ -461,7 +463,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         FunctionNode(getterStatement, returnType: field.type),
         fileUri: field.fileUri,
         reference:
-            indexedClass?.lookupProcedureNotSetter(field.name.name)?.reference)
+            indexedClass?.lookupProcedureNotSetter(field.name.text)?.reference)
       ..fileOffset = field.fileOffset
       ..isNonNullableByDefault = field.isNonNullableByDefault;
 
@@ -479,7 +481,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               returnType: VoidType(), positionalParameters: [argument]),
           fileUri: field.fileUri,
           reference:
-              indexedClass?.lookupProcedureSetter(field.name.name)?.reference)
+              indexedClass?.lookupProcedureSetter(field.name.text)?.reference)
         ..fileOffset = field.fileOffset
         ..isNonNullableByDefault = field.isNonNullableByDefault;
     }
@@ -501,7 +503,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         initializer: _runtimeBranchOnLayout(sizes),
         type: InterfaceType(intClass, Nullability.legacy),
         fileUri: struct.fileUri,
-        reference: indexedClass?.lookupField(name.name)?.reference)
+        reference: indexedClass?.lookupField(name.text)?.reference)
       ..fileOffset = struct.fileOffset;
     _makeEntryPoint(sizeOf);
     struct.addMember(sizeOf);

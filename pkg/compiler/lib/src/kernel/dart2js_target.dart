@@ -36,7 +36,10 @@ bool maybeEnableNative(Uri uri) {
   bool allowedTestLibrary() {
     String scriptName = uri.path;
     return scriptName
-            .contains(RegExp(r'(?<!generated_)tests/dart2js_2/native')) ||
+            .contains(RegExp(r'(?<!generated_)tests/dart2js/native')) ||
+        scriptName.contains(RegExp(r'(?<!generated_)tests/dart2js/internal')) ||
+        scriptName.contains('generated_tests/dart2js/native/native_test') ||
+        scriptName.contains(RegExp(r'(?<!generated_)tests/dart2js_2/native')) ||
         scriptName
             .contains(RegExp(r'(?<!generated_)tests/dart2js_2/internal')) ||
         scriptName.contains('generated_tests/dart2js_2/native/native_test');
@@ -64,6 +67,9 @@ class Dart2jsTarget extends Target {
 
   @override
   bool get supportsLateFields => false;
+
+  @override
+  bool get useStaticFieldLowering => false;
 
   // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
   //  calls encoded with an explicit property get or disallows getter calls.
@@ -179,6 +185,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
@@ -200,6 +207,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',

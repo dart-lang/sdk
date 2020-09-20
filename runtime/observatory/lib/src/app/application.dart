@@ -131,7 +131,6 @@ class ObservatoryApplication {
     assert(app == null);
     app = this;
     _registerPages();
-    Analytics.initialize();
     // Visit the current page.
     locationManager._visit();
   }
@@ -174,6 +173,7 @@ class ObservatoryApplication {
     _pageRegistry.add(new LoggingPage(this));
     _pageRegistry.add(new TimelinePage(this));
     _pageRegistry.add(new TimelineDashboardPage(this));
+    _pageRegistry.add(new ProcessSnapshotPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));

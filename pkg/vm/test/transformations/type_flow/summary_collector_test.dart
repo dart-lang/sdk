@@ -73,7 +73,8 @@ class PrintSummaries extends RecursiveVisitor<Null> {
         typesBuilder,
         new NativeCodeOracle(
             null, new ConstantPragmaAnnotationParser(coreTypes)),
-        new GenericInterfacesInfoImpl(hierarchy));
+        new GenericInterfacesInfoImpl(hierarchy),
+        /*_protobufHandler=*/ null);
   }
 
   String print(TreeNode node) {

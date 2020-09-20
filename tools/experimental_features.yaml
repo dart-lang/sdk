@@ -35,7 +35,7 @@
 #    experiment is disabled by default, but may be enabled by specifying the
 #    flag on the command line. (e.g. --enable-experiment=non-nullable)
 #
-#    A version less than than this version may be specified in a .packages file
+#    A version less than this version may be specified in a .packages file
 #    or in a library language version override (e.g. // @dart = 2.1)
 #    to disable this feature. For more on library language version override, see
 #    https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/language-versioning.md
@@ -55,6 +55,14 @@
 # The implementation teams begin building support for the feature,
 # guarded by the flag.  Users can enable the flag and begin to try out
 # the feature as it is being developed.
+#
+# Experimental release:
+#    When an experiment is released, then the 'experimentalReleaseVersion' field
+# is added indicating which version of the SDK contains this new language
+# feature for libraries and packages in mentioned in
+# `sdk/lib/_internal/allowed_experiments.json`. For other libraries and
+# packages, passing the experiment flag is still required to turn on the
+# experiment.
 #
 # Shipped:
 #    When an experiment is shipped, then the 'enabledIn' field is added
@@ -76,22 +84,37 @@
 # Dart source files that don't specify their own version will be
 # presumed to be in this version.  Experiment flags will not affect
 # files that specify an earlier version.
+#
+# Furthermore, most of the above was designed with language features
+# (spanning both CFE and Analyzer) in mind, but didn't take into account
+# features in individual products (e.g. in CFE that has no influence on
+# Analyzer). As a stepping-stone to allow for this usage as well, a "category"
+# is also available. If no "category" is specified it's assumed to be the
+# default 'language' "category" with code generated for both CFE and Analyzer,
+# while other categories can be tailored more specifically.
 
-current-version: 2.9
+current-version: '2.10.0'
 
 features:
   non-nullable:
     help: "Non Nullable by default"
+    experimentalReleaseVersion: '2.10.0'
 
   triple-shift:
     help: "Triple-shift operator"
 
   variance:
-    help: "Sound variance."
+    help: "Sound variance"
 
   nonfunction-type-aliases:
-    help: "Type aliases define a <type>, not just a <functionType>."
+    help: "Type aliases define a <type>, not just a <functionType>"
 
+  alternative-invalidation-strategy:
+    help: "Alternative invalidation strategy for incremental compilation"
+    category: "CFE"
+
+  value-class:
+    help: "Value class"
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
@@ -108,15 +131,15 @@ features:
 
   control-flow-collections:
     help: "Control Flow Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true
 
   set-literals:
     help: "Set Literals"
-    enabledIn: 2.2
+    enabledIn: '2.0.0'
     expired: true
 
   spread-collections:
     help: "Spread Collections"
-    enabledIn: '2.2.2'
+    enabledIn: '2.0.0'
     expired: true

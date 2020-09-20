@@ -57,12 +57,12 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     // call.
     // This sequence may occur in an intrinsic, so don't use registers an
     // intrinsic must preserve.
-    COMPILE_ASSERT(R23 != CODE_REG);
-    COMPILE_ASSERT(R25 != CODE_REG);
-    COMPILE_ASSERT(R23 != ARGS_DESC_REG);
-    COMPILE_ASSERT(R25 != ARGS_DESC_REG);
-    __ mov(R23, CSP);
-    __ mov(R25, SP);
+    COMPILE_ASSERT(kCallLeafRuntimeCalleeSaveScratch1 != CODE_REG);
+    COMPILE_ASSERT(kCallLeafRuntimeCalleeSaveScratch2 != CODE_REG);
+    COMPILE_ASSERT(kCallLeafRuntimeCalleeSaveScratch1 != ARGS_DESC_REG);
+    COMPILE_ASSERT(kCallLeafRuntimeCalleeSaveScratch2 != ARGS_DESC_REG);
+    __ mov(kCallLeafRuntimeCalleeSaveScratch1, CSP);
+    __ mov(kCallLeafRuntimeCalleeSaveScratch2, SP);
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
     __ ldr(TMP,
@@ -71,8 +71,8 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ blr(TMP);
     __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
     __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
-    __ mov(SP, R25);
-    __ mov(CSP, R23);
+    __ mov(SP, kCallLeafRuntimeCalleeSaveScratch2);
+    __ mov(CSP, kCallLeafRuntimeCalleeSaveScratch1);
     ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
     ASSERT((kAbiPreservedCpuRegs & (1 << PP)) != 0);
   } else {

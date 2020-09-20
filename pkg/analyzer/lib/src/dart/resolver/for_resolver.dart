@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
@@ -58,9 +59,7 @@ class ForResolver {
         ? _resolver.typeProvider.streamElement
         : _resolver.typeProvider.iterableElement;
 
-    InterfaceType iteratedType = iterableType is InterfaceTypeImpl
-        ? iterableType.asInstanceOf(iteratedElement)
-        : null;
+    InterfaceType iteratedType = iterableType.asInstanceOf(iteratedElement);
 
     if (iteratedType != null) {
       var elementType = iteratedType.typeArguments.single;
@@ -85,7 +84,12 @@ class ForResolver {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifier) {
       identifier = forEachParts.identifier;
+      // TODO(scheglov) replace with lexical lookup
       identifier?.accept(_resolver);
+      AssignmentExpressionShared(
+        resolver: _resolver,
+        flowAnalysis: _flowAnalysis,
+      ).checkFinalAlreadyAssigned(identifier);
     }
 
     DartType valueType;
@@ -96,7 +100,7 @@ class ForResolver {
     if (identifier != null) {
       identifierElement = identifier.staticElement;
       if (identifierElement is VariableElement) {
-        valueType = identifierElement.type;
+        valueType = _resolver.localVariableTypeProvider.getType(identifier);
       } else if (identifierElement is PropertyAccessorElement) {
         var parameters = identifierElement.parameters;
         if (parameters.isNotEmpty) {

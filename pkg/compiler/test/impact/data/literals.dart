@@ -131,8 +131,7 @@ testComplexConstSymbol() => const Symbol(complexSymbolField);
 /*member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
-/*spec:nnbd-off.member: testTypeLiteral:static=[createRuntimeType(1),typeLiteral(1)],type=[inst:Type,inst:_Type,lit:Object]*/
-/*spec:nnbd-sdk.member: testTypeLiteral:
+/*member: testTypeLiteral:
  static=[
   createRuntimeType(1),
   typeLiteral(1)],
@@ -152,15 +151,13 @@ testEmptyListLiteral() => [];
 /*member: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
 testEmptyListLiteralDynamic() => <dynamic>[];
 
-/*spec:nnbd-off.member: testEmptyListLiteralTyped:type=[inst:List<String>]*/
-/*spec:nnbd-sdk.member: testEmptyListLiteralTyped:type=[inst:List<String*>]*/
+/*member: testEmptyListLiteralTyped:type=[inst:List<String*>]*/
 testEmptyListLiteralTyped() => <String>[];
 
 /*member: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
-/*spec:nnbd-off.member: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
-/*spec:nnbd-sdk.member: testNonEmptyListLiteral:type=[
+/*member: testNonEmptyListLiteral:type=[
   inst:JSBool,
   inst:List<bool*>]*/
 testNonEmptyListLiteral() => [true];
@@ -171,8 +168,7 @@ testEmptyMapLiteral() => {};
 /*member: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 
-/*spec:nnbd-off.member: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
-/*spec:nnbd-sdk.member: testEmptyMapLiteralTyped:type=[inst:Map<String*,int*>]*/
+/*member: testEmptyMapLiteralTyped:type=[inst:Map<String*,int*>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
 /*member: testEmptyMapLiteralConstant:
@@ -184,8 +180,7 @@ type=[
 */
 testEmptyMapLiteralConstant() => const {};
 
-/*spec:nnbd-off.member: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
-/*spec:nnbd-sdk.member: testNonEmptyMapLiteral:type=[
+/*member: testNonEmptyMapLiteral:type=[
   inst:JSBool,
   inst:JSNull,
   inst:Map<Null,bool*>]*/

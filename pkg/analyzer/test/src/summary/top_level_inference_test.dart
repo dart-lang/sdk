@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/analysis/base.dart';
-import '../task/strong/strong_test_helper.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 import 'element_text.dart';
 
 main() {
@@ -31,26 +30,24 @@ class ApplyCheckElementTextReplacements {
 }
 
 @reflectiveTest
-class TopLevelInferenceErrorsTest extends AbstractStrongTest {
+class TopLevelInferenceErrorsTest extends PubPackageResolutionTest {
   test_initializer_additive() async {
     await _assertErrorOnlyLeft(['+', '-']);
   }
 
   test_initializer_assign() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t1 = a += 1;
 var t2 = a = 2;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_binary_onlyLeft() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t = (a = 1) + (a = 2);
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_bitwise() async {
@@ -58,116 +55,107 @@ var t = (a = 1) + (a = 2);
   }
 
   test_initializer_boolean() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t1 = ((a = 1) == 0) || ((a = 2) == 0);
 var t2 = ((a = 1) == 0) && ((a = 2) == 0);
 var t3 = !((a = 1) == 0);
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_cascade() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 0;
 var t = (a = 1)..isEven;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_classField_instance_instanceCreation() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 class A<T> {}
 class B {
   var t1 = new A<int>();
   var t2 = new A();
 }
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_classField_static_instanceCreation() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 class A<T> {}
 class B {
   static var t1 = 1;
   static var t2 = new A();
 }
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_conditional() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var b = true;
-var t = b ?
-          (a = 1) :
-          (a = 2);
-''';
-    await checkFile(content);
+var t = b
+    ? (a = 1)
+    : (a = 2);
+''');
   }
 
   test_initializer_dependencyCycle() async {
-    var content = r'''
-var a = /*error:TOP_LEVEL_CYCLE*/b;
-var b = /*error:TOP_LEVEL_CYCLE*/a;
-''';
-    await checkFile(content);
+    await assertErrorsInCode('''
+var a = b;
+var b = a;
+''', [
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 8, 1),
+      error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 19, 1),
+    ]);
   }
 
   test_initializer_equality() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t1 = ((a = 1) == 0) == ((a = 2) == 0);
 var t2 = ((a = 1) == 0) != ((a = 2) == 0);
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_extractIndex() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = [0, 1.2];
 var b0 = a[0];
 var b1 = a[1];
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_functionLiteral_blockBody() async {
-    var content = r'''
-var t = /*error:TOP_LEVEL_FUNCTION_LITERAL_BLOCK*/
-        
-        (int p) {};
-''';
-    await checkFile(content);
+    await assertErrorsInCode('''
+var t = (int p) {};
+''', [
+      error(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK, 8, 10),
+    ]);
   }
 
   test_initializer_functionLiteral_expressionBody() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 0;
 var t = (int p) => (a = 1);
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_functionLiteral_parameters_withoutType() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var t = (int a, b,int c, d) => 0;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_hasTypeAnnotation() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 int t = (a = 1);
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_identifier() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 int top_function() => 0;
 var top_variable = 0;
 int get top_getter => 0;
@@ -184,67 +172,60 @@ var t4 = A.static_field;
 var t5 = A.static_getter;
 var t6 = A.static_method;
 var t7 = new A().instance_method;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_identifier_error() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 0;
 var b = (a = 1);
 var c = b;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_ifNull() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t = a ?? 2;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_instanceCreation_withoutTypeParameters() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 class A {}
 var t = new A();
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_instanceCreation_withTypeParameters() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 class A<T> {}
 var t1 = new A<int>();
 var t2 = new A();
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_instanceGetter() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 class A {
   int f = 1;
 }
 var a = new A().f;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_methodInvocation_function() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 int f1() => null;
 T f2<T>() => null;
 var t1 = f1();
 var t2 = f2();
 var t3 = f2<int>();
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_methodInvocation_method() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 class A {
   int m1() => null;
   T m2<T>() => null;
@@ -253,8 +234,7 @@ var a = new A();
 var t1 = a.m1();
 var t2 = a.m2();
 var t3 = a.m2<int>();
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_multiplicative() async {
@@ -262,21 +242,19 @@ var t3 = a.m2<int>();
   }
 
   test_initializer_postfixIncDec() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t1 = a++;
 var t2 = a--;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_prefixIncDec() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t1 = ++a;
 var t2 = --a;
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_relational() async {
@@ -288,43 +266,42 @@ var t2 = --a;
   }
 
   test_initializer_typedList() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t = <int>[a = 1];
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_typedMap() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t = <int, int>{(a = 1) : (a = 2)};
-''';
-    await checkFile(content);
+''');
   }
 
   test_initializer_untypedList() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t = [
-            a = 1,
-            2, 3];
-''';
-    await checkFile(content);
+    a = 1,
+    2,
+    3,
+];
+''');
   }
 
   test_initializer_untypedMap() async {
-    var content = r'''
+    await assertNoErrorsInCode('''
 var a = 1;
 var t = {
-            (a = 1) :
-            (a = 2)};
-''';
-    await checkFile(content);
+    (a = 1) :
+        (a = 2),
+};
+''');
   }
 
   test_override_conflictFieldType() async {
-    var content = r'''
+    await assertErrorsInCode('''
 abstract class A {
   int aaa;
 }
@@ -332,15 +309,16 @@ abstract class B {
   String aaa;
 }
 class C implements A, B {
-  var /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/aaa;
+  var aaa;
 }
-''';
-    await checkFile(content);
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 99, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 99, 3),
+    ]);
   }
 
-  @failingTest
   test_override_conflictParameterType_method() async {
-    var content = r'''
+    await assertErrorsInCode('''
 abstract class A {
   void mmm(int a);
 }
@@ -348,10 +326,11 @@ abstract class B {
   void mmm(String a);
 }
 class C implements A, B {
-  void mmm(/*error:TOP_LEVEL_INFERENCE_ERROR*/a) {}
+  void mmm(a) {}
 }
-''';
-    await checkFile(content);
+''', [
+      error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 116, 3),
+    ]);
   }
 
   Future<void> _assertErrorOnlyLeft(List<String> operators) async {
@@ -360,7 +339,7 @@ class C implements A, B {
       String operator = operators[i];
       code += 'var t$i = (a = 1) $operator (a = 2);\n';
     }
-    await checkFile(code);
+    await assertNoErrorsInCode(code);
   }
 }
 
@@ -542,12 +521,10 @@ A vBoth;
 ''');
   }
 
-  /**
-   * A simple or qualified identifier referring to a top level function, static
-   * variable, field, getter; or a static class variable, static getter or
-   * method; or an instance method; has the inferred type of the identifier.
-   *
-   */
+  /// A simple or qualified identifier referring to a top level function, static
+  /// variable, field, getter; or a static class variable, static getter or
+  /// method; or an instance method; has the inferred type of the identifier.
+  ///
   test_initializer_classField_useInstanceGetter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -1707,7 +1684,7 @@ abstract class B {
   dynamic get x;
 }
 class C implements A, B {
-  dynamic get x {}
+  int get x {}
 }
 ''');
   }
@@ -1850,8 +1827,8 @@ abstract class B {
   void set x(String _);
 }
 class C implements A, B {
-  synthetic dynamic x;
-  void set x(dynamic _);
+  synthetic String x;
+  void set x(String _);
 }
 ''',
         withSyntheticFields: true);
@@ -2112,32 +2089,28 @@ class A {
 ''');
   }
 
-  test_method_error_conflict_parameterType_generic() async {
+  test_method_error_hasMethod_noParameter_required() async {
     var library = await _encodeDecodeLibrary(r'''
-class A<T> {
-  void m(T a) {}
+class A {
+  void m(int a) {}
 }
-class B<E> {
-  void m(E a) {}
-}
-class C extends A<int> implements B<double> {
-  m(a) {}
+class B extends A {
+  void m(a, b) {}
 }
 ''');
+    // It's an error to add a new required parameter, but it is not a
+    // top-level type inference error.
     checkElementText(library, r'''
-class A<T> {
-  void m(T a) {}
+class A {
+  void m(int a) {}
 }
-class B<E> {
-  void m(E a) {}
-}
-class C extends A<int> implements B<double> {
-  void m(dynamic a/*error: overrideConflictParameterType*/) {}
+class B extends A {
+  void m(int a, dynamic b) {}
 }
 ''');
   }
 
-  test_method_error_conflict_parameterType_notGeneric() async {
+  test_method_error_noCombinedSuperSignature1() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   void m(int a) {}
@@ -2157,38 +2130,39 @@ class B {
   void m(String a) {}
 }
 class C extends A implements B {
-  void m(dynamic a/*error: overrideConflictParameterType*/) {}
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
 }
 ''');
   }
 
-  test_method_error_conflict_returnType_generic() async {
+  test_method_error_noCombinedSuperSignature2() async {
     var library = await _encodeDecodeLibrary(r'''
-class A<K, V> {
-  V m(K a) {}
+abstract class A {
+  int foo(int x);
 }
-class B<T> {
-  T m(int a) {}
+
+abstract class B {
+  double foo(int x);
 }
-class C extends A<int, String> implements B<double> {
-  m(a) {}
+
+abstract class C implements A, B {
+  Never foo(x);
 }
 ''');
-    // TODO(scheglov) test for inference failure error
     checkElementText(library, r'''
-class A<K, V> {
-  V m(K a) {}
+abstract class A {
+  int foo(int x);
 }
-class B<T> {
-  T m(int a) {}
+abstract class B {
+  double foo(int x);
 }
-class C extends A<int, String> implements B<double> {
-  dynamic m(int a) {}
+abstract class C implements A, B {
+  Null foo/*error: overrideNoCombinedSuperSignature*/(dynamic x);
 }
 ''');
   }
 
-  test_method_error_conflict_returnType_notGeneric() async {
+  test_method_error_noCombinedSuperSignature3() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
   int m() {}
@@ -2209,28 +2183,57 @@ class B {
   String m() {}
 }
 class C extends A implements B {
-  dynamic m() {}
+  dynamic m/*error: overrideNoCombinedSuperSignature*/() {}
 }
 ''');
   }
 
-  test_method_error_hasMethod_noParameter_required() async {
+  test_method_error_noCombinedSuperSignature_generic1() async {
     var library = await _encodeDecodeLibrary(r'''
-class A {
-  void m(int a) {}
+class A<T> {
+  void m(T a) {}
 }
-class B extends A {
-  m(a, b) {}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  m(a) {}
 }
 ''');
-    // It's an error to add a new required parameter, but it is not a
-    // top-level type inference error.
     checkElementText(library, r'''
-class A {
-  void m(int a) {}
+class A<T> {
+  void m(T a) {}
 }
-class B extends A {
-  void m(int a, dynamic b) {}
+class B<E> {
+  void m(E a) {}
+}
+class C extends A<int> implements B<double> {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
+}
+''');
+  }
+
+  test_method_error_noCombinedSuperSignature_generic2() async {
+    var library = await _encodeDecodeLibrary(r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  m(a) {}
+}
+''');
+    checkElementText(library, r'''
+class A<K, V> {
+  V m(K a) {}
+}
+class B<T> {
+  T m(int a) {}
+}
+class C extends A<int, String> implements B<double> {
+  dynamic m/*error: overrideNoCombinedSuperSignature*/(dynamic a) {}
 }
 ''');
   }

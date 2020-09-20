@@ -1,0 +1,19 @@
+// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// Tests that closure signatures are walked as dependencies of a closure. If the
+// signature of the closure is not visited, SystemMessage is placed in the main
+// unit while it's superclass GeneratedMessage is placed in a deferred part.
+
+import '34219_signature_lib1.dart' deferred as lib1;
+import '34219_signature_lib3.dart' deferred as lib3;
+
+main() async {
+  await lib1.loadLibrary();
+  lib1.test1();
+  await lib3.loadLibrary();
+  lib3.test3();
+  if (lib1.g is bool Function(Object, Object)) print('!');
+}

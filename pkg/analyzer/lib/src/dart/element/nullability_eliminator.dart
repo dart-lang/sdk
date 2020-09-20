@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/replacement_visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -15,7 +14,7 @@ class NullabilityEliminator extends ReplacementVisitor {
   NullabilityEliminator(this._typeProvider);
 
   @override
-  DartType visitNeverType(NeverTypeImpl type) {
+  DartType visitNeverType(NeverType type) {
     return _typeProvider.nullStar;
   }
 
@@ -38,11 +37,12 @@ class NullabilityEliminator extends ReplacementVisitor {
   /// If the [type] itself, or any of its components, has any nullability,
   /// return a new type with legacy nullability suffixes. Otherwise return the
   /// original instance.
-  static T perform<T extends DartType>(TypeProviderImpl typeProvider, T type) {
+  static DartType perform(TypeProviderImpl typeProvider, DartType type) {
     if (type == null) {
       return type;
     }
 
-    return NullabilityEliminator(typeProvider).visit(type) ?? type;
+    var visitor = NullabilityEliminator(typeProvider);
+    return type.accept<DartType>(visitor) ?? type;
   }
 }

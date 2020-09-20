@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -54,7 +52,7 @@ abstract class RawSynchronousSocket {
    * otherwise up to [buffer.length]. If [end] == [start], no bytes are read.
    * Returns the number of bytes read.
    */
-  int readIntoSync(List<int> buffer, [int start = 0, int end]);
+  int readIntoSync(List<int> buffer, [int start = 0, int? end]);
 
   /**
    * Reads up to [bytes] bytes from the socket.
@@ -64,7 +62,7 @@ abstract class RawSynchronousSocket {
    * be read. Returns the list of bytes read, which could be less than the
    * value specified by [bytes].
    */
-  List<int> readSync(int bytes);
+  List<int>? readSync(int bytes);
 
   /**
    * Shutdown a socket in the provided direction.
@@ -87,7 +85,7 @@ abstract class RawSynchronousSocket {
    * be written to the socket starting from index [start]. If [end] == [start],
    * nothing happens.
    */
-  void writeFromSync(List<int> buffer, [int start = 0, int end]);
+  void writeFromSync(List<int> buffer, [int start = 0, int? end]);
 
   /**
    * The port used by this socket.

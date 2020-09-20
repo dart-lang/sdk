@@ -1,0 +1,15 @@
+StateA a = StateA();
+StateB b = StateB();
+
+class Diagnosticable {}
+
+class SomeClass with Diagnosticable {}
+
+class State<T> with Diagnosticable {}
+
+class StateA extends State {}
+
+class StateB extends State<int> {}
+
+foo<T>(T x) {}
+main() {}

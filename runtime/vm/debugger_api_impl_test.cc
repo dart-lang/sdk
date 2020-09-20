@@ -180,6 +180,7 @@ DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
   } else {
     Dart_KernelCompilationResult compilation_result =
         KernelIsolate::CompileExpressionToKernel(
+            /* platform_kernel= */ nullptr, /* platform_kernel_size= */ 0,
             expr.ToCString(),
             /* definitions= */ Array::empty_array(),
             /* type_defintions= */ Array::empty_array(),

@@ -125,14 +125,14 @@ class KLibraryEnv {
         }
         if (member is ir.Procedure) {
           if (member.kind == ir.ProcedureKind.Setter) {
-            _setterMap[member.name.name] = member;
+            _setterMap[member.name.text] = member;
           } else {
-            _memberMap[member.name.name] = member;
+            _memberMap[member.name.text] = member;
           }
         } else if (member is ir.Field) {
-          _memberMap[member.name.name] = member;
+          _memberMap[member.name.text] = member;
           if (member.isMutable) {
-            _setterMap[member.name.name] = member;
+            _setterMap[member.name.text] = member;
           }
         } else {
           failedAt(
@@ -379,7 +379,7 @@ class KClassEnvImpl implements KClassEnv {
     void addField(ir.Field member, {bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
       if (isRedirectingFactoryField(member)) return;
-      var name = member.name.name;
+      var name = member.name.text;
       _memberMap[name] = member;
       if (member.isMutable) {
         _setterMap[name] = member;
@@ -399,7 +399,7 @@ class KClassEnvImpl implements KClassEnv {
           return;
         }
       }
-      var name = member.name.name;
+      var name = member.name.text;
       if (member.kind == ir.ProcedureKind.Factory) {
         if (isRedirectingFactory(member)) {
           // Don't include redirecting factories.
@@ -420,7 +420,7 @@ class KClassEnvImpl implements KClassEnv {
 
     void addConstructors(ir.Class c) {
       for (ir.Constructor member in c.constructors) {
-        var name = member.name.name;
+        var name = member.name.text;
         _constructorMap[name] = member;
       }
     }
@@ -487,7 +487,7 @@ class KClassEnvImpl implements KClassEnv {
         var forwardingConstructor = _buildForwardingConstructor(
             superclassCloner, superclassConstructor);
         cls.addMember(forwardingConstructor);
-        _constructorMap[forwardingConstructor.name.name] =
+        _constructorMap[forwardingConstructor.name.text] =
             forwardingConstructor;
       }
     }

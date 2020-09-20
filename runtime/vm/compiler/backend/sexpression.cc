@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "platform/utils.h"
 #include "vm/double_conversion.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -18,13 +19,9 @@ SExpression* SExpression::FromCString(Zone* zone, const char* str) {
 }
 
 const char* SExpression::ToCString(Zone* zone) const {
-  TextBuffer buf(1 * KB);
+  ZoneTextBuffer buf(zone, 1 * KB);
   SerializeToLine(&buf);
-  auto const buf_len = buf.length();
-  char* ret = zone->Alloc<char>(buf_len + 1);
-  strncpy(ret, buf.buf(), buf_len);
-  ret[buf_len] = '\0';
-  return ret;
+  return buf.buffer();
 }
 
 bool SExpBool::Equals(SExpression* sexp) const {
@@ -36,7 +33,7 @@ bool SExpBool::Equals(bool val) const {
   return value() == val;
 }
 
-void SExpBool::SerializeToLine(TextBuffer* buffer) const {
+void SExpBool::SerializeToLine(BaseTextBuffer* buffer) const {
   buffer->AddString(value() ? SExpParser::kBoolTrueSymbol
                             : SExpParser::kBoolFalseSymbol);
 }
@@ -50,7 +47,7 @@ bool SExpDouble::Equals(double val) const {
   return value() == val;
 }
 
-void SExpDouble::SerializeToLine(TextBuffer* buffer) const {
+void SExpDouble::SerializeToLine(BaseTextBuffer* buffer) const {
   // Use existing Dart serialization for Doubles.
   const intptr_t kBufSize = 128;
   char strbuf[kBufSize];
@@ -67,7 +64,7 @@ bool SExpInteger::Equals(int64_t val) const {
   return value() == val;
 }
 
-void SExpInteger::SerializeToLine(TextBuffer* buffer) const {
+void SExpInteger::SerializeToLine(BaseTextBuffer* buffer) const {
   buffer->Printf("%" Pd64 "", value());
 }
 
@@ -80,10 +77,12 @@ bool SExpString::Equals(const char* str) const {
   return strcmp(value(), str) == 0;
 }
 
-void SExpString::SerializeToLine(TextBuffer* buffer) const {
-  buffer->AddChar('"');
-  buffer->AddEscapedString(value());
-  buffer->AddChar('"');
+void SExpString::SerializeToLine(BaseTextBuffer* buffer) const {
+  TextBuffer buf(80);
+  buf.AddChar('"');
+  buf.AddEscapedString(value());
+  buf.AddChar('"');
+  buffer->AddString(buf.buffer());
 }
 
 bool SExpSymbol::Equals(SExpression* sexp) const {
@@ -95,7 +94,7 @@ bool SExpSymbol::Equals(const char* str) const {
   return strcmp(value(), str) == 0;
 }
 
-void SExpSymbol::SerializeToLine(TextBuffer* buffer) const {
+void SExpSymbol::SerializeToLine(BaseTextBuffer* buffer) const {
   buffer->AddString(value());
 }
 
@@ -128,9 +127,9 @@ const char* const SExpList::kElemIndent = " ";
 const char* const SExpList::kExtraIndent = "  ";
 
 static intptr_t HandleLineBreaking(Zone* zone,
-                                   TextBuffer* buffer,
+                                   BaseTextBuffer* buffer,
                                    SExpression* element,
-                                   TextBuffer* line_buffer,
+                                   BaseTextBuffer* line_buffer,
                                    const char* sub_indent,
                                    intptr_t width,
                                    bool leading_space,
@@ -141,7 +140,7 @@ static intptr_t HandleLineBreaking(Zone* zone,
 
   if ((leading_length + single_line_width) < remaining) {
     if (leading_space) buffer->AddChar(' ');
-    buffer->AddString(line_buffer->buf());
+    buffer->AddString(line_buffer->buffer());
     line_buffer->Clear();
     return remaining - (leading_length + single_line_width);
   }
@@ -150,7 +149,7 @@ static intptr_t HandleLineBreaking(Zone* zone,
   const intptr_t line_used = buffer->length() - old_length + 1;
   remaining = width - line_used;
   if ((single_line_width < remaining) || element->IsAtom()) {
-    buffer->AddString(line_buffer->buf());
+    buffer->AddString(line_buffer->buffer());
     line_buffer->Clear();
     return remaining - single_line_width;
   }
@@ -161,7 +160,7 @@ static intptr_t HandleLineBreaking(Zone* zone,
 
 // Assumes that we are starting on a line after [indent] amount of space.
 void SExpList::SerializeTo(Zone* zone,
-                           TextBuffer* buffer,
+                           BaseTextBuffer* buffer,
                            const char* indent,
                            intptr_t width) const {
   TextBuffer single_line(width);
@@ -177,14 +176,14 @@ void SExpList::SerializeTo(Zone* zone,
   if (!extra_info_.IsEmpty()) {
     SerializeExtraInfoToLine(&single_line);
     if (single_line.length() < remaining - 1) {
-      buffer->Printf(" %s", single_line.buf());
+      buffer->Printf(" %s", single_line.buffer());
     } else {
       const intptr_t old_length = buffer->length();
       buffer->Printf("\n%s", sub_indent);
       const intptr_t line_used = buffer->length() - old_length + 1;
       remaining = width - line_used;
       if (single_line.length() < remaining) {
-        buffer->AddString(single_line.buf());
+        buffer->AddString(single_line.buffer());
       } else {
         SerializeExtraInfoTo(zone, buffer, sub_indent, width);
       }
@@ -193,7 +192,7 @@ void SExpList::SerializeTo(Zone* zone,
   buffer->AddChar(')');
 }
 
-void SExpList::SerializeToLine(TextBuffer* buffer) const {
+void SExpList::SerializeToLine(BaseTextBuffer* buffer) const {
   buffer->AddChar('(');
   for (intptr_t i = 0; i < contents_.length(); i++) {
     if (i != 0) buffer->AddChar(' ');
@@ -207,7 +206,7 @@ void SExpList::SerializeToLine(TextBuffer* buffer) const {
 }
 
 void SExpList::SerializeExtraInfoTo(Zone* zone,
-                                    TextBuffer* buffer,
+                                    BaseTextBuffer* buffer,
                                     const char* indent,
                                     int width) const {
   const char* sub_indent = OS::SCreate(zone, "%s%s", indent, kExtraIndent);
@@ -226,7 +225,7 @@ void SExpList::SerializeExtraInfoTo(Zone* zone,
   buffer->Printf("\n%s}", indent);
 }
 
-void SExpList::SerializeExtraInfoToLine(TextBuffer* buffer) const {
+void SExpList::SerializeExtraInfoToLine(BaseTextBuffer* buffer) const {
   buffer->AddString("{");
   auto it = ExtraIterator();
   while (auto kv = it.Next()) {

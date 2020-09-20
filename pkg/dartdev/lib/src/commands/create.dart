@@ -7,14 +7,18 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
 
-import 'package:path/path.dart' as path;
+import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:stagehand/stagehand.dart' as stagehand;
 
 import '../core.dart';
+import '../events.dart';
 import '../sdk.dart';
 
 /// A command to create a new project from a set of templates.
-class CreateCommand extends DartdevCommand {
+class CreateCommand extends DartdevCommand<int> {
+  static const String cmdName = 'create';
+
   static String defaultTemplateId = 'console-simple';
 
   static List<String> legalTemplateIds = [
@@ -24,16 +28,14 @@ class CreateCommand extends DartdevCommand {
     'web-simple'
   ];
 
-  static Iterable<stagehand.Generator> get generators {
-    return legalTemplateIds.map(retrieveTemplateGenerator);
-  }
+  static Iterable<stagehand.Generator> get generators =>
+      legalTemplateIds.map(retrieveTemplateGenerator);
 
-  static stagehand.Generator retrieveTemplateGenerator(String templateId) {
-    return stagehand.getGenerator(templateId);
-  }
+  static stagehand.Generator retrieveTemplateGenerator(String templateId) =>
+      stagehand.getGenerator(templateId);
 
   CreateCommand({bool verbose = false})
-      : super('create', 'Create a new project.') {
+      : super(cmdName, 'Create a new project.') {
     argParser.addOption(
       'template',
       allowed: legalTemplateIds,
@@ -53,8 +55,8 @@ class CreateCommand extends DartdevCommand {
     argParser.addFlag(
       'force',
       negatable: false,
-      help:
-          'Force project generation, even if the target directory already exists.',
+      help: 'Force project generation, even if the target directory already '
+          'exists.',
     );
   }
 
@@ -62,7 +64,7 @@ class CreateCommand extends DartdevCommand {
   String get invocation => '${super.invocation} <directory>';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     if (argResults['list-templates']) {
       log.stdout(_availableTemplatesJson());
       return 0;
@@ -77,28 +79,35 @@ class CreateCommand extends DartdevCommand {
 
     String dir = argResults.rest.first;
     var targetDir = io.Directory(dir);
-    if (targetDir.existsSync() && !(argResults['force'])) {
+    if (targetDir.existsSync() && !argResults['force']) {
       log.stderr(
-          "Directory '$dir' already exists (use '--force' to force project generation).");
+        "Directory '$dir' already exists "
+        "(use '--force' to force project generation).",
+      );
       return 73;
     }
 
     log.stdout(
-        'Creating ${log.ansi.emphasized(path.absolute(dir))} using template $templateId...');
+      'Creating ${log.ansi.emphasized(p.absolute(dir))} '
+      'using template $templateId...',
+    );
     log.stdout('');
 
     var generator = retrieveTemplateGenerator(templateId);
     await generator.generate(
-      path.basename(dir),
+      p.basename(dir),
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
 
     if (argResults['pub']) {
+      if (!Sdk.checkArtifactExists(sdk.pubSnapshot)) {
+        return 255;
+      }
       log.stdout('');
       var progress = log.progress('Running pub get');
-      var process = await startProcess(
-        sdk.pub,
-        ['get', '--no-precompile'],
+      var process = await startDartProcess(
+        sdk,
+        [sdk.pubSnapshot, 'get', '--no-precompile'],
         cwd: dir,
       );
 
@@ -125,13 +134,20 @@ class CreateCommand extends DartdevCommand {
     log.stdout('');
     log.stdout('Created project $dir! In order to get started, type:');
     log.stdout('');
-    log.stdout(log.ansi.emphasized('  cd ${path.relative(dir)}'));
+    log.stdout(log.ansi.emphasized('  cd ${p.relative(dir)}'));
     // TODO(devoncarew): Once we have a 'run' command, print out here how to run
     // the app.
     log.stdout('');
 
     return 0;
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => CreateUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
 
   @override
   String get usageFooter {
@@ -159,9 +175,17 @@ class CreateCommand extends DartdevCommand {
       return m;
     });
 
-    JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    JsonEncoder encoder = const JsonEncoder.withIndent('  ');
     return encoder.convert(items.toList());
   }
+}
+
+/// The [UsageEvent] for the create command.
+class CreateUsageEvent extends UsageEvent {
+  CreateUsageEvent(String usagePath,
+      {String label, @required int exitCode, @required List<String> args})
+      : super(CreateCommand.cmdName, usagePath,
+            label: label, exitCode: exitCode, args: args);
 }
 
 class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {
@@ -173,10 +197,10 @@ class DirectoryGeneratorTarget extends stagehand.GeneratorTarget {
   }
 
   @override
-  Future createFile(String filePath, List<int> contents) async {
-    io.File file = io.File(path.join(dir.path, filePath));
+  Future createFile(String path, List<int> contents) async {
+    io.File file = io.File(p.join(dir.path, path));
 
-    String name = path.relative(file.path, from: dir.path);
+    String name = p.relative(file.path, from: dir.path);
     log.stdout('  $name');
 
     await file.create(recursive: true);

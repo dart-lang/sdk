@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -61,7 +59,7 @@ class CompletionRunner {
         includedPaths: <String>[analysisRoot],
         resourceProvider: resourceProvider);
     var contributor = DartCompletionManager();
-    var performance = CompletionPerformance();
+    var statistics = CompletionPerformance();
     var stamp = 1;
 
     var fileCount = 0;
@@ -100,8 +98,15 @@ class CompletionRunner {
 
           timer.start();
           var request =
-              CompletionRequestImpl(result, offset, false, performance);
-          var suggestions = await contributor.computeSuggestions(request);
+              CompletionRequestImpl(result, offset, false, statistics);
+          var suggestions = await request.performance.runRequestOperation(
+            (performance) async {
+              return await contributor.computeSuggestions(
+                performance,
+                request,
+              );
+            },
+          );
           timer.stop();
 
           if (!identifier.inDeclarationContext() &&

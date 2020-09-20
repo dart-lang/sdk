@@ -280,7 +280,6 @@ _f(_C/*!*/ x, int/*!*/ y) => x += y;
     visitSubexpression(findNode.assignment('+='), '_D');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39642')
   Future<void> test_assignmentExpression_compound_rhs_nullable_check() async {
     await analyze('''
 abstract class _C {
@@ -1125,7 +1124,7 @@ class C<T extends num/*?*/> {
 }
 ''');
     var assignment = findNode.assignment('+=');
-    visitSubexpression(assignment, 'T',
+    visitSubexpression(assignment, 'num',
         changes: {assignment: isNullableSource});
   }
 
@@ -1905,7 +1904,6 @@ int _g() => 1;
     visitSubexpression(findNode.methodInvocation('_g();'), 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_methodInvocation_toString() async {
     await analyze('''
 abstract class _C {}
@@ -2379,7 +2377,6 @@ _f(_C c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'int?');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_prefixedIdentifier_object_getter() async {
     await analyze('''
 class _C {}
@@ -2388,7 +2385,6 @@ _f(_C/*?*/ c) => c.hashCode;
     visitSubexpression(findNode.prefixed('c.hashCode'), 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_prefixedIdentifier_object_tearoff() async {
     await analyze('''
 class _C {}
@@ -2730,7 +2726,6 @@ _f(_C/*?*/ c) => c?.hashCode;
     visitSubexpression(findNode.propertyAccess('c?.hashCode'), 'int?');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40475')
   Future<void> test_propertyAccess_nullAware_object_tearoff() async {
     await analyze('''
 class _C {}
@@ -2785,7 +2780,6 @@ _f(_C<int>/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'List<int>?');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_propertyAccess_object_getter() async {
     await analyze('''
 class _C {}
@@ -2794,7 +2788,6 @@ _f(_C/*?*/ c) => (c).hashCode;
     visitSubexpression(findNode.propertyAccess('(c).hashCode'), 'int');
   }
 
-  @FailingTest(reason: 'TODO(paulberry)')
   Future<void> test_propertyAccess_object_tearoff() async {
     await analyze('''
 class _C {}
@@ -3061,6 +3054,98 @@ void _f() {
     visitTypeAnnotation(findNode.typeAnnotation('dynamic'), 'dynamic');
   }
 
+  Future<void> test_typeName_futureOr_dynamic_nullable() async {
+    await analyze('''
+import 'dart:async';
+void _f() {
+  FutureOr<dynamic> x = null;
+}
+''');
+    // The type of `x` should be `FutureOr<dynamic>?`, but this is equivalent to
+    // `FutureOr<dynamic>`, so we don't add a `?`.  Note: expected type is
+    // still `FutureOr<dynamic>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<dynamic> x'), 'FutureOr<dynamic>?',
+        changes: {});
+  }
+
+  Future<void> test_typeName_futureOr_inner() async {
+    await analyze('''
+import 'dart:async';
+void _f(FutureOr<int/*?*/> x) {
+  FutureOr<int> y = x;
+}
+''');
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<int> y'), 'FutureOr<int?>',
+        changes: {findNode.typeAnnotation('int> y'): isMakeNullable});
+  }
+
+  Future<void> test_typeName_futureOr_null_nullable() async {
+    await analyze('''
+import 'dart:async';
+void _f() {
+  FutureOr<Null> x = null;
+}
+''');
+    // The type of `x` should be `FutureOr<Null>?`, but this is equivalent to
+    // `FutureOr<Null>`, so we don't add a `?`.  Note: expected type is
+    // still `FutureOr<Null>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<Null> x'), 'FutureOr<Null>?',
+        changes: {});
+  }
+
+  Future<void> test_typeName_futureOr_outer() async {
+    await analyze('''
+import 'dart:async';
+void _f(FutureOr<int>/*?*/ x) {
+  FutureOr<int> y = x;
+}
+''');
+    var typeAnnotation = findNode.typeAnnotation('FutureOr<int> y');
+    visitTypeAnnotation(typeAnnotation, 'FutureOr<int>?',
+        changes: {typeAnnotation: isMakeNullable});
+  }
+
+  Future<void> test_typeName_futureOr_redundant() async {
+    await analyze('''
+import 'dart:async';
+void _f(bool b, FutureOr<int>/*?*/ x, FutureOr<int/*?*/> y) {
+  FutureOr<int> z = b ? x : y;
+}
+''');
+    // The type of `z` should be `FutureOr<int?>?`, but this is equivalent to
+    // `FutureOr<int?>`, so we only add the first `?`.  Note: expected type is
+    // still `FutureOr<int?>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<int> z'), 'FutureOr<int?>?',
+        changes: {findNode.typeAnnotation('int> z'): isMakeNullable});
+  }
+
+  Future<void> test_typeName_futureOr_void_nullable() async {
+    await analyze('''
+import 'dart:async';
+void _f() {
+  FutureOr<void> x = null;
+}
+''');
+    // The type of `x` should be `FutureOr<void>?`, but this is equivalent to
+    // `FutureOr<void>`, so we don't add a `?`.  Note: expected type is
+    // still `FutureOr<void>?`; we don't go to extra effort to remove the
+    // redundant `?` from the internal type representation, just from the source
+    // code we generate.
+    visitTypeAnnotation(
+        findNode.typeAnnotation('FutureOr<void> x'), 'FutureOr<void>?',
+        changes: {});
+  }
+
   Future<void> test_typeName_generic_nonNullable() async {
     await analyze('''
 void _f() {
@@ -3089,6 +3174,19 @@ void _f() {
 ''');
     visitTypeAnnotation(findNode.typeAnnotation('List<int>'), 'List<int?>',
         changes: {findNode.typeAnnotation('int'): isMakeNullable});
+  }
+
+  Future<void> test_typeName_generic_nullable_arg_and_outer() async {
+    await analyze('''
+void _f(bool b) {
+  List<int> i = b ? [null] : null;
+}
+''');
+    var listInt = findNode.typeAnnotation('List<int>');
+    visitTypeAnnotation(listInt, 'List<int?>?', changes: {
+      findNode.typeAnnotation('int'): isMakeNullable,
+      listInt: isMakeNullable
+    });
   }
 
   Future<void> test_typeName_simple_nonNullable() async {

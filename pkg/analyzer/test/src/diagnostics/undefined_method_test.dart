@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedMethodTest extends DriverResolutionTest {
+class UndefinedMethodTest extends PubPackageResolutionTest {
   test_constructor_defined() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -25,7 +25,7 @@ C c = C.m();
   }
 
   test_definedInPrivateExtension() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class B {}
 
 extension _ on B {
@@ -39,12 +39,12 @@ f(B b) {
   b.a();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 33, 1),
     ]);
   }
 
   test_definedInUnnamedExtension() async {
-    newFile('/test/lib/lib.dart', content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 class C {}
 
 extension on C {
@@ -58,7 +58,7 @@ f(C c) {
   c.a();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 33, 1),
     ]);
   }
 
@@ -91,7 +91,7 @@ class C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 85, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 85, 1),
     ]);
   }
 
@@ -99,7 +99,7 @@ class C {
     await assertErrorsInCode('''
 f(bool b, int i) => (b ? null : i).foo();
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 35, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 35, 3),
     ]);
   }
 
@@ -111,7 +111,7 @@ class C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 22, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 22, 3),
     ]);
   }
 
@@ -122,7 +122,7 @@ f(C c) {
   c..abs();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
     ]);
   }
 
@@ -131,7 +131,7 @@ f(C c) {
 enum E { A }
 f() => E.abs();
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 22, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 22, 3),
     ]);
   }
 
@@ -142,7 +142,7 @@ f(M m) {
   m.abs();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 24, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 24, 3),
     ]);
   }
 
@@ -153,7 +153,7 @@ f(M m) {
   m..abs();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 25, 3),
     ]);
   }
 
@@ -164,7 +164,7 @@ main() {
   f(42).abs();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 40, 3),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 40, 3),
     ]);
   }
 
@@ -179,6 +179,25 @@ f() { A?.m(); }
 ''');
   }
 
+  test_static_mixinApplication_superConstructorIsFactory() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+
+class A {
+  A();
+  factory A.named() = A;
+}
+
+class B = A with M;
+
+void main() {
+  B.named();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 5),
+    ]);
+  }
+
   test_withExtension() async {
     await assertErrorsInCode(r'''
 class C {}
@@ -191,7 +210,7 @@ f(C c) {
   c.c();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 61, 1),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 61, 1),
     ]);
   }
 }

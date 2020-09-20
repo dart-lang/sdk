@@ -41,13 +41,16 @@ def BuildDartdocAPIDocs(dirname):
     dart_exe = os.path.join(dart_sdk, 'bin', 'dart')
     dartdoc_dart = os.path.join(bot_utils.DART_DIR, 'third_party', 'pkg',
                                 'dartdoc', 'bin', 'dartdoc.dart')
+    footer_text_file = os.path.join(bot_utils.DART_DIR, 'tools', 'bots',
+                                    'dartdoc_footer_text.html')
     footer_file = os.path.join(bot_utils.DART_DIR, 'tools', 'bots',
                                'dartdoc_footer.html')
     url = 'https://api.dartlang.org/stable'
     with bot.BuildStep('Build API docs by dartdoc'):
         bot_utils.run([
             dart_exe, dartdoc_dart, '--sdk-docs', '--output', dirname,
-            '--enable-experiment', 'non-nullable', '--footer', footer_file,
+            '--enable-experiment', 'non-nullable', '--footer-text',
+            footer_text_file, '--footer', footer_file,
             '--rel-canonical-prefix=' + url
         ])
 
@@ -73,22 +76,6 @@ def CreateAndUploadSDKZip(arch, sdk_path):
     CreateZip(sdk_path, sdk_zip)
     DartArchiveUploadSDKs(BUILD_OS, arch, sdk_zip)
 
-
-def CopyAotBinaries(arch, sdk_path):
-    product_sdk_path = BuildRootPath(
-        'dart-sdk', arch=arch, build_mode='product')
-    # We don't support precompilation on ia32.
-    if arch != 'ia32':
-        with bot.BuildStep('Patching in PRODUCT built AOT binaries'):
-            CopyBetween(product_sdk_path, sdk_path, 'bin', 'utils',
-                        GuessExtension('gen_snapshot'))
-            CopyBetween(product_sdk_path, sdk_path, 'bin',
-                        GuessExtension('dartaotruntime'))
-            shutil.copy2(
-                os.path.join(product_sdk_path, 'lib', '_internal',
-                             'vm_platform_strong.dill'),
-                os.path.join(sdk_path, 'lib', '_internal',
-                             'vm_platform_strong_product.dill'))
 
 
 def DartArchiveUploadSDKs(system, arch, sdk_zip):
@@ -261,15 +248,8 @@ if __name__ == '__main__':
     elif CHANNEL != bot_utils.Channel.TRY:
         for arch in BuildArchitectures():
             sdk_path = BuildRootPath('dart-sdk', arch=arch)
-            # Patch in all the PRODUCT built AOT binaries.
-            CopyAotBinaries(arch, sdk_path)
             with bot.BuildStep('Create and upload sdk zip for ' + arch):
                 CreateAndUploadSDKZip(arch, sdk_path)
         DartArchiveUnstrippedBinaries()
         if BUILD_OS == 'linux':
             CreateUploadVersionFile()
-    else:  # CHANNEL == bot_utils.Channel.TRY
-        # Patch in all the PRODUCT built AOT binaries.
-        for arch in BuildArchitectures():
-            sdk_path = BuildRootPath('dart-sdk', arch=arch)
-            CopyAotBinaries(arch, sdk_path)

@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,7 +21,7 @@ class ConvertToNullAware extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node.parent is BinaryExpression &&
         node.parent.parent is ConditionalExpression) {
@@ -95,7 +95,7 @@ class ConvertToNullAware extends CorrectionProducer {
       }
       periodOffset = operator.offset;
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(node, nonNullExpression));
         builder.addSimpleInsertion(periodOffset, '?');
         builder.addDeletion(range.endEnd(nonNullExpression, node));

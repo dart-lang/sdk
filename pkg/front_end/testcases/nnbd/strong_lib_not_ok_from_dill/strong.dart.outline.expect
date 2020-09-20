@@ -1,0 +1,18 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart: Error: A library can't opt out of null safety by default, when using sound null safety.
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///strong_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method foo() → void
+  ;

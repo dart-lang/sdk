@@ -47,16 +47,19 @@ const N = 1000;
 
 class FieldLoadStore extends BenchmarkBase {
   Pointer<VeryLargeStruct> pointer;
-  FieldLoadStore() : super("FfiStruct.FieldLoadStore");
+  FieldLoadStore() : super('FfiStruct.FieldLoadStore');
 
+  @override
   void setup() => pointer = allocate(count: N);
+  @override
   void teardown() => free(pointer);
 
+  @override
   void run() {
     doStoreInt32(pointer, N);
     final int x = doLoadInt32(pointer, N);
     if (x != N) {
-      throw Exception("$name: Unexpected result: $x");
+      throw Exception('$name: Unexpected result: $x');
     }
   }
 }
@@ -65,11 +68,13 @@ class FieldLoadStore extends BenchmarkBase {
 // Main driver.
 //
 
-main() {
+void main() {
   final benchmarks = [
     () => FieldLoadStore(),
   ];
-  benchmarks.forEach((benchmark) => benchmark().report());
+  for (final benchmark in benchmarks) {
+    benchmark().report();
+  }
 }
 
 //

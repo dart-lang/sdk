@@ -516,7 +516,6 @@ REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
 REGULAR_VISITOR(RedirectionData)
 REGULAR_VISITOR(FfiTrampolineData)
-REGULAR_VISITOR(Field)
 REGULAR_VISITOR(Script)
 REGULAR_VISITOR(Library)
 REGULAR_VISITOR(LibraryPrefix)
@@ -544,6 +543,7 @@ REGULAR_VISITOR(WeakProperty)
 REGULAR_VISITOR(MirrorReference)
 REGULAR_VISITOR(UserTag)
 REGULAR_VISITOR(SubtypeTestCache)
+REGULAR_VISITOR(LoadingUnit)
 REGULAR_VISITOR(KernelProgramInfo)
 VARIABLE_VISITOR(TypeArguments, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_VISITOR(LocalVarDescriptors, raw_obj->ptr()->num_entries_)
@@ -590,6 +590,26 @@ NULL_VISITOR(WeakSerializationReference)
 #else
 REGULAR_VISITOR(WeakSerializationReference)
 #endif
+
+intptr_t FieldLayout::VisitFieldPointers(FieldPtr raw_obj,
+                                         ObjectPointerVisitor* visitor) {
+  ASSERT(raw_obj->IsHeapObject());
+  ASSERT_UNCOMPRESSED(Field);
+  visitor->VisitPointers(raw_obj->ptr()->from(), raw_obj->ptr()->to());
+
+  if (visitor->trace_values_through_fields()) {
+    if (Field::StaticBit::decode(raw_obj->ptr()->kind_bits_)) {
+      visitor->isolate_group()->ForEachIsolate(
+          [&](Isolate* isolate) {
+            intptr_t index =
+                Smi::Value(raw_obj->ptr()->host_offset_or_field_id_);
+            visitor->VisitPointer(&isolate->field_table()->table()[index]);
+          },
+          /*at_safepoint=*/true);
+    }
+  }
+  return Field::InstanceSize();
+}
 
 bool CodeLayout::ContainsPC(const ObjectPtr raw_obj, uword pc) {
   if (!raw_obj->IsCode()) return false;

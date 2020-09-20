@@ -20,6 +20,10 @@ void main() {
     buildTestsForAnalysisServer();
   });
 
+  group('analyzer', () {
+    buildTestsForAnalyzer();
+  });
+
   group('analyzer_cli', () {
     buildTestsForAnalyzerCli();
   });
@@ -77,6 +81,18 @@ void buildTestsForAnalysisServer() {
   buildTests(
     packagePath: 'analysis_server',
     excludedPaths: excludedPaths,
+  );
+}
+
+void buildTestsForAnalyzer() {
+  buildTests(
+    packagePath: 'analyzer',
+    excludedPaths: [
+      'lib/src/context/packages.dart',
+      'lib/src/dart/error/syntactic_errors.g.dart',
+      'lib/src/summary/format.dart',
+      'test/generated/test_all.dart',
+    ],
   );
 }
 

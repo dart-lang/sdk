@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
@@ -911,13 +910,11 @@ main(A p) {
     assertThat(element)..isReferencedAt('A p) {', false);
   }
 
-  /**
-   * There was a bug in the AST structure, when single [Comment] was cloned and
-   * assigned to both [FieldDeclaration] and [VariableDeclaration].
-   *
-   * This caused duplicate indexing.
-   * Here we test that the problem is fixed one way or another.
-   */
+  /// There was a bug in the AST structure, when single [Comment] was cloned and
+  /// assigned to both [FieldDeclaration] and [VariableDeclaration].
+  ///
+  /// This caused duplicate indexing.
+  /// Here we test that the problem is fixed one way or another.
   test_isReferencedBy_identifierInComment() async {
     await _indexTestUnit('''
 class A {}
@@ -1409,9 +1406,7 @@ main() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  /**
-   * Asserts that [index] has an item with the expected properties.
-   */
+  /// Asserts that [index] has an item with the expected properties.
   void _assertHasRelation(
       Element element,
       List<_Relation> relations,
@@ -1474,9 +1469,7 @@ main() {
     fail('$msg in\n' + packageIndexJsonString);
   }
 
-  /**
-   * Return the [element] identifier in [index] or fail.
-   */
+  /// Return the [element] identifier in [index] or fail.
   int _findElementId(Element element) {
     var unitId = _getUnitId(element);
 
@@ -1506,9 +1499,7 @@ main() {
     return 0;
   }
 
-  /**
-   * Return all relations with [element] in [index].
-   */
+  /// Return all relations with [element] in [index].
   List<_Relation> _getElementRelations(Element element) {
     int elementId = _findElementId(element);
     List<_Relation> relations = <_Relation>[];

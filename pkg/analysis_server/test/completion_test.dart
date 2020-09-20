@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:test/test.dart';
@@ -811,23 +810,23 @@ main(A a) {
 
     buildTests('testCompletion_combinator_afterComma', '''
 import 'dart:math' show cos, !1;''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_ended', '''
 import 'dart:math' show !1;"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_export', '''
 export 'dart:math' show !1;"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_hide', '''
 import 'dart:math' hide !1;"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_notEnded', '''
 import 'dart:math' show !1"''',
-        <String>['1+PI', '1+sin', '1+Random', '1-String']);
+        <String>['1+pi', '1+sin', '1+Random', '1-String']);
 
     buildTests('testCompletion_combinator_usePrefix', '''
 import 'dart:math' show s!1"''',
@@ -1615,16 +1614,16 @@ main() {
         failingTests: '1');
 
     buildTests('test_importPrefix_hideCombinator', '''
-import 'dart:math' as math hide PI;
+import 'dart:math' as math hide pi;
 main() {
   math.!1
-}''', <String>['1-PI', '1+LN10']);
+}''', <String>['1-pi', '1+ln10']);
 
     buildTests('test_importPrefix_showCombinator', '''
-import 'dart:math' as math show PI;
+import 'dart:math' as math show pi;
 main() {
   math.!1
-}''', <String>['1+PI', '1-LN10']);
+}''', <String>['1+pi', '1-ln10']);
 
     sources.clear();
     sources['/lib.dart'] = '''

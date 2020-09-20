@@ -10,9 +10,9 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart'
-    show LibraryScope, ResolverVisitor, TypeSystemImpl;
+import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -32,8 +32,6 @@ main() {
     defineReflectiveTests(SetLiteralsTest);
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);
-    defineReflectiveTests(StaticTypeAnalyzer3Test);
-    defineReflectiveTests(StaticTypeAnalyzerWithSetLiteralsTest);
   });
 }
 
@@ -60,11 +58,69 @@ void useSet(Set<int> s) {
   }
 }
 
-/**
- * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
- */
+/// Like [StaticTypeAnalyzerTest], but as end-to-end tests.
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  test_emptyListLiteral_inferredFromLinkedList() async {
+    await assertErrorsInCode(r'''
+abstract class ListImpl<T> implements List<T> {}
+ListImpl<int> f() => [];
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST, 70, 2),
+    ]);
+    expectExpressionType('[]', 'List<dynamic>');
+  }
+
+  test_emptyMapLiteral_inferredFromLinkedHashMap() async {
+    await assertErrorsInCode(r'''
+import 'dart:collection';
+LinkedHashMap<int, int> f() => {};
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP, 57, 2),
+    ]);
+    expectExpressionType('{}', 'Map<dynamic, dynamic>');
+  }
+
+  test_emptyMapLiteral_initializer_var() async {
+    await assertErrorsInCode(r'''
+main() {
+  var v = {};
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
+    ]);
+    expectExpressionType('{}', 'Map<dynamic, dynamic>');
+  }
+
+  test_emptyMapLiteral_parameter_typed() async {
+    await assertNoErrorsInCode(r'''
+main() {
+  useMap({});
+}
+void useMap(Map<int, int> m) {
+}
+''');
+    expectExpressionType('{}', 'Map<int, int>');
+  }
+
+  test_emptySetLiteral_inferredFromLinkedHashSet() async {
+    await assertErrorsInCode(r'''
+import 'dart:collection';
+LinkedHashSet<int> f() => {};
+''', [
+      error(CompileTimeErrorCode.INVALID_CAST_LITERAL_SET, 52, 2),
+    ]);
+    expectExpressionType('{}', 'Set<dynamic>');
+  }
+
+  test_emptySetLiteral_initializer_typed_nested() async {
+    await assertNoErrorsInCode(r'''
+Set<Set<int>> ints = {{}};
+''');
+    expectExpressionType('{}', 'Set<int>');
+    expectExpressionType('{{}}', 'Set<Set<int>>');
+  }
+
   test_FunctionExpressionInvocation_block() async {
     await assertErrorsInCode(r'''
 main() {
@@ -170,67 +226,27 @@ main() {
   }
 }
 
-/**
- * End-to-end tests of the static type analyzer that use the new driver.
- */
-@reflectiveTest
-class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
-  test_emptyMapLiteral_initializer_var() async {
-    await assertErrorsInCode(r'''
-main() {
-  var v = {};
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-    ]);
-    expectExpressionType('{}', 'Map<dynamic, dynamic>');
-  }
-
-  test_emptyMapLiteral_parameter_typed() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  useMap({});
-}
-void useMap(Map<int, int> m) {
-}
-''');
-    expectExpressionType('{}', 'Map<int, int>');
-  }
-}
-
 @reflectiveTest
 class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
-  /**
-   * The error listener to which errors will be reported.
-   */
+  /// The error listener to which errors will be reported.
   GatheringErrorListener _listener;
 
-  /**
-   * The resolver visitor used to create the analyzer.
-   */
+  /// The resolver visitor used to create the analyzer.
   ResolverVisitor _visitor;
 
-  /**
-   * The library containing the code being resolved.
-   */
+  /// The library containing the code being resolved.
   LibraryElementImpl _definingLibrary;
 
-  /**
-   * The analyzer being used to analyze the test cases.
-   */
+  /// The analyzer being used to analyze the test cases.
   StaticTypeAnalyzer _analyzer;
 
-  /**
-   * The type provider used to access the types.
-   */
+  /// The type provider used to access the types.
   TypeProvider _typeProvider;
 
   @override
   TypeProvider get typeProvider => _definingLibrary.typeProvider;
 
-  /**
-   * The type system used to analyze the test cases.
-   */
+  /// The type system used to analyze the test cases.
   TypeSystemImpl get _typeSystem => _definingLibrary.typeSystem;
 
   void fail_visitFunctionExpressionInvocation() {
@@ -682,11 +698,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  /**
-   * Return the type associated with the given [node] after the static type
-   * analyzer has computed a type for it. If [thisType] is provided, it is the
-   * type of 'this'.
-   */
+  /// Return the type associated with the given [node] after the static type
+  /// analyzer has computed a type for it. If [thisType] is provided, it is the
+  /// type of 'this'.
   DartType _analyze(Expression node, [InterfaceType thisType]) {
     _visitor.setThisInterfaceType(thisType);
     node.accept(_analyzer);
@@ -695,7 +709,10 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void _assertType(
       InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
-    expect(actualType.getDisplayString(), expectedType.getDisplayString());
+    expect(
+      actualType.getDisplayString(withNullability: false),
+      expectedType.getDisplayString(withNullability: false),
+    );
     expect(actualType.element, expectedType.element);
     List<DartType> expectedArguments = expectedType.typeArguments;
     int length = expectedArguments.length;
@@ -714,9 +731,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     // utility method.
   }
 
-  /**
-   * Create the analyzer used by the tests.
-   */
+  /// Create the analyzer used by the tests.
   void _createAnalyzer() {
     var context = TestAnalysisContext();
     var inheritance = InheritanceManager3();
@@ -727,8 +742,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         definingCompilationUnit.source = source;
     var featureSet = FeatureSet.forTesting();
 
-    _definingLibrary = LibraryElementImpl(
-        context, null, null, -1, 0, featureSet.isEnabled(Feature.non_nullable));
+    _definingLibrary =
+        LibraryElementImpl(context, null, null, -1, 0, featureSet);
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
@@ -737,55 +752,49 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
     _visitor = ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
-        featureSet: featureSet, nameScope: LibraryScope(_definingLibrary));
+        featureSet: featureSet, nameScope: _definingLibrary.scope);
     _analyzer = _visitor.typeAnalyzer;
   }
 
   DartType _flatten(DartType type) => _typeSystem.flatten(type);
 
-  /**
-   * Return an integer literal that has been resolved to the correct type.
-   *
-   * @param value the value of the literal
-   * @return an integer literal that has been resolved to the correct type
-   */
+  /// Return an integer literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return an integer literal that has been resolved to the correct type
   DoubleLiteral _resolvedDouble(double value) {
     DoubleLiteral literal = AstTestFactory.doubleLiteral(value);
     literal.staticType = _typeProvider.doubleType;
     return literal;
   }
 
-  /**
-   * Return an integer literal that has been resolved to the correct type.
-   *
-   * @param value the value of the literal
-   * @return an integer literal that has been resolved to the correct type
-   */
+  /// Return an integer literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return an integer literal that has been resolved to the correct type
   IntegerLiteral _resolvedInteger(int value) {
     IntegerLiteral literal = AstTestFactory.integer(value);
     literal.staticType = _typeProvider.intType;
     return literal;
   }
 
-  /**
-   * Return a string literal that has been resolved to the correct type.
-   *
-   * @param value the value of the literal
-   * @return a string literal that has been resolved to the correct type
-   */
+  /// Return a string literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return a string literal that has been resolved to the correct type
   SimpleStringLiteral _resolvedString(String value) {
     SimpleStringLiteral string = AstTestFactory.string2(value);
     string.staticType = _typeProvider.stringType;
     return string;
   }
 
-  /**
-   * Return a simple identifier that has been resolved to a variable element with the given type.
-   *
-   * @param type the type of the variable being represented
-   * @param variableName the name of the variable
-   * @return a simple identifier that has been resolved to a variable element with the given type
-   */
+  /// Return a simple identifier that has been resolved to a variable element
+  /// with the given type.
+  ///
+  /// @param type the type of the variable being represented
+  /// @param variableName the name of the variable
+  /// @return a simple identifier that has been resolved to a variable element
+  ///           with the given type
   SimpleIdentifier _resolvedVariable(InterfaceType type, String variableName) {
     SimpleIdentifier identifier = AstTestFactory.identifier3(variableName);
     VariableElementImpl element =
@@ -794,31 +803,5 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     identifier.staticElement = element;
     identifier.staticType = type;
     return identifier;
-  }
-}
-
-/**
- * End-to-end tests of the static type analyzer that use the new driver and
- * enable the set-literals experiment.
- */
-@reflectiveTest
-class StaticTypeAnalyzerWithSetLiteralsTest
-    extends StaticTypeAnalyzer2TestShared {
-  test_emptySetLiteral_inferredFromLinkedHashSet() async {
-    await assertErrorsInCode(r'''
-import 'dart:collection';
-LinkedHashSet<int> test4() => {};
-''', [
-      error(StrongModeCode.INVALID_CAST_LITERAL_SET, 56, 2),
-    ]);
-    expectExpressionType('{}', 'Set<dynamic>');
-  }
-
-  test_emptySetLiteral_initializer_typed_nested() async {
-    await assertNoErrorsInCode(r'''
-Set<Set<int>> ints = {{}};
-''');
-    expectExpressionType('{}', 'Set<int>');
-    expectExpressionType('{{}}', 'Set<Set<int>>');
   }
 }

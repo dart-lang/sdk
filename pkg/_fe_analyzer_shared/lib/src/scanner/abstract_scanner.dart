@@ -401,9 +401,7 @@ abstract class AbstractScanner implements Scanner {
     appendPrecedenceToken(type);
     Token close = tail;
     BeginToken begin = groupingStack.head;
-    if (!identical(begin.kind, openKind) &&
-        !(begin.kind == QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN &&
-            openKind == OPEN_SQUARE_BRACKET_TOKEN)) {
+    if (!identical(begin.kind, openKind)) {
       assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
           openKind == OPEN_CURLY_BRACKET_TOKEN);
       // We're ending an interpolated expression.
@@ -516,9 +514,7 @@ abstract class AbstractScanner implements Scanner {
       BeginToken begin = groupingStack.head;
       if (openKind == begin.kind ||
           (openKind == OPEN_CURLY_BRACKET_TOKEN &&
-              begin.kind == STRING_INTERPOLATION_TOKEN) ||
-          (openKind == OPEN_SQUARE_BRACKET_TOKEN &&
-              begin.kind == QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN)) {
+              begin.kind == STRING_INTERPOLATION_TOKEN)) {
         if (first) {
           // If the expected opener has been found on the first pass
           // then no recovery necessary.
@@ -1015,10 +1011,6 @@ abstract class AbstractScanner implements Scanner {
       if (_enableNonNullable) {
         if (identical($PERIOD, next)) {
           appendPrecedenceToken(TokenType.QUESTION_PERIOD_PERIOD);
-          return advance();
-        }
-        if (identical($OPEN_SQUARE_BRACKET, next)) {
-          appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
           return advance();
         }
       }
@@ -1902,8 +1894,9 @@ abstract class AbstractScanner implements Scanner {
         codeUnits.add(next);
         next = advance();
       }
-      appendToken(new StringToken.fromString(TokenType.IDENTIFIER,
-          new String.fromCharCodes(codeUnits), charOffset));
+      appendToken(new StringToken.fromString(
+          TokenType.IDENTIFIER, new String.fromCharCodes(codeUnits), charOffset,
+          precedingComments: comments));
       return next;
     } else {
       prependErrorToken(errorToken);
@@ -1945,7 +1938,6 @@ TokenType closeBraceInfoFor(BeginToken begin) {
     '{': TokenType.CLOSE_CURLY_BRACKET,
     '<': TokenType.GT,
     r'${': TokenType.CLOSE_CURLY_BRACKET,
-    '?.[': TokenType.CLOSE_SQUARE_BRACKET,
   }[begin.lexeme];
 }
 

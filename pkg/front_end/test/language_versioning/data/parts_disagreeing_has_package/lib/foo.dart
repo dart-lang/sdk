@@ -7,7 +7,7 @@
 
 // @dart = 2.5
 
-part /*error: LanguageVersionMismatchInPart*/ 'part.dart';
+part /*error: errors=LanguageVersionMismatchInPart*/ 'part.dart';
 
 /*library: languageVersion=2.5*/
 

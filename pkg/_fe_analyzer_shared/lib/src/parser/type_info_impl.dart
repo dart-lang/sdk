@@ -102,6 +102,9 @@ class NoType implements TypeInfo {
   bool get isNullable => false;
 
   @override
+  bool get isFunctionType => false;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     parser.reportRecoverableErrorWithToken(
         token.next, codes.templateExpectedType);
@@ -141,6 +144,9 @@ class PrefixedType implements TypeInfo {
 
   @override
   bool get isNullable => false;
+
+  @override
+  bool get isFunctionType => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -192,6 +198,9 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
   bool get isNullable => true;
 
   @override
+  bool get isFunctionType => false;
+
+  @override
   Token parseTypeRest(Token start, Token token, Parser parser) {
     token = token.next;
     assert(optional('?', token));
@@ -221,6 +230,9 @@ class SimpleTypeWith1Argument implements TypeInfo {
 
   @override
   bool get isNullable => false;
+
+  @override
+  bool get isFunctionType => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -267,6 +279,9 @@ class SimpleNullableType extends SimpleType {
   bool get isNullable => true;
 
   @override
+  bool get isFunctionType => false;
+
+  @override
   Token parseTypeRest(Token start, Parser parser) {
     Token token = start.next;
     assert(optional('?', token));
@@ -292,6 +307,9 @@ class SimpleType implements TypeInfo {
 
   @override
   bool get isNullable => false;
+
+  @override
+  bool get isFunctionType => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
@@ -337,6 +355,9 @@ class VoidType implements TypeInfo {
 
   @override
   bool get isNullable => false;
+
+  @override
+  bool get isFunctionType => false;
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
@@ -463,6 +484,9 @@ class ComplexTypeInfo implements TypeInfo {
   bool get isNullable => beforeQuestionMark != null;
 
   @override
+  bool get isFunctionType => gftHasReturnType != null;
+
+  @override
   Token ensureTypeNotVoid(Token token, Parser parser) =>
       parseType(token, parser);
 
@@ -486,10 +510,10 @@ class ComplexTypeInfo implements TypeInfo {
 
     final List<Token> typeVariableEndGroups = <Token>[];
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
+      parser.listener.beginFunctionType(start);
       typeVariableEndGroups.add(
           computeTypeParamOrArg(t.head, /* inDeclaration = */ true)
               .parseVariables(t.head, parser));
-      parser.listener.beginFunctionType(start);
     }
 
     if (gftHasReturnType == false) {
@@ -980,9 +1004,10 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (typeInfo == noType) {
         // Recovery
         while (typeInfo == noType && optional('@', next.next)) {
-          parser.reportRecoverableErrorWithToken(
-              next.next, codes.templateUnexpectedToken);
+          Token atToken = next.next;
           next = skipMetadata(next);
+          parser.reportRecoverableErrorWithEnd(
+              atToken, next, codes.messageAnnotationOnTypeArgument);
           typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
         // Fall through to process type (if any) and consume `,`

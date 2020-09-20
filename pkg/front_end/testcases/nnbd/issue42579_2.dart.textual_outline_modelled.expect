@@ -1,0 +1,10 @@
+S foo<S>() => throw "foo";
+bar() {}
+
+class A<T> {
+  T get property => throw "A.property";
+}
+
+main() {}
+wrap<R>(R Function() f) {}
+wrap2<R>(A<R> Function() f) {}

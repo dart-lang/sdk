@@ -388,6 +388,30 @@ void test(param0) {
 ''');
   }
 
+  Future<void> test_parameterName_fromIndexExpression() async {
+    await resolveTestUnit('''
+class A {
+  int operator[](int _) => 0;
+
+  void foo() {
+    bar(this[0]);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int operator[](int _) => 0;
+
+  void foo() {
+    bar(this[0]);
+  }
+}
+
+void bar(int i) {
+}
+''');
+  }
+
   Future<void> test_returnType_bool_and_left() async {
     await assert_returnType_bool('test() && b;');
   }

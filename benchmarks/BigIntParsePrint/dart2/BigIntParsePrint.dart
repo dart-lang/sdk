@@ -168,10 +168,11 @@ class FormatBigIntBenchmark extends BenchmarkBase {
 
   @override
   void run() {
+    final one = BigInt.one;
     for (final b0 in values) {
       // Instances might cache `toString()`, so use arithmetic to create a new
       // instance to try to protect against measuring a cached string.
-      final b = b0 + BigInt.one;
+      final b = b0 + one;
       final s = b.toString();
       sink1 = s;
       sink2 = b;
@@ -206,10 +207,11 @@ class FormatInt64Benchmark extends BenchmarkBase {
 
   @override
   void run() {
+    final one = Int64.ONE;
     for (final b0 in values) {
       // Instances might cache `toString()`, so use arithmetic to create a new
       // instance to try to protect against measuring a cached string.
-      final b = b0 + Int64.ONE;
+      final b = b0 + one;
       final s = b.toStringUnsigned();
       sink1 = s;
       sink2 = b;

@@ -16,6 +16,7 @@ HOST_OS = utils.GuessOS()
 HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
+AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
@@ -51,11 +52,8 @@ def GetGNArgs(args):
     return args.split()
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def GetOutDir(mode, arch, target_os, sanitizer, dont_use_nnbd):
-    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer,
-                              dont_use_nnbd)
+def GetOutDir(mode, arch, target_os, sanitizer):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
 
 
 def ToCommandLine(gn_args):
@@ -122,15 +120,9 @@ def ParseStringMap(key, string_map):
             return l[1]
     return None
 
-
-def DontUseClang(args, target_os, host_cpu, target_cpu):
-    # We don't have clang on Windows.
-    return target_os == 'win'
-
-
 def UseSysroot(args, gn_args):
     # Don't try to use a Linux sysroot if we aren't on Linux.
-    if gn_args['target_os'] != 'linux':
+    if gn_args['target_os'] != 'linux' and HOST_OS != 'linux':
         return False
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
@@ -145,9 +137,7 @@ def UseSysroot(args, gn_args):
     return True
 
 
-# TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant and
-# there is no need to build a legacy version of the SDK for comparison purposes.
-def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
+def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -214,9 +204,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
 
     gn_args['exclude_kernel_service'] = args.exclude_kernel_service
 
-    dont_use_clang = DontUseClang(args, gn_args['target_os'],
-                                  gn_args['host_cpu'], gn_args['target_cpu'])
-    gn_args['is_clang'] = args.clang and not dont_use_clang
+    gn_args['is_clang'] = args.clang
 
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
@@ -226,15 +214,18 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
     gn_args['is_msan'] = sanitizer == 'msan'
     gn_args['is_tsan'] = sanitizer == 'tsan'
     gn_args['is_ubsan'] = sanitizer == 'ubsan'
-    gn_args['include_dart2native'] = True
     gn_args['is_qemu'] = args.use_qemu
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
-    gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-    gn_args[
-        'dart_precompiled_runtime_stripped_binary'] = 'exe.stripped/dart_precompiled_runtime'
-    gn_args['gen_snapshot_stripped_binary'] = 'exe.stripped/gen_snapshot'
+
+    # We don't support stripping on Windows
+    if host_os != 'win':
+        gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
+        gn_args['dart_precompiled_runtime_stripped_binary'] = (
+            'exe.stripped/dart_precompiled_runtime_product')
+        gn_args['gen_snapshot_stripped_binary'] = (
+            'exe.stripped/gen_snapshot_product')
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -249,10 +240,24 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
             gn_args['toolchain_prefix'] = ParseStringMap(arch, toolchain)
 
     goma_dir = os.environ.get('GOMA_DIR')
+    # Search for goma in depot_tools in path
+    goma_depot_tools_dir = None
+    for path in os.environ.get('PATH', '').split(os.pathsep):
+        if os.path.basename(path) == 'depot_tools':
+            cipd_bin = os.path.join(path, '.cipd_bin')
+            if os.path.isfile(os.path.join(cipd_bin, 'gomacc')):
+                goma_depot_tools_dir = cipd_bin
+                break
+    # Otherwise use goma from home directory.
+    # TODO(whesse): Remove support for goma installed in home directory.
+    # Goma will only be distributed through depot_tools.
     goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
     if args.goma and goma_dir:
         gn_args['use_goma'] = True
         gn_args['goma_dir'] = goma_dir
+    elif args.goma and goma_depot_tools_dir:
+        gn_args['use_goma'] = True
+        gn_args['goma_dir'] = goma_depot_tools_dir
     elif args.goma and os.path.exists(goma_home_dir):
         gn_args['use_goma'] = True
         gn_args['goma_dir'] = goma_home_dir
@@ -268,7 +273,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, dont_use_nnbd):
         gn_args['dart_debug_optimization_level'] = args.debug_opt_level
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
-    gn_args['dont_use_nnbd'] = dont_use_nnbd
+    gn_args['verify_sdk_hash'] = verify_sdk_hash
 
     return gn_args
 
@@ -285,7 +290,7 @@ def ProcessOptions(args):
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':
-        args.os = 'host,android'
+        args.os = 'host,android,fuchsia'
     if args.sanitizer == 'all':
         args.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
     args.mode = args.mode.split(',')
@@ -296,23 +301,23 @@ def ProcessOptions(args):
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
             return False
-    for arch in args.arch:
-        archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6',
-            'simarm64', 'arm64', 'simarm_x64'
-        ]
-        if not arch in archs:
+    for i, arch in enumerate(args.arch):
+        if not arch in AVAILABLE_ARCHS:
+            # Normalise to lower case form to make it less case-picky.
+            arch_lower = arch.lower()
+            if arch_lower in AVAILABLE_ARCHS:
+                args.arch[i] = arch_lower
+                continue
             print("Unknown arch %s" % arch)
             return False
     oses = [ProcessOsOption(os_name) for os_name in args.os]
     for os_name in oses:
-        if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+        if not os_name in [
+                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
+        ]:
             print("Unknown os %s" % os_name)
             return False
-        if os_name != HOST_OS:
-            if os_name != 'android':
-                print("Unsupported target os %s" % os_name)
-                return False
+        if os_name == 'android':
             if not HOST_OS in ['linux', 'macos']:
                 print("Cross-compilation to %s is not supported on host os %s."
                       % (os_name, HOST_OS))
@@ -324,6 +329,19 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
                 return False
+        elif os_name == 'fuchsia':
+            if HOST_OS != 'linux':
+                print("Cross-compilation to %s is not supported on host os %s."
+                      % (os_name, HOST_OS))
+                return False
+            if arch != 'x64':
+                print(
+                    "Cross-compilation to %s is not supported for architecture %s."
+                    % (os_name, arch))
+                return False
+        elif os_name != HOST_OS:
+            print("Unsupported target os %s" % os_name)
+            return False
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
@@ -343,137 +361,153 @@ def ide_switch(host_os):
         return '--ide=json'
 
 
+def AddCommonGnOptionArgs(parser):
+    """Adds arguments that will change the default GN arguments."""
+
+    parser.add_argument('--goma', help='Use goma', action='store_true')
+    parser.add_argument('--no-goma',
+                        help='Disable goma',
+                        dest='goma',
+                        action='store_false')
+    parser.set_defaults(goma=True)
+
+    parser.add_argument('--verify-sdk-hash',
+                        help='Enable SDK hash checks (default)',
+                        dest='verify_sdk_hash',
+                        action='store_true')
+    parser.add_argument('-nvh',
+                        '--no-verify-sdk-hash',
+                        help='Disable SDK hash checks',
+                        dest='verify_sdk_hash',
+                        action='store_false')
+    parser.set_defaults(verify_sdk_hash=True)
+
+    parser.add_argument('--bytecode',
+                        '-b',
+                        help='Use bytecode in Dart VM',
+                        dest='bytecode',
+                        action="store_true")
+    parser.add_argument('--no-bytecode',
+                        help='Disable bytecode in Dart VM',
+                        dest='bytecode',
+                        action="store_false")
+    parser.set_defaults(bytecode=False)
+
+    parser.add_argument('--clang', help='Use Clang', action='store_true')
+    parser.add_argument('--no-clang',
+                        help='Disable Clang',
+                        dest='clang',
+                        action='store_false')
+    parser.set_defaults(clang=True)
+
+    parser.add_argument(
+        '--platform-sdk',
+        help='Directs the create_sdk target to create a smaller "Platform" SDK',
+        default=MakePlatformSDK(),
+        action='store_true')
+    parser.add_argument('--use-crashpad',
+                        default=False,
+                        dest='use_crashpad',
+                        action='store_true')
+    parser.add_argument('--use-qemu',
+                        default=False,
+                        dest='use_qemu',
+                        action='store_true')
+    parser.add_argument('--exclude-kernel-service',
+                        help='Exclude the kernel service.',
+                        default=False,
+                        dest='exclude_kernel_service',
+                        action='store_true')
+    parser.add_argument('--arm-float-abi',
+                        type=str,
+                        help='The ARM float ABI (soft, softfp, hard)',
+                        metavar='[soft,softfp,hard]',
+                        default='')
+
+    parser.add_argument('--code-coverage',
+                        help='Enable code coverage for the standalone VM',
+                        default=False,
+                        dest="code_coverage",
+                        action='store_true')
+    parser.add_argument('--debug-opt-level',
+                        '-d',
+                        help='The optimization level to use for debug builds',
+                        type=str)
+    parser.add_argument('--gn-args',
+                        help='Set extra GN args',
+                        dest='gn_args',
+                        action='append')
+    parser.add_argument(
+        '--toolchain-prefix',
+        '-t',
+        type=str,
+        help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
+    parser.add_argument('--ide',
+                        help='Generate an IDE file.',
+                        default=os_has_ide(HOST_OS),
+                        action='store_true')
+    parser.add_argument(
+        '--target-sysroot',
+        '-s',
+        type=str,
+        help='Comma-separated list of arch=/path/to/sysroot mappings')
+
+
+def AddCommonConfigurationArgs(parser):
+    """Adds arguments that influence which configuration will be built."""
+    parser.add_argument("-a",
+                        "--arch",
+                        type=str,
+                        help='Target architectures (comma-separated).',
+                        metavar='[all,' + ','.join(AVAILABLE_ARCHS) + ']',
+                        default=utils.GuessArchitecture())
+    parser.add_argument('--mode',
+                        '-m',
+                        type=str,
+                        help='Build variants (comma-separated).',
+                        metavar='[all,debug,release,product]',
+                        default='debug')
+    parser.add_argument('--os',
+                        type=str,
+                        help='Target OSs (comma-separated).',
+                        metavar='[all,host,android,fuchsia]',
+                        default='host')
+    parser.add_argument('--sanitizer',
+                        type=str,
+                        help='Build variants (comma-separated).',
+                        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
+                        default='none')
+
+
+def AddOtherArgs(parser):
+    """Adds miscellaneous arguments to the parser."""
+    parser.add_argument('--workers',
+                        '-w',
+                        type=int,
+                        help='Number of simultaneous GN invocations',
+                        dest='workers',
+                        default=multiprocessing.cpu_count())
+    parser.add_argument("-v",
+                        "--verbose",
+                        help='Verbose output.',
+                        default=False,
+                        action="store_true")
+
+
 def parse_args(args):
     args = args[1:]
     parser = argparse.ArgumentParser(
         description='A script to run `gn gen`.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    common_group = parser.add_argument_group('Common Arguments')
+
+    config_group = parser.add_argument_group('Configuration Related Arguments')
+    AddCommonConfigurationArgs(config_group)
+
+    gn_group = parser.add_argument_group('GN Related Arguments')
+    AddCommonGnOptionArgs(gn_group)
+
     other_group = parser.add_argument_group('Other Arguments')
-
-    common_group.add_argument(
-        '--arch',
-        '-a',
-        type=str,
-        help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,'
-        'simarm64,arm64,simarm_x64]',
-        default='x64')
-    common_group.add_argument(
-        '--mode',
-        '-m',
-        type=str,
-        help='Build variants (comma-separated).',
-        metavar='[all,debug,release,product]',
-        default='debug')
-    common_group.add_argument(
-        '--os',
-        type=str,
-        help='Target OSs (comma-separated).',
-        metavar='[all,host,android]',
-        default='host')
-    common_group.add_argument(
-        '--sanitizer',
-        type=str,
-        help='Build variants (comma-separated).',
-        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
-        default='none')
-    # TODO(38701): Remove dont_use_nnbd once the NNBD SDK is stable/performant
-    # and there is no need to build a legacy version of the SDK for
-    # comparison purposes.
-    common_group.add_argument(
-        "--no-nnbd",
-        help='Use the NNBD fork of the SDK.',
-        default=False,
-        action='store_true')
-    common_group.add_argument(
-        "-v",
-        "--verbose",
-        help='Verbose output.',
-        default=False,
-        action="store_true")
-
-    other_group.add_argument(
-        '--arm-float-abi',
-        type=str,
-        help='The ARM float ABI (soft, softfp, hard)',
-        metavar='[soft,softfp,hard]',
-        default='')
-    other_group.add_argument(
-        '--bytecode',
-        '-b',
-        help='Use bytecode in Dart VM',
-        default=False,
-        action="store_true")
-    other_group.add_argument(
-        '--no-bytecode',
-        help='Disable bytecode in Dart VM',
-        dest='bytecode',
-        action="store_false")
-    other_group.add_argument(
-        '--clang', help='Use Clang', default=True, action='store_true')
-    other_group.add_argument(
-        '--no-clang', help='Disable Clang', dest='clang', action='store_false')
-    other_group.add_argument(
-        '--code-coverage',
-        help='Enable code coverage for the standalone VM',
-        default=False,
-        dest="code_coverage",
-        action='store_true')
-    other_group.add_argument(
-        '--debug-opt-level',
-        '-d',
-        help='The optimization level to use for debug builds',
-        type=str)
-    other_group.add_argument(
-        '--goma', help='Use goma', default=True, action='store_true')
-    other_group.add_argument(
-        '--no-goma', help='Disable goma', dest='goma', action='store_false')
-    other_group.add_argument(
-        '--ide',
-        help='Generate an IDE file.',
-        default=os_has_ide(HOST_OS),
-        action='store_true')
-    other_group.add_argument(
-        '--exclude-kernel-service',
-        help='Exclude the kernel service.',
-        default=False,
-        dest='exclude_kernel_service',
-        action='store_true')
-    other_group.add_argument(
-        '--gn-args', help='Set extra GN args', dest='gn_args', action='append')
-    other_group.add_argument(
-        '--platform-sdk',
-        help='Directs the create_sdk target to create a smaller "Platform" SDK',
-        default=MakePlatformSDK(),
-        action='store_true')
-    other_group.add_argument(
-        '--target-sysroot',
-        '-s',
-        type=str,
-        help='Comma-separated list of arch=/path/to/sysroot mappings')
-    other_group.add_argument(
-        '--toolchain-prefix',
-        '-t',
-        type=str,
-        help='Comma-separated list of arch=/path/to/toolchain-prefix mappings')
-    other_group.add_argument(
-        '--workers',
-        '-w',
-        type=int,
-        help='Number of simultaneous GN invocations',
-        dest='workers',
-        default=multiprocessing.cpu_count())
-    other_group.add_argument(
-        '--use-crashpad',
-        default=False,
-        dest='use_crashpad',
-        action='store_true')
-    other_group.add_argument(
-        '--use-qemu',
-        default=False,
-        dest='use_qemu',
-        action='store_true')
+    AddOtherArgs(other_group)
 
     options = parser.parse_args(args)
     if not ProcessOptions(options):
@@ -493,37 +527,39 @@ def RunCommand(command):
         return ("Command failed: " + ' '.join(command) + "\n" + "output: " +
                 e.output)
 
-def Main(argv):
-    starttime = time.time()
-    args = parse_args(argv)
 
+def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     gn = os.path.join(DART_ROOT, 'buildtools',
                       'gn.exe' if utils.IsWindows() else 'gn')
     if not os.path.isfile(gn):
-        print("Couldn't find the gn binary at path: " + gn)
-        return 1
+        raise Exception("Couldn't find the gn binary at path: " + gn)
 
+    # TODO(infra): Re-enable --check. Many targets fail to use
+    # public_deps to re-expose header files to their dependents.
+    # See dartbug.com/32364
+    command = [gn, 'gen', out_dir]
+    gn_args = ToCommandLine(
+        ToGnArgs(args, mode, arch, target_os, sanitizer, args.verify_sdk_hash))
+    gn_args += GetGNArgs(args)
+    if args.ide:
+        command.append(ide_switch(HOST_OS))
+    command.append('--args=%s' % ' '.join(gn_args))
+
+    return command
+
+
+def RunGnOnConfiguredConfigurations(args):
     commands = []
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
-                    out_dir = GetOutDir(mode, arch, target_os, sanitizer,
-                                        args.no_nnbd)
-                    # TODO(infra): Re-enable --check. Many targets fail to use
-                    # public_deps to re-expose header files to their dependents.
-                    # See dartbug.com/32364
-                    command = [gn, 'gen', out_dir]
-                    gn_args = ToCommandLine(
-                        ToGnArgs(args, mode, arch, target_os, sanitizer,
-                                 args.no_nnbd))
-                    gn_args += GetGNArgs(args)
+                    out_dir = GetOutDir(mode, arch, target_os, sanitizer)
+                    commands.append(
+                        BuildGnCommand(args, mode, arch, target_os, sanitizer,
+                                       out_dir))
                     if args.verbose:
                         print("gn gen --check in %s" % out_dir)
-                    if args.ide:
-                        command.append(ide_switch(HOST_OS))
-                    command.append('--args=%s' % ' '.join(gn_args))
-                    commands.append(command)
 
     pool = multiprocessing.Pool(args.workers)
     results = pool.map(RunCommand, commands, chunksize=1)
@@ -531,6 +567,13 @@ def Main(argv):
         if r != 0:
             print(r.strip())
             return 1
+
+
+def Main(argv):
+    starttime = time.time()
+    args = parse_args(argv)
+
+    RunGnOnConfiguredConfigurations(args)
 
     endtime = time.time()
     if args.verbose:

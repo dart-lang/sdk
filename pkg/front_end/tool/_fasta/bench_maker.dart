@@ -164,7 +164,7 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     }
     Procedure callOperator;
     for (Procedure procedure in cls.procedures) {
-      if (procedure.name.name == "call") {
+      if (procedure.name.text == "call") {
         callOperator = procedure;
       }
     }
@@ -273,6 +273,14 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
     if (!isNull) {
       writeNullability(node.nullability, sb);
     }
+  }
+
+  @override
+  void visitFutureOrType(FutureOrType node, StringBuffer sb) {
+    sb.write("FutureOr<");
+    node.typeArgument.accept1(this, sb);
+    sb.write(">");
+    writeNullability(node.declaredNullability, sb);
   }
 
   @override

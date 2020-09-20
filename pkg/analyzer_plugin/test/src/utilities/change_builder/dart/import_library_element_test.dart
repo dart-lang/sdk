@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -446,7 +444,7 @@ class A {}
 }
 
 class _Base extends AbstractContextTest with DartChangeBuilderMixin {
-  void _assertEmptyChange(DartChangeBuilderImpl builder) {
+  void _assertEmptyChange(ChangeBuilder builder) {
     var change = builder.sourceChange;
     expect(change, isNotNull);
     expect(change.edits, isEmpty);
@@ -474,7 +472,7 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     expect(requestedElement, isNotNull, reason: '`$name` in $uriStr');
 
     var builder = newBuilder();
-    await builder.addFileEdit(path, (builder) {
+    await builder.addDartFileEdit(path, (builder) {
       var uri = Uri.parse(uriStr);
       var result = builder.importLibraryElement(uri);
       expect(result.prefix, expectedPrefix);

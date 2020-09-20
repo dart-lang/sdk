@@ -140,6 +140,11 @@ abstract class IncrementalKernelGenerator {
       Uri libraryUri,
       [String className,
       bool isStatic = false]);
+
+  /// Sets experimental features.
+  ///
+  /// This is currently only meant for testing purposes.
+  void setExperimentalFeaturesForTesting(Set<String> features);
 }
 
 bool isLegalIdentifier(String identifier) {

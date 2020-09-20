@@ -1,0 +1,27 @@
+{
+  "program": {
+    "binary": "exe.stripped/dart"
+  },
+  "sandbox": {
+    "features": [
+      "config-data",
+      "deprecated-ambient-replace-as-executable",
+      "root-ssl-certificates",
+      "isolated-cache-storage",
+      "isolated-persistent-storage",
+      "isolated-temp"
+    ],
+    "services": [
+      "fuchsia.deprecatedtimezone.Timezone",
+      "fuchsia.device.NameProvider",
+      "fuchsia.feedback.CrashReporter",
+      "fuchsia.intl.PropertyProvider",
+      "fuchsia.logger.LogSink",
+      "fuchsia.net.NameLookup",
+      "fuchsia.posix.socket.Provider",
+      "fuchsia.sysmem.Allocator",
+      "fuchsia.timezone.Timezone",
+      "fuchsia.tracing.provider.Registry"
+    ]
+  }
+}

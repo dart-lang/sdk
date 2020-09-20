@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/error/codes.dart';
 
 /// An [AstVisitor] that fills [UsedLocalElements].
-class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
+class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -25,7 +25,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     var element = node.staticElement;
     if (element != null) {
       usedElements.members.add(element);
@@ -34,14 +34,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     var element = node.staticElement;
     usedElements.members.add(element);
     super.visitBinaryExpression(node);
   }
 
   @override
-  visitCatchClause(CatchClause node) {
+  void visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null) {
@@ -59,7 +59,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     ClassElement enclosingClassOld = _enclosingClass;
     try {
       _enclosingClass = node.declaredElement;
@@ -70,7 +70,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement enclosingExecOld = _enclosingExec;
     try {
       _enclosingExec = node.declaredElement;
@@ -81,7 +81,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       usedElements.addElement(node.declaredElement);
     }
@@ -89,14 +89,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     var element = node.staticElement;
     usedElements.members.add(element);
     super.visitIndexExpression(node);
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement enclosingExecOld = _enclosingExec;
     try {
       _enclosingExec = node.declaredElement;
@@ -107,21 +107,33 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitMethodInvocation(MethodInvocation node) {
+    var function = node.methodName.staticElement;
+    if (function is FunctionElement || function is MethodElement) {
+      for (var argument in node.argumentList.arguments) {
+        var parameter = argument.staticParameterElement;
+        usedElements.elements.add(parameter);
+      }
+    }
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
     var element = node.staticElement;
     usedElements.members.add(element);
     super.visitPostfixExpression(node);
   }
 
   @override
-  visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     var element = node.staticElement;
     usedElements.members.add(element);
     super.visitPrefixExpression(node);
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }
@@ -135,16 +147,39 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
-        element.isSynthetic &&
         isIdentifierRead &&
         element.variable is TopLevelVariableElement) {
-      usedElements.addElement(element.variable);
+      if (element.isSynthetic) {
+        usedElements.addElement(element.variable);
+      } else {
+        usedElements.members.add(element);
+        _addMemberAndCorrespondingGetter(element);
+      }
     } else if (element is LocalVariableElement) {
       if (isIdentifierRead) {
         usedElements.addElement(element);
       }
     } else {
       _useIdentifierElement(node);
+      var parent = node.parent;
+      // If [node] is a method tear-off, assume all parameters are used.
+      var functionReferenceIsCall =
+          (element is ExecutableElement && parent is MethodInvocation) ||
+              // named constructor
+              (element is ConstructorElement &&
+                  parent is ConstructorName &&
+                  parent.parent is InstanceCreationExpression) ||
+              // unnamed constructor
+              (element is ClassElement &&
+                  parent.parent is ConstructorName &&
+                  parent.parent.parent is InstanceCreationExpression);
+      if (element is ExecutableElement &&
+          isIdentifierRead &&
+          !functionReferenceIsCall) {
+        for (var parameter in element.parameters) {
+          usedElements.addElement(parameter);
+        }
+      }
       var enclosingElement = element?.enclosingElement;
       if (element == null) {
         if (isIdentifierRead) {
@@ -163,14 +198,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
           !identical(element, _enclosingExec)) {
         usedElements.members.add(element);
         if (isIdentifierRead) {
-          // Store the corresponding getter.
-          if (element is PropertyAccessorElement && element.isSetter) {
-            element = (element as PropertyAccessorElement).correspondingGetter;
-          }
-          usedElements.members.add(element);
-          usedElements.readMembers.add(element);
+          _addMemberAndCorrespondingGetter(element);
         }
       }
+    }
+  }
+
+  /// Add [element] as a used member and, if [element] is a setter, add its
+  /// corresponding getter as a used member.
+  void _addMemberAndCorrespondingGetter(Element element) {
+    if (element is PropertyAccessorElement && element.isSetter) {
+      usedElements.members.add(element.correspondingGetter);
+      usedElements.readMembers.add(element.correspondingGetter);
+    } else {
+      usedElements.readMembers.add(element);
     }
   }
 
@@ -250,7 +291,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
 /// Instances of the class [UnusedLocalElementsVerifier] traverse an AST
 /// looking for cases of [HintCode.UNUSED_ELEMENT], [HintCode.UNUSED_FIELD],
 /// [HintCode.UNUSED_LOCAL_VARIABLE], etc.
-class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
+class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The error listener to which errors will be reported.
   final AnalysisErrorListener _errorListener;
 
@@ -269,7 +310,18 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
       : _libraryUri = library.source.uri;
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitFormalParameterList(FormalParameterList node) {
+    for (var element in node.parameterElements) {
+      if (!_isUsedElement(element)) {
+        _reportErrorForElement(
+            HintCode.UNUSED_ELEMENT_PARAMETER, element, [element.displayName]);
+      }
+    }
+    super.visitFormalParameterList(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       var element = node.staticElement;
       if (element is ClassElement) {
@@ -314,6 +366,24 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
       (element is ClassElement || element is ExtensionElement) &&
       element.isPrivate;
 
+  /// Returns whether [element] is accessible outside of the library in which
+  /// it is declared.
+  bool _isPubliclyAccessible(ExecutableElement element) {
+    if (element.isPrivate) {
+      return false;
+    }
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement is ClassElement &&
+        enclosingElement.isPrivate &&
+        (element.isStatic || element is ConstructorElement)) {
+      return false;
+    } else if (enclosingElement is ExtensionElement &&
+        enclosingElement.isPrivate) {
+      return false;
+    }
+    return true;
+  }
+
   /// Returns whether [element] is a private element which is read somewhere in
   /// the library.
   bool _isReadMember(Element element) {
@@ -352,6 +422,24 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     if (element is LocalVariableElement ||
         element is FunctionElement && !element.isStatic) {
       // local variable or function
+    } else if (element is ParameterElement) {
+      var enclosingElement = element.enclosingElement;
+      // Only report unused parameters of methods or functions.
+      if (enclosingElement is! ConstructorElement &&
+          enclosingElement is! FunctionElement &&
+          enclosingElement is! MethodElement) {
+        return true;
+      }
+
+      if (!element.isOptional) {
+        return true;
+      }
+      if (_isPubliclyAccessible(enclosingElement)) {
+        return true;
+      }
+      if (_overridesUsedParameter(element, enclosingElement)) {
+        return true;
+      }
     } else {
       if (element.isPublic) {
         return true;
@@ -361,20 +449,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
   }
 
   bool _isUsedMember(ExecutableElement element) {
-    var enclosingElement = element.enclosingElement;
-    if (element.isPublic) {
-      if (enclosingElement is ClassElement &&
-          enclosingElement.isPrivate &&
-          element.isStatic) {
-        // Public static members of private classes are inaccessible from
-        // outside the library in which they are declared.
-      } else if (enclosingElement is ExtensionElement &&
-          enclosingElement.isPrivate) {
-        // Public members of private extensions are inaccessible from outside
-        // the library in which they are declared.
-      } else {
-        return true;
-      }
+    if (_isPubliclyAccessible(element)) {
+      return true;
     }
     if (element.isSynthetic) {
       return true;
@@ -389,19 +465,64 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     return _overridesUsedElement(element);
   }
 
-  // Check if this is a class member which overrides a super class's class
-  // member which is used.
-  bool _overridesUsedElement(Element element) {
+  Iterable<ExecutableElement> _overriddenElements(Element element) {
     Element enclosingElement = element.enclosingElement;
     if (enclosingElement is ClassElement) {
       Name name = Name(_libraryUri, element.name);
-      Iterable<ExecutableElement> overriddenElements = _inheritanceManager
-          .getOverridden2(enclosingElement, name)
-          ?.map((ExecutableElement e) =>
-              (e is ExecutableMember) ? e.declaration : e);
-      if (overriddenElements != null) {
-        return overriddenElements.any((ExecutableElement e) =>
-            _usedElements.members.contains(e) || _overridesUsedElement(e));
+      var overridden =
+          _inheritanceManager.getOverridden2(enclosingElement, name);
+      if (overridden == null) {
+        return [];
+      }
+      return overridden.map((e) => (e is ExecutableMember) ? e.declaration : e);
+    } else {
+      return [];
+    }
+  }
+
+  /// Check if [element] is a class member which overrides a super class's class
+  /// member which is used.
+  bool _overridesUsedElement(Element element) {
+    return _overriddenElements(element).any((ExecutableElement e) =>
+        _usedElements.members.contains(e) || _overridesUsedElement(e));
+  }
+
+  /// Check if [element] is a parameter of a method which overrides a super
+  /// class's method in which the corresponding parameter is used.
+  bool _overridesUsedParameter(
+      ParameterElement element, ExecutableElement enclosingElement) {
+    var overriddenElements = _overriddenElements(enclosingElement);
+    for (var overridden in overriddenElements) {
+      ParameterElement correspondingParameter;
+      if (element.isNamed) {
+        correspondingParameter = overridden.parameters
+            .firstWhere((p) => p.name == element.name, orElse: () => null);
+      } else {
+        var parameterIndex = 0;
+        var parameterCount = enclosingElement.parameters.length;
+        while (parameterIndex < parameterCount) {
+          if (enclosingElement.parameters[parameterIndex] == element) {
+            break;
+          }
+          parameterIndex++;
+        }
+        if (overridden.parameters.length <= parameterIndex) {
+          // Something is wrong with the overridden element. Ignore it.
+          continue;
+        }
+        correspondingParameter = overridden.parameters[parameterIndex];
+      }
+      // The parameter was added in the override.
+      if (correspondingParameter == null) {
+        continue;
+      }
+      // The parameter was made optional in the override.
+      if (correspondingParameter.isRequiredNamed ||
+          correspondingParameter.isRequiredPositional) {
+        return true;
+      }
+      if (_usedElements.elements.contains(correspondingParameter)) {
+        return true;
       }
     }
     return false;
@@ -415,14 +536,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     }
   }
 
-  _visitClassElement(ClassElement element) {
+  void _visitClassElement(ClassElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
-  _visitConstructorElement(ConstructorElement element) {
+  void _visitConstructorElement(ConstructorElement element) {
     // Only complain about an unused constructor if it is not the only
     // constructor in the class. A single unused, private constructor may serve
     // the purpose of preventing the class from being extended. In serving this
@@ -434,28 +555,28 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     }
   }
 
-  _visitFieldElement(FieldElement element) {
+  void _visitFieldElement(FieldElement element) {
     if (!_isReadMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_FIELD, element, [element.displayName]);
     }
   }
 
-  _visitFunctionElement(FunctionElement element) {
+  void _visitFunctionElement(FunctionElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
-  _visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+  void _visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
-  _visitLocalVariableElement(LocalVariableElement element) {
+  void _visitLocalVariableElement(LocalVariableElement element) {
     if (!_isUsedElement(element) && !_isNamedUnderscore(element)) {
       HintCode errorCode;
       if (_usedElements.isCatchException(element)) {
@@ -469,21 +590,21 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
     }
   }
 
-  _visitMethodElement(MethodElement element) {
+  void _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
-  _visitPropertyAccessorElement(PropertyAccessorElement element) {
+  void _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
-  _visitTopLevelVariableElement(TopLevelVariableElement element) {
+  void _visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!_isUsedElement(element)) {
       _reportErrorForElement(
           HintCode.UNUSED_ELEMENT, element, [element.displayName]);

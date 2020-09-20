@@ -65,6 +65,7 @@ class DillTarget extends TargetImplementation {
   DillLibraryBuilder createLibraryBuilder(
       Uri uri,
       Uri fileUri,
+      Uri packageUri,
       LibraryBuilder origin,
       Library referencesFrom,
       bool referenceIsPartOwner) {

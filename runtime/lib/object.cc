@@ -10,6 +10,8 @@
 #include "vm/heap/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
+#include "vm/resolver.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
@@ -194,6 +196,49 @@ DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
     return Bool::True().raw();
   }
   return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
+}
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
+  return Bool::Get(prefix.is_loaded()).raw();
+}
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
+  prefix.set_is_loaded(true);
+  return Instance::null();
+}
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_loadingUnit, 0, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Library& target = Library::Handle(zone, prefix.GetLibrary(0));
+  const LoadingUnit& unit = LoadingUnit::Handle(zone, target.loading_unit());
+  return Smi::New(unit.IsNull() ? LoadingUnit::kIllegalId : unit.id());
+}
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_issueLoad, 0, 1) {
+  const Smi& id = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
+  Array& units = Array::Handle(zone, isolate->object_store()->loading_units());
+  if (units.IsNull()) {
+    // Not actually split.
+    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
+    const String& sel = String::Handle(zone, String::New("_completeLoads"));
+    const Function& func =
+        Function::Handle(zone, lib.LookupFunctionAllowPrivate(sel));
+    ASSERT(!func.IsNull());
+    const Array& args = Array::Handle(zone, Array::New(3));
+    args.SetAt(0, id);
+    args.SetAt(1, String::Handle(zone));
+    args.SetAt(2, Bool::Get(false));
+    return DartEntry::InvokeFunction(func, args);
+  }
+  ASSERT(id.Value() != LoadingUnit::kIllegalId);
+  LoadingUnit& unit = LoadingUnit::Handle(zone);
+  unit ^= units.At(id.Value());
+  return unit.IssueLoad();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
@@ -466,14 +511,11 @@ DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 0, 3) {
     function = Closure::Cast(receiver).function();
   } else {
     Class& cls = Class::Handle(receiver.clazz());
-    if (level != InvocationMirror::kSuper) {
-      function = cls.LookupDynamicFunction(method_name);
-    }
-    while (function.IsNull()) {
+    if (level == InvocationMirror::kSuper) {
       cls = cls.SuperClass();
-      if (cls.IsNull()) break;
-      function = cls.LookupDynamicFunction(method_name);
     }
+    function = Resolver::ResolveDynamicAnyArgs(zone, cls, method_name,
+                                               /*allow_add=*/false);
   }
   if (!function.IsNull()) {
     return function.UserVisibleSignature();

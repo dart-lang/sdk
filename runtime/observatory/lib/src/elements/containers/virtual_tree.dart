@@ -8,7 +8,7 @@ import 'dart:collection';
 import 'dart:math' as Math;
 import 'package:observatory/src/elements/containers/virtual_collection.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 typedef HtmlElement VirtualTreeCreateCallback(
     toggle({bool autoToggleSingleChildNodes, bool autoToggleWholeTree}));
@@ -27,9 +27,6 @@ void virtualTreeUpdateLines(SpanElement element, int n) {
 }
 
 class VirtualTreeElement extends CustomElement implements Renderable {
-  static const tag = const Tag<VirtualTreeElement>('virtual-tree',
-      dependencies: const [VirtualCollectionElement.tag]);
-
   RenderingScheduler<VirtualTreeElement> _r;
 
   Stream<RenderedEvent<VirtualTreeElement>> get onRendered => _r.onRendered;
@@ -82,7 +79,7 @@ class VirtualTreeElement extends CustomElement implements Renderable {
     return e;
   }
 
-  VirtualTreeElement.created() : super.created(tag);
+  VirtualTreeElement.created() : super.created('virtual-tree');
 
   bool isExpanded(item) {
     return _expanded.contains(item);

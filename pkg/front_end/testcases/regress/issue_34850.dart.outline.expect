@@ -57,9 +57,9 @@ static method f1() → invalid-type
   ;
 static method Future<List extends core::Object* = dynamic>() → invalid-type
   ;
-static method f2() → dynamic
+static method f2() → dynamic async 
   ;
-static method f3() → invalid-type
+static method f3() → invalid-type async 
   ;
-static method main() → dynamic
+static method main() → dynamic async 
   ;

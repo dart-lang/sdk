@@ -9,12 +9,9 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 
 class InboundReferencesElement extends CustomElement implements Renderable {
-  static const tag = const Tag<InboundReferencesElement>('inbound-references',
-      dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
-
   RenderingScheduler<InboundReferencesElement> _r;
 
   Stream<RenderedEvent<InboundReferencesElement>> get onRendered =>
@@ -46,7 +43,7 @@ class InboundReferencesElement extends CustomElement implements Renderable {
     return e;
   }
 
-  InboundReferencesElement.created() : super.created(tag);
+  InboundReferencesElement.created() : super.created('inbound-references');
 
   @override
   void attached() {

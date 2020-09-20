@@ -2,23 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
-  LibraryElementImpl get testLibrary => null;
-
   InterfaceType get boolNone {
     var element = typeProvider.boolElement;
     return interfaceTypeNone(element);
@@ -148,6 +148,8 @@ mixin ElementsTypesMixin {
     var element = typeProvider.stringType.element;
     return interfaceTypeStar(element);
   }
+
+  LibraryElementImpl get testLibrary => null;
 
   TypeProvider get typeProvider;
 
@@ -400,8 +402,19 @@ mixin ElementsTypesMixin {
     AnalysisContext analysisContext,
     AnalysisSessionImpl analysisSession,
   }) {
-    var library = LibraryElementImpl(analysisContext, analysisSession, uriStr,
-        -1, 0, typeSystem.isNonNullableByDefault);
+    var library = LibraryElementImpl(
+      analysisContext,
+      analysisSession,
+      uriStr,
+      -1,
+      0,
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+        flags: typeSystem.isNonNullableByDefault
+            ? [EnableString.non_nullable]
+            : [],
+      ),
+    );
     library.typeSystem = typeSystem;
     library.typeProvider = typeSystem.typeProvider;
 
@@ -590,17 +603,49 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  TypeParameterTypeImpl typeParameterTypeNone(TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+  TypeParameterTypeImpl typeParameterType(
+    TypeParameterElement element, {
+    @required NullabilitySuffix nullabilitySuffix,
+    DartType promotedBound,
+  }) {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl typeParameterTypeNone(
+    TypeParameterElement element, {
+    DartType promotedBound,
+  }) {
+    return typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+      promotedBound: promotedBound,
+    );
   }
 
   TypeParameterTypeImpl typeParameterTypeQuestion(
-      TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.question);
+    TypeParameterElement element, {
+    DartType promotedBound,
+  }) {
+    return typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+      promotedBound: promotedBound,
+    );
   }
 
-  TypeParameterTypeImpl typeParameterTypeStar(TypeParameterElement element) {
-    return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
+  TypeParameterTypeImpl typeParameterTypeStar(
+    TypeParameterElement element, {
+    DartType promotedBound,
+  }) {
+    return typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.star,
+      promotedBound: promotedBound,
+    );
   }
 }
 

@@ -14,13 +14,21 @@ import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/runner.dart';
+import 'package:package_config/package_config.dart';
 
+String packageConfigJsonPath = ".dart_tool/package_config.json";
 Uri sdkRoot = Platform.script.resolve("../../../");
+Uri packageConfigUri = sdkRoot.resolve(packageConfigJsonPath);
 Options _options;
 String _dart2jsScript;
 String _kernelWorkerScript;
+
+// TODO(joshualitt): Figure out a way to support package configs in
+// tests/modular.
+PackageConfig _packageConfig;
 main(List<String> args) async {
   _options = Options.parse(args);
+  _packageConfig = await loadPackageConfigUri(packageConfigUri);
   await _resolveScripts();
   await runSuite(
       sdkRoot.resolve('tests/modular/'),
@@ -44,6 +52,17 @@ const codeId0 = const ShardDataId(codeId, 0);
 const codeId1 = const ShardDataId(codeId, 1);
 const jsId = const DataId("js");
 const txtId = const DataId("txt");
+
+String _packageConfigEntry(String name, Uri root,
+    {Uri packageRoot, LanguageVersion version}) {
+  var fields = [
+    '"name": "${name}"',
+    '"rootUri": "$root"',
+    if (packageRoot != null) '"packageUri": "$packageRoot"',
+    if (version != null) '"languageVersion": "$version"'
+  ];
+  return '{${fields.join(',')}}';
+}
 
 // Step that compiles sources in a module to a .dill file.
 class SourceToDillStep implements IOModularStep {
@@ -88,29 +107,52 @@ class SourceToDillStep implements IOModularStep {
       }
     }
 
-    // We create a .packages file which defines the location of this module if
-    // it is a package.  The CFE requires that if a `package:` URI of a
-    // dependency is used in an import, then we need that package entry in the
-    // .packages file. However, after it checks that the definition exists, the
-    // CFE will not actually use the resolved URI if a library for the import
-    // URI is already found in one of the provided .dill files of the
-    // dependencies. For that reason, and to ensure that a step only has access
-    // to the files provided in a module, we generate a .packages with invalid
-    // folders for other packages.
+    // We create both a .packages and package_config.json file which defines
+    // the location of this module if it is a package.  The CFE requires that
+    // if a `package:` URI of a dependency is used in an import, then we need
+    // that package entry in the associated file. However, after it checks that
+    // the definition exists, the CFE will not actually use the resolved URI if
+    // a library for the import URI is already found in one of the provide
+    // .dill files of the dependencies. For that reason, and to ensure that
+    // a step only has access to the files provided in a module, we generate a
+    // config file with invalid folders for other packages.
     // TODO(sigmund): follow up with the CFE to see if we can remove the need
-    // for the .packages entry altogether if they won't need to read the
-    // sources.
+    // for these dummy entries..
+    // TODO(joshualitt): Generate just the json file.
+    var packagesJson = [];
     var packagesContents = new StringBuffer();
     if (module.isPackage) {
       packagesContents.write('${module.name}:${module.packageBase}\n');
+      packagesJson.add(_packageConfigEntry(
+          module.name, Uri.parse('../${module.packageBase}')));
     }
+
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
     int unusedNum = 0;
     for (Module dependency in transitiveDependencies) {
       if (dependency.isPackage) {
+        // rootUri should be ignored for dependent modules, so we pass in a
+        // bogus value.
+        var rootUri = Uri.parse('unused$unusedNum');
         unusedNum++;
-        packagesContents.write('${dependency.name}:unused$unusedNum\n');
+
+        var dependentPackage = _packageConfig[dependency.name];
+        var packageJson = dependentPackage == null
+            ? _packageConfigEntry(dependency.name, rootUri)
+            : _packageConfigEntry(dependentPackage.name, rootUri,
+                version: dependentPackage.languageVersion);
+        packagesJson.add(packageJson);
+        packagesContents.write('${dependency.name}:$rootUri\n');
       }
+    }
+
+    if (module.isPackage) {
+      await File.fromUri(root.resolve(packageConfigJsonPath))
+          .create(recursive: true);
+      await File.fromUri(root.resolve(packageConfigJsonPath)).writeAsString('{'
+          '  "configVersion": ${_packageConfig.version},'
+          '  "packages": [ ${packagesJson.join(',')} ]'
+          '}');
     }
 
     await File.fromUri(root.resolve('.packages'))
@@ -132,10 +174,7 @@ class SourceToDillStep implements IOModularStep {
         return;
       }
       sources = ['dart:core'];
-      extraArgs = [
-        '--libraries-file',
-        '$rootScheme:///sdk_nnbd/lib/libraries.json'
-      ];
+      extraArgs = ['--libraries-file', '$rootScheme:///sdk/lib/libraries.json'];
       assert(transitiveDependencies.isEmpty);
     } else {
       sources = module.sources.map(sourceToImportUri).toList();
@@ -342,7 +381,7 @@ class RunD8 implements IOModularStep {
     if (_options.verbose) print("\nstep: d8 on $module");
     List<String> d8Args = [
       sdkRoot
-          .resolve('sdk_nnbd/lib/_internal/js_runtime/lib/preambles/d8.js')
+          .resolve('sdk/lib/_internal/js_runtime/lib/preambles/d8.js')
           .toFilePath(),
       root.resolveUri(toUri(module, jsId)).toFilePath(),
     ];

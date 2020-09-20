@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
@@ -24,9 +25,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-/**
- * Finds an [Element] with the given [name].
- */
+/// Finds an [Element] with the given [name].
 Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
@@ -68,8 +67,6 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
 
   List<String> enabledExperiments = [];
 
-  bool get disableChangesAndCacheAllResults => false;
-
   void addTestFile(String content, {bool priority = false}) {
     testCode = content;
     newFile(testFile, content: content);
@@ -102,14 +99,16 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
         ]),
         createAnalysisOptions(),
         packages: Packages.empty,
-        disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         enableIndex: true,
         externalSummaries: externalSummaries);
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
     ..useFastaParser = analyzer.Parser.useFasta
-    ..contextFeatures = FeatureSet.fromEnableFlags(enabledExperiments);
+    ..contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.testingSdkLanguageVersion,
+      flags: enabledExperiments,
+    );
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
@@ -156,9 +155,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   void tearDown() {}
 }
 
-/**
- * Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
- */
+/// Wraps an [_ElementVisitorFunction] into a [GeneralizingElementVisitor].
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   final _ElementVisitorFunction function;
 

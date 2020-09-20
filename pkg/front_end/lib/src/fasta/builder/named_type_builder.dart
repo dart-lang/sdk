@@ -47,7 +47,7 @@ import '../problems.dart' show unhandled;
 import '../scope.dart';
 
 import 'builder.dart';
-import 'builtin_type_builder.dart';
+import 'builtin_type_declaration_builder.dart';
 import 'class_builder.dart';
 import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
@@ -57,6 +57,7 @@ import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
+import 'void_type_declaration_builder.dart';
 
 class NamedTypeBuilder extends TypeBuilder {
   final Object name;
@@ -65,19 +66,24 @@ class NamedTypeBuilder extends TypeBuilder {
 
   final NullabilityBuilder nullabilityBuilder;
 
+  @override
   final Uri fileUri;
+
+  @override
   final int charOffset;
 
   @override
   TypeDeclarationBuilder declaration;
 
   NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments,
-      [this.fileUri, this.charOffset]);
+      this.fileUri, this.charOffset);
 
   NamedTypeBuilder.fromTypeDeclarationBuilder(
       this.declaration, this.nullabilityBuilder,
       [this.arguments, this.fileUri, this.charOffset])
       : this.name = declaration.name;
+
+  bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
 
   @override
   void bind(TypeDeclarationBuilder declaration) {
@@ -344,8 +350,8 @@ class NamedTypeBuilder extends TypeBuilder {
         i++;
       }
       if (arguments != null) {
-        NamedTypeBuilder result =
-            new NamedTypeBuilder(name, nullabilityBuilder, arguments);
+        NamedTypeBuilder result = new NamedTypeBuilder(
+            name, nullabilityBuilder, arguments, fileUri, charOffset);
         if (declaration != null) {
           result.bind(declaration);
         } else {
@@ -365,9 +371,9 @@ class NamedTypeBuilder extends TypeBuilder {
         clonedArguments[i] = arguments[i].clone(newTypes);
       }
     }
-    NamedTypeBuilder newType =
-        new NamedTypeBuilder(name, nullabilityBuilder, clonedArguments);
-    if (declaration is BuiltinTypeBuilder) {
+    NamedTypeBuilder newType = new NamedTypeBuilder(
+        name, nullabilityBuilder, clonedArguments, fileUri, charOffset);
+    if (declaration is BuiltinTypeDeclarationBuilder) {
       newType.declaration = declaration;
     } else {
       newTypes.add(newType);
@@ -377,7 +383,8 @@ class NamedTypeBuilder extends TypeBuilder {
 
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new NamedTypeBuilder(name, nullabilityBuilder, arguments)
+    return new NamedTypeBuilder(
+        name, nullabilityBuilder, arguments, fileUri, charOffset)
       ..bind(declaration);
   }
 }

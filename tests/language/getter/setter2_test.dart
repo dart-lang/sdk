@@ -24,7 +24,7 @@ class T1 {
   late A getterField;
   A get field {
   //    ^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
     return getterField;
   }
@@ -39,7 +39,7 @@ class T2 {
   late C setterField;
   A get field {
   //    ^^^^^
-  // [analyzer] STATIC_WARNING.GETTER_NOT_SUBTYPE_SETTER_TYPES
+  // [analyzer] COMPILE_TIME_ERROR.GETTER_NOT_SUBTYPE_SETTER_TYPES
   // [cfe] unspecified
     return getterField;
   }
@@ -57,7 +57,7 @@ class T3 {
   void set field(A arg) {
     getterField = arg;
     //            ^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
   }
 }
@@ -72,7 +72,7 @@ main() {
   Expect.throwsTypeError(() => instance1.field = new A() as dynamic);
   B resultB = instance1.field;
   //          ^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                    ^
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 
@@ -83,7 +83,7 @@ main() {
   // Type 'A' has no method named 'b'
   instance1.field.b();
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
   // [cfe] The method 'b' isn't defined for the class 'A'.
 
   instance3.field = new B();

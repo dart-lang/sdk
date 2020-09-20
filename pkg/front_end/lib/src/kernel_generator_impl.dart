@@ -83,28 +83,11 @@ Future<CompilerResult> generateKernelInternal(
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
-      if (options.nnbdMode == NnbdMode.Strong &&
-          !(sdkSummary.mode == NonNullableByDefaultCompiledMode.Strong ||
-              sdkSummary.mode == NonNullableByDefaultCompiledMode.Agnostic)) {
-        throw new FormatException(
-            'Provided SDK .dill does not support sound null safety.');
-      }
       dillTarget.loader.appendLibraries(sdkSummary);
     }
 
     for (Component additionalDill
         in await options.loadAdditionalDills(nameRoot)) {
-      if (options.nnbdMode == NnbdMode.Strong &&
-          !(additionalDill.mode == NonNullableByDefaultCompiledMode.Strong ||
-              // In some VM tests the SDK dill appears as an additionalDill so
-              // allow agnostic here as well.
-              additionalDill.mode ==
-                  NonNullableByDefaultCompiledMode.Agnostic)) {
-        throw new FormatException(
-            'Provided .dill file for the following libraries does not support '
-            'sound null safety:\n'
-            '${additionalDill.libraries.join('\n')}');
-      }
       loadedComponents.add(additionalDill);
       dillTarget.loader.appendLibraries(additionalDill);
     }

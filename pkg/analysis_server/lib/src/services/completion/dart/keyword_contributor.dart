@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -13,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 const ASYNC_STAR = 'async*';
@@ -29,14 +26,13 @@ const YIELD_STAR = 'yield*';
 /// are valid at the completion point.
 class KeywordContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     // Don't suggest anything right after double or integer literals.
     if (request.target.isDoubleOrIntLiteral()) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     request.target.containingNode.accept(_KeywordVisitor(request, builder));
-    return const <CompletionSuggestion>[];
   }
 }
 
@@ -308,8 +304,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
       return;
     }
+    if (node.abstractKeyword == null) {
+      _addSuggestion(Keyword.ABSTRACT);
+    }
     if (node.covariantKeyword == null) {
       _addSuggestion(Keyword.COVARIANT);
+    }
+    if (node.externalKeyword == null) {
+      _addSuggestion(Keyword.EXTERNAL);
     }
     if (node.fields.lateKeyword == null &&
         request.featureSet.isEnabled(Feature.non_nullable)) {
@@ -673,6 +675,29 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    var variableDeclarationList = node.variables;
+    if (entity != variableDeclarationList) return;
+    var variables = variableDeclarationList.variables;
+    if (variables.isEmpty || request.offset > variables.first.beginToken.end) {
+      return;
+    }
+    if (node.externalKeyword == null) {
+      _addSuggestion(Keyword.EXTERNAL);
+    }
+    if (variableDeclarationList.lateKeyword == null &&
+        request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
+    }
+    if (!variables.first.isConst) {
+      _addSuggestion(Keyword.CONST);
+    }
+    if (!variables.first.isFinal) {
+      _addSuggestion(Keyword.FINAL);
+    }
+  }
+
+  @override
   void visitTryStatement(TryStatement node) {
     var obj = entity;
     if (obj is CatchClause ||
@@ -760,11 +785,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
 
   void _addExpressionKeywords(AstNode node) {
     _addSuggestions([
-      Keyword.CONST,
       Keyword.FALSE,
       Keyword.NULL,
       Keyword.TRUE,
     ]);
+    if (!request.inConstantContext) {
+      _addSuggestions([Keyword.CONST]);
+    }
     if (node.inClassMemberBody) {
       _addSuggestions([Keyword.SUPER, Keyword.THIS]);
     }

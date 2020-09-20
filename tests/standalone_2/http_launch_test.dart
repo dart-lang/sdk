@@ -67,10 +67,7 @@ serverRunning(HttpServer server) {
       pathToExecutable,
       []
         ..addAll(executableArguments)
-        ..addAll([
-          '--package-root=http://127.0.0.1:$port/the_packages/',
-          'http://127.0.0.1:$port/http_launch_main.dart'
-        ]));
+        ..addAll(['http://127.0.0.1:$port/http_launch_main.dart']));
   Future<ProcessResult> isolate_run = Process.run(
       pathToExecutable,
       []

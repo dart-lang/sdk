@@ -168,6 +168,7 @@ class SemiSpace {
  public:
   static void Init();
   static void Cleanup();
+  static intptr_t CachedSize();
 
   explicit SemiSpace(intptr_t max_capacity_in_words);
   ~SemiSpace();
@@ -183,6 +184,7 @@ class SemiSpace {
   NewPage* head() const { return head_; }
 
   void AddList(NewPage* head, NewPage* tail);
+  void MergeFrom(SemiSpace* donor);
 
  private:
   // Size of NewPages in this semi-space.
@@ -278,6 +280,8 @@ class Scavenger {
 
   // Promote all live objects.
   void Evacuate();
+
+  void MergeFrom(Scavenger* donor);
 
   int64_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
@@ -390,6 +394,7 @@ class Scavenger {
   SemiSpace* Prologue();
   intptr_t ParallelScavenge(SemiSpace* from);
   intptr_t SerialScavenge(SemiSpace* from);
+  void ReverseScavenge(SemiSpace** from);
   void IterateIsolateRoots(ObjectPointerVisitor* visitor);
   template <bool parallel>
   void IterateStoreBuffers(ScavengerVisitorBase<parallel>* visitor);
@@ -437,7 +442,8 @@ class Scavenger {
   // The total size of external data associated with objects in this scavenger.
   RelaxedAtomic<intptr_t> external_size_;
 
-  bool failed_to_promote_;
+  RelaxedAtomic<bool> failed_to_promote_;
+  RelaxedAtomic<bool> abort_;
 
   bool growth_control_;
 

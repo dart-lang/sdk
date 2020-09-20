@@ -8,7 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddExplicitCast extends CorrectionProducer {
@@ -16,7 +16,7 @@ class AddExplicitCast extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     Expression target;
     if (coveredNode is Expression) {
       target = coveredNode;
@@ -25,14 +25,29 @@ class AddExplicitCast extends CorrectionProducer {
     }
 
     var fromType = target.staticType;
+    if (fromType == typeProvider.nullType) {
+      // There would only be a diagnostic if the `toType` is not nullable, in
+      // which case a cast won't fix the problem.
+      return;
+    }
     DartType toType;
     var parent = target.parent;
+    if (parent is CascadeExpression && target == parent.target) {
+      target = parent;
+      parent = target.parent;
+    }
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.leftHandSide.staticType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
       toType = parent.declaredElement.type;
     } else {
       // TODO(brianwilkerson) Handle function arguments.
+      return;
+    }
+    if (typeSystem.isAssignableTo(
+        toType, typeSystem.promoteToNonNull(fromType))) {
+      // The only reason that `fromType` can't be assigned to `toType` is
+      // because it's nullable, in which case a cast won't fix the problem.
       return;
     }
     // TODO(brianwilkerson) Handle `toSet` in a manner similar to the below.
@@ -62,11 +77,11 @@ class AddExplicitCast extends CorrectionProducer {
         // `cast` invocation.
         return;
       }
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (needsParentheses) {
           builder.addSimpleInsertion(target.offset, '(');
         }
-        builder.addInsertion(target.end, (DartEditBuilder builder) {
+        builder.addInsertion(target.end, (builder) {
           if (needsParentheses) {
             builder.write(')');
           }
@@ -81,11 +96,11 @@ class AddExplicitCast extends CorrectionProducer {
         // `cast` invocation.
         return;
       }
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (needsParentheses) {
           builder.addSimpleInsertion(target.offset, '(');
         }
-        builder.addInsertion(target.end, (DartEditBuilder builder) {
+        builder.addInsertion(target.end, (builder) {
           if (needsParentheses) {
             builder.write(')');
           }
@@ -97,11 +112,11 @@ class AddExplicitCast extends CorrectionProducer {
         });
       });
     } else {
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (needsParentheses) {
           builder.addSimpleInsertion(target.offset, '(');
         }
-        builder.addInsertion(target.end, (DartEditBuilder builder) {
+        builder.addInsertion(target.end, (builder) {
           if (needsParentheses) {
             builder.write(')');
           }

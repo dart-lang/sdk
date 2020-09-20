@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class UriDoesNotExistTest extends DriverResolutionTest {
+class UriDoesNotExistTest extends PubPackageResolutionTest {
   test_deferredImportWithInvalidUri() async {
     await assertErrorsInCode(r'''
 import '[invalid uri]' deferred as p;
@@ -44,7 +43,7 @@ import 'unknown.dart';
   }
 
   test_import_appears_after_deleting_target() async {
-    String filePath = newFile('/test/lib/target.dart').path;
+    String filePath = newFile('$testPackageLibPath/target.dart').path;
 
     await assertErrorsInCode('''
 import 'target.dart';
@@ -54,12 +53,10 @@ import 'target.dart';
 
     // Remove the overlay in the same way as AnalysisServer.
     deleteFile(filePath);
-    driver.removeFile(filePath);
+    driverFor(testFilePath).removeFile(filePath);
 
     await resolveTestFile();
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(result.errors);
-    errorListener.assertErrors([
+    assertErrorsInResult([
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
     ]);
   }
@@ -72,15 +69,13 @@ import 'target.dart';
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
     ]);
 
-    newFile('/test/lib/target.dart');
+    newFile('$testPackageLibPath/target.dart');
 
     // Make sure the error goes away.
     // TODO(brianwilkerson) The error does not go away, possibly because the
     //  file is not being reanalyzed.
     await resolveTestFile();
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(result.errors);
-    errorListener.assertErrors([
+    assertErrorsInResult([
       error(HintCode.UNUSED_IMPORT, 0, 0),
     ]);
   }
@@ -95,21 +90,21 @@ part 'unknown.dart';
   }
 
   test_valid_dll() async {
-    newFile("/test/lib/lib.dll");
+    newFile("$testPackageLibPath/lib.dll");
     await assertNoErrorsInCode('''
 import 'dart-ext:lib';
 ''');
   }
 
   test_valid_dylib() async {
-    newFile("/test/lib/lib.dylib");
+    newFile("$testPackageLibPath/lib.dylib");
     await assertNoErrorsInCode('''
 import 'dart-ext:lib';
 ''');
   }
 
   test_valid_so() async {
-    newFile("/test/lib/lib.so");
+    newFile("$testPackageLibPath/lib.so");
     await assertNoErrorsInCode('''
 import 'dart-ext:lib';
 ''');

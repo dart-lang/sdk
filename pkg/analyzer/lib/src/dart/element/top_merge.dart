@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 class TopMergeHelper {
@@ -17,14 +17,12 @@ class TopMergeHelper {
 
   TopMergeHelper(this.typeSystem);
 
-  /**
-   * Merges two types into a single type.
-   * Compute the canonical representation of [T].
-   *
-   * https://github.com/dart-lang/language/
-   * See `accepted/future-releases/nnbd/feature-specification.md`
-   * See `#classes-defined-in-opted-in-libraries`
-   */
+  /// Merges two types into a single type.
+  /// Compute the canonical representation of [T].
+  ///
+  /// https://github.com/dart-lang/language/
+  /// See `accepted/future-releases/nnbd/feature-specification.md`
+  /// See `#classes-defined-in-opted-in-libraries`
   DartType topMerge(DartType T, DartType S) {
     var T_nullability = T.nullabilitySuffix;
     var S_nullability = S.nullabilitySuffix;

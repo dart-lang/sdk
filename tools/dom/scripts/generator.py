@@ -13,13 +13,6 @@ import re
 from htmlrenamer import custom_html_constructors, html_interface_renames, \
     typed_array_renames
 
-# TODO(srujzs): Pass options flag through to emitter functions.
-class GlobalOptionsHack(object):
-    nnbd = False
-
-global_options_hack = GlobalOptionsHack()
-
-
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'AbstractWorker',
     'CanvasPath',
@@ -688,7 +681,7 @@ def TypeOrNothing(dart_type, comment=None, nullable=False):
   where a type may be omitted.
   The string is empty or has a trailing space.
   """
-    nullability_operator = '?' if global_options_hack.nnbd and nullable else ''
+    nullability_operator = '?' if nullable else ''
     if dart_type == 'dynamic':
         if comment:
             return '/*%s*/ ' % comment  # Just a comment foo(/*T*/ x)
@@ -1274,8 +1267,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
         if self._data.dart_type:
             return self._data.dart_type
         if self.list_item_type() and not self.has_generated_interface():
-            item_nullable = '?' if self._data.item_type_nullable and \
-                global_options_hack.nnbd else ''
+            item_nullable = '?' if self._data.item_type_nullable else ''
             return 'List<%s%s>' % (self._type_registry.TypeInfo(
                 self._data.item_type).dart_type(), item_nullable)
         return self._dart_interface_name

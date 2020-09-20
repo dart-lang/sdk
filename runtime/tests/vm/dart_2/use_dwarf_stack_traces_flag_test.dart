@@ -132,7 +132,16 @@ main(List<String> args) async {
     Expect.isTrue(translatedStackFrames.length > 0);
     Expect.isTrue(originalStackFrames.length > 0);
 
-    Expect.deepEquals(translatedStackFrames, originalStackFrames);
+    // In symbolic mode, we don't store column information to avoid an increase
+    // in size of CodeStackMaps. Thus, we need to strip any columns from the
+    // translated non-symbolic stack to compare them via equality.
+    final columnStrippedTranslated = removeColumns(translatedStackFrames);
+
+    print('Stack frames from translated non-symbolic stack trace, no columns:');
+    columnStrippedTranslated.forEach(print);
+    print('');
+
+    Expect.deepEquals(columnStrippedTranslated, originalStackFrames);
 
     // Since we compiled directly to ELF, there should be a DSO base address
     // in the stack trace header and 'virt' markers in the stack frames.
@@ -173,6 +182,19 @@ final _symbolicFrameRE = RegExp(r'^#\d+\s+');
 
 Iterable<String> onlySymbolicFrameLines(Iterable<String> lines) {
   return lines.where((line) => _symbolicFrameRE.hasMatch(line));
+}
+
+final _columnsRE = RegExp(r'[(](.*:\d+):\d+[)]');
+
+Iterable<String> removeColumns(Iterable<String> lines) sync* {
+  for (final line in lines) {
+    final match = _columnsRE.firstMatch(line);
+    if (match != null) {
+      yield line.replaceRange(match.start, match.end, '(${match.group(1)})');
+    } else {
+      yield line;
+    }
+  }
 }
 
 Iterable<int> parseUsingAddressRegExp(RegExp re, Iterable<String> lines) sync* {

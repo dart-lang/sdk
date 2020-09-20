@@ -2,32 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../driver_resolution.dart';
+import '../context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssertWithNnbdTest);
-    defineReflectiveTests(DoWithNnbdTest);
-    defineReflectiveTests(ForWithNnbdTest);
-    defineReflectiveTests(IfWithNnbdTest);
-    defineReflectiveTests(WhileWithNnbdTest);
+    defineReflectiveTests(AssertWithNullSafetyTest);
+    defineReflectiveTests(DoWithNullSafetyTest);
+    defineReflectiveTests(ForWithNullSafetyTest);
+    defineReflectiveTests(IfWithNullSafetyTest);
+    defineReflectiveTests(WhileWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AssertWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class AssertWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -40,15 +31,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class DoWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class DoWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -61,15 +45,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class ForWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class ForWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_awaitForIn_dynamic_downward() async {
     await resolveTestCode('''
 void f() async {
@@ -125,15 +102,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class IfWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class IfWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {
@@ -146,15 +116,8 @@ T a<T>() => throw '';
 }
 
 @reflectiveTest
-class WhileWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+class WhileWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_downward() async {
     await resolveTestCode('''
 void f() {

@@ -42,10 +42,12 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
-      if (using_fuchsia_sdk) {
+      if (using_fuchsia_gn_sdk) {
+        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
+      } else if (using_fuchsia_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
-        public_deps = [ "//zircon/public/lib/fdio" ]
+        public_deps = [ "//sdk/lib/fdio" ]
       }
     }
     include_dirs = [ ".." ]
@@ -69,6 +71,7 @@ build_libdart_builtin("libdart_builtin_product") {
   extra_configs = [
     "..:dart_product_config",
     "..:dart_os_config",
+    "..:dart_arch_config",
   ]
 }
 
@@ -157,7 +160,7 @@ template("build_gen_snapshot") {
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
-    deps = [ ":generate_abi_version_cc_file" ] + extra_deps
+    deps = extra_deps
 
     defines = [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
 
@@ -175,7 +178,6 @@ template("build_gen_snapshot") {
       "snapshot_utils.h",
 
       # Very limited native resolver provided.
-      "$target_gen_dir/abi_version.cc",
       "builtin_gen_snapshot.cc",
       "dfe.cc",
       "dfe.h",
@@ -196,7 +198,7 @@ template("build_gen_snapshot") {
     }
 
     if (is_mac) {
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "CoreServices.framework",
       ]
@@ -310,25 +312,18 @@ template("build_gen_snapshot_dart_io") {
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
-    deps = []
 
     if (is_fuchsia) {
-      if (using_fuchsia_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl:fuchsia.netstack",
-          "$fuchsia_sdk_root/pkg:sys_cpp",
-        ]
+      if (using_fuchsia_gn_sdk) {
+        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
+      } else if (using_fuchsia_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
-        deps += [
-          "//sdk/fidl/fuchsia.netstack",
-          "//sdk/lib/sys/cpp",
-        ]
-        public_deps = [ "//zircon/public/lib/fdio" ]
+        public_deps = [ "//sdk/lib/fdio" ]
       }
     }
 
-    deps += [ "//third_party/zlib" ]
+    deps = [ "//third_party/zlib" ]
 
     custom_sources_filter = [
       "*_test.cc",
@@ -436,31 +431,25 @@ template("dart_io") {
     defines = []
     deps = [ "//third_party/zlib" ] + extra_deps
     if (is_mac || is_ios) {
-      libs = [
+      frameworks = [
         "CoreFoundation.framework",
         "Security.framework",
       ]
 
       if (is_mac) {
-        libs += [ "CoreServices.framework" ]
+        frameworks += [ "CoreServices.framework" ]
       }
     }
 
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      if (using_fuchsia_sdk) {
-        deps += [
-          "$fuchsia_sdk_root/fidl:fuchsia.netstack",
-          "$fuchsia_sdk_root/pkg:sys_cpp",
-        ]
+      if (using_fuchsia_gn_sdk) {
+        public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
+      } else if (using_fuchsia_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
-        deps += [
-          "//sdk/fidl/fuchsia.netstack",
-          "//sdk/lib/sys/cpp",
-        ]
-        public_deps = [ "//zircon/public/lib/fdio" ]
+        public_deps = [ "//sdk/lib/fdio" ]
       }
     }
 
@@ -512,6 +501,12 @@ dart_io("standalone_dart_io") {
   extra_deps = [ ":libdart_builtin" ]
 }
 
+dart_io("standalone_dart_io_product") {
+  extra_configs = [ "..:dart_product_config" ]
+  extra_sources = []
+  extra_deps = [ ":libdart_builtin_product" ]
+}
+
 gen_snapshot_action("generate_snapshot_bin") {
   deps = [ "../vm:vm_platform_stripped" ]
   vm_snapshot_data = "$target_gen_dir/vm_snapshot_data.bin"
@@ -528,14 +523,9 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_data,
     isolate_snapshot_instructions,
   ]
-  args = []
-  if (!dont_use_nnbd) {
-    args += [
-      "--enable-experiment=non-nullable",
-      "--null-safety",
-    ]
-  }
-  args += [
+  args = [
+    "--enable-experiment=non-nullable",
+    "--sound-null-safety",
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
@@ -712,26 +702,12 @@ source_set("dart_kernel_platform_cc") {
             get_target_outputs(":platform_strong_dill_linkable")
 }
 
-action("generate_abi_version_cc_file") {
-  inputs = [
-    "../../tools/utils.py",
-    "../../tools/VERSION",
-    "abi_version_in.cc",
-  ]
-  output = "$target_gen_dir/abi_version.cc"
-  outputs = [ output ]
-
-  script = "../../tools/make_version.py"
-  args = [
-    "--quiet",
-    "--output",
-    rebase_path(output, root_build_dir),
-    "--input",
-    rebase_path("abi_version_in.cc", root_build_dir),
-  ]
-}
-
 template("dart_executable") {
+  use_product_mode = dart_runtime_mode == "release"
+  if (defined(invoker.use_product_mode)) {
+    use_product_mode = invoker.use_product_mode
+  }
+
   extra_configs = []
   if (defined(invoker.extra_configs)) {
     extra_configs += invoker.extra_configs
@@ -761,26 +737,36 @@ template("dart_executable") {
                  "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_os_config",
-                 "..:dart_maybe_product_config",
                ] + extra_configs
+    if (use_product_mode) {
+      configs += [ "..:dart_product_config" ]
+    } else {
+      configs += [ "..:dart_maybe_product_config" ]
+    }
     if (target_os != current_os && target_os == "fuchsia") {
       # We already have these in the standalone build, but Fuchsia doesn't
       # have them. They are needed for running Fuchsia binaries built for the
       # host.
       if (is_linux) {
-        configs += [ "../../build/config/gcc:executable_ldconfig" ]
+        # TODO(liama): Commenting this line out because it causes problems for
+        # --os=fuchsia. If no one complains, remove it.
+        # configs += [ "../../build/config/gcc:executable_ldconfig" ]
       } else if (is_mac) {
         configs += [ "../../build/config/mac:mac_dynamic_flags" ]
       }
     }
 
     deps = [
-             ":standalone_dart_io",
-             "//third_party/boringssl",
-             "//third_party/zlib",
-             ":crashpad",
-             ":generate_abi_version_cc_file",
-           ] + extra_deps
+      ":crashpad",
+      "//third_party/boringssl",
+      "//third_party/zlib",
+    ]
+    if (use_product_mode) {
+      deps += [ ":standalone_dart_io_product" ]
+    } else {
+      deps += [ ":standalone_dart_io" ]
+    }
+    deps += extra_deps
 
     defines = extra_defines
     if (exclude_kernel_service) {
@@ -808,7 +794,6 @@ template("dart_executable") {
                 "snapshot_utils.h",
                 "vmservice_impl.cc",
                 "vmservice_impl.h",
-                "$target_gen_dir/abi_version.cc",
               ] + extra_sources
 
     if (is_win) {
@@ -846,6 +831,8 @@ dart_executable("dart") {
   }
   extra_sources = [
     "builtin.cc",
+    "dartdev_isolate.cc",
+    "dartdev_isolate.h",
     "dfe.cc",
     "dfe.h",
     "gzip.cc",
@@ -881,11 +868,36 @@ dart_executable("dart_precompiled_runtime") {
     "snapshot_empty.cc",
   ]
 
-  extra_deps += [ ":elf_loader" ]
+  if (dart_runtime_mode == "release") {
+    extra_deps += [ ":elf_loader_product" ]
+  } else {
+    extra_deps += [ ":elf_loader" ]
+  }
 
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
   }
+}
+
+dart_executable("dart_precompiled_runtime_product") {
+  use_product_mode = true
+  extra_configs = [ "..:dart_precompiled_runtime_config" ]
+  extra_deps = [
+    "..:libdart_precompiled_runtime_product",
+    "../platform:libdart_platform_precompiled_runtime_product",
+  ]
+  extra_sources = [
+    "builtin.cc",
+    "gzip.cc",
+    "gzip.h",
+    "loader.cc",
+    "loader.h",
+    "main.cc",
+    "observatory_assets_empty.cc",
+    "snapshot_empty.cc",
+  ]
+
+  extra_deps += [ ":elf_loader_product" ]
 }
 
 executable("process_test") {
@@ -907,9 +919,11 @@ prebuilt_dart_action("gen_kernel_bytecode_dill") {
 
   abs_depfile = rebase_path(depfile)
   rebased_output = rebase_path(output, root_build_dir)
+
   vm_args = [
     "--depfile=$abs_depfile",
     "--depfile_output_filename=$rebased_output",
+    "-Dsdk_hash=$sdk_hash",
   ]
 
   args = [
@@ -945,7 +959,6 @@ executable("run_vm_tests") {
     ":dart_kernel_platform_cc",
     ":dart_snapshot_cc",
     ":gen_kernel_bytecode_dill",
-    ":generate_abi_version_cc_file",
     ":standalone_dart_io",
     "..:libdart_precompiler",
     "//third_party/zlib",
@@ -966,7 +979,11 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    if (!using_fuchsia_sdk) {
+    if (using_fuchsia_gn_sdk) {
+      include_dirs += [ "$fuchsia_sdk_path/pkg/trace-engine/include" ]
+      libs = [ "zircon" ]
+    }
+    if (!using_fuchsia_gn_sdk && !using_fuchsia_sdk) {
       deps += [ "//zircon/system/ulib/trace" ]
     }
   }
@@ -978,7 +995,6 @@ executable("run_vm_tests") {
   heap_tests = rebase_path(heap_sources_tests, ".", "../vm/heap")
 
   sources = [
-              "$target_gen_dir/abi_version.cc",
               "builtin.cc",
               "dfe.cc",
               "dfe.h",
@@ -993,7 +1009,8 @@ executable("run_vm_tests") {
               "snapshot_utils.h",
               "vmservice_impl.cc",
               "vmservice_impl.h",
-            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
+            ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests +
+            io_impl_tests
 
   if (!is_win) {
     # Adds all symbols to the dynamic symbol table, not just used ones.
@@ -1078,11 +1095,14 @@ shared_library("ffi_test_dynamic_library") {
 shared_library("ffi_test_functions") {
   deps = [ ":dart" ]
 
-  # The two files here do not depend on each other.
-  # flutter/flutter integration tests will only use `ffi_test_functions.cc` -
-  # any test functionality using `dart_api.h` has to go into
-  # `ffi_test_functions_vmspecific.cc`.
   sources = [
+    # This file must be compiled in for dynamic linking.
+    "../include/dart_api_dl.c",
+
+    # The two files here do not depend on each other.
+    # flutter/flutter integration tests will only use `ffi_test_functions.cc` -
+    # any test functionality using `dart_api.h` has to go into
+    # `ffi_test_functions_vmspecific.cc`.
     "ffi_test/ffi_test_functions.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]

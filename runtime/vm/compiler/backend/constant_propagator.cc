@@ -298,6 +298,8 @@ void ConstantPropagator::VisitStoreIndexed(StoreIndexedInstr* instr) {}
 void ConstantPropagator::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {}
 
+void ConstantPropagator::VisitMemoryCopy(MemoryCopyInstr* instr) {}
+
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
@@ -733,6 +735,22 @@ void ConstantPropagator::VisitFfiCall(FfiCallInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitEnterHandleScope(EnterHandleScopeInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitExitHandleScope(ExitHandleScopeInstr* instr) {
+  // Nothing to do.
+}
+
+void ConstantPropagator::VisitAllocateHandle(AllocateHandleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitRawStoreField(RawStoreFieldInstr* instr) {
+  // Nothing to do.
+}
+
 void ConstantPropagator::VisitDebugStepCheck(DebugStepCheckInstr* instr) {
   // Nothing to do.
 }
@@ -767,6 +785,10 @@ void ConstantPropagator::VisitStringToCharCode(StringToCharCodeInstr* instr) {
 }
 
 void ConstantPropagator::VisitStringInterpolate(StringInterpolateInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitUtf8Scan(Utf8ScanInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -889,6 +911,10 @@ void ConstantPropagator::VisitCreateArray(CreateArrayInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitAllocateTypedData(AllocateTypedDataInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitAllocateObject(AllocateObjectInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -1002,6 +1028,9 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
   AbstractType& result = AbstractType::Handle(
       Z, instr->type().InstantiateFrom(
              instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
+  if (result.IsTypeRef()) {
+    result = TypeRef::Cast(result).type();
+  }
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();
   SetValue(instr, result);
@@ -1009,9 +1038,23 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
 
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
-  TypeArguments& instantiator_type_args = TypeArguments::Handle(Z);
-  TypeArguments& function_type_args = TypeArguments::Handle(Z);
-  if (!instr->type_arguments().IsInstantiated(kCurrentClass)) {
+  const auto& type_arguments_obj =
+      instr->type_arguments()->definition()->constant_value();
+  if (!IsConstant(type_arguments_obj)) {
+    if (IsNonConstant(type_arguments_obj)) {
+      SetValue(instr, non_constant_);
+    }
+    return;
+  }
+  ASSERT(!type_arguments_obj.IsNull());
+  const auto& type_arguments = TypeArguments::Cast(type_arguments_obj);
+  if (type_arguments.IsInstantiated()) {
+    ASSERT(type_arguments.IsCanonical());
+    SetValue(instr, type_arguments);
+    return;
+  }
+  auto& instantiator_type_args = TypeArguments::Handle(Z);
+  if (!type_arguments.IsInstantiated(kCurrentClass)) {
     // Type arguments refer to class type parameters.
     const Object& instantiator_type_args_obj =
         instr->instantiator_type_arguments()->definition()->constant_value();
@@ -1021,7 +1064,8 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
     }
     if (IsConstant(instantiator_type_args_obj)) {
       instantiator_type_args ^= instantiator_type_args_obj.raw();
-      if (instr->type_arguments().CanShareInstantiatorTypeArguments(
+      ASSERT(!instr->instantiator_class().IsNull());
+      if (type_arguments.CanShareInstantiatorTypeArguments(
               instr->instantiator_class())) {
         SetValue(instr, instantiator_type_args);
         return;
@@ -1030,7 +1074,8 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       return;
     }
   }
-  if (!instr->type_arguments().IsInstantiated(kFunctions)) {
+  auto& function_type_args = TypeArguments::Handle(Z);
+  if (!type_arguments.IsInstantiated(kFunctions)) {
     // Type arguments refer to function type parameters.
     const Object& function_type_args_obj =
         instr->function_type_arguments()->definition()->constant_value();
@@ -1040,8 +1085,8 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
     }
     if (IsConstant(function_type_args_obj)) {
       function_type_args ^= function_type_args_obj.raw();
-      if (instr->type_arguments().CanShareFunctionTypeArguments(
-              instr->function())) {
+      ASSERT(!instr->function().IsNull());
+      if (type_arguments.CanShareFunctionTypeArguments(instr->function())) {
         SetValue(instr, function_type_args);
         return;
       }
@@ -1049,8 +1094,8 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       return;
     }
   }
-  TypeArguments& result = TypeArguments::Handle(
-      Z, instr->type_arguments().InstantiateFrom(
+  auto& result = TypeArguments::Handle(
+      Z, type_arguments.InstantiateFrom(
              instantiator_type_args, function_type_args, kAllFree, Heap::kOld));
   ASSERT(result.IsInstantiated());
   result = result.Canonicalize();

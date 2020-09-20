@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -20,7 +20,7 @@ class RemoveNameFromCombinator extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_NAME_FROM_COMBINATOR;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     SourceRange rangeForCombinator(Combinator combinator) {
       var parent = combinator.parent;
       if (parent is NamespaceDirective) {
@@ -74,7 +74,7 @@ class RemoveNameFromCombinator extends CorrectionProducer {
         if (rangeToRemove == null) {
           return;
         }
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(rangeToRemove);
         });
         _combinatorKind = parent is HideCombinator ? 'hide' : 'show';

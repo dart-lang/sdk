@@ -31,6 +31,10 @@ namespace dart {
   V(AbstractType_toString, 1)                                                  \
   V(Type_getHashCode, 1)                                                       \
   V(Type_equality, 2)                                                          \
+  V(LibraryPrefix_isLoaded, 1)                                                 \
+  V(LibraryPrefix_setLoaded, 1)                                                \
+  V(LibraryPrefix_loadingUnit, 1)                                              \
+  V(LibraryPrefix_issueLoad, 1)                                                \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
@@ -74,7 +78,7 @@ namespace dart {
   V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
-  V(Developer_webServerControl, 2)                                             \
+  V(Developer_webServerControl, 3)                                             \
   V(Double_hashCode, 1)                                                        \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
@@ -156,6 +160,7 @@ namespace dart {
   V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
   V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
+  V(AssertionError_throwNewSource, 4)                                          \
   V(Async_rethrow, 2)                                                          \
   V(StackTrace_asyncStackTraceHelper, 1)                                       \
   V(StackTrace_clearAsyncThreadStackTrace, 0)                                  \
@@ -411,7 +416,10 @@ namespace dart {
   V(Ffi_asExternalTypedData, 2)                                                \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
-  V(NativeApiFunctionPointer, 1)                                               \
+  V(DartApiDLInitializeData, 0)                                                \
+  V(DartApiDLMajorVersion, 0)                                                  \
+  V(DartApiDLMinorVersion, 0)                                                  \
+  V(DartNativeApiFunctionPointer, 1)                                           \
   V(TransferableTypedData_factory, 2)                                          \
   V(TransferableTypedData_materialize, 1)                                      \
   V(Wasm_initModule, 2)                                                        \

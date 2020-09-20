@@ -144,11 +144,9 @@ class NeverTests<T> {
   FutureOr<R> h1<S extends T, R extends S>(S? x) => throw "Unused";
   Future<Never> h2<S extends T, R extends S>(Null x) => throw "Unused";
 
-  //  void Function<S0 extends FutureOr<R>, S1 extends R, S2 extends R?>()
-  // TODO(41952) restore the proper type above when nullable bounds work
-  // correctly in the CFE.
-  Function i1<R>() =>
-      <T0 extends FutureOr<R>, T1 extends R, T2 extends R?>() {};
+  void Function<S0 extends FutureOr<R>, S1 extends R, S2 extends R?>()
+      i1<R>() =>
+          <T0 extends FutureOr<R>, T1 extends R, T2 extends R?>() {};
 
   void Function<S0 extends Future<Never>, S1 extends Never, S2 extends Null>()
       i2<R>() =>
@@ -169,7 +167,7 @@ void neverBoundTests() {
     checkTypeNotEquals3(o.f1, o.f2, o.f3);
     checkTypeNotEquals2(o.g1, o.g2);
     checkTypeNotEquals2(o.h1, o.h2);
-    checkTypeNotEquals2(o.i1<Never>(), o.i2<Never>());
+    checkTypeEquals2(o.i1<Never>(), o.i2<Never>());
     checkTypeNotEquals2(o.i1<Null>(), o.i2<Null>());
   }
 }

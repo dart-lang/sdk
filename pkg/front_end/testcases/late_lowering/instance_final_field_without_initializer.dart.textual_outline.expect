@@ -12,8 +12,8 @@ class Subclass extends Class {
   Subclass.constructor3(int value) : super.constructor3(value);
   Subclass.constructor4([int value = 87]) : super.constructor4(value);
 }
-test1() { }
-test2() { }
-main() { }
-expect(expected, actual) { }
-throws(f(), String message) { }
+test1() {}
+test2() {}
+main() {}
+expect(expected, actual) {}
+throws(f(), String message) {}

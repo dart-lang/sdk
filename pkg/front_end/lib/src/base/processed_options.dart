@@ -12,7 +12,13 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
-import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
+import 'package:kernel/kernel.dart'
+    show
+        CanonicalName,
+        Component,
+        Location,
+        NonNullableByDefaultCompiledMode,
+        Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -47,6 +53,7 @@ import '../fasta/fasta_codes.dart'
         templateCannotReadSdkSpecification,
         templateCantReadFile,
         templateDebugTrace,
+        templateExceptionReadingFile,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -169,6 +176,8 @@ class ProcessedOptions {
   bool get throwOnErrorsForDebugging => _raw.throwOnErrorsForDebugging;
 
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
+
+  bool get emitDeps => _raw.emitDeps;
 
   NnbdMode get nnbdMode => _raw.nnbdMode;
 
@@ -344,7 +353,25 @@ class ProcessedOptions {
       flags.ExperimentalFlag flag, Uri importUri) {
     return flags.isExperimentEnabledInLibrary(flag, importUri,
         experimentalFlags: _raw.experimentalFlags,
-        allowedExperimentalFlags: _raw.allowedExperimentalFlags);
+        allowedExperimentalFlags: _raw.allowedExperimentalFlagsForTesting);
+  }
+
+  Version getExperimentEnabledVersion(flags.ExperimentalFlag flag) {
+    return flags.getExperimentEnabledVersion(flag,
+        experimentReleasedVersionForTesting:
+            _raw.experimentReleasedVersionForTesting);
+  }
+
+  Component _validateNullSafetyMode(Component component) {
+    if (nnbdMode == NnbdMode.Strong &&
+        !(component.mode == NonNullableByDefaultCompiledMode.Strong ||
+            component.mode == NonNullableByDefaultCompiledMode.Agnostic)) {
+      throw new FormatException(
+          'Provided .dill file for the following libraries does not '
+          'support sound null safety:\n'
+          '${component.libraries.join('\n')}');
+    }
+    return component;
   }
 
   /// Get an outline component that summarizes the SDK, if any.
@@ -364,6 +391,7 @@ class ProcessedOptions {
     if (_sdkSummaryComponent != null) {
       throw new StateError("sdkSummary already loaded.");
     }
+    _validateNullSafetyMode(platform);
     _sdkSummaryComponent = platform;
   }
 
@@ -389,6 +417,7 @@ class ProcessedOptions {
     if (_additionalDillComponents != null) {
       throw new StateError("inputAdditionalDillsComponents already loaded.");
     }
+    components.forEach(_validateNullSafetyMode);
     _additionalDillComponents = components;
   }
 
@@ -404,7 +433,7 @@ class ProcessedOptions {
             disableLazyReading: false,
             alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes)
         .readComponent(component);
-    return component;
+    return _validateNullSafetyMode(component);
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
@@ -513,6 +542,14 @@ class ProcessedOptions {
         reportWithoutLocation(
             templateCantReadFile.withArguments(uri, e.message), Severity.error);
       }
+    } catch (e) {
+      Message message =
+          templateExceptionReadingFile.withArguments(uri, e.message);
+      reportWithoutLocation(message, Severity.error);
+      // We throw a new exception to ensure that the message include the uri
+      // that led to the exception. Exceptions in Uri don't include the
+      // offending uri in the exception message.
+      throw new ArgumentError(message.message);
     }
     return null;
   }
@@ -747,7 +784,7 @@ class ProcessedOptions {
 }
 
 /// A [FileSystem] that only allows access to files that have been explicitly
-/// whitelisted.
+/// allowlisted.
 class HermeticFileSystem implements FileSystem {
   final Set<Uri> includedFiles;
   final FileSystem _realFileSystem;

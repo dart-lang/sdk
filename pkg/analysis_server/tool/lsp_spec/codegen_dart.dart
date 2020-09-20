@@ -36,7 +36,7 @@ bool enumClassAllowsAnyValue(String name) {
 
 String generateDartForTypes(List<AstNode> types) {
   final buffer = IndentableStringBuffer();
-  _getSorted(types).forEach((t) => _writeType(buffer, t));
+  _getSortedUnique(types).forEach((t) => _writeType(buffer, t));
   final formattedCode = _formatCode(buffer.toString());
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
@@ -95,11 +95,39 @@ List<Field> _getAllFields(Interface interface) {
       .toList();
 }
 
-/// Returns a copy of the list sorted by name.
-List<AstNode> _getSorted(List<AstNode> items) {
-  final sortedList = items.toList();
+/// Returns a copy of the list sorted by name with duplicates (by name+type) removed.
+List<AstNode> _getSortedUnique(List<AstNode> items) {
+  final uniqueByName = <String, AstNode>{};
+  items.forEach((item) {
+    // It's fine to have the same name used for different types (eg. namespace +
+    // type alias) but some types are just duplicated entirely in the spec in
+    // different positions which should not be emitted twice.
+    final nameTypeKey = '${item.name}|${item.runtimeType}';
+    if (uniqueByName.containsKey(nameTypeKey)) {
+      // At the time of writing, there were two duplicated types:
+      // - TextDocumentSyncKind (same defintion in both places)
+      // - TextDocumentSyncOptions (first definition is just a subset)
+      // If this list grows, consider handling this better - or try to have the
+      // spec updated to be unambigious.
+      print('WARN: More than one definition for $nameTypeKey.');
+    }
+
+    // Keep the last one as in some cases the first definition is less specific.
+    uniqueByName[nameTypeKey] = item;
+  });
+  final sortedList = uniqueByName.values.toList();
   sortedList.sort((item1, item2) => item1.name.compareTo(item2.name));
   return sortedList;
+}
+
+String _getTypeCheckFailureMessage(TypeBase type) {
+  if (type is LiteralType) {
+    return 'must be the literal ${type.literal}';
+  } else if (type is LiteralUnionType) {
+    return 'must be one of the literals ${type.literalTypes.map((t) => t.literal).join(', ')}';
+  } else {
+    return 'must be of type ${type.dartTypeWithTypeArgs}';
+  }
 }
 
 bool _isSimpleType(TypeBase type) {
@@ -115,11 +143,13 @@ bool _isSpecType(TypeBase type) {
 
 /// Maps reserved words and identifiers that cause issues in field names.
 String _makeValidIdentifier(String identifier) {
-  // The SymbolKind class has uses these names which cause issues for code that
-  // uses them as types.
+  // Some identifiers used in LSP are reserved words in Dart, so map them to
+  // other values.
   const map = {
     'Object': 'Obj',
     'String': 'Str',
+    'class': 'class_',
+    'enum': 'enum_',
   };
   return map[identifier] ?? identifier;
 }
@@ -199,12 +229,12 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     }
     buffer.write('!(');
     _writeTypeCheckCondition(
-        buffer, "obj['${field.name}']", field.type, 'reporter');
+        buffer, interface, "obj['${field.name}']", field.type, 'reporter');
     buffer
       ..write(')) {')
       ..indent()
       ..writeIndentedln(
-          "reporter.reportError('must be of type ${field.type.dartTypeWithTypeArgs}');")
+          "reporter.reportError('${_getTypeCheckFailureMessage(field.type).replaceAll("'", "\\'")}');")
       ..writeIndentedln('return false;')
       ..outdent()
       ..writeIndentedln('}')
@@ -240,9 +270,13 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
     return;
   }
   buffer
-    ..writeIndented('${interface.name}(')
-    ..write(allFields.map((field) => 'this.${field.name}').join(', '))
-    ..write(')');
+    ..writeIndented('${interface.name}({')
+    ..write(allFields.map((field) {
+      final annotation =
+          !field.allowsNull && !field.allowsUndefined ? '@required' : '';
+      return '$annotation this.${field.name}';
+    }).join(', '))
+    ..write('})');
   final fieldsWithValidation =
       allFields.where((f) => !f.allowsNull && !f.allowsUndefined).toList();
   if (fieldsWithValidation.isNotEmpty) {
@@ -286,8 +320,13 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
   final consts = namespace.members.cast<Const>().toList();
   final allowsAnyValue = enumClassAllowsAnyValue(namespace.name);
   final constructorName = allowsAnyValue ? '' : '._';
+  final firstValueType = consts.first.type;
+  // Enums can have constant values in their fields so if a field is a literal
+  // use its underlying type for type checking.
+  final requiredValueType =
+      firstValueType is LiteralType ? firstValueType.type : firstValueType;
   final typeOfValues =
-      resolveTypeAlias(consts.first.type, resolveEnumClasses: true);
+      resolveTypeAlias(requiredValueType, resolveEnumClasses: true);
 
   buffer
     ..writeln('class ${namespace.name} {')
@@ -302,7 +341,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..indent();
   if (allowsAnyValue) {
     buffer.writeIndentedln('return ');
-    _writeTypeCheckCondition(buffer, 'obj', typeOfValues, 'reporter');
+    _writeTypeCheckCondition(buffer, null, 'obj', typeOfValues, 'reporter');
     buffer.writeln(';');
   } else {
     buffer
@@ -425,11 +464,26 @@ void _writeFromJsonCode(
     _writeFromJsonCode(buffer, type.valueType, 'value', allowsNull: allowsNull);
     buffer.write(
         '))?.cast<${type.indexType.dartTypeWithTypeArgs}, ${type.valueType.dartTypeWithTypeArgs}>()');
+  } else if (type is LiteralUnionType) {
+    _writeFromJsonCodeForLiteralUnion(buffer, type, valueCode,
+        allowsNull: allowsNull);
   } else if (type is UnionType) {
     _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
     buffer.write('$valueCode');
   }
+}
+
+void _writeFromJsonCodeForLiteralUnion(
+    IndentableStringBuffer buffer, LiteralUnionType union, String valueCode,
+    {bool allowsNull}) {
+  final allowedValues = [
+    if (allowsNull) null,
+    ...union.literalTypes.map((t) => t.literal)
+  ];
+  buffer.write(
+      "const {${allowedValues.join(', ')}}.contains($valueCode) ? $valueCode : "
+      "throw '''\${$valueCode} was not one of (${allowedValues.join(', ')})'''");
 }
 
 void _writeFromJsonCodeForUnion(
@@ -445,7 +499,8 @@ void _writeFromJsonCodeForUnion(
 
     // Dynamic matches all type checks, so only emit it if required.
     if (!isDynamic) {
-      _writeTypeCheckCondition(buffer, valueCode, type, 'nullLspJsonReporter');
+      _writeTypeCheckCondition(
+          buffer, null, valueCode, type, 'nullLspJsonReporter');
       buffer.write(' ? ');
     }
 
@@ -503,7 +558,7 @@ void _writeFromJsonConstructor(
   }
   buffer
     ..writeIndented('return ${interface.nameWithTypeArgs}(')
-    ..write(allFields.map((field) => '${field.name}').join(', '))
+    ..write(allFields.map((field) => '${field.name}: ${field.name}').join(', '))
     ..writeln(');')
     ..outdent()
     ..writeIndented('}');
@@ -516,8 +571,14 @@ void _writeHashCode(IndentableStringBuffer buffer, Interface interface) {
     ..indent()
     ..writeIndentedln('var hash = 0;');
   for (var field in _getAllFields(interface)) {
-    buffer.writeIndentedln(
-        'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
+    final type = resolveTypeAlias(field.type);
+    if (type is ArrayType || type is MapType) {
+      buffer.writeIndentedln(
+          'hash = JenkinsSmiHash.combine(hash, lspHashCode(${field.name}));');
+    } else {
+      buffer.writeIndentedln(
+          'hash = JenkinsSmiHash.combine(hash, ${field.name}.hashCode);');
+    }
   }
   buffer
     ..writeIndentedln('return JenkinsSmiHash.finish(hash);')
@@ -603,7 +664,7 @@ void _writeMember(IndentableStringBuffer buffer, Member member) {
 }
 
 void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
-  _getSorted(members).forEach((m) => _writeMember(buffer, m));
+  _getSortedUnique(members).forEach((m) => _writeMember(buffer, m));
 }
 
 void _writeToJsonFieldsForResponseMessage(
@@ -679,8 +740,8 @@ void _writeType(IndentableStringBuffer buffer, AstNode type) {
   }
 }
 
-void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
-    TypeBase type, String reporter) {
+void _writeTypeCheckCondition(IndentableStringBuffer buffer,
+    Interface interface, String valueCode, TypeBase type, String reporter) {
   type = resolveTypeAlias(type);
 
   final dartType = type.dartType;
@@ -689,6 +750,8 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
     buffer.write('true');
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is $fullDartType');
+  } else if (type is LiteralType) {
+    buffer.write('$valueCode == ${type.literal}');
   } else if (_isSpecType(type)) {
     buffer.write('$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
@@ -697,7 +760,8 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
       // TODO(dantup): If we're happy to assume we never have two lists in a union
       // we could skip this bit.
       buffer.write(' && ($valueCode.every((item) => ');
-      _writeTypeCheckCondition(buffer, 'item', type.elementType, reporter);
+      _writeTypeCheckCondition(
+          buffer, interface, 'item', type.elementType, reporter);
       buffer.write('))');
     }
     buffer.write(')');
@@ -705,9 +769,11 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
     buffer.write('($valueCode is Map');
     if (fullDartType != 'dynamic') {
       buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
-      _writeTypeCheckCondition(buffer, 'item', type.indexType, reporter);
+      _writeTypeCheckCondition(
+          buffer, interface, 'item', type.indexType, reporter);
       buffer..write('&& $valueCode.values.every((item) => ');
-      _writeTypeCheckCondition(buffer, 'item', type.valueType, reporter);
+      _writeTypeCheckCondition(
+          buffer, interface, 'item', type.valueType, reporter);
       buffer.write(')))');
     }
     buffer.write(')');
@@ -718,9 +784,18 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
       if (i != 0) {
         buffer.write(' || ');
       }
-      _writeTypeCheckCondition(buffer, valueCode, type.types[i], reporter);
+      _writeTypeCheckCondition(
+          buffer, interface, valueCode, type.types[i], reporter);
     }
     buffer.write(')');
+  } else if (interface != null &&
+      interface.typeArgs != null &&
+      interface.typeArgs.any((typeArg) => typeArg.lexeme == fullDartType)) {
+    final comment = '/* $fullDartType.canParse($valueCode) */';
+    print(
+        'WARN: Unable to write a type check for $valueCode with generic type $fullDartType. '
+        'Please review the generated code annotated with $comment');
+    buffer.write('true $comment');
   } else {
     throw 'Unable to type check $valueCode against $fullDartType';
   }

@@ -487,6 +487,9 @@ class Assembler : public AssemblerBase {
   void LoadMemoryValue(Register dst, Register base, int32_t offset) {
     LoadFromOffset(dst, base, offset, kDoubleWord);
   }
+  void StoreMemoryValue(Register src, Register base, int32_t offset) {
+    StoreToOffset(src, base, offset, kDoubleWord);
+  }
   void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
@@ -1445,6 +1448,8 @@ class Assembler : public AssemblerBase {
     blr(LR);
   }
 
+  void CallCFunction(Address target) { Call(target); }
+
   void AddImmediate(Register dest, int64_t imm) {
     AddImmediate(dest, dest, imm);
   }
@@ -1627,7 +1632,7 @@ class Assembler : public AssemblerBase {
 
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
-                                   Register scratch,
+                                   Register new_exit_through_ffi,
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
   void EnterSafepoint(Register scratch);
@@ -1646,14 +1651,62 @@ class Assembler : public AssemblerBase {
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
-  void EnterCallRuntimeFrame(intptr_t frame_size);
-  void LeaveCallRuntimeFrame();
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+
+  // Helper method for performing runtime calls from callers requiring manual
+  // register preservation is required (e.g. outside IL instructions marked
+  // as calling).
+  class CallRuntimeScope : public ValueObject {
+   public:
+    CallRuntimeScope(Assembler* assembler,
+                     const RuntimeEntry& entry,
+                     intptr_t frame_size,
+                     bool preserve_registers = true)
+        : CallRuntimeScope(assembler,
+                           entry,
+                           frame_size,
+                           preserve_registers,
+                           /*caller=*/nullptr) {}
+
+    CallRuntimeScope(Assembler* assembler,
+                     const RuntimeEntry& entry,
+                     intptr_t frame_size,
+                     Address caller,
+                     bool preserve_registers = true)
+        : CallRuntimeScope(assembler,
+                           entry,
+                           frame_size,
+                           preserve_registers,
+                           &caller) {}
+
+    void Call(intptr_t argument_count);
+
+    ~CallRuntimeScope();
+
+   private:
+    CallRuntimeScope(Assembler* assembler,
+                     const RuntimeEntry& entry,
+                     intptr_t frame_size,
+                     bool preserve_registers,
+                     const Address* caller);
+
+    Assembler* const assembler_;
+    const RuntimeEntry& entry_;
+    const bool preserve_registers_;
+    const bool restore_code_reg_;
+  };
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
+
+  // Set up a frame for calling a C function.
+  // Automatically save the pinned registers in Dart which are not callee-
+  // saved in the native calling convention.
+  // Use together with CallCFunction.
+  void EnterCFrame(intptr_t frame_space);
+  void LeaveCFrame();
 
   void MonomorphicCheckedEntryJIT();
   void MonomorphicCheckedEntryAOT();
@@ -2389,6 +2442,11 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
+
+  // Note: leaf call sequence uses some abi callee save registers as scratch
+  // so they should be manually preserved.
+  void EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf);
+  void LeaveCallRuntimeFrame(bool is_leaf);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

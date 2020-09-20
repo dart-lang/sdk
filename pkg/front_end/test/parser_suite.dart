@@ -15,6 +15,8 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
 
 import 'package:front_end/src/fasta/messages.dart' show Message;
 
+import 'package:front_end/src/fasta/util/direct_parser_ast.dart' show getAST;
+
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 
@@ -28,6 +30,9 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
+
+import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart'
+    show DirectParserASTContent;
 
 import 'package:kernel/ast.dart';
 
@@ -91,16 +96,61 @@ class Context extends ChainContext with MatchContext {
   final List<Step> steps = const <Step>[
     const TokenStep(true, ".scanner.expect"),
     const TokenStep(false, ".parser.expect"),
-    const ListenerStep(),
+    const ListenerStep(true),
     const IntertwinedStep(),
   ];
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+  // Override special handling of negative tests.
+  @override
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    return result;
+  }
+}
+
+class ContextChecksOnly extends Context {
+  ContextChecksOnly(String suiteName) : super(suiteName, false, false, false);
+
+  final List<Step> steps = const <Step>[
+    const ListenerStep(false),
+    const DirectParserASTStep(),
+  ];
+
+  final ExpectationSet expectationSet =
+      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+
+  // Override special handling of negative tests.
+  @override
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    return result;
+  }
+}
+
+class DirectParserASTStep
+    extends Step<TestDescription, TestDescription, Context> {
+  const DirectParserASTStep();
+  String get name => "DirectParserAST";
+  Future<Result<TestDescription>> run(
+      TestDescription description, Context context) {
+    Uri uri = description.uri;
+    File f = new File.fromUri(uri);
+    List<int> rawBytes = f.readAsBytesSync();
+    DirectParserASTContent ast = getAST(rawBytes);
+    if (ast.what != "CompilationUnit") {
+      throw "Expected a single element for 'CompilationUnit' "
+          "but got ${ast.what}";
+    }
+    return new Future.value(new Result<TestDescription>.pass(description));
+  }
 }
 
 class ListenerStep extends Step<TestDescription, TestDescription, Context> {
-  const ListenerStep();
+  final bool doExpects;
+  const ListenerStep(this.doExpects);
 
   String get name => "listener";
 
@@ -134,8 +184,12 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
           "${parserTestListener.errors.join("\n\n")}\n\n";
     }
 
-    return context.match<TestDescription>(".expect",
-        "${errors}${parserTestListener.sb}", description.uri, description);
+    if (doExpects) {
+      return context.match<TestDescription>(".expect",
+          "${errors}${parserTestListener.sb}", description.uri, description);
+    } else {
+      return new Future.value(new Result<TestDescription>.pass(description));
+    }
   }
 }
 
@@ -253,6 +307,7 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
     lineStartsIterator.moveNext();
     lineStartsIteratorLine++;
 
+    Set<Token> seenTokens = new Set<Token>.identity();
     while (token != null) {
       if (errorTokens && token is! ErrorToken) return token;
       if (!errorTokens && token is ErrorToken) {
@@ -286,6 +341,15 @@ StringBuffer tokenStreamToString(Token firstToken, List<int> lineStarts,
       endOfLast = token.end;
       if (token == token.next) break;
       token = token.next;
+      if (!seenTokens.add(token)) {
+        // Loop in tokens: Print error and break to avoid infinite loop.
+        sb.write("\n\nERROR: Loop in tokens: $token "
+            "(${token.runtimeType}, ${token.type}, ${token.offset})) "
+            "was seen before "
+            "(linking to ${token.next}, ${token.next.runtimeType}, "
+            "${token.next.type}, ${token.next.offset})!\n\n");
+        break;
+      }
     }
 
     return token;
@@ -339,6 +403,24 @@ class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   ParserTestListenerWithMessageFormatting(
       bool trace, this.annotateLines, this.source, this.shortName)
       : super(trace);
+
+  void doPrint(String s) {
+    super.doPrint(s);
+    if (!annotateLines) {
+      if (s.startsWith("beginCompilationUnit(") ||
+          s.startsWith("endCompilationUnit(")) {
+        if (indent != 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      } else {
+        if (indent <= 0) {
+          throw "Incorrect indents: '$s' (indent = $indent).\n\n"
+              "${sb.toString()}";
+        }
+      }
+    }
+  }
 
   void seen(Token token) {
     if (!annotateLines) return;

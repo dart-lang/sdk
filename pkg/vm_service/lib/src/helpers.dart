@@ -12,7 +12,7 @@ class IsolateHelper {
 
     List<TagCounter> result = [];
     for (int i = 0; i < counters.length; i++) {
-      result.add(new TagCounter(names[i], counters[i]));
+      result.add(TagCounter(names[i], counters[i]));
     }
     return result;
   }

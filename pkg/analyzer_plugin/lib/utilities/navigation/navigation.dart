@@ -26,15 +26,21 @@ abstract class DartNavigationRequest implements NavigationRequest {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class NavigationCollector {
+  /// Whether the collector is collecting target code locations. Computers can
+  /// skip computing these if this is false.
+  bool get collectCodeLocations;
+
   /// Record a new navigation region corresponding to the given [range] that
-  /// should navigate to the given [targetLocation].
+  /// should navigate to the given [targetNameLocation].
   void addRange(
-      SourceRange range, ElementKind targetKind, Location targetLocation);
+      SourceRange range, ElementKind targetKind, Location targetLocation,
+      {Location targetCodeLocation});
 
   /// Record a new navigation region with the given [offset] and [length] that
-  /// should navigate to the given [targetLocation].
-  void addRegion(
-      int offset, int length, ElementKind targetKind, Location targetLocation);
+  /// should navigate to the given [targetNameLocation].
+  void addRegion(int offset, int length, ElementKind targetKind,
+      Location targetNameLocation,
+      {Location targetCodeLocation});
 }
 
 /// An object used to produce navigation regions.

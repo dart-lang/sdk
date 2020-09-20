@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -387,7 +385,7 @@ abstract class num implements Comparable<num> {
    *     123456.toStringAsExponential(3); // 1.235e+5
    *     123.toStringAsExponential(0);    // 1e+2
    */
-  String toStringAsExponential([int fractionDigits]);
+  String toStringAsExponential([int? fractionDigits]);
 
   /**
    * Converts `this` to a double and returns a string representation with
@@ -470,8 +468,8 @@ abstract class num implements Comparable<num> {
    * Instead of `num.parse(string, (string) { ... })`,
    * you should use `num.tryParse(string) ?? (...)`.
    */
-  static num parse(String input, [@deprecated num onError(String input)]) {
-    num result = tryParse(input);
+  static num parse(String input, [@deprecated num onError(String input)?]) {
+    num? result = tryParse(input);
     if (result != null) return result;
     if (onError == null) throw FormatException(input);
     return onError(input);
@@ -483,13 +481,9 @@ abstract class num implements Comparable<num> {
    * Like [parse] except that this function returns `null` for invalid inputs
    * instead of throwing.
    */
-  static num tryParse(String input) {
+  static num? tryParse(String input) {
     String source = input.trim();
     // TODO(lrn): Optimize to detect format and result type in one check.
     return int.tryParse(source) ?? double.tryParse(source);
   }
-
-  /** Helper functions for [parse]. */
-  static int _returnIntNull(String _) => null;
-  static double _returnDoubleNull(String _) => null;
 }

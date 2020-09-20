@@ -72,12 +72,13 @@ class PrologueBuilder : public BaseFlowGraphBuilder {
   }
 
   const Instance& DefaultParameterValueAt(intptr_t i) {
-    if (parsed_function_->default_parameter_values() != NULL) {
+    if (parsed_function_->default_parameter_values() != nullptr) {
       return parsed_function_->DefaultParameterValueAt(i);
     }
-
-    ASSERT(parsed_function_->function().kind() ==
-           FunctionLayout::kNoSuchMethodDispatcher);
+    // Only invocation dispatchers that have compile-time arguments
+    // descriptors lack default parameter values (because their functions only
+    // have optional named parameters, all of which are provided in calls.)
+    ASSERT(has_saved_args_desc_array());
     return Instance::null_instance();
   }
 

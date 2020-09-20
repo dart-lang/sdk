@@ -38,7 +38,7 @@ runTests(List<String> args, [int shardIndex]) {
         options: [],
         args: args,
         shardIndex: shardIndex ?? 0,
-        shards: shardIndex != null ? 2 : 1);
+        shards: shardIndex != null ? 4 : 1);
   });
 }
 

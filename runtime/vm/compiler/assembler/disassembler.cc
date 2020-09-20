@@ -4,8 +4,10 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 
+#include "platform/text_buffer.h"
 #include "platform/unaligned.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/globals.h"
 #include "vm/instructions.h"
@@ -191,14 +193,14 @@ void Disassembler::Disassemble(uword start,
       for (intptr_t i = 1; i < inlined_functions.length(); i++) {
         const char* name = inlined_functions[i]->ToQualifiedCString();
         if (first) {
-          f.Print("        ;; Inlined [%s", name);
+          f.Printf("        ;; Inlined [%s", name);
           first = false;
         } else {
-          f.Print(" -> %s", name);
+          f.Printf(" -> %s", name);
         }
       }
       if (!first) {
-        f.Print("]\n");
+        f.AddString("]\n");
         formatter->Print("%s", str);
       }
     }
@@ -215,6 +217,7 @@ void Disassembler::Disassemble(uword start,
 }
 
 void Disassembler::DisassembleCodeHelper(const char* function_fullname,
+                                         const char* function_info,
                                          const Code& code,
                                          bool optimized) {
   Zone* zone = Thread::Current()->zone();
@@ -222,8 +225,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   if (FLAG_print_variable_descriptors) {
     var_descriptors = code.GetLocalVarDescriptors();
   }
-  THR_Print("Code for %sfunction '%s' {\n", optimized ? "optimized " : "",
-            function_fullname);
+  THR_Print("Code for %sfunction '%s' (%s) {\n", optimized ? "optimized " : "",
+            function_fullname, function_info);
   code.Disassemble();
   THR_Print("}\n");
 
@@ -417,10 +420,11 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
         } else if (function.IsNull()) {
           cls ^= code.owner();
           if (cls.IsNull()) {
-            THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
-                      code.QualifiedName(Object::kScrubbedName,
-                                         Object::NameDisambiguation::kYes),
-                      skind, s_entry_point);
+            THR_Print(
+                "  0x%" Px ": %s, (%s)%s\n", base + offset,
+                code.QualifiedName(NameFormattingParams(
+                    Object::kScrubbedName, Object::NameDisambiguation::kYes)),
+                skind, s_entry_point);
           } else {
             THR_Print("  0x%" Px ": allocation stub for %s, (%s)%s\n",
                       base + offset, cls.ToCString(), skind, s_entry_point);
@@ -449,9 +453,18 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
+  TextBuffer buffer(128);
   const char* function_fullname = function.ToFullyQualifiedCString();
+  buffer.Printf("%s", Function::KindToCString(function.kind()));
+  if (function.IsInvokeFieldDispatcher() ||
+      function.IsNoSuchMethodDispatcher()) {
+    const auto& args_desc_array = Array::Handle(function.saved_args_desc());
+    const ArgumentsDescriptor args_desc(args_desc_array);
+    buffer.AddString(", ");
+    args_desc.PrintTo(&buffer);
+  }
   LogBlock lb;
-  DisassembleCodeHelper(function_fullname, code, optimized);
+  DisassembleCodeHelper(function_fullname, buffer.buffer(), code, optimized);
 }
 
 void Disassembler::DisassembleStub(const char* name, const Code& code) {

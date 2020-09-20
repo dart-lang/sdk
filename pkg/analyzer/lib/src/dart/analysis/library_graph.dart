@@ -11,13 +11,15 @@ import 'package:analyzer/src/summary/link.dart' as graph
 
 /// Ensure that the [FileState.libraryCycle] for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(Uint32List linkedSalt, FileState file) {
-  var libraryWalker = _LibraryWalker(linkedSalt);
+void computeLibraryCycle(Uint32List salt, FileState file) {
+  var libraryWalker = _LibraryWalker(salt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
+  final int id = fileObjectId++;
+
   /// The libraries that belong to this cycle.
   final List<FileState> libraries = [];
 
@@ -65,7 +67,7 @@ class LibraryCycle {
 
   @override
   String toString() {
-    return '[' + libraries.join(', ') + ']';
+    return '[[id: $id] ' + libraries.join(', ') + ']';
   }
 }
 
@@ -88,10 +90,10 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// Helper that organizes dependencies of a library into topologically
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
-  final Uint32List _linkedSalt;
+  final Uint32List _salt;
   final Map<FileState, _LibraryNode> nodesOfFiles = {};
 
-  _LibraryWalker(this._linkedSalt);
+  _LibraryWalker(this._salt);
 
   @override
   void evaluate(_LibraryNode v) {
@@ -103,7 +105,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     var cycle = LibraryCycle();
 
     var signature = ApiSignature();
-    signature.addUint32List(_linkedSalt);
+    signature.addUint32List(_salt);
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
@@ -123,6 +125,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     for (var node in scc) {
       cycle.libraries.add(node.file);
 
+      signature.addLanguageVersion(node.file.packageLanguageVersion);
       signature.addString(node.file.uriStr);
 
       signature.addInt(node.file.libraryFiles.length);

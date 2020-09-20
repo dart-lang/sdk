@@ -244,20 +244,26 @@ class CollectionTransformer extends Transformer {
   void _translateSpreadElement(SpreadElement element, DartType elementType,
       bool isSet, VariableDeclaration result, List<Statement> body) {
     Expression value = element.expression.accept<TreeNode>(this);
+
+    final bool typeMatches = element.elementType != null &&
+        typeEnvironment.isSubtypeOf(element.elementType, elementType,
+            SubtypeCheckMode.withNullabilities);
+
     // Null-aware spreads require testing the subexpression's value.
     VariableDeclaration temp;
     if (element.isNullAware) {
-      temp = _createVariable(value,
-          typeEnvironment.iterableType(elementType, _currentLibrary.nullable));
+      temp = _createVariable(
+          value,
+          typeEnvironment.iterableType(
+              typeMatches ? elementType : const DynamicType(),
+              _currentLibrary.nullable));
       body.add(temp);
       value = _createNullCheckedVariableGet(temp);
     }
 
     VariableDeclaration variable;
     Statement loopBody;
-    if (element.elementType == null ||
-        !typeEnvironment.isSubtypeOf(element.elementType, elementType,
-            SubtypeCheckMode.withNullabilities)) {
+    if (!typeMatches) {
       variable = _createForInVariable(element.fileOffset, const DynamicType());
       VariableDeclaration castedVar = _createVariable(
           _createImplicitAs(element.expression.fileOffset,
@@ -425,24 +431,29 @@ class CollectionTransformer extends Transformer {
   void _translateSpreadEntry(SpreadMapEntry entry, DartType keyType,
       DartType valueType, VariableDeclaration result, List<Statement> body) {
     Expression value = entry.expression.accept<TreeNode>(this);
+
+    final DartType entryType = new InterfaceType(mapEntryClass,
+        _currentLibrary.nonNullable, <DartType>[keyType, valueType]);
+    final bool typeMatches = entry.entryType != null &&
+        typeEnvironment.isSubtypeOf(
+            entry.entryType, entryType, SubtypeCheckMode.withNullabilities);
+
     // Null-aware spreads require testing the subexpression's value.
     VariableDeclaration temp;
     if (entry.isNullAware) {
       temp = _createVariable(
           value,
           typeEnvironment.mapType(
-              keyType, valueType, _currentLibrary.nullable));
+              typeMatches ? keyType : const DynamicType(),
+              typeMatches ? valueType : const DynamicType(),
+              _currentLibrary.nullable));
       body.add(temp);
       value = _createNullCheckedVariableGet(temp);
     }
 
-    DartType entryType = new InterfaceType(mapEntryClass,
-        _currentLibrary.nonNullable, <DartType>[keyType, valueType]);
     VariableDeclaration variable;
     Statement loopBody;
-    if (entry.entryType == null ||
-        !typeEnvironment.isSubtypeOf(
-            entry.entryType, entryType, SubtypeCheckMode.withNullabilities)) {
+    if (!typeMatches) {
       variable = _createForInVariable(
           entry.fileOffset,
           new InterfaceType(mapEntryClass, _currentLibrary.nonNullable,

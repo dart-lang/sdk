@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:async_helper/async_helper.dart';
-import 'package:path/path.dart' as p;
 import 'package:expect/expect.dart';
 
 Future<void> main() async {

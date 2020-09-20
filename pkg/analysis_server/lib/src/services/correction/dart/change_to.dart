@@ -4,15 +4,17 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+
+/// A predicate is a one-argument function that returns a boolean value.
+typedef _ElementPredicate = bool Function(Element argument);
 
 class ChangeTo extends CorrectionProducer {
   /// The kind of elements that should be proposed.
@@ -32,7 +34,7 @@ class ChangeTo extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CHANGE_TO;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // TODO(brianwilkerson) Unify these separate methods as much as is
     //  reasonably possible.
     // TODO(brianwilkerson) Consider proposing all of the names within a
@@ -50,7 +52,7 @@ class ChangeTo extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeAnnotation(DartChangeBuilder builder) async {
+  Future<void> _proposeAnnotation(ChangeBuilder builder) async {
     var node = this.node;
     if (node is Annotation) {
       var name = node.name;
@@ -62,8 +64,7 @@ class ChangeTo extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeClassOrMixin(
-      DartChangeBuilder builder, AstNode node) async {
+  Future<void> _proposeClassOrMixin(ChangeBuilder builder, AstNode node) async {
     // Prepare the optional import prefix name.
     String prefixName;
     if (node is PrefixedIdentifier &&
@@ -95,7 +96,7 @@ class ChangeTo extends CorrectionProducer {
       if (finder._element != null) {
         _proposedName = finder._element.name;
         if (_proposedName != null) {
-          await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+          await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(range.node(node), _proposedName);
           });
         }
@@ -103,8 +104,8 @@ class ChangeTo extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeClassOrMixinMember(DartChangeBuilder builder,
-      Expression target, ElementPredicate predicate) async {
+  Future<void> _proposeClassOrMixinMember(ChangeBuilder builder,
+      Expression target, _ElementPredicate predicate) async {
     if (node is SimpleIdentifier) {
       var name = (node as SimpleIdentifier).name;
       var finder = _ClosestElementFinder(name, predicate);
@@ -129,14 +130,14 @@ class ChangeTo extends CorrectionProducer {
       // if we have close enough element, suggest to use it
       if (finder._element != null) {
         _proposedName = finder._element.displayName;
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.node(node), _proposedName);
         });
       }
     }
   }
 
-  Future<void> _proposeFunction(DartChangeBuilder builder) async {
+  Future<void> _proposeFunction(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
       // Prepare the optional import prefix name.
@@ -170,14 +171,14 @@ class ChangeTo extends CorrectionProducer {
       // If we have a close enough element, suggest to use it.
       if (finder._element != null) {
         _proposedName = finder._element.name;
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleReplacement(range.node(node), _proposedName);
         });
       }
     }
   }
 
-  Future<void> _proposeGetterOrSetter(DartChangeBuilder builder) async {
+  Future<void> _proposeGetterOrSetter(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
       // prepare target
@@ -204,7 +205,7 @@ class ChangeTo extends CorrectionProducer {
     }
   }
 
-  Future<void> _proposeMethod(DartChangeBuilder builder) async {
+  Future<void> _proposeMethod(ChangeBuilder builder) async {
     if (node.parent is MethodInvocation) {
       var invocation = node.parent as MethodInvocation;
       await _proposeClassOrMixinMember(builder, invocation.realTarget,
@@ -259,7 +260,7 @@ class _ClosestElementFinder {
 
   /// A function used to filter the possible elements to those of the right
   /// kind.
-  final ElementPredicate _predicate;
+  final _ElementPredicate _predicate;
 
   int _distance = _maxDistance;
 

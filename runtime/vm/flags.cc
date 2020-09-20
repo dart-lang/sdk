@@ -291,7 +291,7 @@ bool Flags::SetFlagFromString(Flag* flag, const char* argument) {
       break;
     }
     case Flag::kString: {
-      *flag->charp_ptr_ = argument == NULL ? NULL : strdup(argument);
+      *flag->charp_ptr_ = argument == NULL ? NULL : Utils::StrDup(argument);
       break;
     }
     case Flag::kInteger: {
@@ -423,7 +423,7 @@ int Flags::CompareFlagNames(const void* left, const void* right) {
 char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
                                      const char** vm_flags) {
   if (initialized_) {
-    return strdup("Flags already set");
+    return Utils::StrDup("Flags already set");
   }
 
   qsort(flags_, num_flags_, sizeof flags_[0], CompareFlagNames);

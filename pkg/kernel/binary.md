@@ -143,7 +143,8 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 42;
+  UInt32 formatVersion = 45;
+  Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -319,7 +320,7 @@ type Class extends Node {
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
-              isEliminatedMixin, isMixinDeclaration, 
+              isEliminatedMixin, isMixinDeclaration,
               hasConstConstructor); // Where level is index into ClassLevel
   StringReference name;
   List<Expression> annotations;
@@ -420,6 +421,7 @@ type Procedure extends Member {
   // Only present if the 'isForwardingStub' flag is set.
   MemberReference forwardingStubSuperTarget; // May be NullReference.
   MemberReference forwardingStubInterfaceTarget; // May be NullReference.
+  MemberReference memberSignatureOrigin; // May be NullReference.
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
 }
@@ -581,6 +583,7 @@ type PropertyGet extends Expression {
   Expression receiver;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type PropertySet extends Expression {
@@ -590,6 +593,7 @@ type PropertySet extends Expression {
   Name name;
   Expression value;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperPropertyGet extends Expression {
@@ -597,6 +601,7 @@ type SuperPropertyGet extends Expression {
   FileOffset fileOffset;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperPropertySet extends Expression {
@@ -605,6 +610,7 @@ type SuperPropertySet extends Expression {
   Name name;
   Expression value;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type DirectPropertyGet extends Expression {
@@ -612,6 +618,7 @@ type DirectPropertyGet extends Expression {
   FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
+  MemberReference targetOrigin; // May be NullReference.
 }
 
 type DirectPropertySet extends Expression {
@@ -619,6 +626,7 @@ type DirectPropertySet extends Expression {
   FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
+  MemberReference targetOrigin; // May be NullReference.
   Expression value;
 }
 
@@ -656,6 +664,7 @@ type MethodInvocation extends Expression {
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type SuperMethodInvocation extends Expression {
@@ -664,6 +673,7 @@ type SuperMethodInvocation extends Expression {
   Name name;
   Arguments arguments;
   MemberReference interfaceTarget; // May be NullReference.
+  MemberReference interfaceTargetOrigin; // May be NullReference.
 }
 
 type DirectMethodInvocation extends Expression {
@@ -671,6 +681,7 @@ type DirectMethodInvocation extends Expression {
   FileOffset fileOffset;
   Expression receiver;
   MemberReference target;
+  MemberReference targetOrigin; // May be NullReference.
   Arguments arguments;
 }
 

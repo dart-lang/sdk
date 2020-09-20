@@ -85,6 +85,15 @@ class RuntimeEntry : public BaseRuntimeEntry {
   } while (0)
 #endif
 
+#if defined(USING_SIMULATOR)
+#define CHECK_SIMULATOR_STACK_OVERFLOW()                                       \
+  if (!OSThread::Current()->HasStackHeadroom()) {                              \
+    Exceptions::ThrowStackOverflow();                                          \
+  }
+#else
+#define CHECK_SIMULATOR_STACK_OVERFLOW()
+#endif  // defined(USING_SIMULATOR)
+
 // Helper macros for declaring and defining runtime entries.
 
 #define DEFINE_RUNTIME_ENTRY(name, argument_count)                             \
@@ -106,6 +115,7 @@ class RuntimeEntry : public BaseRuntimeEntry {
       TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
       HANDLESCOPE(thread);                                                     \
+      CHECK_SIMULATOR_STACK_OVERFLOW();                                        \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \
     }                                                                          \
   }                                                                            \
@@ -144,6 +154,11 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 // Expected to be called inside a safepoint.
 extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
 extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
+
+// For creating scoped handles in FFI trampolines.
+extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread);
+extern "C" void DLRT_ExitHandleScope(Thread* thread);
+extern "C" LocalHandle* DLRT_AllocateHandle(ApiLocalScope* scope);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

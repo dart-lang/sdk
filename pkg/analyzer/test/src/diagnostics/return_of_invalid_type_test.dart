@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +15,40 @@ main() {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeTest extends DriverResolutionTest {
+class ReturnOfInvalidTypeTest extends PubPackageResolutionTest {
+  test_closure() async {
+    await assertErrorsInCode('''
+typedef Td = int Function();
+Td f() {
+  return () => "hello";
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 53, 7),
+    ]);
+  }
+
+  test_factoryConstructor_named() async {
+    await assertErrorsInCode('''
+class C {
+  factory C.named() => 7;
+}
+''', [
+      error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 33, 1),
+    ]);
+  }
+
+  test_factoryConstructor_unnamed() async {
+    await assertErrorsInCode('''
+class C {
+  factory C() => 7;
+}
+''', [
+      error(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR, 27, 1),
+    ]);
+  }
+
   test_function_async_block__to_Future_void() async {
     await assertNoErrorsInCode(r'''
 Future<void> f1() async {}
@@ -35,7 +67,7 @@ Future<int> f(Future<Future<int>> a) async {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 54, 1),
     ]);
   }
 
@@ -52,7 +84,7 @@ int f() async {
   return 5;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
     ]);
   }
 
@@ -78,7 +110,7 @@ Future<String> f() async {
   return 5;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 36, 1),
     ]);
   }
 
@@ -88,7 +120,7 @@ void f() async {
   return 5;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
     ]);
   }
 
@@ -106,7 +138,7 @@ Future<int> f(void a) async {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 39, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 39, 1),
     ]);
   }
 
@@ -156,13 +188,13 @@ void f() {
   return 42;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 2),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 2),
     ]);
   }
 
   test_function_sync_block_num__to_int() async {
     var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 24, 1),
     ], legacy: []);
     await assertErrorsInCode(r'''
 int f(num a) {
@@ -177,7 +209,7 @@ int f() {
   return '0';
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 19, 3),
     ]);
   }
 
@@ -213,13 +245,13 @@ int f(void a) {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
     ]);
   }
 
   test_function_sync_block_void__to_Null() async {
     var expectedErrors = expectedErrorsByNullability(nullable: [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
     ], legacy: []);
     await assertErrorsInCode('''
 Null f(void a) {
@@ -246,7 +278,7 @@ void f() => 42;
     await assertErrorsInCode('''
 int f() => '0';
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 11, 3),
     ]);
   }
 
@@ -256,7 +288,7 @@ int get g {
   return '0';
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 21, 3),
     ]);
   }
 
@@ -264,7 +296,7 @@ int get g {
     await assertErrorsInCode('''
 int get g => '0';
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 13, 3),
     ]);
   }
 
@@ -277,7 +309,7 @@ void f() {
   g();
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 3),
     ]);
   }
 
@@ -290,7 +322,7 @@ class A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 38, 3),
     ]);
   }
 
@@ -321,7 +353,7 @@ class A {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 33, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 33, 3),
     ]);
   }
 
@@ -343,7 +375,7 @@ class A {
   int f() => '0';
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 23, 3),
     ]);
   }
 }
@@ -357,7 +389,7 @@ Future<void> f() async {
   return 0;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 34, 1),
     ]);
   }
 
@@ -367,7 +399,7 @@ Future<Null> f(void a) async {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 40, 1),
     ]);
   }
 
@@ -379,7 +411,7 @@ FutureOr<Object?> f(void a) async {
   return a;
 }
 ''', [
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 67, 1),
     ]);
   }
 

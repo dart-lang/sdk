@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddRequiredKeyword extends CorrectionProducer {
@@ -12,8 +12,8 @@ class AddRequiredKeyword extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_REQUIRED2;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(node.parent.offset, 'required ');
     });
   }

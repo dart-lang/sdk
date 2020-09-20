@@ -16,7 +16,6 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
@@ -102,7 +101,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final CompilerOptions _options;
   final DiagnosticReporter reporter;
   final Emitter _emitter;
-  final RuntimeTypesEncoder _rtiEncoder;
   final RecipeEncoder _rtiRecipeEncoder;
   final JElementEnvironment _elementEnvironment;
 
@@ -134,7 +132,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
   MetadataCollector(this._options, this.reporter, this._emitter,
-      this._rtiEncoder, this._rtiRecipeEncoder, this._elementEnvironment);
+      this._rtiRecipeEncoder, this._elementEnvironment);
 
   List<jsAst.DeferredNumber> reifyDefaultArguments(
       FunctionEntity function, OutputUnit outputUnit) {
@@ -173,26 +171,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     });
   }
 
-  jsAst.Expression _computeTypeRepresentation(DartType type) {
-    jsAst.Expression representation =
-        _rtiEncoder.getTypeRepresentation(_emitter, type, (variable) {
-      failedAt(
-          NO_LOCATION_SPANNABLE,
-          "Type representation for type variable $variable in "
-          "$type is not supported.");
-      return jsAst.LiteralNull();
-    });
-
-    if (representation is jsAst.LiteralString) {
-      // We don't want the representation to be a string, since we use
-      // strings as indicator for non-initialized types in the lazy emitter.
-      reporter.internalError(
-          NO_LOCATION_SPANNABLE, 'reified types should not be strings.');
-    }
-
-    return representation;
-  }
-
   jsAst.Expression _computeTypeRepresentationNewRti(DartType type) {
     return _rtiRecipeEncoder.encodeGroundRecipe(
         _emitter, TypeExpressionRecipe(type));
@@ -201,11 +179,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      if (_options.useNewRti) {
-        return new _BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
-      } else {
-        return new _BoundMetadataEntry(_computeTypeRepresentation(type));
-      }
+      return new _BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
     });
   }
 

@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    ;
+}
+class B<Y1 extends core::Object? = dynamic, Y2 extends core::List<self::B::Y3%> = core::List<dynamic>, Y3 extends core::Object? = dynamic> extends self::A<self::B::Y1%> {
+  synthetic constructor •() → self::B<self::B::Y1%, self::B::Y2, self::B::Y3%>
+    ;
+  get y1() → self::B::Y1%
+    ;
+  get y2() → self::B::Y2
+    ;
+  get y3() → self::B::Y3%
+    ;
+}
+static method foo<Z extends core::Object? = dynamic>(() → self::A<core::List<self::foo::Z%>> f) → dynamic
+  ;
+static method bar() → dynamic
+  ;
+static method main() → dynamic
+  ;

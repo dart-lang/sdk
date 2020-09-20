@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::String m = "";
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  set setter(core::String v) → void {}
+  operator []=(core::int index, core::String value) → void {}
+}
+extension _extension#0 on self::C? {
+  operator []= = self::_extension#0|[]=;
+  set setter = self::_extension#0|set#setter;
+}
+static method _extension#0|set#setter(final self::C? #this, core::String v) → void {
+  let final self::C? #t1 = #this in #t1.{core::Object::==}(null) ?{core::String?} null : #t1{self::C}.{self::C::m} = v;
+}
+static method _extension#0|[]=(final self::C? #this, core::int index, core::String value) → void {
+  let final self::C? #t2 = #this in #t2.{core::Object::==}(null) ?{core::String?} null : #t2{self::C}.{self::C::m} = "${index}${value}";
+}
+static method main() → dynamic {
+  self::C? c = new self::C::•();
+  self::expect("", let final self::C? #t3 = c in #t3.{core::Object::==}(null) ?{core::String?} null : #t3{self::C}.{self::C::m});
+  self::_extension#0|set#setter(c, "42");
+  self::expect("42", let final self::C? #t4 = c in #t4.{core::Object::==}(null) ?{core::String?} null : #t4{self::C}.{self::C::m});
+  self::_extension#0|[]=(c, 42, "87");
+  self::expect("4287", let final self::C? #t5 = c in #t5.{core::Object::==}(null) ?{core::String?} null : #t5{self::C}.{self::C::m});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

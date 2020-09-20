@@ -11,7 +11,7 @@ import "native_testing.dart";
 
 @Native("A")
 class A {
-  final String aa;
+  String get aa native;
   foo() => "A-foo $aa";
   baz() => "A-baz $aa";
 }

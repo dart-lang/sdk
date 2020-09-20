@@ -1,0 +1,58 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Give a bad SDK URI, and try to initialize from dill.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class A extends B {}
+      lib.dart: |
+        class B {
+          void bMethod() {}
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    expectInitializeFromDill: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class A extends B {}
+      lib.dart: |
+        class B {
+          void bMethod() {}
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    badSdk: true
+    errors: true
+    expectInitializeFromDill: false
+    expectInitializationError: false
+
+    # this skips a check that fails (shouldn't matter considering this is an
+    # exceptional case).
+    checkInvalidatedFiles: false
+
+    # this skips re-compiling several times which fails to produce the same
+    # result (shouldn't matter considering this is an exceptional case).
+    noFullComponent: true
+
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        class A extends B {}
+      lib.dart: |
+        class B {
+          void bMethod() {}
+        }
+    expectedLibraryCount: 2

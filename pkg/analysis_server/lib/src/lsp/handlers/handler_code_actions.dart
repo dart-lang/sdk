@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -25,10 +24,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:collection/collection.dart' show groupBy;
 
 class CodeActionHandler extends MessageHandler<CodeActionParams,
     List<Either2<Command, CodeAction>>> {
   CodeActionHandler(LspAnalysisServer server) : super(server);
+
   @override
   Method get handlesMessage => Method.textDocument_codeAction;
 
@@ -43,16 +44,21 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return success(const []);
     }
 
-    final capabilities = server?.clientCapabilities?.textDocument?.codeAction;
+    final capabilities = server?.clientCapabilities?.textDocument;
 
     final clientSupportsWorkspaceApplyEdit =
         server?.clientCapabilities?.workspace?.applyEdit == true;
 
     final clientSupportsLiteralCodeActions =
-        capabilities?.codeActionLiteralSupport != null;
+        capabilities?.codeAction?.codeActionLiteralSupport != null;
 
     final clientSupportedCodeActionKinds = HashSet<CodeActionKind>.of(
-        capabilities?.codeActionLiteralSupport?.codeActionKind?.valueSet ?? []);
+        capabilities?.codeAction?.codeActionLiteralSupport?.codeActionKind
+                ?.valueSet ??
+            []);
+
+    final clientSupportedDiagnosticTags = HashSet<DiagnosticTag>.of(
+        capabilities?.publishDiagnostics?.tagSupport?.valueSet ?? []);
 
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -68,6 +74,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
               clientSupportedCodeActionKinds,
               clientSupportsLiteralCodeActions,
               clientSupportsWorkspaceApplyEdit,
+              clientSupportedDiagnosticTags,
               path.result,
               params.range,
               offset,
@@ -87,7 +94,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   ) {
     return clientSupportsLiteralCodeActions
         ? Either2<Command, CodeAction>.t2(
-            CodeAction(command.title, kind, null, null, command),
+            CodeAction(title: command.title, kind: kind, command: command),
           )
         : Either2<Command, CodeAction>.t1(command);
   }
@@ -96,29 +103,50 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  Either2<Command, CodeAction> _createAssistAction(Assist assist) {
-    return Either2<Command, CodeAction>.t2(CodeAction(
-      assist.change.message,
-      toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
-      const [],
-      createWorkspaceEdit(server, assist.change.edits),
-      null,
-    ));
+  CodeAction _createAssistAction(Assist assist) {
+    return CodeAction(
+      title: assist.change.message,
+      kind: toCodeActionKind(assist.change.id, CodeActionKind.Refactor),
+      diagnostics: const [],
+      edit: createWorkspaceEdit(server, assist.change.edits),
+    );
   }
 
   /// Creates a CodeAction to apply this fix. Note: This code will fetch the
   /// version of each document being modified so it's important to call this
   /// immediately after computing edits to ensure the document is not modified
   /// before the version number is read.
-  Either2<Command, CodeAction> _createFixAction(
-      Fix fix, Diagnostic diagnostic) {
-    return Either2<Command, CodeAction>.t2(CodeAction(
-      fix.change.message,
-      toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
-      [diagnostic],
-      createWorkspaceEdit(server, fix.change.edits),
-      null,
-    ));
+  CodeAction _createFixAction(Fix fix, Diagnostic diagnostic) {
+    return CodeAction(
+      title: fix.change.message,
+      kind: toCodeActionKind(fix.change.id, CodeActionKind.QuickFix),
+      diagnostics: [diagnostic],
+      edit: createWorkspaceEdit(server, fix.change.edits),
+    );
+  }
+
+  /// Dedupes actions that perform the same edit and merge their diagnostics
+  /// together. This avoids duplicates where there are multiple errors on
+  /// the same line that have the same fix (for example importing a
+  /// library that fixes multiple unresolved types).
+  List<CodeAction> _dedupeActions(Iterable<CodeAction> actions) {
+    final groups = groupBy(actions, (CodeAction action) => action.edit);
+    return groups.keys.map((edit) {
+      final first = groups[edit].first;
+      // Avoid constructing new CodeActions if there was only one in this group.
+      if (groups[edit].length == 1) {
+        return first;
+      }
+      // Build a new CodeAction that merges the diagnostics from each same
+      // code action onto a single one.
+      return CodeAction(
+          title: first.title,
+          kind: first.kind,
+          // Merge diagnostics from all of the CodeActions.
+          diagnostics: groups[edit].expand((r) => r.diagnostics).toList(),
+          edit: first.edit,
+          command: first.command);
+    }).toList();
   }
 
   Future<List<Either2<Command, CodeAction>>> _getAssistActions(
@@ -145,7 +173,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       final assists = await processor.compute();
       assists.sort(Assist.SORT_BY_RELEVANCE);
 
-      return assists.map(_createAssistAction).toList();
+      final assistActions = _dedupeActions(assists.map(_createAssistAction));
+
+      return assistActions
+          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
@@ -158,6 +190,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     HashSet<CodeActionKind> kinds,
     bool supportsLiterals,
     bool supportsWorkspaceApplyEdit,
+    HashSet<DiagnosticTag> supportedDiagnosticTags,
     String path,
     Range range,
     int offset,
@@ -169,15 +202,18 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
       _getAssistActions(kinds, supportsLiterals, offset, length, unit),
       _getRefactorActions(kinds, supportsLiterals, path, offset, length, unit),
-      _getFixActions(kinds, supportsLiterals, range, unit),
+      _getFixActions(
+          kinds, supportsLiterals, supportedDiagnosticTags, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
+
     return success(flatResults);
   }
 
   Future<List<Either2<Command, CodeAction>>> _getFixActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
+    HashSet<DiagnosticTag> supportedDiagnosticTags,
     Range range,
     ResolvedUnitResult unit,
   ) async {
@@ -188,7 +224,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     }
 
     final lineInfo = unit.lineInfo;
-    final codeActions = <Either2<Command, CodeAction>>[];
+    final codeActions = <CodeAction>[];
     final fixContributor = DartFixContributor();
 
     try {
@@ -209,14 +245,23 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
 
-            final diagnostic = toDiagnostic(unit, error);
+            final diagnostic = toDiagnostic(
+              unit,
+              error,
+              supportedTags: supportedDiagnosticTags,
+            );
             codeActions.addAll(
               fixes.map((fix) => _createFixAction(fix, diagnostic)),
             );
           }
         }
       }
-      return codeActions;
+
+      final dedupedActions = _dedupeActions(codeActions);
+
+      return dedupedActions
+          .map((action) => Either2<Command, CodeAction>.t2(action))
+          .toList();
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so
@@ -256,14 +301,18 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       return _commandOrCodeAction(
           clientSupportsLiteralCodeActions,
           actionKind,
-          Command(name, Commands.performRefactor, [
-            refactorKind.toJson(),
-            path,
-            server.getVersionedDocumentIdentifier(path).version,
-            offset,
-            length,
-            options,
-          ]));
+          Command(
+            title: name,
+            command: Commands.performRefactor,
+            arguments: [
+              refactorKind.toJson(),
+              path,
+              server.getVersionedDocumentIdentifier(path).version,
+              offset,
+              length,
+              options,
+            ],
+          ));
     }
 
     try {
@@ -322,12 +371,18 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         DartCodeActionKind.SortMembers,
-        Command('Sort Members', Commands.sortMembers, [path]),
+        Command(
+            title: 'Sort Members',
+            command: Commands.sortMembers,
+            arguments: [path]),
       ),
       _commandOrCodeAction(
         clientSupportsLiteralCodeActions,
         CodeActionKind.SourceOrganizeImports,
-        Command('Organize Imports', Commands.organizeImports, [path]),
+        Command(
+            title: 'Organize Imports',
+            command: Commands.organizeImports,
+            arguments: [path]),
       ),
     ];
   }

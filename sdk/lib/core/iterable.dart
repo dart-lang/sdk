@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -15,8 +13,12 @@ part of dart.core;
  * and if the call returns `true`,
  * the iterator has now moved to the next element,
  * which is then available as [Iterator.current].
- * If the call returns `false`, there are no more elements,
- * and `iterator.current` returns `null`.
+ * If the call returns `false`, there are no more elements.
+ * The [Iterator.current] value must only be used when the most
+ * recent call to [Iterator.moveNext] has returned `true`.
+ * If it is used before calling [Iterator.moveNext] the first time
+ * on an iterator, or after a call has returned false or has thrown an error,
+ * reading [Iterator.current] may throw or may return an arbitrary value.
  *
  * You can create more than one iterator from the same `Iterable`.
  * Each time `iterator` is read, it returns a new iterator,
@@ -101,7 +103,7 @@ abstract class Iterable<E> {
    * As an `Iterable`, `new Iterable.generate(n, generator))` is equivalent to
    * `const [0, ..., n - 1].map(generator)`.
    */
-  factory Iterable.generate(int count, [E generator(int index)]) {
+  factory Iterable.generate(int count, [E generator(int index)?]) {
     if (count <= 0) return EmptyIterable<E>();
     return _GeneratorIterable<E>(count, generator);
   }
@@ -166,6 +168,7 @@ abstract class Iterable<E> {
    * the type [R], e.g., from [toList], it will have exactly the type [R].
    */
   Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
+
   /**
    * Returns the lazy concatentation of this iterable and [other].
    *
@@ -174,8 +177,9 @@ abstract class Iterable<E> {
    * original iterables.
    */
   Iterable<E> followedBy(Iterable<E> other) {
-    if (this is EfficientLengthIterable<E>) {
-      return FollowedByIterable<E>.firstEfficient(this, other);
+    var self = this; // TODO(lrn): Remove when we can promote `this`.
+    if (self is EfficientLengthIterable<E>) {
+      return FollowedByIterable<E>.firstEfficient(self, other);
     }
     return FollowedByIterable<E>(this, other);
   }
@@ -264,7 +268,7 @@ abstract class Iterable<E> {
    * Likewise the `Iterable` returned by a [Map.keys] call
    * should use the same equality that the `Map` uses for keys.
    */
-  bool contains(Object element) {
+  bool contains(Object? element) {
     for (E e in this) {
       if (e == element) return true;
     }
@@ -365,13 +369,13 @@ abstract class Iterable<E> {
     StringBuffer buffer = StringBuffer();
     if (separator == null || separator == "") {
       do {
-        buffer.write("${iterator.current}");
+        buffer.write(iterator.current.toString());
       } while (iterator.moveNext());
     } else {
-      buffer.write("${iterator.current}");
+      buffer.write(iterator.current.toString());
       while (iterator.moveNext()) {
         buffer.write(separator);
-        buffer.write("${iterator.current}");
+        buffer.write(iterator.current.toString());
       }
     }
     return buffer.toString();
@@ -397,7 +401,7 @@ abstract class Iterable<E> {
    * The list is fixed-length if [growable] is false.
    */
   List<E> toList({bool growable = true}) {
-    return List<E>.from(this, growable: growable);
+    return List<E>.of(this, growable: growable);
   }
 
   /**
@@ -409,7 +413,7 @@ abstract class Iterable<E> {
    * The order of the elements in the set is not guaranteed to be the same
    * as for the iterable.
    */
-  Set<E> toSet() => Set<E>.from(this);
+  Set<E> toSet() => Set<E>.of(this);
 
   /**
    * Returns the number of elements in [this].
@@ -566,7 +570,7 @@ abstract class Iterable<E> {
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E firstWhere(bool test(E element), {E orElse()}) {
+  E firstWhere(bool test(E element), {E orElse()?}) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -588,8 +592,8 @@ abstract class Iterable<E> {
    * function is returned.
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E lastWhere(bool test(E element), {E orElse()}) {
-    E result;
+  E lastWhere(bool test(E element), {E orElse()?}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -611,8 +615,8 @@ abstract class Iterable<E> {
    * If no matching element is found, returns the result of [orElse].
    * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E singleWhere(bool test(E element), {E orElse()}) {
-    E result;
+  E singleWhere(bool test(E element), {E orElse()?}) {
+    late E result;
     bool foundMatching = false;
     for (E element in this) {
       if (test(element)) {
@@ -640,7 +644,6 @@ abstract class Iterable<E> {
    * Some iterables may have a more efficient way to find the element.
    */
   E elementAt(int index) {
-    ArgumentError.checkNotNull(index, "index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
     for (E element in this) {
@@ -669,22 +672,20 @@ abstract class Iterable<E> {
   String toString() => IterableBase.iterableToShortString(this, '(', ')');
 }
 
-typedef _Generator<E> = E Function(int index);
-
 class _GeneratorIterable<E> extends ListIterable<E> {
   /// The length of the generated iterable.
   final int length;
 
   /// The function mapping indices to values.
-  final _Generator<E> _generator;
+  final E Function(int) _generator;
 
   /// Creates the generated iterable.
   ///
   /// If [generator] is `null`, it is checked that `int` is assignable to [E].
-  _GeneratorIterable(this.length, E generator(int index))
+  _GeneratorIterable(this.length, E generator(int index)?)
       : // The `as` below is used as check to make sure that `int` is assignable
         // to [E].
-        _generator = (generator != null) ? generator : _id as _Generator<E>;
+        _generator = generator ?? (_id as E Function(int));
 
   E elementAt(int index) {
     RangeError.checkValidIndex(index, this);
@@ -696,14 +697,15 @@ class _GeneratorIterable<E> extends ListIterable<E> {
 }
 
 /**
- * An Iterator that allows moving backwards as well as forwards.
+ * An [Iterator] that allows moving backwards as well as forwards.
  */
 abstract class BidirectionalIterator<E> implements Iterator<E> {
   /**
    * Move back to the previous element.
    *
    * Returns true and updates [current] if successful. Returns false
-   * and sets [current] to null if there is no previous element.
+   * and updates [current] to an implementation defined state if there is no
+   * previous element
    */
   bool movePrevious();
 }

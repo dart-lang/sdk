@@ -39,48 +39,7 @@ main() {
   dynamicToNoSuchMethodTearOff(null);
 }
 
-/*spec:nnbd-off.member: positiveTyped:
- dynamic=[SubClass.method(0)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  is:SubClass,
-  param:Class]
-*/
-/*spec:nnbd-sdk.member: positiveTyped:
+/*member: positiveTyped:
  dynamic=[SubClass.method(0)],
  static=[
   Rti._bind(1),
@@ -128,47 +87,7 @@ positiveTyped(Class cls) {
   if (cls is SubClass) cls.method();
 }
 
-/*spec:nnbd-off.member: positiveDynamic:
- dynamic=[SubClass.method(0)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  is:SubClass]
-*/
-/*spec:nnbd-sdk.member: positiveDynamic:
+/*member: positiveDynamic:
  dynamic=[SubClass.method(0)],
  static=[
   Rti._bind(1),
@@ -215,47 +134,7 @@ positiveDynamic(dynamic cls) {
   if (cls is SubClass) cls.method();
 }
 
-/*spec:nnbd-off.member: negativeDynamic:
- dynamic=[SubClass.method(0)],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  is:SubClass]
-*/
-/*spec:nnbd-sdk.member: negativeDynamic:
+/*member: negativeDynamic:
  dynamic=[SubClass.method(0)],
  static=[
   Rti._bind(1),

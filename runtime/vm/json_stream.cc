@@ -174,7 +174,6 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
       va_start(args2, details_format);
       Utils::VSNPrint(buffer, (len + 1), details_format, args2);
       va_end(args2);
-
       data.AddProperty("details", buffer);
     }
   }

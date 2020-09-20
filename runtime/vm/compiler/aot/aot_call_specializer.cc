@@ -52,11 +52,11 @@ DEFINE_FLAG(int,
 static void GetUniqueDynamicTarget(Isolate* isolate,
                                    const String& fname,
                                    Object* function) {
-  UniqueFunctionsSet functions_set(
+  UniqueFunctionsMap functions_map(
       isolate->object_store()->unique_dynamic_targets());
   ASSERT(fname.IsSymbol());
-  *function = functions_set.GetOrNull(fname);
-  ASSERT(functions_set.Release().raw() ==
+  *function = functions_map.GetOrNull(fname);
+  ASSERT(functions_map.Release().raw() ==
          isolate->object_store()->unique_dynamic_targets());
 }
 
@@ -890,6 +890,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       bool is_object_eq = true;
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
+        // Skip sentinel cid. It may appear in the unreachable code after
+        // inlining a method which doesn't return.
+        if (cid == kNeverCid) continue;
         const Class& cls = Class::Handle(Z, isolate()->class_table()->At(cid));
         const Function& target =
             Function::Handle(Z, instr->ResolveForReceiverClass(cls));

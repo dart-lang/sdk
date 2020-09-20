@@ -220,7 +220,8 @@ Future<KernelTarget> outline(List<String> arguments) async {
       }
       CompileTask task =
           new CompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      return await task.buildOutline(output: c.options.output);
+      return await task.buildOutline(
+          output: c.options.output, omitPlatform: c.options.omitPlatform);
     });
   });
 }
@@ -293,7 +294,9 @@ class CompileTask {
   }
 
   Future<KernelTarget> buildOutline(
-      {Uri output, bool supportAdditionalDills: true}) async {
+      {Uri output,
+      bool omitPlatform: false,
+      bool supportAdditionalDills: true}) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
@@ -324,6 +327,21 @@ class CompileTask {
       printComponentText(outline, libraryFilter: kernelTarget.isSourceLibrary);
     }
     if (output != null) {
+      if (omitPlatform) {
+        outline.computeCanonicalNames();
+        Component userCode = new Component(
+            nameRoot: outline.root,
+            uriToSource: new Map<Uri, Source>.from(outline.uriToSource));
+        userCode.setMainMethodAndMode(
+            outline.mainMethodName, true, outline.mode);
+        for (Library library in outline.libraries) {
+          if (library.importUri.scheme != "dart") {
+            userCode.libraries.add(library);
+          }
+        }
+        outline = userCode;
+      }
+
       await writeComponentToFile(outline, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
@@ -416,17 +434,19 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");
 
-  List<Uri> deps = result.deps.toList();
-  for (Uri dependency in await computeHostDependencies(hostPlatform)) {
-    // Add the dependencies of the compiler's own sources.
-    if (dependency != outlineOutput) {
-      // We're computing the dependencies for [outlineOutput], so we shouldn't
-      // include it in the deps file.
-      deps.add(dependency);
+  if (c.options.emitDeps) {
+    List<Uri> deps = result.deps.toList();
+    for (Uri dependency in await computeHostDependencies(hostPlatform)) {
+      // Add the dependencies of the compiler's own sources.
+      if (dependency != outlineOutput) {
+        // We're computing the dependencies for [outlineOutput], so we shouldn't
+        // include it in the deps file.
+        deps.add(dependency);
+      }
     }
+    await writeDepsFile(fullOutput,
+        new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
   }
-  await writeDepsFile(
-      fullOutput, new File(new File.fromUri(fullOutput).path + ".d").uri, deps);
 }
 
 Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {

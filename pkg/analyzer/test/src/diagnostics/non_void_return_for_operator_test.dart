@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,13 @@ main() {
 }
 
 @reflectiveTest
-class NonVoidReturnForOperatorTest extends DriverResolutionTest {
+class NonVoidReturnForOperatorTest extends PubPackageResolutionTest {
   test_indexSetter() async {
     await assertErrorsInCode('''
 class A {
   int operator []=(a, b) { return a; }
 }''', [
-      error(StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR, 12, 3),
+      error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR, 12, 3),
     ]);
   }
 

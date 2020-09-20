@@ -16,18 +16,13 @@ part of $LIBRARYNAME;
  *     window.localStorage['key3'] = 'val3';
  *     assert(window.localStorage['key3'] == 'val3');
  *
- * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * You can use [Map](https://api.dart.dev/stable/dart-core/Map-class.html) APIs
  * such as containsValue(), clear(), and length:
  *
  *     assert(window.localStorage.containsValue('does not exist') == false);
  *     window.localStorage.clear();
  *     assert(window.localStorage.length == 0);
  *
- * For more examples of using this API, see
- * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
- * For details on using the Map API, see the
- * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
- * section of the library tour.
  */
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
     with MapMixin<String, String> {

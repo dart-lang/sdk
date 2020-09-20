@@ -17,18 +17,18 @@ export 'package:observatory/service_common.dart';
 class _IOWebSocket implements CommonWebSocket {
   WebSocket _webSocket;
 
-  void connect(String address, void onOpen(), void onMessage(dynamic data),
-      void onError(), void onClose()) {
-    WebSocket.connect(address).then((WebSocket socket) {
-      _webSocket = socket;
+  Future<void> connect(WebSocketVMTarget target, void onOpen(),
+      void onMessage(dynamic data), void onError(), void onClose()) async {
+    try {
+      _webSocket = await WebSocket.connect(target.networkAddress);
       _webSocket.listen(onMessage,
           onError: (dynamic) => onError(),
           onDone: onClose,
           cancelOnError: true);
       onOpen();
-    }).catchError((e, st) {
+    } catch (_) {
       onError();
-    });
+    }
   }
 
   bool get isOpen =>

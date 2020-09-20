@@ -71,7 +71,7 @@ Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
   Dart_EnterScope();
   Dart_Handle result = Dart_LoadScriptFromKernel(buffer, buffer_size);
   if (Dart_IsError(result)) {
-    *error = strdup(Dart_GetError(result));
+    *error = Utils::StrDup(Dart_GetError(result));
     Dart_ExitScope();
     Dart_ShutdownIsolate();
     return nullptr;
@@ -89,7 +89,7 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
                                     const uint8_t* isolate_instr,
                                     char** error) {
   if (data.flags == nullptr) {
-    *error = strdup("Expected non-null flags");
+    *error = Utils::StrDup("Expected non-null flags");
     return nullptr;
   }
   data.flags->load_vmservice_library = true;
@@ -107,8 +107,9 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
                              config.disable_auth_codes,
                              config.write_service_info_filename,
                              /*trace_loading=*/false, config.deterministic,
-                             /*enable_service_port_fallback=*/false)) {
-    *error = strdup(bin::VmService::GetErrorMessage());
+                             /*enable_service_port_fallback=*/false,
+                             /*wait_for_dds_to_advertise_service=*/false)) {
+    *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
 
@@ -124,7 +125,7 @@ Dart_Isolate CreateVmServiceIsolateFromKernel(
     intptr_t kernel_buffer_size,
     char** error) {
   if (data.flags == nullptr) {
-    *error = strdup("Expected non-null flags");
+    *error = Utils::StrDup("Expected non-null flags");
     return nullptr;
   }
   data.flags->load_vmservice_library = true;
@@ -142,8 +143,9 @@ Dart_Isolate CreateVmServiceIsolateFromKernel(
                              config.disable_auth_codes,
                              config.write_service_info_filename,
                              /*trace_loading=*/false, config.deterministic,
-                             /*enable_service_port_fallback=*/false)) {
-    *error = strdup(bin::VmService::GetErrorMessage());
+                             /*enable_service_port_fallback=*/false,
+                             /*wait_for_dds_to_advertise_service=*/false)) {
+    *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
 

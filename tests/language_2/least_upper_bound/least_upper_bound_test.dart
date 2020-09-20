@@ -47,11 +47,11 @@ void testAB(A a, B b) {
   B r2 = false ? a : b;
   (true ? a : b).a = 0;
   //             ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'a' isn't defined for the class 'Object'.
   (false ? a : b).b = 0;
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'b' isn't defined for the class 'Object'.
   var c = new C();
   (true ? a as dynamic : c).a = 0;
@@ -64,7 +64,7 @@ void testBC(B b, C c) {
   (true ? b : c).b = 0;
   (false ? b : c).c = 0;
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'c' isn't defined for the class 'B'.
   var a = null;
   (true ? b : a).b = 0;
@@ -80,11 +80,11 @@ void testCD(C c, D d) {
   (false ? c : d).b = 0;
   (true ? c : d).c = 0;
   //             ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'c' isn't defined for the class 'B'.
   (false ? c : d).d = 0;
   //              ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
   // [cfe] The setter 'd' isn't defined for the class 'B'.
 }
 
@@ -94,12 +94,12 @@ void testEE(E<B> e, E<C> f) {
   F<C> r2 = false ? e : f;
   A r3 = true ? e : f;
   //     ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //          ^
   // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'A'.
   B r4 = false ? e : f;
   //     ^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //           ^
   // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'B'.
   (true ? e : f).e = null;
@@ -112,18 +112,18 @@ void testEF(E<B> e, F<C> f) {
   F<C> r2 = false ? e : f;
   A r3 = true ? e : f;
   //     ^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //          ^
   // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'A'.
   B r4 = false ? e : f;
   //     ^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //           ^
   // [cfe] A value of type 'E<B>' can't be assigned to a variable of type 'B'.
   var r5;
   r5 = (true ? e : f).e;
   r5 = (false ? e : f).f;
   //                   ^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'f' isn't defined for the class 'E<B>'.
 }

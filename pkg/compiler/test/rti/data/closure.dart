@@ -4,9 +4,8 @@
 
 // @dart = 2.7
 
-/*prod:nnbd-off|prod:nnbd-sdk.class: A:needsArgs*/
-/*spec:nnbd-off.class: A:direct,explicit=[A.T],needsArgs*/
-/*spec:nnbd-sdk.class: A:direct,explicit=[A.T*],needsArgs*/
+/*spec.class: A:direct,explicit=[A.T*],needsArgs*/
+/*prod.class: A:needsArgs*/
 class A<T> {
   m() {
     return /*needsSignature*/ (T t) {};

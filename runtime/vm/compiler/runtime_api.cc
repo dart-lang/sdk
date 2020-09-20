@@ -8,6 +8,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/runtime_offsets_list.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"
@@ -224,6 +225,19 @@ const Field& LookupMathRandomStateFieldOffset() {
   return state_field;
 }
 
+const Field& LookupConvertUtf8DecoderScanFlagsField() {
+  const auto& convert_lib =
+      dart::Library::Handle(dart::Library::ConvertLibrary());
+  ASSERT(!convert_lib.IsNull());
+  const auto& _utf8decoder_class = dart::Class::Handle(
+      convert_lib.LookupClassAllowPrivate(dart::Symbols::_Utf8Decoder()));
+  ASSERT(!_utf8decoder_class.IsNull());
+  const auto& scan_flags_field = dart::Field::ZoneHandle(
+      _utf8decoder_class.LookupInstanceFieldAllowPrivate(
+          dart::Symbols::_scanFlags()));
+  return scan_flags_field;
+}
+
 word LookupFieldOffsetInBytes(const Field& field) {
   return field.TargetOffset();
 }
@@ -262,6 +276,10 @@ void BailoutWithBranchOffsetError() {
 
 word RuntimeEntry::OffsetFromThread() const {
   return target::Thread::OffsetFromThread(runtime_entry_);
+}
+
+bool RuntimeEntry::is_leaf() const {
+  return runtime_entry_->is_leaf();
 }
 
 namespace target {
@@ -360,6 +378,8 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return TypedDataBase::InstanceSize();
     case kLinkedHashMapCid:
       return LinkedHashMap::InstanceSize();
+    case kUnhandledExceptionCid:
+      return UnhandledException::InstanceSize();
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:
@@ -492,6 +512,10 @@ word Context::variable_offset(word n) {
   return TranslateOffsetInWords(dart::Context::variable_offset(n));
 }
 
+#define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+
+#if defined(TARGET_ARCH_IA32)
+
 #define DEFINE_FIELD(clazz, name)                                              \
   word clazz::name() { return clazz##_##name; }
 
@@ -500,24 +524,8 @@ word Context::variable_offset(word n) {
     return clazz##_elements_start_offset + index * clazz##_element_size;       \
   }
 
-#define DEFINE_ARRAY_STRUCTFIELD(clazz, name, element_offset, field_offset)    \
-  word clazz::name(intptr_t index) {                                           \
-    return element_offset(index) + field_offset;                               \
-  }
-
-#if defined(TARGET_ARCH_IA32)
-
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
   word clazz::name() { return clazz##_##name; }
-
-#else
-
-#define DEFINE_SIZEOF(clazz, name, what)                                       \
-  word clazz::name() {                                                         \
-    return FLAG_precompiled_mode ? AOT_##clazz##_##name : clazz##_##name;      \
-  }
-
-#endif  //  defined(TARGET_ARCH_IA32)
 
 #define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
   word Class::Getter(Type index) {                                             \
@@ -525,25 +533,111 @@ word Context::variable_offset(word n) {
                             static_cast<intptr_t>(First)];                     \
   }
 
-#define DEFINE_CONSTANT(Class, Name) const word Class::Name = Class##_##Name;
+JIT_OFFSETS_LIST(DEFINE_FIELD,
+                 DEFINE_ARRAY,
+                 DEFINE_SIZEOF,
+                 DEFINE_RANGE,
+                 DEFINE_CONSTANT)
 
-#define PRECOMP_NO_CHECK(Code) Code
+COMMON_OFFSETS_LIST(DEFINE_FIELD,
+                    DEFINE_ARRAY,
+                    DEFINE_SIZEOF,
+                    DEFINE_RANGE,
+                    DEFINE_CONSTANT)
 
-OFFSETS_LIST(DEFINE_FIELD,
-             DEFINE_ARRAY,
-             DEFINE_ARRAY_STRUCTFIELD,
-             DEFINE_SIZEOF,
-             DEFINE_RANGE,
-             DEFINE_CONSTANT,
-             PRECOMP_NO_CHECK)
+#else
+
+#define DEFINE_JIT_FIELD(clazz, name)                                          \
+  word clazz::name() {                                                         \
+    if (FLAG_precompiled_mode) {                                               \
+      FATAL1("Use JIT-only field %s in precompiled mode", #clazz "::" #name);  \
+    }                                                                          \
+    return clazz##_##name;                                                     \
+  }
+
+#define DEFINE_JIT_ARRAY(clazz, name)                                          \
+  word clazz::name(intptr_t index) {                                           \
+    if (FLAG_precompiled_mode) {                                               \
+      FATAL1("Use of JIT-only array %s in precompiled mode",                   \
+             #clazz "::" #name);                                               \
+    }                                                                          \
+    return clazz##_elements_start_offset + index * clazz##_element_size;       \
+  }
+
+#define DEFINE_JIT_SIZEOF(clazz, name, what)                                   \
+  word clazz::name() {                                                         \
+    if (FLAG_precompiled_mode) {                                               \
+      FATAL1("Use of JIT-only sizeof %s in precompiled mode",                  \
+             #clazz "::" #name);                                               \
+    }                                                                          \
+    return clazz##_##name;                                                     \
+  }
+
+#define DEFINE_JIT_RANGE(Class, Getter, Type, First, Last, Filter)             \
+  word Class::Getter(Type index) {                                             \
+    if (FLAG_precompiled_mode) {                                               \
+      FATAL1("Use of JIT-only range %s in precompiled mode",                   \
+             #Class "::" #Getter);                                             \
+    }                                                                          \
+    return Class##_##Getter[static_cast<intptr_t>(index) -                     \
+                            static_cast<intptr_t>(First)];                     \
+  }
+
+JIT_OFFSETS_LIST(DEFINE_JIT_FIELD,
+                 DEFINE_JIT_ARRAY,
+                 DEFINE_JIT_SIZEOF,
+                 DEFINE_JIT_RANGE,
+                 DEFINE_CONSTANT)
+
+#undef DEFINE_JIT_FIELD
+#undef DEFINE_JIT_ARRAY
+#undef DEFINE_JIT_SIZEOF
+#undef DEFINE_JIT_RANGE
+
+#define DEFINE_FIELD(clazz, name)                                              \
+  word clazz::name() {                                                         \
+    return FLAG_precompiled_mode ? AOT_##clazz##_##name : clazz##_##name;      \
+  }
+
+#define DEFINE_ARRAY(clazz, name)                                              \
+  word clazz::name(intptr_t index) {                                           \
+    if (FLAG_precompiled_mode) {                                               \
+      return AOT_##clazz##_elements_start_offset +                             \
+             index * AOT_##clazz##_element_size;                               \
+    } else {                                                                   \
+      return clazz##_elements_start_offset + index * clazz##_element_size;     \
+    }                                                                          \
+  }
+
+#define DEFINE_SIZEOF(clazz, name, what)                                       \
+  word clazz::name() {                                                         \
+    return FLAG_precompiled_mode ? AOT_##clazz##_##name : clazz##_##name;      \
+  }
+
+#define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
+  word Class::Getter(Type index) {                                             \
+    if (FLAG_precompiled_mode) {                                               \
+      return AOT_##Class##_##Getter[static_cast<intptr_t>(index) -             \
+                                    static_cast<intptr_t>(First)];             \
+    } else {                                                                   \
+      return Class##_##Getter[static_cast<intptr_t>(index) -                   \
+                              static_cast<intptr_t>(First)];                   \
+    }                                                                          \
+  }
+
+COMMON_OFFSETS_LIST(DEFINE_FIELD,
+                    DEFINE_ARRAY,
+                    DEFINE_SIZEOF,
+                    DEFINE_RANGE,
+                    DEFINE_CONSTANT)
+
+#endif
 
 #undef DEFINE_FIELD
 #undef DEFINE_ARRAY
-#undef DEFINE_ARRAY_STRUCTFIELD
 #undef DEFINE_SIZEOF
 #undef DEFINE_RANGE
 #undef DEFINE_CONSTANT
-#undef PRECOMP_NO_CHECK
 
 const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
@@ -590,6 +684,14 @@ uword Thread::vm_execution_state() {
 
 uword Thread::vm_tag_compiled_id() {
   return dart::VMTag::kDartCompiledTagId;
+}
+
+uword Thread::exit_through_runtime_call() {
+  return dart::Thread::kExitThroughRuntimeCall;
+}
+
+uword Thread::exit_through_ffi() {
+  return dart::Thread::kExitThroughFfi;
 }
 
 word Thread::OffsetFromThread(const dart::Object& object) {
@@ -967,6 +1069,10 @@ word Code::NextFieldOffset() {
 }
 
 word SubtypeTestCache::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word LoadingUnit::NextFieldOffset() {
   return -kWordSize;
 }
 

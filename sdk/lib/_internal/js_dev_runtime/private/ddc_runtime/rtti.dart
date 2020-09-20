@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// This library defines the association between runtime objects and
 /// runtime types.
 part of dart._runtime;
@@ -116,7 +114,7 @@ getReifiedType(obj) {
 }
 
 /// Return the module name for a raw library object.
-String getModuleName(Object module) => JS('', '#[#]', module, _moduleName);
+String? getModuleName(Object module) => JS('', '#[#]', module, _moduleName);
 
 final _loadedModules = JS('', 'new Map()');
 final _loadedPartMaps = JS('', 'new Map()');
@@ -126,7 +124,7 @@ List<String> getModuleNames() {
   return JS<List<String>>('', 'Array.from(#.keys())', _loadedModules);
 }
 
-String getSourceMap(String moduleName) {
+String? getSourceMap(String moduleName) {
   return JS('!', '#.get(#)', _loadedSourceMaps, moduleName);
 }
 
@@ -143,7 +141,7 @@ getModulePartMap(String name) => JS('', '#.get(#)', _loadedPartMaps, name);
 
 /// Track all libraries
 void trackLibraries(
-    String moduleName, Object libraries, Object parts, String sourceMap) {
+    String moduleName, Object libraries, Object parts, String? sourceMap) {
   if (parts is String) {
     // Added for backwards compatibility.
     // package:build_web_compilers currently invokes this without [parts]
@@ -159,9 +157,9 @@ void trackLibraries(
   _parts = null;
 }
 
-List<String> _libraries;
-Map<String, Object> _libraryObjects;
-Map<String, List<String>> _parts;
+List<String>? _libraries;
+Map<String, Object?>? _libraryObjects;
+Map<String, List<String>?>? _parts;
 
 _computeLibraryMetadata() {
   _libraries = [];
@@ -174,16 +172,16 @@ _computeLibraryMetadata() {
     // TODO(nshahan) Can we optimize this cast and the one below to use
     // JsArray.of() to be more efficient?
     var libraries = getOwnPropertyNames(module).cast<String>();
-    _libraries.addAll(libraries);
+    _libraries!.addAll(libraries);
     for (var library in libraries) {
-      _libraryObjects[library] = JS('', '#.#', module, library);
+      _libraryObjects![library] = JS('', '#.#', module, library);
     }
 
     // Add parts from each module.
     var partMap = getModulePartMap(name);
     libraries = getOwnPropertyNames(partMap).cast<String>();
     for (var library in libraries) {
-      _parts[library] = List.from(JS('List', '#.#', partMap, library));
+      _parts![library] = List.from(JS('List', '#.#', partMap, library));
     }
   }
 }
@@ -191,11 +189,11 @@ _computeLibraryMetadata() {
 /// Returns the JS library object for a given library [uri] or
 /// undefined / null if it isn't loaded.  Top-level types and
 /// methods are available on this object.
-Object getLibrary(String uri) {
+Object? getLibrary(String uri) {
   if (_libraryObjects == null) {
     _computeLibraryMetadata();
   }
-  return _libraryObjects[uri];
+  return _libraryObjects![uri];
 }
 
 /// Returns a JSArray of library uris (e.g,
@@ -205,7 +203,7 @@ List<String> getLibraries() {
   if (_libraries == null) {
     _computeLibraryMetadata();
   }
-  return _libraries;
+  return _libraries!;
 }
 
 /// Returns a JSArray of part uris for a given [libraryUri].
@@ -225,5 +223,5 @@ List<String> getParts(String libraryUri) {
   if (_parts == null) {
     _computeLibraryMetadata();
   }
-  return _parts[libraryUri] ?? [];
+  return _parts![libraryUri] ?? [];
 }

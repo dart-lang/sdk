@@ -4,17 +4,17 @@
 
 // @dart = 2.7
 
-/*prod:nnbd-off.class: global#Map:deps=[Class],needsArgs*/
-/*spec:nnbd-off.class: global#Map:deps=[Class],explicit=[Map],indirect,needsArgs*/
+/*prod.class: global#Map:deps=[Class],needsArgs*/
+/*spec.class: global#Map:deps=[Class],explicit=[Map,Map<Object?,Object?>],indirect,needsArgs*/
 
-/*prod:nnbd-off.class: global#LinkedHashMap:deps=[Map],needsArgs*/
-/*spec:nnbd-off.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
+/*prod.class: global#LinkedHashMap:deps=[Map],needsArgs*/
+/*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 
-/*prod:nnbd-off.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
-/*spec:nnbd-off.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
+/*prod.class: global#JsLinkedHashMap:deps=[LinkedHashMap],implicit=[JsLinkedHashMap.K],needsArgs*/
+/*spec.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
 
-/*prod:nnbd-off.class: global#double:explicit=[double]*/
-/*spec:nnbd-off.class: global#double:explicit=[double],implicit=[double]*/
+/*prod.class: global#double:*/
+/*spec.class: global#double:implicit=[double]*/
 
 /*class: global#JSDouble:*/
 
@@ -25,8 +25,8 @@ main() {
   set is Set<String>;
 }
 
-/*prod:nnbd-off|prod:nnbd-sdk.class: Class:needsArgs*/
-/*spec:nnbd-off|spec:nnbd-sdk.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*spec.class: Class:implicit=[Class.S,Class.T],indirect,needsArgs*/
+/*prod.class: Class:needsArgs*/
 class Class<T, S> {
   m() {
     return <T, S>{};

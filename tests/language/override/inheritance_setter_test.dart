@@ -9,7 +9,7 @@ class A {
   void set setter4(num x) {} //# 004: compile-time error
   void set setter5(num x) {} //# 005: ok
   void set setter6(num x) {} //# 006: compile-time error
-  void set setter7(num x) {} //# 007: ok
+  void set setter7(num x) {} //# 007: compile-time error
 }
 
 class B extends A {

@@ -57,18 +57,21 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
 
   CodeAction findEditAction(List<Either2<Command, CodeAction>> actions,
       CodeActionKind actionKind, String title) {
-    for (var codeAction in actions) {
-      final codeActionLiteral =
-          codeAction.map((cmd) => null, (action) => action);
-      if (codeActionLiteral?.kind == actionKind &&
-          codeActionLiteral?.title == title) {
-        // We're specifically looking for an action that contains an edit.
-        assert(codeActionLiteral.command == null);
-        assert(codeActionLiteral.edit != null);
-        return codeActionLiteral;
-      }
-    }
-    return null;
+    return findEditActions(actions, actionKind, title)
+        .firstWhere((element) => true, orElse: () => null);
+  }
+
+  List<CodeAction> findEditActions(List<Either2<Command, CodeAction>> actions,
+      CodeActionKind actionKind, String title) {
+    return actions
+        .map((action) => action.map((cmd) => null, (action) => action))
+        .where((action) => action?.kind == actionKind && action?.title == title)
+        .map((action) {
+      // Expect matching actions to contain an edit and not a command.
+      assert(action.command == null);
+      assert(action.edit != null);
+      return action;
+    }).toList();
   }
 
   /// Verifies that executing the given code actions command on the server
@@ -97,12 +100,13 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     final commandResponse = await handleExpectedRequest<Object,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command),
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(applied: true);
       },
     );
     // Successful edits return an empty success() response.

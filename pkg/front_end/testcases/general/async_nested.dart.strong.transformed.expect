@@ -17,19 +17,19 @@ class Node extends core::Object {
     core::Iterable<dynamic>* tmp = let final core::List<self::Node*>* #t2 = this.{self::Node::nested} in #t2.{core::List::==}(null) ?{core::Iterable<dynamic>*} null : #t2.{core::Iterable::map}<dynamic>((self::Node* child) → dynamic => child.{self::Node::toSimpleString}());
     return "${this.{self::Node::name}} ${let final core::Iterable<dynamic>* #t3 = tmp in #t3.{core::Object::==}(null) ?{core::String*} null : #t3.{core::Iterable::join}(" ")}".{core::String::trim}();
   }
-  abstract member-signature get _identityHashCode() → core::int*;
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*;
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*;
-  abstract member-signature operator ==(dynamic other) → core::bool*;
-  abstract member-signature get hashCode() → core::int*;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic;
-  abstract member-signature get runtimeType() → core::Type*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → void /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic>* :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
-  asy::FutureOr<dynamic>* :return_value;
+  FutureOr<dynamic>* :return_value;
   dynamic :async_stack_trace;
   (dynamic) →* dynamic :async_op_then;
   (core::Object*, core::StackTrace*) →* dynamic :async_op_error;

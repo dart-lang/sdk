@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../completion_contributor_util.dart';
+import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -15,9 +14,9 @@ void main() {
 }
 
 @reflectiveTest
-class DeprecatedMemberRelevanceTest extends DartCompletionManagerTest {
+class DeprecatedMemberRelevanceTest extends CompletionRelevanceTest {
   Future<void> test_deprecated() async {
-    addTestSource('''
+    await addTestFile('''
 class A {
   void a1() { }
   @deprecated
@@ -29,18 +28,16 @@ void main() {
   a.^
 }
 ''');
-    await computeSuggestions();
 
-    expect(
-        suggestionWith(
-                completion: 'a2',
-                element: ElementKind.METHOD,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance,
-        lessThan(suggestionWith(
-                completion: 'a1',
-                element: ElementKind.METHOD,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance));
+    assertOrder([
+      suggestionWith(
+          completion: 'a1',
+          element: ElementKind.METHOD,
+          kind: CompletionSuggestionKind.INVOCATION),
+      suggestionWith(
+          completion: 'a2',
+          element: ElementKind.METHOD,
+          kind: CompletionSuggestionKind.INVOCATION),
+    ]);
   }
 }

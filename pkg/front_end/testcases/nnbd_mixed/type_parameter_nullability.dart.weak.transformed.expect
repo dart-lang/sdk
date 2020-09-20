@@ -1,0 +1,58 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "type_parameter_nullability_lib.dart" as typ;
+
+import "org-dartlang-testcase:///type_parameter_nullability_lib.dart";
+
+class C<T extends core::num? = core::num?, S extends core::Object? = dynamic, U extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%, self::C::S%, self::C::U%>
+    : super core::Object::•()
+    ;
+  method promoteNullable(generic-covariant-impl self::C::T? t) → void {
+    if(t is{ForNonNullableByDefault} core::int) {
+      t{self::C::T? & core::int /* '?' & '!' = '!' */};
+    }
+    if(t is{ForNonNullableByDefault} core::int?) {
+      t{self::C::T? & core::int? /* '?' & '?' = '?' */};
+    }
+  }
+  method nullableAsUndetermined(generic-covariant-impl self::C::S? s) → void {
+    s as{ForNonNullableByDefault} self::C::U%;
+  }
+}
+static method main() → dynamic {
+  self::C<core::num, core::num, core::num> c = new self::C::•<core::num, core::num, core::num>();
+  c.{self::C::promoteNullable}(null);
+  c.{self::C::promoteNullable}(0);
+  c.{self::C::nullableAsUndetermined}(null);
+  c.{self::C::nullableAsUndetermined}(0);
+  typ::D<core::num> d = new typ::D::•<core::num>();
+  d.{typ::D::promoteLegacy}(null);
+  d.{typ::D::promoteLegacy}(0);
+}
+
+library;
+import self as typ;
+import "dart:core" as core;
+
+class D<T extends core::num* = core::num*> extends core::Object {
+  synthetic constructor •() → typ::D<typ::D::T*>*
+    : super core::Object::•()
+    ;
+  method promoteLegacy(generic-covariant-impl typ::D::T* t) → void {
+    if(t is core::int*) {
+      let final typ::D::T* & core::int* /* '*' & '*' = '*' */ #t1 = t{typ::D::T* & core::int* /* '*' & '*' = '*' */} in #t1.{core::num::==}(null) ?{core::bool*} null : #t1.{core::int::isEven};
+    }
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

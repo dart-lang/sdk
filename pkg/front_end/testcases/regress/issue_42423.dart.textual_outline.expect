@@ -1,0 +1,6 @@
+import 'package:expect/expect.dart';
+
+test1(dynamic stringList) {}
+test2(dynamic stringList) {}
+test3(dynamic stringMap) {}
+main() {}

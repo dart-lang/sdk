@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._vmservice;
 
 class RunningIsolates implements MessageRouter {
-  final Map<int, RunningIsolate> isolates = new Map<int, RunningIsolate>();
-  int _rootPortId;
+  final isolates = <int, RunningIsolate>{};
+  int? _rootPortId;
 
   RunningIsolates();
 
@@ -16,7 +14,7 @@ class RunningIsolates implements MessageRouter {
     if (_rootPortId == null) {
       _rootPortId = portId;
     }
-    var ri = new RunningIsolate(portId, sp, name);
+    var ri = RunningIsolate(portId, sp, name);
     isolates[portId] = ri;
   }
 
@@ -29,7 +27,7 @@ class RunningIsolates implements MessageRouter {
 
   @override
   Future<Response> routeRequest(VMService service, Message message) {
-    String isolateParam = message.params['isolateId'];
+    String isolateParam = message.params['isolateId']!;
     int isolateId;
     if (!isolateParam.startsWith('isolates/')) {
       message.setErrorResponse(
@@ -38,7 +36,7 @@ class RunningIsolates implements MessageRouter {
     }
     isolateParam = isolateParam.substring('isolates/'.length);
     if (isolateParam == 'root') {
-      isolateId = _rootPortId;
+      isolateId = _rootPortId!;
     } else {
       try {
         isolateId = int.parse(isolateParam);
@@ -48,11 +46,11 @@ class RunningIsolates implements MessageRouter {
         return message.response;
       }
     }
-    var isolate = isolates[isolateId];
+    final isolate = isolates[isolateId];
     if (isolate == null) {
       // There is some chance that this isolate may have lived before,
       // so return a sentinel rather than an error.
-      var result = {
+      final result = <String, String>{
         'type': 'Sentinel',
         'kind': 'Collected',
         'valueAsString': '<collected>',
@@ -62,7 +60,7 @@ class RunningIsolates implements MessageRouter {
     }
 
     if (message.method == 'evaluateInFrame' || message.method == 'evaluate') {
-      return new _Evaluator(message, isolate, service).run();
+      return _Evaluator(message, isolate, service).run();
     } else {
       return isolate.routeRequest(service, message);
     }
@@ -77,11 +75,19 @@ class _Evaluator {
   _Evaluator(this._message, this._isolate, this._service);
 
   Future<Response> run() async {
-    Response buildScopeResponse = await _buildScope();
-    Map<String, dynamic> responseJson = buildScopeResponse.decodeJson();
+    if (_service.ddsUri != null) {
+      return Response.from(encodeRpcError(
+        _message,
+        kInternalError,
+        details: 'Fell through to VM Service expression evaluation when a DDS '
+            'instance was connected. Please file an issue on GitHub.',
+      ));
+    }
+    final buildScopeResponse = await _buildScope();
+    final responseJson = buildScopeResponse.decodeJson();
 
     if (responseJson.containsKey('error')) {
-      return new Response.from(encodeCompilationError(
+      return Response.from(encodeCompilationError(
           _message, responseJson['error']['data']['details']));
     }
 
@@ -89,9 +95,9 @@ class _Evaluator {
     try {
       kernelBase64 = await _compileExpression(responseJson['result']);
     } catch (e) {
-      return new Response.from(encodeCompilationError(_message, e.toString()));
+      return Response.from(encodeCompilationError(_message, e.toString()));
     }
-    return _evaluateCompiledExpression(kernelBase64);
+    return await _evaluateCompiledExpression(kernelBase64);
   }
 
   Message _message;
@@ -99,9 +105,9 @@ class _Evaluator {
   VMService _service;
 
   Future<Response> _buildScope() {
-    Map<String, dynamic> params = _setupParams();
+    final params = _setupParams();
     params['isolateId'] = _message.params['isolateId'];
-    Map buildScopeParams = {
+    final buildScopeParams = <String, dynamic>{
       'method': '_buildExpressionEvaluationScope',
       'id': _message.serial,
       'params': params,
@@ -109,8 +115,8 @@ class _Evaluator {
     if (_message.params['scope'] != null) {
       buildScopeParams['params']['scope'] = _message.params['scope'];
     }
-    var buildScope =
-        new Message._fromJsonRpcRequest(_message.client, buildScopeParams);
+    final buildScope =
+        Message._fromJsonRpcRequest(_message.client!, buildScopeParams);
 
     // Decode the JSON and and insert it into the map. The map key
     // is the request Uri.
@@ -119,61 +125,59 @@ class _Evaluator {
 
   Future<String> _compileExpression(
       Map<String, dynamic> buildScopeResponseResult) {
-    Client externalClient =
+    Client? externalClient =
         _service._findFirstClientThatHandlesService('compileExpression');
 
-    Map compileParams = {
-      'isolateId': _message.params['isolateId'],
-      'expression': _message.params['expression'],
-      'definitions': buildScopeResponseResult['param_names'],
-      'typeDefinitions': buildScopeResponseResult['type_params_names'],
-      'libraryUri': buildScopeResponseResult['libraryUri'],
-      'isStatic': buildScopeResponseResult['isStatic'],
+    final compileParams = <String, dynamic>{
+      'isolateId': _message.params['isolateId']!,
+      'expression': _message.params['expression']!,
+      'definitions': buildScopeResponseResult['param_names']!,
+      'typeDefinitions': buildScopeResponseResult['type_params_names']!,
+      'libraryUri': buildScopeResponseResult['libraryUri']!,
+      'isStatic': buildScopeResponseResult['isStatic']!,
     };
-    dynamic klass = buildScopeResponseResult['klass'];
+    final klass = buildScopeResponseResult['klass'];
     if (klass != null) {
       compileParams['klass'] = klass;
     }
     if (externalClient != null) {
-      var compileExpression = new Message.forMethod('compileExpression');
+      final compileExpression = Message.forMethod('compileExpression');
       compileExpression.client = externalClient;
       compileExpression.params.addAll(compileParams);
 
       final id = _service._serviceRequests.newId();
       final oldId = _message.serial;
-      final completer = new Completer<String>();
-      externalClient.serviceHandles[id] = (Message m) {
+      final completer = Completer<String>();
+      externalClient.serviceHandles[id] = (Message? m) {
         if (m != null) {
           completer.complete(json.encode(m.forwardToJson({'id': oldId})));
         } else {
           completer.complete(encodeRpcError(_message, kServiceDisappeared));
         }
       };
-      externalClient.post(new Response.json(compileExpression
+      externalClient.post(Response.json(compileExpression
           .forwardToJson({'id': id, 'method': 'compileExpression'})));
-      return completer.future
-          .then((String s) => jsonDecode(s))
-          .then((dynamic json) {
-        Map<String, dynamic> jsonMap = json;
+      return completer.future.then((s) => jsonDecode(s)).then((json) {
+        final Map<String, dynamic> jsonMap = json;
         if (jsonMap.containsKey('error')) {
           throw jsonMap['error'];
         }
-        return jsonMap['result']['result']['kernelBytes'];
+        return jsonMap['result']['kernelBytes'];
       });
     } else {
       // fallback to compile using kernel service
-      Map compileExpressionParams = {
+      final compileExpressionParams = <String, dynamic>{
         'method': '_compileExpression',
         'id': _message.serial,
         'params': compileParams,
       };
-      var compileExpression = new Message._fromJsonRpcRequest(
-          _message.client, compileExpressionParams);
+      final compileExpression = Message._fromJsonRpcRequest(
+          _message.client!, compileExpressionParams);
 
       return _isolate
           .routeRequest(_service, compileExpression)
-          .then((Response response) => response.decodeJson())
-          .then((dynamic json) {
+          .then((response) => response.decodeJson())
+          .then((json) {
         if (json['result'] != null) {
           return json['result']['kernelBytes'];
         }
@@ -184,11 +188,11 @@ class _Evaluator {
 
   Future<Response> _evaluateCompiledExpression(String kernelBase64) {
     if (kernelBase64.isNotEmpty) {
-      Map<String, dynamic> params = _setupParams();
+      final params = _setupParams();
       params['isolateId'] = _message.params['isolateId'];
       params['kernelBytes'] = kernelBase64;
       params['disableBreakpoints'] = _message.params['disableBreakpoints'];
-      Map runParams = {
+      final runParams = <String, dynamic>{
         'method': '_evaluateCompiledExpression',
         'id': _message.serial,
         'params': params,
@@ -196,8 +200,8 @@ class _Evaluator {
       if (_message.params['scope'] != null) {
         runParams['params']['scope'] = _message.params['scope'];
       }
-      var runExpression =
-          new Message._fromJsonRpcRequest(_message.client, runParams);
+      final runExpression =
+          Message._fromJsonRpcRequest(_message.client!, runParams);
       return _isolate.routeRequest(_service, runExpression); // _message
     } else {
       // empty kernel indicates dart1 mode

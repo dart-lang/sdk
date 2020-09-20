@@ -43,7 +43,7 @@ class Foo {
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ';' after this.
   //           ^^^^^^
-  // [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 
   external Foo.n21(val) : x = 1;
   //                    ^
@@ -67,7 +67,7 @@ class Foo {
   // [analyzer] SYNTACTIC_ERROR.EXTERNAL_FACTORY_REDIRECTION
   // [cfe] A redirecting factory can't be external.
   //                              ^^^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
   // [cfe] The constructor function type 'Bar Function(dynamic)' isn't a subtype of 'Foo Function(dynamic)'.
 }
 

@@ -7,7 +7,7 @@
 // The material is licensed under the Creative Commons Attribution-Share-Alike
 // License 3.0: https://creativecommons.org/licenses/by-sa/3.0/
 
-const String sk = """
+const String sk = '''
 Esperanto (pôvodne Lingvo Internacia – „medzinárodný jazyk“) je najrozšírenejší medzinárodný plánový jazyk. Názov je odvodený od pseudonymu, pod ktorým v roku 1887 zverejnil lekár L. L. Zamenhof základy tohto jazyka. Zámerom tvorcu bolo vytvoriť ľahko naučiteľný a použiteľný neutrálny jazyk, vhodný na použitie v medzinárodnej komunikácii. Cieľom nebolo nahradiť národné jazyky, čo bolo neskôr aj deklarované v Boulonskej deklarácii.
 
 Hoci žiaden štát neprijal esperanto ako úradný jazyk, používa ho komunita s odhadovaným počtom hovoriacich 100 000 až 2 000 000, z čoho približne 2 000 tvoria rodení hovoriaci. V Poľsku je na zozname nemateriálneho kultúrneho dedičstva. Získalo aj isté medzinárodné uznania, napríklad dve rezolúcie UNESCO či podporu známych osobností verejného života. V súčasnosti sa esperanto využíva pri cestovaní, korešpondencii, medzinárodných stretnutiach a kultúrnych výmenách, kongresoch, vedeckých diskusiách, v pôvodnej aj prekladovej literatúre, divadle a kine, hudbe, tlačenom aj internetovom spravodajstve, rozhlasovom a televíznom vysielaní.
@@ -43,4 +43,4 @@ Už na začiatku 20. storočia bolo na území dnešného Slovenska (vtedy sever
 
 Po prvej svetovej vojne sa oba pražské spolky zlúčili do "Československej Esperantskej Asociácie". Tá bola v roku 1936 premenovaná na "Esperantskú Asociáciu v Československej republike". V tomto období bolo hnutie veľmi aktívne, fungovalo mnoho klubov, konalo sa veľa prednášok a kurzov. Esperanto bolo vyučované na školách rôznych stupňov, rádio Bratislava od 1930 vysielalo kurzy a od 1932 aj kultúrny program v esperante. Bola vydaná "Československá antológia" predstavujúca diela 20 slovenských autorov. V rámci protifašistickej aktivity vychádzali aj preklady protifašistických článkov z esperantských časopisov z obdobia Španielskej občianskej vojny.
 
-Druhá svetová vojna utlmila esperantské hnutie. Bratislavský esperantský klub požiadal o zmenu štatútu a rozšírenie poľa pôsobnosti na celú vtedajšiu Slovenskú republiku a následne sa stal strediskom esperantského hnutia na Slovensku.""";
+Druhá svetová vojna utlmila esperantské hnutie. Bratislavský esperantský klub požiadal o zmenu štatútu a rozšírenie poľa pôsobnosti na celú vtedajšiu Slovenskú republiku a následne sa stal strediskom esperantského hnutia na Slovensku.''';

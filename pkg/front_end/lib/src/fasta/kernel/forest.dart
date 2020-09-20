@@ -7,6 +7,7 @@ library fasta.fangorn;
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
 
 import '../problems.dart' show unsupported;
 
@@ -761,7 +762,14 @@ class _VariablesDeclaration extends Statement {
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    for (int index = 0; index < declarations.length; index++) {
+      if (index > 0) {
+        printer.write(', ');
+      }
+      printer.writeVariableDeclaration(declarations[index],
+          includeModifiersAndType: index == 0);
+    }
+    printer.write(';');
   }
 }

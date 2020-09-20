@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -23,19 +23,6 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ObjectPoolViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ObjectPoolViewElement>('object-pool-view', dependencies: const [
-    ContextRefElement.tag,
-    CurlyBlockElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<ObjectPoolViewElement> _r;
 
   Stream<RenderedEvent<ObjectPoolViewElement>> get onRendered => _r.onRendered;
@@ -97,7 +84,7 @@ class ObjectPoolViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ObjectPoolViewElement.created() : super.created(tag);
+  ObjectPoolViewElement.created() : super.created('object-pool-view');
 
   @override
   attached() {

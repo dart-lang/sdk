@@ -1326,11 +1326,11 @@ class Printer implements NodeVisitor {
     if (node.isStar) {
       out('*');
     } else {
-      var name = node.name.name;
+      var localName = localNamer.getName(node.name);
       if (node.asName == null) {
         // If our local was renamed, generate an implicit "as".
         // This is a convenience feature so imports and exports can be renamed.
-        var localName = localNamer.getName(node.name);
+        var name = node.name.name;
         if (localName != name) {
           out(export ? localName : name);
           out(' as ');
@@ -1338,7 +1338,7 @@ class Printer implements NodeVisitor {
           return;
         }
       }
-      out(name);
+      out(localName);
     }
     if (node.asName != null) {
       out(' as ');

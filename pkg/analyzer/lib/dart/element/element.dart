@@ -34,21 +34,24 @@
 /// representation of the statements in a method body, but if one of those
 /// statements declares a local variable then the local variable will be
 /// represented by an element.
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show Namespace;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
@@ -77,12 +80,6 @@ abstract class ClassElement
   /// Return `true` if this class or its superclass declares a non-final
   /// instance field.
   bool get hasNonFinalField;
-
-  /// Return `true` if this class has at least one reference to `super` (and
-  /// hence cannot be used as a mixin), or `false` if this element represents a
-  /// mixin, even if the mixin has a reference to `super`, because it is allowed
-  /// to be used as a mixin.
-  bool get hasReferenceToSuper;
 
   /// Return `true` if this class declares a static member.
   bool get hasStaticMember;
@@ -116,19 +113,6 @@ abstract class ClassElement
   /// Return `true` if this class is a mixin application.  A class is a mixin
   /// application if it was declared using the syntax "class A = B with C;".
   bool get isMixinApplication;
-
-  /// Return `true` if this class [isProxy], or if it inherits the proxy
-  /// annotation from a supertype.
-  @Deprecated(
-    'The @proxy annotation is deprecated in the langauge, and will be removed',
-  )
-  bool get isOrInheritsProxy;
-
-  /// Return `true` if this element has an annotation of the form '@proxy'.
-  @Deprecated(
-    'The @proxy annotation is deprecated in the langauge, and will be removed',
-  )
-  bool get isProxy;
 
   /// Return `true` if this class can validly be used as a mixin when defining
   /// another class. For classes defined by a mixin declaration, the result is
@@ -191,10 +175,6 @@ abstract class ClassElement
   /// nullability status of the declaring library.
   InterfaceType get thisType;
 
-  @override
-  @deprecated
-  InterfaceType get type;
-
   /// Return the unnamed constructor declared in this class, or `null` if either
   /// this class does not declare an unnamed constructor but does declare named
   /// constructors or if this class represents a mixin declaration. The returned
@@ -232,14 +212,6 @@ abstract class ClassElement
   /// and [nullabilitySuffix].
   InterfaceType instantiate({
     @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Create the [InterfaceType] for this class with type arguments that
-  /// correspond to the bounds of the type parameters, and the given
-  /// [nullabilitySuffix].
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  InterfaceType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 
@@ -485,6 +457,9 @@ abstract class ConstructorElement
   /// if this constructor does not redirect to another constructor or if the
   /// library containing this constructor has not yet been resolved.
   ConstructorElement get redirectedConstructor;
+
+  @override
+  InterfaceType get returnType;
 }
 
 /// The base class for all of the elements in the element model. Generally
@@ -553,8 +528,14 @@ abstract class Element implements AnalysisTarget {
   /// or `@Deprecated('..')`.
   bool get hasDeprecated;
 
+  /// Return `true` if this element has an annotation of the form `@doNotStore`.
+  bool get hasDoNotStore;
+
   /// Return `true` if this element has an annotation of the form `@factory`.
   bool get hasFactory;
+
+  /// Return `true` if this element has an annotation of the form `@internal`.
+  bool get hasInternal;
 
   /// Return `true` if this element has an annotation of the form `@isTest`.
   bool get hasIsTest;
@@ -657,12 +638,6 @@ abstract class Element implements AnalysisTarget {
   /// by the visitor as a result of visiting this element.
   T accept<T>(ElementVisitor<T> visitor);
 
-  /// Return the most immediate ancestor of this element for which the
-  /// [predicate] returns `true`, or `null` if there is no such ancestor. Note
-  /// that this element will never be returned.
-  @Deprecated('Use either thisOrAncestorMatching or thisOrAncestorOfType')
-  E getAncestor<E extends Element>(Predicate<Element> predicate);
-
   /// Return the presentation of this element as it should appear when
   /// presented to users.
   ///
@@ -719,6 +694,7 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return a representation of the value of this annotation, or `null` if the
   /// value of this annotation has not been computed or if the value could not
   /// be computed because of errors.
+  @Deprecated('Use computeConstantValue() instead')
   DartObject get constantValue;
 
   /// Return the element representing the field, variable, or const constructor
@@ -733,12 +709,20 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// deprecated.
   bool get isDeprecated;
 
+  /// Return `true` if this annotation marks the associated element as not to be
+  /// stored.
+  bool get isDoNotStore;
+
   /// Return `true` if this annotation marks the associated member as a factory.
   bool get isFactory;
 
   /// Return `true` if this annotation marks the associated class and its
   /// subclasses as being immutable.
   bool get isImmutable;
+
+  /// Return `true` if this annotation marks the associated element as being
+  /// internal to its package.
+  bool get isInternal;
 
   /// Return `true` if this annotation marks the associated member as running
   /// a single test.
@@ -788,6 +772,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// sealed.
   bool get isSealed;
 
+  /// Return `true` if this annotation marks the associated class as being
+  /// intended to be used as an annotation.
+  bool get isTarget;
+
   /// Return `true` if this annotation marks the associated member as being
   /// visible for template files.
   bool get isVisibleForTemplate;
@@ -821,62 +809,64 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 3, "<dynamic>");
 
-  static const ElementKind ERROR = ElementKind('ERROR', 4, "<error>");
+  static const ElementKind ENUM = ElementKind('ENUM', 4, "enum");
+
+  static const ElementKind ERROR = ElementKind('ERROR', 5, "<error>");
 
   static const ElementKind EXPORT =
-      ElementKind('EXPORT', 5, "export directive");
+      ElementKind('EXPORT', 6, "export directive");
 
-  static const ElementKind EXTENSION =
-      ElementKind('EXTENSION', 24, "extension");
+  static const ElementKind EXTENSION = ElementKind('EXTENSION', 7, "extension");
 
-  static const ElementKind FIELD = ElementKind('FIELD', 6, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 8, "field");
 
-  static const ElementKind FUNCTION = ElementKind('FUNCTION', 7, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 9, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 8, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 10, 'generic function type');
 
-  static const ElementKind GETTER = ElementKind('GETTER', 9, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 11, "getter");
 
   static const ElementKind IMPORT =
-      ElementKind('IMPORT', 10, "import directive");
+      ElementKind('IMPORT', 12, "import directive");
 
-  static const ElementKind LABEL = ElementKind('LABEL', 11, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 13, "label");
 
-  static const ElementKind LIBRARY = ElementKind('LIBRARY', 12, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 14, "library");
 
   static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 13, "local variable");
+      ElementKind('LOCAL_VARIABLE', 15, "local variable");
 
-  static const ElementKind METHOD = ElementKind('METHOD', 14, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 16, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 15, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 17, "<name>");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 16, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 18, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 17, "parameter");
+      ElementKind('PARAMETER', 19, "parameter");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 18, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 20, "import prefix");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 19, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 21, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 22, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 23, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 22, "type parameter");
+      ElementKind('TYPE_PARAMETER', 24, "type parameter");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 23, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 25, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
     COMPILATION_UNIT,
     CONSTRUCTOR,
     DYNAMIC,
+    ENUM,
     ERROR,
     EXPORT,
     FIELD,
@@ -1102,11 +1092,18 @@ abstract class FieldElement
   @override
   FieldElement get declaration;
 
+  /// Return `true` if this field is abstract. Executable fields are abstract if
+  /// they are declared with the `abstract` keyword.
+  bool get isAbstract;
+
   /// Return `true` if this field was explicitly marked as being covariant.
   bool get isCovariant;
 
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
+
+  /// Return `true` if this field was explicitly marked as being external.
+  bool get isExternal;
 
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
@@ -1154,7 +1151,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAliasElement
-    implements FunctionTypedElement, TypeDefiningElement {
+    implements TypeParameterizedElement, TypeDefiningElement {
   @override
   CompilationUnitElement get enclosingElement;
 
@@ -1172,34 +1169,6 @@ abstract class FunctionTypeAliasElement
   /// then `F<int>` will produce `void Function<U>(int, U)`.
   FunctionType instantiate({
     @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Produces the function type resulting from instantiating this typedef with
-  /// the given [typeArguments] and [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
-  /// generic function, with type formals. For example, if the typedef is:
-  ///     typedef F<T> = void Function<U>(T, U);
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
-  @Deprecated('Use instantiate() instead')
-  FunctionType instantiate2({
-    @required List<DartType> typeArguments,
-    @required NullabilitySuffix nullabilitySuffix,
-  });
-
-  /// Produces the function type resulting from instantiating this typedef with
-  /// type arguments that correspond to the bounds of the type parameters, and
-  /// the given [nullabilitySuffix].
-  ///
-  /// Note that this always instantiates the typedef itself, so for a
-  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
-  /// generic function, with type formals. For example, if the typedef is:
-  ///     typedef F<T> = void Function<U>(T, U);
-  /// then `F<int>` will produce `void Function<U>(int, U)`.
-  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
-  FunctionType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
 }
@@ -1302,6 +1271,13 @@ abstract class LibraryElement implements Element {
   /// Return a list containing all of the exports defined in this library.
   List<ExportElement> get exports;
 
+  /// The set of features available to this library.
+  ///
+  /// Determined by the combination of the language version for the enclosing
+  /// package, enabled experiments, and the presence of a `// @dart` language
+  /// version override comment at the top of the file.
+  FeatureSet get featureSet;
+
   /// Return `true` if the defining compilation unit of this library contains at
   /// least one import directive whose URI uses the "dart-ext" scheme.
   bool get hasExtUri;
@@ -1338,11 +1314,8 @@ abstract class LibraryElement implements Element {
 
   bool get isNonNullableByDefault;
 
-  /// The major component of the language version for this library.
-  int get languageVersionMajor;
-
-  /// The minor component of the language version for this library.
-  int get languageVersionMinor;
+  /// The language version for this library.
+  LibraryLanguageVersion get languageVersion;
 
   /// Return the element representing the synthetic function `loadLibrary` that
   /// is implicitly defined for this library if the library is imported using a
@@ -1362,6 +1335,10 @@ abstract class LibraryElement implements Element {
   /// The public [Namespace] of this library, `null` if it has not been
   /// computed yet.
   Namespace get publicNamespace;
+
+  /// Return the name lookup scope for this library. It consists of elements
+  /// that are either declared in the library, or imported into it.
+  Scope get scope;
 
   /// Return the top-level elements defined in each of the compilation units
   /// that are included in this library. This includes both public and private
@@ -1396,6 +1373,24 @@ abstract class LibraryElement implements Element {
   DartType toLegacyTypeIfOptOut(DartType type);
 }
 
+class LibraryLanguageVersion {
+  /// The version for the whole package that contains this library.
+  final Version package;
+
+  /// The version specified using `@dart` override, `null` if absent or invalid.
+  final Version override;
+
+  LibraryLanguageVersion({
+    @required this.package,
+    @required this.override,
+  });
+
+  /// The effective language version for the library.
+  Version get effective {
+    return override ?? package;
+  }
+}
+
 /// An element that can be (but is not required to be) defined within a method
 /// or function (an [ExecutableElement]).
 ///
@@ -1405,7 +1400,10 @@ abstract class LocalElement implements Element {}
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement implements PromotableElement {}
+abstract class LocalVariableElement implements PromotableElement {
+  /// Return `true` if this variable has an initializer at declaration.
+  bool get hasInitializer;
+}
 
 /// An element that represents a method defined within a class.
 ///
@@ -1429,10 +1427,6 @@ abstract class MultiplyDefinedElement implements Element {
   /// Return a list containing all of the elements that were defined within the
   /// scope to have the same name.
   List<Element> get conflictingElements;
-
-  /// Return the type of this element as the dynamic type.
-  @deprecated
-  DartType get type;
 }
 
 /// An [ExecutableElement], with the additional information of a list of
@@ -1460,6 +1454,9 @@ abstract class ParameterElement
 
   /// Return the Dart code of the default value, or `null` if no default value.
   String get defaultValueCode;
+
+  /// Return `true` if this parameter has a default value.
+  bool get hasDefaultValue;
 
   /// Return `true` if this parameter is covariant, meaning it is allowed to
   /// have a narrower type in an override.
@@ -1544,6 +1541,11 @@ abstract class ParameterElement
 abstract class PrefixElement implements Element {
   @override
   LibraryElement get enclosingElement;
+
+  /// Return the name lookup scope for this import prefix. It consists of
+  /// elements imported into the enclosing library with this prefix. The
+  /// namespace combinators of the import directives are taken into account.
+  Scope get scope;
 }
 
 /// A variable that might be subject to type promotion.  This might be a local
@@ -1614,6 +1616,9 @@ abstract class PropertyInducingElement implements VariableElement {
   /// will be synthetic.
   PropertyAccessorElement get getter;
 
+  /// Return `true` if this variable has an initializer at declaration.
+  bool get hasInitializer;
+
   /// Return the setter associated with this variable, or `null` if the variable
   /// is effectively `final` and therefore does not have a setter associated
   /// with it. (This can happen either because the variable is explicitly
@@ -1647,16 +1652,15 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 abstract class TopLevelVariableElement implements PropertyInducingElement {
   @override
   TopLevelVariableElement get declaration;
+
+  /// Return `true` if this field was explicitly marked as being external.
+  bool get isExternal;
 }
 
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningElement implements Element {
-  /// Return the type defined by this element.
-  @deprecated
-  DartType get type;
-}
+abstract class TypeDefiningElement implements Element {}
 
 /// A type parameter.
 ///
@@ -1670,10 +1674,6 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 
   @override
   TypeParameterElement get declaration;
-
-  @override
-  @deprecated
-  TypeParameterType get type;
 
   /// Create the [TypeParameterType] with the given [nullabilitySuffix] for
   /// this type parameter.
@@ -1749,6 +1749,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// `null` if this variable does not have an initializer. The function will
   /// have no parameters. The return type of the function will be the
   /// compile-time type of the initialization expression.
+  @deprecated
   FunctionElement get initializer;
 
   /// Return `true` if this variable was declared with the 'const' modifier.

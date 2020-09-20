@@ -1,0 +1,14 @@
+import 'value_class_support_lib.dart';
+
+@valueClass
+class A {}
+
+class B {}
+
+class C {}
+
+class D = A with B;
+class E = B with A;
+@valueClass
+class F = B with C;
+main() {}

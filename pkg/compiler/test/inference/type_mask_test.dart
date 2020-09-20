@@ -8,6 +8,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -32,6 +33,7 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+    AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
 
     dynamic classA =
@@ -54,16 +56,16 @@ main() {
     var subclassObject = new TypeMask.nonNullSubclass(
         closedWorld.commonElements.objectClass, closedWorld);
 
-    var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], closedWorld);
+    var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], commonMasks);
     var unionABnC =
-        UnionTypeMask.unionOf([exactA, exactB.nullable(), exactC], closedWorld);
-    var unionAB = UnionTypeMask.unionOf([exactA, exactB], closedWorld);
-    var unionSubtypeAC = UnionTypeMask.unionOf([subtypeA, exactC], closedWorld);
+        UnionTypeMask.unionOf([exactA, exactB.nullable(), exactC], commonMasks);
+    var unionAB = UnionTypeMask.unionOf([exactA, exactB], commonMasks);
+    var unionSubtypeAC = UnionTypeMask.unionOf([subtypeA, exactC], commonMasks);
     var unionSubclassAC =
-        UnionTypeMask.unionOf([subclassA, exactC], closedWorld);
-    var unionBCD = UnionTypeMask.unionOf([exactB, exactC, exactD], closedWorld);
+        UnionTypeMask.unionOf([subclassA, exactC], commonMasks);
+    var unionBCD = UnionTypeMask.unionOf([exactB, exactC, exactD], commonMasks);
     var unionBCDn =
-        UnionTypeMask.unionOf([exactB, exactC, exactD.nullable()], closedWorld);
+        UnionTypeMask.unionOf([exactB, exactC, exactD.nullable()], commonMasks);
 
     Expect.isFalse(unionABC.isNullable);
     Expect.isTrue(unionABnC.isNullable);

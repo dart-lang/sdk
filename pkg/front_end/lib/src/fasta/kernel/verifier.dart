@@ -240,7 +240,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitField(Field node) {
     enterTreeNode(node);
-    fileUri = checkLocation(node, node.name.name, node.fileUri);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
     super.visitField(node);
     exitTreeNode(node);
   }
@@ -248,7 +248,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitProcedure(Procedure node) {
     enterTreeNode(node);
-    fileUri = checkLocation(node, node.name.name, node.fileUri);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
     super.visitProcedure(node);
     exitTreeNode(node);
   }
@@ -261,12 +261,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
           importUri.path == "core";
     }
     return false;
-  }
-
-  bool isFutureOrClass(Class c) {
-    return c.name == "FutureOr" &&
-        c.enclosingLibrary.importUri.scheme == "dart" &&
-        c.enclosingLibrary.importUri.path == "async";
   }
 
   bool isObjectClass(Class c) {
@@ -282,16 +276,12 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
             isObjectClass(node.classNode) &&
             (node.nullability == Nullability.nullable ||
                 node.nullability == Nullability.legacy) ||
-        node is InterfaceType &&
-            isFutureOrClass(node.classNode) &&
-            isTopType(node.typeArguments.single);
+        node is FutureOrType && isTopType(node.typeArgument);
   }
 
   bool isFutureOrNull(DartType node) {
     return isNullType(node) ||
-        node is InterfaceType &&
-            isFutureOrClass(node.classNode) &&
-            isFutureOrNull(node.typeArguments.single);
+        node is FutureOrType && isFutureOrNull(node.typeArgument);
   }
 
   @override

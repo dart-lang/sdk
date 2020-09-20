@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server_client/protocol.dart'
+    show EditBulkFixesResult, ResponseDecoder;
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
@@ -22,11 +24,15 @@ class AnalysisServer {
   Process _process;
   final StreamController<bool> _analyzingController =
       StreamController<bool>.broadcast();
+  final StreamController<EditBulkFixesResult> _bulkFixesController =
+      StreamController<EditBulkFixesResult>.broadcast();
   final StreamController<FileAnalysisErrors> _errorsController =
       StreamController<FileAnalysisErrors>.broadcast();
   bool _didServerErrorOccur = false;
 
   int _id = 0;
+
+  String _fixRequestId;
 
   bool get didServerErrorOccur => _didServerErrorOccur;
 
@@ -34,19 +40,20 @@ class AnalysisServer {
 
   Stream<FileAnalysisErrors> get onErrors => _errorsController.stream;
 
+  Stream<EditBulkFixesResult> get onBulkFixes => _bulkFixesController.stream;
+
   Future<int> get onExit => _process.exitCode;
 
   Future<void> start() async {
     final List<String> command = <String>[
-      sdk.analysis_server_snapshot,
+      sdk.analysisServerSnapshot,
       '--disable-server-feature-completion',
       '--disable-server-feature-search',
       '--sdk',
       sdkPath.path,
     ];
 
-    log.trace('dart ${command.join(' ')}');
-    _process = await startProcess(sdk.dart, command);
+    _process = await startDartProcess(sdk, command);
     // This callback hookup can't throw.
     //ignore: unawaited_futures
     _process.exitCode.whenComplete(() => _process = null);
@@ -80,6 +87,13 @@ class AnalysisServer {
       'included': [dirPath],
       'excluded': <String>[]
     });
+  }
+
+  void requestBulkFixes(String filePath) {
+    _sendCommand('edit.bulkFixes', <String, dynamic>{
+      'included': [path.canonicalize(filePath)],
+    });
+    _fixRequestId = _id.toString();
   }
 
   void _sendCommand(String method, Map<String, dynamic> params) {
@@ -116,12 +130,19 @@ class AnalysisServer {
         final Map<String, dynamic> error =
             castStringKeyedMap(response['error']);
         log.stderr(
-            'Error response from the server: ${error['code']} ${error['message']}');
+          'Error response from the server: '
+          '${error['code']} ${error['message']}',
+        );
         if (error['stackTrace'] != null) {
           log.stderr(error['stackTrace'] as String);
         }
         // Dispose of the process at this point so the process doesn't hang.
         dispose();
+      } else if (response['id'] == _fixRequestId) {
+        var decoder = ResponseDecoder(null);
+        var result =
+            EditBulkFixesResult.fromJson(decoder, 'result', response['result']);
+        _bulkFixesController.add(result);
       }
     }
   }
@@ -202,6 +223,8 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   String get code => json['code'] as String;
 
+  String get correction => json['correction'] as String;
+
   String get file => json['location']['file'] as String;
 
   int get startLine => json['location']['startLine'] as int;
@@ -211,6 +234,17 @@ class AnalysisError implements Comparable<AnalysisError> {
   int get offset => json['location']['offset'] as int;
 
   String get messageSentenceFragment => trimEnd(message, '.');
+
+  String get url => json['url'] as String;
+
+  List<DiagnosticMessage> get contextMessages {
+    var messages = json['contextMessages'] as List<dynamic>;
+    if (messages == null) {
+      // The field is optional, so we return an empty list as a default value.
+      return [];
+    }
+    return messages.map((message) => DiagnosticMessage(message)).toList();
+  }
 
   // TODO(jwren) add some tests to verify that the results are what we are
   //  expecting, 'other' is not always on the RHS of the subtraction in the
@@ -235,11 +269,23 @@ class AnalysisError implements Comparable<AnalysisError> {
   }
 
   @override
-  String toString() {
-    return '${severity.toLowerCase()} • '
-        '$messageSentenceFragment at $file:$startLine:$startColumn • '
-        '($code)';
-  }
+  String toString() => '${severity.toLowerCase()} • '
+      '$messageSentenceFragment at $file:$startLine:$startColumn • '
+      '($code)';
+}
+
+class DiagnosticMessage {
+  final Map<String, dynamic> json;
+
+  DiagnosticMessage(this.json);
+
+  int get column => json['location']['startColumn'] as int;
+
+  String get filePath => json['location']['file'] as String;
+
+  int get line => json['location']['startLine'] as int;
+
+  String get message => json['message'] as String;
 }
 
 class FileAnalysisErrors {

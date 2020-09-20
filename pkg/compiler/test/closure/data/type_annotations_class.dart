@@ -50,8 +50,8 @@ class Class1b<T> {
 class Class2<T> {
   /*member: Class2.method2:hasThis*/
   method2() {
-    /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
-    /*spec:nnbd-off|spec:nnbd-sdk.fields=[this],free=[this],hasThis*/
+    /*spec.fields=[this],free=[this],hasThis*/
+    /*prod.hasThis*/
     dynamic local(T t) => t;
     return local;
   }
@@ -65,8 +65,8 @@ class Class2<T> {
 class Class3<T> {
   /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
-    /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o],hasThis*/
-    /*spec:nnbd-off|spec:nnbd-sdk.fields=[o,this],free=[o,this],hasThis*/
+    /*spec.fields=[o,this],free=[o,this],hasThis*/
+    /*prod.fields=[o],free=[o],hasThis*/
     T local() => o;
     return local;
   }
@@ -108,8 +108,8 @@ class Class5<T> {
 class Class6<T> {
   /*member: Class6.method6:hasThis*/
   method6() {
-    /*prod:nnbd-off|prod:nnbd-sdk.hasThis*/
-    /*spec:nnbd-off|spec:nnbd-sdk.fields=[this],free=[this],hasThis*/
+    /*spec.fields=[this],free=[this],hasThis*/
+    /*prod.hasThis*/
     dynamic local(T t) {
       /*fields=[t],free=[t],hasThis*/
       dynamic inner() => t;
@@ -128,8 +128,8 @@ class Class6<T> {
 class Class7<T> {
   /*member: Class7.method7:hasThis*/
   method7(dynamic o) {
-    /*prod:nnbd-off|prod:nnbd-sdk.fields=[o],free=[o],hasThis*/
-    /*spec:nnbd-off|spec:nnbd-sdk.fields=[o,this],free=[o,this],hasThis*/
+    /*spec.fields=[o,this],free=[o,this],hasThis*/
+    /*prod.fields=[o],free=[o],hasThis*/
     T local() {
       /*fields=[o],free=[o],hasThis*/
       dynamic inner() => o;

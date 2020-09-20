@@ -1,0 +1,27 @@
+const annotation = null;
+
+class Annotation {
+final String message;
+const Annotation(this.message);
+}
+
+class A<E> {}
+
+class C {
+m() => new A<@annotation @Annotation("test") C>();
+}
+
+
+const[KeywordToken] annotation[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+
+class[KeywordToken] Annotation[StringToken] {[BeginToken]
+final[KeywordToken] String[StringToken] message[StringToken];[SimpleToken]
+const[KeywordToken] Annotation[StringToken]([BeginToken]this[KeywordToken].[SimpleToken]message[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] A[StringToken]<[BeginToken]E[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+m[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] new[KeywordToken] A[StringToken]<[BeginToken]@[SimpleToken]annotation[StringToken] @[SimpleToken]Annotation[StringToken]([BeginToken]"test"[StringToken])[SimpleToken] C[StringToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

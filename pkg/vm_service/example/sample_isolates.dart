@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:isolate';
 
 main(List<String> args) async {
@@ -22,7 +21,7 @@ main(List<String> args) async {
   startIsolate(3);
   startIsolate(4);
 
-  await new Future.delayed(new Duration(seconds: 5));
+  await Future.delayed(Duration(seconds: 5));
 
   print('at end of main...');
 }
@@ -33,7 +32,7 @@ void startIsolate(int val) {
 
 isolateEntry(message) async {
   print('starting $message');
-  await new Future.delayed(new Duration(seconds: message));
+  await Future.delayed(Duration(seconds: message));
   print('ending $message');
 }
 

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,14 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToFunctionTest extends DriverResolutionTest {
+class AssignmentToFunctionTest extends PubPackageResolutionTest {
   test_function() async {
     await assertErrorsInCode('''
 f() {}
 main() {
   f = null;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_FUNCTION, 18, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION, 18, 1),
     ]);
   }
 }

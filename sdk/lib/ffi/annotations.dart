@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.ffi;
 
 class DartRepresentationOf {
@@ -34,6 +32,5 @@ class Unsized {
 /// This [NativeType] does not have predefined size.
 ///
 /// Unsized NativeTypes do not support [sizeOf] because their size is unknown.
-/// Consequently, [allocate], [Pointer.load], [Pointer.store], and
-/// [Pointer.elementAt] are not available.
+/// Consequently, [Pointer.elementAt] is not available.
 const unsized = const Unsized();

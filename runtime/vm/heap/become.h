@@ -86,11 +86,11 @@ class Become : public AllStatic {
   // (used for morphic instances during reload).
   static void MakeDummyObject(const Instance& instance);
 
- private:
   // Update any references pointing to forwarding objects to point the
   // forwarding objects' targets.
   static void FollowForwardingPointers(Thread* thread);
 
+ private:
   static void CrashDump(ObjectPtr before_obj, ObjectPtr after_obj);
 };
 

@@ -176,8 +176,6 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   Monitor sync[kTaskCount];
   bool done[kTaskCount];
   Isolate* isolate = thread->isolate();
-  EXPECT(isolate->heap()->GrowthControlState());
-  isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
     Dart::thread_pool()->Run<TaskWithZoneAllocation>(isolate, &sync[i],
@@ -961,6 +959,74 @@ ISOLATE_UNIT_TEST_CASE(ExerciseTLABs) {
       ml.WaitWithSafepointCheck(thread);
     }
   }
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWithReadLock) {
+  SafepointRwLock lock;
+  SafepointReadRwLocker locker(Thread::Current(), &lock);
+  DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+  EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWithWriteLock) {
+  SafepointRwLock lock;
+  SafepointWriteRwLocker locker(Thread::Current(), &lock);
+  DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+  EXPECT(lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWithoutAnyLocks) {
+  SafepointRwLock lock;
+  DEBUG_ONLY(EXPECT(!lock.IsCurrentThreadReader()));
+  EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockReentrantReadLock) {
+  SafepointRwLock lock;
+  {
+    SafepointReadRwLocker locker(Thread::Current(), &lock);
+    {
+      SafepointReadRwLocker locker1(Thread::Current(), &lock);
+      DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+      EXPECT(!lock.IsCurrentThreadWriter());
+    }
+    DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+    EXPECT(!lock.IsCurrentThreadWriter());
+  }
+  DEBUG_ONLY(EXPECT(!lock.IsCurrentThreadReader()));
+  EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockReentrantWriteLock) {
+  SafepointRwLock lock;
+  {
+    SafepointWriteRwLocker locker(Thread::Current(), &lock);
+    {
+      SafepointWriteRwLocker locker1(Thread::Current(), &lock);
+      DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+      EXPECT(lock.IsCurrentThreadWriter());
+    }
+    DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+    EXPECT(lock.IsCurrentThreadWriter());
+  }
+  DEBUG_ONLY(EXPECT(!lock.IsCurrentThreadReader()));
+  EXPECT(!lock.IsCurrentThreadWriter());
+}
+
+ISOLATE_UNIT_TEST_CASE(SafepointRwLockWriteToReadLock) {
+  SafepointRwLock lock;
+  {
+    SafepointWriteRwLocker locker(Thread::Current(), &lock);
+    {
+      SafepointReadRwLocker locker1(Thread::Current(), &lock);
+      DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+      EXPECT(lock.IsCurrentThreadWriter());
+    }
+    DEBUG_ONLY(EXPECT(lock.IsCurrentThreadReader()));
+    EXPECT(lock.IsCurrentThreadWriter());
+  }
+  DEBUG_ONLY(EXPECT(!lock.IsCurrentThreadReader()));
+  EXPECT(!lock.IsCurrentThreadWriter());
 }
 
 }  // namespace dart

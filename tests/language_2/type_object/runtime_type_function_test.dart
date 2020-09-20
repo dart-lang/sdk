@@ -5,10 +5,9 @@
 import "package:expect/expect.dart";
 
 typedef String F(String returns, String arguments, [Map<String, String> named]);
-F fn;
 
-/// Formats types the VM way: `(String, [int], {bool name}) => double`.
-String form1(String returns, String positional,
+/// Formats a type like `(String, [int], {bool name}) => double`.
+String fn(String returns, String positional,
     [Map<String, String> named = const {}]) {
   var result = new StringBuffer();
   result.write("($positional");
@@ -30,39 +29,7 @@ String form1(String returns, String positional,
   return result.toString();
 }
 
-/// Formats types the dart2js way: `double Function(String, [int], {bool name})`.
-String form2(String returns, String positional,
-    [Map<String, String> named = const {}]) {
-  var result = new StringBuffer();
-  result.write("$returns Function");
-  result.write("($positional");
-  if (positional != "" && named.isNotEmpty) result.write(", ");
-  if (named.isNotEmpty) {
-    result.write("{");
-    bool first = true;
-    named.forEach((name, type) {
-      if (first) {
-        first = false;
-      } else {
-        result.write(", ");
-      }
-      result.write("$type $name");
-    });
-    result.write("}");
-  }
-  result.write(")");
-}
-
-F detectForm() {
-  var s = main.runtimeType.toString();
-  if (s.contains('=>')) return form1;
-  if (s.contains('Function')) return form2;
-  Expect.fail('"$s" contains neither "=>", nor "Function"');
-}
-
 main() {
-  fn = detectForm();
-
   // Types that do not use class names - these can be checked on dart2js in
   // minified mode.
 

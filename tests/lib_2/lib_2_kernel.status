@@ -7,6 +7,7 @@
 isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 
 [ $compiler == dartkb ]
+async/stream_state_nonzero_timer_test: Skip # Issues 42331, 42073
 isolate/isolate_complex_messages_test: Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
 
 [ $compiler == fasta ]

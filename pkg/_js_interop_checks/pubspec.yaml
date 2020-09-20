@@ -1,5 +1,12 @@
 name: _js_interop_checks
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:
   sdk: '>=2.7.0 <3.0.0'
+
+dependencies:
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  kernel:
+    path: ../kernel

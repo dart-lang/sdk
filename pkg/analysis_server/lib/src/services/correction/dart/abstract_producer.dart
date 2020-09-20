@@ -4,6 +4,9 @@
 
 import 'dart:math' as math;
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -12,54 +15,26 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
 
-/// An object that can compute a correction (fix or assist).
-abstract class CorrectionProducer extends _AbstractCorrectionProducer {
-  /// Return the arguments that should be used when composing the message for an
-  /// assist, or `null` if the assist message has no parameters or if this
-  /// producer doesn't support assists.
-  List<Object> get assistArguments => null;
-
-  /// Return the assist kind that should be used to build an assist, or `null`
-  /// if this producer doesn't support assists.
-  AssistKind get assistKind => null;
-
+/// An object that can compute a correction (fix or assist) in a Dart file.
+abstract class CorrectionProducer extends SingleCorrectionProducer {
   /// Return the type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => resolvedResult.typeProvider.boolType;
-
-  /// Return the length of the error message being fixed, or `null` if there is
-  /// no diagnostic.
-  int get errorLength => diagnostic?.problemMessage?.length;
-
-  /// Return the text of the error message being fixed, or `null` if there is
-  /// no diagnostic.
-  String get errorMessage => diagnostic?.problemMessage?.message;
-
-  /// Return the offset of the error message being fixed, or `null` if there is
-  /// no diagnostic.
-  int get errorOffset => diagnostic?.problemMessage?.offset;
-
-  /// Return the arguments that should be used when composing the message for a
-  /// fix, or `null` if the fix message has no parameters or if this producer
-  /// doesn't support fixes.
-  List<Object> get fixArguments => null;
-
-  /// Return the fix kind that should be used to build a fix, or `null` if this
-  /// producer doesn't support fixes.
-  FixKind get fixKind => null;
 
   /// Returns `true` if [node] is in a static context.
   bool get inStaticContext {
@@ -76,7 +51,27 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
     return method != null && method.isStatic;
   }
 
-  Future<void> compute(DartChangeBuilder builder);
+  Future<void> compute(ChangeBuilder builder);
+
+  /// Return the class, enum or mixin declaration for the given [element].
+  Future<ClassOrMixinDeclaration> getClassOrMixinDeclaration(
+      ClassElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    if (result.node is ClassOrMixinDeclaration) {
+      return result.node;
+    }
+    return null;
+  }
+
+  /// Return the extension declaration for the given [element].
+  Future<ExtensionDeclaration> getExtensionDeclaration(
+      ExtensionElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    if (result.node is ExtensionDeclaration) {
+      return result.node;
+    }
+    return null;
+  }
 
   /// Return the class element associated with the [target], or `null` if there
   /// is no such class element.
@@ -216,30 +211,6 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
     // we don't know
     return null;
   }
-
-  /// Return `true` if the [node] might be a type name.
-  bool mightBeTypeIdentifier(AstNode node) {
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is TypeName) {
-        return true;
-      }
-      return _isNameOfType(node.name);
-    }
-    return false;
-  }
-
-  /// Return `true` if the [name] is capitalized.
-  bool _isNameOfType(String name) {
-    if (name.isEmpty) {
-      return false;
-    }
-    var firstLetter = name.substring(0, 1);
-    if (firstLetter.toUpperCase() != firstLetter) {
-      return false;
-    }
-    return true;
-  }
 }
 
 class CorrectionProducerContext {
@@ -252,12 +223,12 @@ class CorrectionProducerContext {
   final String file;
 
   final TypeProvider typeProvider;
-  final Flutter flutter;
 
   final AnalysisSession session;
   final AnalysisSessionHelper sessionHelper;
   final ResolvedUnitResult resolvedResult;
   final ChangeWorkspace workspace;
+  final DartFixContext dartFixContext;
 
   final Diagnostic diagnostic;
 
@@ -266,11 +237,11 @@ class CorrectionProducerContext {
   CorrectionProducerContext({
     @required this.resolvedResult,
     @required this.workspace,
+    this.dartFixContext,
     this.diagnostic,
     this.selectionOffset = -1,
     this.selectionLength = 0,
   })  : file = resolvedResult.path,
-        flutter = Flutter.of(resolvedResult),
         session = resolvedResult.session,
         sessionHelper = AnalysisSessionHelper(resolvedResult.session),
         typeProvider = resolvedResult.typeProvider,
@@ -298,6 +269,39 @@ class CorrectionProducerContext {
 abstract class MultiCorrectionProducer extends _AbstractCorrectionProducer {
   /// Return each of the individual producers generated by this producer.
   Iterable<CorrectionProducer> get producers;
+}
+
+/// An object that can compute a correction (fix or assist) in a Dart file.
+abstract class SingleCorrectionProducer extends _AbstractCorrectionProducer {
+  /// Return the arguments that should be used when composing the message for an
+  /// assist, or `null` if the assist message has no parameters or if this
+  /// producer doesn't support assists.
+  List<Object> get assistArguments => null;
+
+  /// Return the assist kind that should be used to build an assist, or `null`
+  /// if this producer doesn't support assists.
+  AssistKind get assistKind => null;
+
+  /// Return the length of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  int get errorLength => diagnostic?.problemMessage?.length;
+
+  /// Return the text of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  String get errorMessage => diagnostic?.problemMessage?.message;
+
+  /// Return the offset of the error message being fixed, or `null` if there is
+  /// no diagnostic.
+  int get errorOffset => diagnostic?.problemMessage?.offset;
+
+  /// Return the arguments that should be used when composing the message for a
+  /// fix, or `null` if the fix message has no parameters or if this producer
+  /// doesn't support fixes.
+  List<Object> get fixArguments => null;
+
+  /// Return the fix kind that should be used to build a fix, or `null` if this
+  /// producer doesn't support fixes.
+  FixKind get fixKind => null;
 }
 
 /// The behavior shared by [CorrectionProducer] and [MultiCorrectionProducer].
@@ -342,7 +346,7 @@ abstract class _AbstractCorrectionProducer {
 
   String get file => _context.file;
 
-  Flutter get flutter => _context.flutter;
+  Flutter get flutter => Flutter.instance;
 
   /// Return the library element for the library in which a correction is being
   /// produced.
@@ -355,6 +359,8 @@ abstract class _AbstractCorrectionProducer {
   /// Return the resource provider used to access the file system.
   ResourceProvider get resourceProvider =>
       resolvedResult.session.resourceProvider;
+
+  int get selectionEnd => _context.selectionEnd;
 
   int get selectionLength => _context.selectionLength;
 
@@ -376,6 +382,11 @@ abstract class _AbstractCorrectionProducer {
   void configure(CorrectionProducerContext context) {
     _context = context;
   }
+
+  /// Return the text that should be displayed to users when referring to the
+  /// given [type].
+  String displayStringForType(DartType type) => type.getDisplayString(
+      withNullability: libraryElement.isNonNullableByDefault);
 
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.
@@ -404,6 +415,11 @@ abstract class _AbstractCorrectionProducer {
     return utils.getRangeText(range);
   }
 
+  /// Return the top-level declarations with the [name] in libraries that are
+  /// available to this context.
+  List<TopLevelDeclaration> getTopLevelDeclarations(String name) =>
+      _context.dartFixContext.getTopLevelDeclarations(name);
+
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name) {
     return _context.isLintEnabled(name);
@@ -429,6 +445,60 @@ abstract class _AbstractCorrectionProducer {
     }
     // invalid selection (part of node, etc)
     return false;
+  }
+
+  /// Return `true` if the given [node] is in a location where an implicit
+  /// constructor invocation would be allowed.
+  bool mightBeImplicitConstructor(AstNode node) {
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        return parent.realTarget == null;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the [node] might be a type name.
+  bool mightBeTypeIdentifier(AstNode node) {
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is TypeName) {
+        return true;
+      }
+      return _isNameOfType(node.name);
+    }
+    return false;
+  }
+
+  /// Replace all occurrences of the [oldIndent] with the [newIndent] within the
+  /// [source].
+  String replaceSourceIndent(
+      String source, String oldIndent, String newIndent) {
+    return source.replaceAll(RegExp('^$oldIndent', multiLine: true), newIndent);
+  }
+
+  /// Return `true` if the given [expression] should be wrapped with parenthesis
+  /// when we want to use it as operand of a logical `and` expression.
+  bool shouldWrapParenthesisBeforeAnd(Expression expression) {
+    if (expression is BinaryExpression) {
+      var binary = expression;
+      var precedence = binary.operator.type.precedence;
+      return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
+    }
+    return false;
+  }
+
+  /// Return `true` if the [name] is capitalized.
+  bool _isNameOfType(String name) {
+    if (name.isEmpty) {
+      return false;
+    }
+    var firstLetter = name.substring(0, 1);
+    if (firstLetter.toUpperCase() != firstLetter) {
+      return false;
+    }
+    return true;
   }
 }
 

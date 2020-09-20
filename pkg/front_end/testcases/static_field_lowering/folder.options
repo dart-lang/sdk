@@ -1,0 +1,2 @@
+--enable-experiment=non-nullable
+--force-static-field-lowering

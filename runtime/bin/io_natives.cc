@@ -82,6 +82,7 @@ namespace bin {
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
+  V(InternetAddress_ParseScopedLinkLocalAddress, 1)                            \
   V(InternetAddress_RawAddrToString, 1)                                        \
   V(IOService_NewServicePort, 0)                                               \
   V(Namespace_Create, 2)                                                       \

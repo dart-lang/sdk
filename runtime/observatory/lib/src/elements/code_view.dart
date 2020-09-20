@@ -17,7 +17,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -37,20 +37,6 @@ class InlineTable extends SortedTable {
 }
 
 class CodeViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<CodeViewElement>('code-view', dependencies: const [
-    CurlyBlockElement.tag,
-    FunctionRefElement.tag,
-    NavClassMenuElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ObjectPoolRefElement.tag,
-  ]);
-
   RenderingScheduler<CodeViewElement> _r;
 
   Stream<RenderedEvent<CodeViewElement>> get onRendered => _r.onRendered;
@@ -112,7 +98,7 @@ class CodeViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  CodeViewElement.created() : super.created(tag) {
+  CodeViewElement.created() : super.created('code-view') {
     var columns = [
       new SortedTableColumn('Address'),
       new SortedTableColumn('Inclusive'),

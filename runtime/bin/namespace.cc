@@ -16,9 +16,7 @@ namespace bin {
 
 static const int kNamespaceNativeFieldIndex = 0;
 
-static void ReleaseNamespace(void* isolate_callback_data,
-                             Dart_WeakPersistentHandle handle,
-                             void* peer) {
+static void ReleaseNamespace(void* isolate_callback_data, void* peer) {
   Namespace* namespc = reinterpret_cast<Namespace*>(peer);
   ASSERT(namespc != NULL);
   namespc->Release();
@@ -84,8 +82,8 @@ void FUNCTION_NAME(Namespace_Create)(Dart_NativeArguments args) {
 
   // Set up a finalizer for the Dart object so that we can do any necessary
   // platform-specific cleanup for the namespc.
-  Dart_NewWeakPersistentHandle(namespc_obj, reinterpret_cast<void*>(namespc),
-                               sizeof(*namespc), ReleaseNamespace);
+  Dart_NewFinalizableHandle(namespc_obj, reinterpret_cast<void*>(namespc),
+                            sizeof(*namespc), ReleaseNamespace);
   Dart_SetReturnValue(args, namespc_obj);
 }
 

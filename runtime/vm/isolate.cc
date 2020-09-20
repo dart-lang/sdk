@@ -88,15 +88,15 @@ DEFINE_FLAG_HANDLER(DeterministicModeHandler,
                     deterministic,
                     "Enable deterministic mode.");
 
-int FLAG_null_safety = kNullSafetyOptionUnspecified;
-static void NullSafetyHandler(bool value) {
-  FLAG_null_safety = value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+int FLAG_sound_null_safety = kNullSafetyOptionUnspecified;
+static void SoundNullSafetyHandler(bool value) {
+  FLAG_sound_null_safety =
+      value ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
 }
 
-DEFINE_FLAG_HANDLER(
-    NullSafetyHandler,
-    null_safety,
-    "Respect the nullability of types in casts and instance checks.");
+DEFINE_FLAG_HANDLER(SoundNullSafetyHandler,
+                    sound_null_safety,
+                    "Respect the nullability of types at runtime.");
 
 DEFINE_FLAG(bool,
             disable_thread_pool_limit,
@@ -146,6 +146,63 @@ static InstancePtr DeserializeMessage(Thread* thread, Message* message) {
     ASSERT(!obj.IsError());
     return Instance::RawCast(obj.raw());
   }
+}
+
+void IsolateGroupSource::add_loaded_blob(
+    Zone* zone,
+    const ExternalTypedData& external_typed_data) {
+  Array& loaded_blobs = Array::Handle();
+  bool saved_external_typed_data = false;
+  if (loaded_blobs_ != nullptr) {
+    loaded_blobs = loaded_blobs_;
+
+    // Walk the array, and (if stuff was removed) compact and reuse the space.
+    // Note that the space has to be compacted as the ordering is important.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    WeakProperty& weak_property_tmp = WeakProperty::Handle();
+    ExternalTypedData& existing_entry = ExternalTypedData::Handle(zone);
+    intptr_t next_entry_index = 0;
+    for (intptr_t i = 0; i < loaded_blobs.Length(); i++) {
+      weak_property ^= loaded_blobs.At(i);
+      if (weak_property.key() != ExternalTypedData::null()) {
+        if (i != next_entry_index) {
+          existing_entry = ExternalTypedData::RawCast(weak_property.key());
+          weak_property_tmp ^= loaded_blobs.At(next_entry_index);
+          weak_property_tmp.set_key(existing_entry);
+        }
+        next_entry_index++;
+      }
+    }
+    if (next_entry_index < loaded_blobs.Length()) {
+      // There's now space to re-use.
+      weak_property ^= loaded_blobs.At(next_entry_index);
+      weak_property.set_key(external_typed_data);
+      next_entry_index++;
+      saved_external_typed_data = true;
+    }
+    if (next_entry_index < loaded_blobs.Length()) {
+      ExternalTypedData& nullExternalTypedData =
+          ExternalTypedData::Handle(zone);
+      while (next_entry_index < loaded_blobs.Length()) {
+        // Null out any extra spaces.
+        weak_property ^= loaded_blobs.At(next_entry_index);
+        weak_property.set_key(nullExternalTypedData);
+        next_entry_index++;
+      }
+    }
+  }
+  if (!saved_external_typed_data) {
+    const WeakProperty& weak_property =
+        WeakProperty::Handle(WeakProperty::New(Heap::kOld));
+    weak_property.set_key(external_typed_data);
+
+    intptr_t length = loaded_blobs.IsNull() ? 0 : loaded_blobs.Length();
+    Array& new_array =
+        Array::Handle(Array::Grow(loaded_blobs, length + 1, Heap::kOld));
+    new_array.SetAt(length, weak_property);
+    loaded_blobs_ = new_array.raw();
+  }
+  num_blob_loads_++;
 }
 
 void IdleTimeHandler::InitializeWithHeap(Heap* heap) {
@@ -288,6 +345,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       isolates_lock_(new SafepointRwLock()),
       isolates_(),
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      is_system_isolate_group_(source->flags.is_system_isolate),
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
 #endif
@@ -348,9 +406,6 @@ IsolateGroup::~IsolateGroup() {
   // Ensure we destroy the heap before the other members.
   heap_ = nullptr;
   ASSERT(marking_stack_ == nullptr);
-
-  delete reverse_pc_lookup_cache_;
-  reverse_pc_lookup_cache_ = nullptr;
 }
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
@@ -359,6 +414,7 @@ void IsolateGroup::RegisterIsolate(Isolate* isolate) {
 }
 
 void IsolateGroup::RegisterIsolateLocked(Isolate* isolate) {
+  ASSERT(isolates_lock_->IsCurrentThreadWriter());
   isolates_.Append(isolate);
   isolate_count_++;
 }
@@ -676,6 +732,7 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
 
   jsobj->AddProperty("name", source()->script_uri);
   jsobj->AddPropertyF("number", "%" Pu64 "", id());
+  jsobj->AddProperty("isSystemIsolateGroup", is_system_isolate_group());
   if (ref) {
     return;
   }
@@ -747,7 +804,7 @@ void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
 bool IsolateGroup::HasApplicationIsolateGroups() {
   ReadRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
   for (auto group : *isolate_groups_) {
-    if (!IsolateGroup::IsVMInternalIsolateGroup(group)) {
+    if (!IsolateGroup::IsSystemIsolateGroup(group)) {
       return true;
     }
   }
@@ -782,8 +839,8 @@ void IsolateGroup::Cleanup() {
   isolate_groups_ = nullptr;
 }
 
-bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
-  return Isolate::IsVMInternalIsolate(isolate);
+bool IsolateVisitor::IsSystemIsolate(Isolate* isolate) const {
+  return Isolate::IsSystemIsolate(isolate);
 }
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread)
@@ -827,7 +884,11 @@ void Isolate::RegisterClass(const Class& cls) {
     return;
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  class_table()->Register(cls);
+  if (cls.IsTopLevel()) {
+    class_table()->RegisterTopLevel(cls);
+  } else {
+    class_table()->Register(cls);
+  }
 }
 
 #if defined(DEBUG)
@@ -1298,9 +1359,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     }
   } else {
 #ifndef PRODUCT
-    if (!Isolate::IsVMInternalIsolate(I)) {
-      // Mark all the user isolates as white-listed for the simplified timeline
-      // page of Observatory. The internal isolates will be filtered out from
+    if (!Isolate::IsSystemIsolate(I)) {
+      // Mark all the user isolates as using a simplified timeline page of
+      // Observatory. The internal isolates will be filtered out from
       // the Timeline due to absence of this argument. We still send them in
       // order to maintain the original behavior of the full timeline and allow
       // the developer to download complete dump files.
@@ -1321,7 +1382,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
 #ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Isolate::IsVMInternalIsolate(I)) {
+  if (Isolate::IsSystemIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1337,7 +1398,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 }
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Isolate::IsVMInternalIsolate(I)) {
+  if (Isolate::IsSystemIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1455,6 +1516,8 @@ void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = false;
   api_flags->copy_parent_code = false;
+  api_flags->null_safety = false;
+  api_flags->is_system_isolate = false;
 }
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
@@ -1466,6 +1529,8 @@ void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->entry_points = NULL;
   api_flags->load_vmservice_library = should_load_vmservice();
   api_flags->copy_parent_code = false;
+  api_flags->null_safety = null_safety();
+  api_flags->is_system_isolate = is_system_isolate();
 }
 
 void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
@@ -1495,7 +1560,8 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
 #undef SET_FROM_FLAG
 
   set_should_load_vmservice(api_flags.load_vmservice_library);
-
+  set_null_safety(api_flags.null_safety);
+  set_is_system_isolate(api_flags.is_system_isolate);
   // Copy entry points list.
   ASSERT(embedder_entry_points_ == NULL);
   if (api_flags.entry_points != NULL) {
@@ -1505,11 +1571,11 @@ void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
     embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
     for (intptr_t i = 0; i < count; i++) {
       embedder_entry_points_[i].library_uri =
-          strdup(api_flags.entry_points[i].library_uri);
+          Utils::StrDup(api_flags.entry_points[i].library_uri);
       embedder_entry_points_[i].class_name =
-          strdup(api_flags.entry_points[i].class_name);
+          Utils::StrDup(api_flags.entry_points[i].class_name);
       embedder_entry_points_[i].function_name =
-          strdup(api_flags.entry_points[i].function_name);
+          Utils::StrDup(api_flags.entry_points[i].function_name);
     }
     memset(&embedder_entry_points_[count], 0,
            sizeof(Dart_QualifiedFunctionName));
@@ -1757,26 +1823,12 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   isolate_group->RegisterIsolate(result);
 
   if (ServiceIsolate::NameEquals(name_prefix)) {
-    // For now the service isolate always runs in weak mode.
-    result->set_null_safety(false);
     ASSERT(!ServiceIsolate::Exists());
     ServiceIsolate::SetServiceIsolate(result);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   } else if (KernelIsolate::NameEquals(name_prefix)) {
-    // For now the kernel isolate always runs in weak mode.
-    result->set_null_safety(false);
     ASSERT(!KernelIsolate::Exists());
     KernelIsolate::SetKernelIsolate(result);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (FLAG_null_safety != kNullSafetyOptionUnspecified) {
-    // If the null-safety option is specified on the command line then
-    // use the value specified on the command line, if the dill file being
-    // loaded is in a different mode than that specified on the command line
-    // we will get an error during kernel file loading.
-    result->set_null_safety(FLAG_null_safety == kNullSafetyOptionStrong);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  } else if (!KernelIsolate::GetExperimentalFlag("non-nullable")) {
-    result->set_null_safety(false);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
@@ -1823,6 +1875,18 @@ ObjectPtr Isolate::CallTagHandler(Dart_LibraryTag tag,
   return Api::UnwrapHandle(api_result);
 }
 
+ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
+  Thread* thread = Thread::Current();
+  Api::Scope api_scope(thread);
+  Dart_Handle api_result;
+  {
+    TransitionVMToNative transition(thread);
+    RELEASE_ASSERT(HasDeferredLoadHandler());
+    api_result = group()->deferred_load_handler()(id);
+  }
+  return Api::UnwrapHandle(api_result);
+}
+
 void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
   Image image(image_buffer);
   heap()->SetupImagePage(image.object_start(), image.object_size(),
@@ -1841,7 +1905,7 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
 
 void Isolate::set_name(const char* name) {
   free(name_);
-  name_ = strdup(name);
+  name_ = Utils::StrDup(name);
 }
 
 int64_t IsolateGroup::UptimeMicros() const {
@@ -1895,13 +1959,13 @@ void Isolate::BuildName(const char* name_prefix) {
   if (name_prefix == nullptr) {
     name_ = OS::SCreate(nullptr, "isolate-%" Pd64 "", main_port());
   } else {
-    name_ = strdup(name_prefix);
+    name_ = Utils::StrDup(name_prefix);
   }
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
-  return !Isolate::IsVMInternalIsolate(this) && is_runnable() &&
+  return !Isolate::IsSystemIsolate(this) && is_runnable() &&
          !group()->IsReloading() && (no_reload_scope_depth_ == 0) &&
          IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
@@ -2000,7 +2064,7 @@ const char* Isolate::MakeRunnable() {
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
-  if (!Isolate::IsVMInternalIsolate(this)) {
+  if (!Isolate::IsSystemIsolate(this)) {
     debugger()->OnIsolateRunnable();
     if (FLAG_pause_isolates_on_unhandled_exceptions) {
       debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
@@ -2022,8 +2086,7 @@ const char* Isolate::MakeRunnable() {
   }
 #endif
 #ifndef PRODUCT
-  if (!Isolate::IsVMInternalIsolate(this) &&
-      Service::isolate_stream.enabled()) {
+  if (!Isolate::IsSystemIsolate(this) && Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
@@ -2545,8 +2608,7 @@ void Isolate::Shutdown() {
   }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_check_reloaded && is_runnable() &&
-      !Isolate::IsVMInternalIsolate(this)) {
+  if (FLAG_check_reloaded && is_runnable() && !Isolate::IsSystemIsolate(this)) {
     if (!HasAttemptedReload()) {
       FATAL(
           "Isolate did not reload before exiting and "
@@ -2667,11 +2729,16 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     isolate_object_store()->VisitObjectPointers(visitor);
   }
 
-  // Visit objects in the class table.
-  class_table()->VisitObjectPointers(visitor);
+  // Visit objects in the class table unless it's shared by the group.
+  // If it is shared, it is visited by IsolateGroup::VisitObjectPointers
+  if (group()->class_table() != class_table()) {
+    class_table()->VisitObjectPointers(visitor);
+  }
 
   // Visit objects in the field table.
-  field_table()->VisitObjectPointers(visitor);
+  if (!visitor->trace_values_through_fields()) {
+    field_table()->VisitObjectPointers(visitor);
+  }
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
@@ -2682,9 +2749,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   if (isolate_group_ != nullptr) {
-    if (isolate_group_->source()->hot_reload_blobs_ != nullptr) {
+    if (isolate_group_->source()->loaded_blobs_ != nullptr) {
       visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(
-          &(isolate_group_->source()->hot_reload_blobs_)));
+          &(isolate_group_->source()->loaded_blobs_)));
     }
   }
 #if !defined(PRODUCT)
@@ -2793,20 +2860,20 @@ Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 
-void IsolateGroup::RunWithStoppedMutators(
-    std::function<void()> single_current_mutator,
-    std::function<void()> otherwise,
+void IsolateGroup::RunWithStoppedMutatorsCallable(
+    Callable* single_current_mutator,
+    Callable* otherwise,
     bool use_force_growth_in_otherwise) {
   auto thread = Thread::Current();
 
   if (thread->IsMutatorThread() && !FLAG_enable_isolate_groups) {
-    single_current_mutator();
+    single_current_mutator->Call();
     return;
   }
 
   if (thread->IsAtSafepoint()) {
     RELEASE_ASSERT(safepoint_handler()->IsOwnedByTheThread(thread));
-    single_current_mutator();
+    single_current_mutator->Call();
     return;
   }
 
@@ -2814,7 +2881,7 @@ void IsolateGroup::RunWithStoppedMutators(
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
     const bool only_one_isolate = isolates_.First() == isolates_.Last();
     if (thread->IsMutatorThread() && only_one_isolate) {
-      single_current_mutator();
+      single_current_mutator->Call();
       return;
     }
   }
@@ -2824,15 +2891,20 @@ void IsolateGroup::RunWithStoppedMutators(
   // though we only need to ensure that the mutator threads are stopped.
   if (use_force_growth_in_otherwise) {
     ForceGrowthSafepointOperationScope safepoint_scope(thread);
-    otherwise();
+    otherwise->Call();
   } else {
     SafepointOperationScope safepoint_scope(thread);
-    otherwise();
+    otherwise->Call();
   }
 }
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                        ValidationPolicy validate_frames) {
+  // if class table is shared, it's stored on isolate group
+  if (class_table() != nullptr) {
+    // Visit objects in the class table.
+    class_table()->VisitObjectPointers(visitor);
+  }
   for (Isolate* isolate : isolates_) {
     isolate->VisitObjectPointers(visitor, validate_frames);
   }
@@ -3001,6 +3073,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
+  jsobj.AddProperty("isSystemIsolate", is_system_isolate());
   if (ref) {
     return;
   }
@@ -3368,7 +3441,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
 // done atomically.
 void Isolate::RegisterServiceExtensionHandler(const String& name,
                                               const Instance& closure) {
-  if (Isolate::IsVMInternalIsolate(this)) {
+  if (Isolate::IsSystemIsolate(this)) {
     return;
   }
   GrowableObjectArray& handlers =
@@ -3564,15 +3637,8 @@ bool Isolate::IsolateCreationEnabled() {
   return creation_enabled_;
 }
 
-bool IsolateGroup::IsVMInternalIsolateGroup(const IsolateGroup* group) {
-  // We use a name comparison here because this method can be called during
-  // shutdown, where the actual isolate pointers might've already been cleared.
-  const char* name = group->source()->name;
-  return Dart::VmIsolateNameEquals(name) ||
-#if !defined(DART_PRECOMPILED_RUNTIME)
-         KernelIsolate::NameEquals(name) ||
-#endif
-         ServiceIsolate::NameEquals(name);
+bool IsolateGroup::IsSystemIsolateGroup(const IsolateGroup* group) {
+  return group->source()->flags.is_system_isolate;
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {
@@ -3641,7 +3707,7 @@ class IsolateKillerVisitor : public IsolateVisitor {
     // If a target_ is specified, then only kill the target_.
     // Otherwise, don't kill the service isolate or vm isolate.
     return (((target_ != nullptr) && (isolate == target_)) ||
-            ((target_ == nullptr) && !IsVMInternalIsolate(isolate)));
+            ((target_ == nullptr) && !IsSystemIsolate(isolate)));
   }
 
   Isolate* target_;
@@ -3924,8 +3990,11 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
                   (library_url() != nullptr ? library_url() : script_url())));
     return LanguageError::New(msg);
   }
-  const Function& func =
-      Function::Handle(zone, cls.LookupStaticFunctionAllowPrivate(func_name));
+  Function& func = Function::Handle(zone);
+  const auto& error = cls.EnsureIsFinalized(thread);
+  if (error == Error::null()) {
+    func = cls.LookupStaticFunctionAllowPrivate(func_name);
+  }
   if (func.IsNull()) {
     const String& msg = String::Handle(
         zone, String::NewFormatted(

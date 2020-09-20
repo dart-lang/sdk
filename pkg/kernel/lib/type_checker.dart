@@ -249,7 +249,7 @@ class TypeCheckingVisitor
     while (type is TypeParameterType) {
       type = (type as TypeParameterType).bound;
     }
-    if (type is BottomType) {
+    if (type is BottomType || type is NeverType || type == coreTypes.nullType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForClass(superclass);
     }
@@ -423,7 +423,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitAwaitExpression(AwaitExpression node) {
-    return environment.unfutureType(visitExpression(node.operand));
+    return environment.flatten(visitExpression(node.operand));
   }
 
   @override
@@ -622,21 +622,22 @@ class TypeCheckingVisitor
     var target = node.interfaceTarget;
     if (target == null) {
       var receiver = visitExpression(node.receiver);
-      if (node.name.name == '==') {
+      if (node.name.text == '==') {
         visitExpression(node.arguments.positional.single);
         return environment.coreTypes.boolLegacyRawType;
       }
-      if (node.name.name == 'call' && receiver is FunctionType) {
+      if (node.name.text == 'call' && receiver is FunctionType) {
         return handleFunctionCall(node, receiver, node.arguments);
       }
       checkUnresolvedInvocation(receiver, node);
       return handleDynamicCall(receiver, node.arguments);
     } else if (target is Procedure &&
-        environment.isOverloadedArithmeticOperator(target)) {
+        environment.isSpecialCasedBinaryOperator(target)) {
       assert(node.arguments.positional.length == 1);
       var receiver = visitExpression(node.receiver);
       var argument = visitExpression(node.arguments.positional[0]);
-      return environment.getTypeOfOverloadedArithmetic(receiver, argument);
+      return environment.getTypeOfSpecialCasedBinaryOperator(
+          receiver, argument);
     } else {
       return handleCall(node.arguments, target.getterType,
           receiver: getReceiverType(node, node.receiver, node.interfaceTarget));
@@ -993,7 +994,7 @@ class TypeCheckingVisitor
       } else {
         var type = visitExpression(node.expression);
         if (currentAsyncMarker == AsyncMarker.Async) {
-          type = environment.unfutureType(type);
+          type = environment.flatten(type);
         }
         checkAssignable(node.expression, type, currentReturnType);
       }

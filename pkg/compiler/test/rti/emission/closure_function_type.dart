@@ -11,6 +11,6 @@ main() {
   test(/*checks=[$signature],instance*/ () {});
   test(
 
-      /*checks=[],instance*/
+      /*checks=[$signature],instance*/
       (a) {});
 }

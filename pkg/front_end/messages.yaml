@@ -132,6 +132,9 @@ ConstEvalNegativeShift:
 ConstEvalTruncateError:
   template: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
 
+ConstEvalNonNull:
+  template: "Constant expression must be non-null."
+
 ConstEvalInvalidMethodInvocation:
   template: "The method '#string' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
@@ -238,6 +241,16 @@ ExperimentNotEnabled:
   index: 48
   template: "This requires the '#string' language feature to be enabled."
   tip: "Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentNotEnabledNoFlag:
+  template: "This requires the null safety language feature, which is experimental."
+  tip: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
+  analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
+
+ExperimentNotEnabledNoFlagInvalidLanguageVersion:
+  template: "This requires the null safety language feature, which is experimental and requires language version of #string2 or higher."
+  tip: "You can enable the experiment using the '--enable-experiment=non-nullable' command line option."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
@@ -363,7 +376,9 @@ MultipleExtends:
   template: "Each class definition can have at most one extends clause."
   tip: "Try choosing one superclass and define your class to implement (or mix in) the others."
   analyzerCode: ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES
-  script: "class A extends B extends C {}"
+  script:
+    - "class B{} class C{} class A extends B extends C {}"
+    - "class B{} class C{} class A extends B, C {}"
 
 MultipleWith:
   index: 24
@@ -479,8 +494,16 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  tip: "Try inserting an identifier before '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  script: "do() {} main() {}"
+  script: "var = 42;"
+
+ExpectedIdentifierButGotKeyword:
+  template: "'#lexeme' can't be used as an identifier because it's a keyword."
+  tip: "Try renaming this to be an identifier that isn't a keyword."
+  index: 113
+  analyzerCode: ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+  script: "var default = 42;"
 
 EqualityCannotBeEqualityOperand:
   index: 1
@@ -548,8 +571,59 @@ AbstractClassMember:
     - "abstract class C {abstract m();}"
     - "abstract class C {abstract get m;}"
     - "abstract class C {abstract set m(int x);}"
-    - "abstract class C {abstract f;}"
-    - "abstract class C {abstract static f;}"
+    - "abstract class C {abstract var f;}"
+    - "abstract class C {abstract static var f;}"
+
+AbstractExternalField:
+  index: 110
+  template: "Fields can't be declared both 'abstract' and 'external'."
+  analyzerCode: ParserErrorCode.ABSTRACT_EXTERNAL_FIELD
+  tip: "Try removing the 'abstract' or 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract external var f;}"
+    - "abstract class C {external abstract var f;}"
+
+AbstractStaticField:
+  index: 107
+  template: "Static fields can't be declared 'abstract'."
+  analyzerCode: ParserErrorCode.ABSTRACT_STATIC_FIELD
+  tip: "Try removing the 'abstract' or 'static' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract static var f;}"
+
+AbstractExtensionField:
+  template: "Extension fields can't be declared 'abstract'."
+  tip: "Try removing the 'abstract' keyword."
+# Separate class and extension field handling to to support this.
+#  configuration: nnbd-strong
+#  script:
+#    - "extension C on int {abstract static var f;}"
+
+AbstractFieldInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the initializer or the 'abstract' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f = 0;}"
+
+AbstractFieldConstructorInitializer:
+  template: "Abstract fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'abstract' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract var f; C(this.f);}"
+    - "abstract class C {abstract var f; C() : this.f = 0;}"
+
+AbstractLateField:
+  index: 108
+  template: "Abstract fields cannot be late."
+  analyzerCode: ParserErrorCode.ABSTRACT_LATE_FIELD
+  tip: "Try removing the 'abstract' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {abstract late var f;}"
 
 ClassInClass:
   index: 53
@@ -735,25 +809,65 @@ ExternalField:
   script:
     - "class C { external var f; }"
 
+
+ExternalFieldInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the initializer or the 'external' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external var f = 0;"
+    - "abstract class C {external var f = 0;}"
+
+ExternalFieldConstructorInitializer:
+  template: "External fields cannot have initializers."
+  tip: "Try removing the field initializer or the 'external' keyword from the field declaration."
+  configuration: nnbd-strong
+  script:
+    - "abstract class C {external var f; C(this.f);}"
+    - "abstract class C {external var f; C() : this.f = 0;}"
+
+ExternalLateField:
+  index: 109
+  template: "External fields cannot be late."
+  analyzerCode: ParserErrorCode.EXTERNAL_LATE_FIELD
+  tip: "Try removing the 'external' or 'late' keyword."
+  configuration: nnbd-strong
+  script:
+    - "external late var f;"
+    - "abstract class C {external late var f;}"
+
 InitializerForStaticField:
   template: "'#name' isn't an instance field of this class."
   analyzerCode: INITIALIZER_FOR_STATIC_FIELD
 
-MoreThanOneSuperOrThisInitializer:
-  template: "Can't have more than one 'super' or 'this' initializer."
-  analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
+MoreThanOneSuperInitializer:
+  template: "Can't have more than one 'super' initializer."
+  analyzerCode: MULTIPLE_SUPER_INITIALIZERS
   script:
     - "class C { C.bad() : super(), super(); }"
+
+RedirectingConstructorWithSuperInitializer:
+  template: "A redirecting constructor can't have a 'super' initializer."
+  analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
+  script:
     - "class C { C(); C.bad() : super(), this(); }"
     - "class C { C(); C.bad() : this(), super(); }"
+
+RedirectingConstructorWithMultipleRedirectInitializers:
+  template: "A redirecting constructor can't have more than one redirection."
+  analyzerCode: MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS
+  script:
     - "class C { C(); C.bad() : this(), this(); }"
 
-ThisInitializerNotAlone:
-  template: "Can't have other initializers together with 'this'."
+RedirectingConstructorWithAnotherInitializer:
+  template: "A redirecting constructor can't have other initializers."
+  # also ASSERT_IN_REDIRECTING_CONSTRUCTOR
   analyzerCode: FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
   script:
     - "class C { int x; C(); C.bad() : x = 5, this(); }"
     - "class C { int x; C(); C.bad() : this(), x = 5; }"
+    - "class C { int x; C(); C.bad() : assert(true), this(); }"
+    - "class C { int x; C(); C.bad() : this(), assert(true); }"
 
 SuperInitializerNotLast:
   template: "Can't have initializers after 'super'."
@@ -1186,7 +1300,17 @@ Unspecified:
   template: "#string"
 
 StrongModeNNBDButOptOut:
-  template: "A library can't opt out of non-nullable by default, when in nnbd-strong mode."
+  template: "A library can't opt out of null safety by default, when using sound null safety."
+
+StrongModeNNBDPackageOptOut:
+  template:  |
+    Cannot run with sound null safety as one or more dependencies do not
+    support null safety:
+
+    #names
+
+    Run 'pub outdated --mode=null-safety' to determine if versions of your
+    dependencies supporting null safety are available.
 
 AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
@@ -1819,37 +1943,12 @@ DuplicatedExport:
     lib2.dart: "class A {}"
     main.dart: "export 'lib1.dart'; export 'lib2.dart';"
 
-DuplicatedLibraryExport:
-  template: "A library with name '#name' is exported more than once."
-  analyzerCode: EXPORT_DUPLICATED_LIBRARY_NAMED
-  script:
-    lib1.dart: "library foo;"
-    lib2.dart: "library foo;"
-    main.dart: "export 'lib1.dart'; export 'lib2.dart';"
-
-DuplicatedLibraryExportContext:
-  template: "'#name' is also exported here."
-  severity: CONTEXT
-
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
   severity: IGNORED
-
-DuplicatedLibraryImport:
-  template: "A library with name '#name' is imported more than once."
-  severity: WARNING
-  analyzerCode: IMPORT_DUPLICATED_LIBRARY_NAMED
-  script:
-    lib1.dart: "library foo;"
-    lib2.dart: "library foo;"
-    main.dart: "import 'lib1.dart'; import 'lib2.dart';"
-
-DuplicatedLibraryImportContext:
-  template: "'#name' is also imported here."
-  severity: CONTEXT
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
@@ -2142,6 +2241,13 @@ TypeVariableDuplicatedNameCause:
 TypeVariableSameNameAsEnclosing:
   template: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
+
+AnnotationOnTypeArgument:
+  template: "Type arguments can't have annotations because they aren't declarations."
+  analyzerCode: ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT
+  index: 111
+  script:
+    - "class A<E> {} class C { m() => new A<@Object() C>(); }"
 
 AnnotationOnFunctionTypeTypeVariable:
   template: "A type variable on a function type can't have annotations."
@@ -2716,16 +2822,22 @@ SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
   analyzerCode: CASE_BLOCK_NOT_TERMINATED
 
-FinalInstanceVariableAlreadyInitialized:
-  template: "'#name' is a final instance variable that has already been initialized."
-  # TODO(ahe): Strictly speaking, as of
-  # 3b5874a332b24f326775b3520f32b9a818731aca, this is a compile-time error in
-  # legacy mode.
-  analyzerCode: FINAL_INITIALIZED_MULTIPLE_TIMES
+FieldAlreadyInitializedAtDeclaration:
+  template: "'#name' is a final instance variable that was initialized at the declaration."
+  analyzerCode: FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+  script:
+    - "class C { final int x = 2; C(): this.x = 3 {} }"
 
-FinalInstanceVariableAlreadyInitializedCause:
+FieldAlreadyInitializedAtDeclarationCause:
   template: "'#name' was initialized here."
   severity: CONTEXT
+
+ConstructorInitializeSameInstanceVariableSeveralTimes:
+  template: "'#name' was already initialized by this constructor."
+  analyzerCode: FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+  script:
+    - "class C { final int x; C(): this.x = 1, this.x = 2 {} }"
+    - "class C { int x; C(): this.x = 1, this.x = 2 {} }"
 
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
@@ -2956,6 +3068,14 @@ ColonInPlaceOfIn:
   template: "For-in loops use 'in' rather than a colon."
   tip: "Try replacing the colon with the keyword 'in'."
   analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
+
+BinaryOperatorWrittenOut:
+  index: 112
+  template: "Binary operator '#string' is written as '#string2' instead of the written out word."
+  tip: "Try replacing '#string' with '#string2'."
+  analyzerCode: ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT
+  script: >
+    int foo(int x, int y) => x xor y;
 
 ExternalFactoryRedirection:
   index: 85
@@ -3401,6 +3521,28 @@ ReturnWithoutExpression:
   analyzerCode: RETURN_WITHOUT_VALUE
   declaration: "int foo() { return; }"
 
+ReturnWithoutExpressionSync:
+  template: "A value must be explicitly returned from a non-void function."
+  configuration: nnbd-strong
+  script: |
+    import "dart:async";
+    FutureOr<Object?> foo() { return; }
+
+ReturnWithoutExpressionAsync:
+  template: "A value must be explicitly returned from a non-void async function."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return; }"
+
+InvalidReturn:
+  template: "A value of type '#type' can't be returned from a function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "int foo() { return true; }"
+
+InvalidReturnAsync:
+  template: "A value of type '#type' can't be returned from an async function with return type '#type2'."
+  configuration: nnbd-strong
+  declaration: "Future<int> foo() async { return true; }"
+
 ImplicitReturnNull:
   template: "A non-null value must be returned since the return type '#type' doesn't allow null."
   configuration: nnbd-strong
@@ -3459,6 +3601,9 @@ CantReadFile:
 
     main() {
     }
+
+ExceptionReadingFile:
+  template: "Exception when reading '#uri': #string"
 
 PackagesFileFormat:
   template: "Problem in packages configuration file: #string"
@@ -3809,7 +3954,7 @@ SpreadMapElement:
   severity: CONTEXT
 
 NonNullAwareSpreadIsNull:
-  template: "Can't spread a value with static type Null."
+  template: "Can't spread a value with static type '#type'."
   script: >
     main() {
       <int>[...null];
@@ -3961,6 +4106,9 @@ NullableOperatorCallError:
 NullableTearoffError:
   template: "Can't tear off method '#name' from a potentially null value."
 
+NullableSpreadError:
+  template: "An expression whose value can be 'null' must be null-checked before it can be dereferenced."
+
 ThrowingNotAssignableToObjectError:
   template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
 
@@ -3983,12 +4131,13 @@ FieldNonNullableWithoutInitializerError:
 FieldNonNullableNotInitializedByConstructorError:
   template: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
-NonNullableOptOut:
+NonNullableOptOutExplicit:
   template: "Null safety features are disabled for this library."
-  # Used to be this:
-  # tip: "Try removing the `@dart=` annotation or setting the language version higher."
-  # Once the version number is locked in, we can write something like that again.
-  tip: "Try removing the `@dart=` annotation or setting the language version higher."
+  tip: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
+
+NonNullableOptOutImplicit:
+  template: "Null safety features are disabled for this library."
+  tip: "Try removing the package language version or setting the language version to #string or higher."
 
 NonNullableOptOutComment:
   template: "This is the annotation that opts out this library from null safety features."
@@ -4006,9 +4155,25 @@ NullableInterfaceError:
 NullableMixinError:
   template: "Can't mix '#name' in because it's marked with '?'."
 
+JsInteropAnonymousFactoryPositionalParameters:
+  template: "Factory constructors for @anonymous JS interop classes should not contain any positional parameters."
+  tip: "Try replacing them with named parameters instead."
+
+JsInteropEnclosingClassJSAnnotation:
+  template: "Member has a JS interop annotation but the enclosing class does not."
+  tip: "Try adding the annotation to the enclosing class."
+
+JsInteropEnclosingClassJSAnnotationContext:
+  template: "This is the enclosing class."
+  severity: CONTEXT
+
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+JsInteropNamedParameters:
+  template: "Named parameters for JS interop functions are only allowed in a factory constructor of an @anonymous JS class."
+  tip: "Try replacing them with normal or optional parameters."
 
 JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
@@ -4113,3 +4278,19 @@ CannotAssignToTypeLiteral:
     main() {
       Object = String;
     }
+
+NonVoidReturnOperator:
+  template: "The return type of the operator []= must be 'void'."
+  tip: "Try changing the return type to 'void'."
+  analyzerCode: NON_VOID_RETURN_FOR_OPERATOR
+  script:
+    - class Class { int operator[]=(a, b) {} }
+    - class Class { dynamic operator[]=(a, b) {} }
+
+NonVoidReturnSetter:
+  template: "The return type of the setter must be 'void' or absent."
+  tip: "Try removing the return type, or define a method rather than a setter."
+  analyzerCode: NON_VOID_RETURN_FOR_SETTER
+  script:
+    - int set setter(_) {}
+    - dynamic set setter(_) {}

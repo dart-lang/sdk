@@ -20,11 +20,9 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
-rasta/issue_000032: FormatterCrash
-regress/ambiguous_builder_01: FormatterCrash
-regress/issue_34614: FormatterCrash
 extensions/ambiguous: FormatterCrash
 extensions/annotations: FormatterCrash
+extensions/bounds: FormatterCrash
 extensions/builtin_identifiers: FormatterCrash
 extensions/call_methods: FormatterCrash
 extensions/check_bounds: FormatterCrash
@@ -70,6 +68,7 @@ extensions/issue39889: FormatterCrash
 extensions/issue40596: FormatterCrash
 extensions/issue40713: FormatterCrash
 extensions/issue40816: FormatterCrash
+extensions/issue43218: FormatterCrash
 extensions/missing_toplevel: FormatterCrash
 extensions/nested_on_types: FormatterCrash
 extensions/null_aware: FormatterCrash
@@ -99,8 +98,8 @@ general/bad_setter_abstract: FormatterCrash
 general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constructor_initializer_invalid: FormatterCrash
-general/covariant_field: FormatterCrash
 general/duplicated_declarations: FormatterCrash
+general/error_recovery/annotations: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_general.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_get.crash: FormatterCrash
 general/error_recovery/constructor_recovery_bad_name_return_type.crash: FormatterCrash
@@ -109,6 +108,7 @@ general/error_recovery/constructor_recovery_get: FormatterCrash
 general/error_recovery/constructor_recovery_operator.crash: FormatterCrash
 general/error_recovery/constructor_recovery_return_type: FormatterCrash
 general/error_recovery/constructor_recovery_set: FormatterCrash
+general/error_recovery/issue_22313: FormatterCrash
 general/error_recovery/issue_39033.crash: FormatterCrash
 general/error_recovery/issue_39058_prime.crash: FormatterCrash
 general/error_recovery/issue_39202.crash: FormatterCrash
@@ -119,7 +119,9 @@ general/incomplete_field_formal_parameter: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/issue40242: FormatterCrash
+general/issue42997: FormatterCrash
 general/many_errors: FormatterCrash
+general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/type_parameter_usage_in_static_method_in_extension: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/var_as_type_name: FormatterCrash
@@ -140,6 +142,7 @@ late_lowering/issue40373b: FormatterCrash
 late_lowering/issue40805: FormatterCrash
 late_lowering/issue41436b: FormatterCrash
 late_lowering/issue41922: FormatterCrash
+late_lowering/issue42407: FormatterCrash
 late_lowering/late_annotations: FormatterCrash
 late_lowering/late_field_inference: FormatterCrash
 late_lowering/late_field_with_initializer: FormatterCrash
@@ -155,7 +158,19 @@ late_lowering/later: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/override: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+nnbd_mixed/inheritance_from_opt_in: FormatterCrash
+nnbd_mixed/issue41597: FormatterCrash
+nnbd_mixed/no_null_shorting_explicit_extension: FormatterCrash
+nnbd_mixed/no_null_shorting_extension: FormatterCrash
+nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
+nnbd_mixed/nullable_extension_on_opt_out: FormatterCrash
+nnbd_mixed/opt_out: FormatterCrash
+nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
+nnbd/extension_bounds: FormatterCrash
+nnbd/extension_never: FormatterCrash
+nnbd/external_field_errors: FormatterCrash
+nnbd/external_fields: FormatterCrash
 nnbd/forbidden_supers: FormatterCrash
 nnbd/infer_if_null: FormatterCrash
 nnbd/inheritance_from_opt_in: FormatterCrash
@@ -171,6 +186,8 @@ nnbd/null_shorting_cascade: FormatterCrash
 nnbd/null_shorting_explicit_extension: FormatterCrash
 nnbd/null_shorting_extension: FormatterCrash
 nnbd/null_shorting_index: FormatterCrash
+nnbd/nullable_extension: FormatterCrash
+nnbd/nullable_setter: FormatterCrash
 nnbd/opt_out: FormatterCrash
 nnbd/potentially_non_nullable_field: FormatterCrash
 nnbd/potentially_nullable_access: FormatterCrash
@@ -178,6 +195,7 @@ nnbd/strictly_non_nullable_warnings: FormatterCrash
 nnbd/uninitialized_non_nullable_late_fields: FormatterCrash
 nonfunction_type_aliases/issue41501: FormatterCrash
 rasta/bad_redirection: FormatterCrash
+rasta/issue_000032: FormatterCrash
 rasta/issue_000034: FormatterCrash
 rasta/issue_000036: FormatterCrash
 rasta/issue_000044: FormatterCrash
@@ -185,6 +203,7 @@ rasta/issue_000046: FormatterCrash
 rasta/issue_000047: FormatterCrash
 rasta/malformed_const_constructor: FormatterCrash
 rasta/mandatory_parameter_initializer: FormatterCrash
+regress/ambiguous_builder_01: FormatterCrash
 regress/issue_29942: FormatterCrash
 regress/issue_29944: FormatterCrash
 regress/issue_29983: FormatterCrash
@@ -201,12 +220,14 @@ regress/issue_31198: FormatterCrash
 regress/issue_34225: FormatterCrash
 regress/issue_34563: FormatterCrash
 regress/issue_34610: FormatterCrash
+regress/issue_34614: FormatterCrash
 regress/issue_34850: FormatterCrash
 regress/issue_35151: FormatterCrash
 regress/issue_36400: FormatterCrash
 regress/issue_37285: FormatterCrash
 regress/issue_39091_1: FormatterCrash
 regress/issue_41265.crash: Crash
+regress/issue_41265.crash: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A stress test for the analysis server.
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -129,7 +128,6 @@ class Driver {
       server.printStatistics();
     }
     exit(0);
-    return null;
   }
 
   /// Create and return a parser that can be used to parse the command-line
@@ -218,9 +216,13 @@ class Driver {
   /// to break the text when building edits.
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     var scanner = Scanner(null, CharSequenceReader(text),
         error.AnalysisErrorListener.NULL_LISTENER)
-      ..configureFeatures(FeatureSet.forTesting(sdkVersion: '2.2.2'));
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
     while (token.type != TokenType.EOF) {

@@ -90,14 +90,8 @@ void CodeRelocator::Relocate(bool is_vm_isolate) {
   }
   trampolines_by_destination_.Clear();
 
-  // We're done now, so we clear out the targets tables.
-  auto& caller = Code::Handle(zone);
-  if (!is_vm_isolate) {
-    for (intptr_t i = 0; i < code_objects_->length(); ++i) {
-      caller = (*code_objects_)[i];
-      caller.set_static_calls_target_table(Array::empty_array());
-    }
-  }
+  // Don't drop static call targets table yet. Snapshotter will skip it anyway
+  // however we might need it to write information into V8 snapshot profile.
 }
 
 void CodeRelocator::FindInstructionAndCallLimits() {
@@ -440,6 +434,7 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
     // live in the "vm-isolate" - such as `Type::dynamic_type()`).
     if (destination_.InVMIsolateHeap()) {
       auto object_store = thread_->isolate()->object_store();
+
       if (destination_.raw() == StubCode::DefaultTypeTest().raw()) {
         destination_ = object_store->default_tts_stub();
       } else if (destination_.raw() ==
@@ -451,6 +446,12 @@ CodePtr CodeRelocator::GetTarget(const StaticCallsTableEntry& call) {
         destination_ = object_store->unreachable_tts_stub();
       } else if (destination_.raw() == StubCode::SlowTypeTest().raw()) {
         destination_ = object_store->slow_tts_stub();
+      } else if (destination_.raw() ==
+                 StubCode::NullableTypeParameterTypeTest().raw()) {
+        destination_ = object_store->nullable_type_parameter_tts_stub();
+      } else if (destination_.raw() ==
+                 StubCode::TypeParameterTypeTest().raw()) {
+        destination_ = object_store->type_parameter_tts_stub();
       } else {
         UNREACHABLE();
       }

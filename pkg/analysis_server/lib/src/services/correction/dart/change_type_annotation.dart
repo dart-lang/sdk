@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -22,8 +22,8 @@ class ChangeTypeAnnotation extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CHANGE_TYPE_ANNOTATION;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    var declaration = coveredNode.parent;
+  Future<void> compute(ChangeBuilder builder) async {
+    var declaration = coveredNode?.parent;
     if (declaration is VariableDeclaration &&
         declaration.initializer == coveredNode) {
       var variableList = declaration.parent;
@@ -34,12 +34,10 @@ class ChangeTypeAnnotation extends CorrectionProducer {
           Expression initializer = coveredNode;
           var newType = initializer.staticType;
           if (newType is InterfaceType || newType is FunctionType) {
-            _oldAnnotation =
-                typeNode.type.getDisplayString(withNullability: false);
-            _newAnnotation = newType.getDisplayString(withNullability: false);
-            await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-              builder.addReplacement(range.node(typeNode),
-                  (DartEditBuilder builder) {
+            _oldAnnotation = displayStringForType(typeNode.type);
+            _newAnnotation = displayStringForType(newType);
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addReplacement(range.node(typeNode), (builder) {
                 builder.writeType(newType);
               });
             });

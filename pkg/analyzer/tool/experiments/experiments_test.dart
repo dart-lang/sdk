@@ -9,10 +9,8 @@ import 'package:path/path.dart';
 
 import 'generate.dart';
 
-/**
- * Check that all targets have been code generated.  If they haven't tell the
- * user to run generate_all.dart.
- */
+/// Check that all targets have been code generated.  If they haven't tell the
+/// user to run generate_all.dart.
 main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   List<String> components = split(script);

@@ -4,6 +4,7 @@
 
 import 'dart:convert' show json;
 
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_cli/src/error_formatter.dart' show AnalysisStats;
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
@@ -11,7 +12,10 @@ import 'package:test/test.dart';
 
 void main() {
   test('makePerfReport', () {
-    var options = CommandLineOptions.parse(['somefile.dart']);
+    var options = CommandLineOptions.parse(
+      PhysicalResourceProvider.INSTANCE,
+      ['somefile.dart'],
+    );
     var encoded = makePerfReport(1000, 1234, options, 0, AnalysisStats());
 
     var jsonData = json.decode(encoded);

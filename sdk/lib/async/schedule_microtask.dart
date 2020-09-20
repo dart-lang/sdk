@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.async;
 
 typedef void _AsyncCallback();
 
 class _AsyncCallbackEntry {
   final _AsyncCallback callback;
-  _AsyncCallbackEntry next;
+  _AsyncCallbackEntry? next;
   _AsyncCallbackEntry(this.callback);
 }
 
 /** Head of single linked list of pending callbacks. */
-_AsyncCallbackEntry _nextCallback;
+_AsyncCallbackEntry? _nextCallback;
 /** Tail of single linked list of pending callbacks. */
-_AsyncCallbackEntry _lastCallback;
+_AsyncCallbackEntry? _lastCallback;
 /**
  * Tail of priority callbacks added by the currently executing callback.
  *
@@ -25,7 +23,7 @@ _AsyncCallbackEntry _lastCallback;
  * callback queue, so that if one callback schedules more than one
  * priority callback, they are still enqueued in scheduling order.
  */
-_AsyncCallbackEntry _lastPriorityCallback;
+_AsyncCallbackEntry? _lastPriorityCallback;
 /**
  * Whether we are currently inside the callback loop.
  *
@@ -35,11 +33,11 @@ _AsyncCallbackEntry _lastPriorityCallback;
 bool _isInCallbackLoop = false;
 
 void _microtaskLoop() {
-  while (_nextCallback != null) {
+  for (var entry = _nextCallback; entry != null; entry = _nextCallback) {
     _lastPriorityCallback = null;
-    _AsyncCallbackEntry entry = _nextCallback;
-    _nextCallback = entry.next;
-    if (_nextCallback == null) _lastCallback = null;
+    var next = entry.next;
+    _nextCallback = next;
+    if (next == null) _lastCallback = null;
     (entry.callback)();
   }
 }
@@ -67,13 +65,14 @@ void _startMicrotaskLoop() {
  */
 void _scheduleAsyncCallback(_AsyncCallback callback) {
   _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
-  if (_nextCallback == null) {
+  _AsyncCallbackEntry? lastCallback = _lastCallback;
+  if (lastCallback == null) {
     _nextCallback = _lastCallback = newEntry;
     if (!_isInCallbackLoop) {
       _AsyncRun._scheduleImmediate(_startMicrotaskLoop);
     }
   } else {
-    _lastCallback.next = newEntry;
+    lastCallback.next = newEntry;
     _lastCallback = newEntry;
   }
 }
@@ -93,14 +92,16 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
     return;
   }
   _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
-  if (_lastPriorityCallback == null) {
+  _AsyncCallbackEntry? lastPriorityCallback = _lastPriorityCallback;
+  if (lastPriorityCallback == null) {
     entry.next = _nextCallback;
     _nextCallback = _lastPriorityCallback = entry;
   } else {
-    entry.next = _lastPriorityCallback.next;
-    _lastPriorityCallback.next = entry;
+    var next = lastPriorityCallback.next;
+    entry.next = next;
+    lastPriorityCallback.next = entry;
     _lastPriorityCallback = entry;
-    if (entry.next == null) {
+    if (next == null) {
       _lastCallback = entry;
     }
   }
@@ -127,12 +128,12 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
  *
  * ## Other resources
  *
- * * [The Event Loop and Dart](https://www.dartlang.org/articles/event-loop/):
+ * * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
  * Learn how Dart handles the event queue and microtask queue, so you can write
  * better asynchronous code with fewer surprises.
  */
-void scheduleMicrotask(void callback()) {
-  _Zone currentZone = Zone.current;
+void scheduleMicrotask(void Function() callback) {
+  _Zone currentZone = Zone._current;
   if (identical(_rootZone, currentZone)) {
     // No need to bind the callback. We know that the root's scheduleMicrotask
     // will be invoked in the root zone.
@@ -151,5 +152,5 @@ void scheduleMicrotask(void callback()) {
 
 class _AsyncRun {
   /** Schedule the given callback before any other event in the event-loop. */
-  external static void _scheduleImmediate(void callback());
+  external static void _scheduleImmediate(void Function() callback);
 }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io' show exitCode;
 
 import 'package:analyzer_cli/src/driver.dart' show Driver, outSink, errorSink;
@@ -65,7 +64,7 @@ class _Runner {
   String get stdout => _stdout.toString();
 
   Future<void> run2(List<String> args) async {
-    await Driver(isTesting: true).start(args);
+    await Driver().start(args);
     if (stderr.isNotEmpty) {
       fail('Unexpected output to stderr:\n$stderr');
     }

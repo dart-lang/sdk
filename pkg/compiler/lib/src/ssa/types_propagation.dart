@@ -216,85 +216,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   }
 
   @override
-  AbstractValue visitTypeConversion(HTypeConversion instruction) {
-    HInstruction input = instruction.checkedInput;
-    AbstractValue inputType = input.instructionType;
-    AbstractValue checkedType = instruction.checkedType;
-    AbstractValue outputType =
-        abstractValueDomain.intersection(checkedType, inputType);
-    outputType = _numericFixup(outputType, inputType, checkedType);
-    if (inputType != outputType) {
-      // Replace dominated uses of input with uses of this HTypeConversion so
-      // the uses benefit from the stronger type.
-      //
-      // The dependency on the checked value also improves the generated
-      // JavaScript. Many checks are compiled to a function call expression that
-      // returns the checked result, so the check can be generated as a
-      // subexpression rather than a separate statement.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HTypeConversion.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
-    }
-    return outputType;
-  }
-
-  AbstractValue _numericFixup(AbstractValue outputType, AbstractValue inputType,
-      AbstractValue checkedType) {
-    if (abstractValueDomain.isEmpty(outputType).isDefinitelyTrue) {
-      // Intersection of double and integer conflicts (is empty), but JS numbers
-      // can be both int and double at the same time.  For example, the input
-      // can be a literal double '8.0' that is marked as an integer (because 'is
-      // int' will return 'true').  What we really need to do is make the
-      // overlap between int and double values explicit in the TypeMask system.
-      if (abstractValueDomain.isIntegerOrNull(inputType).isDefinitelyTrue &&
-          abstractValueDomain.isDoubleOrNull(checkedType).isDefinitelyTrue) {
-        if (abstractValueDomain.isNull(inputType).isPotentiallyTrue &&
-            abstractValueDomain.isNull(checkedType).isPotentiallyTrue) {
-          outputType =
-              abstractValueDomain.includeNull(abstractValueDomain.doubleType);
-        } else {
-          outputType = abstractValueDomain.doubleType;
-        }
-      }
-    }
-    return outputType;
-  }
-
-  @override
   AbstractValue visitPrimitiveCheck(HPrimitiveCheck instruction) {
     HInstruction input = instruction.checkedInput;
     AbstractValue inputType = input.instructionType;
     AbstractValue checkedType = instruction.checkedType;
 
-    // We must make sure a receiver or argument check does not try to do an int
-    // check, because an int check is not enough.  We only do an int check if
-    // the input is integer or null.
-    if (abstractValueDomain.isNumberOrNull(checkedType).isDefinitelyTrue &&
-        abstractValueDomain.isDoubleOrNull(checkedType).isDefinitelyFalse &&
-        input.isIntegerOrNull(abstractValueDomain).isDefinitelyTrue) {
-      instruction.checkedType = abstractValueDomain.intType;
-    } else if (abstractValueDomain
-            .isIntegerOrNull(checkedType)
-            .isDefinitelyTrue &&
-        input.isIntegerOrNull(abstractValueDomain).isPotentiallyFalse) {
-      instruction.checkedType = abstractValueDomain.numType;
-    }
-
     AbstractValue outputType =
         abstractValueDomain.intersection(checkedType, inputType);
-    outputType = _numericFixup(outputType, inputType, checkedType);
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this HPrimitiveCheck so
       // the uses benefit from the stronger type.
-      //
-      // Do not replace local variable accesses, since the local must be a
-      // HLocalValue, not another kind of instruction.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
+      assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;
   }
@@ -508,12 +441,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HNullCheck.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
+      assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;
   }
@@ -535,17 +464,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     AbstractValue inputType = input.instructionType;
     AbstractValue outputType =
         abstractValueDomain.intersection(checkedType, inputType);
-    outputType = _numericFixup(outputType, inputType, checkedType);
     if (inputType != outputType) {
       // Replace dominated uses of input with uses of this check so the uses
       // benefit from the stronger type.
-      //
-      // Do not replace local accesses, since the local must be a HLocalValue,
-      // not a HAsCheck.
-      if (!(input is HParameterValue && input.usedAsVariable())) {
-        input.replaceAllUsersDominatedBy(instruction.next, instruction);
-      }
+      assert(!(input is HParameterValue && input.usedAsVariable()));
+      input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
     return outputType;
+  }
+
+  @override
+  AbstractValue visitBoolConversion(HBoolConversion instruction) {
+    return abstractValueDomain.intersection(
+        abstractValueDomain.boolType, instruction.checkedInput.instructionType);
   }
 }

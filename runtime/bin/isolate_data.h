@@ -11,6 +11,8 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/growable_array.h"
+#include "platform/utils.h"
 
 namespace dart {
 
@@ -83,7 +85,7 @@ class IsolateGroupData {
       free(resolved_packages_config_);
       resolved_packages_config_ = NULL;
     }
-    resolved_packages_config_ = strdup(packages_config);
+    resolved_packages_config_ = Utils::StrDup(packages_config);
   }
 
   bool RunFromAppSnapshot() const {
@@ -95,10 +97,15 @@ class IsolateGroupData {
     return app_snapshot_ != nullptr || isolate_run_app_snapshot_;
   }
 
+  void AddLoadingUnit(AppSnapshot* loading_unit) {
+    loading_units_.Add(loading_unit);
+  }
+
  private:
   friend class IsolateData;  // For packages_file_
 
   std::unique_ptr<AppSnapshot> app_snapshot_;
+  MallocGrowableArray<AppSnapshot*> loading_units_;
   char* resolved_packages_config_;
   std::shared_ptr<uint8_t> kernel_buffer_;
   intptr_t kernel_buffer_size_;
@@ -125,7 +132,7 @@ class IsolateData {
       free(packages_file_);
       packages_file_ = nullptr;
     }
-    packages_file_ = strdup(packages_file);
+    packages_file_ = Utils::StrDup(packages_file);
   }
 
   // While loading a loader is associated with the isolate.

@@ -22,9 +22,9 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   get lateInstanceField() → core::int;
   set lateInstanceField(core::int #t3) → void;
   get lateGenericField1() → self::Class::T%;
-  set lateGenericField1(self::Class::T% #t4) → void;
+  set lateGenericField1(generic-covariant-impl self::Class::T% #t4) → void;
   get lateGenericField2() → self::Class::T%;
-  set lateGenericField2(self::Class::T% #t5) → void;
+  set lateGenericField2(generic-covariant-impl self::Class::T% #t5) → void;
   method instanceMethod(generic-covariant-impl self::Class::T% value) → dynamic
     ;
 }

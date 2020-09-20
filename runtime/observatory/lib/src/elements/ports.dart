@@ -9,7 +9,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
@@ -19,16 +19,6 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class PortsElement extends CustomElement implements Renderable {
-  static const tag = const Tag<PortsElement>('ports-page', dependencies: const [
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    InstanceRefElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<PortsElement> _r;
 
   Stream<RenderedEvent<PortsElement>> get onRendered => _r.onRendered;
@@ -71,7 +61,7 @@ class PortsElement extends CustomElement implements Renderable {
     return e;
   }
 
-  PortsElement.created() : super.created(tag);
+  PortsElement.created() : super.created('ports-page');
 
   int get portCount {
     return _isolatePorts == null ? 0 : _isolatePorts.elements.length;

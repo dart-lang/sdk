@@ -106,6 +106,8 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_causal_async_stacks = false;
+    FLAG_lazy_async_stacks = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for gen_snapshot.
@@ -500,8 +502,6 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
 }
 
 // Return null if bailed out.
-// If optimized_result_code is not NULL then it is caller's responsibility
-// to install code.
 CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
@@ -521,8 +521,8 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   volatile bool use_far_branches = false;
 
   // In the JIT case we allow speculative inlining and have no need for a
-  // blacklist, since we don't restart optimization.
-  SpeculativeInliningPolicy speculative_policy(/* enable_blacklist= */ false);
+  // suppression, since we don't restart optimization.
+  SpeculativeInliningPolicy speculative_policy(/*enable_suppression=*/false);
 
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
@@ -657,13 +657,12 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //      those writes are observed atomically.
         //
         thread()->isolate_group()->RunWithStoppedMutators(
-            install_code_fun, install_code_fun, /*use_force_growth=*/true);
-
-        // We notify code observers after finalizing the code in order to be
-        // outside a [SafepointOperationScope].
-        Code::NotifyCodeObservers(function, *result, optimized());
+            install_code_fun, /*use_force_growth=*/true);
       }
       if (!result->IsNull()) {
+        // Must be called outside of safepoint.
+        Code::NotifyCodeObservers(function, *result, optimized());
+
 #if !defined(PRODUCT)
         if (!function.HasOptimizedCode()) {
           isolate()->debugger()->NotifyCompilation(function);

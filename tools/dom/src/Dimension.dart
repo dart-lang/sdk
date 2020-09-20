@@ -57,7 +57,9 @@ class Dimension {
    * `inherit` or invalid CSS will cause this constructor to throw a
    * FormatError.
    */
-  Dimension.css(String cssValue) {
+  Dimension.css(String cssValue)
+      : _unit = '',
+        _value = 0 {
     if (cssValue == '') cssValue = '0px';
     if (cssValue.endsWith('%')) {
       _unit = '%';

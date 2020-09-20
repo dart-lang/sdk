@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart._js_helper;
 
 @notNull
@@ -41,7 +39,7 @@ class StringMatch implements Match {
   }
 
   List<String> groups(List<int> groups_) {
-    List<String> result = List<String>();
+    List<String> result = <String>[];
     for (int g in groups_) {
       result.add(group(g));
     }
@@ -81,7 +79,7 @@ class _StringAllMatchesIterator implements Iterator<Match> {
   final String _input;
   final String _pattern;
   int _index;
-  Match _current;
+  Match? _current;
 
   _StringAllMatchesIterator(this._input, this._pattern, this._index);
 
@@ -104,7 +102,7 @@ class _StringAllMatchesIterator implements Iterator<Match> {
     return true;
   }
 
-  Match get current => _current;
+  Match get current => _current!;
 }
 
 @notNull
@@ -176,15 +174,15 @@ String stringReplaceAllUnchecked(@notNull String receiver,
   }
 }
 
-String _matchString(Match match) => match[0];
+String _matchString(Match match) => match[0]!;
 String _stringIdentity(String string) => string;
 
 @notNull
 String stringReplaceAllFuncUnchecked(
     String receiver,
     @nullCheck Pattern pattern,
-    String onMatch(Match match),
-    String onNonMatch(String nonMatch)) {
+    String Function(Match)? onMatch,
+    String Function(String)? onNonMatch) {
   if (onMatch == null) onMatch = _matchString;
   if (onNonMatch == null) onNonMatch = _stringIdentity;
   if (pattern is String) {

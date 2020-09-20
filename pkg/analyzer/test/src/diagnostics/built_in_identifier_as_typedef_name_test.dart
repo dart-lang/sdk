@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class BuiltInIdentifierAsTypedefNameTest extends DriverResolutionTest {
+class BuiltInIdentifierAsTypedefNameTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -30,7 +30,7 @@ class as = A with B;
     await assertErrorsInCode(r'''
 typedef void as();
 ''', [
-      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 2),
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 13, 2),
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 13, 2),
     ]);
   }
@@ -40,7 +40,7 @@ typedef void as();
 typedef as = void Function();
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, 8, 2),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 8, 2)
+      error(ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD, 8, 2)
     ]);
   }
 }

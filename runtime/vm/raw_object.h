@@ -138,8 +138,6 @@ class ObjectLayout {
   // See Object::MakeUnusedSpaceTraversable.
   COMPILE_ASSERT(kCardRememberedBit == 0);
 
-  COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
-
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
@@ -181,8 +179,11 @@ class ObjectLayout {
     }
   };
 
-  class ClassIdTag
-      : public BitField<uint32_t, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
+  class ClassIdTag : public BitField<uint32_t,
+                                     ClassIdTagType,
+                                     kClassIdTagPos,
+                                     kClassIdTagSize> {};
+  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) == kClassIdTagSize);
 
   class CardRememberedBit
       : public BitField<uint32_t, bool, kCardRememberedBit, 1> {};
@@ -704,7 +705,8 @@ class ClassLayout : public ObjectLayout {
   enum ClassFinalizedState {
     kAllocated = 0,  // Initial state.
     kPreFinalized,   // VM classes: size precomputed, but no checks done.
-    kFinalized,      // Class parsed, finalized and ready for use.
+    kFinalized,      // Class parsed, code compiled, not ready for allocation.
+    kAllocateFinalized,  // CHA invalidated, class is ready for allocation.
   };
   enum ClassLoadingState {
     // Class object is created, but it is not filled up.
@@ -804,6 +806,7 @@ class ClassLayout : public ObjectLayout {
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
   friend class CidRewriteVisitor;
+  friend class Api;
 };
 
 class PatchClassLayout : public ObjectLayout {
@@ -930,6 +933,7 @@ class FunctionLayout : public ObjectLayout {
   class UnboxedParameterBitmap {
    public:
     static constexpr intptr_t kBitsPerParameter = 2;
+    static constexpr intptr_t kParameterBitmask = (1 << kBitsPerParameter) - 1;
     static constexpr intptr_t kCapacity =
         (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
 
@@ -942,47 +946,55 @@ class FunctionLayout : public ObjectLayout {
       if (position >= kCapacity) {
         return false;
       }
-      ASSERT(Utils::TestBit(bitmap_, 2 * position) ||
-             !Utils::TestBit(bitmap_, 2 * position + 1));
-      return Utils::TestBit(bitmap_, 2 * position);
+      ASSERT(Utils::TestBit(bitmap_, kBitsPerParameter * position) ||
+             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position);
     }
     DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
       if (position >= kCapacity) {
         return false;
       }
-      return Utils::TestBit(bitmap_, 2 * position) &&
-             !Utils::TestBit(bitmap_, 2 * position + 1);
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
+             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
       if (position >= kCapacity) {
         return false;
       }
-      return Utils::TestBit(bitmap_, 2 * position) &&
-             Utils::TestBit(bitmap_, 2 * position + 1);
+      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
+             Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
       ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
-      ASSERT(!Utils::TestBit(bitmap_, 2 * position + 1));
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
+      ASSERT(!Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
     }
     DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
       ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(2 * position + 1);
+      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
+      bitmap_ |=
+          Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position + 1);
     }
     DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
     DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
     DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
+    DART_FORCE_INLINE bool HasUnboxedParameters() const {
+      return (bitmap_ >> kBitsPerParameter) != 0;
+    }
+    DART_FORCE_INLINE bool HasUnboxedReturnValue() const {
+      return (bitmap_ & kParameterBitmask) != 0;
+    }
 
    private:
     uint64_t bitmap_;
   };
 
-  static constexpr intptr_t kMaxFixedParametersBits = 15;
-  static constexpr intptr_t kMaxOptionalParametersBits = 14;
+  static constexpr intptr_t kMaxFixedParametersBits = 14;
+  static constexpr intptr_t kMaxOptionalParametersBits = 13;
 
  private:
   friend class Class;
+  friend class UnitDeserializationRoots;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
@@ -1053,6 +1065,10 @@ class FunctionLayout : public ObjectLayout {
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     kBitsPerWord * sizeof(decltype(packed_fields_)),
                 "FunctionLayout::packed_fields_ bitfields don't align.");
+  static_assert(PackedNumOptionalParameters::kNextBit <=
+                    compiler::target::kSmiBits,
+                "In-place mask for number of optional parameters cannot fit in "
+                "a Smi on the target architecture");
 
 #define JIT_FUNCTION_COUNTERS(F)                                               \
   F(intptr_t, int32_t, usage_counter)                                          \
@@ -1186,9 +1202,9 @@ class FieldLayout : public ObjectLayout {
 #endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-  classid_t guarded_cid_;
-  classid_t is_nullable_;  // kNullCid if field can contain null value and
-                           // kInvalidCid otherwise.
+  ClassIdTagType guarded_cid_;
+  ClassIdTagType is_nullable_;  // kNullCid if field can contain null value and
+                                // kInvalidCid otherwise.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1214,6 +1230,9 @@ class FieldLayout : public ObjectLayout {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class CidRewriteVisitor;
+  friend class GuardFieldClassInstr;     // For sizeof(guarded_cid_/...)
+  friend class LoadFieldInstr;           // For sizeof(guarded_cid_/...)
+  friend class StoreInstanceFieldInstr;  // For sizeof(guarded_cid_/...)
 };
 
 class ScriptLayout : public ObjectLayout {
@@ -1303,8 +1322,10 @@ class LibraryLayout : public ObjectLayout {
   GrowableObjectArrayPtr metadata_;  // Metadata on classes, methods etc.
   ClassPtr toplevel_class_;          // Class containing top-level elements.
   GrowableObjectArrayPtr used_scripts_;
+  LoadingUnitPtr loading_unit_;
   ArrayPtr imports_;  // List of Namespaces imported without prefix.
   ArrayPtr exports_;  // List of re-exported Namespaces.
+  ArrayPtr dependencies_;
   ExternalTypedDataPtr kernel_data_;
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -1349,7 +1370,7 @@ class NamespaceLayout : public ObjectLayout {
   VISIT_FROM(ObjectPtr, library_);
   LibraryPtr library_;       // library with name dictionary.
   ArrayPtr show_names_;      // list of names that are exported.
-  ArrayPtr hide_names_;      // blacklist of names that are not exported.
+  ArrayPtr hide_names_;      // list of names that are hidden.
   FieldPtr metadata_field_;  // remembers the token pos of metadata if any,
                              // and the metadata values if computed.
   VISIT_TO(ObjectPtr, metadata_field_);
@@ -1388,7 +1409,7 @@ class WeakSerializationReferenceLayout : public ObjectLayout {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   VISIT_NOTHING();
-  classid_t cid_;
+  ClassIdTagType cid_;
 #else
   VISIT_FROM(ObjectPtr, target_);
   ObjectPtr target_;
@@ -1506,6 +1527,8 @@ class CodeLayout : public ObjectLayout {
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
+  friend class UnitSerializationRoots;
+  friend class UnitDeserializationRoots;
   friend class CallSiteResetter;
 };
 
@@ -1974,18 +1997,8 @@ class SingleTargetCacheLayout : public ObjectLayout {
   CodePtr target_;
   VISIT_TO(ObjectPtr, target_);
   uword entry_point_;
-  classid_t lower_limit_;
-  classid_t upper_limit_;
-};
-
-class UnlinkedCallLayout : public ObjectLayout {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
-  VISIT_FROM(ObjectPtr, target_name_);
-  StringPtr target_name_;
-  ArrayPtr args_descriptor_;
-  VISIT_TO(ObjectPtr, args_descriptor_);
-  bool can_patch_to_monomorphic_;
-  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  ClassIdTagType lower_limit_;
+  ClassIdTagType upper_limit_;
 };
 
 class MonomorphicSmiableCallLayout : public ObjectLayout {
@@ -2007,6 +2020,15 @@ class CallSiteDataLayout : public ObjectLayout {
   ArrayPtr args_descriptor_;  // Arguments descriptor.
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(CallSiteData)
+};
+
+class UnlinkedCallLayout : public CallSiteDataLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
+  VISIT_FROM(ObjectPtr, target_name_);
+  VISIT_TO(ObjectPtr, args_descriptor_);
+  ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  bool can_patch_to_monomorphic_;
 };
 
 class ICDataLayout : public CallSiteDataLayout {
@@ -2052,6 +2074,17 @@ class SubtypeTestCacheLayout : public ObjectLayout {
   VISIT_FROM(ObjectPtr, cache_);
   ArrayPtr cache_;
   VISIT_TO(ObjectPtr, cache_);
+};
+
+class LoadingUnitLayout : public ObjectLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LoadingUnit);
+  VISIT_FROM(ObjectPtr, parent_);
+  LoadingUnitPtr parent_;
+  ArrayPtr base_objects_;
+  VISIT_TO(ObjectPtr, base_objects_);
+  int32_t id_;
+  bool load_outstanding_;
+  bool loaded_;
 };
 
 class ErrorLayout : public ObjectLayout {
@@ -2110,15 +2143,15 @@ class LibraryPrefixLayout : public InstanceLayout {
 
   VISIT_FROM(ObjectPtr, name_)
   StringPtr name_;       // Library prefix name.
-  LibraryPtr importer_;  // Library which declares this prefix.
   ArrayPtr imports_;     // Libraries imported with this prefix.
-  VISIT_TO(ObjectPtr, imports_)
+  LibraryPtr importer_;  // Library which declares this prefix.
+  VISIT_TO(ObjectPtr, importer_)
   ObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<ObjectPtr*>(&imports_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<ObjectPtr*>(&imports_);
-      case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&importer_);
       case Snapshot::kMessage:
       case Snapshot::kNone:
@@ -2130,6 +2163,7 @@ class LibraryPrefixLayout : public InstanceLayout {
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
+  bool is_loaded_;
 };
 
 class TypeArgumentsLayout : public InstanceLayout {
@@ -2165,9 +2199,12 @@ class AbstractTypeLayout : public InstanceLayout {
     kBeingFinalized,           // In the process of being finalized.
     kFinalizedInstantiated,    // Instantiated type ready for use.
     kFinalizedUninstantiated,  // Uninstantiated type ready for use.
+    // Adjust kTypeStateBitSize if more are added.
   };
 
  protected:
+  static constexpr intptr_t kTypeStateBitSize = 2;
+
   uword type_test_stub_entry_point_;  // Accessed from generated code.
   CodePtr type_test_stub_;  // Must be the last field, since subclasses use it
                             // in their VISIT_FROM.
@@ -2212,15 +2249,6 @@ class TypeRefLayout : public AbstractTypeLayout {
 };
 
 class TypeParameterLayout : public AbstractTypeLayout {
- public:
-  enum {
-    kFinalizedBit = 0,
-    kGenericCovariantImplBit,
-  };
-  class FinalizedBit : public BitField<uint8_t, bool, kFinalizedBit, 1> {};
-  class GenericCovariantImplBit
-      : public BitField<uint8_t, bool, kGenericCovariantImplBit, 1> {};
-
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -2230,11 +2258,18 @@ class TypeParameterLayout : public AbstractTypeLayout {
   AbstractTypePtr bound_;  // ObjectType if no explicit bound specified.
   FunctionPtr parameterized_function_;
   VISIT_TO(ObjectPtr, parameterized_function_)
-  classid_t parameterized_class_id_;
+  ClassIdTagType parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
   uint8_t flags_;
   int8_t nullability_;
+
+  using FinalizedBit = BitField<decltype(flags_), bool, 0, 1>;
+  using GenericCovariantImplBit =
+      BitField<decltype(flags_), bool, FinalizedBit::kNextBit, 1>;
+  using DeclarationBit =
+      BitField<decltype(flags_), bool, GenericCovariantImplBit::kNextBit, 1>;
+  static constexpr intptr_t kFlagsBitSize = DeclarationBit::kNextBit;
 
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
@@ -2560,6 +2595,7 @@ class ArrayLayout : public InstanceLayout {
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
+  friend class ReversePc;
 
   friend class OldPage;
 };
@@ -2581,6 +2617,7 @@ class GrowableObjectArrayLayout : public InstanceLayout {
   ObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
   friend class SnapshotReader;
+  friend class ReversePc;
 };
 
 class LinkedHashMapLayout : public InstanceLayout {

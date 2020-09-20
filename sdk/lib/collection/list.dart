@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.collection;
 
 /// Abstract implementation of a list.
@@ -11,17 +9,27 @@ part of dart.collection;
 /// `ListBase` can be used as a base class for implementing the `List`
 /// interface.
 ///
-/// All operations are defined in terms of `length`, `operator[]`,
-/// `operator[]=` and `length=`, which need to be implemented.
+/// This class implements all read operations using only the `length` and
+/// `operator[]` and members. It implements write operations using those and
+/// `add`, `length=` and `operator[]=`
+/// Classes using this base classs  should implement those five operations.
 ///
-/// *NOTICE*: Forwarding just these four operations to a normal growable [List]
-/// (as created by `new List()`) will give very bad performance for `add` and
-/// `addAll` operations of `ListBase`. These operations are implemented by
-/// increasing the length of the list by one for each `add` operation, and
-/// repeatedly increasing the length of a growable list is not efficient.
-/// To avoid this, either override 'add' and 'addAll' to also forward directly
-/// to the growable list, or, preferably, use `DelegatingList` from
-/// "package:collection/wrappers.dart" instead.
+/// **NOTICE**: For backwards compatability reasons,
+/// there is a default implementation of `add`
+/// which only works for lists with a nullable element type.
+/// For list with a non-nullable element type,
+/// the `add` method must be implemented.
+///
+/// **NOTICE**: Forwarding just the four `length` and `[]` read/write operations
+/// to a normal growable [List] (as created by a `[]` literal)
+/// will give very bad performance for `add` and `addAll` operations
+/// of `ListBase`.
+/// These operations are implemented by
+/// increasing the length of the list by one for each `add` operation,
+/// and repeatedly increasing the length of a growable list is not efficient.
+/// To avoid this, override 'add' and 'addAll' to also forward directly
+/// to the growable list, or, if possible, use `DelegatingList` from
+/// "package:collection/collection.dart" instead of a `ListMixin`.
 abstract class ListBase<E> extends Object with ListMixin<E> {
   /// Converts a [List] to a [String].
   ///
@@ -40,18 +48,27 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /// `ListMixin` can be used as a mixin to make a class implement
 /// the `List` interface.
 ///
-/// This implements all read operations using only the `length` and
-/// `operator[]` members. It implements write operations using those and
-/// `length=` and `operator[]=`
+/// This mixin implements all read operations using only the `length` and
+/// `operator[]` and members. It implements write operations using those and
+/// `add`, `length=` and `operator[]=`.
+/// Classes using this mixin should implement those five operations.
 ///
-/// *NOTICE*: Forwarding just these four operations to a normal growable [List]
-/// (as created by `new List()`) will give very bad performance for `add` and
-/// `addAll` operations of `ListBase`. These operations are implemented by
-/// increasing the length of the list by one for each `add` operation, and
-/// repeatedly increasing the length of a growable list is not efficient.
-/// To avoid this, either override 'add' and 'addAll' to also forward directly
+/// **NOTICE**: For backwards compatability reasons,
+/// there is a default implementation of `add`
+/// which only works for lists with a nullable element type.
+/// For lists with a non-nullable element type,
+/// the `add` method must be implemented.
+///
+/// **NOTICE**: Forwarding just the four `length` and `[]` read/write operations
+/// to a normal growable [List] (as created by a `[]` literal)
+/// will give very bad performance for `add` and `addAll` operations
+/// of `ListMixin`.
+/// These operations are implemented by
+/// increasing the length of the list by one for each `add` operation,
+/// and repeatedly increasing the length of a growable list is not efficient.
+/// To avoid this, override 'add' and 'addAll' to also forward directly
 /// to the growable list, or, if possible, use `DelegatingList` from
-/// "package:collection/wrappers.dart" instead.
+/// "package:collection/collection.dart" instead of a `ListMixin`.
 abstract class ListMixin<E> implements List<E> {
   // Iterable interface.
   // TODO(lrn): When we get composable mixins, reuse IterableMixin instead
@@ -104,7 +121,7 @@ abstract class ListMixin<E> implements List<E> {
     return this[0];
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (this[i] == element) return true;
@@ -137,7 +154,7 @@ abstract class ListMixin<E> implements List<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), {E orElse()}) {
+  E firstWhere(bool test(E element), {E Function()? orElse}) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -150,7 +167,7 @@ abstract class ListMixin<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E orElse()}) {
+  E lastWhere(bool test(E element), {E Function()? orElse}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = this[i];
@@ -163,9 +180,9 @@ abstract class ListMixin<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E orElse()}) {
+  E singleWhere(bool test(E element), {E Function()? orElse}) {
     int length = this.length;
-    E match;
+    late E match;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -238,13 +255,10 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   List<E> toList({bool growable = true}) {
-    List<E> result;
-    if (growable) {
-      result = <E>[]..length = length;
-    } else {
-      result = List<E>(length);
-    }
-    for (int i = 0; i < length; i++) {
+    if (this.isEmpty) return List<E>.empty(growable: growable);
+    var first = this[0];
+    var result = List<E>.filled(this.length, first, growable: growable);
+    for (int i = 1; i < this.length; i++) {
       result[i] = this[i];
     }
     return result;
@@ -260,6 +274,7 @@ abstract class ListMixin<E> implements List<E> {
 
   // List interface.
   void add(E element) {
+    // This implementation only works for lists which allow `null` as element.
     this[this.length++] = element;
   }
 
@@ -267,13 +282,12 @@ abstract class ListMixin<E> implements List<E> {
     int i = this.length;
     for (E element in iterable) {
       assert(this.length == i || (throw ConcurrentModificationError(this)));
-      this.length = i + 1;
-      this[i] = element;
+      add(element);
       i++;
     }
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         this._closeGap(i, i + 1);
@@ -337,18 +351,18 @@ abstract class ListMixin<E> implements List<E> {
     return result;
   }
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int Function(E a, E b)? compare]) {
     Sort.sort(this, compare ?? _compareAny);
   }
 
-  static int _compareAny(a, b) {
-    // In strong mode Comparable.compare requires an implicit cast to ensure
-    // `a` and `b` are Comparable.
-    return Comparable.compare(a, b);
+  static int _compareAny(dynamic a, dynamic b) {
+    return Comparable.compare(a as Comparable, b as Comparable);
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     random ??= Random();
+    if (random == null) throw "!"; // TODO(38493): The `??=` should promote.
+
     int length = this.length;
     while (length > 1) {
       int pos = random.nextInt(length);
@@ -363,23 +377,15 @@ abstract class ListMixin<E> implements List<E> {
     return ListMapView<E>(this);
   }
 
-  List<E> operator +(List<E> other) {
-    var result = <E>[]..length = (this.length + other.length);
-    result.setRange(0, this.length, this);
-    result.setRange(this.length, result.length, other);
-    return result;
-  }
+  List<E> operator +(List<E> other) => [...this, ...other];
 
-  List<E> sublist(int start, [int end]) {
+  List<E> sublist(int start, [int? end]) {
     int listLength = this.length;
     end ??= listLength;
+    if (end == null) throw "!"; // TODO(38493): The `??=` should promote.
+
     RangeError.checkValidRange(start, end, listLength);
-    int length = end - start;
-    List<E> result = <E>[]..length = length;
-    for (int i = 0; i < length; i++) {
-      result[i] = this[start + i];
-    }
-    return result;
+    return List.from(getRange(start, end));
   }
 
   Iterable<E> getRange(int start, int end) {
@@ -394,10 +400,13 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  void fillRange(int start, int end, [E fill]) {
+  void fillRange(int start, int end, [E? fill]) {
+    // Hoist the case to fail eagerly if the user provides an invalid `null`
+    // value (or omits it) when E is a non-nullable type.
+    E value = fill as E;
     RangeError.checkValidRange(start, end, this.length);
     for (int i = start; i < end; i++) {
-      this[i] = fill;
+      this[i] = value;
     }
   }
 
@@ -434,6 +443,10 @@ abstract class ListMixin<E> implements List<E> {
 
   void replaceRange(int start, int end, Iterable<E> newContents) {
     RangeError.checkValidRange(start, end, this.length);
+    if (start == this.length) {
+      addAll(newContents);
+      return;
+    }
     if (newContents is! EfficientLengthIterable) {
       newContents = newContents.toList();
     }
@@ -445,17 +458,31 @@ abstract class ListMixin<E> implements List<E> {
       if (removeLength > insertLength) {
         _closeGap(insertEnd, end);
       }
+    } else if (end == this.length) {
+      int i = start;
+      for (E element in newContents) {
+        if (i < end) {
+          this[i] = element;
+        } else {
+          add(element);
+        }
+        i++;
+      }
     } else {
       int delta = insertLength - removeLength;
-      int newLength = this.length + delta;
+      int oldLength = this.length;
       int insertEnd = start + insertLength; // aka. end + delta.
-      this.length = newLength;
-      this.setRange(insertEnd, newLength, this, end);
+      for (int i = oldLength - delta; i < oldLength; ++i) {
+        add(this[i > 0 ? i : 0]);
+      }
+      if (insertEnd < oldLength) {
+        this.setRange(insertEnd, oldLength, this, end);
+      }
       this.setRange(start, insertEnd, newContents);
     }
   }
 
-  int indexOf(Object element, [int start = 0]) {
+  int indexOf(Object? element, [int start = 0]) {
     if (start < 0) start = 0;
     for (int i = start; i < this.length; i++) {
       if (this[i] == element) return i;
@@ -471,16 +498,24 @@ abstract class ListMixin<E> implements List<E> {
     return -1;
   }
 
-  int lastIndexOf(Object element, [int start]) {
+  int lastIndexOf(Object? element, [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
+
+    // TODO(38493): The previous line should promote.
+    if (start == null) throw "!";
+
     for (int i = start; i >= 0; i--) {
       if (this[i] == element) return i;
     }
     return -1;
   }
 
-  int lastIndexWhere(bool test(E element), [int start]) {
+  int lastIndexWhere(bool test(E element), [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
+
+    // TODO(38493): The previous line should promote.
+    if (start == null) throw "!";
+
     for (int i = start; i >= 0; i--) {
       if (test(this[i])) return i;
     }
@@ -489,14 +524,13 @@ abstract class ListMixin<E> implements List<E> {
 
   void insert(int index, E element) {
     ArgumentError.checkNotNull(index, "index");
+    var length = this.length;
     RangeError.checkValueInInterval(index, 0, length, "index");
-    if (index == this.length) {
-      add(element);
-      return;
+    add(element);
+    if (index != length) {
+      setRange(index + 1, length + 1, this, index);
+      this[index] = element;
     }
-    this.length++;
-    setRange(index + 1, this.length, this, index);
-    this[index] = element;
   }
 
   E removeAt(int index) {
@@ -507,21 +541,34 @@ abstract class ListMixin<E> implements List<E> {
 
   void insertAll(int index, Iterable<E> iterable) {
     RangeError.checkValueInInterval(index, 0, length, "index");
+    if (index == length) {
+      addAll(iterable);
+      return;
+    }
     if (iterable is! EfficientLengthIterable || identical(iterable, this)) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
+    if (insertionLength == 0) {
+      return;
+    }
     // There might be errors after the length change, in which case the list
     // will end up being modified but the operation not complete. Unless we
     // always go through a "toList" we can't really avoid that.
-    this.length += insertionLength;
+    int oldLength = length;
+    for (int i = oldLength - insertionLength; i < oldLength; ++i) {
+      add(this[i > 0 ? i : 0]);
+    }
     if (iterable.length != insertionLength) {
       // If the iterable's length is linked to this list's length somehow,
       // we can't insert one in the other.
       this.length -= insertionLength;
       throw ConcurrentModificationError(iterable);
     }
-    setRange(index + insertionLength, this.length, this, index);
+    int oldCopyStart = index + insertionLength;
+    if (oldCopyStart < oldLength) {
+      setRange(oldCopyStart, oldLength, this, index);
+    }
     setAll(index, iterable);
   }
 

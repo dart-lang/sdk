@@ -4,17 +4,17 @@
 
 // @dart = 2.7
 
-/*prod:nnbd-off.class: global#Map:*/
-/*spec:nnbd-off.class: global#Map:explicit=[Map],indirect,needsArgs*/
+/*prod.class: global#Map:*/
+/*spec.class: global#Map:explicit=[Map,Map<Object?,Object?>],indirect,needsArgs*/
 
-/*prod:nnbd-off.class: global#LinkedHashMap:deps=[Map]*/
-/*spec:nnbd-off.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
+/*prod.class: global#LinkedHashMap:deps=[Map]*/
+/*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 
-/*prod:nnbd-off.class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
-/*spec:nnbd-off.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
+/*prod.class: global#JsLinkedHashMap:deps=[LinkedHashMap]*/
+/*spec.class: global#JsLinkedHashMap:deps=[LinkedHashMap],direct,explicit=[JsLinkedHashMap.K,JsLinkedHashMap.V,void Function(JsLinkedHashMap.K,JsLinkedHashMap.V)],implicit=[JsLinkedHashMap.K,JsLinkedHashMap.V],needsArgs*/
 
-/*prod:nnbd-off.class: global#double:explicit=[double]*/
-/*spec:nnbd-off.class: global#double:explicit=[double],implicit=[double]*/
+/*prod.class: global#double:*/
+/*spec.class: global#double:implicit=[double]*/
 
 /*class: global#JSDouble:*/
 

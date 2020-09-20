@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,23 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class MixinDeferredClassTest extends DriverResolutionTest {
-  test_mixin_deferred_class() async {
-    newFile('/test/lib/lib1.dart', content: '''
-library lib1;
-class A {}
-''');
-    await assertErrorsInCode('''
-library root;
-import 'lib1.dart' deferred as a;
-class B extends Object with a.A {}
-''', [
-      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
-    ]);
-  }
-
+class MixinDeferredClassTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 class A {}
 ''');
@@ -39,6 +25,20 @@ library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;
+''', [
+      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
+    ]);
+  }
+
+  test_mixin_deferred_class() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+library lib1;
+class A {}
+''');
+    await assertErrorsInCode('''
+library root;
+import 'lib1.dart' deferred as a;
+class B extends Object with a.A {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3),
     ]);

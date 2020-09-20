@@ -8,7 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/driver_resolution.dart';
+import '../src/dart/resolution/context_collection_resolution.dart';
 import 'resolver_test_case.dart';
 
 main() {
@@ -18,7 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class SimpleResolverTest extends DriverResolutionTest {
+class SimpleResolverTest extends PubPackageResolutionTest {
   test_argumentResolution_required_matching() async {
     await resolveTestCode(r'''
 class A {
@@ -422,7 +422,7 @@ void f() {
   }
 
   test_entryPoint_exported() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 main() {}
 ''');
 
@@ -457,7 +457,7 @@ main() {}
   }
 
   test_enum_externalLibrary() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 enum EEE {A, B, C}
 ''');
     await assertNoErrorsInCode(r'''
@@ -536,38 +536,6 @@ class A {
   }
 }''');
     verifyTestResolved();
-  }
-
-  test_getter_and_setter_fromMixins_bare_identifier() async {
-    await assertNoErrorsInCode('''
-class B {}
-class M1 {
-  get x => null;
-  set x(value) {}
-}
-class M2 {
-  get x => null;
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x += 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    // Verify that both the getter and setter for "x" in C.f() refer to the
-    // accessors defined in M2.
-    var leftHandSide = findNode.simple('x +=');
-    expect(
-      leftHandSide.staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-    expect(
-      leftHandSide.auxiliaryElements.staticElement,
-      findElement.getter('x', of: 'M2'),
-    );
   }
 
   test_getter_and_setter_fromMixins_property_access() async {
@@ -652,25 +620,12 @@ void main() {
     );
   }
 
-  test_hasReferenceToSuper() async {
-    await assertNoErrorsInCode(r'''
-class A {}
-class B {toString() => super.toString();}''');
-    verifyTestResolved();
-
-    var a = findElement.class_('A');
-    expect(a.hasReferenceToSuper, isFalse);
-
-    var b = findElement.class_('B');
-    expect(b.hasReferenceToSuper, isTrue);
-  }
-
   test_import_hide() async {
-    newFile('/test/lib/lib1.dart', content: r'''
+    newFile('$testPackageLibPath/lib1.dart', content: r'''
 set foo(value) {}
 class A {}''');
 
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 set foo(value) {}''');
 
     await assertNoErrorsInCode(r'''
@@ -685,7 +640,7 @@ A a;''');
   }
 
   test_import_prefix() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 f(int x) {
   return x * x;
 }''');
@@ -753,10 +708,8 @@ class H extends D<W> {
     ]);
   }
 
-  @failingTest
   test_import_spaceInUri() async {
-    // TODO(scheglov) Fix this. The problem is in `package` URI resolver.
-    newFile('/test/lib/sub folder/a.dart', content: r'''
+    newFile('$testPackageLibPath/sub folder/a.dart', content: r'''
 foo() {}''');
 
     await assertNoErrorsInCode(r'''
@@ -787,7 +740,7 @@ f() {
   List<List<int>> b;
   b[0][0] = 'hi';
 }''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 39, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 39, 4),
     ]);
     verifyTestResolved();
   }
@@ -862,20 +815,18 @@ class C = Object with A;''');
     expect(a.isValidMixin, isTrue);
   }
 
-  test_isValidMixin_super() async {
-    await assertErrorsInCode(r'''
+  test_isValidMixin_super_toString() async {
+    await assertNoErrorsInCode(r'''
 class A {
   toString() {
     return super.toString();
   }
 }
-class C = Object with A;''', [
-      error(CompileTimeErrorCode.MIXIN_REFERENCES_SUPER, 82, 1),
-    ]);
+class C = Object with A;''');
     verifyTestResolved();
 
     var a = findElement.class_('A');
-    expect(a.isValidMixin, isFalse);
+    expect(a.isValidMixin, isTrue);
   }
 
   test_isValidMixin_valid() async {
@@ -1178,29 +1129,6 @@ f(var p) {
     verifyTestResolved();
   }
 
-  test_setter_fromMixins_bare_identifier() async {
-    await resolveTestCode('''
-class B {}assertNoErrorsInCode
-class M1 {
-  set x(value) {}
-}
-class M2 {
-  set x(value) {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    x = 1;
-  }
-}
-''');
-    verifyTestResolved();
-
-    expect(
-      findNode.simple('x = ').staticElement,
-      findElement.setter('x', of: 'M2'),
-    );
-  }
-
   test_setter_fromMixins_property_access() async {
     await assertNoErrorsInCode('''
 class B {}
@@ -1223,19 +1151,6 @@ void main() {
     );
   }
 
-  test_setter_inherited() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int get x => 0;
-  set x(int p) {}
-}
-class B extends A {
-  int get x => super.x == null ? 0 : super.x;
-  int f() => x = 1;
-}''');
-    verifyTestResolved();
-  }
-
   test_setter_static() async {
     await assertNoErrorsInCode(r'''
 set s(x) {
@@ -1247,34 +1162,33 @@ main() {
     verifyTestResolved();
   }
 
-  /**
-   * Verify that all of the identifiers in the [result] have been resolved.
-   */
+  /// Verify that all of the identifiers in the [result] have been resolved.
   void verifyTestResolved() {
     var verifier = ResolutionVerifier();
     result.unit.accept(verifier);
     verifier.assertResolved();
   }
 
-  /**
-   * Resolve the test file and verify that the arguments in a specific method
-   * invocation were correctly resolved.
-   *
-   * The file is expected to define a method named `g`, and has exactly one
-   * [MethodInvocation] in a statement ending with `);`. It is the arguments to
-   * that method invocation that are tested. The method invocation can contain
-   * errors.
-   *
-   * The arguments were resolved correctly if the number of expressions in the list matches the
-   * length of the array of indices and if, for each index in the array of indices, the parameter to
-   * which the argument expression was resolved is the parameter in the invoked method's list of
-   * parameters at that index. Arguments that should not be resolved to a parameter because of an
-   * error can be denoted by including a negative index in the array of indices.
-   *
-   * @param indices the array of indices used to associate arguments with parameters
-   * @throws Exception if the source could not be resolved or if the structure of the source is not
-   *           valid
-   */
+  /// Resolve the test file and verify that the arguments in a specific method
+  /// invocation were correctly resolved.
+  ///
+  /// The file is expected to define a method named `g`, and has exactly one
+  /// [MethodInvocation] in a statement ending with `);`. It is the arguments to
+  /// that method invocation that are tested. The method invocation can contain
+  /// errors.
+  ///
+  /// The arguments were resolved correctly if the number of expressions in the
+  /// list matches the length of the array of indices and if, for each index in
+  /// the array of indices, the parameter to which the argument expression was
+  /// resolved is the parameter in the invoked method's list of parameters at
+  /// that index. Arguments that should not be resolved to a parameter because
+  /// of an error can be denoted by including a negative index in the array of
+  /// indices.
+  ///
+  /// @param indices the array of indices used to associate arguments with
+  ///          parameters
+  /// @throws Exception if the source could not be resolved or if the structure
+  ///           of the source is not valid
   Future<void> _validateArgumentResolution(List<int> indices) async {
     var g = findElement.method('g');
     var parameters = g.parameters;

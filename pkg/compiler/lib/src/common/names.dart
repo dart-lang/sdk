@@ -61,6 +61,9 @@ class Identifiers {
 
   /// The name of the 'DART_CLOSURE_TO_JS' foreign function.
   static const String DART_CLOSURE_TO_JS = 'DART_CLOSURE_TO_JS';
+
+  /// The name of the 'RAW_DART_FUNCTION_REF' foreign function.
+  static const String RAW_DART_FUNCTION_REF = 'RAW_DART_FUNCTION_REF';
 }
 
 /// [Name]s commonly used.
@@ -255,6 +258,10 @@ class Uris {
 
   /// The URI for 'package:js'.
   static final Uri package_js = new Uri(scheme: 'package', path: 'js/js.dart');
+
+  /// The URI for 'dart:_js_annotations'.
+  static final Uri dart__js_annotations =
+      Uri(scheme: 'dart', path: '_js_annotations');
 
   /// The URI for 'package:meta/dart2js.dart'.
   static final Uri package_meta_dart2js =

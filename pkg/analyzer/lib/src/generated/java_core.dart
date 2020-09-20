@@ -2,27 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Inserts the given arguments into [pattern].
- *
- *     format('Hello, {0}!', 'John') = 'Hello, John!'
- *     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
- *     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
- */
+/// Inserts the given arguments into [pattern].
+///
+///     format('Hello, {0}!', 'John') = 'Hello, John!'
+///     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
+///     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
 String format(String pattern,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]) {
+    [Object arg0,
+    Object arg1,
+    Object arg2,
+    Object arg3,
+    Object arg4,
+    Object arg5,
+    Object arg6,
+    Object arg7]) {
   // TODO(rnystrom): This is not used by analyzer, but is called by
   // analysis_server. Move this code there and remove it from here.
   return formatList(pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]);
 }
 
-/**
- * Inserts the given [arguments] into [pattern].
- *
- *     format('Hello, {0}!', ['John']) = 'Hello, John!'
- *     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
- *     format('{0} are you {1}ing?', ['What', 'read']) = 'What are you reading?'
- */
+/// Inserts the given [arguments] into [pattern].
+///
+///     format('Hello, {0}!', ['John']) = 'Hello, John!'
+///     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
+///     format('{0} are you {1}ing?', ['What', 'read']) =
+///         'What are you reading?'
 String formatList(String pattern, List<Object> arguments) {
   if (arguments == null || arguments.isEmpty) {
     assert(!pattern.contains(RegExp(r'\{(\d+)\}')),
@@ -38,9 +42,7 @@ String formatList(String pattern, List<Object> arguments) {
   });
 }
 
-/**
- * Very limited printf implementation, supports only %s and %d.
- */
+/// Very limited printf implementation, supports only %s and %d.
 String _printf(String fmt, List args) {
   StringBuffer sb = StringBuffer();
   bool markFound = false;
@@ -149,7 +151,7 @@ class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = StringBuffer();
 
   @override
-  void print(x) {
+  void print(Object x) {
     _sb.write(x);
   }
 
@@ -159,17 +161,17 @@ class PrintStringWriter extends PrintWriter {
 
 abstract class PrintWriter {
   void newLine() {
-    this.print('\n');
+    print('\n');
   }
 
-  void print(x);
+  void print(Object x);
 
   void printf(String fmt, List args) {
-    this.print(_printf(fmt, args));
+    print(_printf(fmt, args));
   }
 
   void println(String s) {
-    this.print(s);
-    this.newLine();
+    print(s);
+    newLine();
   }
 }

@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An enumeration of possible postfix completion kinds.
@@ -288,9 +288,9 @@ class PostfixCompletionProcessor {
       return null;
     }
 
-    var changeBuilder = DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(expr), (DartEditBuilder builder) {
+    var changeBuilder = ChangeBuilder(session: session);
+    await changeBuilder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(expr), (builder) {
         String newSrc = sourcer(expr);
         if (newSrc == null) {
           return null;
@@ -322,8 +322,8 @@ class PostfixCompletionProcessor {
     if (stmt == null) {
       return null;
     }
-    var changeBuilder = DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+    var changeBuilder = ChangeBuilder(session: session);
+    await changeBuilder.addDartFileEdit(file, (builder) {
       // Embed the full line(s) of the statement in the try block.
       var startLine = lineInfo.getLocation(stmt.offset).lineNumber - 1;
       var endLine = lineInfo.getLocation(stmt.end).lineNumber - 1;
@@ -335,7 +335,7 @@ class PostfixCompletionProcessor {
       var src = utils.getText(startOffset, endOffset - startOffset);
       var indent = utils.getLinePrefix(stmt.offset);
       builder.addReplacement(range.startOffsetEndOffset(startOffset, endOffset),
-          (DartEditBuilder builder) {
+          (builder) {
         builder.write(indent);
         builder.write('try {');
         builder.write(eol);
@@ -446,7 +446,18 @@ class PostfixCompletionProcessor {
     if (astNode is ThrowExpression) {
       var expr = astNode;
       var type = expr.expression.staticType;
-      return type.getDisplayString(withNullability: false);
+
+      // Only print nullability for non-legacy types in non-legacy libraries.
+      var showNullability = type.nullabilitySuffix != NullabilitySuffix.star &&
+          (astNode.root as CompilationUnit)
+              .declaredElement
+              .library
+              .isNonNullableByDefault;
+
+      // Can't catch nullable types, strip `?`s now that we've checked for `*`s.
+      return (type as TypeImpl)
+          .withNullability(NullabilitySuffix.none)
+          .getDisplayString(withNullability: showNullability);
     }
     return 'Exception';
   }
@@ -500,7 +511,7 @@ class PostfixCompletionProcessor {
       .searchWithin(completionContext.resolveResult.unit);
 
   void _setCompletionFromBuilder(
-      DartChangeBuilder builder, PostfixCompletionKind kind,
+      ChangeBuilder builder, PostfixCompletionKind kind,
       [List args]) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {

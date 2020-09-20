@@ -160,12 +160,15 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   Thread* thread = Thread::Current();
   auto object_store = thread->isolate()->object_store();
   Zone* zone = thread->zone();
-  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
+  const Error& error =
+      Error::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
     return object_store->allocate_array_stub();
   } else if (cls.id() == kContextCid) {
     return object_store->allocate_context_stub();
+  } else if (cls.id() == kUnhandledExceptionCid) {
+    return object_store->allocate_unhandled_exception_stub();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -218,7 +221,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
       }
     };
     auto bg_compiler_fun = [&]() {
-      ForceGrowthSafepointOperationScope safepoint_scope(thread);
+      ASSERT(Thread::Current()->IsAtSafepoint());
       stub = cls.allocation_stub();
       // Check if stub was already generated.
       if (!stub.IsNull()) {
@@ -255,6 +258,42 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.raw();
+}
+
+CodePtr StubCode::GetAllocationStubForTypedData(classid_t class_id) {
+  auto object_store = Thread::Current()->isolate()->object_store();
+  switch (class_id) {
+    case kTypedDataInt8ArrayCid:
+      return object_store->allocate_int8_array_stub();
+    case kTypedDataUint8ArrayCid:
+      return object_store->allocate_uint8_array_stub();
+    case kTypedDataUint8ClampedArrayCid:
+      return object_store->allocate_uint8_clamped_array_stub();
+    case kTypedDataInt16ArrayCid:
+      return object_store->allocate_int16_array_stub();
+    case kTypedDataUint16ArrayCid:
+      return object_store->allocate_uint16_array_stub();
+    case kTypedDataInt32ArrayCid:
+      return object_store->allocate_int32_array_stub();
+    case kTypedDataUint32ArrayCid:
+      return object_store->allocate_uint32_array_stub();
+    case kTypedDataInt64ArrayCid:
+      return object_store->allocate_int64_array_stub();
+    case kTypedDataUint64ArrayCid:
+      return object_store->allocate_uint64_array_stub();
+    case kTypedDataFloat32ArrayCid:
+      return object_store->allocate_float32_array_stub();
+    case kTypedDataFloat64ArrayCid:
+      return object_store->allocate_float64_array_stub();
+    case kTypedDataFloat32x4ArrayCid:
+      return object_store->allocate_float32x4_array_stub();
+    case kTypedDataInt32x4ArrayCid:
+      return object_store->allocate_int32x4_array_stub();
+    case kTypedDataFloat64x2ArrayCid:
+      return object_store->allocate_float64x2_array_stub();
+  }
+  UNREACHABLE();
+  return Code::null();
 }
 
 #if !defined(TARGET_ARCH_IA32)
@@ -321,13 +360,15 @@ const char* StubCode::NameOfStub(uword entry_point) {
   }
 
   auto object_store = Isolate::Current()->object_store();
-#define DO(member, name)                                                       \
+
+#define MATCH(member, name)                                                    \
   if (object_store->member() != Code::null() &&                                \
       entry_point == Code::EntryPointOf(object_store->member())) {             \
     return "_iso_stub_" #name "Stub";                                          \
   }
-  OBJECT_STORE_STUB_CODE_LIST(DO)
-#undef DO
+  OBJECT_STORE_STUB_CODE_LIST(MATCH)
+  MATCH(build_method_extractor_code, BuildMethodExtractor)
+#undef MATCH
   return nullptr;
 }
 

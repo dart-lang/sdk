@@ -9,6 +9,7 @@
 
 #include <errno.h>           // NOLINT
 #include <fcntl.h>           // NOLINT
+#include <lib/fdio/fdio.h>   // NOLINT
 #include <lib/fdio/namespace.h>  // NOLINT
 #include <libgen.h>          // NOLINT
 #include <sys/mman.h>        // NOLINT
@@ -51,8 +52,10 @@ File::~File() {
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
   if (handle_->fd() == STDOUT_FILENO) {
-    // If stdout, redirect fd to /dev/null.
-    int null_fd = NO_RETRY_EXPECTED(open("/dev/null", O_WRONLY));
+    // If stdout, redirect fd to Fuchsia's equivalent of /dev/null.
+    auto* null_fdio = fdio_null_create();
+    ASSERT(null_fdio != nullptr);
+    int null_fd = NO_RETRY_EXPECTED(fdio_bind_to_fd(null_fdio, -1, 0));
     ASSERT(null_fd >= 0);
     VOID_NO_RETRY_EXPECTED(dup2(null_fd, handle_->fd()));
     VOID_NO_RETRY_EXPECTED(close(null_fd));
@@ -243,7 +246,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return OpenFD(fd);
 }
 
-static Utils::CStringUniquePtr DecodeUri(const char* uri) {
+Utils::CStringUniquePtr File::UriToPath(const char* uri) {
   const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
       ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
@@ -255,7 +258,7 @@ static Utils::CStringUniquePtr DecodeUri(const char* uri) {
 }
 
 File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
-  auto path = DecodeUri(uri);
+  auto path = UriToPath(uri);
   if (path == nullptr) {
     return nullptr;
   }
@@ -277,7 +280,7 @@ bool File::Exists(Namespace* namespc, const char* name) {
 }
 
 bool File::ExistsUri(Namespace* namespc, const char* uri) {
-  auto path = DecodeUri(uri);
+  auto path = UriToPath(uri);
   if (path == nullptr) {
     return false;
   }

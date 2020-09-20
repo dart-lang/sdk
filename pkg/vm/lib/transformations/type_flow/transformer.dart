@@ -17,8 +17,9 @@ import 'package:kernel/external_name.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
+import 'protobuf_handler.dart' show ProtobufHandler;
 import 'summary.dart';
-import 'table_selector.dart';
+import 'table_selector_assigner.dart';
 import 'types.dart';
 import 'unboxing_info.dart';
 import 'utils.dart';
@@ -40,20 +41,31 @@ Component transformComponent(
     Target target, CoreTypes coreTypes, Component component,
     {PragmaAnnotationParser matcher,
     bool treeShakeSignatures: true,
-    bool treeShakeWriteOnlyFields: true}) {
+    bool treeShakeWriteOnlyFields: true,
+    bool treeShakeProtobufs: false}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final types = new TypeEnvironment(coreTypes, hierarchy);
   final libraryIndex = new LibraryIndex.all(component);
   final genericInterfacesInfo = new GenericInterfacesInfoImpl(hierarchy);
+  final protobufHandler = treeShakeProtobufs
+      ? ProtobufHandler.forComponent(component, coreTypes)
+      : null;
 
   Statistics.reset();
   final analysisStopWatch = new Stopwatch()..start();
 
-  final typeFlowAnalysis = new TypeFlowAnalysis(target, component, coreTypes,
-      hierarchy, genericInterfacesInfo, types, libraryIndex,
-      matcher: matcher);
+  final typeFlowAnalysis = new TypeFlowAnalysis(
+      target,
+      component,
+      coreTypes,
+      hierarchy,
+      genericInterfacesInfo,
+      types,
+      libraryIndex,
+      protobufHandler,
+      matcher);
 
   Procedure main = component.mainMethod;
 
@@ -82,12 +94,13 @@ Component transformComponent(
           component, typeFlowAnalysis, hierarchy, treeShaker.fieldMorpher)
       .visitComponent(component);
 
-  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis);
+  final tableSelectorAssigner = new TableSelectorAssigner(component);
 
-  _makePartition(component, typeFlowAnalysis, unboxingInfo);
+  final unboxingInfo = new UnboxingInfoManager(typeFlowAnalysis)
+    ..analyzeComponent(component, typeFlowAnalysis, tableSelectorAssigner);
 
-  new AnnotateKernel(
-          component, typeFlowAnalysis, treeShaker.fieldMorpher, unboxingInfo)
+  new AnnotateKernel(component, typeFlowAnalysis, treeShaker.fieldMorpher,
+          tableSelectorAssigner, unboxingInfo)
       .visitComponent(component);
 
   treeShaker.finalizeSignatures();
@@ -143,7 +156,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   Constant _nullConstant;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.fieldMorpher,
-      this._unboxingInfo)
+      this._tableSelectorAssigner, this._unboxingInfo)
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag],
         _inferredTypeMetadata = new InferredTypeMetadataRepository(),
@@ -151,7 +164,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
         _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _tableSelectorAssigner = new TableSelectorAssigner(),
         _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
@@ -168,7 +180,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
   InferredType _convertType(Type type,
       {bool skipCheck: false, bool receiverNotInt: false}) {
-    assertx(type != null);
+    assert(type != null);
 
     Class concreteClass;
     Constant constantValue;
@@ -286,7 +298,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _tableSelectorAssigner.registerGetterCall(
             selector.member, callSite.isNullableReceiver);
       } else {
-        assertx(node is MethodInvocation || node is PropertySet);
+        assert(node is MethodInvocation || node is PropertySet);
         _tableSelectorAssigner.registerMethodOrSetterCall(
             selector.member, callSite.isNullableReceiver);
       }
@@ -297,17 +309,24 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     if (_typeFlowAnalysis.isMemberUsed(member)) {
       if (member is Field) {
         _setInferredType(member, _typeFlowAnalysis.fieldType(member));
+
+        final unboxingInfoMetadata =
+            _unboxingInfo.getUnboxingInfoOfMember(member);
+        if (unboxingInfoMetadata != null &&
+            !unboxingInfoMetadata.isFullyBoxed) {
+          _unboxingInfoMetadata.mapping[member] = unboxingInfoMetadata;
+        }
       } else {
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member);
         final uncheckedParameters =
             _typeFlowAnalysis.uncheckedParameters(member);
-        assertx(argTypes != null);
+        assert(argTypes != null);
 
         final int firstParamIndex =
             numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
 
         final positionalParams = member.function.positionalParameters;
-        assertx(argTypes.positionalCount ==
+        assert(argTypes.positionalCount ==
             firstParamIndex + positionalParams.length);
 
         for (int i = 0; i < positionalParams.length; i++) {
@@ -321,7 +340,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         final names = argTypes.names;
         for (int i = 0; i < names.length; i++) {
           final param = findNamedParameter(member.function, names[i]);
-          assertx(param != null);
+          assert(param != null);
           _setInferredType(param,
               argTypes.values[firstParamIndex + positionalParams.length + i],
               skipCheck: uncheckedParameters.contains(param));
@@ -479,76 +498,6 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   }
 }
 
-// Partition the methods in order to idenfity parameters and return values
-// that are unboxing candidates
-void _makePartition(Component component, TypeFlowAnalysis typeFlowAnalysis,
-    UnboxingInfoManager unboxingInfo) {
-  // Traverses all the members and creates the partition graph.
-  // Currently unboxed parameters and return value are not supported for
-  // closures, therefore they do not exist in this graph
-  for (bool registering in const [true, false]) {
-    for (Library library in component.libraries) {
-      for (Class cls in library.classes) {
-        for (Member member in cls.members) {
-          if (registering) {
-            unboxingInfo.registerMember(member);
-          } else {
-            unboxingInfo.linkWithSuperClasses(member);
-          }
-        }
-      }
-      if (registering) {
-        for (Member member in library.members) {
-          unboxingInfo.registerMember(member);
-        }
-      }
-    }
-  }
-  unboxingInfo.finishGraph();
-
-  for (Library library in component.libraries) {
-    for (Class cls in library.classes) {
-      for (Member member in cls.members) {
-        _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
-      }
-    }
-    for (Member member in library.members) {
-      _updateUnboxingInfoOfMember(member, typeFlowAnalysis, unboxingInfo);
-    }
-  }
-}
-
-void _updateUnboxingInfoOfMember(Member member,
-    TypeFlowAnalysis typeFlowAnalysis, UnboxingInfoManager unboxingInfo) {
-  if (typeFlowAnalysis.isMemberUsed(member) && (member is! Field)) {
-    final Args<Type> argTypes = typeFlowAnalysis.argumentTypes(member);
-    assertx(argTypes != null);
-
-    final int firstParamIndex =
-        numTypeParams(member) + (hasReceiverArg(member) ? 1 : 0);
-
-    final positionalParams = member.function.positionalParameters;
-    assertx(
-        argTypes.positionalCount == firstParamIndex + positionalParams.length);
-
-    for (int i = 0; i < positionalParams.length; i++) {
-      final inferredType = argTypes.values[firstParamIndex + i];
-      unboxingInfo.applyToArg(member, i, inferredType);
-    }
-
-    final names = argTypes.names;
-    for (int i = 0; i < names.length; i++) {
-      final inferredType =
-          argTypes.values[firstParamIndex + positionalParams.length + i];
-      unboxingInfo.applyToArg(
-          member, positionalParams.length + i, inferredType);
-    }
-
-    final Type resultType = typeFlowAnalysis.getSummary(member).resultType;
-    unboxingInfo.applyToReturn(member, resultType);
-  }
-}
-
 /// Tree shaking based on results of type flow analysis (TFA).
 ///
 /// TFA provides information about allocated classes and reachable member
@@ -676,6 +625,12 @@ class TreeShaker {
                   isSetter: m.isSetter);
           addUsedMember(m.forwardingStubInterfaceTarget);
         }
+        if (m.memberSignatureOrigin != null) {
+          m.memberSignatureOrigin = fieldMorpher.adjustInstanceCallTarget(
+              m.memberSignatureOrigin,
+              isSetter: m.isSetter);
+          addUsedMember(m.memberSignatureOrigin);
+        }
       } else if (m is Constructor) {
         func = m.function;
       } else {
@@ -698,7 +653,7 @@ class TreeShaker {
           return extension.members
               .any((descriptor) => descriptor.member.asMember == m);
         }, orElse: () => null);
-        assertx(extension != null);
+        assert(extension != null);
 
         // Ensure we retain the [Extension] itself (though members might be
         // shaken)
@@ -736,8 +691,8 @@ class FieldMorpher {
   FieldMorpher(this.shaker);
 
   Member _createAccessorForRemovedField(Field field, bool isSetter) {
-    assertx(!field.isStatic);
-    assertx(!shaker.retainField(field));
+    assert(!field.isStatic);
+    assert(!shaker.retainField(field));
     Procedure accessor;
     if (isSetter) {
       final isAbstract = !shaker.isFieldSetterReachable(field);
@@ -990,7 +945,7 @@ class _TreeShakerPass1 extends Transformer {
     additionalInitializers.clear();
     node = defaultMember(node);
     if (additionalInitializers.isNotEmpty) {
-      assertx(node.initializers.last is SuperInitializer ||
+      assert(node.initializers.last is SuperInitializer ||
           node.initializers.last is RedirectingInitializer);
       additionalInitializers.forEach((i) => i.parent = node);
       node.initializers
@@ -1226,7 +1181,8 @@ class _TreeShakerPass1 extends Transformer {
     }
 
     final target = node.target;
-    assertx(shaker.isMemberBodyReachable(target), details: target);
+    assert(shaker.isMemberBodyReachable(target),
+        "Member body is not reachable: $target");
 
     if (!shaker._signatureShaker.isShakingSignature(target)) return node;
     final result = _fixArgumentEvaluationOrder(node, node.arguments);
@@ -1242,7 +1198,7 @@ class _TreeShakerPass1 extends Transformer {
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
         // Annotations could contain references to constant fields.
-        assertx((node.target is Field) && (node.target as Field).isConst);
+        assert((node.target is Field) && (node.target as Field).isConst);
         shaker.addUsedMember(node.target);
       }
       return node;
@@ -1262,7 +1218,8 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableCall([node.value]);
     } else {
       final target = node.target;
-      assertx(shaker.isMemberBodyReachable(target), details: node);
+      assert(shaker.isMemberBodyReachable(target),
+          "Target should be reachable: $node");
       if (target is Field && !shaker.retainField(target)) {
         return node.value;
       }
@@ -1277,7 +1234,8 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableCall(
           _flattenArguments(node.arguments, receiver: node.receiver));
     } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node);
+      assert(shaker.isMemberBodyReachable(node.target),
+          "Target should be reachable: $node");
       return node;
     }
   }
@@ -1289,9 +1247,10 @@ class _TreeShakerPass1 extends Transformer {
       return _makeUnreachableCall([node.receiver]);
     } else {
       final target = node.target;
-      assertx(shaker.isMemberBodyReachable(target), details: node);
-      assertx(target is! Field || shaker.isFieldGetterReachable(target),
-          details: node);
+      assert(shaker.isMemberBodyReachable(target),
+          "Target should be reachable: $node");
+      assert(target is! Field || shaker.isFieldGetterReachable(target),
+          "Unexpected target in DirectProperyGet: $node");
       return node;
     }
   }
@@ -1302,7 +1261,8 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver, node.value]);
     } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node);
+      assert(shaker.isMemberBodyReachable(node.target),
+          "Target should be reachable: $node");
       node.target =
           fieldMorpher.adjustInstanceCallTarget(node.target, isSetter: true);
       return node;
@@ -1317,7 +1277,7 @@ class _TreeShakerPass1 extends Transformer {
     } else {
       if (!shaker.isMemberBodyReachable(node.target)) {
         // Annotations could contain references to const constructors.
-        assertx(node.isConst);
+        assert(node.isConst);
         shaker.addUsedMember(node.target);
       }
       if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
@@ -1333,7 +1293,8 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer(_flattenArguments(node.arguments));
     } else {
-      assertx(shaker.isMemberBodyReachable(node.target), details: node.target);
+      assert(shaker.isMemberBodyReachable(node.target),
+          "Target should be reachable: ${node.target}");
       if (!shaker._signatureShaker.isShakingSignature(node.target)) return node;
       _fixArgumentEvaluationOrderInInitializer(node.arguments);
       _rewriteArguments(node.arguments, node.target);
@@ -1361,7 +1322,8 @@ class _TreeShakerPass1 extends Transformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableInitializer([node.value]);
     } else {
-      assertx(shaker.isMemberBodyReachable(node.field), details: node.field);
+      assert(shaker.isMemberBodyReachable(node.field),
+          "Field should be reachable: ${node.field}");
       if (!shaker.retainField(node.field)) {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
@@ -1395,7 +1357,8 @@ class _TreeShakerPass1 extends Transformer {
     TypeCheck check = shaker.typeFlowAnalysis.explicitCast(node);
     if (check != null && check.canAlwaysSkip) {
       return StaticInvocation(
-          unsafeCast, Arguments([node.operand], types: [node.type]));
+          unsafeCast, Arguments([node.operand], types: [node.type]))
+        ..fileOffset = node.fileOffset;
     }
     return node;
   }
@@ -1408,7 +1371,8 @@ class _TreeShakerPass1 extends Transformer {
       return StaticInvocation(
           unsafeCast,
           Arguments([node.operand],
-              types: [node.getStaticType(staticTypeContext)]));
+              types: [node.getStaticType(staticTypeContext)]))
+        ..fileOffset = node.fileOffset;
     }
     return node;
   }
@@ -1416,7 +1380,7 @@ class _TreeShakerPass1 extends Transformer {
   Procedure get unsafeCast {
     _unsafeCast ??= shaker.typeFlowAnalysis.environment.coreTypes.index
         .getTopLevelMember('dart:_internal', 'unsafeCast');
-    assertx(_unsafeCast != null);
+    assert(_unsafeCast != null);
     return _unsafeCast;
   }
 }
@@ -1464,7 +1428,9 @@ class _TreeShakerPass2 extends Transformer {
   Class visitClass(Class node) {
     if (!shaker.isClassUsed(node)) {
       debugPrint('Dropped class ${node.name}');
-      node.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted class.
+      node.reference.canonicalName = null;
       Statistics.classesDropped++;
       return null; // Remove the class.
     }
@@ -1480,7 +1446,7 @@ class _TreeShakerPass2 extends Transformer {
       node.typeParameters.clear();
       node.isAbstract = true;
       // Mixin applications cannot have static members.
-      assertx(node.mixedInType == null);
+      assert(node.mixedInType == null);
       node.annotations = const <Expression>[];
     }
 
@@ -1532,7 +1498,9 @@ class _TreeShakerPass2 extends Transformer {
   @override
   Member defaultMember(Member node) {
     if (!shaker.isMemberUsed(node) && !_preserveSpecialMember(node)) {
-      node.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted member.
+      node.reference.canonicalName = null;
       Statistics.membersDropped++;
       return null;
     }
@@ -1586,7 +1554,7 @@ class _TreeShakerPass2 extends Transformer {
       node.members.length = writeIndex;
 
       // We only retain the extension if at least one member is retained.
-      assertx(node.members.length > 0);
+      assert(node.members.length > 0);
       return node;
     }
     return null;
@@ -1636,7 +1604,7 @@ class _SignatureShaker {
   }
 
   void defer(Member m) {
-    assertx(isShakingSignature(m));
+    assert(isShakingSignature(m));
     deferred.add(m);
   }
 
@@ -1645,7 +1613,7 @@ class _SignatureShaker {
   void _update(Member member) {
     final alwaysPassedOptionals =
         analysis.alwaysPassedOptionalParameters(member);
-    assertx(alwaysPassedOptionals.isNotEmpty);
+    assert(alwaysPassedOptionals.isNotEmpty);
 
     final func = member.function;
     final newPositional =
@@ -1663,6 +1631,8 @@ class _SignatureShaker {
     final namedParameters = <VariableDeclaration>[];
     for (final param in func.namedParameters) {
       if (alwaysPassedOptionals.contains(param.name)) {
+        // Make sure to clear the isRequired flag in case it was set.
+        param.isRequired = false;
         namedPositionals.add(param..initializer = null);
       } else {
         namedParameters.add(param);

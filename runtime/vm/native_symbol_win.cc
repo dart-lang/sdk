@@ -75,7 +75,7 @@ char* NativeSymbolResolver::LookupSymbolName(uword pc, uword* start) {
   if (start != NULL) {
     *start = pc - displacement;
   }
-  return strdup(pSymbol->Name);
+  return Utils::StrDup(pSymbol->Name);
 }
 
 void NativeSymbolResolver::FreeSymbolName(char* name) {

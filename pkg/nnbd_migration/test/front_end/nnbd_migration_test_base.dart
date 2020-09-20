@@ -201,7 +201,7 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     // Compute the analysis results.
     var server = DriverProviderImpl(resourceProvider, driver.analysisContext);
     // Run the migration engine.
-    var listener = DartFixListener(server);
+    var listener = DartFixListener(server, _exceptionReported);
     var instrumentationListener = InstrumentationListener();
     var adapter = NullabilityMigrationAdapter(listener);
     var migration = NullabilityMigration(adapter, getLineInfo,
@@ -226,5 +226,9 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     var builder = InfoBuilder(
         resourceProvider, includedRoot, info, listener, migration, nodeMapper);
     infos = await builder.explainMigration();
+  }
+
+  void _exceptionReported(String detail) {
+    fail('Unexpected error during migration: $detail');
   }
 }

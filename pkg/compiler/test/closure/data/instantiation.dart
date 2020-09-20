@@ -7,8 +7,7 @@
 T id<T>(T t) => t;
 
 method<S>(S s) {
-  /*spec:nnbd-off|spec:nnbd-sdk.fields=[S],free=[S]*/
-  /*prod:nnbd-off.*/
+  /*spec.fields=[S],free=[S]*/
   S Function(S) getId() => id;
   return getId();
 }

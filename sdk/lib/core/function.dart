@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
  * The base class for all function types.
  *
- * A function value, or an instance of a class with a "call" method, is a
- * subtype of a function type, and as such, a subtype of [Function].
+ * The run-time type of a function object is subtype of a function type,
+ * and as such, a subtype of [Function].
  */
 abstract class Function {
   /**
@@ -36,8 +34,8 @@ abstract class Function {
    * If [positionalArguments] is null, it's considered an empty list.
    * If [namedArguments] is omitted or null, it is considered an empty map.
    */
-  external static apply(Function function, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]);
+  external static apply(Function function, List<dynamic>? positionalArguments,
+      [Map<Symbol, dynamic>? namedArguments]);
 
   /**
    * Returns a hash code value that is compatible with `operator==`.
@@ -47,23 +45,26 @@ abstract class Function {
   /**
    * Test whether another object is equal to this function.
    *
-   * System-created function objects are only equal to other functions.
+   * Function objects are only equal to other function objects
+   * (an object satisfying `object is Function`),
+   * and never to non-function objects.
    *
-   * Two function objects are known to represent the same function if
+   * Some function objects are considered equal by `==`
+   * because they are recognized as representing the "same function":
    *
    * - It is the same object. Static and top-level functions are compile time
    *   constants when used as values, so referring to the same function twice
-   *   always give the same object,
-   * - or if they refer to the same member method extracted from the same object.
-   *   Extracting a member method as a function value twice gives equal, but
-   *   not necessarily identical, function values.
+   *   always give the same object, as does referring to a local function
+   *   declaration twice in the same scope where it was declared.
+   * - if they refer to the same member method extracted from the same object.
+   *   Repeatedly extracting an instance method of an object as a function value
+   *   gives equal, but not necessarily identical, function values.
    *
-   * Function expressions never give rise to equal function objects. Each time
-   * a function expression is evaluated, it creates a new closure value that
-   * is not known to be equal to other closures created by the same expression.
-   *
-   * Classes implementing `Function` by having a `call` method should have their
-   * own `operator==` and `hashCode` depending on the object.
+   * Different evaluations of function literals
+   * never give rise to equal function objects.
+   * Each time a function literal is evaluated,
+   * it creates a new function value that is not equal to any other function
+   * value, not even ones created by the same expression.
    */
   bool operator ==(Object other);
 }

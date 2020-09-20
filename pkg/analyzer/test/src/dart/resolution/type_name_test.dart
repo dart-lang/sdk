@@ -2,23 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeNameResolutionTest);
-    defineReflectiveTests(TypeNameResolutionWithNnbdTest);
+    defineReflectiveTests(TypeNameResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class TypeNameResolutionTest extends DriverResolutionTest {
+class TypeNameResolutionTest extends PubPackageResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
@@ -199,7 +197,7 @@ main() {
   new math.A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 49, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1),
     ]);
 
     assertTypeName(
@@ -232,13 +230,47 @@ main() {
   new A();
 }
 ''', [
-      error(StaticWarningCode.NEW_WITH_NON_TYPE, 15, 1),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1),
     ]);
 
     assertTypeName(
       findNode.typeName('A();'),
       null,
       'dynamic',
+    );
+  }
+
+  test_invalid_prefixedIdentifier_instanceCreation() async {
+    await assertErrorsInCode(r'''
+void f() {
+  new int.double.other();
+}
+''', [
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('int.double'),
+      null,
+      'dynamic',
+      expectedPrefix: intElement,
+    );
+  }
+
+  test_invalid_prefixedIdentifier_literal() async {
+    await assertErrorsInCode(r'''
+void f() {
+  0 as int.double;
+}
+''', [
+      error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10),
+    ]);
+
+    assertTypeName(
+      findNode.typeName('int.double'),
+      null,
+      'dynamic',
+      expectedPrefix: intElement,
     );
   }
 
@@ -256,18 +288,14 @@ f(Never a) {}
 }
 
 @reflectiveTest
-class TypeNameResolutionWithNnbdTest extends TypeNameResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
+class TypeNameResolutionWithNullSafetyTest extends TypeNameResolutionTest
+    with WithNullSafetyMixin {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
 
   test_optIn_fromOptOut_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {}
 ''');
 
@@ -286,7 +314,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T extends num> {}
 ''');
 
@@ -305,7 +333,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 ''');
 
@@ -324,7 +352,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<T> {}
 ''');
 
@@ -343,7 +371,7 @@ f(A<int> a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F = int Function(bool);
 ''');
 
@@ -354,15 +382,20 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
-      'int* Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F a');
+    assertTypeName(typeName, element, 'int* Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: [],
     );
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = T Function(bool);
 ''');
 
@@ -373,15 +406,20 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
-      'dynamic Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F a');
+    assertTypeName(typeName, element, 'dynamic Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: ['dynamic'],
     );
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T extends num> = T Function(bool);
 ''');
 
@@ -392,15 +430,20 @@ import 'a.dart';
 f(F a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F a'),
-      import_a.functionTypeAlias('F'),
-      'num* Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F a');
+    assertTypeName(typeName, element, 'num* Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: ['num*'],
     );
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = T Function(bool);
 ''');
 
@@ -411,15 +454,20 @@ import 'a.dart';
 f(F<int> a) {}
 ''');
 
-    assertTypeName(
-      findNode.typeName('F<int> a'),
-      import_a.functionTypeAlias('F'),
-      'int* Function(bool*)*',
+    var element = import_a.functionTypeAlias('F');
+
+    var typeName = findNode.typeName('F<int> a');
+    assertTypeName(typeName, element, 'int* Function(bool*)*');
+
+    assertFunctionTypeTypedef(
+      typeName.type,
+      element: element,
+      typeArguments: ['int*'],
     );
   }
 
   test_optOut_fromOptIn_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A {}
 ''');
@@ -438,7 +486,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A<T extends num> {}
 ''');
@@ -457,7 +505,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A<T> {}
 ''');
@@ -476,7 +524,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A<T> {}
 ''');
@@ -495,7 +543,7 @@ f(A<int> a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F = int Function();
 ''');
@@ -514,7 +562,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F<T extends num> = T Function();
 ''');
@@ -533,7 +581,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds_dynamic() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');
@@ -552,7 +600,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');

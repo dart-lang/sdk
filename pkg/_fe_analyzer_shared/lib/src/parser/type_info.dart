@@ -30,6 +30,10 @@ abstract class TypeInfo {
   /// Return true if the receiver has a trailing `?`.
   bool get isNullable;
 
+  /// Returns true if the type represents a function type, i.e. something like
+  /// void Function foo(int x);
+  bool get isFunctionType;
+
   /// Call this function when the token after [token] must be a type (not void).
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the type, inserting a synthetic type reference if

@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingEnumConstantInSwitchTest);
-    defineReflectiveTests(MissingEnumConstantInSwitchWithNnbdTest);
+    defineReflectiveTests(MissingEnumConstantInSwitchWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchTest extends DriverResolutionTest {
+class MissingEnumConstantInSwitchTest extends PubPackageResolutionTest {
   test_default() async {
     await assertNoErrorsInCode('''
 enum E { one, two, three }
@@ -83,13 +81,8 @@ void f(E e) {
 }
 
 @reflectiveTest
-class MissingEnumConstantInSwitchWithNnbdTest
-    extends MissingEnumConstantInSwitchTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
+class MissingEnumConstantInSwitchWithNullSafetyTest
+    extends MissingEnumConstantInSwitchTest with WithNullSafetyMixin {
   test_nullable() async {
     await assertErrorsInCode('''
 enum E { one, two }

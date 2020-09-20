@@ -1,5 +1,7 @@
 // @dart = 2.6
-part "duplicated_declarations_part.dart"; import 'duplicated_declarations_lib.dart' as Typedef; import 'duplicated_declarations_lib.dart' as Typedef;
+part "duplicated_declarations_part.dart";
+import 'duplicated_declarations_lib.dart' as Typedef;
+import 'duplicated_declarations_lib.dart' as Typedef;
 typedef Typedef = void Function();
 typedef Typedef = Object Function();
 import 'duplicated_declarations_lib.dart' as Typedef;
@@ -7,18 +9,18 @@ typedef void OldTypedef();
 typedef Object OldTypedef();
 var field = "1st";
 var field = "2nd";
-main() { }
-main() { }
-foo() { }
+main() {}
+main() {}
+foo() {}
 class C {
   C(a);
   C(a, b);
   var field = "1st";
   var field = "2nd";
-  m() { }
-  m() { }
-  static s() { }
-  static s() { }
+  m() {}
+  m() {}
+  static s() {}
+  static s() {}
   static f() => s;
 }
 class Sub extends C {
@@ -31,4 +33,4 @@ class C {
 enum Enum { Enum, a, a, b, }
 enum Enum { a, b, c, }
 enum AnotherEnum { a, b, c, _name, index, toString, values, }
-useAnotherEnum() { }
+useAnotherEnum() {}

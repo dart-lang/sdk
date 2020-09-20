@@ -574,6 +574,25 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
   DISALLOW_COPY_AND_ASSIGN(IntMap);
 };
 
+template <typename V>
+class IdentitySetKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef V Key;
+  typedef V Value;
+  typedef V Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return reinterpret_cast<intptr_t>(key);
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HASH_MAP_H_

@@ -1,4 +1,4 @@
 class A {
-  get A { }
+  get A {}
 }
-main() { }
+main() {}

@@ -12,10 +12,8 @@ import 'package:test/test.dart';
 import '../../../generated/parser_fasta_test.dart';
 import '../../../generated/test_support.dart';
 
-/**
- * The base class for tests that test how well the parser recovers from various
- * syntactic errors.
- */
+/// The base class for tests that test how well the parser recovers from various
+/// syntactic errors.
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
       String invalidCode, List<ErrorCode> errorCodes, String validCode,
@@ -71,10 +69,8 @@ abstract class AbstractRecoveryTest extends FastaParserTestCase {
   }
 }
 
-/**
- * An object used to compare to AST structures and cause the test to fail if
- * they differ in any important ways.
- */
+/// An object used to compare to AST structures and cause the test to fail if
+/// they differ in any important ways.
 class ResultComparator extends AstComparator {
   @override
   bool failDifferentLength(List first, List second) {
@@ -128,10 +124,8 @@ class ResultComparator extends AstComparator {
     fail(buffer.toString());
   }
 
-  /**
-   * Overridden to allow the valid code to contain an explicit identifier where
-   * a synthetic identifier is expected to be inserted by recovery.
-   */
+  /// Overridden to allow the valid code to contain an explicit identifier where
+  /// a synthetic identifier is expected to be inserted by recovery.
   @override
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first is SimpleIdentifier && second is SimpleIdentifier) {
@@ -142,10 +136,8 @@ class ResultComparator extends AstComparator {
     return super.isEqualNodes(first, second);
   }
 
-  /**
-   * Overridden to ignore the offsets of tokens because these can legitimately
-   * be different.
-   */
+  /// Overridden to ignore the offsets of tokens because these can legitimately
+  /// be different.
   @override
   bool isEqualTokensNotNull(Token first, Token second) =>
       (first.isSynthetic && first.type == second.type) ||
@@ -169,10 +161,8 @@ class ResultComparator extends AstComparator {
     buffer.write(node.runtimeType);
   }
 
-  /**
-   * Compare the [actual] and [expected] nodes, failing the test if they are
-   * different.
-   */
+  /// Compare the [actual] and [expected] nodes, failing the test if they are
+  /// different.
   static void compare(AstNode actual, AstNode expected) {
     ResultComparator comparator = ResultComparator();
     if (!comparator.isEqualNodes(actual, expected)) {

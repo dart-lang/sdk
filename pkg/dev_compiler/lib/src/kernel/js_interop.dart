@@ -23,15 +23,19 @@ bool _isLibrary(Library library, List<String> candidates) {
 
 /// Returns true if [library] represents any library from `package:js` or is the
 /// internal `dart:_js_helper` library.
-bool _isJSLibrary(Library library) => _isLibrary(
-    library, ['package:js', 'dart:_js_helper', 'dart:_foreign_helper']);
+bool _isJSLibrary(Library library) => _isLibrary(library, [
+      'package:js',
+      'dart:_js_helper',
+      'dart:_foreign_helper',
+      'dart:_js_annotations'
+    ]);
 
 /// Whether [node] is a direct call to `allowInterop`.
 bool isAllowInterop(Expression node) {
   if (node is StaticInvocation) {
     var target = node.target;
     return _isLibrary(target.enclosingLibrary, ['dart:js']) &&
-        target.name.name == 'allowInterop';
+        target.name.text == 'allowInterop';
   }
   return false;
 }
@@ -76,7 +80,7 @@ bool isJSExportNameAnnotation(Expression value) =>
 /// Whether [i] is a `spread` invocation (to be used on function arguments
 /// to have them compiled as `...` spread args in ES6 outputs).
 bool isJSSpreadInvocation(Procedure target) =>
-    target.name.name == 'spread' && _isJSLibrary(target.enclosingLibrary);
+    target.name.text == 'spread' && _isJSLibrary(target.enclosingLibrary);
 
 bool isJSName(Expression value) =>
     isBuiltinAnnotation(value, '_js_helper', 'JSName');

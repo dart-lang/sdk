@@ -180,6 +180,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.fatal: const StringListValue(),
   Flags.fatalSkip: const StringValue(),
   Flags.forceLateLowering: const BoolValue(false),
+  Flags.forceStaticFieldLowering: const BoolValue(false),
   Flags.forceNoExplicitGetterCalls: const BoolValue(false),
   Flags.help: const BoolValue(false),
   Flags.librariesJson: const UriValue(),
@@ -197,6 +198,7 @@ const Map<String, ValueSpecification> optionSpecification =
   Flags.verbose: const BoolValue(false),
   Flags.verify: const BoolValue(false),
   Flags.linkDependencies: const UriListValue(),
+  Flags.noDeps: const BoolValue(false),
   "-D": const DefineValue(),
   "-h": const AliasValue(Flags.help),
   "--out": const AliasValue(Flags.output),
@@ -241,6 +243,8 @@ ProcessedOptions analyzeCommandLine(String programName,
 
   final TargetFlags flags = new TargetFlags(
       forceLateLoweringForTesting: options[Flags.forceLateLowering],
+      forceStaticFieldLoweringForTesting:
+          options[Flags.forceStaticFieldLowering],
       forceNoExplicitGetterCallsForTesting:
           options[Flags.forceNoExplicitGetterCalls],
       enableNullSafety:
@@ -255,6 +259,8 @@ ProcessedOptions analyzeCommandLine(String programName,
   }
 
   final bool noDefines = options[Flags.noDefines];
+
+  final bool noDeps = options[Flags.noDeps];
 
   final bool verify = options[Flags.verify];
 
@@ -341,7 +347,8 @@ ProcessedOptions analyzeCommandLine(String programName,
     ..experimentalFlags = experimentalFlags
     ..environmentDefines = noDefines ? null : parsedArguments.defines
     ..nnbdMode = nnbdMode
-    ..additionalDills = linkDependencies;
+    ..additionalDills = linkDependencies
+    ..emitDeps = !noDeps;
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -498,7 +505,6 @@ Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
     // treat this as a crash which is signalled by exiting with 255.
     exit(255);
   }
-  return failingValue;
 }
 
 abstract class ValueSpecification {

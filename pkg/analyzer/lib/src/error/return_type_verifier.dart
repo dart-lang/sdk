@@ -9,9 +9,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 class ReturnTypeVerifier {
@@ -87,11 +88,25 @@ class ReturnTypeVerifier {
 
     void checkElement(
       ClassElement expectedElement,
-      StaticTypeWarningCode errorCode,
+      AnalyzerErrorCode errorCode,
     ) {
-      if (!_isLegalReturnType(expectedElement)) {
+      void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
         _errorReporter.reportErrorForNode(errorCode, returnType);
+      }
+
+      // It is a compile-time error if the declared return type of
+      // a function marked `sync*` or `async*` is `void`.
+      if (enclosingExecutable.isGenerator) {
+        if (enclosingExecutable.returnType.isVoid) {
+          return reportError();
+        }
+      }
+
+      // It is a compile-time error if the declared return type of
+      // a function marked `...` is not a supertype of `...`.
+      if (!_isLegalReturnType(expectedElement)) {
+        return reportError();
       }
     }
 
@@ -99,18 +114,18 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.isGenerator) {
         checkElement(
           _typeProvider.streamElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
         );
       } else {
         checkElement(
           _typeProvider.futureElement,
-          StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
+          CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE,
         );
       }
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
         _typeProvider.iterableElement,
-        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+        CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
       );
     }
   }
@@ -140,24 +155,29 @@ class ReturnTypeVerifier {
     var S = getStaticType(expression);
 
     void reportTypeError() {
-      String displayName = enclosingExecutable.element.displayName;
-      if (displayName.isEmpty) {
+      if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
           [S, T],
         );
+      } else if (enclosingExecutable.isConstructor) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
+      } else if (enclosingExecutable.isFunction) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           expression,
-          [S, T, displayName],
-        );
-      } else {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-          expression,
-          [S, T, displayName],
+          [S, T, enclosingExecutable.displayName],
         );
       }
     }
@@ -236,24 +256,29 @@ class ReturnTypeVerifier {
     var S = getStaticType(expression);
 
     void reportTypeError() {
-      String displayName = enclosingExecutable.element.displayName;
-      if (displayName.isEmpty) {
+      if (enclosingExecutable.isClosure) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           expression,
           [S, T],
         );
+      } else if (enclosingExecutable.isConstructor) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
+      } else if (enclosingExecutable.isFunction) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          expression,
+          [S, T, enclosingExecutable.displayName],
+        );
       } else if (enclosingExecutable.isMethod) {
         _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           expression,
-          [S, T, displayName],
-        );
-      } else {
-        _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
-          expression,
-          [S, T, displayName],
+          [S, T, enclosingExecutable.displayName],
         );
       }
     }
@@ -341,7 +366,7 @@ class ReturnTypeVerifier {
     }
 
     _errorReporter.reportErrorForToken(
-      StaticWarningCode.RETURN_WITHOUT_VALUE,
+      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
       statement.returnKeyword,
     );
   }

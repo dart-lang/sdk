@@ -8,6 +8,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -40,30 +41,20 @@ main() {
 
 @reflectiveTest
 class ContextBuilderTest with ResourceProviderMixin {
-  /**
-   * The SDK manager used by the tests;
-   */
+  /// The SDK manager used by the tests;
   DartSdkManager sdkManager;
 
-  /**
-   * The content cache used by the tests.
-   */
+  /// The content cache used by the tests.
   ContentCache contentCache;
 
-  /**
-   * The options passed to the context builder.
-   */
+  /// The options passed to the context builder.
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
 
-  /**
-   * The context builder to be used in the test.
-   */
+  /// The context builder to be used in the test.
   ContextBuilder builder;
 
-  /**
-   * The path to the default SDK, or `null` if the test has not explicitly
-   * invoked [createDefaultSdk].
-   */
+  /// The path to the default SDK, or `null` if the test has not explicitly
+  /// invoked [createDefaultSdk].
   String defaultSdkPath;
 
   _MockLintRule _mockLintRule;
@@ -76,24 +67,14 @@ class ContextBuilderTest with ResourceProviderMixin {
         windows: resourceProvider.pathContext.style == path.windows.style);
   }
 
-  void createDefaultSdk(Folder sdkDir) {
-    defaultSdkPath = join(sdkDir.path, 'default', 'sdk');
-    String librariesFilePath = join(defaultSdkPath, 'lib', '_internal',
-        'sdk_library_metadata', 'lib', 'libraries.dart');
-    newFile(librariesFilePath, content: r'''
-const Map<String, LibraryInfo> libraries = const {
-  "async": const LibraryInfo("async/async.dart"),
-  "core": const LibraryInfo("core/core.dart"),
-};
-''');
-    sdkManager = DartSdkManager(defaultSdkPath, false);
-    builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: builderOptions);
+  void createDefaultSdk() {
+    defaultSdkPath = convertPath(sdkRoot);
+    MockSdk(resourceProvider: resourceProvider);
   }
 
   void setUp() {
     MockSdk(resourceProvider: resourceProvider);
-    sdkManager = DartSdkManager(convertPath('/sdk'), false);
+    sdkManager = DartSdkManager(convertPath('/sdk'));
     contentCache = ContentCache();
     builder = ContextBuilder(
       resourceProvider,
@@ -114,7 +95,7 @@ const Map<String, LibraryInfo> libraries = const {
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse(['--$lintsFlag']);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = true;
@@ -139,7 +120,7 @@ linter:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse(['--no-$lintsFlag']);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = false;
@@ -164,7 +145,7 @@ linter:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = true;
@@ -189,7 +170,7 @@ linter:
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
     var builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
-        options: createContextBuilderOptions(argResults));
+        options: createContextBuilderOptions(resourceProvider, argResults));
 
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
     expected.lint = false;
@@ -233,7 +214,7 @@ linter:
     // Invert a subset of the options to ensure that the default options are
     // being returned.
     AnalysisOptionsImpl defaultOptions = AnalysisOptionsImpl();
-    defaultOptions.dart2jsHint = !defaultOptions.dart2jsHint;
+    defaultOptions.implicitCasts = !defaultOptions.implicitCasts;
     builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
@@ -328,9 +309,7 @@ bar:${toUriStr('/pkg/bar')}
     newFolder('/workspace/bazel-genfiles');
     newFolder(projectPath);
 
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-    SourceFactoryImpl factory =
-        builder.createSourceFactory(projectPath, options);
+    SourceFactoryImpl factory = builder.createSourceFactory(projectPath);
     expect(factory.resolvers,
         contains(predicate((r) => r is BazelFileUriResolver)));
     expect(factory.resolvers,
@@ -345,9 +324,7 @@ bar:${toUriStr('/pkg/bar')}
     newFolder(projectPath);
     newFile(join(projectPath, '.packages'));
 
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
-    SourceFactoryImpl factory =
-        builder.createSourceFactory(projectPath, options);
+    SourceFactoryImpl factory = builder.createSourceFactory(projectPath);
     expect(factory.resolvers,
         contains(predicate((r) => r is ResourceUriResolver)));
     expect(factory.resolvers,
@@ -356,8 +333,7 @@ bar:${toUriStr('/pkg/bar')}
 
   void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
     String rootPath = convertPath('/root');
-    Folder rootFolder = getFolder(rootPath);
-    createDefaultSdk(rootFolder);
+    createDefaultSdk();
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(projectPath, '.packages');
 
@@ -376,9 +352,8 @@ embedded_libs:
 sky_engine:${resourceProvider.pathContext.toUri(skyEnginePath)}
 b:${resourceProvider.pathContext.toUri(packageB)}
 ''');
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 
-    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+    SourceFactory factory = builder.createSourceFactory(projectPath);
 
     Source dartSource = factory.forUri('dart:async');
     expect(dartSource, isNotNull);
@@ -396,8 +371,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions() {
     String rootPath = convertPath('/root');
-    Folder rootFolder = getFolder(rootPath);
-    createDefaultSdk(rootFolder);
+    createDefaultSdk();
     String projectPath = join(rootPath, 'project');
     String packageFilePath = join(projectPath, '.packages');
     String packageA = join(rootPath, 'pkgs', 'a');
@@ -406,9 +380,8 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 a:${resourceProvider.pathContext.toUri(packageA)}
 b:${resourceProvider.pathContext.toUri(packageB)}
 ''');
-    AnalysisOptionsImpl options = AnalysisOptionsImpl();
 
-    SourceFactory factory = builder.createSourceFactory(projectPath, options);
+    SourceFactory factory = builder.createSourceFactory(projectPath);
 
     Source dartSource = factory.forUri('dart:core');
     expect(dartSource, isNotNull);
@@ -423,7 +396,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   void test_createWorkspace_hasPackagesFile_hasDartToolAndPubspec() {
     newFile('/workspace/.packages');
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
@@ -431,7 +404,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createWorkspace_hasPackagesFile_hasPubspec() {
     newFile('/workspace/.packages');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PubWorkspace>());
@@ -454,7 +427,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
 
   void test_createWorkspace_noPackagesFile_hasDartToolAndPubspec() {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PackageBuildWorkspace>());
@@ -470,7 +443,7 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_createWorkspace_noPackagesFile_hasPubspec() {
-    newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
+    newFile('/workspace/pubspec.yaml', content: 'name: project');
     Workspace workspace = ContextBuilder.createWorkspace(resourceProvider,
         convertPath('/workspace/project/lib/lib.dart'), builder);
     expect(workspace, TypeMatcher<PubWorkspace>());
@@ -507,12 +480,12 @@ b:${resourceProvider.pathContext.toUri(packageB)}
   }
 
   void test_findSdk_noPackageMap() {
-    DartSdk sdk = builder.findSdk(null, AnalysisOptionsImpl());
+    DartSdk sdk = builder.findSdk(null);
     expect(sdk, isNotNull);
   }
 
   void test_findSdk_noPackageMap_html_strong() {
-    DartSdk sdk = builder.findSdk(null, AnalysisOptionsImpl());
+    DartSdk sdk = builder.findSdk(null);
     expect(sdk, isNotNull);
     Source htmlSource = sdk.mapDartUri('dart:html');
     expect(htmlSource.fullName,
@@ -573,7 +546,7 @@ linter:
     newFile(filePath, content: '''
 linter:
   rules:
-    - empty_constructor_bodies
+    - non_existent_lint_rule
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -608,7 +581,7 @@ analyzer:
     ArgParser argParser = ArgParser();
     defineAnalysisArguments(argParser);
     ArgResults argResults = argParser.parse([]);
-    builderOptions = createContextBuilderOptions(argResults);
+    builderOptions = createContextBuilderOptions(resourceProvider, argResults);
     builder = ContextBuilder(resourceProvider, sdkManager, contentCache,
         options: builderOptions);
     AnalysisOptionsImpl expected = AnalysisOptionsImpl();
@@ -669,7 +642,7 @@ linter:
     newFile(filePath, content: '''
 linter:
   rules:
-    - empty_constructor_bodies
+    - non_existent_lint_rule
 ''');
 
     AnalysisOptions options = builder.getAnalysisOptions(path);
@@ -780,7 +753,6 @@ environment:
   void _expectEqualOptions(
       AnalysisOptionsImpl actual, AnalysisOptionsImpl expected) {
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
-    expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.hint, expected.hint);
     expect(actual.lint, expected.lint);
@@ -788,7 +760,6 @@ environment:
       actual.lintRules.map((l) => l.name),
       unorderedEquals(expected.lintRules.map((l) => l.name)),
     );
-    expect(actual.strongMode, expected.strongMode);
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.strictInference, expected.strictInference);
@@ -829,6 +800,9 @@ class _MockLintRule implements LintRule {
   final String _name;
 
   _MockLintRule(this._name);
+
+  @override
+  List<LintCode> get lintCodes => [LintCode(_name, '')];
 
   @override
   String get name => _name;

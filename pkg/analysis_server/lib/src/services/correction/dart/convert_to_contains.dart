@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -15,7 +15,7 @@ class ConvertToContains extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_CONTAINS;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var comparison = node.thisOrAncestorOfType<BinaryExpression>();
     if (comparison == null) {
       return;
@@ -34,7 +34,7 @@ class ConvertToContains extends CorrectionProducer {
         notOffset = leftOperand.offset;
       }
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         if (notOffset > 0) {
           builder.addSimpleInsertion(notOffset, '!');
         }
@@ -54,7 +54,7 @@ class ConvertToContains extends CorrectionProducer {
         notOffset = rightOperand.offset;
       }
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(deletionRange);
         if (notOffset > 0) {
           builder.addSimpleInsertion(notOffset, '!');

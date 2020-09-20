@@ -15,6 +15,14 @@
 #define FALL_THROUGH ((void)0)
 #endif
 
+#if defined(GOOGLE3)
+// google3 builds use NDEBUG to indicate non-debug builds which is different
+// from the way the Dart project expects it: DEBUG indicating a debug build.
+#if !defined(NDEBUG) && !defined(DEBUG)
+#define DEBUG
+#endif  // !NDEBUG && !DEBUG
+#endif  // GOOGLE3
+
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
 #ifndef __STDC_FORMAT_MACROS
@@ -459,6 +467,8 @@ const int32_t kMaxInt32 = 0x7FFFFFFF;
 const uint32_t kMaxUint32 = 0xFFFFFFFF;
 const int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
 const int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
+const int kMinInt = INT_MIN;
+const int kMaxInt = INT_MAX;
 const int64_t kMinInt64RepresentableAsDouble = kMinInt64;
 const int64_t kMaxInt64RepresentableAsDouble = DART_INT64_C(0x7FFFFFFFFFFFFC00);
 const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
@@ -469,8 +479,10 @@ const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 typedef intptr_t word;
 typedef uintptr_t uword;
 
-// Size of a class id.
-typedef uint16_t classid_t;
+// Size of a class id assigned to concrete, abstract and top-level classes.
+//
+// We use a signed integer type here to make it comparable with intptr_t.
+typedef int32_t classid_t;
 
 // Byte sizes.
 const int kWordSize = sizeof(word);
@@ -586,7 +598,7 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 // The USE(x) template is used to silence C++ compiler warnings issued
 // for unused variables.
 template <typename T>
-static inline void USE(T) {}
+static inline void USE(T&&) {}
 
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)

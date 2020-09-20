@@ -7,6 +7,8 @@ library front_end.compiler_options;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 
+import 'package:kernel/ast.dart' show Version;
+
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
 
@@ -130,7 +132,9 @@ class CompilerOptions {
   /// Features not mentioned in the map will have their default value.
   Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
-  AllowedExperimentalFlags allowedExperimentalFlags;
+  AllowedExperimentalFlags allowedExperimentalFlagsForTesting;
+  Map<ExperimentalFlag, Version> experimentEnabledVersionForTesting;
+  Map<ExperimentalFlag, Version> experimentReleasedVersionForTesting;
 
   /// Environment map used when evaluating `bool.fromEnvironment`,
   /// `int.fromEnvironment` and `String.fromEnvironment` during constant
@@ -236,6 +240,10 @@ class CompilerOptions {
       "."
       "${kernel.defaultLanguageVersion.minor}";
 
+  /// If `true`, a '.d' file with input dependencies is generated when
+  /// compiling the platform dill.
+  bool emitDeps = true;
+
   bool equivalent(CompilerOptions other,
       {bool ignoreOnDiagnostic: true,
       bool ignoreVerbose: true,
@@ -290,6 +298,7 @@ class CompilerOptions {
     if (writeFileOnCrashReport != other.writeFileOnCrashReport) return false;
     if (nnbdMode != other.nnbdMode) return false;
     if (currentSdkVersion != other.currentSdkVersion) return false;
+    if (emitDeps != other.emitDeps) return false;
 
     return true;
   }

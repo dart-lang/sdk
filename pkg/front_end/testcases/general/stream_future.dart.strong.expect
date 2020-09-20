@@ -1,0 +1,56 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/stream_future.dart:18:9: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<Class>'.
+//  - 'Future' is from 'dart:async'.
+//  - 'Class' is from 'pkg/front_end/testcases/general/stream_future.dart'.
+//   yield returnFutureDynamic();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method returnDynamic() → dynamic
+  return new self::Class::•();
+static method returnClass() → self::Class*
+  return new self::Class::•();
+static method returnFutureDynamic() → asy::Future<dynamic>* async 
+  return new self::Class::•();
+static method returnFutureClass() → asy::Future<self::Class*>* async 
+  return new self::Class::•();
+static method error() → asy::Stream<FutureOr<self::Class*>*>* async* {
+  yield let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/stream_future.dart:18:9: Error: A value of type 'Future<dynamic>' can't be assigned to a variable of type 'FutureOr<Class>'.
+ - 'Future' is from 'dart:async'.
+ - 'Class' is from 'pkg/front_end/testcases/general/stream_future.dart'.
+  yield returnFutureDynamic();
+        ^" in self::returnFutureDynamic() as{TypeError} FutureOr<self::Class*>*;
+}
+static method stream() → asy::Stream<FutureOr<self::Class*>*>* async* {
+  yield self::returnDynamic() as{TypeError,ForDynamic} FutureOr<self::Class*>*;
+  yield self::returnClass();
+  yield self::returnFutureClass();
+}
+static method main() → dynamic async {
+  await for (FutureOr<self::Class*>* cls in self::stream()) {
+    core::print(cls);
+  }
+}

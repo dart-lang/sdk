@@ -2,6 +2,56 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+for_assignedInBody_body(bool b) {
+  late int v;
+  for (;;) {
+    if (b) {
+      v = 0;
+    } else {
+      v;
+    }
+    v;
+  }
+  v;
+}
+
+for_assignedInBody_condition() {
+  bool firstTime = true;
+  late int v;
+  for (; firstTime || v > 0;) {
+    firstTime = false;
+    v = 5;
+  }
+  v;
+}
+
+for_assignedInBody_initializer() {
+  bool firstTime = true;
+  late int v;
+  for (var x = /*unassigned*/ v;;) {
+    v = 5;
+  }
+  v;
+}
+
+for_assignedInCondition() {
+  bool firstTime = true;
+  late int v;
+  for (var x = /*unassigned*/ v; (v = 0) > 0;) {
+    v;
+  }
+  v;
+}
+
+for_assignedInUpdater() {
+  bool firstTime = true;
+  late int v;
+  for (var x = /*unassigned*/ v;; v = 0) {
+    v;
+  }
+  v;
+}
+
 for_body(bool c) {
   late int v;
   for (; c;) {
@@ -77,7 +127,7 @@ for_initializer_variable() {
 for_updaters(bool c) {
   late int v1, v2, v3, v4;
   for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) {
-    /*unassigned*/ v1;
+    v1;
   }
   v2;
 }
@@ -115,7 +165,7 @@ collection_for_initializer_variable() {
 
 collection_for_updaters(bool c) {
   late int v1, v2, v3, v4;
-  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) /*unassigned*/ v1 ];
+  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) v1];
   v2;
 }
 

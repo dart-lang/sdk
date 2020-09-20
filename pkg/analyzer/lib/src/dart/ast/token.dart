@@ -18,11 +18,9 @@ export 'package:_fe_analyzer_shared/src/scanner/token.dart'
         SyntheticToken,
         TokenClass;
 
-/**
- * Return the binary operator that is invoked by the given compound assignment
- * [operator]. Throw [StateError] if the assignment [operator] does not
- * correspond to a binary operator.
- */
+/// Return the binary operator that is invoked by the given compound assignment
+/// [operator]. Throw [StateError] if the assignment [operator] does not
+/// correspond to a binary operator.
 TokenType operatorFromCompoundAssignment(TokenType operator) {
   if (operator == TokenType.AMPERSAND_EQ) {
     return TokenType.AMPERSAND;

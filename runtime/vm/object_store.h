@@ -37,7 +37,9 @@ class ObjectPointerVisitor;
 //
 // R_ - needs getter only
 // RW - needs getter and setter
-#define OBJECT_STORE_FIELD_LIST(R_, RW)                                        \
+// CW - needs lazy Core init getter and setter
+// FW - needs lazy Future init getter and setter
+#define OBJECT_STORE_FIELD_LIST(R_, RW, CW, FW)                                \
   RW(Class, object_class)                                                      \
   RW(Type, object_type)                                                        \
   RW(Type, legacy_object_type)                                                 \
@@ -80,9 +82,12 @@ class ObjectPointerVisitor;
   RW(Type, string_type)                                                        \
   RW(Type, legacy_string_type)                                                 \
   RW(Type, non_nullable_string_type)                                           \
-  RW(Type, non_nullable_list_rare_type)   /* maybe be null, lazily built */    \
-  RW(Type, non_nullable_map_rare_type)    /* maybe be null, lazily built */    \
-  RW(Type, non_nullable_future_rare_type) /* maybe be null, lazily built */    \
+  CW(Class, list_class)                    /* maybe be null, lazily built */   \
+  CW(Type, non_nullable_list_rare_type)    /* maybe be null, lazily built */   \
+  CW(Type, non_nullable_map_rare_type)     /* maybe be null, lazily built */   \
+  FW(Type, non_nullable_future_rare_type)  /* maybe be null, lazily built */   \
+  FW(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
+  FW(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_non_nullable_int)                            \
@@ -103,8 +108,6 @@ class ObjectPointerVisitor;
   RW(Field, pragma_name)                                                       \
   RW(Field, pragma_options)                                                    \
   RW(Class, future_class)                                                      \
-  RW(Type, non_nullable_future_never_type) /* maybe be null, lazily built */   \
-  RW(Type, nullable_future_null_type)      /* maybe be null, lazily built */   \
   RW(Class, completer_class)                                                   \
   RW(Class, symbol_class)                                                      \
   RW(Class, one_byte_string_class)                                             \
@@ -130,6 +133,7 @@ class ObjectPointerVisitor;
   RW(Class, weak_property_class)                                               \
   RW(Array, symbol_table)                                                      \
   RW(Array, canonical_types)                                                   \
+  RW(Array, canonical_type_parameters)                                         \
   RW(Array, canonical_type_arguments)                                          \
   RW(Library, async_library)                                                   \
   RW(Library, builtin_library)                                                 \
@@ -150,6 +154,7 @@ class ObjectPointerVisitor;
   RW(Library, wasm_library)                                                    \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
+  RW(Array, loading_units)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Instance, stack_overflow)                                                 \
@@ -179,6 +184,8 @@ class ObjectPointerVisitor;
   RW(Code, null_error_stub_without_fpu_regs_stub)                              \
   RW(Code, null_arg_error_stub_with_fpu_regs_stub)                             \
   RW(Code, null_arg_error_stub_without_fpu_regs_stub)                          \
+  RW(Code, null_cast_error_stub_with_fpu_regs_stub)                            \
+  RW(Code, null_cast_error_stub_without_fpu_regs_stub)                         \
   RW(Code, range_error_stub_with_fpu_regs_stub)                                \
   RW(Code, range_error_stub_without_fpu_regs_stub)                             \
   RW(Code, allocate_mint_with_fpu_regs_stub)                                   \
@@ -186,9 +193,24 @@ class ObjectPointerVisitor;
   RW(Code, stack_overflow_stub_with_fpu_regs_stub)                             \
   RW(Code, stack_overflow_stub_without_fpu_regs_stub)                          \
   RW(Code, allocate_array_stub)                                                \
+  RW(Code, allocate_int8_array_stub)                                           \
+  RW(Code, allocate_uint8_array_stub)                                          \
+  RW(Code, allocate_uint8_clamped_array_stub)                                  \
+  RW(Code, allocate_int16_array_stub)                                          \
+  RW(Code, allocate_uint16_array_stub)                                         \
+  RW(Code, allocate_int32_array_stub)                                          \
+  RW(Code, allocate_uint32_array_stub)                                         \
+  RW(Code, allocate_int64_array_stub)                                          \
+  RW(Code, allocate_uint64_array_stub)                                         \
+  RW(Code, allocate_float32_array_stub)                                        \
+  RW(Code, allocate_float64_array_stub)                                        \
+  RW(Code, allocate_float32x4_array_stub)                                      \
+  RW(Code, allocate_int32x4_array_stub)                                        \
+  RW(Code, allocate_float64x2_array_stub)                                      \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_object_stub)                                               \
   RW(Code, allocate_object_parametrized_stub)                                  \
+  RW(Code, allocate_unhandled_exception_stub)                                  \
   RW(Code, clone_context_stub)                                                 \
   RW(Code, write_barrier_wrappers_stub)                                        \
   RW(Code, array_write_barrier_stub)                                           \
@@ -204,11 +226,14 @@ class ObjectPointerVisitor;
   RW(Code, default_tts_stub)                                                   \
   RW(Code, default_nullable_tts_stub)                                          \
   RW(Code, top_type_tts_stub)                                                  \
+  RW(Code, nullable_type_parameter_tts_stub)                                   \
+  RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
   RW(Code, slow_tts_stub)                                                      \
   RW(Array, dispatch_table_code_entries)                                       \
-  RW(Array, code_order_table)                                                  \
+  RW(GrowableObjectArray, code_order_tables)                                   \
   RW(Array, obfuscation_map)                                                   \
+  RW(GrowableObjectArray, ffi_callback_functions)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \
@@ -222,6 +247,9 @@ class ObjectPointerVisitor;
   DO(null_arg_error_stub_with_fpu_regs_stub, NullArgErrorSharedWithFPURegs)    \
   DO(null_arg_error_stub_without_fpu_regs_stub,                                \
      NullArgErrorSharedWithoutFPURegs)                                         \
+  DO(null_cast_error_stub_with_fpu_regs_stub, NullCastErrorSharedWithFPURegs)  \
+  DO(null_cast_error_stub_without_fpu_regs_stub,                               \
+     NullCastErrorSharedWithoutFPURegs)                                        \
   DO(range_error_stub_with_fpu_regs_stub, RangeErrorSharedWithFPURegs)         \
   DO(range_error_stub_without_fpu_regs_stub, RangeErrorSharedWithoutFPURegs)   \
   DO(allocate_mint_with_fpu_regs_stub, AllocateMintSharedWithFPURegs)          \
@@ -230,14 +258,31 @@ class ObjectPointerVisitor;
   DO(stack_overflow_stub_without_fpu_regs_stub,                                \
      StackOverflowSharedWithoutFPURegs)                                        \
   DO(allocate_array_stub, AllocateArray)                                       \
+  DO(allocate_int8_array_stub, AllocateInt8Array)                              \
+  DO(allocate_uint8_array_stub, AllocateUint8Array)                            \
+  DO(allocate_uint8_clamped_array_stub, AllocateUint8ClampedArray)             \
+  DO(allocate_int16_array_stub, AllocateInt16Array)                            \
+  DO(allocate_uint16_array_stub, AllocateUint16Array)                          \
+  DO(allocate_int32_array_stub, AllocateInt32Array)                            \
+  DO(allocate_uint32_array_stub, AllocateUint32Array)                          \
+  DO(allocate_int64_array_stub, AllocateInt64Array)                            \
+  DO(allocate_uint64_array_stub, AllocateUint64Array)                          \
+  DO(allocate_float32_array_stub, AllocateFloat32Array)                        \
+  DO(allocate_float64_array_stub, AllocateFloat64Array)                        \
+  DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
+  DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
+  DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_object_stub, AllocateObject)                                     \
   DO(allocate_object_parametrized_stub, AllocateObjectParameterized)           \
+  DO(allocate_unhandled_exception_stub, AllocateUnhandledException)            \
   DO(clone_context_stub, CloneContext)                                         \
   DO(call_closure_no_such_method_stub, CallClosureNoSuchMethod)                \
   DO(default_tts_stub, DefaultTypeTest)                                        \
   DO(default_nullable_tts_stub, DefaultNullableTypeTest)                       \
   DO(top_type_tts_stub, TopTypeTypeTest)                                       \
+  DO(nullable_type_parameter_tts_stub, NullableTypeParameterTypeTest)          \
+  DO(type_parameter_tts_stub, TypeParameterTypeTest)                           \
   DO(unreachable_tts_stub, UnreachableTypeTest)                                \
   DO(slow_tts_stub, SlowTypeTest)                                              \
   DO(write_barrier_wrappers_stub, WriteBarrierWrappers)                        \
@@ -345,9 +390,29 @@ class ObjectStore {
 #define DECLARE_GETTER_AND_SETTER(Type, name)                                  \
   DECLARE_GETTER(Type, name)                                                   \
   void set_##name(const Type& value) { name##_ = value.raw(); }
-  OBJECT_STORE_FIELD_LIST(DECLARE_GETTER, DECLARE_GETTER_AND_SETTER)
+#define DECLARE_LAZY_INIT_GETTER(Type, name, init)                             \
+  Type##Ptr name() {                                                           \
+    if (name##_ == Type::null()) {                                             \
+      init();                                                                  \
+    }                                                                          \
+    return name##_;                                                            \
+  }                                                                            \
+  static intptr_t name##_offset() { return OFFSET_OF(ObjectStore, name##_); }
+#define DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER(Type, name)                   \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitCoreTypes)                      \
+  void set_##name(const Type& value) { name##_ = value.raw(); }
+#define DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER(Type, name)                 \
+  DECLARE_LAZY_INIT_GETTER(Type, name, LazyInitFutureTypes)                    \
+  void set_##name(const Type& value) { name##_ = value.raw(); }
+  OBJECT_STORE_FIELD_LIST(DECLARE_GETTER,
+                          DECLARE_GETTER_AND_SETTER,
+                          DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER,
+                          DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER)
 #undef DECLARE_GETTER
 #undef DECLARE_GETTER_AND_SETTER
+#undef DECLARE_LAZY_INIT_GETTER
+#undef DECLARE_LAZY_INIT_CORE_GETTER_AND_SETTER
+#undef DECLARE_LAZY_INIT_FUTURE_GETTER_AND_SETTER
 
   LibraryPtr bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
@@ -395,12 +460,17 @@ class ObjectStore {
 #endif
 
  private:
+  void LazyInitCoreTypes();
+  void LazyInitFutureTypes();
+
   // Finds a core library private method in Object.
   FunctionPtr PrivateObjectLookup(const String& name);
 
   ObjectPtr* from() { return reinterpret_cast<ObjectPtr*>(&object_class_); }
 #define DECLARE_OBJECT_STORE_FIELD(type, name) type##Ptr name##_;
   OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                          DECLARE_OBJECT_STORE_FIELD,
+                          DECLARE_OBJECT_STORE_FIELD,
                           DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   ObjectPtr* to() {
@@ -422,8 +492,9 @@ class ObjectStore {
     return NULL;
   }
 
-  friend class Serializer;
-  friend class Deserializer;
+  friend class ProgramSerializationRoots;
+  friend class ProgramDeserializationRoots;
+  friend class ProgramVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(ObjectStore);
 };

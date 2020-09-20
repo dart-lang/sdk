@@ -21,16 +21,17 @@
 // FIELD(Class, Name) Offset of a field within a class.
 // ARRAY(Class, Name) Offset of the first element and the size of the elements
 //     in an array of this class.
-// ARRAY_STRUCTFIELD(Class, Name, Element, Field) Offset of a field within a
-//     struct in an array of that struct, relative to the start of the array.
 // SIZEOF(Class, Name, What) Size of an object.
 // RANGE(Class, Name, Type, First, Last, Filter) An array of offsets generated
 //     by passing a value of the given Type in the range from First to Last to
 //     Class::Name() if Filter returns true for that value.
 // CONSTANT(Class, Name) Miscellaneous constant.
-// PRECOMP_NO_CHECK(Code) Don't check this offset in the precompiled runtime.
-#define OFFSETS_LIST(FIELD, ARRAY, ARRAY_STRUCTFIELD, SIZEOF, RANGE, CONSTANT, \
-                     PRECOMP_NO_CHECK)                                         \
+//
+// COMMON_OFFSETS_LIST is for declarations that are valid in all contexts.
+// JIT_OFFSETS_LIST is for declarations that are only valid in JIT mode.
+// A declaration that is not valid in product mode can be wrapped with
+// NOT_IN_PRODUCT().
+#define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, RANGE, CONSTANT)             \
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
@@ -85,15 +86,18 @@
   FIELD(Float64x2, value_offset)                                               \
   FIELD(Field, initializer_function_offset)                                    \
   FIELD(Field, host_offset_or_field_id_offset)                                 \
-  PRECOMP_NO_CHECK(FIELD(Field, guarded_cid_offset))                           \
-  PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_in_object_offset_offset))  \
-  PRECOMP_NO_CHECK(FIELD(Field, guarded_list_length_offset))                   \
-  PRECOMP_NO_CHECK(FIELD(Field, is_nullable_offset))                           \
-  PRECOMP_NO_CHECK(FIELD(Field, kind_bits_offset))                             \
+  FIELD(Field, guarded_cid_offset)                                             \
+  FIELD(Field, guarded_list_length_in_object_offset_offset)                    \
+  FIELD(Field, guarded_list_length_offset)                                     \
+  FIELD(Field, is_nullable_offset)                                             \
+  FIELD(Field, kind_bits_offset)                                               \
   FIELD(Function, code_offset)                                                 \
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
-  PRECOMP_NO_CHECK(FIELD(Function, usage_counter_offset))                      \
+  FIELD(Function, packed_fields_offset)                                        \
+  FIELD(Function, parameter_names_offset)                                      \
+  FIELD(Function, parameter_types_offset)                                      \
+  FIELD(Function, type_parameters_offset)                                      \
   FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
@@ -103,9 +107,9 @@
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \
   FIELD(ICData, entries_offset)                                                \
-  PRECOMP_NO_CHECK(FIELD(ICData, owner_offset))                                \
-  PRECOMP_NO_CHECK(FIELD(ICData, state_bits_offset))                           \
-  NOT_IN_PRECOMPILED_RUNTIME(FIELD(ICData, receivers_static_type_offset))      \
+  FIELD(ICData, owner_offset)                                                  \
+  FIELD(ICData, state_bits_offset)                                             \
+  FIELD(Int32x4, value_offset)                                                 \
   FIELD(Isolate, shared_class_table_offset)                                    \
   FIELD(Isolate, cached_class_table_table_offset)                              \
   FIELD(Isolate, current_tag_offset)                                           \
@@ -120,6 +124,7 @@
   FIELD(LinkedHashMap, index_offset)                                           \
   FIELD(LinkedHashMap, type_arguments_offset)                                  \
   FIELD(LinkedHashMap, used_data_offset)                                       \
+  FIELD(LocalHandle, raw_offset)                                               \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
   FIELD(MegamorphicCache, buckets_offset)                                      \
@@ -159,6 +164,7 @@
   FIELD(Thread, allocate_object_parameterized_stub_offset)                     \
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
   FIELD(Thread, allocate_object_slow_stub_offset)                              \
+  FIELD(Thread, api_top_scope_offset)                                          \
   FIELD(Thread, async_stack_trace_offset)                                      \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
   FIELD(Thread, bool_false_offset)                                             \
@@ -190,6 +196,7 @@
   FIELD(Thread, interpret_call_entry_point_offset)                             \
   FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset)                    \
   FIELD(Thread, invoke_dart_code_stub_offset)                                  \
+  FIELD(Thread, exit_through_ffi_offset)                                       \
   FIELD(Thread, isolate_offset)                                                \
   FIELD(Thread, field_table_values_offset)                                     \
   FIELD(Thread, lazy_deopt_from_return_stub_offset)                            \
@@ -201,12 +208,14 @@
   FIELD(Thread, switchable_call_miss_stub_offset)                              \
   FIELD(Thread, no_scope_native_wrapper_entry_point_offset)                    \
   FIELD(Thread, null_error_shared_with_fpu_regs_stub_offset)                   \
-  FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
-  FIELD(Thread, range_error_shared_with_fpu_regs_stub_offset)                  \
-                                                                               \
   FIELD(Thread, null_error_shared_without_fpu_regs_stub_offset)                \
+  FIELD(Thread, null_arg_error_shared_with_fpu_regs_stub_offset)               \
   FIELD(Thread, null_arg_error_shared_without_fpu_regs_stub_offset)            \
+  FIELD(Thread, null_cast_error_shared_with_fpu_regs_stub_offset)              \
+  FIELD(Thread, null_cast_error_shared_without_fpu_regs_stub_offset)           \
+  FIELD(Thread, range_error_shared_with_fpu_regs_stub_offset)                  \
   FIELD(Thread, range_error_shared_without_fpu_regs_stub_offset)               \
+                                                                               \
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
@@ -240,13 +249,18 @@
   FIELD(Type, type_class_id_offset)                                            \
   FIELD(Type, type_state_offset)                                               \
   FIELD(Type, nullability_offset)                                              \
+  FIELD(TypeParameter, parameterized_class_id_offset)                          \
+  FIELD(TypeParameter, index_offset)                                           \
   FIELD(TypeArguments, instantiations_offset)                                  \
+  FIELD(TypeArguments, length_offset)                                          \
   FIELD(TypeArguments, nullability_offset)                                     \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
   FIELD(TypedDataView, data_offset)                                            \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
   FIELD(TypedData, data_offset)                                                \
+  FIELD(UnhandledException, exception_offset)                                  \
+  FIELD(UnhandledException, stacktrace_offset)                                 \
   FIELD(UserTag, tag_offset)                                                   \
   FIELD(MonomorphicSmiableCall, expected_cid_offset)                           \
   FIELD(MonomorphicSmiableCall, entrypoint_offset)                             \
@@ -330,6 +344,7 @@
   SIZEOF(StackTrace, InstanceSize, StackTraceLayout)                           \
   SIZEOF(String, InstanceSize, StringLayout)                                   \
   SIZEOF(SubtypeTestCache, InstanceSize, SubtypeTestCacheLayout)               \
+  SIZEOF(LoadingUnit, InstanceSize, LoadingUnitLayout)                         \
   SIZEOF(TransferableTypedData, InstanceSize, TransferableTypedDataLayout)     \
   SIZEOF(TwoByteString, InstanceSize, TwoByteStringLayout)                     \
   SIZEOF(Type, InstanceSize, TypeLayout)                                       \
@@ -346,5 +361,9 @@
   SIZEOF(WeakProperty, InstanceSize, WeakPropertyLayout)                       \
   SIZEOF(WeakSerializationReference, InstanceSize,                             \
          WeakSerializationReferenceLayout)
+
+#define JIT_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, RANGE, CONSTANT)                \
+  FIELD(Function, usage_counter_offset)                                        \
+  FIELD(ICData, receivers_static_type_offset)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

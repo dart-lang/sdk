@@ -319,8 +319,8 @@ bool WriteBarrierElimination::AnalyzeBlock(BlockEntryInstr* entry) {
 
 #if defined(DEBUG)
 bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
-  // We assume that Dart code only stores into Instances or Contexts.
-  // This assumption is used in
+  // We assume that Dart code only stores into Instances, Contexts, and
+  // UnhandledExceptions. This assumption is used in
   // RestoreWriteBarrierInvariantVisitor::VisitPointers.
 
   switch (slot.kind()) {
@@ -329,10 +329,11 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
     case Slot::Kind::kDartField:  // Instance
       return true;
 
-#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, type, modifiers)   \
+#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, __, ___)           \
   case Slot::Kind::k##class##_##field:                                         \
     return std::is_base_of<InstanceLayout, underlying_type>::value ||          \
-           std::is_base_of<ContextLayout, underlying_type>::value;
+           std::is_base_of<ContextLayout, underlying_type>::value ||           \
+           std::is_base_of<UnhandledExceptionLayout, underlying_type>::value;
 
       NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 #undef FOR_EACH_NATIVE_SLOT

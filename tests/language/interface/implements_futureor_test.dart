@@ -6,7 +6,7 @@ import 'dart:async';
 
 class A<T> implements FutureOr<T> {}
 //                    ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLEMENTS_DISALLOWED_CLASS
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DISALLOWED_TYPE
 //    ^
 // [cfe] The type 'FutureOr' can't be used in an 'implements' clause.
 

@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41697b.dart:10:13: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+//   var t = s + 1; // error
+//             ^
+//
+// pkg/front_end/testcases/nnbd/issue41697b.dart:18:13: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+//   var t = s + 1; // error
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test1<S extends core::num = core::num>(self::test1::S s) → dynamic {
+  core::num t = s.{core::num::+}(1);
+}
+static method test2<S extends core::num? = core::num?>(self::test2::S% s) → dynamic {
+  core::num t = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/issue41697b.dart:10:13: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+  var t = s + 1; // error
+            ^" in s.{core::num::+}(1);
+}
+static method test3<S extends core::int = core::int>(self::test3::S s) → dynamic {
+  core::int t = s.{core::num::+}(1);
+}
+static method test4<S extends core::int? = core::int?>(self::test4::S% s) → dynamic {
+  core::num t = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/issue41697b.dart:18:13: Error: Operator '+' cannot be called on 'S' because it is potentially null.
+  var t = s + 1; // error
+            ^" in s.{core::num::+}(1);
+}
+static method main() → dynamic {}

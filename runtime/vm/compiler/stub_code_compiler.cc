@@ -5,6 +5,9 @@
 #include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
 
+// For `StubCodeCompiler::GenerateAllocateUnhandledExceptionStub`
+#include "vm/compiler/backend/il.h"
+
 #define SHOULD_NOT_INCLUDE_RUNTIME
 
 #include "vm/compiler/stub_code_compiler.h"
@@ -16,6 +19,22 @@
 namespace dart {
 
 namespace compiler {
+
+intptr_t StubCodeCompiler::WordOffsetFromFpToCpuRegister(
+    Register cpu_register) {
+  ASSERT(RegisterSet::Contains(kDartAvailableCpuRegs, cpu_register));
+
+  // Skip FP + saved PC.
+  intptr_t slots_from_fp = 2;
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    Register reg = static_cast<Register>(i);
+    if (reg == cpu_register) break;
+    if (RegisterSet::Contains(kDartAvailableCpuRegs, reg)) {
+      slots_from_fp++;
+    }
+  }
+  return slots_from_fp;
+}
 
 void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
@@ -161,6 +180,29 @@ void StubCodeCompiler::GenerateInstanceOfStub(Assembler* assembler) {
   __ LeaveStubFrame();
   __ Ret();
 }
+
+// The UnhandledException class lives in the VM isolate, so it cannot cache
+// an allocation stub for itself. Instead, we cache it in the stub code list.
+void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
+    Assembler* assembler) {
+  Thread* thread = Thread::Current();
+  auto class_table = thread->isolate()->class_table();
+  ASSERT(class_table->HasValidClassAt(kUnhandledExceptionCid));
+  const auto& cls = Class::ZoneHandle(thread->zone(),
+                                      class_table->At(kUnhandledExceptionCid));
+  ASSERT(!cls.IsNull());
+
+  GenerateAllocationStubForClass(assembler, nullptr, cls,
+                                 Code::Handle(Code::null()),
+                                 Code::Handle(Code::null()));
+}
+
+#define TYPED_DATA_ALLOCATION_STUB(clazz)                                      \
+  void StubCodeCompiler::GenerateAllocate##clazz##Stub(Assembler* assembler) { \
+    GenerateAllocateTypedDataArrayStub(assembler, kTypedData##clazz##Cid);     \
+  }
+CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATION_STUB)
+#undef TYPED_DATA_ALLOCATION_STUB
 
 }  // namespace compiler
 

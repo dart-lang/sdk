@@ -5,19 +5,17 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for [MethodInvocation]s into [InstanceCreationExpression] to support
 /// the optional `new` and `const` feature, or [ExtensionOverride].
 class AstRewriter {
-  final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
-  AstRewriter(this._libraryElement, this._errorReporter);
+  AstRewriter(this._errorReporter);
 
   AstNode methodInvocation(Scope nameScope, MethodInvocation node) {
     SimpleIdentifier methodName = node.methodName;
@@ -34,7 +32,7 @@ class AstRewriter {
         // This isn't a constructor invocation because it's in a cascade.
         return node;
       }
-      Element element = nameScope.lookup(methodName, _libraryElement);
+      Element element = nameScope.lookup2(methodName.name).getter;
       if (element is ClassElement) {
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
@@ -58,7 +56,7 @@ class AstRewriter {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }
-      Element element = nameScope.lookup(target, _libraryElement);
+      Element element = nameScope.lookup2(target.name).getter;
       if (element is ClassElement) {
         // Possible case: C.n()
         var constructorElement = element.getNamedConstructor(methodName.name);
@@ -66,8 +64,7 @@ class AstRewriter {
           var typeArguments = node.typeArguments;
           if (typeArguments != null) {
             _errorReporter.reportErrorForNode(
-                StaticTypeWarningCode
-                    .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
                 typeArguments,
                 [element.name, constructorElement.name]);
           }
@@ -84,11 +81,7 @@ class AstRewriter {
         }
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
-        Identifier identifier = astFactory.prefixedIdentifier(
-            astFactory.simpleIdentifier(target.token),
-            null,
-            astFactory.simpleIdentifier(methodName.token));
-        Element prefixedElement = nameScope.lookup(identifier, _libraryElement);
+        Element prefixedElement = element.scope.lookup2(methodName.name).getter;
         if (prefixedElement is ClassElement) {
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
@@ -113,17 +106,18 @@ class AstRewriter {
       }
     } else if (target is PrefixedIdentifier) {
       // Possible case: p.C.n()
-      Element prefixElement = nameScope.lookup(target.prefix, _libraryElement);
+      Element prefixElement = nameScope.lookup2(target.prefix.name).getter;
       target.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
-        Element element = nameScope.lookup(target, _libraryElement);
+        Element element =
+            prefixElement.scope.lookup2(target.identifier.name).getter;
         if (element is ClassElement) {
           var constructorElement = element.getNamedConstructor(methodName.name);
           if (constructorElement != null) {
             var typeArguments = node.typeArguments;
             if (typeArguments != null) {
               _errorReporter.reportErrorForNode(
-                  StaticTypeWarningCode
+                  CompileTimeErrorCode
                       .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
                   typeArguments,
                   [element.name, constructorElement.name]);

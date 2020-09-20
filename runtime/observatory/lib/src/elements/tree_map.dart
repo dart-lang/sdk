@@ -4,11 +4,13 @@
 
 import 'dart:html';
 import 'dart:math' as Math;
+import 'package:observatory/utils.dart';
 
 abstract class TreeMap<T> {
   int getArea(T node);
   String getBackground(T node);
   String getLabel(T node);
+  String getTooltip(T node) => getLabel(node);
   T getParent(T node);
   Iterable<T> getChildren(T node);
   void onSelect(T node);
@@ -52,15 +54,14 @@ abstract class TreeMap<T> {
     width -= 2 * kPadding;
     height -= 2 * kPadding;
 
-    final label = getLabel(node);
-    div.title = label; // I.e., tooltip.
+    div.title = getTooltip(node);
 
     if (width < 10 || height < 10) {
       // Too small: don't render label or children.
       return div;
     }
 
-    div.append(new SpanElement()..text = label);
+    div.append(new SpanElement()..text = getLabel(node));
     const kLabelHeight = 9.0;
     top += kLabelHeight;
     height -= kLabelHeight;
@@ -170,5 +171,23 @@ abstract class TreeMap<T> {
     }
 
     return div;
+  }
+}
+
+abstract class NormalTreeMap<T> extends TreeMap<T> {
+  int getSize(T node);
+  String getName(T node);
+  String getType(T node);
+
+  int getArea(T node) => getSize(node);
+  String getLabel(T node) {
+    String name = getName(node);
+    String size = Utils.formatSize(getSize(node));
+    return "$name [$size]";
+  }
+
+  String getBackground(T node) {
+    int hue = getType(node).hashCode % 360;
+    return "hsl($hue,60%,60%)";
   }
 }

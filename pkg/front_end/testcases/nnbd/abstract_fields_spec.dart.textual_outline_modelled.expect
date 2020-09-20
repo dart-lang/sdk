@@ -1,0 +1,10 @@
+abstract class A {
+  abstract covariant num cn;
+  abstract covariant var cx;
+  abstract final fx;
+  abstract final int fi;
+  abstract int i1, i2;
+  abstract var x;
+}
+
+main() {}

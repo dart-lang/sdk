@@ -664,7 +664,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
         transformerFlags: node.transformerFlags,
         fileUri: _activeFileUri,
         forwardingStubSuperTarget: node.forwardingStubSuperTarget,
-        forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget)
+        forwardingStubInterfaceTarget: node.forwardingStubInterfaceTarget,
+        memberSignatureOrigin: node.memberSignatureOrigin)
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(super.clone).toList()
           : const <Expression>[]

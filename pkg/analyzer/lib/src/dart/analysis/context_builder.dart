@@ -12,7 +12,7 @@ import 'package:analyzer/src/context/builder.dart' as old
     show ContextBuilder, ContextBuilderOptions;
 import 'package:analyzer/src/context/context_root.dart' as old;
 import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show MemoryByteStore;
+    show ByteStore, MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/driver.dart'
     show AnalysisDriver, AnalysisDriverScheduler;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
@@ -20,55 +20,44 @@ import 'package:analyzer/src/dart/analysis/file_state.dart'
     show FileContentOverlay;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/generated/source.dart' show ContentCache;
+import 'package:cli_util/cli_util.dart';
 import 'package:meta/meta.dart';
 
-/**
- * An implementation of a context builder.
- */
+/// An implementation of a context builder.
 class ContextBuilderImpl implements ContextBuilder {
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * Initialize a newly created context builder. If a [resourceProvider] is
-   * given, then it will be used to access the file system, otherwise the
-   * default resource provider will be used.
-   */
+  /// Initialize a newly created context builder. If a [resourceProvider] is
+  /// given, then it will be used to access the file system, otherwise the
+  /// default resource provider will be used.
   ContextBuilderImpl({ResourceProvider resourceProvider})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  /**
-   * Return the path to the default location of the SDK, or `null` if the sdk
-   * cannot be found.
-   */
-  String get _defaultSdkPath =>
-      FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path;
-
   @override
   AnalysisContext createContext(
-      {@required ContextRoot contextRoot,
+      {ByteStore byteStore,
+      @required ContextRoot contextRoot,
       DeclaredVariables declaredVariables,
       bool enableIndex = false,
       List<String> librarySummaryPaths,
       @deprecated PerformanceLog performanceLog,
+        bool retainDataForTesting = false,
       @deprecated AnalysisDriverScheduler scheduler,
       String sdkPath,
       String sdkSummaryPath}) {
-    var byteStore = MemoryByteStore();
+    // TODO(scheglov) Remove this, and make `sdkPath` required.
+    sdkPath ??= getSdkPath();
+    ArgumentError.checkNotNull(sdkPath, 'sdkPath');
+
+    byteStore ??= MemoryByteStore();
     var fileContentOverlay = FileContentOverlay();
     performanceLog ??= PerformanceLog(StringBuffer());
 
-    sdkPath ??= _defaultSdkPath;
-    if (sdkPath == null) {
-      throw ArgumentError('Cannot find path to the SDK');
-    }
-    DartSdkManager sdkManager = DartSdkManager(sdkPath, true);
+    DartSdkManager sdkManager = DartSdkManager(sdkPath);
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -97,6 +86,7 @@ class ContextBuilderImpl implements ContextBuilder {
     builder.fileContentOverlay = fileContentOverlay;
     builder.enableIndex = enableIndex;
     builder.performanceLog = performanceLog;
+    builder.retainDataForTesting = retainDataForTesting;
 
     old.ContextRoot oldContextRoot = old.ContextRoot(
         contextRoot.root.path, contextRoot.excludedPaths.toList(),
@@ -113,10 +103,8 @@ class ContextBuilderImpl implements ContextBuilder {
     return context;
   }
 
-  /**
-   * Convert the [declaredVariables] into a map for use with the old context
-   * builder.
-   */
+  /// Convert the [declaredVariables] into a map for use with the old context
+  /// builder.
   Map<String, String> _toMap(DeclaredVariables declaredVariables) {
     Map<String, String> map = <String, String>{};
     for (String name in declaredVariables.variableNames) {

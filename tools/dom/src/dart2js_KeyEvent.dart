@@ -60,9 +60,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
   /** Shadows on top of the parent's currentTarget. */
-  EventTarget _currentTarget;
+  EventTarget? _currentTarget;
 
-  final InputDeviceCapabilities sourceCapabilities;
+  InputDeviceCapabilities? get sourceCapabilities =>
+      JS('InputDeviceCapabilities', '#.sourceCapabilities', this);
 
   /**
    * The value we want to use for this object's dispatch. Created here so it is
@@ -77,7 +78,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent) : super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent)
+      : _parent = parent,
+        _shadowAltKey = false,
+        _shadowCharCode = 0,
+        _shadowKeyCode = 0,
+        super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -87,7 +93,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
   factory KeyEvent(String type,
-      {Window view,
+      {Window? view,
       bool canBubble: true,
       bool cancelable: true,
       int keyCode: 0,
@@ -97,12 +103,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget currentTarget}) {
+      EventTarget? currentTarget}) {
     if (view == null) {
       view = window;
     }
 
-    var eventObj;
+    dynamic eventObj;
 
     // Currently this works on everything but Safari. Safari throws an
     // "Attempting to change access mechanism for an unconfigurable property"
@@ -119,17 +125,17 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     JS(
         'void',
         "Object.defineProperty(#, 'keyCode', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'which', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'charCode', {"
-        "  get : function() { return this.charCodeVal; } })",
+            "  get : function() { return this.charCodeVal; } })",
         eventObj);
 
     var keyIdentifier = _convertToHexString(charCode, keyCode);
@@ -152,10 +158,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static bool get canUseDispatchEvent => JS(
       'bool',
       '(typeof document.body.dispatchEvent == "function")'
-      '&& document.body.dispatchEvent.length > 0');
+          '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
-  EventTarget get currentTarget => _currentTarget;
+  EventTarget? get currentTarget => _currentTarget;
 
   // This is an experimental method to be sure.
   static String _convertToHexString(int charCode, int keyCode) {
@@ -182,12 +188,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  String get code => _parent.code;
+  String get code => _parent.code!;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
-  int get detail => _parent.detail;
-  bool get isComposing => _parent.isComposing;
-  String get key => _parent.key;
+  int get detail => _parent.detail!;
+  bool get isComposing => _parent.isComposing!;
+  String get key => _parent.key!;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
@@ -198,9 +204,9 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  Window get view => _parent.view;
+  WindowBase? get view => _parent.view;
   void _initUIEvent(
-      String type, bool canBubble, bool cancelable, Window view, int detail) {
+      String type, bool canBubble, bool cancelable, Window? view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
 
@@ -218,9 +224,9 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       String type,
       bool canBubble,
       bool cancelable,
-      Window view,
+      Window? view,
       String keyIdentifier,
-      int location,
+      int? location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,

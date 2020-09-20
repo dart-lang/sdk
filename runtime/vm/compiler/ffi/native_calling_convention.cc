@@ -209,7 +209,6 @@ class ArgumentAllocator : public ValueObject {
   // > Procedure Call Standard is used. In this variant, floating-point
   // > (and vector) arguments are passed in general purpose registers
   // > (GPRs) instead of in VFP registers)
-  // https://developer.apple.com/library/archive/documentation/Xcode/Conceptual/iPhoneOSABIReference/Articles/ARMv6FunctionCallingConventions.html#//apple_ref/doc/uid/TP40009021-SW1
   // https://developer.apple.com/library/archive/documentation/Xcode/Conceptual/iPhoneOSABIReference/Articles/ARMv7FunctionCallingConventions.html#//apple_ref/doc/uid/TP40009022-SW1
   void BlockAllFpuRegisters() {
     // Set all bits to 1.

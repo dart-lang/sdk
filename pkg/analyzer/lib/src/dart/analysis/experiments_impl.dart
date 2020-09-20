@@ -12,38 +12,26 @@ import 'package:pub_semver/pub_semver.dart';
 Map<String, ExperimentalFeature> _knownFeatures =
     ExperimentStatus.knownFeatures;
 
+/// This flag is `true` while [overrideKnownFeaturesAsync] is executing.
+bool _overrideKnownFeaturesAsyncExecuting = false;
+
 /// Decodes the strings given in [flags] into a list of booleans representing
 /// experiments that should be enabled.
 ///
 /// Always succeeds, even if the input flags are invalid.  Expired and
 /// unrecognized flags are ignored, conflicting flags are resolved in favor of
 /// the flag appearing last.
-List<bool> decodeFlags(List<String> flags) {
-  var decodedFlags = List<bool>.filled(_knownFeatures.length, false);
-  for (var feature in _knownFeatures.values) {
-    decodedFlags[feature.index] = feature.isEnabledByDefault;
-  }
+EnabledDisabledFlags decodeExplicitFlags(List<String> flags) {
+  var enabledFlags = List<bool>.filled(_knownFeatures.length, false);
+  var disabledFlags = List<bool>.filled(_knownFeatures.length, false);
   for (var entry in _flagStringsToMap(flags).entries) {
-    decodedFlags[entry.key] = entry.value;
+    if (entry.value) {
+      enabledFlags[entry.key] = true;
+    } else {
+      disabledFlags[entry.key] = true;
+    }
   }
-  return decodedFlags;
-}
-
-/// Computes a set of features for use in a unit test.  Computes the set of
-/// features enabled in [sdkVersion], plus any specified [additionalFeatures].
-///
-/// If [sdkVersion] is not supplied (or is `null`), then the current set of
-/// enabled features is used as the starting point.
-List<bool> enableFlagsForTesting(
-    {String sdkVersion, List<Feature> additionalFeatures = const []}) {
-  var flags = decodeFlags([]);
-  if (sdkVersion != null) {
-    flags = restrictEnableFlagsToVersion(flags, Version.parse(sdkVersion));
-  }
-  for (ExperimentalFeature feature in additionalFeatures) {
-    flags[feature.index] = true;
-  }
-  return flags;
+  return EnabledDisabledFlags(enabledFlags, disabledFlags);
 }
 
 /// Pretty-prints the given set of enable flags as a set of feature names.
@@ -76,10 +64,12 @@ List<String> experimentStatusToStringList(ExperimentStatus status) {
 ///
 /// It isn't safe to call this method with an asynchronous callback, because it
 /// only changes the set of known features during the time that [callback] is
-/// (synchronously) executing.
+/// (synchronously) executing. Use [overrideKnownFeaturesAsync] instead.
 @visibleForTesting
 T overrideKnownFeatures<T>(
-    Map<String, ExperimentalFeature> knownFeatures, T Function() callback) {
+  Map<String, ExperimentalFeature> knownFeatures,
+  T Function() callback,
+) {
   var oldKnownFeatures = _knownFeatures;
   try {
     _knownFeatures = knownFeatures;
@@ -89,21 +79,78 @@ T overrideKnownFeatures<T>(
   }
 }
 
-/// Computes a new set of enable flags based on [flags], but with any features
-/// that are not present in the language [version] set to `false`.
-List<bool> restrictEnableFlagsToVersion(List<bool> flags, Version version) {
-  if (version == ExperimentStatus.currentVersion) {
-    return flags;
+/// Execute the callback, pretending that the given [knownFeatures] take the
+/// place of [ExperimentStatus.knownFeatures].
+///
+/// This function cannot be invoked before its previous invocation completes.
+@visibleForTesting
+Future<T> overrideKnownFeaturesAsync<T>(
+  Map<String, ExperimentalFeature> knownFeatures,
+  Future<T> Function() callback,
+) async {
+  if (_overrideKnownFeaturesAsyncExecuting) {
+    throw StateError('overrideKnownFeaturesAsync is not reentrant');
   }
 
-  flags = List.from(flags);
+  _overrideKnownFeaturesAsyncExecuting = true;
+  var oldKnownFeatures = _knownFeatures;
+  try {
+    _knownFeatures = knownFeatures;
+    return await callback();
+  } finally {
+    _knownFeatures = oldKnownFeatures;
+    _overrideKnownFeaturesAsyncExecuting = false;
+  }
+}
+
+/// Computes a new set of enable flags based on [version].
+///
+/// Features in [explicitEnabledFlags] are enabled in the [sdkLanguageVersion].
+///
+/// Features in [explicitDisabledFlags] are always disabled.
+List<bool> restrictEnableFlagsToVersion({
+  @required Version sdkLanguageVersion,
+  @required List<bool> explicitEnabledFlags,
+  @required List<bool> explicitDisabledFlags,
+  @required Version version,
+}) {
+  var decodedFlags = List.filled(_knownFeatures.length, false);
   for (var feature in _knownFeatures.values) {
-    var firstSupportedVersion = feature.firstSupportedVersion;
-    if (firstSupportedVersion == null || firstSupportedVersion > version) {
-      flags[feature.index] = false;
+    if (explicitDisabledFlags[feature.index]) {
+      decodedFlags[feature.index] = false;
+      continue;
+    }
+
+    var releaseVersion = feature.releaseVersion;
+    if (releaseVersion != null && version >= releaseVersion) {
+      decodedFlags[feature.index] = true;
+    }
+
+    if (explicitEnabledFlags[feature.index]) {
+      var experimentalReleaseVersion = feature.experimentalReleaseVersion;
+      if (experimentalReleaseVersion == null) {
+        // Specifically, the current sdk version (whatever it is) is always
+        // used as the language version which opts code into the experiment
+        // when the experiment flag is passed.
+        if (version == sdkLanguageVersion) {
+          decodedFlags[feature.index] = true;
+        }
+      } else {
+        // An experiment flag may at any point be assigned an experimental
+        // release version.  From that point forward, all tools will no
+        // longer use the current sdk version to opt code in, but rather
+        // will use the experimental release version as the opt in version.
+        // Updated 2020-08-25: we decided that experimental features should
+        // be available since `min(sdk, experimentalRelease)`.
+        if (version >= experimentalReleaseVersion ||
+            version >= sdkLanguageVersion) {
+          decodedFlags[feature.index] = true;
+        }
+      }
     }
   }
-  return flags;
+
+  return decodedFlags;
 }
 
 /// Validates whether there are any disagreements between the strings given in
@@ -245,6 +292,13 @@ class ConflictingFlags extends ValidationResult {
   }
 }
 
+class EnabledDisabledFlags {
+  final List<bool> enabled;
+  final List<bool> disabled;
+
+  EnabledDisabledFlags(this.enabled, this.disabled);
+}
+
 /// Information about a single experimental flag that the user might use to
 /// request that a feature be enabled (or disabled).
 class ExperimentalFeature implements Feature {
@@ -270,16 +324,25 @@ class ExperimentalFeature implements Feature {
   /// Documentation for the feature, if known.  `null` for expired flags.
   final String documentation;
 
-  final String _firstSupportedVersion;
+  /// The first language version in which this feature can be enabled using
+  /// the [enableString] experimental flag.
+  final Version experimentalReleaseVersion;
 
-  const ExperimentalFeature(this.index, this.enableString,
-      this.isEnabledByDefault, this.isExpired, this.documentation,
-      {String firstSupportedVersion})
-      : _firstSupportedVersion = firstSupportedVersion,
-        assert(index != null),
+  @override
+  final Version releaseVersion;
+
+  ExperimentalFeature({
+    @required this.index,
+    @required this.enableString,
+    @required this.isEnabledByDefault,
+    @required this.isExpired,
+    @required this.documentation,
+    @required this.experimentalReleaseVersion,
+    @required this.releaseVersion,
+  })  : assert(index != null),
         assert(isEnabledByDefault
-            ? firstSupportedVersion != null
-            : firstSupportedVersion == null),
+            ? releaseVersion != null
+            : releaseVersion == null),
         assert(enableString != null);
 
   /// The string to disable the feature.
@@ -287,15 +350,6 @@ class ExperimentalFeature implements Feature {
 
   @override
   String get experimentalFlag => isExpired ? null : enableString;
-
-  @override
-  Version get firstSupportedVersion {
-    if (_firstSupportedVersion == null) {
-      return null;
-    } else {
-      return Version.parse(_firstSupportedVersion);
-    }
-  }
 
   @override
   FeatureStatus get status {

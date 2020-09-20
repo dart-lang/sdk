@@ -69,56 +69,7 @@ notEffectivelyFinalList() {
 /*member: _method1:type=[inst:JSNull]*/
 num _method1() => null;
 
-/*spec:nnbd-off.member: effectivelyFinalPromoted:
- dynamic=[
-  int.+,
-  num.+],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  _method1(0),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSUInt31,
-  inst:JSUInt32,
-  is:int]
-*/
-/*spec:nnbd-sdk.member: effectivelyFinalPromoted:
+/*member: effectivelyFinalPromoted:
  dynamic=[
   int.+,
   num.+],
@@ -181,57 +132,7 @@ effectivelyFinalPromoted() {
 /*member: _method2:type=[inst:JSNull]*/
 String _method2() => null;
 
-/*spec:nnbd-off.member: effectivelyFinalPromotedInvalid:
- dynamic=[
-  String.+,
-  int.+],
- static=[
-  Rti._bind(1),
-  Rti._eval(1),
-  _arrayInstanceType(1),
-  _asBool(1),
-  _asBoolQ(1),
-  _asBoolS(1),
-  _asDouble(1),
-  _asDoubleQ(1),
-  _asDoubleS(1),
-  _asInt(1),
-  _asIntQ(1),
-  _asIntS(1),
-  _asNum(1),
-  _asNumQ(1),
-  _asNumS(1),
-  _asObject(1),
-  _asString(1),
-  _asStringQ(1),
-  _asStringS(1),
-  _asTop(1),
-  _generalAsCheckImplementation(1),
-  _generalIsTestImplementation(1),
-  _installSpecializedIsTest(1),
-  _instanceType(1),
-  _isBool(1),
-  _isInt(1),
-  _isNum(1),
-  _isObject(1),
-  _isString(1),
-  _isTop(1),
-  _method2(0),
-  findType(1),
-  instanceType(1)],
- type=[
-  inst:Closure,
-  inst:JSBool,
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSString,
-  inst:JSUInt31,
-  inst:JSUInt32,
-  is:int]
-*/
-/*spec:nnbd-sdk.member: effectivelyFinalPromotedInvalid:
+/*member: effectivelyFinalPromotedInvalid:
  dynamic=[
   String.+,
   int.+],

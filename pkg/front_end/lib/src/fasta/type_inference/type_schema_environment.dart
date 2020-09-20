@@ -2,20 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        DynamicType,
-        FunctionType,
-        InterfaceType,
-        Library,
-        NamedType,
-        NeverType,
-        Nullability,
-        Procedure,
-        TypeParameter,
-        Variance;
+import 'package:kernel/ast.dart' hide MapEntry;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -28,7 +15,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 
-import 'standard_bounds.dart' show StandardBounds;
+import 'standard_bounds.dart' show TypeSchemaStandardBounds;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
@@ -37,8 +24,6 @@ import 'type_demotion.dart';
 import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
 
 import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
-
-import '../problems.dart';
 
 // TODO(paulberry): try to push this functionality into kernel.
 FunctionType substituteTypeParams(
@@ -101,19 +86,11 @@ class TypeConstraint {
 }
 
 class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
-    with StandardBounds {
+    with TypeSchemaStandardBounds {
   final ClassHierarchy hierarchy;
 
   TypeSchemaEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super(coreTypes, hierarchy);
-
-  Class get functionClass => coreTypes.functionClass;
-
-  Class get futureClass => coreTypes.futureClass;
-
-  Class get futureOrClass => coreTypes.futureOrClass;
-
-  Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectNonNullableRawType {
     return coreTypes.objectNonNullableRawType;
@@ -125,24 +102,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   InterfaceType objectRawType(Nullability nullability) {
     return coreTypes.objectRawType(nullability);
-  }
-
-  bool areMutualSubtypes(DartType s, DartType t, SubtypeCheckMode mode) {
-    IsSubtypeOf result = performNullabilityAwareMutualSubtypesCheck(s, t);
-    switch (mode) {
-      case SubtypeCheckMode.ignoringNullabilities:
-        return result.isSubtypeWhenIgnoringNullabilities();
-      case SubtypeCheckMode.withNullabilities:
-        return result.isSubtypeWhenUsingNullabilities();
-    }
-    return unhandled(
-        "$mode", "TypeSchemaEnvironment.areMutualSubtypes", -1, null);
-  }
-
-  InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
-    return hierarchy.getLegacyLeastUpperBound(
-        type1, type2, clientLibrary, this.coreTypes);
   }
 
   /// Modify the given [constraint]'s lower bound to include [lower].
@@ -160,19 +119,103 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
-    // TODO(paulberry): this matches what is defined in the spec.  It would be
-    // nice if we could change kernel to match the spec and not have to
-    // override.
-    if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
-      if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
-        return type2.withDeclaredNullability(type1.nullability);
+  DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      return super.getTypeOfSpecialCasedBinaryOperator(type1, type2,
+          isNonNullableByDefault: isNonNullableByDefault);
+    } else {
+      // TODO(paulberry): this matches what is defined in the spec.  It would be
+      // nice if we could change kernel to match the spec and not have to
+      // override.
+      if (type1 is InterfaceType && type1.classNode == coreTypes.intClass) {
+        if (type2 is InterfaceType && type2.classNode == coreTypes.intClass) {
+          return type2.withDeclaredNullability(type1.nullability);
+        }
+        if (type2 is InterfaceType &&
+            type2.classNode == coreTypes.doubleClass) {
+          return type2.withDeclaredNullability(type1.nullability);
+        }
       }
-      if (type2 is InterfaceType && type2.classNode == coreTypes.doubleClass) {
-        return type2.withDeclaredNullability(type1.nullability);
+      return coreTypes.numRawType(type1.nullability);
+    }
+  }
+
+  DartType getContextTypeOfSpecialCasedBinaryOperator(
+      DartType contextType, DartType type1, DartType type2,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      if (contextType is! NeverType &&
+          type1 is! NeverType &&
+          isSubtypeOf(contextType, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities) &&
+          isSubtypeOf(type1, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If e is an expression of the form e1 + e2, e1 - e2, e1 * e2, e1 % e2
+        // or e1.remainder(e2), where C is the context type of e and T is the
+        // static type of e1, and where T is a non-Never subtype of num, then:
+        if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If int <: C, not num <: C, and T <: int, then the context type of
+          // e2 is int.
+          return coreTypes.intNonNullableRawType;
+        } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If double <: C, not num <: C, and not T <: double, then the context
+          // type of e2 is double.
+          return coreTypes.doubleNonNullableRawType;
+        } else {
+          // Otherwise, the context type of e2 is num.
+          return coreTypes.numNonNullableRawType;
+        }
       }
     }
-    return coreTypes.numRawType(type1.nullability);
+    return type2;
+  }
+
+  DartType getContextTypeOfSpecialCasedTernaryOperator(
+      DartType contextType, DartType receiverType, DartType operandType,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      if (receiverType is! NeverType &&
+          isSubtypeOf(receiverType, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        // If e is an expression of the form e1.clamp(e2, e3) where C is the
+        // context type of e and T is the static type of e1 where T is a
+        // non-Never subtype of num, then:
+        if (isSubtypeOf(coreTypes.intNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(receiverType, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If int <: C, not num <: C, and T <: int, then the context type of
+          // e2 and e3 is int.
+          return coreTypes.intNonNullableRawType;
+        } else if (isSubtypeOf(coreTypes.doubleNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            !isSubtypeOf(coreTypes.numNonNullableRawType, contextType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(receiverType, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If double <: C, not num <: C, and T <: double, then the context
+          // type of e2 and e3 is double.
+          return coreTypes.doubleNonNullableRawType;
+        } else {
+          // Otherwise the context type of e2 an e3 is num
+          return coreTypes.numNonNullableRawType;
+        }
+      }
+    }
+    return operandType;
   }
 
   /// Infers a generic type, function, method, or list/map literal
@@ -230,14 +273,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                     : objectLegacyRawType)
             .substituteType(returnContextType);
       }
-      gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
+      gatherer.tryConstrainUpper(declaredReturnType, returnContextType);
     }
 
     if (formalTypes != null) {
       for (int i = 0; i < formalTypes.length; i++) {
         // Try to pass each argument to each parameter, recording any type
         // parameter bounds that were implied by this assignment.
-        gatherer.trySubtypeMatch(actualTypes[i], formalTypes[i]);
+        gatherer.tryConstrainLower(formalTypes[i], actualTypes[i]);
       }
     }
 
@@ -314,46 +357,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
             preferUpwardsInference: !typeParam.isLegacyCovariant);
       }
     }
-
-    // If the downwards infer phase has failed, we'll catch this in the upwards
-    // phase later on.
-    if (downwardsInferPhase) {
-      return;
-    }
-
-    // Check the inferred types against all of the constraints.
-    Map<TypeParameter, DartType> knownTypes = <TypeParameter, DartType>{};
-    for (int i = 0; i < typeParametersToInfer.length; i++) {
-      TypeParameter typeParam = typeParametersToInfer[i];
-      TypeConstraint constraint = constraints[typeParam];
-      DartType typeParamBound =
-          Substitution.fromPairs(typeParametersToInfer, inferredTypes)
-              .substituteType(typeParam.bound);
-
-      DartType inferred = inferredTypes[i];
-      bool success = typeSatisfiesConstraint(inferred, constraint);
-      if (success && !hasOmittedBound(typeParam)) {
-        // If everything else succeeded, check the `extends` constraint.
-        DartType extendsConstraint = typeParamBound;
-        success = isSubtypeOf(
-            inferred, extendsConstraint, SubtypeCheckMode.withNullabilities);
-      }
-
-      if (!success) {
-        // TODO(paulberry): report error.
-
-        // Heuristic: even if we failed, keep the erroneous type.
-        // It should satisfy at least some of the constraints (e.g. the return
-        // context). If we fall back to instantiateToBounds, we'll typically get
-        // more errors (e.g. because `dynamic` is the most common bound).
-      }
-
-      if (isKnown(inferred)) {
-        knownTypes[typeParam] = inferred;
-      }
-    }
-
-    // TODO(paulberry): report any errors from instantiateToBounds.
   }
 
   @override
@@ -361,10 +364,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType subtype, DartType supertype) {
     if (subtype is UnknownType) return const IsSubtypeOf.always();
     DartType unwrappedSupertype = supertype;
-    while (unwrappedSupertype is InterfaceType &&
-        unwrappedSupertype.classNode == futureOrClass) {
-      unwrappedSupertype =
-          (unwrappedSupertype as InterfaceType).typeArguments.single;
+    while (unwrappedSupertype is FutureOrType) {
+      unwrappedSupertype = (unwrappedSupertype as FutureOrType).typeArgument;
     }
     if (unwrappedSupertype is UnknownType) {
       return const IsSubtypeOf.always();
@@ -390,17 +391,22 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   ///
   /// This is a case of type-based overloading, which in Dart is only supported
   /// by giving special treatment to certain arithmetic operators.
-  bool isOverloadedArithmeticOperatorAndType(
-      Procedure member, DartType receiverType) {
-    // TODO(paulberry): this matches what is defined in the spec.  It would be
-    // nice if we could change kernel to match the spec and not have to
-    // override.
-    if (member.name.name == 'remainder') return false;
-    if (!(receiverType is InterfaceType &&
-        identical(receiverType.classNode, coreTypes.intClass))) {
-      return false;
+  bool isSpecialCasesBinaryForReceiverType(
+      Procedure member, DartType receiverType,
+      {bool isNonNullableByDefault}) {
+    assert(isNonNullableByDefault != null);
+    if (!isNonNullableByDefault) {
+      // TODO(paulberry): this matches what is defined in the spec.  It would be
+      // nice if we could change kernel to match the spec and not have to
+      // override.
+      if (member.name.text == 'remainder') return false;
+      if (!(receiverType is InterfaceType &&
+          identical(receiverType.classNode, coreTypes.intClass))) {
+        return false;
+      }
     }
-    return isOverloadedArithmeticOperator(member);
+    return isSpecialCasedBinaryOperator(member,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
@@ -421,7 +427,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   /// If [isContravariant] is `true`, then we are solving for a contravariant
   /// type parameter which means we choose the upper bound rather than the
   /// lower bound for normally covariant type parameters.
-  DartType solveTypeConstraint(TypeConstraint constraint, DartType bottomType,
+  DartType solveTypeConstraint(
+      TypeConstraint constraint, DartType topType, DartType bottomType,
       {bool grounded: false, bool isContravariant: false}) {
     assert(bottomType == const NeverType(Nullability.nonNullable) ||
         bottomType == coreTypes.nullType);
@@ -434,12 +441,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
+            ? leastClosure(constraint.lower, topType, bottomType)
             : constraint.lower;
-      } else {
+      } else if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
+            ? greatestClosure(constraint.upper, topType, bottomType)
             : constraint.upper;
+      } else {
+        return grounded ? const DynamicType() : const UnknownType();
       }
     } else {
       // Prefer the known bound, if any.
@@ -450,12 +459,14 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       // e.g. `Iterable<?>`
       if (constraint.upper is! UnknownType) {
         return grounded
-            ? greatestClosure(constraint.upper, const DynamicType(), bottomType)
+            ? greatestClosure(constraint.upper, topType, bottomType)
             : constraint.upper;
-      } else {
+      } else if (constraint.lower is! UnknownType) {
         return grounded
-            ? leastClosure(constraint.lower, const DynamicType(), bottomType)
+            ? leastClosure(constraint.lower, topType, bottomType)
             : constraint.lower;
+      } else {
+        return grounded ? bottomType : const UnknownType();
       }
     }
   }
@@ -489,6 +500,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return solveTypeConstraint(
         constraint,
         clientLibrary.isNonNullableByDefault
+            ? coreTypes.objectNullableRawType
+            : const DynamicType(),
+        clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
             : nullType,
         grounded: true,
@@ -499,6 +513,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       DartType extendsConstraint, Library clientLibrary) {
     DartType t = solveTypeConstraint(
         constraint,
+        clientLibrary.isNonNullableByDefault
+            ? coreTypes.objectNullableRawType
+            : const DynamicType(),
         clientLibrary.isNonNullableByDefault
             ? const NeverType(Nullability.nonNullable)
             : nullType);
@@ -518,6 +535,9 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       addUpperBound(constraint, extendsConstraint, clientLibrary);
       return solveTypeConstraint(
           constraint,
+          clientLibrary.isNonNullableByDefault
+              ? coreTypes.objectNullableRawType
+              : const DynamicType(),
           clientLibrary.isNonNullableByDefault
               ? const NeverType(Nullability.nonNullable)
               : nullType);

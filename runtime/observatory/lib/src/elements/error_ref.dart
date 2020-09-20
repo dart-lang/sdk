@@ -7,12 +7,10 @@ library error_ref_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' show ErrorRef;
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class ErrorRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ErrorRefElement>('error-ref');
-
   RenderingScheduler<ErrorRefElement> _r;
 
   Stream<RenderedEvent<ErrorRefElement>> get onRendered => _r.onRendered;
@@ -29,7 +27,7 @@ class ErrorRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ErrorRefElement.created() : super.created(tag);
+  ErrorRefElement.created() : super.created('error-ref');
 
   @override
   void attached() {

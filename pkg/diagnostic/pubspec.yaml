@@ -1,4 +1,5 @@
 name: diagnostic
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 author: Dart Team <misc@dartlang.org>
 description: Diagnostics for Dart

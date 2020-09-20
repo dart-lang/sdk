@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 import 'dart:core' hide Symbol;
 import 'dart:core' as core show Symbol;
 import 'dart:_js_primitives' show printString;
@@ -13,13 +11,17 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
 @patch
+bool typeAcceptsNull<T>() =>
+    !dart.compileTimeFlag('soundNullSafety') || null is T;
+
+@patch
 class Symbol implements core.Symbol {
   @patch
   const Symbol(String name) : this._name = name;
 
   @patch
   int get hashCode {
-    int hash = JS('int|Null', '#._hashCode', this);
+    int? hash = JS('int|Null', '#._hashCode', this);
     if (hash != null) return hash;
     const arbitraryPrime = 664597;
     hash = 0x1fffffff & (arbitraryPrime * _name.hashCode);
@@ -40,17 +42,17 @@ void printToConsole(String line) {
 }
 
 @patch
-List<E> makeListFixedLength<E>(List<E> growableList) {
+List<T> makeListFixedLength<T>(List<T> growableList) {
   JSArray.markFixedList(growableList);
   return growableList;
 }
 
 @patch
-List<E> makeFixedListUnmodifiable<E>(List<E> fixedLengthList) {
+List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
   JSArray.markUnmodifiableList(fixedLengthList);
   return fixedLengthList;
 }
 
 @patch
-Object extractTypeArguments<T>(T instance, Function extract) =>
+Object? extractTypeArguments<T>(T instance, Function extract) =>
     dart.extractTypeArguments<T>(instance, extract);

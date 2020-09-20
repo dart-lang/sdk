@@ -14,8 +14,7 @@ class Foo<T extends num> {}
 /*class: Bar:*/
 class Bar<T extends num> {}
 
-/*spec:nnbd-off|prod:nnbd-off.class: Baz:explicit=[Baz<num>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: Baz:explicit=[Baz<num*>*],needsArgs*/
+/*class: Baz:explicit=[Baz<num*>*],needsArgs*/
 class Baz<T extends num> {}
 
 @pragma('dart2js:disableFinal')

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -130,7 +128,7 @@ import 'dart:convert';
 import 'dart:collection';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''');
@@ -141,7 +139,7 @@ import 'dart:collection';
 import 'dart:math';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''');

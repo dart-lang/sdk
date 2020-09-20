@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToConstTest extends DriverResolutionTest {
+class AssignmentToConstTest extends PubPackageResolutionTest {
   test_instanceVariable() async {
     await assertErrorsInCode('''
 class A {
@@ -24,7 +24,7 @@ class A {
 f() {
   A.v = 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 42, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1),
     ]);
   }
 
@@ -36,7 +36,7 @@ class A {
 f() {
   A.v += 1;
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 42, 3),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1),
     ]);
   }
 
@@ -47,18 +47,7 @@ f() {
   x = 1;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 23, 1),
-    ]);
-  }
-
-  test_localVariable_plusEq() async {
-    await assertErrorsInCode('''
-f() {
-  const x = 0;
-  x += 1;
-}''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 23, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
     ]);
   }
 
@@ -70,7 +59,18 @@ f() {
     print(x);
   }
 }''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 28, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 28, 1),
+    ]);
+  }
+
+  test_localVariable_plusEq() async {
+    await assertErrorsInCode('''
+f() {
+  const x = 0;
+  x += 1;
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
     ]);
   }
 }

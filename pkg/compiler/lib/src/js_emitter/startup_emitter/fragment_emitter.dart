@@ -83,7 +83,9 @@ function setFunctionNamesIfNecessary(holders) {
 // Older IEs use `Object.create` and copy over the properties.
 function inherit(cls, sup) {
   // Note that RTI needs cls.name, but we don't need to set it anymore.
-  cls.prototype.constructor = cls;
+  if (#legacyJavaScript) {
+    cls.prototype.constructor = cls;
+  }
   cls.prototype[#operatorIsPrefix + cls.name] = cls;
 
   // The superclass is only null for the Dart Object.
@@ -118,7 +120,7 @@ function mixin(cls, mixin) {
 // A lazy field has a storage entry, [name], which holds the value, and a
 // getter ([getterName]) to access the field. If the field wasn't set before
 // the first access, it is initialized with the [initializer].
-function lazy(holder, name, getterName, initializer) {
+function lazyOld(holder, name, getterName, initializer) {
   var uninitializedSentinel = holder;
   holder[name] = uninitializedSentinel;
   holder[getterName] = function() {
@@ -146,6 +148,44 @@ function lazy(holder, name, getterName, initializer) {
       holder[getterName] = function() { return this[name]; };
     }
     return result;
+  };
+}
+
+// Creates a lazy field that uses non-nullable initialization semantics.
+//
+// A lazy field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. If the field wasn't set before
+// the first access, it is initialized with the [initializer].
+function lazy(holder, name, getterName, initializer) {
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
+  holder[getterName] = function() {
+    if (holder[name] === uninitializedSentinel) {
+      holder[name] = initializer();
+    }
+    holder[getterName] = function() { return this[name]; };
+    return holder[name];
+  };
+}
+
+// Creates a lazy final field that uses non-nullable initialization semantics.
+//
+// A lazy field has a storage entry, [name], which holds the value, and a
+// getter ([getterName]) to access the field. If the field wasn't set before
+// the first access, it is initialized with the [initializer].
+function lazyFinal(holder, name, getterName, initializer) {
+  var uninitializedSentinel = holder;
+  holder[name] = uninitializedSentinel;
+  holder[getterName] = function() {
+    if (holder[name] === uninitializedSentinel) {
+      var value = initializer();
+      if (holder[name] !== uninitializedSentinel) {
+        #throwLateInitializationError(name);
+      }
+      holder[name] = value;
+    }
+    holder[getterName] = function() { return this[name]; };
+    return holder[name];
   };
 }
 
@@ -350,6 +390,8 @@ var #hunkHelpers = (function(){
 
     makeConstList: makeConstList,
     lazy: lazy,
+    lazyFinal: lazyFinal,
+    lazyOld: lazyOld,
     updateHolder: updateHolder,
     convertToFastObject: convertToFastObject,
     setFunctionNamesIfNecessary: setFunctionNamesIfNecessary,
@@ -431,6 +473,9 @@ var #staticStateDeclaration = {};
 
 // Adds the variance table for the new RTI.
 #variances;
+
+// Shared strings need to be initialized before constants.
+#sharedStrings;
 
 // Shared types need to be initialized before constants.
 #sharedTypeRtis;
@@ -536,6 +581,8 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 // Adds the variance table for the new RTI.
 #variances;
 
+#sharedStrings;
+
 #sharedTypeRtis;
 // Instantiates all constants of this deferred fragment.
 // Note that the constant-holder has been updated earlier and storing the
@@ -615,19 +662,15 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld) {
-    if (_options.useNewRti) {
-      _recipeEncoder = RecipeEncoderImpl(
-          _closedWorld,
-          _options.disableRtiOptimization
-              ? TrivialRuntimeTypesSubstitutions(_closedWorld)
-              : RuntimeTypesImpl(_closedWorld),
-          _closedWorld.nativeData,
-          _closedWorld.elementEnvironment,
-          _closedWorld.commonElements,
-          _closedWorld.rtiNeed);
-      _rulesetEncoder =
-          RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
-    }
+    _recipeEncoder = RecipeEncoderImpl(
+        _closedWorld,
+        _options.disableRtiOptimization
+            ? TrivialRuntimeTypesSubstitutions(_closedWorld)
+            : RuntimeTypesImpl(_closedWorld),
+        _closedWorld.nativeData,
+        _closedWorld.commonElements);
+    _rulesetEncoder =
+        RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
@@ -665,6 +708,8 @@ class FragmentEmitter {
       'directAccessTestExpression': js.js(_directAccessTestExpression),
       'cyclicThrow': _emitter
           .staticFunctionAccess(_closedWorld.commonElements.cyclicThrowHelper),
+      'throwLateInitializationError': _emitter.staticFunctionAccess(
+          _closedWorld.commonElements.throwLateInitializationError),
       'operatorIsPrefix': js.string(_namer.fixedNames.operatorIsPrefix),
       'tearOffCode': new js.Block(buildTearOffCode(
           _options, _emitter, _namer, _closedWorld.commonElements)),
@@ -699,8 +744,9 @@ class FragmentEmitter {
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
+      'sharedStrings': StringReferenceResource(),
       'variances': emitVariances(fragment),
-      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
+      'sharedTypeRtis': TypeReferenceResource(),
       'nativeSupport': emitNativeSupport(fragment),
       'jsInteropSupport': jsInteropAnalysis.buildJsInteropBootstrap(
               _codegenWorld, _closedWorld.nativeData, _namer) ??
@@ -710,6 +756,7 @@ class FragmentEmitter {
       'call0selector': js.quoteName(call0Name),
       'call1selector': js.quoteName(call1Name),
       'call2selector': js.quoteName(call2Name),
+      'legacyJavaScript': _options.legacyJavaScript
     });
     if (program.hasSoftDeferredClasses) {
       mainCode = js.Block([
@@ -729,7 +776,7 @@ class FragmentEmitter {
         mainCode
       ]);
     }
-    finalizeTypeReferences(mainCode);
+    finalizeStringAndTypeReferences(mainCode);
     return mainCode;
   }
 
@@ -831,19 +878,22 @@ class FragmentEmitter {
       'types': deferredTypes,
       'nativeSupport': nativeSupport,
       'typesOffset': _namer.typesOffsetName,
-      'sharedTypeRtis': _options.useNewRti ? TypeReferenceResource() : [],
+      'sharedStrings': StringReferenceResource(),
+      'sharedTypeRtis': TypeReferenceResource(),
     });
 
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
-    finalizeTypeReferences(code);
+    finalizeStringAndTypeReferences(code);
     return code;
   }
 
-  void finalizeTypeReferences(js.Node code) {
-    if (!_options.useNewRti) return;
-
+  void finalizeStringAndTypeReferences(js.Node code) {
+    StringReferenceFinalizer stringFinalizer =
+        StringReferenceFinalizerImpl(_options.enableMinification);
+    stringFinalizer.addCode(code);
+    stringFinalizer.finalize();
     TypeReferenceFinalizer finalizer = TypeReferenceFinalizerImpl(
         _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
     finalizer.addCode(code);
@@ -1106,9 +1156,12 @@ class FragmentEmitter {
     List<js.Property> properties = [];
 
     if (cls.superclass == null) {
-      // TODO(sra): What is this doing? Document or remove.
-      properties
-          .add(js.Property(js.string("constructor"), classReference(cls)));
+      // ie11 might require us to set 'constructor' but we aren't 100% sure.
+      if (_options.legacyJavaScript) {
+        properties
+            .add(js.Property(js.string("constructor"), classReference(cls)));
+      }
+
       properties.add(js.Property(_namer.operatorIs(cls.element), js.number(1)));
     }
 
@@ -1726,12 +1779,17 @@ class FragmentEmitter {
     LocalAliases locals = LocalAliases();
     for (StaticField field in fields) {
       assert(field.holder.isStaticStateHolder);
+      String helper = field.usesNonNullableInitialization
+          ? field.isFinal
+              ? locals.find('_lazyFinal', 'hunkHelpers.lazyFinal')
+              : locals.find('_lazy', 'hunkHelpers.lazy')
+          : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
-        locals.find('_lazy', 'hunkHelpers.lazy'),
+        helper,
         field.holder.name,
         js.quoteName(field.name),
         js.quoteName(field.getterName),
-        field.code
+        field.code,
       ]);
 
       registerEntityAst(field.element, statement,
@@ -1918,9 +1976,7 @@ class FragmentEmitter {
           js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
     }
 
-    if (_options.useNewRti) {
-      globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
-    }
+    globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
 
     globals.add(emitMangledGlobalNames());
 
@@ -1969,23 +2025,21 @@ class FragmentEmitter {
   }
 
   js.Block emitTypeRules(Fragment fragment) {
-    if (!_options.useNewRti) return js.Block.empty();
-
     List<js.Statement> statements = [];
 
     bool addJsObjectRedirections = false;
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
 
-    Map<Class, List<Class>> nativeRedirections =
+    Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
 
     Ruleset ruleset = Ruleset.empty();
     Map<ClassEntity, int> erasedTypes = {};
-    Iterable<Class> classes =
-        fragment.libraries.expand((Library library) => library.classes);
-    classes.forEach((Class cls) {
-      ClassEntity element = cls.element;
+    Iterable<ClassTypeData> classTypeData =
+        fragment.libraries.expand((Library library) => library.classTypeData);
+    classTypeData.forEach((ClassTypeData typeData) {
+      ClassEntity element = typeData.element;
       InterfaceType targetType = _elementEnvironment.getThisType(element);
 
       // TODO(fishythefish): Prune uninstantiated classes.
@@ -1995,7 +2049,7 @@ class FragmentEmitter {
 
       bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
 
-      Iterable<TypeCheck> checks = cls.classChecksNewRti?.checks ?? [];
+      Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? [];
       Iterable<InterfaceType> supertypes = isInterop
           ? checks
               .map((check) => _elementEnvironment.getJsInteropType(check.cls))
@@ -2003,11 +2057,11 @@ class FragmentEmitter {
               .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
 
       Map<TypeVariableType, DartType> typeVariables = {};
-      Set<TypeVariableType> namedTypeVariables = cls.namedTypeVariablesNewRti;
-      nativeRedirections[cls]?.forEach((Class redirectee) {
-        namedTypeVariables.addAll(redirectee.namedTypeVariablesNewRti);
+      Set<TypeVariableType> namedTypeVariables = typeData.namedTypeVariables;
+      nativeRedirections[typeData]?.forEach((ClassTypeData redirectee) {
+        namedTypeVariables.addAll(redirectee.namedTypeVariables);
       });
-      for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
+      for (TypeVariableType typeVariable in typeData.namedTypeVariables) {
         TypeVariableEntity element = typeVariable.element;
         InterfaceType supertype = isInterop
             ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
@@ -2032,8 +2086,9 @@ class FragmentEmitter {
       });
     }
 
-    nativeRedirections.forEach((Class target, List<Class> redirectees) {
-      for (Class redirectee in redirectees) {
+    nativeRedirections
+        .forEach((ClassTypeData target, List<ClassTypeData> redirectees) {
+      for (ClassTypeData redirectee in redirectees) {
         ruleset.addRedirection(redirectee.element, target.element);
       }
     });
@@ -2061,7 +2116,7 @@ class FragmentEmitter {
   }
 
   js.Statement emitVariances(Fragment fragment) {
-    if (!_options.enableVariance || !_options.useNewRti) {
+    if (!_options.enableVariance) {
       return js.EmptyStatement();
     }
 

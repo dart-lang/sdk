@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef G<invariant T extends core::Object? = dynamic> = <S extends T% = dynamic>(S%) → dynamic;
+typedef H<invariant T extends core::Object? = dynamic> = <S extends FutureOr<T%> = dynamic>(S%, FutureOr<T%>) → dynamic;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field <S extends self::C::T% = dynamic>(S%) → dynamic field1;
+  generic-covariant-impl field <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2;
+  constructor •(<S extends self::C::T% = dynamic>(S%) → dynamic field1, <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2) → self::C<self::C::T%>
+    ;
+}
+static method test1(self::C<core::num> c) → dynamic
+  ;
+static method test2(self::C<core::num?> c) → dynamic
+  ;
+static method test3<S extends core::num? = core::num?>(self::test3::S% s) → dynamic
+  ;
+static method main() → dynamic
+  ;

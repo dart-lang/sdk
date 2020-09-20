@@ -2,25 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:isolate';
 
-import 'package:args/command_runner.dart';
 import 'package:dartdev/dartdev.dart';
 
 /// The entry point for dartdev.
-main(List<String> args) async {
-  final runner = DartdevRunner(args);
-  try {
-    dynamic result = await runner.run(args);
-    exit(result is int ? result : 0);
-  } catch (e, st) {
-    if (e is UsageException) {
-      stderr.writeln('$e');
-      exit(64);
-    } else {
-      stderr.writeln('$e');
-      stderr.writeln('$st');
-      exit(1);
-    }
-  }
+Future<void> main(List<String> args, SendPort port) async {
+  await runDartdev(args, port);
 }

@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/rules.dart';
@@ -13,6 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../src/utilities/mock_packages.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -22,6 +24,7 @@ void main() {
 
 @reflectiveTest
 class NotificationErrorsTest extends AbstractAnalysisTest {
+  Folder pedanticFolder;
   Map<String, List<AnalysisError>> filesErrors = {};
 
   @override
@@ -44,6 +47,7 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
+    pedanticFolder = MockPackages.instance.addPedantic(resourceProvider);
   }
 
   Future<void> test_analysisOptionsFile() async {
@@ -68,6 +72,38 @@ linter:
     expect(error.location.file, filePath);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
+  Future<void> test_analysisOptionsFile_packageInclude() async {
+    var filePath = join(projectPath, 'analysis_options.yaml');
+    var analysisOptionsFile = newFile(filePath, content: '''
+include: package:pedantic/analysis_options.yaml
+''').path;
+
+    var request =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    // Verify there's an error for the import.
+    var errors = filesErrors[analysisOptionsFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
+    expect(error.type, AnalysisErrorType.STATIC_WARNING);
+
+    // Write a package file that allows resolving the include.
+    newFile('$projectPath/.packages', content: '''
+pedantic:${pedanticFolder.toUri()}
+''');
+
+    // Ensure the errors disappear.
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    errors = filesErrors[analysisOptionsFile];
+    expect(errors, hasLength(0));
   }
 
   Future<void> test_androidManifestFile() async {
@@ -128,6 +164,29 @@ analyzer:
     expect(errors, isNull);
   }
 
+  Future<void> test_dataFile() async {
+    var filePath = join(projectPath, 'lib', 'fix_data.yaml');
+    var dataFile = newFile(filePath, content: '''
+version: 1
+transforms:
+''').path;
+
+    var request =
+        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    handleSuccessfulRequest(request);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+    //
+    // Verify the error result.
+    //
+    var errors = filesErrors[dataFile];
+    expect(errors, hasLength(1));
+    var error = errors[0];
+    expect(error.location.file, filePath);
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+  }
+
   Future<void> test_dotFolder_priority() async {
     // Files inside dotFolders should not generate error notifications even
     // if they are added to priority (priority affects only priority, not what
@@ -174,6 +233,35 @@ analyzer:
 
     // There should be no errors because the file is not being analyzed.
     expect(filesErrors[brokenFile], isNull);
+  }
+
+  Future<void> test_excludedFolder() async {
+    addAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - excluded/**
+''');
+    createProject();
+    var excludedFile =
+        newFile(join(projectPath, 'excluded/broken.dart'), content: 'err').path;
+
+    // There should be no errors initially.
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[excludedFile], isNull);
+
+    // Triggering the file to be processed should still generate no errors.
+    await waitResponse(AnalysisGetHoverParams(excludedFile, 0).toRequest('0'));
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[excludedFile], isNull);
+
+    // Opening the file should still generate no errors.
+    await waitResponse(
+        AnalysisSetPriorityFilesParams([excludedFile]).toRequest('0'));
+    await waitForTasksFinished();
+    await pumpEventQueue(times: 5000);
+    expect(filesErrors[excludedFile], isNull);
   }
 
   Future<void> test_importError() async {
@@ -397,9 +485,14 @@ version: 1.3.2
   Future<void> test_StaticWarning() async {
     createProject();
     addTestFile('''
-main() {
-  final int foo;
-  print(foo);
+enum E {e1, e2}
+
+void f(E e) {
+  switch (e) {
+    case E.e1:
+      print(0);
+      break;
+  }
 }
 ''');
     await waitForTasksFinished();
@@ -407,7 +500,7 @@ main() {
     var errors = filesErrors[testFile];
     expect(errors, hasLength(1));
     var error = errors[0];
-    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
 }

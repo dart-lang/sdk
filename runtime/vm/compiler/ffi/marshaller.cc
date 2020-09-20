@@ -17,6 +17,10 @@ namespace compiler {
 
 namespace ffi {
 
+bool BaseMarshaller::ContainsHandles() const {
+  return dart_signature_.FfiCSignatureContainsHandles();
+}
+
 Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return Location(arg_index).AsLocation();

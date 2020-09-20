@@ -10,6 +10,7 @@
 
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/clustered_snapshot.h"
 #include "vm/compilation_trace.h"
@@ -22,7 +23,6 @@
 #include "vm/debugger.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
-#include "platform/unicode.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -148,16 +148,9 @@ class CheckFunctionTypesVisitor : public ObjectVisitor {
 static InstancePtr GetListInstance(Zone* zone, const Object& obj) {
   if (obj.IsInstance()) {
     ObjectStore* object_store = Isolate::Current()->object_store();
-    Type& list_rare_type =
+    const Type& list_rare_type =
         Type::Handle(zone, object_store->non_nullable_list_rare_type());
-    if (list_rare_type.IsNull()) {
-      const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-      const Class& list_class =
-          Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
-      ASSERT(!list_class.IsNull());
-      list_rare_type ^= list_class.RareType();
-      object_store->set_non_nullable_list_rare_type(list_rare_type);
-    }
+    ASSERT(!list_rare_type.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
     if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(),
@@ -172,16 +165,9 @@ static InstancePtr GetListInstance(Zone* zone, const Object& obj) {
 static InstancePtr GetMapInstance(Zone* zone, const Object& obj) {
   if (obj.IsInstance()) {
     ObjectStore* object_store = Isolate::Current()->object_store();
-    Type& map_rare_type =
+    const Type& map_rare_type =
         Type::Handle(zone, object_store->non_nullable_map_rare_type());
-    if (map_rare_type.IsNull()) {
-      const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-      const Class& map_class =
-          Class::Handle(zone, core_lib.LookupClass(Symbols::Map()));
-      ASSERT(!map_class.IsNull());
-      map_rare_type ^= map_class.RareType();
-      object_store->set_non_nullable_map_rare_type(map_rare_type);
-    }
+    ASSERT(!map_rare_type.IsNull());
     const Instance& instance = Instance::Cast(obj);
     const Class& obj_class = Class::Handle(zone, obj.clazz());
     if (Class::IsSubtypeOf(obj_class, Object::null_type_arguments(),
@@ -667,23 +653,29 @@ bool Api::GetNativeFieldsOfArgument(NativeArguments* arguments,
                                     intptr_t* field_values) {
   NoSafepointScope no_safepoint_scope;
   ObjectPtr raw_obj = arguments->NativeArgAt(arg_index);
-  if (raw_obj->IsHeapObject()) {
-    intptr_t cid = raw_obj->GetClassId();
-    if (cid >= kNumPredefinedCids) {
-      TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
-          ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
-      if (native_fields == TypedData::null()) {
-        memset(field_values, 0, (num_fields * sizeof(field_values[0])));
-      } else if (num_fields == Smi::Value(native_fields->ptr()->length_)) {
-        intptr_t* native_values =
-            bit_cast<intptr_t*, uint8_t*>(native_fields->ptr()->data());
-        memmove(field_values, native_values,
-                (num_fields * sizeof(field_values[0])));
-      }
-      return true;
-    }
+  intptr_t cid = raw_obj->GetClassIdMayBeSmi();
+  int class_num_fields = arguments->thread()
+                             ->isolate()
+                             ->class_table()
+                             ->At(cid)
+                             ->ptr()
+                             ->num_native_fields_;
+  if (num_fields != class_num_fields) {
+    // No native fields or mismatched native field count.
+    return false;
   }
-  return false;
+  TypedDataPtr native_fields = *reinterpret_cast<TypedDataPtr*>(
+      ObjectLayout::ToAddr(raw_obj) + sizeof(ObjectLayout));
+  if (native_fields == TypedData::null()) {
+    // Native fields not initialized.
+    memset(field_values, 0, (num_fields * sizeof(field_values[0])));
+    return true;
+  }
+  ASSERT(class_num_fields == Smi::Value(native_fields->ptr()->length_));
+  intptr_t* native_values =
+      reinterpret_cast<intptr_t*>(native_fields->ptr()->data());
+  memmove(field_values, native_values, (num_fields * sizeof(field_values[0])));
+  return true;
 }
 
 void Api::SetWeakHandleReturnValue(NativeArguments* args,
@@ -704,6 +696,14 @@ FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
 #endif
   return reinterpret_cast<FinalizablePersistentHandle*>(handle);
 }
+FinalizablePersistentHandle* FinalizablePersistentHandle::Cast(
+    Dart_FinalizableHandle handle) {
+#if defined(DEBUG)
+  ApiState* state = IsolateGroup::Current()->api_state();
+  ASSERT(state->IsValidFinalizableHandle(handle));
+#endif
+  return reinterpret_cast<FinalizablePersistentHandle*>(handle);
+}
 
 void FinalizablePersistentHandle::Finalize(
     IsolateGroup* isolate_group,
@@ -711,13 +711,24 @@ void FinalizablePersistentHandle::Finalize(
   if (!handle->raw()->IsHeapObject()) {
     return;  // Free handle.
   }
-  Dart_WeakPersistentHandleFinalizer callback = handle->callback();
-  ASSERT(callback != NULL);
   void* peer = handle->peer();
-  Dart_WeakPersistentHandle object = handle->apiHandle();
-  (*callback)(isolate_group->embedder_data(), object, peer);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
+
+  ASSERT(handle->auto_delete());
+
+  if (handle->callback_signature_ == CallbackSignature::kHandleFinalizer) {
+    Dart_HandleFinalizer callback = handle->callback();
+    ASSERT(callback != NULL);
+    (*callback)(isolate_group->embedder_data(), peer);
+  } else {
+    Dart_WeakPersistentHandleFinalizer callback =
+        handle->CallbackWeakFinalizer();
+    ASSERT(callback != NULL);
+    Dart_WeakPersistentHandle object = handle->ApiWeakPersistentHandle();
+    (*callback)(isolate_group->embedder_data(), object, peer);
+  }
+
   state->FreeWeakPersistentHandle(handle);
 }
 
@@ -934,6 +945,19 @@ Dart_HandleFromWeakPersistent(Dart_WeakPersistentHandle object) {
   return Api::NewHandle(thread, weak_ref->raw());
 }
 
+static Dart_Handle HandleFromFinalizable(Dart_FinalizableHandle object) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  CHECK_ISOLATE(isolate);
+  ApiState* state = isolate->group()->api_state();
+  ASSERT(state != NULL);
+  TransitionNativeToVM transition(thread);
+  NoSafepointScope no_safepoint_scope;
+  FinalizablePersistentHandle* weak_ref =
+      FinalizablePersistentHandle::Cast(object);
+  return Api::NewHandle(thread, weak_ref->raw());
+}
+
 DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -957,7 +981,7 @@ DART_EXPORT void Dart_SetPersistentHandle(Dart_PersistentHandle obj1,
   obj1_ref->set_raw(obj2_ref);
 }
 
-static Dart_WeakPersistentHandle AllocateFinalizableHandle(
+static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     Thread* thread,
     const Object& ref,
     void* peer,
@@ -968,16 +992,47 @@ static Dart_WeakPersistentHandle AllocateFinalizableHandle(
   }
   FinalizablePersistentHandle* finalizable_ref =
       FinalizablePersistentHandle::New(thread->isolate(), ref, peer, callback,
-                                       external_allocation_size);
-  return finalizable_ref->apiHandle();
+                                       external_allocation_size,
+                                       /*auto_delete=*/true);
+  return finalizable_ref->ApiWeakPersistentHandle();
 }
 
-static Dart_WeakPersistentHandle AllocateFinalizableHandle(
+static Dart_WeakPersistentHandle AllocateWeakPersistentHandle(
     Thread* thread,
     Dart_Handle object,
     void* peer,
     intptr_t external_allocation_size,
     Dart_WeakPersistentHandleFinalizer callback) {
+  REUSABLE_OBJECT_HANDLESCOPE(thread);
+  Object& ref = thread->ObjectHandle();
+  ref = Api::UnwrapHandle(object);
+  return AllocateWeakPersistentHandle(thread, ref, peer,
+                                      external_allocation_size, callback);
+}
+
+static Dart_FinalizableHandle AllocateFinalizableHandle(
+    Thread* thread,
+    const Object& ref,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback) {
+  if (!ref.raw()->IsHeapObject()) {
+    return NULL;
+  }
+
+  FinalizablePersistentHandle* finalizable_ref =
+      FinalizablePersistentHandle::New(thread->isolate(), ref, peer, callback,
+                                       external_allocation_size,
+                                       /*auto_delete=*/true);
+  return finalizable_ref->ApiFinalizableHandle();
+}
+
+static Dart_FinalizableHandle AllocateFinalizableHandle(
+    Thread* thread,
+    Dart_Handle object,
+    void* peer,
+    intptr_t external_allocation_size,
+    Dart_HandleFinalizer callback) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
   Object& ref = thread->ObjectHandle();
   ref = Api::UnwrapHandle(object);
@@ -996,6 +1051,22 @@ Dart_NewWeakPersistentHandle(Dart_Handle object,
     return NULL;
   }
   TransitionNativeToVM transition(thread);
+
+  return AllocateWeakPersistentHandle(thread, object, peer,
+                                      external_allocation_size, callback);
+}
+
+DART_EXPORT Dart_FinalizableHandle
+Dart_NewFinalizableHandle(Dart_Handle object,
+                          void* peer,
+                          intptr_t external_allocation_size,
+                          Dart_HandleFinalizer callback) {
+  Thread* thread = Thread::Current();
+  CHECK_ISOLATE(thread->isolate());
+  if (callback == nullptr) {
+    return nullptr;
+  }
+  TransitionNativeToVM transition(thread);
   return AllocateFinalizableHandle(thread, object, peer,
                                    external_allocation_size, callback);
 }
@@ -1010,6 +1081,21 @@ DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
   ASSERT(state->IsActiveWeakPersistentHandle(object));
   auto weak_ref = FinalizablePersistentHandle::Cast(object);
   weak_ref->UpdateExternalSize(external_size, isolate_group);
+}
+
+DART_EXPORT void Dart_UpdateFinalizableExternalSize(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object,
+    intptr_t external_allocation_size) {
+  if (!::Dart_IdentityEquals(strong_ref_to_object,
+                             HandleFromFinalizable(object))) {
+    FATAL1(
+        "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
+        "the same object.",
+        CURRENT_FUNC);
+  }
+  auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
+  ::Dart_UpdateExternalSize(wph_object, external_allocation_size);
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
@@ -1039,6 +1125,22 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   state->FreeWeakPersistentHandle(weak_ref);
 }
 
+DART_EXPORT void Dart_DeleteFinalizableHandle(
+    Dart_FinalizableHandle object,
+    Dart_Handle strong_ref_to_object) {
+  if (!::Dart_IdentityEquals(strong_ref_to_object,
+                             HandleFromFinalizable(object))) {
+    FATAL1(
+        "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
+        "the same object.",
+        CURRENT_FUNC);
+  }
+
+  auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
+
+  ::Dart_DeleteWeakPersistentHandle(wph_object);
+}
+
 // --- Initialization and Globals ---
 
 DART_EXPORT const char* Dart_VersionString() {
@@ -1047,13 +1149,13 @@ DART_EXPORT const char* Dart_VersionString() {
 
 DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
   if (params == NULL) {
-    return strdup(
+    return Utils::StrDup(
         "Dart_Initialize: "
         "Dart_InitializeParams is null.");
   }
 
   if (params->version != DART_INITIALIZE_PARAMS_CURRENT_VERSION) {
-    return strdup(
+    return Utils::StrDup(
         "Dart_Initialize: "
         "Invalid Dart_InitializeParams version.");
   }
@@ -1139,7 +1241,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   Isolate* I = Dart::CreateIsolate(name, source->flags, group);
   if (I == NULL) {
     if (error != NULL) {
-      *error = strdup("Isolate creation failed");
+      *error = Utils::StrDup("Isolate creation failed");
     }
     return reinterpret_cast<Dart_Isolate>(NULL);
   }
@@ -1160,13 +1262,13 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
                is_new_group ? nullptr : group, isolate_data));
     if (error_obj.IsNull()) {
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_check_function_fingerprints && source->kernel_buffer == NULL) {
+      if (FLAG_check_function_fingerprints && !FLAG_precompiled_mode) {
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
       success = true;
     } else if (error != NULL) {
-      *error = strdup(error_obj.ToErrorCString());
+      *error = Utils::StrDup(error_obj.ToErrorCString());
     }
     // We exit the API scope entered above.
     T->ExitApiScope();
@@ -1309,12 +1411,10 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
   {
     TransitionNativeToVM native_to_vm(thread);
 
-    // Ensure new space is empty and there are no threads running.
+    // Ensure there are no helper threads running.
     BackgroundCompiler::Stop(isolate);
-    isolate->heap()->new_space()->Evacuate();
     isolate->heap()->WaitForMarkerTasks(thread);
     isolate->heap()->WaitForSweeperTasks(thread);
-    RELEASE_ASSERT(isolate->heap()->new_space()->UsedInWords() == 0);
     RELEASE_ASSERT(isolate->heap()->old_space()->tasks() == 0);
   }
 
@@ -1332,20 +1432,18 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       group->RunWithLockedGroup([&]() {
         // Ensure no other old space GC tasks are running and "occupy" the old
         // space.
+        SafepointOperationScope safepoint_scope(thread);
         {
           auto old_space = group->heap()->old_space();
           MonitorLocker ml(old_space->tasks_lock());
           while (old_space->tasks() > 0) {
-            ml.WaitWithSafepointCheck(thread);
+            ml.Wait();
           }
           old_space->set_tasks(1);
         }
 
         // Merge the heap from [spawning_group] to [group].
-        {
-          SafepointOperationScope safepoint_scope(thread);
-          group->heap()->MergeOtherHeap(isolate->group()->heap());
-        }
+        group->heap()->MergeFrom(isolate->group()->heap());
 
         spawning_group->UnregisterIsolate(isolate);
         const bool shutdown_group =
@@ -1617,7 +1715,7 @@ DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
 #else
   if (!FLAG_profiler) {
     if (error != NULL) {
-      *error = strdup("The profiler is not running.");
+      *error = Utils::StrDup("The profiler is not running.");
     }
     return false;
   }
@@ -1793,6 +1891,17 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   return Api::NewHandle(T, I->sticky_error());
 }
 
+DART_EXPORT void Dart_HintFreed(intptr_t size) {
+  if (size < 0) {
+    FATAL1("%s requires a non-negative size", CURRENT_FUNC);
+  }
+  Thread* T = Thread::Current();
+  CHECK_ISOLATE(T->isolate());
+  API_TIMELINE_BEGIN_END(T);
+  TransitionNativeToVM transition(T);
+  T->heap()->HintFreed(size);
+}
+
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
@@ -1900,7 +2009,7 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
     error = iso->MakeRunnable();
   }
   if (error != NULL) {
-    return strdup(error);
+    return Utils::StrDup(error);
   }
   return NULL;
 }
@@ -2418,14 +2527,9 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsInstance()) {
     ObjectStore* object_store = T->isolate()->object_store();
-    Type& future_rare_type =
+    const Type& future_rare_type =
         Type::Handle(Z, object_store->non_nullable_future_rare_type());
-    if (future_rare_type.IsNull()) {
-      const Class& future_class = Class::Handle(object_store->future_class());
-      ASSERT(!future_class.IsNull());
-      future_rare_type ^= future_class.RareType();
-      object_store->set_non_nullable_future_rare_type(future_rare_type);
-    }
+    ASSERT(!future_rare_type.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
     bool is_future = Class::IsSubtypeOf(
         obj_class, Object::null_type_arguments(), Nullability::kNonNullable,
@@ -2728,6 +2832,11 @@ DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
   if (klass.IsNull()) {
     return Api::NewError(
         "cls_type must be a Type object which represents a Class");
+  }
+
+  const auto& error = klass.EnsureIsFinalized(Thread::Current());
+  if (error != Error::null()) {
+    return Api::NewHandle(T, error);
   }
 
   const String& func_name = Api::UnwrapStringHandle(Z, function_name);
@@ -3053,7 +3162,7 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
   DARTSCOPE(Thread::Current());
   if (T->isolate()->null_safety() && element_type_id != Dart_CoreType_Dynamic) {
     return Api::NewError(
-        "Cannot use legacy types with --null-safety enabled. "
+        "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_NewListOfType or Dart_NewListOfTypeFilled instead.");
   }
   CHECK_LENGTH(length, Array::kMaxElements);
@@ -3731,10 +3840,20 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
     case kExternalTypedDataFloat64ArrayCid:
       type = Dart_TypedData_kFloat64;
       break;
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataInt32x4ArrayViewCid:
+    case kExternalTypedDataInt32x4ArrayCid:
+      type = Dart_TypedData_kInt32x4;
+      break;
     case kTypedDataFloat32x4ArrayCid:
     case kTypedDataFloat32x4ArrayViewCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       type = Dart_TypedData_kFloat32x4;
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+    case kTypedDataFloat64x2ArrayViewCid:
+    case kExternalTypedDataFloat64x2ArrayCid:
+      type = Dart_TypedData_kFloat64x2;
       break;
     default:
       type = Dart_TypedData_kInvalid;
@@ -3827,13 +3946,16 @@ static Dart_Handle NewExternalTypedData(
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
   Zone* zone = thread->zone();
   intptr_t bytes = length * ExternalTypedData::ElementSizeInBytes(cid);
-  const ExternalTypedData& result = ExternalTypedData::Handle(
-      zone,
-      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
-                             thread->heap()->SpaceForExternal(bytes)));
-  if (callback != NULL) {
-    AllocateFinalizableHandle(thread, result, peer, external_allocation_size,
-                              callback);
+  auto& cls = Class::Handle(zone, thread->isolate()->class_table()->At(cid));
+  auto& result = Object::Handle(zone, cls.EnsureIsAllocateFinalized(thread));
+  if (result.IsError()) {
+    return Api::NewHandle(thread, result.raw());
+  }
+  result = ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length,
+                                  thread->heap()->SpaceForExternal(bytes));
+  if (callback != nullptr) {
+    AllocateWeakPersistentHandle(thread, result, peer, external_allocation_size,
+                                 callback);
   }
   return Api::NewHandle(thread, result.raw());
 }
@@ -3908,8 +4030,12 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
       return NewTypedData(T, kTypedDataFloat32ArrayCid, length);
     case Dart_TypedData_kFloat64:
       return NewTypedData(T, kTypedDataFloat64ArrayCid, length);
+    case Dart_TypedData_kInt32x4:
+      return NewTypedData(T, kTypedDataInt32x4ArrayCid, length);
     case Dart_TypedData_kFloat32x4:
       return NewTypedData(T, kTypedDataFloat32x4ArrayCid, length);
+    case Dart_TypedData_kFloat64x2:
+      return NewTypedData(T, kTypedDataFloat64x2ArrayCid, length);
     default:
       return Api::NewError("%s expects argument 'type' to be of 'TypedData'",
                            CURRENT_FUNC);
@@ -3985,8 +4111,16 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedDataWithFinalizer(
       return NewExternalTypedData(T, kExternalTypedDataFloat64ArrayCid, data,
                                   length, peer, external_allocation_size,
                                   callback);
+    case Dart_TypedData_kInt32x4:
+      return NewExternalTypedData(T, kExternalTypedDataInt32x4ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback);
     case Dart_TypedData_kFloat32x4:
       return NewExternalTypedData(T, kExternalTypedDataFloat32x4ArrayCid, data,
+                                  length, peer, external_allocation_size,
+                                  callback);
+    case Dart_TypedData_kFloat64x2:
+      return NewExternalTypedData(T, kExternalTypedDataFloat64x2ArrayCid, data,
                                   length, peer, external_allocation_size,
                                   callback);
     default:
@@ -4207,8 +4341,10 @@ static ObjectPtr ResolveConstructor(const char* current_func,
                                     const String& constr_name,
                                     int num_args) {
   // The constructor must be present in the interface.
-  const Function& constructor =
-      Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
+  Function& constructor = Function::Handle();
+  if (cls.EnsureIsFinalized(Thread::Current()) == Error::null()) {
+    constructor = cls.LookupFunctionAllowPrivate(constr_name);
+  }
   if (constructor.IsNull() ||
       (!constructor.IsGenerativeConstructor() && !constructor.IsFactory())) {
     const String& lookup_class_name = String::Handle(cls.Name());
@@ -4272,6 +4408,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
         CURRENT_FUNC);
   }
   Class& cls = Class::Handle(Z, type_obj.type_class());
+  CHECK_ERROR_HANDLE(cls.EnsureIsAllocateFinalized(T));
+
   TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.arguments());
 
@@ -5421,6 +5559,14 @@ DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
   return Api::NewHandle(T, String::New(resolved_uri));
 }
 
+DART_EXPORT Dart_Handle
+Dart_SetDeferredLoadHandler(Dart_DeferredLoadHandler handler) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  isolate->group()->set_deferred_load_handler(handler);
+  return Api::Success();
+}
+
 DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
                                                   intptr_t buffer_size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5451,7 +5597,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  program->AutoDetectNullSafety(I);
   const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
   program.reset();
 
@@ -5602,7 +5747,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle* type_arguments) {
   if (Thread::Current()->isolate()->null_safety()) {
     return Api::NewError(
-        "Cannot use legacy types with --null-safety enabled. "
+        "Cannot use legacy types with --sound-null-safety enabled. "
         "Use Dart_GetNullableType or Dart_GetNonNullableType instead.");
   }
   return GetTypeCommon(library, class_name, number_of_type_arguments,
@@ -5757,7 +5902,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   StackZone zone(T);
-  Isolate* I = T->isolate();
 
   CHECK_CALLBACK_STATE(T);
 
@@ -5774,10 +5918,12 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  program->AutoDetectNullSafety(I);
   const Object& result =
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
+
+  IsolateGroupSource* source = Isolate::Current()->source();
+  source->add_loaded_blob(Z, td);
 
   return Api::NewHandle(T, result.raw());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -5861,6 +6007,78 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
 #endif
 
   return Api::Success();
+}
+
+static Dart_Handle DeferredLoadComplete(intptr_t loading_unit_id,
+                                        bool error,
+                                        const uint8_t* snapshot_data,
+                                        const uint8_t* snapshot_instructions,
+                                        const char* error_message,
+                                        bool transient_error) {
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  Isolate* I = T->isolate();
+  CHECK_CALLBACK_STATE(T);
+
+  const Array& loading_units =
+      Array::Handle(I->object_store()->loading_units());
+  if (loading_units.IsNull() || (loading_unit_id < LoadingUnit::kRootId) ||
+      (loading_unit_id >= loading_units.Length())) {
+    return Api::NewError("Invalid loading unit");
+  }
+  LoadingUnit& unit = LoadingUnit::Handle();
+  unit ^= loading_units.At(loading_unit_id);
+  if (unit.loaded()) {
+    return Api::NewError("Unit already loaded");
+  }
+
+  if (error) {
+    CHECK_NULL(error_message);
+    unit.CompleteLoad(String::Handle(String::New(error_message)),
+                      transient_error);
+  } else {
+#if defined(SUPPORT_TIMELINE)
+    TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                               "ReadUnitSnapshot");
+#endif  // defined(SUPPORT_TIMELINE)
+    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
+    if (snapshot == NULL) {
+      return Api::NewError("Invalid snapshot");
+    }
+    if (!IsSnapshotCompatible(Dart::vm_snapshot_kind(), snapshot->kind())) {
+      const String& message = String::Handle(String::NewFormatted(
+          "Incompatible snapshot kinds: vm '%s', isolate '%s'",
+          Snapshot::KindToCString(Dart::vm_snapshot_kind()),
+          Snapshot::KindToCString(snapshot->kind())));
+      return Api::NewHandle(T, ApiError::New(message));
+    }
+
+    FullSnapshotReader reader(snapshot, snapshot_instructions, T);
+    const Error& error = Error::Handle(reader.ReadUnitSnapshot(unit));
+    if (!error.IsNull()) {
+      return Api::NewHandle(T, error.raw());
+    }
+
+    unit.CompleteLoad(String::Handle(), false);
+  }
+
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle
+Dart_DeferredLoadComplete(intptr_t loading_unit_id,
+                          const uint8_t* snapshot_data,
+                          const uint8_t* snapshot_instructions) {
+  return DeferredLoadComplete(loading_unit_id, false, snapshot_data,
+                              snapshot_instructions, nullptr, false);
+}
+
+DART_EXPORT Dart_Handle
+Dart_DeferredLoadCompleteError(intptr_t loading_unit_id,
+                               const char* error_message,
+                               bool transient) {
+  return DeferredLoadComplete(loading_unit_id, true, nullptr, nullptr,
+                              error_message, transient);
 }
 
 DART_EXPORT Dart_Handle
@@ -5991,7 +6209,7 @@ Dart_CompileToKernel(const char* script_uri,
   Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_CompileToKernel is unsupported.");
+  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
 #else
   result = KernelIsolate::CompileToKernel(script_uri, platform_kernel,
                                           platform_kernel_size, 0, NULL,
@@ -6014,7 +6232,7 @@ DART_EXPORT Dart_KernelCompilationResult Dart_KernelListDependencies() {
   Dart_KernelCompilationResult result = {};
 #if defined(DART_PRECOMPILED_RUNTIME)
   result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = strdup("Dart_KernelListDependencies is unsupported.");
+  result.error = Utils::StrDup("Dart_KernelListDependencies is unsupported.");
 #else
   result = KernelIsolate::ListDependencies();
 #endif
@@ -6028,6 +6246,29 @@ DART_EXPORT void Dart_SetDartLibrarySourcesKernel(
   Service::SetDartLibraryKernelForSources(platform_kernel,
                                           platform_kernel_size);
 #endif
+}
+
+DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
+                                       const char* package_config,
+                                       const char* original_working_directory,
+                                       const uint8_t* snapshot_data,
+                                       const uint8_t* snapshot_instructions,
+                                       const uint8_t* kernel_buffer,
+                                       intptr_t kernel_buffer_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(FLAG_sound_null_safety != kNullSafetyOptionUnspecified);
+  return (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+#else
+  bool null_safety;
+  if (FLAG_sound_null_safety == kNullSafetyOptionUnspecified) {
+    null_safety = Dart::DetectNullSafety(
+        script_uri, snapshot_data, snapshot_instructions, kernel_buffer,
+        kernel_buffer_size, package_config, original_working_directory);
+  } else {
+    null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+  }
+  return null_safety;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // --- Service support ---
@@ -6074,28 +6315,28 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
 #else
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "permits only one listen callback to be registered, please "
           "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_listen_callback() == NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "expects 'listen_callback' to be present in the callback set.");
     }
   }
   if (cancel_callback != NULL) {
     if (Service::stream_cancel_callback() != NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "permits only one cancel callback to be registered, please "
           "remove the existing callback and then add this callback");
     }
   } else {
     if (Service::stream_cancel_callback() == NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetServiceStreamCallbacks "
           "expects 'cancel_callback' to be present in the callback set.");
     }
@@ -6138,20 +6379,24 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
   return Api::Success();
 }
 
+DART_EXPORT void Dart_SetGCEventCallback(Dart_GCEventCallback callback) {
+  Dart::set_gc_event_callback(callback);
+}
+
 DART_EXPORT char* Dart_SetFileModifiedCallback(
     Dart_FileModifiedCallback file_modified_callback) {
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateGroupReloadContext::file_modified_callback() != NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetFileModifiedCallback permits only one callback to be"
           " registered, please remove the existing callback and then add"
           " this callback");
     }
   } else {
     if (IsolateGroupReloadContext::file_modified_callback() == NULL) {
-      return strdup(
+      return Utils::StrDup(
           "Dart_SetFileModifiedCallback expects 'file_modified_callback' to"
           " be set before it is cleared.");
     }
@@ -6405,6 +6650,133 @@ DART_EXPORT Dart_Handle Dart_Precompile() {
 #if !defined(TARGET_ARCH_IA32) && defined(DART_PRECOMPILER)
 static const intptr_t kInitialSize = 2 * MB;
 static const intptr_t kInitialDebugSize = 1 * MB;
+
+static void CreateAppAOTSnapshot(
+    Dart_StreamingWriteCallback callback,
+    void* callback_data,
+    bool strip,
+    bool as_elf,
+    void* debug_callback_data,
+    GrowableArray<LoadingUnitSerializationData*>* units,
+    LoadingUnitSerializationData* unit,
+    uint32_t program_hash) {
+  Thread* T = Thread::Current();
+
+  NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
+                                             "WriteAppAOTSnapshot"));
+
+  uint8_t* vm_snapshot_data_buffer = nullptr;
+  uint8_t* vm_snapshot_instructions_buffer = nullptr;
+  uint8_t* isolate_snapshot_data_buffer = nullptr;
+  uint8_t* isolate_snapshot_instructions_buffer = nullptr;
+
+  const bool generate_debug = debug_callback_data != nullptr;
+
+  if (as_elf) {
+    StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
+    StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                      callback, debug_callback_data);
+
+    auto const dwarf = strip ? nullptr : new (Z) Dwarf(Z);
+    auto const elf = new (Z) Elf(Z, &elf_stream, Elf::Type::Snapshot, dwarf);
+    // Re-use the same DWARF object if the snapshot is unstripped.
+    auto const debug_elf =
+        generate_debug ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
+                                     strip ? new (Z) Dwarf(Z) : dwarf)
+                       : nullptr;
+
+    BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
+                                    ApiReallocate, kInitialSize, debug_elf,
+                                    elf);
+    BlobImageWriter isolate_image_writer(
+        T, &isolate_snapshot_instructions_buffer, ApiReallocate, kInitialSize,
+        debug_elf, elf);
+    FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
+                              &isolate_snapshot_data_buffer, ApiReallocate,
+                              &vm_image_writer, &isolate_image_writer);
+
+    if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
+      writer.WriteFullSnapshot(units);
+    } else {
+      writer.WriteUnitSnapshot(units, unit, program_hash);
+    }
+
+    elf->Finalize();
+    if (debug_elf != nullptr) {
+      debug_elf->Finalize();
+    }
+  } else {
+    StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                      callback, debug_callback_data);
+
+    auto const elf = generate_debug
+                         ? new (Z) Elf(Z, &debug_stream, Elf::Type::DebugInfo,
+                                       new (Z) Dwarf(Z))
+                         : nullptr;
+
+    AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
+    uint8_t* vm_snapshot_data_buffer = NULL;
+    uint8_t* isolate_snapshot_data_buffer = NULL;
+    FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
+                              &isolate_snapshot_data_buffer, ApiReallocate,
+                              &image_writer, &image_writer);
+
+    if (unit == nullptr || unit->id() == LoadingUnit::kRootId) {
+      writer.WriteFullSnapshot(units);
+    } else {
+      writer.WriteUnitSnapshot(units, unit, program_hash);
+    }
+    image_writer.Finalize();
+  }
+}
+
+static void Split(Dart_CreateLoadingUnitCallback next_callback,
+                  void* next_callback_data,
+                  bool strip,
+                  bool as_elf,
+                  Dart_StreamingWriteCallback write_callback,
+                  Dart_StreamingCloseCallback close_callback) {
+  Thread* T = Thread::Current();
+  ProgramVisitor::AssignUnits(T);
+
+  const Array& loading_units =
+      Array::Handle(T->isolate()->object_store()->loading_units());
+  const uint32_t program_hash = ProgramVisitor::Hash(T);
+  loading_units.SetAt(0, Smi::Handle(Z, Smi::New(program_hash)));
+  GrowableArray<LoadingUnitSerializationData*> data;
+  data.SetLength(loading_units.Length());
+  data[0] = nullptr;
+
+  LoadingUnit& loading_unit = LoadingUnit::Handle();
+  LoadingUnit& parent = LoadingUnit::Handle();
+  for (intptr_t id = 1; id < loading_units.Length(); id++) {
+    loading_unit ^= loading_units.At(id);
+    parent = loading_unit.parent();
+    LoadingUnitSerializationData* parent_data =
+        parent.IsNull() ? nullptr : data[parent.id()];
+    data[id] = new LoadingUnitSerializationData(id, parent_data);
+  }
+
+  for (intptr_t id = 1; id < loading_units.Length(); id++) {
+    void* write_callback_data = nullptr;
+    void* write_debug_callback_data = nullptr;
+    {
+      TransitionVMToNative transition(T);
+      next_callback(next_callback_data, id, &write_callback_data,
+                    &write_debug_callback_data);
+    }
+    CreateAppAOTSnapshot(write_callback, write_callback_data, strip, as_elf,
+                         write_debug_callback_data, &data, data[id],
+                         program_hash);
+    {
+      TransitionVMToNative transition(T);
+      close_callback(write_callback_data);
+      if (write_debug_callback_data != nullptr) {
+        close_callback(write_debug_callback_data);
+      }
+    }
+  }
+}
 #endif
 
 DART_EXPORT Dart_Handle
@@ -6424,26 +6796,38 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
   API_TIMELINE_DURATION(T);
   CHECK_NULL(callback);
 
-  TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
-  const bool generate_debug = debug_callback_data != nullptr;
+  // Mark as not split.
+  T->isolate()->object_store()->set_loading_units(Object::null_array());
 
-  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                    callback, debug_callback_data);
+  CreateAppAOTSnapshot(callback, callback_data, strip, /*as_elf*/ false,
+                       debug_callback_data, nullptr, nullptr, 0);
 
-  Elf* elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
+  return Api::Success();
+#endif
+}
 
-  AssemblyImageWriter image_writer(T, callback, callback_data, strip, elf);
-  uint8_t* vm_snapshot_data_buffer = NULL;
-  uint8_t* isolate_snapshot_data_buffer = NULL;
-  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
-                            &isolate_snapshot_data_buffer, ApiReallocate,
-                            &image_writer, &image_writer);
+DART_EXPORT Dart_Handle Dart_CreateAppAOTSnapshotAsAssemblies(
+    Dart_CreateLoadingUnitCallback next_callback,
+    void* next_callback_data,
+    bool strip,
+    Dart_StreamingWriteCallback write_callback,
+    Dart_StreamingCloseCallback close_callback) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif defined(TARGET_OS_WINDOWS)
+  return Api::NewError("Assembly generation is not implemented for Windows.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_NULL(next_callback);
+  CHECK_NULL(write_callback);
+  CHECK_NULL(close_callback);
 
-  writer.WriteFullSnapshot();
-  image_writer.Finalize();
-  if (elf != nullptr) {
-    elf->Finalize();
-  }
+  Split(next_callback, next_callback_data, strip, /*as_elf*/ false,
+        write_callback, close_callback);
 
   return Api::Success();
 #endif
@@ -6489,76 +6873,71 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
 #else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
+  CHECK_NULL(callback);
 
-  NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
-                                             "WriteAppAOTSnapshot"));
+  // Mark as not split.
+  T->isolate()->object_store()->set_loading_units(Object::null_array());
 
-  uint8_t* vm_snapshot_data_buffer = nullptr;
-  uint8_t* vm_snapshot_instructions_buffer = nullptr;
-  uint8_t* isolate_snapshot_data_buffer = nullptr;
-  uint8_t* isolate_snapshot_instructions_buffer = nullptr;
-
-  const bool generate_debug = debug_callback_data != nullptr;
-
-  StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);
-  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
-                                    callback, debug_callback_data);
-
-  Elf* elf = new (Z) Elf(Z, &elf_stream, strip);
-  Dwarf* elf_dwarf = strip ? nullptr : new (Z) Dwarf(Z, nullptr, elf);
-  Elf* debug_elf = generate_debug ? new (Z) Elf(Z, &debug_stream) : nullptr;
-  Dwarf* debug_dwarf =
-      generate_debug ? new (Z) Dwarf(Z, nullptr, debug_elf) : nullptr;
-
-  // Here, both VM and isolate will be compiled into a single snapshot.
-  // In assembly generation, each serialized text section gets a separate
-  // pointer into the BSS segment and BSS slots are created for each, since
-  // we may not serialize both VM and isolate. Here, we always serialize both,
-  // so make a BSS segment large enough for both, with the VM entries coming
-  // first.
-  auto const isolate_offset = BSS::kVmEntryCount * compiler::target::kWordSize;
-  auto const bss_size =
-      isolate_offset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
-  // Note that the BSS section must come first because it cannot be placed in
-  // between any two non-writable segments, due to a bug in Jelly Bean's ELF
-  // loader. See also Elf::WriteProgramTable().
-  const intptr_t vm_bss_base = elf->AddBSSData("_kDartBSSData", bss_size);
-  const intptr_t isolate_bss_base = vm_bss_base + isolate_offset;
-  // Add the BSS section to the separately saved debugging information, even
-  // though there will be no code in it to relocate, since it precedes the
-  // .text sections and thus affects their virtual addresses.
-  if (debug_dwarf != nullptr) {
-    debug_elf->AddBSSData("_kDartBSSData", bss_size);
-  }
-
-  BlobImageWriter vm_image_writer(T, &vm_snapshot_instructions_buffer,
-                                  ApiReallocate, kInitialSize, debug_dwarf,
-                                  vm_bss_base, elf, elf_dwarf);
-  BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instructions_buffer,
-                                       ApiReallocate, kInitialSize, debug_dwarf,
-                                       isolate_bss_base, elf, elf_dwarf);
-  FullSnapshotWriter writer(Snapshot::kFullAOT, &vm_snapshot_data_buffer,
-                            &isolate_snapshot_data_buffer, ApiReallocate,
-                            &vm_image_writer, &isolate_image_writer);
-
-  writer.WriteFullSnapshot();
-  elf->AddROData(kVmSnapshotDataAsmSymbol, vm_snapshot_data_buffer,
-                 writer.VmIsolateSnapshotSize());
-  elf->AddROData(kIsolateSnapshotDataAsmSymbol, isolate_snapshot_data_buffer,
-                 writer.IsolateSnapshotSize());
-
-  if (elf_dwarf != nullptr) {
-    // TODO(rmacnak): Generate .debug_frame / .eh_frame / .arm.exidx to
-    // provide unwinding information.
-    elf_dwarf->Write();
-  }
-  elf->Finalize();
-  if (generate_debug) {
-    debug_dwarf->Write();
-    debug_elf->Finalize();
-  }
+  CreateAppAOTSnapshot(callback, callback_data, strip, /*as_elf*/ true,
+                       debug_callback_data, nullptr, nullptr, 0);
 
   return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
+Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
+                                void* next_callback_data,
+                                bool strip,
+                                Dart_StreamingWriteCallback write_callback,
+                                Dart_StreamingCloseCallback close_callback) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_NULL(next_callback);
+  CHECK_NULL(write_callback);
+  CHECK_NULL(close_callback);
+
+  Split(next_callback, next_callback_data, strip, /*as_elf*/ true,
+        write_callback, close_callback);
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle Dart_LoadingUnitLibraryUris(intptr_t loading_unit_id) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+
+  const GrowableObjectArray& result =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(Z, T->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(Z);
+  LoadingUnit& unit = LoadingUnit::Handle(Z);
+  String& uri = String::Handle(Z);
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    unit = lib.loading_unit();
+    if (unit.IsNull() || (unit.id() != loading_unit_id)) {
+      continue;
+    }
+    uri = lib.url();
+    result.Add(uri);
+  }
+
+  return Api::NewHandle(T, Array::MakeFixedLength(result));
 #endif
 }
 
@@ -6723,6 +7102,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   if (FLAG_dump_tables) {
     Symbols::DumpTable(I);
     DumpTypeTable(I);
+    DumpTypeParameterTable(I);
     DumpTypeArgumentsTable(I);
   }
 

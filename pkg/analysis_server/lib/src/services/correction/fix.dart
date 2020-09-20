@@ -14,27 +14,32 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 /// Return true if this [errorCode] is likely to have a fix associated with it.
 bool hasFix(ErrorCode errorCode) =>
-    errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
-    errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
-    errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
+    errorCode == CompileTimeErrorCode.CAST_TO_NON_TYPE ||
+    errorCode == CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
+    errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE ||
+    errorCode == CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
+    errorCode == CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION ||
+    errorCode == CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
+        CompileTimeErrorCode
+            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
     errorCode ==
-        StaticWarningCode
+        CompileTimeErrorCode
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
-    errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
-    errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
-    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
-    errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
+    errorCode == CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT ||
+    errorCode == CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
+    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED ||
+    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+    errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+    errorCode ==
+        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_IDENTIFIER ||
     errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
     errorCode == CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE ||
@@ -42,8 +47,13 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
     errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
     errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_FUNCTION ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_GETTER ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_METHOD ||
+    errorCode == CompileTimeErrorCode.UNDEFINED_SETTER ||
     errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
     errorCode == CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED ||
     errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE ||
@@ -58,14 +68,6 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == ParserErrorCode.EXPECTED_TOKEN ||
     errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS ||
     errorCode == ParserErrorCode.VAR_AS_TYPE_NAME ||
-    errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE ||
-    errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
-    errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION ||
-    errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
     errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
     (errorCode is LintCode &&
         (errorCode.name == LintNames.always_require_non_null_named_parameters ||
@@ -154,6 +156,8 @@ class DartFixKind {
       'dart.fix.add.fieldFormalParameters',
       70,
       'Add final field formal parameters');
+  static const ADD_LATE =
+      FixKind('dart.fix.add.late', 50, "Add 'late' modifier");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
       'dart.fix.add.missingEnumCaseClauses', 50, 'Add missing case clauses');
   static const ADD_MISSING_PARAMETER_NAMED = FixKind(
@@ -163,13 +167,17 @@ class DartFixKind {
       69,
       'Add optional positional parameter');
   static const ADD_MISSING_PARAMETER_REQUIRED = FixKind(
-      'dart.fix.add.missingParameterRequired', 70, 'Add required parameter');
+      'dart.fix.add.missingParameterRequired',
+      70,
+      'Add required positional parameter');
   static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
       'dart.fix.add.missingRequiredArgument',
       70,
       "Add required argument '{0}'");
   static const ADD_NE_NULL = FixKind('dart.fix.add.neNull', 50, 'Add != null',
       appliedTogetherMessage: 'Add != null everywhere in file');
+  static const ADD_NULL_CHECK =
+      FixKind('dart.fix.add.nullCheck', 50, 'Add a null check (!)');
   static const ADD_OVERRIDE =
       FixKind('dart.fix.add.override', 50, "Add '@override' annotation");
   static const ADD_REQUIRED =
@@ -279,6 +287,7 @@ class DartFixKind {
       'dart.fix.create.noSuchMethod', 49, "Create 'noSuchMethod' method");
   static const CREATE_SETTER =
       FixKind('dart.fix.create.setter', 50, "Create setter '{0}'");
+  static const DATA_DRIVEN = FixKind('dart.fix.dataDriven', 50, '{0}');
   static const EXTEND_CLASS_FOR_MIXIN =
       FixKind('dart.fix.extendClassForMixin', 50, "Extend the class '{0}'");
   static const IMPORT_ASYNC =
@@ -306,12 +315,18 @@ class DartFixKind {
   static const MAKE_FIELD_NOT_FINAL =
       FixKind('dart.fix.makeFieldNotFinal', 50, "Make field '{0}' not final");
   static const MAKE_FINAL = FixKind('dart.fix.makeFinal', 50, 'Make final');
+  static const MAKE_RETURN_TYPE_NULLABLE = FixKind(
+      'dart.fix.makeReturnTypeNullable', 50, 'Make the return type nullable');
   static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
       'dart.fix.moveTypeArgumentsToClass',
       50,
       'Move type arguments to after class name');
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
       'dart.fix.makeVariableNotFinal', 50, "Make variable '{0}' not final");
+  static const MAKE_VARIABLE_NULLABLE =
+      FixKind('dart.fix.makeVariableNullable', 50, "Make '{0}' nullable");
+  static const ORGANIZE_IMPORTS =
+      FixKind('dart.fix.organize.imports', 50, 'Organize Imports');
   static const QUALIFY_REFERENCE =
       FixKind('dart.fix.qualifyReference', 50, "Use '{0}'");
   static const REMOVE_ANNOTATION =
@@ -401,8 +416,12 @@ class DartFixKind {
   static const REPLACE_BOOLEAN_WITH_BOOL = FixKind(
       'dart.fix.replace.booleanWithBool', 50, "Replace 'boolean' with 'bool'",
       appliedTogetherMessage: "Replace all 'boolean' with 'bool' in file");
+  static const REPLACE_CASCADE_WITH_DOT =
+      FixKind('dart.fix.replace.cascadeWithDot', 50, "Replace '..' with '.'");
   static const REPLACE_COLON_WITH_EQUALS =
       FixKind('dart.fix.replace.colonWithEquals', 50, "Replace ':' with '='");
+  static const REPLACE_WITH_FILLED = FixKind(
+      'dart.fix.replace.finalWithListFilled', 50, "Replace with 'List.filled'");
   static const REPLACE_FINAL_WITH_CONST = FixKind(
       'dart.fix.replace.finalWithConst', 50, "Replace 'final' with 'const'");
   static const REPLACE_NEW_WITH_CONST = FixKind(
@@ -431,6 +450,8 @@ class DartFixKind {
       FixKind('dart.fix.replace.withIsEmpty', 50, "Replace with 'isEmpty'");
   static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
       'dart.fix.replace.withIsNotEmpty', 50, "Replace with 'isNotEmpty'");
+  static const REPLACE_WITH_NOT_NULL_AWARE =
+      FixKind('dart.fix.replace.withNotNullAware', 50, "Replace with '{0}'");
   static const REPLACE_WITH_NULL_AWARE = FixKind(
       'dart.fix.replace.withNullAware',
       50,
@@ -443,8 +464,6 @@ class DartFixKind {
       'dart.fix.sort.childPropertyLast',
       50,
       'Move child property to end of arguments');
-  static const SORT_DIRECTIVES =
-      FixKind('dart.fix.sort.directives', 50, 'Sort directives');
   static const UPDATE_SDK_CONSTRAINTS = FixKind(
       'dart.fix.updateSdkConstraints', 50, 'Update the SDK constraints');
   static const USE_CONST =

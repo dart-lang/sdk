@@ -9,9 +9,9 @@ main() {
       <String>
       [0, 1];
 //     ^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 //        ^
-// [analyzer] STATIC_WARNING.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'String'.
 }

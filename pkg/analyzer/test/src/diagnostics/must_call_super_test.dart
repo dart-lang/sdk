@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,11 +14,11 @@ main() {
 }
 
 @reflectiveTest
-class MustCallSuperTest extends DriverResolutionTest with PackageMixin {
+class MustCallSuperTest extends PubPackageResolutionTest {
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
   test_containsSuperCall() async {
@@ -55,20 +54,6 @@ class B extends A {
     ]);
   }
 
-  test_fromExtendingClass_abstractInSuperclass() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-abstract class A {
-  @mustCallSuper
-  void a();
-}
-class B extends A {
-  @override
-  void a() {}
-}
-''');
-  }
-
   test_fromExtendingClass_abstractInSubclass() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -79,6 +64,20 @@ abstract class A {
 class B extends A {
   @override
   void a();
+}
+''');
+  }
+
+  test_fromExtendingClass_abstractInSuperclass() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a();
+}
+class B extends A {
+  @override
+  void a() {}
 }
 ''');
   }
@@ -171,7 +170,6 @@ mixin C on A {
   test_overriddenWithFuture() async {
     // https://github.com/flutter/flutter/issues/11646
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -192,7 +190,6 @@ class C extends A {
   test_overriddenWithFuture2() async {
     // https://github.com/flutter/flutter/issues/11646
     await assertNoErrorsInCode(r'''
-import 'dart:async';
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper

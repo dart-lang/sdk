@@ -29,6 +29,7 @@
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/backend/compile_type.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -37,8 +38,8 @@ class LocalScope;
 class LocalVariable;
 class ParsedFunction;
 
-// List of slots that correspond to fields of native objects in the following
-// format:
+// The list of slots that correspond to nullable boxed fields of native objects
+// in the following format:
 //
 //     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
 //
@@ -50,17 +51,34 @@ class ParsedFunction;
 // - the last component specifies whether field behaves like a final field
 //   (i.e. initialized once at construction time and does not change after
 //   that) or like a non-final field.
-//
-// Note: native slots are expected to be non-nullable.
-#define NATIVE_SLOTS_LIST(V)                                                   \
-  V(Array, ArrayLayout, length, Smi, FINAL)                                    \
+#define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Context, ContextLayout, parent, Context, FINAL)                            \
   V(Closure, ClosureLayout, instantiator_type_arguments, TypeArguments, FINAL) \
   V(Closure, ClosureLayout, delayed_type_arguments, TypeArguments, FINAL)      \
   V(Closure, ClosureLayout, function_type_arguments, TypeArguments, FINAL)     \
+  V(Function, FunctionLayout, type_parameters, TypeArguments, FINAL)           \
+  V(Type, TypeLayout, arguments, TypeArguments, FINAL)
+
+// The list of slots that correspond to non-nullable boxed fields of native
+// objects in the following format:
+//
+//     V(class_name, underlying_type, field_name, exact_type, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - underlying_type: the Raw class which holds the field;
+// - exact_type specifies exact type of the field (any load from this field
+//   would only yield instances of this type);
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+#define NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                 \
+  V(Array, ArrayLayout, length, Smi, FINAL)                                    \
   V(Closure, ClosureLayout, function, Function, FINAL)                         \
   V(Closure, ClosureLayout, context, Context, FINAL)                           \
   V(Closure, ClosureLayout, hash, Context, VAR)                                \
+  V(Function, FunctionLayout, parameter_names, Array, FINAL)                   \
+  V(Function, FunctionLayout, parameter_types, Array, FINAL)                   \
   V(GrowableObjectArray, GrowableObjectArrayLayout, length, Smi, VAR)          \
   V(GrowableObjectArray, GrowableObjectArrayLayout, data, Array, VAR)          \
   V(TypedDataBase, TypedDataBaseLayout, length, Smi, FINAL)                    \
@@ -77,7 +95,35 @@ class ParsedFunction;
   V(ArgumentsDescriptor, ArrayLayout, count, Smi, FINAL)                       \
   V(ArgumentsDescriptor, ArrayLayout, size, Smi, FINAL)                        \
   V(PointerBase, PointerBaseLayout, data_field, Dynamic, FINAL)                \
-  V(Type, TypeLayout, arguments, TypeArguments, FINAL)
+  V(TypeArguments, TypeArgumentsLayout, length, Smi, FINAL)                    \
+  V(UnhandledException, UnhandledExceptionLayout, exception, Dynamic, FINAL)   \
+  V(UnhandledException, UnhandledExceptionLayout, stacktrace, Dynamic, FINAL)
+
+// List of slots that correspond to unboxed fields of native objects in the
+// following format:
+//
+//     V(class_name, underlying_type, field_name, representation, FINAL|VAR)
+//
+// - class_name and field_name specify the name of the host class and the name
+//   of the field respectively;
+// - underlying_type: the Raw class which holds the field;
+// - representation specifies the representation of the bits stored within
+//   the unboxed field (minus the kUnboxed prefix);
+// - the last component specifies whether field behaves like a final field
+//   (i.e. initialized once at construction time and does not change after
+//   that) or like a non-final field.
+//
+// Note: As the underlying field is unboxed, these slots cannot be nullable.
+#define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
+  V(Function, FunctionLayout, packed_fields, Uint32, FINAL)
+
+// For uses that do not need the exact_type (boxed) or representation (unboxed)
+// or whether a boxed native slot is nullable. (Generally, such users only need
+// the class name, the underlying type, and/or the field name.)
+#define NATIVE_SLOTS_LIST(V)                                                   \
+  NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                          \
+  NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                       \
+  UNBOXED_NATIVE_SLOTS_LIST(V)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.
@@ -91,7 +137,7 @@ class Slot : public ZoneAllocated {
   // clang-format off
   enum class Kind : uint8_t {
     // Native slots are identified by their kind - each native slot has its own.
-#define DECLARE_KIND(ClassName, UnderlyingType, FieldName, cid, mutability)    \
+#define DECLARE_KIND(ClassName, __, FieldName, ___, ____)                      \
   k##ClassName##_##FieldName,
     NATIVE_SLOTS_LIST(DECLARE_KIND)
 #undef DECLARE_KIND
@@ -139,7 +185,7 @@ class Slot : public ZoneAllocated {
                          const ParsedFunction* parsed_function);
 
   // Convenience getters for native slots.
-#define DEFINE_GETTER(ClassName, UnderlyingType, FieldName, cid, mutability)   \
+#define DEFINE_GETTER(ClassName, UnderlyingType, FieldName, __, ___)           \
   static const Slot& ClassName##_##FieldName() {                               \
     return GetNativeSlot(Kind::k##ClassName##_##FieldName);                    \
   }
@@ -156,6 +202,12 @@ class Slot : public ZoneAllocated {
   const char* Name() const;
 
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
+
+  // Currently returns the representation of unboxed native fields and kTagged
+  // for most other types of fields. One special case: fields marked as
+  // containing non-nullable ints in AOT kernel, which have the kUnboxedInt64
+  // representation.
+  Representation representation() const { return representation_; }
 
   bool is_immutable() const { return IsImmutableBit::decode(flags_); }
 
@@ -195,14 +247,16 @@ class Slot : public ZoneAllocated {
 
   Slot(Kind kind,
        int8_t bits,
-       int16_t cid,
+       ClassIdTagType cid,
        intptr_t offset_in_bytes,
        const void* data,
-       const AbstractType* static_type)
+       const AbstractType* static_type,
+       Representation representation)
       : kind_(kind),
         flags_(bits),
         cid_(cid),
         offset_in_bytes_(offset_in_bytes),
+        representation_(representation),
         data_(data),
         static_type_(static_type) {}
 
@@ -212,7 +266,8 @@ class Slot : public ZoneAllocated {
              other.cid_,
              other.offset_in_bytes_,
              other.data_,
-             other.static_type_) {}
+             other.static_type_,
+             other.representation_) {}
 
   using IsImmutableBit = BitField<int8_t, bool, 0, 1>;
   using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
@@ -227,9 +282,10 @@ class Slot : public ZoneAllocated {
 
   const Kind kind_;
   const int8_t flags_;  // is_immutable, is_nullable
-  const int16_t cid_;   // Concrete cid of a value or kDynamicCid.
+  const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
 
   const intptr_t offset_in_bytes_;
+  const Representation representation_;
 
   // Kind dependent data:
   //   - name as a Dart String object for local variables;

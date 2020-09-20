@@ -1,11 +1,15 @@
-include: package:pedantic/analysis_options.yaml
+# Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 #analyzer:
 #  strong-mode:
 #    implicit-casts: false
 linter:
   rules:
-    #- always_declare_return_types
-    #- annotate_overrides
+    - always_declare_return_types
+    - always_require_non_null_named_parameters
+    - annotate_overrides
     - avoid_empty_else
     - avoid_function_literals_in_foreach_calls
     - avoid_init_to_null
@@ -19,23 +23,25 @@ linter:
     - avoid_types_as_parameter_names
     - avoid_unused_constructor_parameters
     - await_only_futures
+    - camel_case_extensions
     - camel_case_types
     - cancel_subscriptions
     - comment_references
     #- constant_identifier_names
     - control_flow_in_finally
+    - curly_braces_in_flow_control_structures
     - directives_ordering
     - empty_catches
     - empty_constructor_bodies
     - empty_statements
     - hash_and_equals
     - implementation_imports
-    - invariant_booleans
+    #- invariant_booleans
     - iterable_contains_unrelated_type
     - library_names
     - library_prefixes
     - list_remove_unrelated_type
-    - literal_only_boolean_expressions
+    #- literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - no_duplicate_case_values
     #- non_constant_identifier_names
@@ -52,14 +58,18 @@ linter:
     - prefer_const_constructors
     - prefer_contains
     - prefer_equal_for_default_values
-    - prefer_generic_function_type_aliases
     - prefer_final_fields
     - prefer_final_locals
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_generic_function_type_aliases
+    - prefer_if_null_operators
     - prefer_initializing_formals
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
-    #- prefer_single_quotes
+    - prefer_iterable_whereType
+    - prefer_single_quotes
+    - prefer_spread_collections
     #- prefer_typing_uninitialized_variables
     - recursive_getters
     - slash_for_doc_comments
@@ -67,16 +77,17 @@ linter:
     - throw_in_finally
     - type_init_formals
     - unawaited_futures
-    - unnecessary_await_in_return
+    #- unnecessary_await_in_return
     - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
     - unnecessary_lambdas
     - unnecessary_new
     - unnecessary_null_aware_assignments
+    - unnecessary_null_in_if_null_operators
     - unnecessary_parenthesis
     - unnecessary_statements
-    #- unnecessary_this
+    - unnecessary_this
     - unrelated_type_equality_checks
     - use_function_type_syntax_for_parameters
     - use_rethrow_when_possible

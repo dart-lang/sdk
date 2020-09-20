@@ -394,8 +394,8 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
-    kThreadTaskBit = 8,  // 5 bits.
-    kNextFreeBit = 13,
+    kThreadTaskBit = 8,  // 6 bits.
+    kNextFreeBit = 14,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart : public BitField<uword, bool, kLeafFrameIsDartBit, 1> {
@@ -411,7 +411,7 @@ class Sample {
   class ContinuationSampleBit
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
   class ThreadTaskBit
-      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 5> {};
+      : public BitField<uword, Thread::TaskKind, kThreadTaskBit, 6> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -499,8 +499,8 @@ class AbstractCode {
 
   const char* QualifiedName() const {
     if (code_.IsCode()) {
-      return Code::Cast(code_).QualifiedName(Object::kUserVisibleName,
-                                             Object::NameDisambiguation::kNo);
+      return Code::Cast(code_).QualifiedName(
+          NameFormattingParams(Object::kUserVisibleName));
     } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).QualifiedName();
     } else {

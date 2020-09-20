@@ -11,31 +11,31 @@ class _WrappedEvent implements Event {
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */
-  String _selector;
+  String? _selector;
 
   _WrappedEvent(this.wrapped);
 
-  bool get bubbles => wrapped.bubbles;
+  bool get bubbles => wrapped.bubbles!;
 
-  bool get cancelable => wrapped.cancelable;
+  bool get cancelable => wrapped.cancelable!;
 
-  bool get composed => wrapped.composed;
+  bool get composed => wrapped.composed!;
 
-  EventTarget get currentTarget => wrapped.currentTarget;
+  EventTarget? get currentTarget => wrapped.currentTarget;
 
   bool get defaultPrevented => wrapped.defaultPrevented;
 
   int get eventPhase => wrapped.eventPhase;
 
-  bool get isTrusted => wrapped.isTrusted;
+  bool get isTrusted => wrapped.isTrusted!;
 
-  EventTarget get target => wrapped.target;
+  EventTarget? get target => wrapped.target;
 
-  double get timeStamp => wrapped.timeStamp;
+  double get timeStamp => wrapped.timeStamp as double;
 
   String get type => wrapped.type;
 
-  void _initEvent(String type, [bool bubbles, bool cancelable]) {
+  void _initEvent(String type, [bool? bubbles, bool? cancelable]) {
     throw new UnsupportedError('Cannot initialize this Event.');
   }
 
@@ -63,13 +63,12 @@ class _WrappedEvent implements Event {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
-    var matchedTarget;
+    Element? currentTarget = this.currentTarget as Element?;
+    Element? target = this.target as Element?;
     do {
-      if (target.matches(_selector)) return target;
+      if (target!.matches(_selector!)) return target;
       target = target.parent;
-    } while (target != null && target != currentTarget.parent);
+    } while (target != null && target != currentTarget!.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
 
@@ -83,7 +82,7 @@ class _WrappedEvent implements Event {
    *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  List<Node> get path => wrapped.path;
+  List<Node> get path => wrapped.path as List<Node>;
 
   dynamic get _get_currentTarget => wrapped._get_currentTarget;
 

@@ -7,21 +7,13 @@ import 'dart:async';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/class_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/inbound_references.dart';
 import 'package:observatory/src/elements/retaining_path.dart';
 import 'package:observatory/src/elements/sentinel_value.dart';
 import 'package:observatory/utils.dart';
 
 class ObjectCommonElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ObjectCommonElement>('object-common', dependencies: const [
-    ClassRefElement.tag,
-    InboundReferencesElement.tag,
-    RetainingPathElement.tag,
-    SentinelValueElement.tag
-  ]);
-
   RenderingScheduler<ObjectCommonElement> _r;
 
   Stream<RenderedEvent<ObjectCommonElement>> get onRendered => _r.onRendered;
@@ -69,7 +61,7 @@ class ObjectCommonElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ObjectCommonElement.created() : super.created(tag);
+  ObjectCommonElement.created() : super.created('object-common');
 
   @override
   void attached() {

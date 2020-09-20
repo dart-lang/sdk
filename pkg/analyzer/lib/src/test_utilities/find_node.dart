@@ -259,6 +259,10 @@ class FindNode {
     return _node(search, (n) => n is Statement);
   }
 
+  StringInterpolation stringInterpolation(String search) {
+    return _node(search, (n) => n is StringInterpolation);
+  }
+
   StringLiteral stringLiteral(String search) {
     return _node(search, (n) => n is StringLiteral);
   }

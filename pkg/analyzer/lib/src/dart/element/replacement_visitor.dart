@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -12,19 +13,19 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary2/function_type_builder.dart';
-import 'package:analyzer/src/summary2/named_type_builder.dart';
 import 'package:meta/meta.dart';
 
 /// Helper visitor that clones a type if a nested type is replaced, and
 /// otherwise returns `null`.
-class ReplacementVisitor implements DartTypeVisitor<DartType> {
+class ReplacementVisitor
+    implements TypeVisitor<DartType>, InferenceTypeVisitor<DartType> {
   const ReplacementVisitor();
 
   void changeVariance() {}
 
   DartType createFunctionType({
     @required FunctionType type,
+    @required List<DartType> newTypeArguments,
     @required List<TypeParameterElement> newTypeParameters,
     @required List<ParameterElement> newParameters,
     @required DartType newReturnType,
@@ -41,6 +42,8 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
       parameters: newParameters ?? type.parameters,
       returnType: newReturnType ?? type.returnType,
       nullabilitySuffix: newNullability ?? type.nullabilitySuffix,
+      element: type.element,
+      typeArguments: newTypeArguments ?? type.typeArguments,
     );
   }
 
@@ -103,16 +106,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType defaultDartType(DartType type) {
-    return null;
-  }
-
-  DartType visit(DartType type) {
-    return DartTypeVisitor.visit(type, this);
-  }
-
-  @override
-  DartType visitDynamicType(DynamicTypeImpl type) {
+  DartType visitDynamicType(DynamicType type) {
     return null;
   }
 
@@ -125,7 +119,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
       var typeParameter = node.typeFormals[i];
       var bound = typeParameter.bound;
       if (bound != null) {
-        var newBound = visit(bound);
+        var newBound = bound.accept(this);
         if (newBound != null) {
           newTypeParameters ??= node.typeFormals.toList(growable: false);
           newTypeParameters[i] = TypeParameterElementImpl.synthetic(
@@ -160,7 +154,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
 
     DartType visitType(DartType type) {
       if (type == null) return null;
-      var result = visit(type);
+      var result = type.accept(this);
       if (substitution != null) {
         result = substitution.substituteType(result ?? type);
       }
@@ -168,6 +162,15 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
     }
 
     var newReturnType = visitType(node.returnType);
+
+    List<DartType> newTypeArguments;
+    for (var i = 0; i < node.typeArguments.length; i++) {
+      var substitution = node.typeArguments[i].accept(this);
+      if (substitution != null) {
+        newTypeArguments ??= node.typeArguments.toList(growable: false);
+        newTypeArguments[i] = substitution;
+      }
+    }
 
     changeVariance();
 
@@ -195,6 +198,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
 
     return createFunctionType(
       type: node,
+      newTypeArguments: newTypeArguments,
       newTypeParameters: newTypeParameters,
       newParameters: newParameters,
       newReturnType: newReturnType,
@@ -203,17 +207,12 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitFunctionTypeBuilder(FunctionTypeBuilder type) {
-    throw UnimplementedError();
-  }
-
-  @override
   DartType visitInterfaceType(InterfaceType type) {
     var newNullability = visitNullability(type);
 
     List<DartType> newTypeArguments;
     for (var i = 0; i < type.typeArguments.length; i++) {
-      var substitution = visit(type.typeArguments[i]);
+      var substitution = type.typeArguments[i].accept(this);
       if (substitution != null) {
         newTypeArguments ??= type.typeArguments.toList(growable: false);
         newTypeArguments[i] = substitution;
@@ -228,12 +227,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitNamedTypeBuilder(NamedTypeBuilder type) {
-    throw UnimplementedError();
-  }
-
-  @override
-  DartType visitNeverType(NeverTypeImpl type) {
+  DartType visitNeverType(NeverType type) {
     var newNullability = visitNullability(type);
 
     return createNeverType(
@@ -256,7 +250,7 @@ class ReplacementVisitor implements DartTypeVisitor<DartType> {
 
     var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
     if (promotedBound != null) {
-      var newPromotedBound = visit(promotedBound);
+      var newPromotedBound = promotedBound.accept(this);
       return createPromotedTypeParameterType(
         type: type,
         newNullability: newNullability,

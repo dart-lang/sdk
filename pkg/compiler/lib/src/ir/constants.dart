@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
+import 'package:kernel/src/printer.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
@@ -204,4 +205,11 @@ class ConstantReference extends ir.TreeNode {
 
   @override
   String toStringInternal() => 'constant=${constant.toStringInternal()}';
+
+  @override
+  String toText(ir.AstTextStrategy strategy) => constant.toText(strategy);
+
+  @override
+  void toTextInternal(ir.AstPrinter printer) =>
+      constant.toTextInternal(printer);
 }

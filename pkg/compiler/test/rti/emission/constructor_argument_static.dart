@@ -4,14 +4,14 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A1:checkedInstance,checks=[],instance*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A1:checks=[],instance*/
+/*spec.class: A1:checkedInstance,checks=[],instance*/
+/*prod.class: A1:checks=[],instance*/
 class A1 {}
 
 // Constructor calls are always statically invoked, so there is no checks at the
 // entry and the `Test1` constructor does not cause any checks.
-/*spec:nnbd-off|spec:nnbd-sdk.class: B1:checks=[$isA1],instance*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B1:checks=[],instance*/
+/*spec.class: B1:checks=[$isA1],instance*/
+/*prod.class: B1:checks=[],instance*/
 class B1 implements A1 {}
 
 /*class: Test1:checks=[],instance*/

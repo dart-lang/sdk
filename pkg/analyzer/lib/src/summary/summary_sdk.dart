@@ -3,30 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
-import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart'
-    show DartUriResolver, Source, SourceFactory;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:pub_semver/pub_semver.dart';
 
-/**
- * An implementation of [DartSdk] which provides analysis results for `dart:`
- * libraries from the given summary file.  This implementation is limited and
- * suitable only for command-line tools, but not for IDEs - it does not
- * implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
- */
+/// An implementation of [DartSdk] which provides analysis results for `dart:`
+/// libraries from the given summary file.  This implementation is limited and
+/// suitable only for command-line tools, but not for IDEs - it does not
+/// implement [sdkLibraries], [uris] and [fromFileUri].
 class SummaryBasedDartSdk implements DartSdk {
   SummaryDataStore _dataStore;
   InSummaryUriResolver _uriResolver;
   PackageBundle _bundle;
   ResourceProvider resourceProvider;
-
-  /**
-   * The [AnalysisContext] which is used for all of the sources in this sdk.
-   */
-  SdkAnalysisContext _analysisContext;
 
   SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
     _dataStore = SummaryDataStore(<String>[summaryPath],
@@ -45,22 +36,16 @@ class SummaryBasedDartSdk implements DartSdk {
 
   @override
   String get allowedExperimentsJson {
-    return _bundle.sdk?.allowedExperimentsJson;
+    return _bundle.sdk.allowedExperimentsJson;
   }
 
-  /**
-   * Return the [PackageBundle] for this SDK, not `null`.
-   */
+  /// Return the [PackageBundle] for this SDK, not `null`.
   PackageBundle get bundle => _bundle;
 
   @override
-  AnalysisContext get context {
-    if (_analysisContext == null) {
-      var analysisOptions = AnalysisOptionsImpl();
-      var factory = SourceFactory([DartUriResolver(this)]);
-      _analysisContext = SdkAnalysisContext(analysisOptions, factory);
-    }
-    return _analysisContext;
+  Version get languageVersion {
+    var version = _bundle.sdk.languageVersion;
+    return Version(version.major, version.minor, 0);
   }
 
   @override

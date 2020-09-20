@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.developer;
 
 /// A UserTag can be used to group samples in the Observatory profiler.
@@ -65,11 +63,12 @@ class Gauge extends Metric {
   }
 
   Gauge(String name, String description, this.min, this.max)
-      : super(name, description) {
+      : _value = min,
+        super(name, description) {
+    // TODO: When NNBD is complete, delete the following two lines.
     ArgumentError.checkNotNull(min, 'min');
     ArgumentError.checkNotNull(max, 'max');
     if (!(min < max)) throw new ArgumentError('min must be less than max');
-    _value = min;
   }
 
   Map _toJSON() {
@@ -113,6 +112,7 @@ class Metrics {
 
   /// Register [Metric]s to make them visible to Observatory.
   static void register(Metric metric) {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(metric, 'metric');
     if (_metrics[metric.name] != null) {
       throw new ArgumentError('Registered metrics have unique names');
@@ -122,13 +122,14 @@ class Metrics {
 
   /// Deregister [Metric]s to make them not visible to Observatory.
   static void deregister(Metric metric) {
+    // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(metric, 'metric');
     _metrics.remove(metric.name);
   }
 
   // ignore: unused_element, called from native code
   @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
-  static String _printMetric(String id) {
+  static String? _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {
       return null;

@@ -6,5 +6,5 @@ class C {
   late ;
   final v;
 }
-main() { }
-expect(expected, actual) { }
+main() {}
+expect(expected, actual) {}

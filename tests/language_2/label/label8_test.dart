@@ -13,13 +13,13 @@ main() {
   {
     case 111:
 //  ^^^^
-// [analyzer] STATIC_WARNING.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [cfe] 'case' can't be used as an identifier because it's a keyword.
+//  ^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] Expected ';' after this.
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected an identifier, but got 'case'.
-//  ^^^^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
 // [cfe] Getter not found: 'case'.
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_STATEMENT

@@ -1,0 +1,8 @@
+enum Enum { e1, e2 }
+expect(expected, actual) {}
+int method1(Enum? e) {}
+int method2(Enum? e) {}
+int method3(Enum? e) {}
+int method4(Enum? e) {}
+main() {}
+test() {}

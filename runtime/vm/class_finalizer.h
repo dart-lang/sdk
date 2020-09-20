@@ -62,8 +62,11 @@ class ClassFinalizer : public AllStatic {
   // Register class in the lists of direct subclasses and direct implementors.
   static void RegisterClassInHierarchy(Zone* zone, const Class& cls);
 
-  // Finalize the class including its fields and functions.
+  // Ensures members of the class are loaded, class layout is finalized and size
+  // registered in class table.
   static void FinalizeClass(const Class& cls);
+  // Makes class instantiatable and usable by generated code.
+  static ErrorPtr AllocateFinalizeClass(const Class& cls);
 
   // Completes loading of the class, this populates the function
   // and fields of the class.
@@ -79,8 +82,7 @@ class ClassFinalizer : public AllStatic {
 
  private:
   static void AllocateEnumValues(const Class& enum_cls);
-  static void FinalizeTypeParameters(const Class& cls,
-                                     PendingTypes* pending_types = NULL);
+  static void FinalizeTypeParameters(const Class& cls);
   static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,
                                                  const AbstractType& type,
                                                  PendingTypes* pending_types);

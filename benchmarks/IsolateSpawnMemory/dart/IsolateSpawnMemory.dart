@@ -96,11 +96,11 @@ class SpawnMemory {
     final doneDiffHeap =
         math.max(0, doneHeap - beforeHeap) ~/ numberOfBenchmarks;
 
-    print("${name}RssOnStart(MemoryUse): $readyDiffRss");
-    print("${name}RssOnEnd(MemoryUse): $doneDiffRss");
-    print("${name}HeapOnStart(MemoryUse): $readyDiffHeap");
-    print("${name}HeapOnEnd(MemoryUse): $doneDiffHeap");
-    print("${name}PeakProcessRss(MemoryUse): $maxProcessRss");
+    print('${name}RssOnStart(MemoryUse): $readyDiffRss');
+    print('${name}RssOnEnd(MemoryUse): $doneDiffRss');
+    print('${name}HeapOnStart(MemoryUse): $readyDiffHeap');
+    print('${name}HeapOnEnd(MemoryUse): $doneDiffHeap');
+    print('${name}PeakProcessRss(MemoryUse): $maxProcessRss');
   }
 
   final String name;
@@ -117,7 +117,7 @@ Future<void> isolateCompiler(StartMessage startMessage) async {
 
   await runZoned(
       () => dart2js_main.internalMain(<String>[
-            "benchmarks/IsolateSpawnMemory/dart/helloworld.dart",
+            'benchmarks/IsolateSpawnMemory/dart/helloworld.dart',
             '--libraries-spec=sdk/lib/libraries.json'
           ]),
       zoneSpecification: ZoneSpecification(
@@ -133,13 +133,11 @@ Future<void> isolateCompiler(StartMessage startMessage) async {
 }
 
 Future<int> currentHeapUsage(String wsUri) async {
-  final vm_service.VmService vmService =
-      await vm_service_io.vmServiceConnectUri(wsUri);
+  final vmService = await vm_service_io.vmServiceConnectUri(wsUri);
   final groupIds = await getGroupIds(vmService);
   int sum = 0;
   for (final groupId in groupIds) {
-    final vm_service.MemoryUsage usage =
-        await vmService.getIsolateGroupMemoryUsage(groupId);
+    final usage = await vmService.getIsolateGroupMemoryUsage(groupId);
     sum += usage.heapUsage + usage.externalUsage;
   }
   vmService.dispose();
@@ -150,11 +148,10 @@ Future<void> main() async {
   // Only if we successfully reach the end will we set 0 exit code.
   exitCode = 255;
 
-  final ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
-  final Uri observatoryUri = info.serverUri;
-  final String wsUri =
-      'ws://${observatoryUri.authority}${observatoryUri.path}ws';
-  await SpawnMemory("IsolateSpawnMemory.Dart2JSDelta", wsUri).report();
+  final info = await Service.controlWebServer(enable: true);
+  final observatoryUri = info.serverUri!;
+  final wsUri = 'ws://${observatoryUri.authority}${observatoryUri.path}ws';
+  await SpawnMemory('IsolateSpawnMemory.Dart2JSDelta', wsUri).report();
 
   // Only if we successfully reach the end will we set 0 exit code.
   exitCode = 0;
@@ -174,10 +171,9 @@ Future<void> main() async {
 Future<List<String>> getGroupIds(vm_service.VmService vmService) async {
   final groupIds = <String>{};
   final vm = await vmService.getVM();
-  for (vm_service.IsolateGroupRef groupRef in vm.isolateGroups) {
-    final vm_service.IsolateGroup group =
-        await vmService.getIsolateGroup(groupRef.id);
-    for (vm_service.IsolateRef isolateRef in group.isolates) {
+  for (final groupRef in vm.isolateGroups) {
+    final group = await vmService.getIsolateGroup(groupRef.id);
+    for (final isolateRef in group.isolates) {
       final isolateOrSentinel = await vmService.getIsolate(isolateRef.id);
       if (isolateOrSentinel is vm_service.Isolate) {
         groupIds.add(groupRef.id);
@@ -185,7 +181,7 @@ Future<List<String>> getGroupIds(vm_service.VmService vmService) async {
     }
   }
   if (groupIds.isEmpty) {
-    throw "Could not find main isolate";
+    throw 'Could not find main isolate';
   }
   return groupIds.toList();
 }

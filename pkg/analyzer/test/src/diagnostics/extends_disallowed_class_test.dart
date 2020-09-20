@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,11 @@ main() {
 }
 
 @reflectiveTest
-class ExtendsDisallowedClassTest extends DriverResolutionTest {
+class ExtendsDisallowedClassTest extends PubPackageResolutionTest {
   test_class_bool() async {
     await assertErrorsInCode('''
 class A extends bool {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
     ]);
   }
@@ -63,7 +62,6 @@ class A<T> extends FutureOr<T> {}
     await assertErrorsInCode('''
 class A extends int {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 3),
     ]);
   }
@@ -72,7 +70,6 @@ class A extends int {}
     await assertErrorsInCode('''
 class A extends Null {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 4),
     ]);
   }
@@ -89,7 +86,6 @@ class A extends num {}
     await assertErrorsInCode('''
 class A extends String {}
 ''', [
-      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, 6, 1),
       error(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS, 16, 6),
     ]);
   }

@@ -10,6 +10,7 @@ import 'android.dart';
 import 'browser_controller.dart';
 import 'co19_test_config.dart';
 import 'configuration.dart';
+import 'fuchsia.dart';
 import 'path.dart';
 import 'process_queue.dart';
 import 'terminal.dart';
@@ -32,10 +33,12 @@ final testSuiteDirectories = [
   Path('runtime/observatory/tests/observatory_ui'),
   Path('samples'),
   Path('samples-dev'),
-  Path('tests/compiler/dartdevc_native'),
   Path('tests/corelib'),
   Path('tests/corelib_2'),
+  Path('tests/dart2js'),
   Path('tests/dart2js_2'),
+  Path('tests/dartdevc'),
+  Path('tests/dartdevc_2'),
   Path('tests/kernel'),
   Path('tests/language'),
   Path('tests/language_2'),
@@ -150,6 +153,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
         }
       }
     }
+
+    if (configuration.system == System.fuchsia) {
+      await FuchsiaEmulator.publishPackage(
+          configuration.buildDirectory, configuration.mode.name);
+    }
   }
 
   // If we only need to print out status files for test suites
@@ -168,6 +176,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     for (var configuration in configurations) {
       configuration.stopServers();
     }
+    FuchsiaEmulator.stop();
 
     DebugLogger.close();
     if (!firstConf.keepGeneratedFiles) {
@@ -245,7 +254,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   }
 
   // Start all the HTTP servers required before starting the process queue.
-  if (!serverFutures.isEmpty) {
+  if (serverFutures.isNotEmpty) {
     await Future.wait(serverFutures);
   }
 

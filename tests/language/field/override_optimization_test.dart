@@ -3,12 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "package:meta/meta.dart";
 
 class A {
-  @virtual
   final dynamic flag = true;
-  @virtual
   final dynamic x = 42;
 }
 

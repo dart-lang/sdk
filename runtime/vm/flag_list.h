@@ -63,6 +63,7 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
+  P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")
@@ -115,6 +116,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
+  R(null_assertions, false, bool, false,                                       \
+    "Enable null assertions for parameters.")                                  \
   P(enable_kernel_expression_compilation, bool, true,                          \
     "Compile expressions with the Kernel front-end.")                          \
   P(enable_mirrors, bool, true,                                                \
@@ -135,7 +138,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
-  P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
@@ -195,8 +197,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
-  R(show_invisible_isolates, false, bool, false,                               \
-    "Show invisible isolates in the vm-service.")                              \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \

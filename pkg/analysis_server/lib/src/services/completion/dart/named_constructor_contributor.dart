@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
 /// A contributor that produces suggestions based on the named constructors
 /// defined on a given class. More concretely, this class produces suggestions
@@ -16,13 +13,13 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 /// class.
 class NamedConstructorContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     if (node is ConstructorName) {
       var libraryElement = request.libraryElement;
       if (libraryElement == null) {
-        return const <CompletionSuggestion>[];
+        return;
       }
       var typeName = node.type;
       if (typeName != null) {
@@ -35,7 +32,6 @@ class NamedConstructorContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 
   void _buildSuggestions(

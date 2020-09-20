@@ -37,18 +37,27 @@ main(List<String> args) async {
   });
 }
 
+String supertypeToString(InterfaceType type) {
+  var sb = StringBuffer();
+  sb.write(type.element.name);
+  if (type.typeArguments.isNotEmpty) {
+    sb.write('<');
+    var comma = '';
+    for (var typeArgument in type.typeArguments) {
+      sb.write(comma);
+      sb.write(typeArgument.getDisplayString(withNullability: true));
+      comma = ', ';
+    }
+    sb.write('>');
+  }
+  return sb.toString();
+}
+
 class _InheritanceDataComputer extends DataComputer<String> {
   const _InheritanceDataComputer();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
-
-  @override
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<String>> actualMap) {
-    _InheritanceDataExtractor(unit.declaredElement.source.uri, actualMap)
-        .run(unit);
-  }
 
   @override
   bool get supportsErrors => true;
@@ -57,6 +66,13 @@ class _InheritanceDataComputer extends DataComputer<String> {
   String computeErrorData(TestConfig config, TestingData testingData, Id id,
       List<AnalysisError> errors) {
     return errors.map((e) => e.errorCode).join(',');
+  }
+
+  @override
+  void computeUnitData(TestingData testingData, CompilationUnit unit,
+      Map<Id, ActualData<String>> actualMap) {
+    _InheritanceDataExtractor(unit.declaredElement.source.uri, actualMap)
+        .run(unit);
   }
 }
 
@@ -132,20 +148,4 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
     }
     return null;
   }
-}
-
-String supertypeToString(InterfaceType type) {
-  var sb = StringBuffer();
-  sb.write(type.element.name);
-  if (type.typeArguments.isNotEmpty) {
-    sb.write('<');
-    var comma = '';
-    for (var typeArgument in type.typeArguments) {
-      sb.write(comma);
-      sb.write(typeArgument.getDisplayString(withNullability: true));
-      comma = ', ';
-    }
-    sb.write('>');
-  }
-  return sb.toString();
 }

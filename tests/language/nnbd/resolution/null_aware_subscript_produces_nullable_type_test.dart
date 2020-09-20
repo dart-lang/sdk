@@ -19,41 +19,41 @@ void f1(NotGeneric x) {
 void f2(NotGeneric? x) {
   x?[0] + 1;
 //^^^^^
-// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
   x?[0] = 1;
   useNonNullable(x?[0] = 1);
 //               ^^^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
   x?[0] += 1;
   useNonNullable(x?[0] += 1);
 //               ^^^^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
   x?[0]++;
   useNonNullable(x?[0]++);
 //               ^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
   ++x?[0];
   useNonNullable(++x?[0]);
 //               ^^^^^^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] unspecified
 }
 
 void f3<T extends num>(Generic<T>? x) {
   x?[0] + 1;
 //^^^^^
-// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
 }
 
 void f4<T extends num>(Generic<T?> x) {
   x[0] + 1;
 //^^^^
-// [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe] unspecified
 }
 

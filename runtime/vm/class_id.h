@@ -14,6 +14,9 @@
 
 namespace dart {
 
+// Size of the class-id part of the object header. See ObjectLayout.
+typedef uint16_t ClassIdTagType;
+
 #define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
   V(PatchClass)                                                                \
@@ -47,6 +50,7 @@ namespace dart {
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
+  V(LoadingUnit)                                                               \
   V(Error)                                                                     \
   V(ApiError)                                                                  \
   V(LanguageError)                                                             \
@@ -131,7 +135,8 @@ namespace dart {
 
 #define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
   CLASS_LIST_FFI_NUMERIC(V)                                                    \
-  V(Void)
+  V(Void)                                                                      \
+  V(Handle)
 
 #define CLASS_LIST_FFI(V)                                                      \
   V(Pointer)                                                                   \

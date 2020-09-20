@@ -1,5 +1,3 @@
-// @dart = 2.6
-
 /**
  * Scalable Vector Graphics:
  * Two-dimensional vector graphics with support for events and animation.
@@ -32,7 +30,7 @@ class _SvgElementFactoryProvider {
   static SvgElement createSvgElement_tag(String tag) {
     final Element temp =
         document.createElementNS("http://www.w3.org/2000/svg", tag);
-    return temp;
+    return temp as SvgElement;
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -47,7 +45,8 @@ class AElement extends GraphicsElement implements UriReference {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
+  factory AElement() =>
+      _SvgElementFactoryProvider.createSvgElement_tag("a") as AElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -59,7 +58,7 @@ class AElement extends GraphicsElement implements UriReference {
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -83,19 +82,19 @@ class Angle extends Interceptor {
 
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-  int get unitType native;
+  int? get unitType native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 
-  String get valueAsString native;
+  String? get valueAsString native;
 
-  set valueAsString(String value) native;
+  set valueAsString(String? value) native;
 
-  num get valueInSpecifiedUnits native;
+  num? get valueInSpecifiedUnits native;
 
-  set valueInSpecifiedUnits(num value) native;
+  set valueInSpecifiedUnits(num? value) native;
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -117,7 +116,8 @@ class AnimateElement extends AnimationElement {
   }
 
   factory AnimateElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animate");
+      _SvgElementFactoryProvider.createSvgElement_tag("animate")
+          as AnimateElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -146,7 +146,8 @@ class AnimateMotionElement extends AnimationElement {
   }
 
   factory AnimateMotionElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
+      _SvgElementFactoryProvider.createSvgElement_tag("animateMotion")
+          as AnimateMotionElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -175,7 +176,8 @@ class AnimateTransformElement extends AnimationElement {
   }
 
   factory AnimateTransformElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
+      _SvgElementFactoryProvider.createSvgElement_tag("animateTransform")
+          as AnimateTransformElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -200,9 +202,9 @@ class AnimatedAngle extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Angle get animVal native;
+  Angle? get animVal native;
 
-  Angle get baseVal native;
+  Angle? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -216,11 +218,11 @@ class AnimatedBoolean extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool get animVal native;
+  bool? get animVal native;
 
-  bool get baseVal native;
+  bool? get baseVal native;
 
-  set baseVal(bool value) native;
+  set baseVal(bool? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -234,11 +236,11 @@ class AnimatedEnumeration extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get animVal native;
+  int? get animVal native;
 
-  int get baseVal native;
+  int? get baseVal native;
 
-  set baseVal(int value) native;
+  set baseVal(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -252,11 +254,11 @@ class AnimatedInteger extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get animVal native;
+  int? get animVal native;
 
-  int get baseVal native;
+  int? get baseVal native;
 
-  set baseVal(int value) native;
+  set baseVal(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -270,9 +272,9 @@ class AnimatedLength extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Length get animVal native;
+  Length? get animVal native;
 
-  Length get baseVal native;
+  Length? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -286,9 +288,9 @@ class AnimatedLengthList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  LengthList get animVal native;
+  LengthList? get animVal native;
 
-  LengthList get baseVal native;
+  LengthList? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -302,11 +304,11 @@ class AnimatedNumber extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get animVal native;
+  num? get animVal native;
 
-  num get baseVal native;
+  num? get baseVal native;
 
-  set baseVal(num value) native;
+  set baseVal(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -320,9 +322,9 @@ class AnimatedNumberList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  NumberList get animVal native;
+  NumberList? get animVal native;
 
-  NumberList get baseVal native;
+  NumberList? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -336,9 +338,9 @@ class AnimatedPreserveAspectRatio extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  PreserveAspectRatio get animVal native;
+  PreserveAspectRatio? get animVal native;
 
-  PreserveAspectRatio get baseVal native;
+  PreserveAspectRatio? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -352,9 +354,9 @@ class AnimatedRect extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Rect get animVal native;
+  Rect? get animVal native;
 
-  Rect get baseVal native;
+  Rect? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -368,11 +370,11 @@ class AnimatedString extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String get animVal native;
+  String? get animVal native;
 
-  String get baseVal native;
+  String? get baseVal native;
 
-  set baseVal(String value) native;
+  set baseVal(String? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -386,9 +388,9 @@ class AnimatedTransformList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  TransformList get animVal native;
+  TransformList? get animVal native;
 
-  TransformList get baseVal native;
+  TransformList? get baseVal native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -403,7 +405,8 @@ class AnimationElement extends SvgElement implements Tests {
   }
 
   factory AnimationElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("animation");
+      _SvgElementFactoryProvider.createSvgElement_tag("animation")
+          as AnimationElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -411,7 +414,7 @@ class AnimationElement extends SvgElement implements Tests {
    */
   AnimationElement.created() : super.created();
 
-  SvgElement get targetElement native;
+  SvgElement? get targetElement native;
 
   void beginElement() native;
 
@@ -429,9 +432,9 @@ class AnimationElement extends SvgElement implements Tests {
 
   // From SVGTests
 
-  StringList get requiredExtensions native;
+  StringList? get requiredExtensions native;
 
-  StringList get systemLanguage native;
+  StringList? get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -446,7 +449,8 @@ class CircleElement extends GeometryElement {
   }
 
   factory CircleElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("circle");
+      _SvgElementFactoryProvider.createSvgElement_tag("circle")
+          as CircleElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -454,11 +458,11 @@ class CircleElement extends GeometryElement {
    */
   CircleElement.created() : super.created();
 
-  AnimatedLength get cx native;
+  AnimatedLength? get cx native;
 
-  AnimatedLength get cy native;
+  AnimatedLength? get cy native;
 
-  AnimatedLength get r native;
+  AnimatedLength? get r native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -473,7 +477,8 @@ class ClipPathElement extends GraphicsElement {
   }
 
   factory ClipPathElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
+      _SvgElementFactoryProvider.createSvgElement_tag("clipPath")
+          as ClipPathElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -481,7 +486,7 @@ class ClipPathElement extends GraphicsElement {
    */
   ClipPathElement.created() : super.created();
 
-  AnimatedEnumeration get clipPathUnits native;
+  AnimatedEnumeration? get clipPathUnits native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -496,7 +501,7 @@ class DefsElement extends GraphicsElement {
   }
 
   factory DefsElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("defs");
+      _SvgElementFactoryProvider.createSvgElement_tag("defs") as DefsElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -517,7 +522,7 @@ class DescElement extends SvgElement {
   }
 
   factory DescElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("desc");
+      _SvgElementFactoryProvider.createSvgElement_tag("desc") as DescElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -555,7 +560,8 @@ class EllipseElement extends GeometryElement {
   }
 
   factory EllipseElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
+      _SvgElementFactoryProvider.createSvgElement_tag("ellipse")
+          as EllipseElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -563,13 +569,13 @@ class EllipseElement extends GeometryElement {
    */
   EllipseElement.created() : super.created();
 
-  AnimatedLength get cx native;
+  AnimatedLength? get cx native;
 
-  AnimatedLength get cy native;
+  AnimatedLength? get cy native;
 
-  AnimatedLength get rx native;
+  AnimatedLength? get rx native;
 
-  AnimatedLength get ry native;
+  AnimatedLength? get ry native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -589,7 +595,8 @@ class FEBlendElement extends SvgElement
   }
 
   factory FEBlendElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
+      _SvgElementFactoryProvider.createSvgElement_tag("feBlend")
+          as FEBlendElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -614,23 +621,23 @@ class FEBlendElement extends SvgElement
 
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedString get in2 native;
+  AnimatedString? get in2 native;
 
-  AnimatedEnumeration get mode native;
+  AnimatedEnumeration? get mode native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -650,7 +657,8 @@ class FEColorMatrixElement extends SvgElement
   }
 
   factory FEColorMatrixElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
+      _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix")
+          as FEColorMatrixElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -675,21 +683,21 @@ class FEColorMatrixElement extends SvgElement
 
   AnimatedString get in1 native;
 
-  AnimatedEnumeration get type native;
+  AnimatedEnumeration? get type native;
 
-  AnimatedNumberList get values native;
+  AnimatedNumberList? get values native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -709,7 +717,8 @@ class FEComponentTransferElement extends SvgElement
   }
 
   factory FEComponentTransferElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
+      _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer")
+          as FEComponentTransferElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -722,19 +731,19 @@ class FEComponentTransferElement extends SvgElement
       SvgElement.isTagSupported('feComponentTransfer') &&
       (new SvgElement.tag('feComponentTransfer') is FEComponentTransferElement);
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -769,31 +778,31 @@ class FECompositeElement extends SvgElement
 
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedString get in2 native;
+  AnimatedString? get in2 native;
 
-  AnimatedNumber get k1 native;
+  AnimatedNumber? get k1 native;
 
-  AnimatedNumber get k2 native;
+  AnimatedNumber? get k2 native;
 
-  AnimatedNumber get k3 native;
+  AnimatedNumber? get k3 native;
 
-  AnimatedNumber get k4 native;
+  AnimatedNumber? get k4 native;
 
-  AnimatedEnumeration get operator native;
+  AnimatedEnumeration? get operator native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -813,7 +822,8 @@ class FEConvolveMatrixElement extends SvgElement
   }
 
   factory FEConvolveMatrixElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
+      _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix")
+          as FEConvolveMatrixElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -834,41 +844,41 @@ class FEConvolveMatrixElement extends SvgElement
 
   static const int SVG_EDGEMODE_WRAP = 2;
 
-  AnimatedNumber get bias native;
+  AnimatedNumber? get bias native;
 
-  AnimatedNumber get divisor native;
+  AnimatedNumber? get divisor native;
 
-  AnimatedEnumeration get edgeMode native;
+  AnimatedEnumeration? get edgeMode native;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedNumberList get kernelMatrix native;
+  AnimatedNumberList? get kernelMatrix native;
 
-  AnimatedNumber get kernelUnitLengthX native;
+  AnimatedNumber? get kernelUnitLengthX native;
 
-  AnimatedNumber get kernelUnitLengthY native;
+  AnimatedNumber? get kernelUnitLengthY native;
 
-  AnimatedInteger get orderX native;
+  AnimatedInteger? get orderX native;
 
-  AnimatedInteger get orderY native;
+  AnimatedInteger? get orderY native;
 
-  AnimatedBoolean get preserveAlpha native;
+  AnimatedBoolean? get preserveAlpha native;
 
-  AnimatedInteger get targetX native;
+  AnimatedInteger? get targetX native;
 
-  AnimatedInteger get targetY native;
+  AnimatedInteger? get targetY native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -888,7 +898,8 @@ class FEDiffuseLightingElement extends SvgElement
   }
 
   factory FEDiffuseLightingElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
+      _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting")
+          as FEDiffuseLightingElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -901,27 +912,27 @@ class FEDiffuseLightingElement extends SvgElement
       SvgElement.isTagSupported('feDiffuseLighting') &&
       (new SvgElement.tag('feDiffuseLighting') is FEDiffuseLightingElement);
 
-  AnimatedNumber get diffuseConstant native;
+  AnimatedNumber? get diffuseConstant native;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedNumber get kernelUnitLengthX native;
+  AnimatedNumber? get kernelUnitLengthX native;
 
-  AnimatedNumber get kernelUnitLengthY native;
+  AnimatedNumber? get kernelUnitLengthY native;
 
-  AnimatedNumber get surfaceScale native;
+  AnimatedNumber? get surfaceScale native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -941,7 +952,8 @@ class FEDisplacementMapElement extends SvgElement
   }
 
   factory FEDisplacementMapElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
+      _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap")
+          as FEDisplacementMapElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -964,27 +976,27 @@ class FEDisplacementMapElement extends SvgElement
 
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedString get in2 native;
+  AnimatedString? get in2 native;
 
-  AnimatedNumber get scale native;
+  AnimatedNumber? get scale native;
 
-  AnimatedEnumeration get xChannelSelector native;
+  AnimatedEnumeration? get xChannelSelector native;
 
-  AnimatedEnumeration get yChannelSelector native;
+  AnimatedEnumeration? get yChannelSelector native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1003,7 +1015,8 @@ class FEDistantLightElement extends SvgElement {
   }
 
   factory FEDistantLightElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
+      _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight")
+          as FEDistantLightElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1016,9 +1029,9 @@ class FEDistantLightElement extends SvgElement {
       SvgElement.isTagSupported('feDistantLight') &&
       (new SvgElement.tag('feDistantLight') is FEDistantLightElement);
 
-  AnimatedNumber get azimuth native;
+  AnimatedNumber? get azimuth native;
 
-  AnimatedNumber get elevation native;
+  AnimatedNumber? get elevation native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1038,7 +1051,8 @@ class FEFloodElement extends SvgElement
   }
 
   factory FEFloodElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFlood")
+          as FEFloodElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1053,15 +1067,15 @@ class FEFloodElement extends SvgElement
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1080,7 +1094,8 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncAElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncA")
+          as FEFuncAElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1110,7 +1125,8 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncBElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncB")
+          as FEFuncBElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1140,7 +1156,8 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncGElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncG")
+          as FEFuncGElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1170,7 +1187,8 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncRElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
+      _SvgElementFactoryProvider.createSvgElement_tag("feFuncR")
+          as FEFuncRElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1201,7 +1219,8 @@ class FEGaussianBlurElement extends SvgElement
   }
 
   factory FEGaussianBlurElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
+      _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur")
+          as FEGaussianBlurElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1214,25 +1233,25 @@ class FEGaussianBlurElement extends SvgElement
       SvgElement.isTagSupported('feGaussianBlur') &&
       (new SvgElement.tag('feGaussianBlur') is FEGaussianBlurElement);
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedNumber get stdDeviationX native;
+  AnimatedNumber? get stdDeviationX native;
 
-  AnimatedNumber get stdDeviationY native;
+  AnimatedNumber? get stdDeviationY native;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1252,7 +1271,8 @@ class FEImageElement extends SvgElement
   }
 
   factory FEImageElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feImage");
+      _SvgElementFactoryProvider.createSvgElement_tag("feImage")
+          as FEImageElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1265,23 +1285,23 @@ class FEImageElement extends SvgElement
       SvgElement.isTagSupported('feImage') &&
       (new SvgElement.tag('feImage') is FEImageElement);
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1301,7 +1321,8 @@ class FEMergeElement extends SvgElement
   }
 
   factory FEMergeElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
+      _SvgElementFactoryProvider.createSvgElement_tag("feMerge")
+          as FEMergeElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1316,15 +1337,15 @@ class FEMergeElement extends SvgElement
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1343,7 +1364,8 @@ class FEMergeNodeElement extends SvgElement {
   }
 
   factory FEMergeNodeElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
+      _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode")
+          as FEMergeNodeElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1356,7 +1378,7 @@ class FEMergeNodeElement extends SvgElement {
       SvgElement.isTagSupported('feMergeNode') &&
       (new SvgElement.tag('feMergeNode') is FEMergeNodeElement);
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1387,25 +1409,25 @@ class FEMorphologyElement extends SvgElement
 
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedEnumeration get operator native;
+  AnimatedEnumeration? get operator native;
 
-  AnimatedNumber get radiusX native;
+  AnimatedNumber? get radiusX native;
 
-  AnimatedNumber get radiusY native;
+  AnimatedNumber? get radiusY native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1425,7 +1447,8 @@ class FEOffsetElement extends SvgElement
   }
 
   factory FEOffsetElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
+      _SvgElementFactoryProvider.createSvgElement_tag("feOffset")
+          as FEOffsetElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1438,23 +1461,23 @@ class FEOffsetElement extends SvgElement
       SvgElement.isTagSupported('feOffset') &&
       (new SvgElement.tag('feOffset') is FEOffsetElement);
 
-  AnimatedNumber get dx native;
+  AnimatedNumber? get dx native;
 
-  AnimatedNumber get dy native;
+  AnimatedNumber? get dy native;
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1473,7 +1496,8 @@ class FEPointLightElement extends SvgElement {
   }
 
   factory FEPointLightElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
+      _SvgElementFactoryProvider.createSvgElement_tag("fePointLight")
+          as FEPointLightElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1486,11 +1510,11 @@ class FEPointLightElement extends SvgElement {
       SvgElement.isTagSupported('fePointLight') &&
       (new SvgElement.tag('fePointLight') is FEPointLightElement);
 
-  AnimatedNumber get x native;
+  AnimatedNumber? get x native;
 
-  AnimatedNumber get y native;
+  AnimatedNumber? get y native;
 
-  AnimatedNumber get z native;
+  AnimatedNumber? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1510,7 +1534,8 @@ class FESpecularLightingElement extends SvgElement
   }
 
   factory FESpecularLightingElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
+      _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting")
+          as FESpecularLightingElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1523,29 +1548,29 @@ class FESpecularLightingElement extends SvgElement
       SvgElement.isTagSupported('feSpecularLighting') &&
       (new SvgElement.tag('feSpecularLighting') is FESpecularLightingElement);
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
-  AnimatedNumber get kernelUnitLengthX native;
+  AnimatedNumber? get kernelUnitLengthX native;
 
-  AnimatedNumber get kernelUnitLengthY native;
+  AnimatedNumber? get kernelUnitLengthY native;
 
-  AnimatedNumber get specularConstant native;
+  AnimatedNumber? get specularConstant native;
 
-  AnimatedNumber get specularExponent native;
+  AnimatedNumber? get specularExponent native;
 
-  AnimatedNumber get surfaceScale native;
+  AnimatedNumber? get surfaceScale native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1564,7 +1589,8 @@ class FESpotLightElement extends SvgElement {
   }
 
   factory FESpotLightElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
+      _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight")
+          as FESpotLightElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1577,21 +1603,21 @@ class FESpotLightElement extends SvgElement {
       SvgElement.isTagSupported('feSpotLight') &&
       (new SvgElement.tag('feSpotLight') is FESpotLightElement);
 
-  AnimatedNumber get limitingConeAngle native;
+  AnimatedNumber? get limitingConeAngle native;
 
-  AnimatedNumber get pointsAtX native;
+  AnimatedNumber? get pointsAtX native;
 
-  AnimatedNumber get pointsAtY native;
+  AnimatedNumber? get pointsAtY native;
 
-  AnimatedNumber get pointsAtZ native;
+  AnimatedNumber? get pointsAtZ native;
 
-  AnimatedNumber get specularExponent native;
+  AnimatedNumber? get specularExponent native;
 
-  AnimatedNumber get x native;
+  AnimatedNumber? get x native;
 
-  AnimatedNumber get y native;
+  AnimatedNumber? get y native;
 
-  AnimatedNumber get z native;
+  AnimatedNumber? get z native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1611,7 +1637,8 @@ class FETileElement extends SvgElement
   }
 
   factory FETileElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feTile");
+      _SvgElementFactoryProvider.createSvgElement_tag("feTile")
+          as FETileElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1624,19 +1651,19 @@ class FETileElement extends SvgElement
       SvgElement.isTagSupported('feTile') &&
       (new SvgElement.tag('feTile') is FETileElement);
 
-  AnimatedString get in1 native;
+  AnimatedString? get in1 native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1656,7 +1683,8 @@ class FETurbulenceElement extends SvgElement
   }
 
   factory FETurbulenceElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
+      _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence")
+          as FETurbulenceElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1681,29 +1709,29 @@ class FETurbulenceElement extends SvgElement
 
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  AnimatedNumber get baseFrequencyX native;
+  AnimatedNumber? get baseFrequencyX native;
 
-  AnimatedNumber get baseFrequencyY native;
+  AnimatedNumber? get baseFrequencyY native;
 
-  AnimatedInteger get numOctaves native;
+  AnimatedInteger? get numOctaves native;
 
-  AnimatedNumber get seed native;
+  AnimatedNumber? get seed native;
 
-  AnimatedEnumeration get stitchTiles native;
+  AnimatedEnumeration? get stitchTiles native;
 
-  AnimatedEnumeration get type native;
+  AnimatedEnumeration? get type native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1722,7 +1750,8 @@ class FilterElement extends SvgElement implements UriReference {
   }
 
   factory FilterElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("filter");
+      _SvgElementFactoryProvider.createSvgElement_tag("filter")
+          as FilterElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1735,21 +1764,21 @@ class FilterElement extends SvgElement implements UriReference {
       SvgElement.isTagSupported('filter') &&
       (new SvgElement.tag('filter') is FilterElement);
 
-  AnimatedEnumeration get filterUnits native;
+  AnimatedEnumeration? get filterUnits native;
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedEnumeration get primitiveUnits native;
+  AnimatedEnumeration? get primitiveUnits native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1762,15 +1791,15 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedString get result native;
+  AnimatedString? get result native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1783,9 +1812,9 @@ abstract class FitToViewBox extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedRect get viewBox native;
+  AnimatedRect? get viewBox native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1803,7 +1832,8 @@ class ForeignObjectElement extends GraphicsElement {
   }
 
   factory ForeignObjectElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
+      _SvgElementFactoryProvider.createSvgElement_tag("foreignObject")
+          as ForeignObjectElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1816,13 +1846,13 @@ class ForeignObjectElement extends GraphicsElement {
       SvgElement.isTagSupported('foreignObject') &&
       (new SvgElement.tag('foreignObject') is ForeignObjectElement);
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1836,7 +1866,8 @@ class GElement extends GraphicsElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
+  factory GElement() =>
+      _SvgElementFactoryProvider.createSvgElement_tag("g") as GElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1861,7 +1892,7 @@ class GeometryElement extends GraphicsElement {
    */
   GeometryElement.created() : super.created();
 
-  AnimatedNumber get pathLength native;
+  AnimatedNumber? get pathLength native;
 
   Point getPointAtLength(num distance) native;
 
@@ -1888,11 +1919,11 @@ class GraphicsElement extends SvgElement implements Tests {
    */
   GraphicsElement.created() : super.created();
 
-  SvgElement get farthestViewportElement native;
+  SvgElement? get farthestViewportElement native;
 
-  SvgElement get nearestViewportElement native;
+  SvgElement? get nearestViewportElement native;
 
-  AnimatedTransformList get transform native;
+  AnimatedTransformList? get transform native;
 
   Rect getBBox() native;
 
@@ -1904,9 +1935,9 @@ class GraphicsElement extends SvgElement implements Tests {
 
   // From SVGTests
 
-  StringList get requiredExtensions native;
+  StringList? get requiredExtensions native;
 
-  StringList get systemLanguage native;
+  StringList? get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1921,7 +1952,7 @@ class ImageElement extends GraphicsElement implements UriReference {
   }
 
   factory ImageElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("image");
+      _SvgElementFactoryProvider.createSvgElement_tag("image") as ImageElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1929,25 +1960,25 @@ class ImageElement extends GraphicsElement implements UriReference {
    */
   ImageElement.created() : super.created();
 
-  String get async native;
+  String? get async native;
 
-  set async(String value) native;
+  set async(String? value) native;
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   Future decode() => promiseToFuture(JS("", "#.decode()", this));
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1983,19 +2014,19 @@ class Length extends Interceptor {
 
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-  int get unitType native;
+  int? get unitType native;
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 
-  String get valueAsString native;
+  String? get valueAsString native;
 
-  set valueAsString(String value) native;
+  set valueAsString(String? value) native;
 
-  num get valueInSpecifiedUnits native;
+  num? get valueInSpecifiedUnits native;
 
-  set valueInSpecifiedUnits(num value) native;
+  set valueInSpecifiedUnits(num? value) native;
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -2017,7 +2048,7 @@ class LengthList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems native;
+  int? get numberOfItems native;
 
   Length operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -2091,7 +2122,7 @@ class LineElement extends GeometryElement {
   }
 
   factory LineElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("line");
+      _SvgElementFactoryProvider.createSvgElement_tag("line") as LineElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2099,13 +2130,13 @@ class LineElement extends GeometryElement {
    */
   LineElement.created() : super.created();
 
-  AnimatedLength get x1 native;
+  AnimatedLength? get x1 native;
 
-  AnimatedLength get x2 native;
+  AnimatedLength? get x2 native;
 
-  AnimatedLength get y1 native;
+  AnimatedLength? get y1 native;
 
-  AnimatedLength get y2 native;
+  AnimatedLength? get y2 native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2120,7 +2151,8 @@ class LinearGradientElement extends _GradientElement {
   }
 
   factory LinearGradientElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
+      _SvgElementFactoryProvider.createSvgElement_tag("linearGradient")
+          as LinearGradientElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2128,13 +2160,13 @@ class LinearGradientElement extends _GradientElement {
    */
   LinearGradientElement.created() : super.created();
 
-  AnimatedLength get x1 native;
+  AnimatedLength? get x1 native;
 
-  AnimatedLength get x2 native;
+  AnimatedLength? get x2 native;
 
-  AnimatedLength get y1 native;
+  AnimatedLength? get y1 native;
 
-  AnimatedLength get y2 native;
+  AnimatedLength? get y2 native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2149,7 +2181,8 @@ class MarkerElement extends SvgElement implements FitToViewBox {
   }
 
   factory MarkerElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("marker");
+      _SvgElementFactoryProvider.createSvgElement_tag("marker")
+          as MarkerElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2175,9 +2208,9 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   AnimatedLength get markerWidth native;
 
-  AnimatedAngle get orientAngle native;
+  AnimatedAngle? get orientAngle native;
 
-  AnimatedEnumeration get orientType native;
+  AnimatedEnumeration? get orientType native;
 
   AnimatedLength get refX native;
 
@@ -2189,9 +2222,9 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedRect get viewBox native;
+  AnimatedRect? get viewBox native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2206,7 +2239,7 @@ class MaskElement extends SvgElement implements Tests {
   }
 
   factory MaskElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("mask");
+      _SvgElementFactoryProvider.createSvgElement_tag("mask") as MaskElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2214,23 +2247,23 @@ class MaskElement extends SvgElement implements Tests {
    */
   MaskElement.created() : super.created();
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedEnumeration get maskContentUnits native;
+  AnimatedEnumeration? get maskContentUnits native;
 
-  AnimatedEnumeration get maskUnits native;
+  AnimatedEnumeration? get maskUnits native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   // From SVGTests
 
-  StringList get requiredExtensions native;
+  StringList? get requiredExtensions native;
 
-  StringList get systemLanguage native;
+  StringList? get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2244,29 +2277,29 @@ class Matrix extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get a native;
+  num? get a native;
 
-  set a(num value) native;
+  set a(num? value) native;
 
-  num get b native;
+  num? get b native;
 
-  set b(num value) native;
+  set b(num? value) native;
 
-  num get c native;
+  num? get c native;
 
-  set c(num value) native;
+  set c(num? value) native;
 
-  num get d native;
+  num? get d native;
 
-  set d(num value) native;
+  set d(num? value) native;
 
-  num get e native;
+  num? get e native;
 
-  set e(num value) native;
+  set e(num? value) native;
 
-  num get f native;
+  num? get f native;
 
-  set f(num value) native;
+  set f(num? value) native;
 
   Matrix flipX() native;
 
@@ -2320,9 +2353,9 @@ class Number extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get value native;
+  num? get value native;
 
-  set value(num value) native;
+  set value(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2340,7 +2373,7 @@ class NumberList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems native;
+  int? get numberOfItems native;
 
   Number operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -2414,7 +2447,7 @@ class PathElement extends GeometryElement {
   }
 
   factory PathElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("path");
+      _SvgElementFactoryProvider.createSvgElement_tag("path") as PathElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2436,7 +2469,8 @@ class PatternElement extends SvgElement
   }
 
   factory PatternElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("pattern");
+      _SvgElementFactoryProvider.createSvgElement_tag("pattern")
+          as PatternElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2444,35 +2478,35 @@ class PatternElement extends SvgElement
    */
   PatternElement.created() : super.created();
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedEnumeration get patternContentUnits native;
+  AnimatedEnumeration? get patternContentUnits native;
 
-  AnimatedTransformList get patternTransform native;
+  AnimatedTransformList? get patternTransform native;
 
-  AnimatedEnumeration get patternUnits native;
+  AnimatedEnumeration? get patternUnits native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedRect get viewBox native;
+  AnimatedRect? get viewBox native;
 
   // From SVGTests
 
-  StringList get requiredExtensions native;
+  StringList? get requiredExtensions native;
 
-  StringList get systemLanguage native;
+  StringList? get systemLanguage native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2486,13 +2520,13 @@ class Point extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get x native;
+  num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
-  num get y native;
+  num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 
   Point matrixTransform(Matrix matrix) native;
 }
@@ -2508,9 +2542,9 @@ class PointList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int get length native;
+  int? get length native;
 
-  int get numberOfItems native;
+  int? get numberOfItems native;
 
   void __setter__(int index, Point newItem) native;
 
@@ -2541,7 +2575,8 @@ class PolygonElement extends GeometryElement {
   }
 
   factory PolygonElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("polygon");
+      _SvgElementFactoryProvider.createSvgElement_tag("polygon")
+          as PolygonElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2549,7 +2584,7 @@ class PolygonElement extends GeometryElement {
    */
   PolygonElement.created() : super.created();
 
-  PointList get animatedPoints native;
+  PointList? get animatedPoints native;
 
   PointList get points native;
 }
@@ -2566,7 +2601,8 @@ class PolylineElement extends GeometryElement {
   }
 
   factory PolylineElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("polyline");
+      _SvgElementFactoryProvider.createSvgElement_tag("polyline")
+          as PolylineElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2574,7 +2610,7 @@ class PolylineElement extends GeometryElement {
    */
   PolylineElement.created() : super.created();
 
-  PointList get animatedPoints native;
+  PointList? get animatedPoints native;
 
   PointList get points native;
 }
@@ -2618,13 +2654,13 @@ class PreserveAspectRatio extends Interceptor {
 
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int get align native;
+  int? get align native;
 
-  set align(int value) native;
+  set align(int? value) native;
 
-  int get meetOrSlice native;
+  int? get meetOrSlice native;
 
-  set meetOrSlice(int value) native;
+  set meetOrSlice(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2639,7 +2675,8 @@ class RadialGradientElement extends _GradientElement {
   }
 
   factory RadialGradientElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
+      _SvgElementFactoryProvider.createSvgElement_tag("radialGradient")
+          as RadialGradientElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2647,17 +2684,17 @@ class RadialGradientElement extends _GradientElement {
    */
   RadialGradientElement.created() : super.created();
 
-  AnimatedLength get cx native;
+  AnimatedLength? get cx native;
 
-  AnimatedLength get cy native;
+  AnimatedLength? get cy native;
 
-  AnimatedLength get fr native;
+  AnimatedLength? get fr native;
 
-  AnimatedLength get fx native;
+  AnimatedLength? get fx native;
 
-  AnimatedLength get fy native;
+  AnimatedLength? get fy native;
 
-  AnimatedLength get r native;
+  AnimatedLength? get r native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2671,21 +2708,21 @@ class Rect extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  num get height native;
+  num? get height native;
 
-  set height(num value) native;
+  set height(num? value) native;
 
-  num get width native;
+  num? get width native;
 
-  set width(num value) native;
+  set width(num? value) native;
 
-  num get x native;
+  num? get x native;
 
-  set x(num value) native;
+  set x(num? value) native;
 
-  num get y native;
+  num? get y native;
 
-  set y(num value) native;
+  set y(num? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2700,7 +2737,7 @@ class RectElement extends GeometryElement {
   }
 
   factory RectElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("rect");
+      _SvgElementFactoryProvider.createSvgElement_tag("rect") as RectElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2708,17 +2745,17 @@ class RectElement extends GeometryElement {
    */
   RectElement.created() : super.created();
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedLength get rx native;
+  AnimatedLength? get rx native;
 
-  AnimatedLength get ry native;
+  AnimatedLength? get ry native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2733,7 +2770,8 @@ class ScriptElement extends SvgElement implements UriReference {
   }
 
   factory ScriptElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("script");
+      _SvgElementFactoryProvider.createSvgElement_tag("script")
+          as ScriptElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2741,13 +2779,13 @@ class ScriptElement extends SvgElement implements UriReference {
    */
   ScriptElement.created() : super.created();
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2765,7 +2803,7 @@ class SetElement extends AnimationElement {
   }
 
   factory SetElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("set");
+      _SvgElementFactoryProvider.createSvgElement_tag("set") as SetElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2791,7 +2829,7 @@ class StopElement extends SvgElement {
   }
 
   factory StopElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("stop");
+      _SvgElementFactoryProvider.createSvgElement_tag("stop") as StopElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2818,7 +2856,7 @@ class StringList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems native;
+  int? get numberOfItems native;
 
   String operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -2891,7 +2929,7 @@ class StyleElement extends SvgElement {
   }
 
   factory StyleElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("style");
+      _SvgElementFactoryProvider.createSvgElement_tag("style") as StyleElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2899,23 +2937,23 @@ class StyleElement extends SvgElement {
    */
   StyleElement.created() : super.created();
 
-  bool get disabled native;
+  bool? get disabled native;
 
-  set disabled(bool value) native;
+  set disabled(bool? value) native;
 
-  String get media native;
+  String? get media native;
 
-  set media(String value) native;
+  set media(String? value) native;
 
-  StyleSheet get sheet native;
+  StyleSheet? get sheet native;
 
   // Use implementation from Element.
-  // String get title native;
-  // void set title(String value) native;
+  // String? get title native;
+  // void set title(String? value) native;
 
-  String get type native;
+  String? get type native;
 
-  set type(String value) native;
+  set type(String? value) native;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2956,16 +2994,16 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
-      document.createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag) as SvgElement;
   factory SvgElement.svg(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (validator == null && treeSanitizer == null) {
       validator = new NodeValidatorBuilder.common()..allowSvg();
     }
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
     var parentElement;
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
+    if (match != null && match.group(1)!.toLowerCase() == 'svg') {
       parentElement = document.body;
     } else {
       parentElement = new SvgSvgElement();
@@ -2985,26 +3023,26 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     children.addAll(value);
   }
 
-  String get outerHtml {
+  String? get outerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.add(cloned);
     return container.innerHtml;
   }
 
-  String get innerHtml {
+  String? get innerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.addAll(cloned.children);
     return container.innerHtml;
   }
 
-  set innerHtml(String value) {
+  set innerHtml(String? value) {
     this.setInnerHtml(value);
   }
 
-  DocumentFragment createFragment(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+  DocumentFragment createFragment(String? svg,
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         validator = new NodeValidatorBuilder.common()..allowSvg();
@@ -3015,13 +3053,13 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     // We create a fragment which will parse in the HTML parser
     var html = '<svg version="1.1">$svg</svg>';
     var fragment =
-        document.body.createFragment(html, treeSanitizer: treeSanitizer);
+        document.body!.createFragment(html, treeSanitizer: treeSanitizer);
 
     var svgFragment = new DocumentFragment();
     // The root is the <svg/> element, need to pull out the contents.
     var root = fragment.nodes.single;
     while (root.firstChild != null) {
-      svgFragment.append(root.firstChild);
+      svgFragment.append(root.firstChild!);
     }
     return svgFragment;
   }
@@ -3033,7 +3071,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   }
 
   void insertAdjacentHtml(String where, String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
@@ -3244,21 +3282,21 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   SvgElement.created() : super.created();
 
   // Shadowing definition.
-
+  @JSName('className')
   AnimatedString get _svgClassName native;
 
   @JSName('ownerSVGElement')
-  SvgSvgElement get ownerSvgElement native;
+  SvgSvgElement? get ownerSvgElement native;
 
   // Use implementation from Element.
   // CssStyleDeclaration get style native;
   // void set style(CssStyleDeclaration value) native;
 
   // Use implementation from Element.
-  // int get tabIndex native;
-  // void set tabIndex(int value) native;
+  // int? get tabIndex native;
+  // void set tabIndex(int? value) native;
 
-  SvgElement get viewportElement native;
+  SvgElement? get viewportElement native;
 
   void blur() native;
 
@@ -3266,9 +3304,9 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   // From NoncedElement
 
-  String get nonce native;
+  String? get nonce native;
 
-  set nonce(String value) native;
+  set nonce(String? value) native;
 
   ElementStream<Event> get onAbort => abortEvent.forElement(this);
 
@@ -3406,7 +3444,7 @@ class SvgSvgElement extends GraphicsElement
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
-    return el;
+    return el as SvgSvgElement;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -3420,19 +3458,19 @@ class SvgSvgElement extends GraphicsElement
    */
   SvgSvgElement.created() : super.created();
 
-  num get currentScale native;
+  num? get currentScale native;
 
-  set currentScale(num value) native;
+  set currentScale(num? value) native;
 
-  Point get currentTranslate native;
+  Point? get currentTranslate native;
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   bool animationsPaused() native;
 
@@ -3472,13 +3510,14 @@ class SvgSvgElement extends GraphicsElement
 
   Element getElementById(String elementId) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) native;
+  List<Node> getEnclosureList(Rect rect, SvgElement? referenceElement) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) native;
+  List<Node> getIntersectionList(Rect rect, SvgElement? referenceElement)
+      native;
 
   void pauseAnimations() native;
 
@@ -3494,15 +3533,15 @@ class SvgSvgElement extends GraphicsElement
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedRect get viewBox native;
+  AnimatedRect? get viewBox native;
 
   // From SVGZoomAndPan
 
-  int get zoomAndPan native;
+  int? get zoomAndPan native;
 
-  set zoomAndPan(int value) native;
+  set zoomAndPan(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3517,7 +3556,8 @@ class SwitchElement extends GraphicsElement {
   }
 
   factory SwitchElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("switch");
+      _SvgElementFactoryProvider.createSvgElement_tag("switch")
+          as SwitchElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3538,7 +3578,8 @@ class SymbolElement extends SvgElement implements FitToViewBox {
   }
 
   factory SymbolElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("symbol");
+      _SvgElementFactoryProvider.createSvgElement_tag("symbol")
+          as SymbolElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3548,9 +3589,9 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedRect get viewBox native;
+  AnimatedRect? get viewBox native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3565,7 +3606,7 @@ class TSpanElement extends TextPositioningElement {
   }
 
   factory TSpanElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("tspan");
+      _SvgElementFactoryProvider.createSvgElement_tag("tspan") as TSpanElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3584,9 +3625,9 @@ abstract class Tests extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  StringList get requiredExtensions native;
+  StringList? get requiredExtensions native;
 
-  StringList get systemLanguage native;
+  StringList? get systemLanguage native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3612,9 +3653,9 @@ class TextContentElement extends GraphicsElement {
 
   static const int LENGTHADJUST_UNKNOWN = 0;
 
-  AnimatedEnumeration get lengthAdjust native;
+  AnimatedEnumeration? get lengthAdjust native;
 
-  AnimatedLength get textLength native;
+  AnimatedLength? get textLength native;
 
   int getCharNumAtPosition(Point point) native;
 
@@ -3647,7 +3688,7 @@ class TextElement extends TextPositioningElement {
   }
 
   factory TextElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("text");
+      _SvgElementFactoryProvider.createSvgElement_tag("text") as TextElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3685,15 +3726,15 @@ class TextPathElement extends TextContentElement implements UriReference {
 
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  AnimatedEnumeration get method native;
+  AnimatedEnumeration? get method native;
 
-  AnimatedEnumeration get spacing native;
+  AnimatedEnumeration? get spacing native;
 
-  AnimatedLength get startOffset native;
+  AnimatedLength? get startOffset native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3713,15 +3754,15 @@ class TextPositioningElement extends TextContentElement {
    */
   TextPositioningElement.created() : super.created();
 
-  AnimatedLengthList get dx native;
+  AnimatedLengthList? get dx native;
 
-  AnimatedLengthList get dy native;
+  AnimatedLengthList? get dy native;
 
-  AnimatedNumberList get rotate native;
+  AnimatedNumberList? get rotate native;
 
-  AnimatedLengthList get x native;
+  AnimatedLengthList? get x native;
 
-  AnimatedLengthList get y native;
+  AnimatedLengthList? get y native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3736,7 +3777,7 @@ class TitleElement extends SvgElement {
   }
 
   factory TitleElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("title");
+      _SvgElementFactoryProvider.createSvgElement_tag("title") as TitleElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3770,11 +3811,11 @@ class Transform extends Interceptor {
 
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num get angle native;
+  num? get angle native;
 
-  Matrix get matrix native;
+  Matrix? get matrix native;
 
-  int get type native;
+  int? get type native;
 
   void setMatrix(Matrix matrix) native;
 
@@ -3804,7 +3845,7 @@ class TransformList extends Interceptor
 
   int get length => JS("int", "#.length", this);
 
-  int get numberOfItems native;
+  int? get numberOfItems native;
 
   Transform operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
@@ -3855,7 +3896,7 @@ class TransformList extends Interceptor
 
   void clear() native;
 
-  Transform consolidate() native;
+  Transform? consolidate() native;
 
   @JSName('createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
@@ -3899,7 +3940,7 @@ abstract class UriReference extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3914,7 +3955,7 @@ class UseElement extends GraphicsElement implements UriReference {
   }
 
   factory UseElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("use");
+      _SvgElementFactoryProvider.createSvgElement_tag("use") as UseElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3922,17 +3963,17 @@ class UseElement extends GraphicsElement implements UriReference {
    */
   UseElement.created() : super.created();
 
-  AnimatedLength get height native;
+  AnimatedLength? get height native;
 
-  AnimatedLength get width native;
+  AnimatedLength? get width native;
 
-  AnimatedLength get x native;
+  AnimatedLength? get x native;
 
-  AnimatedLength get y native;
+  AnimatedLength? get y native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3947,7 +3988,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
   }
 
   factory ViewElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("view");
+      _SvgElementFactoryProvider.createSvgElement_tag("view") as ViewElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -3957,15 +3998,15 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   // From SVGFitToViewBox
 
-  AnimatedPreserveAspectRatio get preserveAspectRatio native;
+  AnimatedPreserveAspectRatio? get preserveAspectRatio native;
 
-  AnimatedRect get viewBox native;
+  AnimatedRect? get viewBox native;
 
   // From SVGZoomAndPan
 
-  int get zoomAndPan native;
+  int? get zoomAndPan native;
 
-  set zoomAndPan(int value) native;
+  set zoomAndPan(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3984,9 +4025,9 @@ abstract class ZoomAndPan extends Interceptor {
 
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int get zoomAndPan native;
+  int? get zoomAndPan native;
 
-  set zoomAndPan(int value) native;
+  set zoomAndPan(int? value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4014,15 +4055,15 @@ class _GradientElement extends SvgElement implements UriReference {
 
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  AnimatedTransformList get gradientTransform native;
+  AnimatedTransformList? get gradientTransform native;
 
-  AnimatedEnumeration get gradientUnits native;
+  AnimatedEnumeration? get gradientUnits native;
 
-  AnimatedEnumeration get spreadMethod native;
+  AnimatedEnumeration? get spreadMethod native;
 
   // From SVGURIReference
 
-  AnimatedString get href native;
+  AnimatedString? get href native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4076,7 +4117,8 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   }
 
   factory _SVGMPathElement() =>
-      _SvgElementFactoryProvider.createSvgElement_tag("mpath");
+      _SvgElementFactoryProvider.createSvgElement_tag("mpath")
+          as _SVGMPathElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *

@@ -15,13 +15,11 @@ class DartFixListener {
 
   final List<DartFixSuggestion> suggestions = [];
 
-  DartFixListener(this.server);
-
   /// Add the given [detail] to the list of details to be returned to the
   /// client.
-  void addDetail(String detail) {
-    throw UnimplementedError('TODO(paulberry)');
-  }
+  final void Function(String detail) reportException;
+
+  DartFixListener(this.server, this.reportException);
 
   /// Record an edit to be sent to the client.
   ///

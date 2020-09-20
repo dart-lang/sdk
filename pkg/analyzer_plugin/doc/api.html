@@ -1306,7 +1306,7 @@ a:focus, a:hover {
       An enumeration of the kinds of folding regions.
     </p>
     
-  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
+  <dl><dt class="value">ANNOTATIONS</dt><dt class="value">BLOCK</dt><dt class="value">CLASS_BODY</dt><dt class="value">DIRECTIVES</dt><dt class="value">DOCUMENTATION_COMMENT</dt><dt class="value">FILE_HEADER</dt><dt class="value">FUNCTION_BODY</dt><dt class="value">INVOCATION</dt><dt class="value">LITERAL</dt></dl></dd><dt class="typeDefinition"><a name="type_FoldingRegion">FoldingRegion: object</a></dt><dd>
     <p>
       A description of a region that can be folded.
     </p>
@@ -1693,24 +1693,34 @@ a:focus, a:hover {
       </dd><dt class="field"><b>offset: int</b></dt><dd>
         
         <p>
-          The offset of the region to which the user can navigate.
+          The offset of the name of the target to which the user can navigate.
         </p>
       </dd><dt class="field"><b>length: int</b></dt><dd>
         
         <p>
-          The length of the region to which the user can navigate.
+          The length of the name of the target to which the user can navigate.
         </p>
       </dd><dt class="field"><b>startLine: int</b></dt><dd>
         
         <p>
           The one-based index of the line containing the first character of the
-          region.
+          name of the target.
         </p>
       </dd><dt class="field"><b>startColumn: int</b></dt><dd>
         
         <p>
           The one-based index of the column containing the first character of
-          the region.
+          the name of the target.
+        </p>
+      </dd><dt class="field"><b>codeOffset: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The offset of the target code to which the user can navigate.
+        </p>
+      </dd><dt class="field"><b>codeLength: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The length of the target code to which the user can navigate.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_Occurrences">Occurrences: object</a></dt><dd>
     <p>

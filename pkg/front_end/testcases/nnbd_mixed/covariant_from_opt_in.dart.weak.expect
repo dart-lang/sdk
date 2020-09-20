@@ -1,0 +1,62 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in.dart:11:27: Error: The parameter 'cls' of the method 'SubClass.invariant' has type 'SubClass', which does not match the corresponding type, 'Class', in the overridden method, 'Class.invariant'.
+//  - 'SubClass' is from 'pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in.dart'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in_lib.dart'.
+// Change to a supertype of 'Class', or, for a covariant parameter, a subtype.
+//   void invariant(SubClass cls) {} // error
+//                           ^
+// pkg/front_end/testcases/nnbd_mixed/covariant_from_opt_in_lib.dart:9:8: Context: This is the overridden method ('invariant').
+//   void invariant(Class cls);
+//        ^
+//
+import self as self;
+import "covariant_from_opt_in_lib.dart" as cov;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///covariant_from_opt_in_lib.dart";
+
+abstract class _SubClass&Class&Mixin = cov::Class with cov::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_SubClass&Class&Mixin*
+    : super cov::Class::•()
+    ;
+  abstract member-signature method covariant(covariant cov::Class* cls) → void; -> cov::Class::covariant
+  abstract member-signature method invariant(cov::Class* cls) → void; -> cov::Class::invariant
+  abstract member-signature method contravariant(cov::Class* cls) → void; -> cov::Class::contravariant
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class SubClass extends self::_SubClass&Class&Mixin {
+  synthetic constructor •() → self::SubClass*
+    : super self::_SubClass&Class&Mixin::•()
+    ;
+  method covariant(covariant self::SubClass* cls) → void {}
+  method invariant(self::SubClass* cls) → void {}
+  method contravariant(core::Object* cls) → void {}
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as cov;
+import "dart:core" as core;
+
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class Class extends core::Object {
+  synthetic constructor •() → cov::Class
+    : super core::Object::•()
+    ;
+  abstract method covariant(covariant cov::Class cls) → void;
+  abstract method invariant(cov::Class cls) → void;
+  abstract method contravariant(cov::Class cls) → void;
+}

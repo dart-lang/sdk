@@ -244,7 +244,7 @@ class RangeBoundary : public ValueObject {
   // IsSymbol() -> upper bound computed from definition + offset.
   RangeBoundary UpperBound() const;
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString() const;
   SExpression* ToSExpression(FlowGraphSerializer* s);
 
@@ -345,7 +345,7 @@ class Range : public ZoneAllocated {
                  RangeBoundary::MaxConstant(size));
   }
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   static const char* ToCString(const Range* range);
   SExpression* ToSExpression(FlowGraphSerializer* s);
 

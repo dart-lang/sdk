@@ -5,7 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
-import 'add_not_null_assert.dart' as add_not_null_assert;
+import 'add_not_null_assert_test.dart' as add_not_null_assert;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
@@ -58,6 +58,7 @@ import 'flutter_wrap_container_test.dart' as flutter_wrap_container;
 import 'flutter_wrap_generic_test.dart' as flutter_wrap_generic;
 import 'flutter_wrap_padding_test.dart' as flutter_wrap_padding;
 import 'flutter_wrap_row_test.dart' as flutter_wrap_row;
+import 'flutter_wrap_sized_box.dart' as flutter_wrap_sized_box;
 import 'flutter_wrap_stream_builder_test.dart' as flutter_wrap_stream_builder;
 import 'import_add_show_test.dart' as import_add_show;
 import 'inline_invocation_test.dart' as inline_invocation;
@@ -135,6 +136,7 @@ void main() {
     flutter_wrap_generic.main();
     flutter_wrap_padding.main();
     flutter_wrap_row.main();
+    flutter_wrap_sized_box.main();
     flutter_wrap_stream_builder.main();
     import_add_show.main();
     inline_invocation.main();

@@ -89,16 +89,22 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
-    Nullability nullabilityIfOmitted = parameter.bound != null &&
-            library != null &&
-            library.isNonNullableByDefault
-        ? TypeParameterType.computeNullabilityFromBound(parameter)
-        : Nullability.legacy;
-    DartType type = buildTypesWithBuiltArguments(
-        library,
-        nullabilityBuilder.build(library, ifOmitted: nullabilityIfOmitted),
-        null);
-    if (parameter.bound == null) {
+    bool needsPostUpdate = false;
+    Nullability nullability;
+    if (nullabilityBuilder.isOmitted) {
+      if (parameter.bound != null) {
+        nullability = library.isNonNullableByDefault
+            ? TypeParameterType.computeNullabilityFromBound(parameter)
+            : Nullability.legacy;
+      } else {
+        nullability = Nullability.legacy;
+        needsPostUpdate = true;
+      }
+    } else {
+      nullability = nullabilityBuilder.build(library);
+    }
+    DartType type = buildTypesWithBuiltArguments(library, nullability, null);
+    if (needsPostUpdate) {
       if (library is SourceLibraryBuilder) {
         library.pendingNullabilities.add(type);
       } else {

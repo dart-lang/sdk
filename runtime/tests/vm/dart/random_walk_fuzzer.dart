@@ -18,7 +18,7 @@ import 'dart:math';
 import 'dart:mirrors';
 import 'dart:typed_data';
 
-var blacklist = [
+var excludeList = [
   'dart.io.exit',
   'dart.io.exitCode',
   'dart.io.sleep',
@@ -270,7 +270,7 @@ void fuzz(Candidate c) {
   ObjectMirror receiver = c.mirror;
   MethodMirror method = randomMethodOf(receiver);
   if (method == null) return;
-  if (blacklist.contains(MirrorSystem.getName(method.qualifiedName))) return;
+  if (excludeList.contains(MirrorSystem.getName(method.qualifiedName))) return;
 
   List positional = randomPositionalArgumentsFor(method);
   Map named = randomNamedArgumentsFor(method);

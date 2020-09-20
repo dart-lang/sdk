@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -18,7 +16,7 @@ part of dart.core;
  *
  * * Growable list. Full implementation of the API defined in this class.
  *
- * The default growable list, as returned by `new List()` or `[]`, keeps
+ * The default growable list, as created by `[]`, keeps
  * an internal buffer, and grows that buffer when necessary. This guarantees
  * that a sequence of [add] operations will each execute in amortized constant
  * time. Setting the length directly may take time proportional to the new
@@ -57,6 +55,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Creates a list of the given length.
    *
+   * This constructor will throw an exception if [E] is not a nullable type.
+   * In this case, another constructor such as [List.filled] must be used
+   * instead.
+   *
    * The created list is fixed-length if [length] is provided.
    *
    *     List fixedLengthList = new List(3);
@@ -65,18 +67,32 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * The list has length 0 and is growable if [length] is omitted.
    *
-   *     List growableList = new List();
+   *     List growableList = [];
    *     growableList.length; // 0;
    *     growableList.length = 3;
    *
-   * To create a growable list with a given length, just assign the length
-   * right after creation:
+   * To create a growable list with a given length, for a nullable element type,
+   * just assign the length right after creation:
    *
-   *     List growableList = new List()..length = 500;
+   *     List growableList = []..length = 500;
+   *
+   * For a non-nullable element type, an alternative is the following:
+   *
+   *     List<int> growableList = List<int>.filled(500, 0, growable: true);
    *
    * The [length] must not be negative or null, if it is provided.
+   *
+   * If the element type is not nullable, [length] must not be greater than
+   * zero.
+   *
+   * This constructor cannot be used in null-safe code.
+   * Use [List.filled] to create a non-empty list.
+   * This requires a fill value to initialize the list elements with.
+   * To create an empty list, use `[]` for a growable list or
+   * `List.empty` for a fixed length list (or where growability is determined
+   * at run-time).
    */
-  external factory List([int length]);
+  external factory List([int? length]);
 
   /**
    * Creates a list of the given length with [fill] at each position.
@@ -113,6 +129,16 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
 
   /**
+   * Creates a new empty list.
+   *
+   * If [growable] is `false`, which is the default,
+   * the list is a fixed-length list of length zero.
+   * If [growable] is `true`, the list is growable and equivalent to `<E>[]`.
+   */
+  @Since("2.8")
+  external factory List.empty({bool growable = false});
+
+  /**
    * Creates a list containing all [elements].
    *
    * The [Iterator] of [elements] provides the order of the elements.
@@ -147,24 +173,15 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Creates a list with [length] positions and fills it with values created by
    * calling [generator] for each index in the range `0` .. `length - 1`
    * in increasing order.
+   * ```dart
+   * List<int>.generate(3, (int index) => index * index); // [0, 1, 4]
+   * ```
+   * The created list is fixed-length if [growable] is set to false.
    *
-   *     new List<int>.generate(3, (int index) => index * index); // [0, 1, 4]
-   *
-   * The created list is fixed-length unless [growable] is true.
+   * The [length] must be non-negative.
    */
-  factory List.generate(int length, E generator(int index),
-      {bool growable = true}) {
-    List<E> result;
-    if (growable) {
-      result = <E>[]..length = length;
-    } else {
-      result = List<E>(length);
-    }
-    for (int i = 0; i < length; i++) {
-      result[i] = generator(i);
-    }
-    return result;
-  }
+  external factory List.generate(int length, E generator(int index),
+      {bool growable = true});
 
   /**
    * Creates an unmodifiable list containing all [elements].
@@ -210,9 +227,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Otherwise the order of element copying is not guaranteed.
    */
   static void copyRange<T>(List<T> target, int at, List<T> source,
-      [int start, int end]) {
+      [int? start, int? end]) {
     start ??= 0;
     end = RangeError.checkValidRange(start, end, source.length);
+    if (end == null) {
+      // TODO(dart-lang/language#440): Remove when promotion works.
+      throw "unreachable";
+    }
     int length = end - start;
     if (target.length < at + length) {
       throw ArgumentError.value(target, "target",
@@ -270,6 +291,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Typically implemented as `List.castFrom<E, R>(this)`.
    */
   List<R> cast<R>();
+
   /**
    * Returns the object at the given [index] in the list
    * or throws a [RangeError] if [index] is out of bounds.
@@ -301,7 +323,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   void set last(E value);
 
   /**
-   * Returns the number of objects in this list.
+   * The number of objects in this list.
    *
    * The valid indices for a list are `0` through `length - 1`.
    */
@@ -311,9 +333,11 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Changes the length of this list.
    *
    * If [newLength] is greater than
-   * the current length, entries are initialized to [:null:].
+   * the current length, entries are initialized to `null`.
+   * Increasing the length fails if the element type does not allow `null`.
    *
-   * Throws an [UnsupportedError] if the list is fixed-length.
+   * Throws an [UnsupportedError] if the list is fixed-length or
+   * if attempting tp enlarge the list when `null` is not a valid element.
    */
   set length(int newLength);
 
@@ -364,12 +388,12 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     numbers.sort((a, b) => a.length.compareTo(b.length));
    *     print(numbers);  // [one, two, four, three] OR [two, one, four, three]
    */
-  void sort([int compare(E a, E b)]);
+  void sort([int compare(E a, E b)?]);
 
   /**
    * Shuffles the elements of this list randomly.
    */
-  void shuffle([Random random]);
+  void shuffle([Random? random]);
 
   /**
    * Returns the first index of [element] in this list.
@@ -414,6 +438,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Searches the list from index [start] to 0.
    * The first time an object `o` is encountered so that `test(o)` is true,
    * the index of `o` is returned.
+   * If [start] is omitted, it defaults to the [length] of the list.
    *
    * ```
    * List<String> notes = ['do', 're', 'mi', 're'];
@@ -426,7 +451,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * notes.lastIndexWhere((note) => note.startsWith('k'));    // -1
    * ```
    */
-  int lastIndexWhere(bool test(E element), [int start]);
+  int lastIndexWhere(bool test(E element), [int? start]);
 
   /**
    * Returns the last index of [element] in this list.
@@ -440,7 +465,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     notes.lastIndexOf('re', 2); // 1
    *
    * If [start] is not provided, this method searches from the end of the
-   * list./Returns
+   * list.
    *
    *     notes.lastIndexOf('re');  // 3
    *
@@ -448,7 +473,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    *     notes.lastIndexOf('fa');  // -1
    */
-  int lastIndexOf(E element, [int start]);
+  int lastIndexOf(E element, [int? start]);
 
   /**
    * Removes all objects from this list;
@@ -518,7 +543,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * An [UnsupportedError] occurs if the list is fixed-length.
    */
-  bool remove(Object value);
+  bool remove(Object? value);
 
   /**
    * Removes the object at position [index] from this list.
@@ -604,7 +629,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  List<E> sublist(int start, [int end]);
+  List<E> sublist(int start, [int? end]);
 
   /**
    * Returns an [Iterable] that iterates over the objects in the range
@@ -685,8 +710,10 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     print(list); //  [1, 1, null]
    * ```
    *
+   * If the element type is not nullable, omitting [fillValue] or passing `null`
+   * as [fillValue] will make the `fillRange` fail.
    */
-  void fillRange(int start, int end, [E fillValue]);
+  void fillRange(int start, int end, [E? fillValue]);
 
   /**
    * Removes the objects in the range [start] inclusive to [end] exclusive

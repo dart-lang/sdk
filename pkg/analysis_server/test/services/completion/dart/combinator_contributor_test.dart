@@ -55,15 +55,9 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class X {}''');
 
     await computeSuggestions();
-    assertSuggestClass('A',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestClass('B',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestClass('PB',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('A', kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('PB', kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestTopLevelVar('T1', null,
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestFunction('F1', 'PB',
@@ -104,23 +98,15 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       class X {}''');
 
     await computeSuggestions();
-    assertSuggestClass('A',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestClass('B',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('A', kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('_AB');
-    assertSuggestClass('PB',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('PB', kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestTopLevelVar('T1', null,
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestClass('Clz',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('Clz', kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestFunctionTypeAlias('F2', null,
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('C');
@@ -147,16 +133,14 @@ export 'a.dart' show A;
 import 'b.dart' show ^;
 ''');
     await computeSuggestions();
-    assertSuggestClass('A',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('A', kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('B');
   }
 
-  Future<void> test_Combinator_show_PI() async {
+  Future<void> test_Combinator_show_pi() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
-    assertSuggestTopLevelVar('PI', 'double',
+    assertSuggestTopLevelVar('pi', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 
@@ -173,11 +157,7 @@ class B {}
 import "b.dart" show ^;
 ''');
     await computeSuggestions();
-    assertSuggestClass('A',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestClass('B',
-        relevance: DART_RELEVANCE_DEFAULT,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('A', kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
   }
 }

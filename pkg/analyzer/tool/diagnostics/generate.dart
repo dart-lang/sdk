@@ -161,6 +161,7 @@ class DocumentationGenerator {
     _writeHeader(sink);
     _writeGlossary(sink);
     _writeDiagnostics(sink);
+    _writeForwards(sink);
   }
 
   /// Extract documentation from all of the files containing the definitions of
@@ -250,7 +251,7 @@ class DocumentationGenerator {
         String trimmedLine = lexeme.substring(3);
         if (trimmedLine == '```dart') {
           inDartCodeBlock = true;
-          docs.add('{% prettify dart %}');
+          docs.add('{% prettify dart tag=pre+code %}');
         } else if (trimmedLine == '```') {
           if (inDartCodeBlock) {
             docs.add('{% endprettify %}');
@@ -382,6 +383,17 @@ that might work in unexpected ways.
     }
   }
 
+  /// Write the forwarding documentation for all of the diagnostics that have
+  /// been renamed.
+  void _writeForwards(StringSink sink) {
+    sink.write('''
+
+### undefined_super_method
+
+See [undefined_super_member](#undefined-super-member).
+''');
+  }
+
   /// Write the glossary.
   void _writeGlossary(StringSink sink) {
     sink.write('''
@@ -389,6 +401,9 @@ that might work in unexpected ways.
 ## Glossary
 
 This page uses the following terms.
+
+[constant context]: #constant-context
+[potentially non-nullable]: #potentially-non-nullable
 
 ### Constant context
 
@@ -419,7 +434,7 @@ contexts:
 
 * Annotations
 
-* The expression in a case clause. Example:
+* The expression in a `case` clause. Example:
 
   ```dart
   void f(int e) {
@@ -435,9 +450,9 @@ contexts:
 A type is _potentially non-nullable_ if it's either explicitly non-nullable or
 if it's a type parameter.
 
-A type is explicitly non-nullable if it is a type name that is not followed by a
+A type is explicitly non-nullable if it is a type name that isn't followed by a
 question mark. Note that there are a few types that are always nullable, such as
-`Null` and `dynamic`, and that `FutureOr` is only non-nullable if it is not
+`Null` and `dynamic`, and that `FutureOr` is only non-nullable if it isn't
 followed by a question mark _and_ the type argument is non-nullable (such as
 `FutureOr<String>`).
 

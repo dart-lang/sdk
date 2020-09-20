@@ -5,18 +5,22 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UndefinedSetterWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedSetterTest extends DriverResolutionTest {
+class UndefinedSetterTest extends PubPackageResolutionTest
+    with UndefinedSetterTestCases {}
+
+mixin UndefinedSetterTestCases on PubPackageResolutionTest {
   test_importWithPrefix_defined() async {
-    newFile("/test/lib/lib.dart", content: r'''
+    newFile('$testPackageLibPath/lib.dart', content: r'''
 library lib;
 set y(int value) {}''');
     await assertNoErrorsInCode(r'''
@@ -32,7 +36,7 @@ main() {
 class T {}
 f(T e1) { e1.m = 0; }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 24, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1),
     ]);
   }
 
@@ -42,7 +46,7 @@ mixin M {
   f() { this.m = 0; }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 23, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 23, 1),
     ]);
   }
 
@@ -58,7 +62,7 @@ f(var a) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 80, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 80, 1),
     ]);
   }
 
@@ -71,7 +75,7 @@ f(var a) {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 43, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 43, 1),
     ]);
   }
 
@@ -95,7 +99,7 @@ class C extends S {}
 f(var p) {
   f(C.s = 1);
 }''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 75, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 75, 1),
     ]);
   }
 
@@ -104,7 +108,7 @@ f(var p) {
 class A {}
 f() { A.B = 0;}
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 19, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 19, 1),
     ]);
   }
 
@@ -117,7 +121,7 @@ main() {
   T..foo = 42;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 54, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 54, 3),
     ]);
   }
 
@@ -131,7 +135,44 @@ f(C c) {
   c.a = 1;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 46, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 46, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class UndefinedSetterWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin, UndefinedSetterTestCases {
+  test_set_abstract_field_valid() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
+  }
+
+  test_set_external_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external int x;
+}
+void f(A a, int x) {
+  a.x = x;
+}
+''');
+  }
+
+  test_set_external_static_field_valid() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static int x;
+}
+void f(int x) {
+  A.x = x;
+}
+''');
   }
 }

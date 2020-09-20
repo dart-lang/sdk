@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// This library defines the operations that define and manipulate Dart
 /// classes.  Included in this are:
 ///   - Generics
@@ -109,7 +107,7 @@ final mixinOn = JS('', 'Symbol("mixinOn")');
 @JSExportName('implements')
 final implements_ = JS('', 'Symbol("implements")');
 
-List Function() getImplements(clazz) => JS(
+List? Function() getImplements(clazz) => JS(
     '',
     'Object.hasOwnProperty.call(#, #) ? #[#] : null',
     clazz,
@@ -229,11 +227,11 @@ getGenericClass(type) => safeGetOwnProperty(type, _originalDeclaration);
 
 // TODO(markzipan): Make this non-nullable if we can ensure this returns
 // an empty list or if null and the empty list are semantically the same.
-List getGenericArgs(type) =>
-    JS<List>('', '#', safeGetOwnProperty(type, _typeArguments));
+List? getGenericArgs(type) =>
+    JS<List?>('', '#', safeGetOwnProperty(type, _typeArguments));
 
-List getGenericArgVariances(type) =>
-    JS<List>('', '#', safeGetOwnProperty(type, _variances));
+List? getGenericArgVariances(type) =>
+    JS<List?>('', '#', safeGetOwnProperty(type, _variances));
 
 void setGenericArgVariances(f, variances) =>
     JS('', '#[#] = #', f, _variances, variances);
@@ -270,9 +268,18 @@ getStaticSetters(value) => _getMembers(value, _staticSetterSig);
 
 getGenericTypeCtor(value) => JS('', '#[#]', value, _genericTypeCtor);
 
-/// Get the type of a method from an object using the stored signature
-getType(obj) =>
-    JS('', '# == null ? # : #.__proto__.constructor', obj, Object, obj);
+/// Get the type of an object.
+getType(obj) {
+  if (obj == null) return JS('!', '#', Object);
+
+  if (JS<bool>('!', '#.__proto__ == null', obj)) {
+    // Object.create(null) produces a js object without a prototype.
+    // In that case use the version from a js object literal.
+    return JS('!', '#.Object.prototype.constructor', global_);
+  }
+
+  return JS('!', '#.__proto__.constructor', obj);
+}
 
 getLibraryUri(value) => JS('', '#[#]', value, _libraryUri);
 setLibraryUri(f, uri) => JS('', '#[#] = #', f, _libraryUri, uri);

@@ -6,8 +6,8 @@
 
 // Test instantiation used only in a deferred library.
 
-/*class: global#Instantiation:OutputUnit(1, {b})*/
-/*class: global#Instantiation1:OutputUnit(1, {b})*/
+/*class: global#Instantiation:OutputUnit(1, {b}), type=OutputUnit(1, {b})*/
+/*class: global#Instantiation1:OutputUnit(1, {b}), type=OutputUnit(1, {b})*/
 
 /*member: global#instantiate1:OutputUnit(1, {b})*/
 

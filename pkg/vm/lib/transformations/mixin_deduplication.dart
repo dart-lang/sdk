@@ -56,11 +56,14 @@ class _DeduplicateMixinKey {
           otherClass.typeParameters.isNotEmpty) {
         return false;
       }
-      // Deduplicate mixin applications with matching supertype, mixed-in type
-      // and implemented interfaces.
+      // Deduplicate mixin applications with matching supertype, mixed-in type,
+      // implemented interfaces and NNBD mode (CFE may add extra signature
+      // members depending on the NNBD mode).
       return thisClass.supertype == otherClass.supertype &&
           thisClass.mixedInType == otherClass.mixedInType &&
-          listEquals(thisClass.implementedTypes, otherClass.implementedTypes);
+          listEquals(thisClass.implementedTypes, otherClass.implementedTypes) &&
+          thisClass.enclosingLibrary.isNonNullableByDefault ==
+              otherClass.enclosingLibrary.isNonNullableByDefault;
     }
     return false;
   }
@@ -113,7 +116,9 @@ class DeduplicateMixinsTransformer extends Transformer {
     assert(canonical != null);
 
     if (canonical != c) {
-      c.canonicalName?.unbind();
+      // Ensure that kernel file writer will not be able to
+      // write a dangling reference to the deleted class.
+      c.reference.canonicalName = null;
       _duplicatedMixins[c] = canonical;
       return null; // Remove class.
     }

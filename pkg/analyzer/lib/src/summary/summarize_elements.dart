@@ -4,22 +4,18 @@
 
 import 'package:analyzer/src/summary/format.dart';
 
-/**
- * Object that gathers information uses it to assemble a new
- * [PackageBundleBuilder].
- */
+/// Object that gathers information uses it to assemble a new
+/// [PackageBundleBuilder].
 class PackageBundleAssembler {
   LinkedNodeBundleBuilder _bundle2;
 
-  /**
-   * Assemble a new [PackageBundleBuilder] using the gathered information.
-   */
+  /// Assemble a new [PackageBundleBuilder] using the gathered information.
   PackageBundleBuilder assemble() {
     return PackageBundleBuilder(bundle2: _bundle2);
   }
 
   void setBundle2(LinkedNodeBundleBuilder bundle2) {
-    if (this._bundle2 != null) {
+    if (_bundle2 != null) {
       throw StateError('Bundle2 may be set only once.');
     }
     _bundle2 = bundle2;

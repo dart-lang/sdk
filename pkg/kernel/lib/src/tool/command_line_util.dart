@@ -40,6 +40,5 @@ class CommandLineHelper {
       print(e);
       exit(1);
     }
-    return null;
   }
 }

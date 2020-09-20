@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -132,16 +130,27 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile(
-      {List<String> experiments, List<String> lints}) {
+  void createAnalysisOptionsFile({
+    List<String> experiments,
+    bool implicitCasts,
+    List<String> lints,
+  }) {
     var buffer = StringBuffer();
 
-    if (experiments != null) {
+    if (experiments != null || implicitCasts != null) {
       buffer.writeln('analyzer:');
+    }
+
+    if (experiments != null) {
       buffer.writeln('  enable-experiment:');
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
+    }
+
+    if (implicitCasts != null) {
+      buffer.writeln('  strong-mode:');
+      buffer.writeln('    implicit-casts: $implicitCasts');
     }
 
     if (lints != null) {

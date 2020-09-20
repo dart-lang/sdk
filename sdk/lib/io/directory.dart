@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -101,15 +99,10 @@ part of dart.io;
  *
  * ## Other resources
  *
- * * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- *   provides additional task-oriented code samples that show how to use
- *   various API from the Directory class and the related [File] class.
+ * * The [Files and directories](https://dart.dev/guides/libraries/library-tour#files-and-directories)
+ *   section of the library tour.
  *
- * * [I/O for Command-Line
- *   Apps](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps)
- *   a section from _A Tour of the Dart Libraries_ covers files and directories.
- *
- * * [Write Command-Line Apps](https://www.dartlang.org/docs/tutorials/cmdline/),
+ * * [Write Command-Line Apps](https://dart.dev/tutorials/server/cmdline),
  *   a tutorial about writing command-line apps, includes information about
  *   files and directories.
  */
@@ -131,7 +124,7 @@ abstract class Directory implements FileSystemEntity {
    */
   @pragma("vm:entry-point")
   factory Directory(String path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return new _Directory(path);
     }
@@ -156,7 +149,7 @@ abstract class Directory implements FileSystemEntity {
    * directory.
    */
   static Directory get current {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _Directory.current;
     }
@@ -191,7 +184,7 @@ abstract class Directory implements FileSystemEntity {
    * are working with the file system, can lead to unexpected results.
    */
   static void set current(path) {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       _Directory.current = path;
       return;
@@ -232,7 +225,7 @@ abstract class Directory implements FileSystemEntity {
    * and may be set by an environment variable.
    */
   static Directory get systemTemp {
-    final IOOverrides overrides = IOOverrides.current;
+    final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return _Directory.systemTemp;
     }
@@ -248,7 +241,7 @@ abstract class Directory implements FileSystemEntity {
    * Returns a [:Future<Directory>:] that completes with the newly
    * created temporary directory.
    */
-  Future<Directory> createTemp([String prefix]);
+  Future<Directory> createTemp([String? prefix]);
 
   /**
    * Synchronously creates a temporary directory in this directory.
@@ -258,7 +251,7 @@ abstract class Directory implements FileSystemEntity {
    *
    * Returns the newly created temporary directory.
    */
-  Directory createTempSync([String prefix]);
+  Directory createTempSync([String? prefix]);
 
   Future<String> resolveSymbolicLinks();
 

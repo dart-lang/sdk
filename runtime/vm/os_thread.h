@@ -8,6 +8,7 @@
 #include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
+#include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -113,7 +114,7 @@ class OSThread : public BaseThread {
     ASSERT(OSThread::Current() == this);
     ASSERT(name_ == NULL);
     ASSERT(name != NULL);
-    name_ = strdup(name);
+    name_ = Utils::StrDup(name);
   }
 
   Mutex* timeline_block_lock() const { return &timeline_block_lock_; }

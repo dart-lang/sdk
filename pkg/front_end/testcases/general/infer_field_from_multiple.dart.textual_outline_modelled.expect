@@ -62,6 +62,7 @@ class C implements A<int>, B<int, String> {
       this.field18);
   int field12;
   int field14;
+  var field1;
   var field10;
   var field11;
   var field13 = 0;
@@ -69,7 +70,6 @@ class C implements A<int>, B<int, String> {
   var field16;
   var field17;
   var field18;
-  var field1;
   var field2;
   var field3 = 0;
   var field4 = 0;
@@ -102,6 +102,7 @@ class D<T> implements A<T>, B<T, T> {
       this.field18);
   T field12;
   T field14;
+  var field1;
   var field10;
   var field11;
   var field13 = null;
@@ -109,7 +110,6 @@ class D<T> implements A<T>, B<T, T> {
   var field16;
   var field17;
   var field18;
-  var field1;
   var field2;
   var field3 = 0;
   var field4 = 0;

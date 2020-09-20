@@ -40,7 +40,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   }
   get lateGenericInstanceField() → self::Class::T?
     return this.{self::Class::_#Class#lateGenericInstanceField#isSet} ?{self::Class::T?} this.{self::Class::_#Class#lateGenericInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericInstanceField' has not been initialized.");
-  set lateGenericInstanceField(self::Class::T? #t4) → void {
+  set lateGenericInstanceField(generic-covariant-impl self::Class::T? #t4) → void {
     this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
     this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
   }

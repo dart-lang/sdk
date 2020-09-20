@@ -135,7 +135,7 @@ class AnalysisOptionsFixGenerator {
       deletionRange ??=
           _lines(nodeToDelete.span.start.offset, nodeToDelete.span.end.offset);
       var builder = ChangeBuilder();
-      await builder.addFileEdit(file, (builder) {
+      await builder.addGenericFileEdit(file, (builder) {
         builder.addDeletion(deletionRange);
       });
       _addFixFromBuilder(builder, AnalysisOptionsFixKind.REMOVE_SETTING,

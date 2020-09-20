@@ -2837,6 +2837,9 @@
         "onsignalingstatechange": [
           "/// Stream of `signalingstatechange` events handled by this [RtcPeerConnection]."
         ],
+        "ontrack": [
+          "/// Stream of `track` events handled by this [RtcPeerConnection]."
+        ],
         "removestreamEvent": [
           "/**",
           "   * Static factory designed to expose `removestream` events to event",
@@ -2848,6 +2851,14 @@
         "signalingstatechangeEvent": [
           "/**",
           "   * Static factory designed to expose `signalingstatechange` events to event",
+          "   * handlers that are not necessarily instances of [RtcPeerConnection].",
+          "   *",
+          "   * See [EventStreamProvider] for usage information.",
+          "   */"
+        ],
+        "trackEvent": [
+          "/**",
+          "   * Static factory designed to expose `track` events to event",
           "   * handlers that are not necessarily instances of [RtcPeerConnection].",
           "   *",
           "   * See [EventStreamProvider] for usage information.",

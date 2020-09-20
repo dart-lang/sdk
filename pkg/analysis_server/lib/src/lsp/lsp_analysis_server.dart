@@ -102,6 +102,21 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   StreamSubscription _pluginChangeSubscription;
 
+  /// Temporary analysis roots for open files.
+  ///
+  /// When a file is opened and there is no driver available (for example no
+  /// folder was opened in the editor, so the set of analysis roots is empty)
+  /// we add temporary roots for the project (or containing) folder. When the
+  /// file is closed, it is removed from this map and if no other open file
+  /// uses that root, it will be removed from the set of analysis roots.
+  ///
+  /// key: file path of the open file
+  /// value: folder to be used as a root.
+  final _temporaryAnalysisRoots = <String, String>{};
+
+  /// The set of analysis roots explicitly added to the workspace.
+  final _explicitAnalysisRoots = HashSet<String>();
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -170,6 +185,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
+  /// Adds a temporary analysis root for an open file.
+  void addTemporaryAnalysisRoot(String filePath, String folderPath) {
+    _temporaryAnalysisRoots[filePath] = folderPath;
+    _refreshAnalysisRoots();
+  }
+
   /// The socket from which messages are being read has been closed.
   void done() {}
 
@@ -182,8 +203,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       // others (for example "flutter").
       final response = await sendRequest(
           Method.workspace_configuration,
-          ConfigurationParams([
-            ConfigurationItem(null, 'dart'),
+          ConfigurationParams(items: [
+            ConfigurationItem(section: 'dart'),
           ]));
 
       final result = response.result;
@@ -218,7 +239,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// version is not known.
   VersionedTextDocumentIdentifier getVersionedDocumentIdentifier(String path) {
     return documentVersions[path] ??
-        VersionedTextDocumentIdentifier(null, Uri.file(path).toString());
+        VersionedTextDocumentIdentifier(uri: Uri.file(path).toString());
   }
 
   void handleClientConnection(
@@ -258,54 +279,53 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
     performance.logRequestTiming(null);
-    runZonedGuarded(() {
-      ServerPerformanceStatistics.serverRequests.makeCurrentWhile(() async {
-        try {
-          if (message is ResponseMessage) {
-            handleClientResponse(message);
-          } else if (message is RequestMessage) {
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
-            } else {
-              channel.sendResponse(ResponseMessage(
-                  message.id, result.result, null, jsonRpcVersion));
-            }
-          } else if (message is NotificationMessage) {
-            final result = await messageHandler.handleMessage(message);
-            if (result.isError) {
-              sendErrorResponse(message, result.error);
-            }
+    runZonedGuarded(() async {
+      try {
+        if (message is ResponseMessage) {
+          handleClientResponse(message);
+        } else if (message is RequestMessage) {
+          final result = await messageHandler.handleMessage(message);
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
           } else {
-            showErrorMessageToUser('Unknown message type');
+            channel.sendResponse(ResponseMessage(
+                id: message.id,
+                result: result.result,
+                jsonrpc: jsonRpcVersion));
           }
-        } catch (error, stackTrace) {
-          final errorMessage = message is ResponseMessage
-              ? 'An error occurred while handling the response to request ${message.id}'
-              : message is RequestMessage
-                  ? 'An error occurred while handling ${message.method} request'
-                  : message is NotificationMessage
-                      ? 'An error occurred while handling ${message.method} notification'
-                      : 'Unknown message type';
-          sendErrorResponse(
-              message,
-              ResponseError(
-                ServerErrorCodes.UnhandledError,
-                errorMessage,
-                null,
-              ));
-          logException(errorMessage, error, stackTrace);
+        } else if (message is NotificationMessage) {
+          final result = await messageHandler.handleMessage(message);
+          if (result.isError) {
+            sendErrorResponse(message, result.error);
+          }
+        } else {
+          showErrorMessageToUser('Unknown message type');
         }
-      });
+      } catch (error, stackTrace) {
+        final errorMessage = message is ResponseMessage
+            ? 'An error occurred while handling the response to request ${message.id}'
+            : message is RequestMessage
+                ? 'An error occurred while handling ${message.method} request'
+                : message is NotificationMessage
+                    ? 'An error occurred while handling ${message.method} notification'
+                    : 'Unknown message type';
+        sendErrorResponse(
+            message,
+            ResponseError(
+              code: ServerErrorCodes.UnhandledError,
+              message: errorMessage,
+            ));
+        logException(errorMessage, error, stackTrace);
+      }
     }, socketError);
   }
 
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
-      Method.window_logMessage,
-      LogMessageParams(MessageType.Error, message),
-      jsonRpcVersion,
+      method: Method.window_logMessage,
+      params: LogMessageParams(type: MessageType.Error, message: message),
+      jsonrpc: jsonRpcVersion,
     ));
   }
 
@@ -335,7 +355,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   }
 
   void onOverlayCreated(String path, String content) {
-    resourceProvider.setOverlay(path, content: content, modificationStamp: 0);
+    resourceProvider.setOverlay(path,
+        content: content, modificationStamp: overlayModificationStamp++);
 
     _afterOverlayChanged(path, plugin.AddContentOverlay(content));
   }
@@ -360,49 +381,51 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
 
     resourceProvider.setOverlay(path,
-        content: newContent, modificationStamp: 0);
+        content: newContent, modificationStamp: overlayModificationStamp++);
 
     _afterOverlayChanged(path, plugin.ChangeContentOverlay(edits));
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    final params =
-        PublishClosingLabelsParams(Uri.file(path).toString(), labels);
+    final params = PublishClosingLabelsParams(
+        uri: Uri.file(path).toString(), labels: labels);
     final message = NotificationMessage(
-      CustomMethods.PublishClosingLabels,
-      params,
-      jsonRpcVersion,
+      method: CustomMethods.PublishClosingLabels,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params = PublishDiagnosticsParams(Uri.file(path).toString(), errors);
+    final params = PublishDiagnosticsParams(
+        uri: Uri.file(path).toString(), diagnostics: errors);
     final message = NotificationMessage(
-      Method.textDocument_publishDiagnostics,
-      params,
-      jsonRpcVersion,
+      method: Method.textDocument_publishDiagnostics,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
-    final params =
-        PublishFlutterOutlineParams(Uri.file(path).toString(), outline);
+    final params = PublishFlutterOutlineParams(
+        uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      CustomMethods.PublishFlutterOutline,
-      params,
-      jsonRpcVersion,
+      method: CustomMethods.PublishFlutterOutline,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
 
   void publishOutline(String path, Outline outline) {
-    final params = PublishOutlineParams(Uri.file(path).toString(), outline);
+    final params =
+        PublishOutlineParams(uri: Uri.file(path).toString(), outline: outline);
     final message = NotificationMessage(
-      CustomMethods.PublishOutline,
-      params,
-      jsonRpcVersion,
+      method: CustomMethods.PublishOutline,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     );
     sendNotification(message);
   }
@@ -415,10 +438,16 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }
   }
 
+  /// Removes any temporary analysis root for a file that was closed.
+  void removeTemporaryAnalysisRoot(String filePath) {
+    _temporaryAnalysisRoots.remove(filePath);
+    _refreshAnalysisRoots();
+  }
+
   void sendErrorResponse(Message message, ResponseError error) {
     if (message is RequestMessage) {
-      channel.sendResponse(
-          ResponseMessage(message.id, null, error, jsonRpcVersion));
+      channel.sendResponse(ResponseMessage(
+          id: message.id, error: error, jsonrpc: jsonRpcVersion));
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it
       // as show instead of log.
@@ -455,10 +484,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     completers[requestId] = completer;
 
     channel.sendRequest(RequestMessage(
-      Either2<num, String>.t1(requestId),
-      method,
-      params,
-      jsonRpcVersion,
+      id: Either2<num, String>.t1(requestId),
+      method: method,
+      params: params,
+      jsonrpc: jsonRpcVersion,
     ));
 
     return completer.future;
@@ -484,18 +513,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// the [status] information.
   void sendStatusNotification(nd.AnalysisStatus status) {
     channel.sendNotification(NotificationMessage(
-      CustomMethods.AnalyzerStatus,
-      AnalyzerStatusParams(status.isAnalyzing),
-      jsonRpcVersion,
+      method: CustomMethods.AnalyzerStatus,
+      params: AnalyzerStatusParams(isAnalyzing: status.isAnalyzing),
+      jsonrpc: jsonRpcVersion,
     ));
-  }
-
-  void setAnalysisRoots(List<String> includedPaths) {
-    declarationsTracker?.discardContexts();
-    final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
-    contextManager.setRoots(uniquePaths.toList(), []);
-    notificationManager.setAnalysisRoots(includedPaths, []);
-    addContextsToDeclarationsTracker();
   }
 
   /// Returns `true` if closing labels should be sent for [file] with the given
@@ -515,25 +536,22 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     // during normal analysis (for example dot folders are skipped over in
     // _handleWatchEventImpl).
     return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file);
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
   /// given absolute path.
   bool shouldSendFlutterOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.flutterOutline &&
-        priorityFiles.contains(file) &&
-        contextManager.isInAnalysisRoot(file);
+    return initializationOptions.flutterOutline && priorityFiles.contains(file);
   }
 
   /// Returns `true` if outlines should be sent for [file] with the given
   /// absolute path.
   bool shouldSendOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.outline &&
-        priorityFiles.contains(file) &&
-        contextManager.isInAnalysisRoot(file);
+    return initializationOptions.outline && priorityFiles.contains(file);
   }
 
   void showErrorMessageToUser(String message) {
@@ -542,9 +560,9 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void showMessageToUser(MessageType type, String message) {
     channel.sendNotification(NotificationMessage(
-      Method.window_showMessage,
-      ShowMessageParams(type, message),
-      jsonRpcVersion,
+      method: Method.window_showMessage,
+      params: ShowMessageParams(type: type, message: message),
+      jsonrpc: jsonRpcVersion,
     ));
   }
 
@@ -568,12 +586,12 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void updateAnalysisRoots(List<String> addedPaths, List<String> removedPaths) {
     // TODO(dantup): This is currently case-sensitive!
-    final newPaths =
-        HashSet<String>.of(contextManager.includedPaths ?? const [])
-          ..addAll(addedPaths ?? const [])
-          ..removeAll(removedPaths ?? const []);
 
-    setAnalysisRoots(newPaths.toList());
+    _explicitAnalysisRoots
+      ..addAll(addedPaths ?? const [])
+      ..removeAll(removedPaths ?? const []);
+
+    _refreshAnalysisRoots();
   }
 
   void _afterOverlayChanged(String path, dynamic changeForPlugins) {
@@ -588,6 +606,18 @@ class LspAnalysisServer extends AbstractAnalysisServer {
 
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
+  }
+
+  void _refreshAnalysisRoots() {
+    // Always include any temporary analysis roots for open files.
+    final includedPaths = HashSet<String>.of(_explicitAnalysisRoots)
+      ..addAll(_temporaryAnalysisRoots.values)
+      ..toList();
+
+    declarationsTracker?.discardContexts();
+    notificationManager.setAnalysisRoots(includedPaths.toList(), []);
+    contextManager.setRoots(includedPaths.toList(), []);
+    addContextsToDeclarationsTracker();
   }
 
   void _updateDriversAndPluginsPriorityFiles() {
@@ -622,6 +652,7 @@ class LspInitializationOptions {
   final bool closingLabels;
   final bool outline;
   final bool flutterOutline;
+
   LspInitializationOptions(dynamic options)
       : onlyAnalyzeProjectsWithOpenFiles = options != null &&
             options['onlyAnalyzeProjectsWithOpenFiles'] == true,
@@ -661,6 +692,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       Folder folder, ContextRoot contextRoot, AnalysisOptions options) {
     var builder = createContextBuilder(folder, options);
     var analysisDriver = builder.buildDriver(contextRoot);
+    final textDocumentCapabilities =
+        analysisServer.clientCapabilities?.textDocument;
+    final supportedDiagnosticTags = HashSet<DiagnosticTag>.of(
+        textDocumentCapabilities?.publishDiagnostics?.tagSupport?.valueSet ??
+            []);
     analysisDriver.results.listen((result) {
       var path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
@@ -669,7 +705,12 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
             result.errors
                 .where((e) => e.errorCode.type != ErrorType.TODO)
                 .toList(),
-            toDiagnostic);
+            (result, error, [severity]) => toDiagnostic(
+                  result,
+                  error,
+                  supportedTags: supportedDiagnosticTags,
+                  errorSeverity: severity,
+                ));
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
       }
@@ -699,6 +740,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     });
     analysisDriver.exceptions.listen(analysisServer.logExceptionResult);
+    analysisDriver.priorityFiles = analysisServer.priorityFiles.toList();
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
   }

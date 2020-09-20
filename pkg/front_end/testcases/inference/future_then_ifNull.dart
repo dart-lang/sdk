@@ -20,7 +20,7 @@ void test() {
       /*@ returnType=Future<int*>* */ (/*@ type=int* */ x) async =>
           x /*@target=num.==*/ ?? await new Future<int>.value(3));
   Future<int> t2 = f. /*@ typeArgs=int* */ /*@target=MyFuture.then*/ then(
-      /*@ returnType=Future<int*>* */ (/*@ type=int* */ x) async {
+      /*@returnType=FutureOr<int*>**/ (/*@ type=int* */ x) async {
     return /*info:DOWN_CAST_COMPOSITE*/ await x /*@target=num.==*/ ??
         new Future<int>.value(3);
   });

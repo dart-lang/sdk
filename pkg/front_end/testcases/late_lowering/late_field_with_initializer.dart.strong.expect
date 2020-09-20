@@ -38,7 +38,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1} in #t7{self::Class::T%};
   }
-  set lateGenericField1(self::Class::T% #t8) → void {
+  set lateGenericField1(generic-covariant-impl self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     this.{self::Class::_#Class#lateGenericField1} = #t8;
   }
@@ -49,7 +49,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     }
     return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2} in #t9{self::Class::T%};
   }
-  set lateGenericField2(self::Class::T% #t10) → void {
+  set lateGenericField2(generic-covariant-impl self::Class::T% #t10) → void {
     this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     this.{self::Class::_#Class#lateGenericField2} = #t10;
   }

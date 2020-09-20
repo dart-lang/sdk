@@ -26,14 +26,16 @@ for arg in "$@"; do
     PACKAGES="$arg"
     ;;
     --enable-asserts | \
-    --null-safety | \
-    --no-null-safety | \
+    --sound-null-safety | \
+    --no-sound-null-safety | \
     --enable-experiment=*)
     GEN_KERNEL_OPTIONS+=("$arg")
     OPTIONS+=("$arg")
     ;;
     --tfa | \
     --no-tfa | \
+    --protobuf-tree-shaker | \
+    --protobuf-tree-shaker-v2 | \
     --gen-bytecode | \
     --no-gen-bytecode | \
     --bytecode-options=* | \

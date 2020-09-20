@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
+class InstanceCreationDriverResolutionTest extends PubPackageResolutionTest {
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
     await assertErrorsInCode(r'''
 final foo = Map<int>();
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8),
     ]);
 
     var creation = findNode.instanceCreation('Map<int>');
@@ -42,8 +42,8 @@ main() {
   new Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          53, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 53,
+          5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -58,7 +58,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class Foo<X> {
   Foo.bar();
 }
@@ -70,8 +70,8 @@ main() {
   new p.Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          44, 3),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 44,
+          3),
     ]);
 
     // TODO(brianwilkerson) Test this more carefully after we can re-write the
@@ -97,8 +97,8 @@ main() {
   Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          49, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 49,
+          5),
     ]);
 
     var creation = findNode.instanceCreation('Foo.bar<int>');
@@ -117,7 +117,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_prefix() async {
-    newFile('/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class Foo<X> {
   Foo.bar();
 }
@@ -129,8 +129,8 @@ main() {
   p.Foo.bar<int>();
 }
 ''', [
-      error(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-          43, 5),
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 43,
+          5),
     ]);
 
     var import = findElement.import('package:test/a.dart');

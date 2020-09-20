@@ -18,15 +18,15 @@ class JavaFile {
   JavaFile.fromUri(Uri uri) : this(path.context.fromUri(uri));
   JavaFile.relative(JavaFile base, String child) {
     if (child.isEmpty) {
-      this._path = base._path;
+      _path = base._path;
     } else {
-      this._path = path.context.join(base._path, child);
+      _path = path.context.join(base._path, child);
     }
   }
   @override
   int get hashCode => _path.hashCode;
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is JavaFile && other._path == _path;
   }
 

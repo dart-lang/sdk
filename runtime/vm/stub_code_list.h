@@ -17,14 +17,28 @@ namespace dart {
   V(WriteBarrier)                                                              \
   V(WriteBarrierWrappers)                                                      \
   V(ArrayWriteBarrier)                                                         \
-  V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
+  V(AllocateInt8Array)                                                         \
+  V(AllocateUint8Array)                                                        \
+  V(AllocateUint8ClampedArray)                                                 \
+  V(AllocateInt16Array)                                                        \
+  V(AllocateUint16Array)                                                       \
+  V(AllocateInt32Array)                                                        \
+  V(AllocateUint32Array)                                                       \
+  V(AllocateInt64Array)                                                        \
+  V(AllocateUint64Array)                                                       \
+  V(AllocateFloat32Array)                                                      \
+  V(AllocateFloat64Array)                                                      \
+  V(AllocateFloat32x4Array)                                                    \
+  V(AllocateInt32x4Array)                                                      \
+  V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateObjectParameterized)                                               \
   V(AllocateObjectSlow)                                                        \
+  V(AllocateUnhandledException)                                                \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
@@ -70,17 +84,22 @@ namespace dart {
   V(DefaultNullableTypeTest)                                                   \
   V(TopTypeTypeTest)                                                           \
   V(UnreachableTypeTest)                                                       \
+  V(TypeParameterTypeTest)                                                     \
+  V(NullableTypeParameterTypeTest)                                             \
   V(SlowTypeTest)                                                              \
   V(LazySpecializeTypeTest)                                                    \
   V(LazySpecializeNullableTypeTest)                                            \
   V(CallClosureNoSuchMethod)                                                   \
   V(FrameAwaitingMaterialization)                                              \
   V(AsynchronousGapMarker)                                                     \
+  V(NotLoaded)                                                                 \
   V(DispatchTableNullError)                                                    \
   V(NullErrorSharedWithFPURegs)                                                \
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(NullArgErrorSharedWithFPURegs)                                             \
   V(NullArgErrorSharedWithoutFPURegs)                                          \
+  V(NullCastErrorSharedWithFPURegs)                                            \
+  V(NullCastErrorSharedWithoutFPURegs)                                         \
   V(RangeErrorSharedWithFPURegs)                                               \
   V(RangeErrorSharedWithoutFPURegs)                                            \
   V(StackOverflowSharedWithFPURegs)                                            \

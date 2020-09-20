@@ -8,14 +8,11 @@ import 'package:expect/expect.dart';
 
 String method() => null;
 
-/*prod:nnbd-off|prod:nnbd-sdk.class: Class1:needsArgs*/
-/*spec:nnbd-off.class: Class1:direct,explicit=[Class1.T],needsArgs*/
-/*spec:nnbd-sdk.class: Class1:direct,explicit=[Class1.T*],needsArgs*/
+/*spec.class: Class1:direct,explicit=[Class1.T*],needsArgs*/
+/*prod.class: Class1:needsArgs*/
 class Class1<T> {
-  /*spec:nnbd-off|prod:nnbd-off.member: Class1.:*/
   Class1();
 
-  /*spec:nnbd-off|prod:nnbd-off.member: Class1.method:*/
   method() {
     /*needsSignature*/
     T local1a() => null;
@@ -32,13 +29,10 @@ class Class1<T> {
   }
 }
 
-/*spec:nnbd-off|prod:nnbd-off.class: Class2:*/
 class Class2<T> {
-  /*spec:nnbd-off|prod:nnbd-off.member: Class2.:*/
   Class2();
 }
 
-/*spec:nnbd-off|prod:nnbd-off.member: main:*/
 main() {
   new Class1<int>().method();
   new Class2<int>();

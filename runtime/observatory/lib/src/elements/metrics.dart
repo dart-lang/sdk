@@ -10,7 +10,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/metric/details.dart';
 import 'package:observatory/src/elements/metric/graph.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
@@ -20,17 +20,6 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
 class MetricsPageElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<MetricsPageElement>('metrics-page', dependencies: const [
-    MetricDetailsElement.tag,
-    MetricGraphElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-  ]);
-
   RenderingScheduler<MetricsPageElement> _r;
 
   Stream<RenderedEvent<MetricsPageElement>> get onRendered => _r.onRendered;
@@ -68,7 +57,7 @@ class MetricsPageElement extends CustomElement implements Renderable {
     return e;
   }
 
-  MetricsPageElement.created() : super.created(tag);
+  MetricsPageElement.created() : super.created('metrics-page');
 
   @override
   attached() {

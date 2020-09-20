@@ -5,11 +5,11 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_visitor.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 
 class RuntimeTypeEqualityHelper {
   final TypeSystemImpl _typeSystem;
@@ -23,24 +23,16 @@ class RuntimeTypeEqualityHelper {
   bool equal(DartType T1, DartType T2) {
     var N1 = _typeSystem.normalize(T1);
     var N2 = _typeSystem.normalize(T2);
-    return const RuntimeTypeEqualityVisitor().visit(N1, N2);
+    return N1.acceptWithArgument(const RuntimeTypeEqualityVisitor(), N2);
   }
 }
 
-class RuntimeTypeEqualityVisitor extends DartTypeVisitor1<bool, DartType> {
+class RuntimeTypeEqualityVisitor
+    extends TypeVisitorWithArgument<bool, DartType> {
   const RuntimeTypeEqualityVisitor();
 
   @override
-  bool defaultDartType(DartType T1, DartType T2) {
-    throw UnimplementedError('(${T1.runtimeType}) $T1');
-  }
-
-  bool visit(DartType T1, DartType T2) {
-    return DartTypeVisitor1.visit(T1, this, T2);
-  }
-
-  @override
-  bool visitDynamicType(DynamicTypeImpl T1, DartType T2) {
+  bool visitDynamicType(DynamicType T1, DartType T2) {
     return identical(T1, T2);
   }
 
@@ -55,7 +47,7 @@ class RuntimeTypeEqualityVisitor extends DartTypeVisitor1<bool, DartType> {
       bool equal(DartType T1, DartType T2) {
         T1 = typeParameters.T1_substitution.substituteType(T1);
         T2 = typeParameters.T2_substitution.substituteType(T2);
-        return visit(T1, T2);
+        return T1.acceptWithArgument(this, T2);
       }
 
       if (!equal(T1.returnType, T2.returnType)) {
@@ -104,7 +96,7 @@ class RuntimeTypeEqualityVisitor extends DartTypeVisitor1<bool, DartType> {
         for (var i = 0; i < T1_typeArguments.length; i++) {
           var T1_typeArgument = T1_typeArguments[i];
           var T2_typeArgument = T2_typeArguments[i];
-          if (!visit(T1_typeArgument, T2_typeArgument)) {
+          if (!T1_typeArgument.acceptWithArgument(this, T2_typeArgument)) {
             return false;
           }
         }
@@ -115,7 +107,7 @@ class RuntimeTypeEqualityVisitor extends DartTypeVisitor1<bool, DartType> {
   }
 
   @override
-  bool visitNeverType(NeverTypeImpl T1, DartType T2) {
+  bool visitNeverType(NeverType T1, DartType T2) {
     // Note, that all types are normalized before this visitor.
     // So, `Never?` never happens, it is already `Null`.
     assert(T1.nullabilitySuffix != NullabilitySuffix.question);
@@ -181,7 +173,7 @@ class RuntimeTypeEqualityVisitor extends DartTypeVisitor1<bool, DartType> {
       } else if (T1_bound != null && T2_bound != null) {
         T1_bound = T1_substitution.substituteType(T1_bound);
         T2_bound = T2_substitution.substituteType(T2_bound);
-        if (!visit(T1_bound, T2_bound)) {
+        if (!T1_bound.acceptWithArgument(this, T2_bound)) {
           return null;
         }
       } else {

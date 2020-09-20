@@ -75,6 +75,7 @@ class A {
     "flags": 0
   },
   "relevanceTags": [
+    "ElementKind.CLASS",
     "package:test/a.dart::A",
     "A"
   ]
@@ -101,6 +102,7 @@ class A {
   "parameterNames": [],
   "parameterTypes": [],
   "relevanceTags": [
+    "ElementKind.CONSTRUCTOR",
     "package:test/a.dart::A",
     "a"
   ],
@@ -138,6 +140,7 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
+    "ElementKind.ENUM",
     "package:test/a.dart::MyEnum",
     "MyEnum"
   ]
@@ -160,6 +163,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
+    "ElementKind.ENUM_CONSTANT",
+    "ElementKind.ENUM_CONSTANT+const",
     "package:test/a.dart::MyEnum",
     "aaa"
   ]
@@ -182,6 +187,8 @@ enum MyEnum {
     "flags": 0
   },
   "relevanceTags": [
+    "ElementKind.ENUM_CONSTANT",
+    "ElementKind.ENUM_CONSTANT+const",
     "package:test/a.dart::MyEnum",
     "bbb"
   ]
@@ -219,6 +226,7 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
+    "ElementKind.TOP_LEVEL_VARIABLE",
     "dart:core::bool",
     "boolV"
   ]
@@ -242,6 +250,7 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
+    "ElementKind.TOP_LEVEL_VARIABLE",
     "dart:core::int",
     "intV"
   ]
@@ -265,6 +274,7 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
+    "ElementKind.TOP_LEVEL_VARIABLE",
     "dart:core::double",
     "doubleV"
   ]
@@ -288,6 +298,7 @@ var stringV = 'hi';
     "returnType": ""
   },
   "relevanceTags": [
+    "ElementKind.TOP_LEVEL_VARIABLE",
     "dart:core::String",
     "stringV"
   ]

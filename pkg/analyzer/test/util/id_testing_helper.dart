@@ -129,7 +129,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
   var resourceProvider = MemoryResourceProvider();
-  var testUris = [];
+  var testUris = <Uri>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var testUri = _toTestUri(entry.key);
     testUris.add(testUri);
@@ -321,13 +321,6 @@ abstract class DataComputer<T> {
 
   DataInterpreter<T> get dataValidator;
 
-  /// Function that computes a data mapping for [unit].
-  ///
-  /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
-  /// for the data origin.
-  void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<T>> actualMap);
-
   /// Returns `true` if this data computer supports tests with compile-time
   /// errors.
   ///
@@ -339,6 +332,13 @@ abstract class DataComputer<T> {
   T computeErrorData(TestConfig config, TestingData testingData, Id id,
           List<AnalysisError> errors) =>
       null;
+
+  /// Function that computes a data mapping for [unit].
+  ///
+  /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
+  /// for the data origin.
+  void computeUnitData(TestingData testingData, CompilationUnit unit,
+      Map<Id, ActualData<T>> actualMap);
 }
 
 class TestConfig {
@@ -347,5 +347,5 @@ class TestConfig {
   final FeatureSet featureSet;
 
   TestConfig(this.marker, this.name, {FeatureSet featureSet})
-      : featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
+      : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }

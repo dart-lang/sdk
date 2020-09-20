@@ -1,0 +1,152 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class X extends core::Object {
+}
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {
+    core::print("A1");
+  }
+}
+class B1 extends self::A1 {
+  synthetic constructor •() → self::B1*
+    : super self::A1::•()
+    ;
+}
+class C1 extends self::B1 {
+  synthetic constructor •() → self::C1*
+    : super self::B1::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {
+    core::print("C1");
+  }
+}
+class A2 extends core::Object {
+  synthetic constructor •() → self::A2*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method foo() → void {
+    core::print("A2");
+  }
+}
+class B2 extends self::A2 implements self::X {
+  synthetic constructor •() → self::B2*
+    : super self::A2::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method foo() → void {
+    core::print("B2");
+  }
+}
+abstract class A3 extends core::Object {
+  synthetic constructor •() → self::A3*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  abstract method foo() → void;
+}
+class B3 extends self::A3 implements self::X {
+  synthetic constructor •() → self::B3*
+    : super self::A3::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method foo() → void {
+    core::print("B3");
+  }
+}
+class C3 extends core::Object implements self::A3 {
+  synthetic constructor •() → self::C3*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method foo() → void {
+    core::print("C3");
+  }
+}
+class A4 extends core::Object {
+  synthetic constructor •() → self::A4*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method foo() → void {
+    core::print("A4");
+  }
+}
+class B4 extends core::Object {
+  synthetic constructor •() → self::B4*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method foo() → void {
+    core::print("B4");
+  }
+}
+class C4 extends core::Object {
+  synthetic constructor •() → self::C4*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method foo() → void {
+    core::print("C4");
+  }
+}
+class D4 extends self::A4 implements self::B4 {
+  synthetic constructor •() → self::D4*
+    : super self::A4::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method foo() → void {
+    core::print("D4");
+  }
+}
+class E4 extends self::C4 implements self::B4 {
+  synthetic constructor •() → self::E4*
+    : super self::C4::•()
+    ;
+}
+static method main() → dynamic {
+  core::List<self::A1*>* x1 = <self::A1*>[new self::A1::•(), new self::B1::•(), new self::C1::•()];
+  {
+    core::Iterator<self::A1*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A1*>] x1.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::A1* o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      o.{self::A1::foo}();
+    }
+  }
+  core::List<self::A2*>* x2 = <self::A2*>[new self::A2::•(), new self::B2::•()];
+  {
+    core::Iterator<self::A2*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A2*>] x2.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::A2* o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      o.{self::A2::foo}();
+    }
+  }
+  core::List<self::A3*>* x3 = <self::A3*>[new self::B3::•(), new self::C3::•()];
+  {
+    core::Iterator<self::A3*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A3*>] x3.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::A3* o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      o.{self::A3::foo}();
+    }
+  }
+  core::List<self::A4*>* x4 = <self::A4*>[new self::A4::•(), new self::D4::•()];
+  {
+    core::Iterator<self::A4*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::A4*>] x4.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::A4* o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      o.{self::A4::foo}();
+    }
+  }
+  core::List<self::B4*>* y4 = <self::B4*>[new self::B4::•(), new self::D4::•(), new self::E4::•()];
+  {
+    core::Iterator<self::B4*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B4*>] y4.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::B4* o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      o.{self::B4::foo}();
+    }
+  }
+  core::List<self::C4*>* z4 = <self::C4*>[new self::C4::•(), new self::E4::•()];
+  {
+    core::Iterator<self::C4*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::C4*>] z4.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::C4* o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      [@vm.direct-call.metadata=#lib::C4.foo??] [@vm.inferred-type.metadata=!? (skip check)] o.{self::C4::foo}();
+    }
+  }
+}

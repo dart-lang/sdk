@@ -9,7 +9,7 @@ import 'lib2.dart' deferred as lib2;
 
 const c = "string3";
 
-/*class: C:OutputUnit(main, {})*/
+/*class: C:OutputUnit(main, {}), type=OutputUnit(main, {})*/
 class C {
   /*member: C.p:OutputUnit(main, {})*/
   final p;

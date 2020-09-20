@@ -8,32 +8,32 @@
 
 import 'package:expect/expect.dart';
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A:checkedTypeArgument,typeArgument*/
 class A {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A1:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A1:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A1:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A1:checkedTypeArgument,typeArgument*/
 class A1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A2:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: A2:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: A2:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: A2:checkedTypeArgument,typeArgument*/
 class A2 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B:checkedInstance,checkedTypeArgument,checks=[$isA,$isA1,$isA2],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: B:checkedTypeArgument,checks=[$isA,$isA1,$isA2],typeArgument*/
+/*spec.class: B:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: B:checkedTypeArgument,typeArgument*/
 class B implements A, A1, A2 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: C:checkedInstance,checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: C:checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB],typeArgument*/
+/*spec.class: C:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: C:checkedTypeArgument,typeArgument*/
 class C implements B {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: D:checkedInstance,checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB,$isC],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: D:checkedTypeArgument,checks=[$isA,$isA1,$isA2,$isB,$isC],typeArgument*/
+/*spec.class: D:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: D:checkedTypeArgument,typeArgument*/
 class D implements C {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: G:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
-/*prod:nnbd-off|prod:nnbd-sdk.class: G:checkedTypeArgument,checks=[],typeArgument*/
+/*spec.class: G:checkedInstance,checkedTypeArgument,typeArgument*/
+/*prod.class: G:checkedTypeArgument,typeArgument*/
 class G<T, S, U, W> {}
 
 typedef classesFunc({A a, B b, C c, D d});
@@ -55,36 +55,33 @@ typedef okWithDynamicFunc_2({int x, bool y, List<Map> z, classesFunc v});
 
 main() {
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, B b, C c, A d}) {} is classesFunc);
   Expect.isTrue(
       /*checks=[$signature],instance*/
       ({A a, A b, A c, A d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({D a, D b, D c, D d}) {} is classesFunc);
   Expect.isTrue(
       /*checks=[$signature],instance*/
       ({var a, var b, var c, var d}) {} is classesFunc);
-  Expect.isTrue(/*checks=[$signature],instance*/
+  Expect.isTrue(
+      /*checks=[$signature],instance*/
       ({Object a, Object b, Object c, Object d}) {} is classesFunc);
 
-  Expect.isTrue(/*checks=[$signature],instance*/
+  Expect.isTrue(
+      /*checks=[$signature],instance*/
       ({Map<num, num> m, List<List<A1>> l, G<A, A1, A1, A1> g}) {}
           is genericsFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({Map<int, int> m, List<List<D>> l, G<D, D, D, D> g}) {} is genericsFunc);
   Expect.isTrue(
       /*checks=[$signature],instance*/
@@ -94,21 +91,20 @@ main() {
       ({Object m, Object l, Object g}) {} is genericsFunc);
 
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
   Expect.isTrue(
-      /*spec:nnbd-off|spec:nnbd-sdk.checks=[$signature],instance*/
-      /*prod:nnbd-off|prod:nnbd-sdk.checks=[],instance*/
+      /*checks=[$signature],instance*/
       ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
   Expect.isTrue(
-      /*checks=[],instance*/
+      /*checks=[$signature],instance*/
       (
           {okWithClassesFunc_1 f1,
           okWithGenericsFunc_1 f2,
           okWithDynamicFunc_1 f3}) {} is funcFunc);
-  Expect.isTrue(/*checks=[$signature],instance*/
+  Expect.isTrue(
+      /*checks=[$signature],instance*/
       (
           {okWithClassesFunc_2 f1,
           okWithGenericsFunc_2 f2,

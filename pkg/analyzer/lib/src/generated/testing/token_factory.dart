@@ -5,9 +5,7 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
-/**
- * A set of utility methods that can be used to create tokens.
- */
+/// A set of utility methods that can be used to create tokens.
 class TokenFactory {
   static Token tokenFromKeyword(Keyword keyword) => KeywordToken(keyword, 0);
 

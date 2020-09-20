@@ -3,20 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
 class ExtensionMemberResolver {
   final ResolverVisitor _resolver;
@@ -38,12 +41,12 @@ class ExtensionMemberResolver {
   ///
   /// If no applicable extensions, return [ResolutionResult.none].
   ///
-  /// If the match is ambiguous, report an error and return
-  /// [ResolutionResult.ambiguous].
+  /// If the match is ambiguous, report an error on the [nameEntity], and
+  /// return [ResolutionResult.ambiguous].
   ResolutionResult findExtension(
     DartType type,
+    SyntacticEntity nameEntity,
     String name,
-    Expression target,
   ) {
     var extensions = _getApplicable(type, name);
 
@@ -60,9 +63,10 @@ class ExtensionMemberResolver {
       return extension.asResolutionResult;
     }
 
-    _errorReporter.reportErrorForNode(
+    _errorReporter.reportErrorForOffset(
       CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
-      target,
+      nameEntity.offset,
+      nameEntity.length,
       [
         name,
         extensions[0].extension.name,
@@ -135,6 +139,10 @@ class ExtensionMemberResolver {
     var receiverExpression = arguments[0];
     var receiverType = receiverExpression.staticType;
 
+    if (node.isNullAware) {
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
     var typeArgumentTypes = _inferTypeArguments(node, receiverType);
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
@@ -154,7 +162,7 @@ class ExtensionMemberResolver {
 
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
-          StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
     } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
@@ -252,28 +260,40 @@ class ExtensionMemberResolver {
   /// Return extensions for the [type] that match the given [name] in the
   /// current scope.
   List<_InstantiatedExtension> _getApplicable(DartType type, String name) {
+    if (identical(type, NeverTypeImpl.instance)) {
+      return const <_InstantiatedExtension>[];
+    }
+
     var candidates = _getExtensionsWithMember(name);
 
     var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
-      var typeParameters = candidate.extension.typeParameters;
-      var inferrer = GenericInferrer(_typeSystem, typeParameters);
+      var extension = candidate.extension;
+
+      var freshTypes = getFreshTypeParameters(extension.typeParameters);
+      var freshTypeParameters = freshTypes.freshTypeParameters;
+      var rawExtendedType = freshTypes.substitute(extension.extendedType);
+
+      var inferrer = GenericInferrer(_typeSystem, freshTypeParameters);
       inferrer.constrainArgument(
         type,
-        candidate.extension.extendedType,
+        rawExtendedType,
         'extendedType',
       );
-      var typeArguments = inferrer.infer(typeParameters, failAtError: true);
+      var typeArguments = inferrer.infer(
+        freshTypeParameters,
+        failAtError: true,
+      );
       if (typeArguments == null) {
         continue;
       }
 
       var substitution = Substitution.fromPairs(
-        typeParameters,
+        extension.typeParameters,
         typeArguments,
       );
       var extendedType = substitution.substituteType(
-        candidate.extension.extendedType,
+        extension.extendedType,
       );
       if (!_isSubtypeOf(type, extendedType)) {
         continue;
@@ -353,17 +373,21 @@ class ExtensionMemberResolver {
   ) {
     var element = node.staticElement;
     var typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return const <DartType>[];
-    }
-
     var typeArguments = node.typeArguments;
+
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
+        if (typeParameters.isEmpty) {
+          return const <DartType>[];
+        }
         return arguments.map((a) => a.type).toList();
       } else {
-        // TODO(scheglov) Report an error.
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          typeArguments,
+          [element.name, typeParameters.length, arguments.length],
+        );
         return _listOfDynamic(typeParameters);
       }
     } else {

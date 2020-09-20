@@ -128,6 +128,7 @@ class InductionVar : public ZoneAllocated {
   const GrowableArray<Bound>& bounds() { return bounds_; }
 
   // For debugging.
+  void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString() const;
 
   // Returns true if x is invariant.
@@ -258,6 +259,7 @@ class LoopInfo : public ZoneAllocated {
   LoopInfo* next() const { return next_; }
 
   // For debugging.
+  void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString() const;
 
  private:

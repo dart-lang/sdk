@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -20,19 +20,6 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class ObjectViewElement extends CustomElement implements Renderable {
-  static const tag =
-      const Tag<ObjectViewElement>('object-view', dependencies: const [
-    ContextRefElement.tag,
-    CurlyBlockElement.tag,
-    NavTopMenuElement.tag,
-    NavVMMenuElement.tag,
-    NavIsolateMenuElement.tag,
-    NavRefreshElement.tag,
-    NavNotifyElement.tag,
-    ObjectCommonElement.tag,
-    ViewFooterElement.tag
-  ]);
-
   RenderingScheduler<ObjectViewElement> _r;
 
   Stream<RenderedEvent<ObjectViewElement>> get onRendered => _r.onRendered;
@@ -90,7 +77,7 @@ class ObjectViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ObjectViewElement.created() : super.created(tag);
+  ObjectViewElement.created() : super.created('object-view');
 
   @override
   attached() {

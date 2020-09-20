@@ -763,7 +763,7 @@ abstract class DataSinkMixin implements DataSink {
 
   @override
   void writeName(ir.Name value) {
-    writeString(value.name);
+    writeString(value.text);
     writeValueOrNull(value.library, writeLibraryNode);
   }
 

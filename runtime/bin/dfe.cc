@@ -4,15 +4,11 @@
 
 #include "bin/dfe.h"
 
-#include <memory>
-
-#include "bin/abi_version.h"
 #include "bin/dartutils.h"
 #include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
-#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
@@ -35,6 +31,28 @@ intptr_t kPlatformStrongDillSize = 0;
 namespace dart {
 namespace bin {
 
+// The run_vm_tests binary has the DART_PRECOMPILER set in order to allow unit
+// tests to exercise JIT and AOT pipeline.
+//
+// Only on X64 do we have kernel-service.dart.snapshot available otherwise we
+// need to fall back to the built-in one (if we have it).
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) ||                                \
+    (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
+const uint8_t* kernel_service_dill = nullptr;
+const intptr_t kernel_service_dill_size = 0;
+#else
+const uint8_t* kernel_service_dill = kKernelServiceDill;
+const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
+#endif
+
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
+const uint8_t* platform_strong_dill = nullptr;
+const intptr_t platform_strong_dill_size = 0;
+#else
+const uint8_t* platform_strong_dill = kPlatformStrongDill;
+const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
+#endif
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 DFE dfe;
 #endif
@@ -48,31 +66,6 @@ DFE::DFE()
       frontend_filename_(nullptr),
       application_kernel_buffer_(nullptr),
       application_kernel_buffer_size_(0) {
-  // The run_vm_tests binary has the DART_PRECOMPILER set in order to allow unit
-  // tests to exercise JIT and AOT pipeline.
-  //
-  // Only on X64 do we have kernel-service.dart.snapshot available otherwise we
-  // need to fall back to the built-in one (if we have it).
-#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) ||                                \
-    (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
-  kernel_service_dill_ = nullptr;
-  kernel_service_dill_size_ = 0;
-#else
-  kernel_service_dill_ = kKernelServiceDill;
-  kernel_service_dill_size_ = kKernelServiceDillSize;
-#endif
-
-#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
-  platform_strong_dill_for_compilation_ = nullptr;
-  platform_strong_dill_for_compilation_size_ = 0;
-  platform_strong_dill_for_execution_ = nullptr;
-  platform_strong_dill_for_execution_size_ = 0;
-#else
-  platform_strong_dill_for_compilation_ = kPlatformStrongDill;
-  platform_strong_dill_for_compilation_size_ = kPlatformStrongDillSize;
-  platform_strong_dill_for_execution_ = kPlatformStrongDill;
-  platform_strong_dill_for_execution_size_ = kPlatformStrongDillSize;
-#endif
 }
 
 DFE::~DFE() {
@@ -87,72 +80,28 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  Init(Options::kAbiVersionUnset);
-}
-
-void DFE::Init(int target_abi_version) {
-  if (platform_strong_dill_for_compilation_ == nullptr) {
+  if (platform_strong_dill == nullptr) {
     return;
   }
 
-  if (!InitKernelServiceAndPlatformDills(target_abi_version)) {
-    return;
-  }
-
-  Dart_SetDartLibrarySourcesKernel(platform_strong_dill_for_compilation_,
-                                   platform_strong_dill_for_compilation_size_);
+  InitKernelServiceAndPlatformDills();
+  Dart_SetDartLibrarySourcesKernel(platform_strong_dill,
+                                   platform_strong_dill_size);
 }
 
-bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
-  const char kAbiVersionsDir[] = "dart-sdk/lib/_internal/abiversions";
-  const char kKernelServiceDillFile[] = "kernel_service.dill";
-  const char kPlatformStrongDillFile[] = "vm_platform_strong.dill";
-
+void DFE::InitKernelServiceAndPlatformDills() {
   if (frontend_filename_ != nullptr) {
-    return true;
+    return;
   }
 
   // |dir_prefix| includes the last path seperator.
   auto dir_prefix = EXEUtils::GetDirectoryPrefixFromExeName();
 
-  if (target_abi_version != Options::kAbiVersionUnset) {
-    kernel_service_dill_ = nullptr;
-    kernel_service_dill_size_ = 0;
-    platform_strong_dill_for_compilation_ = nullptr;
-    platform_strong_dill_for_compilation_size_ = 0;
-
-    // Look in the old abi version directory.
-    char* script_uri =
-        Utils::SCreate("%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
-                       target_abi_version, kPlatformStrongDillFile);
-    if (!TryReadKernelFile(
-            script_uri,
-            const_cast<uint8_t**>(&platform_strong_dill_for_compilation_),
-            &platform_strong_dill_for_compilation_size_)) {
-      Syslog::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
-      free(script_uri);
-      return false;
-    }
-    free(script_uri);
-    script_uri = Utils::SCreate("%s%s/%d/%s", dir_prefix.get(), kAbiVersionsDir,
-                                target_abi_version, kKernelServiceDillFile);
-    if (!TryReadKernelFile(script_uri,
-                           const_cast<uint8_t**>(&kernel_service_dill_),
-                           &kernel_service_dill_size_)) {
-      Syslog::PrintErr("Can't find old ABI dill file: %s\n", script_uri);
-      free(script_uri);
-      return false;
-    } else {
-      frontend_filename_ = script_uri;
-      return true;
-    }
-  }
-
   // Look for the frontend snapshot next to the executable.
   frontend_filename_ =
       Utils::SCreate("%s%s", dir_prefix.get(), kKernelServiceSnapshot);
   if (File::Exists(nullptr, frontend_filename_)) {
-    return true;
+    return;
   }
   free(frontend_filename_);
   frontend_filename_ = nullptr;
@@ -163,85 +112,85 @@ bool DFE::InitKernelServiceAndPlatformDills(int target_abi_version) {
       Utils::SCreate("%s%s%s%s", dir_prefix.get(), kSnapshotsDirectory,
                      File::PathSeparator(), kKernelServiceSnapshot);
   if (File::Exists(nullptr, frontend_filename_)) {
-    return true;
+    return;
   }
   free(frontend_filename_);
   frontend_filename_ = nullptr;
-  return true;
 }
 
 bool DFE::KernelServiceDillAvailable() const {
-  return kernel_service_dill_ != nullptr;
+  return kernel_service_dill != nullptr;
 }
 
 void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
                             intptr_t* kernel_service_buffer_size) {
-  *kernel_service_buffer = kernel_service_dill_;
-  *kernel_service_buffer_size = kernel_service_dill_size_;
+  *kernel_service_buffer = kernel_service_dill;
+  *kernel_service_buffer_size = kernel_service_dill_size;
 }
 
 void DFE::LoadPlatform(const uint8_t** kernel_buffer,
                        intptr_t* kernel_buffer_size) {
-  *kernel_buffer = platform_strong_dill_for_execution_;
-  *kernel_buffer_size = platform_strong_dill_for_execution_size_;
+  *kernel_buffer = platform_strong_dill;
+  *kernel_buffer_size = platform_strong_dill_size;
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_strong_dill_for_compilation_ != nullptr) &&
+  return (platform_strong_dill != nullptr) &&
          (KernelServiceDillAvailable() || (frontend_filename() != nullptr));
 }
 
-class WindowsPathSanitizer {
- public:
-  explicit WindowsPathSanitizer(const char* path) {
-    // For Windows we need to massage the paths a bit according to
-    // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
-    //
-    // Convert
-    // C:\one\two\three
-    // to
-    // /C:/one/two/three
-    //
-    // (see builtin.dart#_sanitizeWindowsPath)
-    intptr_t len = strlen(path);
-    sanitized_uri_ = reinterpret_cast<char*>(malloc(len + 1 + 1));
-    if (sanitized_uri_ == nullptr) {
-      OUT_OF_MEMORY();
-    }
-    char* s = sanitized_uri_;
-    if (len > 2 && path[1] == ':') {
-      *s++ = '/';
-    }
-    for (const char* p = path; *p != '\0'; ++p, ++s) {
-      *s = *p == '\\' ? '/' : *p;
-    }
-    *s = '\0';
+PathSanitizer::PathSanitizer(const char* path) {
+#if defined(HOST_OS_WINDOWS)
+  // For Windows we need to massage the paths a bit according to
+  // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
+  //
+  // Convert
+  // C:\one\two\three
+  // to
+  // /C:/one/two/three
+  //
+  // (see builtin.dart#_sanitizeWindowsPath)
+  if (path == nullptr) {
+    return;
   }
-  ~WindowsPathSanitizer() { free(sanitized_uri_); }
+  intptr_t len = strlen(path);
+  char* uri = reinterpret_cast<char*>(new char[len + 1 + 1]);
+  if (uri == nullptr) {
+    OUT_OF_MEMORY();
+  }
+  char* s = uri;
+  if (len > 2 && path[1] == ':') {
+    *s++ = '/';
+  }
+  for (const char* p = path; *p != '\0'; ++p, ++s) {
+    *s = *p == '\\' ? '/' : *p;
+  }
+  *s = '\0';
+  sanitized_uri_ = std::unique_ptr<char[]>(uri);
+#else
+  sanitized_uri_ = path;
+#endif  // defined(HOST_OS_WINDOWS)
+}
 
-  const char* sanitized_uri() { return sanitized_uri_; }
-
- private:
-  char* sanitized_uri_;
-
-  DISALLOW_COPY_AND_ASSIGN(WindowsPathSanitizer);
-};
+const char* PathSanitizer::sanitized_uri() const {
+#if defined(HOST_OS_WINDOWS)
+  return sanitized_uri_.get();
+#else
+  return sanitized_uri_;
+#endif  // defined(HOST_OS_WINDOWS)
+}
 
 Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
                                                 bool incremental,
                                                 const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
-#if defined(HOST_OS_WINDOWS)
-  WindowsPathSanitizer path_sanitizer(script_uri);
+  PathSanitizer path_sanitizer(script_uri);
   const char* sanitized_uri = path_sanitizer.sanitized_uri();
-#else
-  const char* sanitized_uri = script_uri;
-#endif
 
-  return Dart_CompileToKernel(
-      sanitized_uri, platform_strong_dill_for_compilation_,
-      platform_strong_dill_for_compilation_size_, incremental, package_config);
+  return Dart_CompileToKernel(sanitized_uri, platform_strong_dill,
+                              platform_strong_dill_size, incremental,
+                              package_config);
 }
 
 void DFE::CompileAndReadScript(const char* script_uri,
@@ -440,7 +389,7 @@ static bool TryReadKernelListBuffer(const char* script_uri,
 
     StringPointer resolved_filename(
         File::IsAbsolutePath(filename)
-            ? strdup(filename)
+            ? Utils::StrDup(filename)
             : Utils::SCreate("%s%s", kernel_list_dirname, filename));
     if (!TryReadFile(resolved_filename.c_str(), &this_buffer,
                      &this_kernel_size)) {

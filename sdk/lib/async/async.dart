@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /**
  * Support for asynchronous programming,
  * with classes such as Future and Stream.
@@ -79,32 +77,34 @@
  *   wanted to know about handling errors and exceptions when working with
  *   Futures (but were afraid to ask).
  *
- * * [The Event Loop and Dart](https://www.dartlang.org/articles/event-loop/):
+ * * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
  *   Learn how Dart handles the event queue and microtask queue, so you can
  *   write better asynchronous code with fewer surprises.
  *
  * * [test package: Asynchronous Tests][test-readme]: How to test asynchronous
  *   code.
  *
- * [asynchronous-programming]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartasync---asynchronous-programming
- * [futures-tutorial]: https://www.dartlang.org/docs/tutorials/futures/
- * [futures-error-handling]: https://www.dartlang.org/articles/futures-and-error-handling/
+ * [asynchronous-programming]: https://dart.dev/guides/libraries/library-tour#dartasync---asynchronous-programming
+ * [futures-tutorial]: https://dart.dev/codelabs/async-await
+ * [futures-error-handling]: https://dart.dev/guides/libraries/futures-error-handling
  * [test-readme]: https://pub.dev/packages/test
  *
  * {@category Core}
  */
 library dart.async;
 
-import "dart:collection" show HashMap, IterableBase;
+import "dart:collection" show HashMap;
 import "dart:_internal"
     show
         CastStream,
         CastStreamTransformer,
+        checkNotNullable,
         EmptyIterator,
         IterableElementError,
         printToZone,
         printToConsole,
-        Since;
+        Since,
+        typeAcceptsNull;
 
 part 'async_error.dart';
 part 'broadcast_stream_controller.dart';

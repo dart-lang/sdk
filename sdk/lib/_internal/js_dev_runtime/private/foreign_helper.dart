@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 library dart._foreign_helper;
 
 /**
@@ -108,7 +106,7 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-T JS<T extends Object>(String typeDescription, String codeTemplate,
+external T JS<T extends Object?>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,
@@ -128,7 +126,7 @@ T JS<T extends Object>(String typeDescription, String codeTemplate,
     arg16,
     arg17,
     arg18,
-    arg19]) {}
+    arg19]);
 
 /// Annotates the compiled Js name for fields and methods.
 /// Similar behaviour to `JS` from `package:js/js.dart` (but usable from runtime
@@ -161,73 +159,73 @@ JS_INTERCEPTOR_CONSTANT(Type type) {}
 /**
  * Returns the prefix used for generated is checks on classes.
  */
-String JS_OPERATOR_IS_PREFIX() {}
+external String JS_OPERATOR_IS_PREFIX();
 
 /**
  * Returns the prefix used for generated type argument substitutions on classes.
  */
-String JS_OPERATOR_AS_PREFIX() {}
+external String JS_OPERATOR_AS_PREFIX();
 
 /// Returns the name of the class `Object` in the generated code.
-String JS_OBJECT_CLASS_NAME() {}
+external String JS_OBJECT_CLASS_NAME();
 
 /// Returns the name of the class `Null` in the generated code.
-String JS_NULL_CLASS_NAME() {}
+external String JS_NULL_CLASS_NAME();
 
 /// Returns the name of the class `Function` in the generated code.
-String JS_FUNCTION_CLASS_NAME() {}
+external String JS_FUNCTION_CLASS_NAME();
 
 /**
  * Returns the field name used for determining if an object or its
  * interceptor has JavaScript indexing behavior.
  */
-String JS_IS_INDEXABLE_FIELD_NAME() {}
+external String JS_IS_INDEXABLE_FIELD_NAME();
 
 /// Returns the name used for generated function types on classes and methods.
-String JS_SIGNATURE_NAME() {}
+external String JS_SIGNATURE_NAME();
 
 /// Returns the name used to tag typedefs.
-String JS_TYPEDEF_TAG() {}
+external String JS_TYPEDEF_TAG();
 
 /// Returns the name used to tag function type representations in JavaScript.
-String JS_FUNCTION_TYPE_TAG() {}
+external String JS_FUNCTION_TYPE_TAG();
 
 /**
  * Returns the name used to tag void return in function type representations
  * in JavaScript.
  */
-String JS_FUNCTION_TYPE_VOID_RETURN_TAG() {}
+external String JS_FUNCTION_TYPE_VOID_RETURN_TAG();
 
 /**
  * Returns the name used to tag return types in function type representations
  * in JavaScript.
  */
-String JS_FUNCTION_TYPE_RETURN_TYPE_TAG() {}
+external String JS_FUNCTION_TYPE_RETURN_TYPE_TAG();
 
 /**
  * Returns the name used to tag required parameters in function type
  * representations in JavaScript.
  */
-String JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG() {}
+external String JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG();
 
 /**
  * Returns the name used to tag optional parameters in function type
  * representations in JavaScript.
  */
-String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG() {}
+external String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG();
 
 /**
  * Returns the name used to tag named parameters in function type
  * representations in JavaScript.
  */
-String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
+external String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG();
 
 /// Returns the JS name for [name] from the Namer.
-String JS_GET_NAME(String name) {}
+external String JS_GET_NAME(String name);
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
-bool JS_GET_FLAG(String name) {}
+external bool JS_GET_FLAG(String name);
 
 /**
  * Pretend [code] is executed.  Generates no executable code.  This is used to

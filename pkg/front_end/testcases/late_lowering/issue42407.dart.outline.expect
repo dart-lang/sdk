@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::A::T? _#A#x;
+  field core::bool _#A#x#isSet;
+  synthetic constructor •() → self::A<self::A::T%>
+    ;
+  get x() → self::A::T%;
+  set x(generic-covariant-impl self::A::T% #t1) → void;
+}
+class B<T extends core::Object? = dynamic> extends core::Object {
+  generic-covariant-impl field self::B::T? _y;
+  synthetic constructor •() → self::B<self::B::T%>
+    ;
+  get y() → self::B::T?
+    ;
+  set y(generic-covariant-impl self::B::T? val) → void
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throws(() → void f) → dynamic
+  ;

@@ -243,6 +243,23 @@ class ParsedFunction : public ZoneAllocated {
   // method.
   bool IsGenericCovariantImplParameter(intptr_t i) const;
 
+  // Variables needed for the InvokeFieldDispatcher for dynamic closure calls,
+  // because they are both read and written to by the builders.
+  struct DynamicClosureCallVars : ZoneAllocated {
+#define FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(V)                              \
+  V(current_num_processed, Smi, CurrentNumProcessed)                           \
+  V(current_param_index, Smi, CurrentParamIndex)
+
+#define DEFINE_FIELD(Name, _, __) LocalVariable* Name = nullptr;
+    FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(DEFINE_FIELD)
+#undef DEFINE_FIELD
+  };
+
+  DynamicClosureCallVars* dynamic_closure_call_vars() const {
+    return dynamic_closure_call_vars_;
+  }
+  DynamicClosureCallVars* EnsureDynamicClosureCallVars();
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -257,6 +274,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* expression_temp_var_;
   LocalVariable* entry_points_temp_var_;
   LocalVariable* finally_return_temp_var_;
+  DynamicClosureCallVars* dynamic_closure_call_vars_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
 

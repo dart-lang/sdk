@@ -1,0 +1,108 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "constants_lib.dart" as con;
+
+import "org-dartlang-testcase:///constants_lib.dart" as lib;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::Type objectTypeLiteral = #C1;
+static const field (core::int) → core::int partialInstantiation = #C3;
+static const field con::Class<core::int> instance = #C5;
+static const field core::Type functionTypeLiteral = #C6;
+static const field core::Type genericFunctionTypeLiteral = #C7;
+static const field core::List<core::int> listLiteral = #C8;
+static const field core::Set<core::int> setLiteral = #C12;
+static const field core::Map<core::int, core::String> mapLiteral = #C15;
+static const field core::List<core::int> listConcatenation = #C8;
+static const field core::Set<core::int> setConcatenation = #C12;
+static const field core::Map<core::int, core::String> mapConcatenation = #C15;
+static const field core::bool objectTypeLiteralIdentical = #C16;
+static const field core::bool partialInstantiationIdentical = #C16;
+static const field core::bool instanceIdentical = #C16;
+static const field core::bool functionTypeLiteralIdentical = #C16;
+static const field core::bool genericFunctionTypeLiteralIdentical = #C16;
+static const field core::bool listLiteralIdentical = #C16;
+static const field core::bool setLiteralIdentical = #C16;
+static const field core::bool mapLiteralIdentical = #C16;
+static const field core::bool listConcatenationIdentical = #C16;
+static const field core::bool setConcatenationIdentical = #C16;
+static const field core::bool mapConcatenationIdentical = #C16;
+static method main() → dynamic {
+  self::test(#C1, #C1);
+  self::test(#C3, #C3);
+  self::test(#C5, #C5);
+  self::test(#C6, #C6);
+  self::test(#C7, #C7);
+  self::test(#C8, #C8);
+  self::test(#C12, #C12);
+  self::test(#C15, #C15);
+  self::test(#C8, #C8);
+  self::test(#C12, #C12);
+  self::test(#C15, #C15);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+  self::test(true, #C16);
+}
+static method test(dynamic expected, dynamic actual) → dynamic {
+  core::print("test(${expected}, ${actual})");
+  if(!core::identical(expected, actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}
+
+library /*isNonNullableByDefault*/;
+import self as con;
+import "dart:core" as core;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field con::Class::T% field;
+  const constructor •(con::Class::T% field) → con::Class<con::Class::T%>
+    : con::Class::field = field, super core::Object::•()
+    ;
+}
+static const field core::Type objectTypeLiteral = #C1;
+static const field (core::Object?, core::Object?) → core::bool c2 = #C17;
+static const field (core::int) → core::int partialInstantiation = #C3;
+static const field con::Class<core::int> instance = #C5;
+static const field core::Type functionTypeLiteral = #C6;
+static const field core::Type genericFunctionTypeLiteral = #C7;
+static const field core::List<core::int> listLiteral = #C8;
+static const field core::Set<core::int> setLiteral = #C12;
+static const field core::Map<core::int, core::String> mapLiteral = #C15;
+static const field core::List<core::int> listConcatenation = #C8;
+static const field core::Set<core::int> setConcatenation = #C12;
+static const field core::Map<core::int, core::String> mapConcatenation = #C15;
+static method id<T extends core::Object? = dynamic>(con::id::T% t) → con::id::T%
+  return t;
+
+constants  {
+  #C1 = TypeLiteralConstant(core::Object)
+  #C2 = tearoff con::id
+  #C3 = partial-instantiation con::id <core::int*>
+  #C4 = 0
+  #C5 = con::Class<core::int*> {field:#C4}
+  #C6 = TypeLiteralConstant((dynamic) → dynamic)
+  #C7 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T%) → T%)
+  #C8 = <core::int*>[#C4]
+  #C9 = null
+  #C10 = <dynamic>[#C4, #C9]
+  #C11 = core::_ImmutableMap<core::int*, core::Null?> {_kvPairs:#C10}
+  #C12 = col::_UnmodifiableSet<core::int*> {_map:#C11}
+  #C13 = "foo"
+  #C14 = <dynamic>[#C4, #C13]
+  #C15 = core::_ImmutableMap<core::int*, core::String*> {_kvPairs:#C14}
+  #C16 = true
+  #C17 = tearoff core::identical
+}

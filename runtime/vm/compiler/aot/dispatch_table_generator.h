@@ -16,6 +16,7 @@ namespace dart {
 
 class ClassTable;
 class Precompiler;
+class PrecompilerTracer;
 
 namespace compiler {
 
@@ -75,6 +76,7 @@ class SelectorMap {
   int32_t NumIds() const { return selectors_.length(); }
 
   friend class dart::Precompiler;
+  friend class dart::PrecompilerTracer;
   friend class DispatchTableGenerator;
   friend class SelectorRow;
 

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ConstMapKeyExpressionTypeImplementsEqualsTest
-    extends DriverResolutionTest {
+    extends PubPackageResolutionTest {
   test_abstract() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -104,6 +104,29 @@ main() {
           CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
           121,
           9),
+    ]);
+  }
+
+  test_nestedIn_instanceCreation() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A();
+
+  bool operator ==(other) => false;
+}
+
+class B {
+  const B(_);
+}
+
+main() {
+  const B({A(): 0});
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+          110,
+          3),
     ]);
   }
 

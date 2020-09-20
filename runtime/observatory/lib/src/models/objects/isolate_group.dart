@@ -14,6 +14,8 @@ abstract class IsolateGroupRef {
 
   /// A name identifying this isolate group. Not guaranteed to be unique.
   String get name;
+
+  bool get isSystemIsolateGroup;
 }
 
 abstract class IsolateGroup extends IsolateGroupRef {

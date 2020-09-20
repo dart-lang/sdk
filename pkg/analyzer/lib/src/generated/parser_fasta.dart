@@ -4,23 +4,17 @@
 
 part of analyzer.parser;
 
-/**
- * Proxy implementation of the analyzer parser, implemented in terms of the
- * Fasta parser.
- */
+/// Proxy implementation of the analyzer parser, implemented in terms of the
+/// Fasta parser.
 abstract class ParserAdapter implements Parser {
   @override
   Token currentToken;
 
-  /**
-   * The fasta parser being wrapped.
-   */
+  /// The fasta parser being wrapped.
   final fasta.Parser fastaParser;
 
-  /**
-   * The builder which creates the analyzer AST data structures
-   * based on the Fasta parser.
-   */
+  /// The builder which creates the analyzer AST data structures
+  /// based on the Fasta parser.
   final AstBuilder astBuilder;
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
@@ -60,7 +54,7 @@ abstract class ParserAdapter implements Parser {
 
   /// Append the given token to the end of the token stream,
   /// and update the token's offset.
-  appendToken(Token token, Token newToken) {
+  void appendToken(Token token, Token newToken) {
     while (!token.next.isEof) {
       token = token.next;
     }
@@ -365,13 +359,9 @@ abstract class ParserAdapter implements Parser {
   Expression parseUnaryExpression() => parseExpression2();
 }
 
-/**
- * Replacement parser based on Fasta.
- */
+/// Replacement parser based on Fasta.
 class _Parser2 extends ParserAdapter {
-  /**
-   * The source being parsed.
-   */
+  /// The source being parsed.
   @override
   final Source _source;
 
@@ -396,5 +386,5 @@ class _Parser2 extends ParserAdapter {
             allowNativeClause: allowNativeClause);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

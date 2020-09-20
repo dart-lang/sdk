@@ -77,16 +77,18 @@ bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
   return (status == 0);
 }
 
-static bool TermHasXTerm() {
+static bool TermIsKnownToSupportAnsi() {
   const char* term = getenv("TERM");
   if (term == NULL) {
     return false;
   }
-  return strstr(term, "xterm") != NULL;
+
+  return strstr(term, "xterm") != NULL || strstr(term, "screen") != NULL ||
+         strstr(term, "rxvt") != NULL;
 }
 
 bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
-  *supported = isatty(fd) && TermHasXTerm();
+  *supported = isatty(fd) && TermIsKnownToSupportAnsi();
   return true;
 }
 
@@ -102,7 +104,7 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
 }
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
-  *supported = isatty(fd) && TermHasXTerm();
+  *supported = isatty(fd) && TermIsKnownToSupportAnsi();
   return true;
 }
 

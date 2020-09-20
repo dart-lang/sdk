@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/cpu_profile/virtual_tree.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
@@ -21,18 +21,6 @@ import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
 class NativeMemoryProfileElement extends CustomElement implements Renderable {
-  static const tag = const Tag<NativeMemoryProfileElement>(
-      'native-memory-profile',
-      dependencies: const [
-        NavTopMenuElement.tag,
-        NavVMMenuElement.tag,
-        NavRefreshElement.tag,
-        NavNotifyElement.tag,
-        SampleBufferControlElement.tag,
-        StackTraceTreeConfigElement.tag,
-        CpuProfileVirtualTreeElement.tag,
-      ]);
-
   RenderingScheduler<NativeMemoryProfileElement> _r;
 
   Stream<RenderedEvent<NativeMemoryProfileElement>> get onRendered =>
@@ -71,7 +59,7 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
     return e;
   }
 
-  NativeMemoryProfileElement.created() : super.created(tag);
+  NativeMemoryProfileElement.created() : super.created('native-memory-profile');
 
   @override
   attached() {

@@ -14,7 +14,7 @@ Null test() {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'void' can't be returned from a function with return type 'Null'.
 }
 
 void main() {

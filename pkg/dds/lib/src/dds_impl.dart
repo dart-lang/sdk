@@ -6,11 +6,9 @@ part of dds;
 
 class _DartDevelopmentService implements DartDevelopmentService {
   _DartDevelopmentService(
-    this._remoteVmServiceUri,
-    this._uri,
-    this._authCodesEnabled,
-  ) {
+      this._remoteVmServiceUri, this._uri, this._authCodesEnabled, this._ipv6) {
     _clientManager = _ClientManager(this);
+    _expressionEvaluator = _ExpressionEvaluator(this);
     _isolateManager = _IsolateManager(this);
     _loggingRepository = _LoggingRepository();
     _streamManager = _StreamManager(this);
@@ -37,8 +35,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   Future<void> _startDDSServer() async {
     // No provided address, bind to an available port on localhost.
-    // TODO(bkonyi): handle case where there's no IPv4 loopback.
-    final host = uri?.host ?? InternetAddress.loopbackIPv4.host;
+    final host = uri?.host ??
+        (_ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4)
+            .host;
     final port = uri?.port ?? 0;
 
     // Start the DDS server.
@@ -138,16 +137,38 @@ class _DartDevelopmentService implements DartDevelopmentService {
   // Attempt to upgrade HTTP requests to a websocket before processing them as
   // standard HTTP requests. The websocket handler will fail quickly if the
   // request doesn't appear to be a websocket upgrade request.
-  Cascade _handlers() => Cascade().add(_webSocketHandler()).add(_httpHandler());
+  Cascade _handlers() {
+    return Cascade()
+        .add(_webSocketHandler())
+        .add(_sseHandler())
+        .add(_httpHandler());
+  }
 
   Handler _webSocketHandler() => webSocketHandler((WebSocketChannel ws) {
-        final client = _DartDevelopmentServiceClient(
+        final client = _DartDevelopmentServiceClient.fromWebSocket(
           this,
           ws,
           _vmServiceClient,
         );
         clientManager.addClient(client);
       });
+
+  Handler _sseHandler() {
+    final handler = authCodesEnabled
+        ? SseHandler(Uri.parse('/$_authCode/$_kSseHandlerPath'))
+        : SseHandler(Uri.parse('/$_kSseHandlerPath'));
+
+    handler.connections.rest.listen((sseConnection) {
+      final client = _DartDevelopmentServiceClient.fromSSEConnection(
+        this,
+        sseConnection,
+        _vmServiceClient,
+      );
+      clientManager.addClient(client);
+    });
+
+    return handler.handler;
+  }
 
   Handler _httpHandler() {
     // DDS doesn't support any HTTP requests itself, so we just forward all of
@@ -156,10 +177,7 @@ class _DartDevelopmentService implements DartDevelopmentService {
     return cascade.handler;
   }
 
-  Uri _toWebSocket(Uri uri) {
-    if (uri == null) {
-      return null;
-    }
+  List<String> _cleanupPathSegments(Uri uri) {
     final pathSegments = <String>[];
     if (uri.pathSegments.isNotEmpty) {
       pathSegments.addAll(uri.pathSegments.where(
@@ -169,8 +187,25 @@ class _DartDevelopmentService implements DartDevelopmentService {
         (s) => s.isNotEmpty,
       ));
     }
+    return pathSegments;
+  }
+
+  Uri _toWebSocket(Uri uri) {
+    if (uri == null) {
+      return null;
+    }
+    final pathSegments = _cleanupPathSegments(uri);
     pathSegments.add('ws');
     return uri.replace(scheme: 'ws', pathSegments: pathSegments);
+  }
+
+  Uri _toSse(Uri uri) {
+    if (uri == null) {
+      return null;
+    }
+    final pathSegments = _cleanupPathSegments(uri);
+    pathSegments.add(_kSseHandlerPath);
+    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
   String _getNamespace(_DartDevelopmentServiceClient client) =>
@@ -185,8 +220,11 @@ class _DartDevelopmentService implements DartDevelopmentService {
   Uri _remoteVmServiceUri;
 
   Uri get uri => _uri;
+  Uri get sseUri => _toSse(_uri);
   Uri get wsUri => _toWebSocket(_uri);
   Uri _uri;
+
+  final bool _ipv6;
 
   bool get isRunning => _uri != null;
 
@@ -197,6 +235,9 @@ class _DartDevelopmentService implements DartDevelopmentService {
   _ClientManager get clientManager => _clientManager;
   _ClientManager _clientManager;
 
+  _ExpressionEvaluator get expressionEvaluator => _expressionEvaluator;
+  _ExpressionEvaluator _expressionEvaluator;
+
   _IsolateManager get isolateManager => _isolateManager;
   _IsolateManager _isolateManager;
 
@@ -205,6 +246,8 @@ class _DartDevelopmentService implements DartDevelopmentService {
 
   _StreamManager get streamManager => _streamManager;
   _StreamManager _streamManager;
+
+  static const _kSseHandlerPath = '\$debugHandler';
 
   json_rpc.Peer _vmServiceClient;
   WebSocketChannel _vmServiceSocket;

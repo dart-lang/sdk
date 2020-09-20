@@ -115,7 +115,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
     this.sourceFactory,
     this.resourceProvider, {
     Workspace workspace,
-  }) : this._workspace = workspace;
+  }) : _workspace = workspace;
 
   @override
   AnalysisOptionsImpl get analysisOptions {
@@ -128,7 +128,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   Workspace _buildWorkspace() {
     String path = contextRoot.root.path;
@@ -140,13 +140,12 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   @override
-  _MicroAnalysisContextImpl analysisContext;
-
-  @override
   final DeclaredVariables declaredVariables;
 
+  final SourceFactory sourceFactory;
+
   @override
-  SourceFactory sourceFactory;
+  _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
     this.declaredVariables,
@@ -190,11 +189,11 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
 
   @override
   Future<ResolvedUnitResult> getResolvedUnit(String path) async {
-    return analysisContext.fileResolver.resolve(path);
+    return analysisContext.fileResolver.resolve(path: path);
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _UriConverterImpl implements UriConverter {

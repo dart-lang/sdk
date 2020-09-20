@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../ast/parse_base.dart';
-import '../resolution/driver_resolution.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -920,7 +920,7 @@ void f() { // ref
 /// TODO(paulberry): migrate this test away from the task model.
 /// See dartbug.com/35734.
 @reflectiveTest
-class ExitDetectorResolvedStatementTest extends DriverResolutionTest {
+class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest {
   test_forStatement_implicitTrue_breakWithLabel() async {
     await _assertNthStatementDoesNotExit(r'''
 void f() {
@@ -1081,15 +1081,9 @@ void f() sync* {
   }
 
   Future<void> _assertHasReturn(String code, int n, bool expected) async {
-    var path = convertPath('/test/lib/test.dart');
+    await resolveTestCode(code);
 
-    newFile(path, content: code);
-
-    var session = driver.currentSession;
-    var resolvedResult = await session.getResolvedUnit(path);
-
-    var unit = resolvedResult.unit;
-    FunctionDeclaration function = unit.declarations.last;
+    FunctionDeclaration function = result.unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
     Statement statement = body.block.statements[n];
     expect(ExitDetector.exits(statement), expected);

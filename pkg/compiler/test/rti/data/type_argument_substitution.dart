@@ -11,14 +11,12 @@ import 'package:expect/expect.dart';
 
 class K {}
 
-/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[X<A<String>>]*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[X<A<String*>*>*]*/
+/*class: A:explicit=[X<A<String*>*>*]*/
 class A<T> {}
 
 class B extends A<K> {}
 
-/*spec:nnbd-off|prod:nnbd-off.class: X:explicit=[X<A<String>>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: X:explicit=[X<A<String*>*>*],needsArgs*/
+/*class: X:explicit=[X<A<String*>*>*],needsArgs*/
 class X<T> {}
 
 main() {

@@ -6,11 +6,9 @@
 
 import 'dart:async';
 
-/*spec:nnbd-off|prod:nnbd-off.class: global#Future:deps=[A],implicit=[Future<A.T>],indirect,needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: global#Future:deps=[A],implicit=[Future<A.T*>],indirect,needsArgs*/
+/*spec.class: global#Future:deps=[A],implicit=[Future<A.T*>],indirect,needsArgs*/
 
-/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[FutureOr<A.T>],implicit=[A.T,Future<A.T>],indirect,needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[FutureOr<A.T*>*],implicit=[A.T,Future<A.T*>],indirect,needsArgs*/
+/*class: A:explicit=[FutureOr<A.T*>*],implicit=[A.T,Future<A.T*>],indirect,needsArgs*/
 class A<T> {
   m(o) => o is FutureOr<T>;
 }

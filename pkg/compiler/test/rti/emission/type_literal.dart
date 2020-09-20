@@ -6,10 +6,10 @@
 
 import 'package:expect/expect.dart';
 
-/*class: Class1:checks=[],typeLiteral*/
+/*class: Class1:typeLiteral*/
 class Class1 {}
 
-/*class: Class2:checks=[],typeLiteral*/
+/*class: Class2:typeLiteral*/
 class Class2<X> {}
 
 void main() {

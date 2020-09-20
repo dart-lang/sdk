@@ -1,0 +1,42 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue42610.dart:6:4: Error: Expected an identifier, but got 'final'.
+// Try inserting an identifier before 'final'.
+//   #final;
+//    ^^^^^
+//
+// pkg/front_end/testcases/general/issue42610.dart:6:4: Error: Expected ';' after this.
+//   #final;
+//    ^^^^^
+//
+// pkg/front_end/testcases/general/issue42610.dart:6:9: Error: Expected an identifier, but got ';'.
+// Try inserting an identifier before ';'.
+//   #final;
+//         ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:7:9: Error: The final variable 'x' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   final x;
+//         ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:8:9: Error: The const variable 'y' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   const y;
+//         ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:9:13: Error: The final variable 'z' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   final int z;
+//             ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:10:13: Error: The const variable 'w' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   const int w;
+//             ^
+//
+import self as self;
+
+static method test() → void {}
+static method main() → void {}

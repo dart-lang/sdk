@@ -1,15 +1,116 @@
-## 2.9.0
-
-### Language
+## 2.10.0
 
 ### Core libraries
 
 #### `dart:io`
 
-*   [#42006][]: The signature of `exit` has been changed to return the
-    `Never`type instead of `void`. since no code will run after it,
+*   Adds `Abort` method to class `HttpClientRequest`, which allows users
+    to cancel outgoing HTTP requests and stop following IO operations.
+*   A validation check is added to `path` of class `Cookie`. Having characters
+    ranging from 0x00 to 0x1f and 0x3b (";") will lead to a `FormatException`.
+*   The `HttpClient` and `HttpServer` clasess now have a 1 MiB limit for the
+    total size of the HTTP headers when parsing a request or response, instead
+    of the former 8 KiB limit for each header name and value. This limit cannot
+    be configured at this time.
 
-[#42006]: https://github.com/dart-lang/sdk/issues/42006
+#### `dart:typed_data`
+
+*   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
+    It's temporarily being exported from `dart:io` as well.
+
+### Dart VM
+
+*   **Breaking Change** [#42982][]: `dart_api_dl.cc` is renamed to
+    `dart_api_dl.c` and changed to a pure C file.
+*   Introduces `Dart_FinalizableHandle`s. They do auto-delete, and the weakly
+    referred object cannot be accessed through them.
+
+### Dart2JS
+
+*   Adds support for deferred loading of types seperately from classes. This
+    enables dart2js to make better optimization choices when deferred loading.
+    This work is necessary to address unsoundness in the deferred loading
+    algorithm. Currently, fixing this unsoundness would result in code bloat,
+    but loading types seperately from classes will allow us to fix the
+    unsoundness with only a minimal regression. To explicitly disable
+    deferred loading of types, pass `--no-defer-class-types`. See the original
+    post on the [unsoundness in the deferred loading algorithm][].
+*   Enables a new sound deferred splitting algorithm. To explicitly disable
+    the new deferred splitting algorithm, pass `--no-new-deferred-split'.
+    See the original post on the
+    [unsoundness in the deferred loading algorithm][].
+
+
+[#42982]: https://github.com/dart-lang/sdk/issues/42982
+[unsoundness in the deferred loading algorithm]: https://github.com/dart-lang/sdk/blob/302ad7ab2cd2de936254850550aad128ae76bbb7/CHANGELOG.md#dart2js-3
+
+### Tools
+
+#### dartfmt
+
+* Don't crash when non-ASCII whitespace is trimmed.
+* Split all conditional expressions (`?:`) when they are nested.
+* Handle `external` and `abstract` fields and variables.
+
+#### Linter
+
+Updated the Linter to `0.1.119`, which includes:
+
+* Fixed `close_sinks` to handle `this`-prefixed property accesses.
+* New lint: `unnecessary_null_checks`.
+* Fixed `unawaited_futures` to handle `Future` subtypes.
+* New lint: `avoid_type_to_string`.
+* New lint: `unnecessary_nullable_for_final_variable_declarations`.
+* Fixed NPE in `prefer_asserts_in_initializer_lists`.
+* Fixed range error in `unnecessary_string_escapes`.
+* `unsafe_html` updated to support unique error codes.
+* Updates to `diagnostic_describe_all_properties` to check for `Diagnosticable`s (not `DiagnosticableMixin`s).
+* New lint: `use_late`.
+* Fixed `unnecessary_lambdas` to respect deferred imports.
+* Updated `public_member_api_docs` to check mixins.
+* Updated `unnecessary_statements` to skip `as` expressions.
+* Fixed `prefer_relative_imports` to work with path dependencies.
+
+#### Pub
+
+* `pub run` and `pub global run` accepts a `--(no-)-sound-null-safety` flag,
+  that is passed to the VM.
+* Fix: Avoid multiple recompilation of binaries in global packages.
+* Fix: Avoid exponential behaviour of error reporting from the solver.
+* Fix: Refresh binstubs after recompile in global run.
+
+## 2.9.3 - 2020-09-08
+
+This is a patch release that fixes DDC to handle a breaking change in Chrome
+(issue [#43193][]).
+
+[#43193]: https://github.com/dart-lang/sdk/issues/43193
+
+## 2.9.2 - 2020-08-26
+
+This is a patch release that fixes transient StackOverflow exceptions when
+building Flutter applications (issue [flutter/flutter#63560][]).
+
+[flutter/flutter#63560]: https://github.com/flutter/flutter/issues/63560
+
+## 2.9.1 - 2020-08-12
+
+This is a patch release that fixes unhandled exceptions in some Flutter
+applications (issue [flutter/flutter#63038][]).
+
+[flutter/flutter#63038]: https://github.com/flutter/flutter/issues/63038
+
+## 2.9.0 - 2020-08-05
+
+### Language
+
+### Core libraries
+
+#### `dart:async`
+
+*   Adds `Stream.multi` constructor creating streams which can be
+    listened to more than once, and where each individual listener
+    can be controlled independently.
 
 #### `dart:convert`
 
@@ -22,6 +123,20 @@
 
 [#41100]: https://github.com/dart-lang/sdk/issues/41100
 [WHATWG encoding standard]: https://encoding.spec.whatwg.org/#utf-8-decoder
+
+#### `dart:io`
+
+*   [#42006][]: The signature of `exit` has been changed to return the
+    `Never`type instead of `void`. since no code will run after it,
+*   Class `OSError` now implements `Exception`. This change means `OSError` will
+    now be caught in catch clauses catching `Exception`s.
+*   Added `InternetAddress.tryParse`.
+*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
+    `InternetAddress` with `address` starting with '@' and type being
+    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+
+[#42006]: https://github.com/dart-lang/sdk/issues/42006
+[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
 
 #### `dart:html`
 
@@ -37,21 +152,25 @@
     `Future` is empty instead, it completes asynchronously, therefore
     potentially invalidating code that relied on the synchronous side-effect.
     This change will only affect code using sound null-safety. See issue
-    [41653][] for more details.
+    [#41653][] for more details.
 
-[41653]: https://github.com/dart-lang/sdk/issues/41653
+*   Methods in `Console` have been updated to better reflect the modern Console
+    specification. Particularly of interest are `dir` and `table` which take in
+    extra optional arguments.
 
+[#41653]: https://github.com/dart-lang/sdk/issues/41653
 
-#### `dart:io`
+#### `dart:mirrors`
 
-*   Class `OSError` now implements `Exception`. This change means `OSError` will
-    now be caught in catch clauses catching `Exception`s.
-*   Added `InternetAddress.tryParse`.
-*   [Abstract Unix Domain Socket][] is supported on Linux/Android now. Using an
-    `InternetAddress` with `address` starting with '@' and type being
-    `InternetAddressType.Unix` will create an abstract Unix Domain Socket.
+*   **Breaking Change** [#42714][]: web compilers (dart2js and DDC) now produce
+    a compile-time error if `dart:mirrors` is imported.
 
-[Abstract Unix Domain Socket]: http://man7.org/linux/man-pages/man7/unix.7.html
+    Most projects should not be affected. Since 2.0.0 this library was
+    unsupported and produced runtime errors on all its APIs. Since then several
+    tools already reject code that use `dart:mirrors` including webdev and
+    flutter tools, we expect few projects to run into this problem.
+
+[#42714]: https://github.com/dart-lang/sdk/issues/42714
 
 ### Tools
 
@@ -68,40 +187,56 @@
 
 #### Linter
 
-Updated the Linter to `0.1.116`, which includes:
+Updated the Linter to `0.1.117`, which includes:
 
-* New lint: `no_default_cases` (experimental).
+* New lint: `do_not_use_environment`.
 * New lint: `exhaustive_cases`.
-* Updated `type_annotate_public_apis` to allow inferred types in final field assignments.
-* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
-* New lint: `use_is_even_rather_than_modulo`.
-* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable).
-* Improved `sized_box_for_whitespace` to address false-positives.
-* Fixed `unsafe_html` to check attributes and methods on extensions.
-* Extended `unsafe_html` to include `Window.open`, `Element.html` and
-  `DocumentFragment.html` in unsafe API checks.
-* Improved docs for `sort_child_properties_last`.
-* (internal) `package:analyzer` API updates.
+* New lint: `no_default_cases` (experimental).
 * New lint: `sized_box_for_whitespace`.
+* New lint: `use_is_even_rather_than_modulo`.
+* Updated `directives_ordering` to remove third party package special-casing.
+* Updated `prefer_is_empty` to special-case assert initializers and const
+  contexts.
+* Updated `prefer_mixin` to allow "legacy" SDK abstract class mixins.
+* Updated `sized_box_for_whitespace` to address false-positives.
+* Updated `type_annotate_public_apis` to allow inferred types in final field
+  assignments.
+* Updated `unnecessary_lambdas` to check for tear-off assignability.
+* Updated `unsafe_html` to use a `SecurityLintCode` (making it un-ignorable) and
+  to include `Window.open`, `Element.html` and `DocumentFragment.html` in unsafe
+  API checks. Also added checks for attributes and methods on extensions.
 
 ### Dart VM
+
+*   **Breaking Change** [#41100][]: When printing a string using the `print`
+    function, the default implementation (used when not overridden by the
+    embedder or the current zone) will print any unpaired surrogates in the
+    string as replacement characters (`U+FFFD`). Similarly, the
+    `Dart_StringToUTF8` function in the Dart API will convert unpaired
+    surrogates into replacement characters.
 
 ### Pub
 * `pub run` and `pub global run` accepts a `--enable-experiment` flag enabling
   experiments in the Dart VM (and language).
+* Warn when publishing the first null-safe version of a package.
+* `pub outdated`:
+  * If the current version of a dependency is a prerelease
+    version, use prereleases for latest if there is no newer stable.
+  * Don't require a `pubspec.lock` file. When the lockfile is missing, the
+    **Current** column is empty.
+* `pub upgrade`: Show summary count of outdated packages after running.
+  It will also only show newer packages if they are not prereleases or
+  the package is already a prerelease.
 * Publishing Flutter plugins using the old plugin format is no longer allowed.
   Plugins using the old plugin format can still be consumed.
-* Introduce `pub outdated --mode=null-safety` that will report which of your
-  dependencies you can upgrade to fully support null safety.
-* Fix `pub run` precompilation with relative `PUB_CACHE` paths (#2486)
-* Warn at publishing first time a package version opts in to null-safety.
-* Preserve Windows line endings in pubspec.lock if they are already there (#2489)
+* `pub run`: Fix precompilation with relative `PUB_CACHE` paths
+  ([#2486](https://github.com/dart-lang/pub/pull/2486)).
+* Preserve Windows line endings in `pubspec.lock` if they are already there
+  ([#2489](https://github.com/dart-lang/pub/pull/2489)).
 * Better terminal color-detection. Use colors in terminals on Windows.
-* `pub outdated`: If the current version of a dependency is a prerelease 
-  version, use prereleases for latest if no newer stable.
-* `pub outdated` now works without a lockfile. In that case the 'Current'
-  column will be empty.
-* `pub upgrade`: Show summary count of outdated packages after running.
+* Fix git folder names in cache, allowing for ssh-style git
+  dependencies.
+* Fix: Avoid precompilation of dependencies of global packages.
 
 ## 2.8.4 - 2020-06-04
 

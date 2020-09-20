@@ -452,6 +452,7 @@ void PageSpace::FreePages(OldPage* pages) {
 
 void PageSpace::EvaluateConcurrentMarking(GrowthPolicy growth_policy) {
   if (growth_policy != kForceGrowth) {
+    ASSERT(GrowthControlState());
     if (heap_ != NULL) {  // Some unit tests.
       Thread* thread = Thread::Current();
       if (thread->CanCollectGarbage()) {
@@ -1020,6 +1021,8 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
 }
 
 void PageSpace::CollectGarbage(bool compact, bool finalize) {
+  ASSERT(GrowthControlState());
+
   if (!finalize) {
 #if defined(TARGET_ARCH_IA32)
     return;  // Barrier not implemented.
@@ -1030,9 +1033,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 
   Thread* thread = Thread::Current();
+  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
+  SafepointOperationScope safepoint_scope(thread);
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
-
   // Wait for pending tasks to complete and then account for the driver task.
   Phase waited_for;
   {
@@ -1045,15 +1049,15 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
     }
 
     while (tasks() > 0) {
-      locker.WaitWithSafepointCheck(thread);
+      locker.Wait();
     }
     ASSERT(phase() == kAwaitingFinalization || phase() == kDone);
     set_tasks(1);
   }
 
-  const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
   if (FLAG_verbose_gc) {
-    const int64_t wait = pre_safe_point - pre_wait_for_sweepers;
+    const int64_t wait =
+        OS::GetCurrentMonotonicMicros() - pre_wait_for_sweepers;
     if (waited_for == kMarking) {
       THR_Print("Waited %" Pd64 " us for concurrent marking to finish.\n",
                 wait);
@@ -1068,9 +1072,8 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   // to ensure that if two threads are racing to collect at the same time the
   // loser skips collection and goes straight to allocation.
   {
-    SafepointOperationScope safepoint_scope(thread);
-    CollectGarbageAtSafepoint(compact, finalize, pre_wait_for_sweepers,
-                              pre_safe_point);
+    CollectGarbageHelper(compact, finalize, pre_wait_for_sweepers,
+                         pre_safe_point);
   }
 
   // Done, reset the task count.
@@ -1081,10 +1084,10 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
   }
 }
 
-void PageSpace::CollectGarbageAtSafepoint(bool compact,
-                                          bool finalize,
-                                          int64_t pre_wait_for_sweepers,
-                                          int64_t pre_safe_point) {
+void PageSpace::CollectGarbageHelper(bool compact,
+                                     bool finalize,
+                                     int64_t pre_wait_for_sweepers,
+                                     int64_t pre_safe_point) {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsAtSafepoint());
   auto isolate_group = heap_->isolate_group();
@@ -1437,54 +1440,53 @@ static void EnsureEqualImagePages(OldPage* pages, OldPage* other_pages) {
 #endif
 }
 
-void PageSpace::MergeOtherPageSpace(PageSpace* other) {
-  other->AbandonBumpAllocation();
+void PageSpace::MergeFrom(PageSpace* donor) {
+  donor->AbandonBumpAllocation();
 
-  ASSERT(other->tasks_ == 0);
-  ASSERT(other->concurrent_marker_tasks_ == 0);
-  ASSERT(other->phase_ == kDone);
-  DEBUG_ASSERT(other->iterating_thread_ == nullptr);
-  ASSERT(other->marker_ == nullptr);
+  ASSERT(donor->tasks_ == 0);
+  ASSERT(donor->concurrent_marker_tasks_ == 0);
+  ASSERT(donor->phase_ == kDone);
+  DEBUG_ASSERT(donor->iterating_thread_ == nullptr);
+  ASSERT(donor->marker_ == nullptr);
 
   for (intptr_t i = 0; i < num_freelists_; ++i) {
-    ASSERT(other->freelists_[i].top() == 0);
-    ASSERT(other->freelists_[i].end() == 0);
+    ASSERT(donor->freelists_[i].top() == 0);
+    ASSERT(donor->freelists_[i].end() == 0);
     const bool is_protected =
         FLAG_write_protect_code && i == OldPage::kExecutable;
-    freelists_[i].MergeOtherFreelist(&other->freelists_[i], is_protected);
-    other->freelists_[i].Reset();
+    freelists_[i].MergeFrom(&donor->freelists_[i], is_protected);
+    donor->freelists_[i].Reset();
   }
 
   // The freelist locks will be taken in MergeOtherFreelist above, and the
   // locking order is the freelist locks are taken before the page list locks,
   // so don't take the pages lock until after MergeOtherFreelist.
   MutexLocker ml(&pages_lock_);
-  MutexLocker ml2(&other->pages_lock_);
+  MutexLocker ml2(&donor->pages_lock_);
 
-  AppendList(&pages_, &pages_tail_, &other->pages_, &other->pages_tail_);
-  AppendList(&exec_pages_, &exec_pages_tail_, &other->exec_pages_,
-             &other->exec_pages_tail_);
-  AppendList(&large_pages_, &large_pages_tail_, &other->large_pages_,
-             &other->large_pages_tail_);
+  AppendList(&pages_, &pages_tail_, &donor->pages_, &donor->pages_tail_);
+  AppendList(&exec_pages_, &exec_pages_tail_, &donor->exec_pages_,
+             &donor->exec_pages_tail_);
+  AppendList(&large_pages_, &large_pages_tail_, &donor->large_pages_,
+             &donor->large_pages_tail_);
   // We intentionall do not merge [image_pages_] beause [this] and [other] have
   // the same mmap()ed image page areas.
-  EnsureEqualImagePages(image_pages_, other->image_pages_);
+  EnsureEqualImagePages(image_pages_, donor->image_pages_);
 
   // We intentionaly do not increase [max_capacity_in_words_] because this can
   // lead [max_capacity_in_words_] to become larger and larger and eventually
   // wrap-around and become negative.
-  allocated_black_in_words_ += other->allocated_black_in_words_;
-  gc_time_micros_ += other->gc_time_micros_;
-  collections_ += other->collections_;
+  allocated_black_in_words_ += donor->allocated_black_in_words_;
+  gc_time_micros_ += donor->gc_time_micros_;
+  collections_ += donor->collections_;
 
-  usage_.capacity_in_words += other->usage_.capacity_in_words;
-  usage_.used_in_words += other->usage_.used_in_words;
-  usage_.external_in_words += other->usage_.external_in_words;
+  usage_.capacity_in_words += donor->usage_.capacity_in_words;
+  usage_.used_in_words += donor->usage_.used_in_words;
+  usage_.external_in_words += donor->usage_.external_in_words;
 
-  page_space_controller_.MergeOtherPageSpaceController(
-      &other->page_space_controller_);
+  page_space_controller_.MergeFrom(&donor->page_space_controller_);
 
-  ASSERT(FLAG_concurrent_mark || other->enable_concurrent_mark_ == false);
+  ASSERT(FLAG_concurrent_mark || donor->enable_concurrent_mark_ == false);
 }
 
 PageSpaceController::PageSpaceController(Heap* heap,
@@ -1613,14 +1615,27 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     grow_heap = 0;
   }
   heap_->RecordData(PageSpace::kPageGrowth, grow_heap);
-
-  // Limit shrinkage: allow growth by at least half the pages freed by GC.
-  const intptr_t freed_pages =
-      (before.CombinedUsedInWords() - after.CombinedUsedInWords()) /
-      kOldPageSizeInWords;
-  grow_heap = Utils::Maximum(grow_heap, freed_pages / 2);
-  heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
   last_usage_ = after;
+
+  intptr_t max_capacity_in_words = heap_->old_space()->max_capacity_in_words_;
+  if (max_capacity_in_words != 0) {
+    ASSERT(grow_heap >= 0);
+    // Fraction of asymptote used.
+    double f = static_cast<double>(after.CombinedUsedInWords() +
+                                   (kOldPageSizeInWords * grow_heap)) /
+               static_cast<double>(max_capacity_in_words);
+    ASSERT(f >= 0.0);
+    // Increase weight at the high end.
+    f = f * f;
+    // Fraction of asymptote available.
+    f = 1.0 - f;
+    ASSERT(f <= 1.0);
+    // Discount growth more the closer we get to the desired asymptote.
+    grow_heap = static_cast<intptr_t>(grow_heap * f);
+    // Minimum growth step after reaching the asymptote.
+    intptr_t min_step = (2 * MB) / kOldPageSize;
+    grow_heap = Utils::Maximum(min_step, grow_heap);
+  }
 
   RecordUpdate(before, after, grow_heap, "gc");
 }
@@ -1697,11 +1712,21 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   }
 }
 
-void PageSpaceController::MergeOtherPageSpaceController(
-    PageSpaceController* other) {
-  last_usage_.capacity_in_words += other->last_usage_.capacity_in_words;
-  last_usage_.used_in_words += other->last_usage_.used_in_words;
-  last_usage_.external_in_words += other->last_usage_.external_in_words;
+void PageSpaceController::HintFreed(intptr_t size) {
+  intptr_t size_in_words = size << kWordSizeLog2;
+  if (size_in_words > idle_gc_threshold_in_words_) {
+    idle_gc_threshold_in_words_ = 0;
+  } else {
+    idle_gc_threshold_in_words_ -= size_in_words;
+  }
+
+  // TODO(rmacnak): Hasten the soft threshold at some discount?
+}
+
+void PageSpaceController::MergeFrom(PageSpaceController* donor) {
+  last_usage_.capacity_in_words += donor->last_usage_.capacity_in_words;
+  last_usage_.used_in_words += donor->last_usage_.used_in_words;
+  last_usage_.external_in_words += donor->last_usage_.external_in_words;
 }
 
 void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,

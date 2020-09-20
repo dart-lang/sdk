@@ -24,6 +24,18 @@ void main() {
     });
   });
 
+  group('relativePath', () {
+    test('direct', () {
+      var dir = Directory('foo');
+      expect(relativePath('path', dir), 'path');
+    });
+
+    test('nested', () {
+      var dir = Directory('foo');
+      expect(relativePath(join(dir.absolute.path, 'path'), dir), 'path');
+    });
+  });
+
   group('trimEnd', () {
     test('null string', () {
       expect(trimEnd(null, 'suffix'), null);
@@ -88,9 +100,42 @@ void main() {
       expect(File('bar.bart').name, 'bar.bart');
     });
   });
+
+  group('PubUtils', () {
+    test('doModifyArgs', () {
+      const allCmds = ['analyze', 'help', 'pub', 'migrate'];
+      expect(PubUtils.shouldModifyArgs(null, null), isFalse);
+      expect(PubUtils.shouldModifyArgs([], null), isFalse);
+      expect(PubUtils.shouldModifyArgs(null, []), isFalse);
+      expect(PubUtils.shouldModifyArgs([], []), isFalse);
+      expect(PubUtils.shouldModifyArgs(['-h'], allCmds), isFalse);
+      expect(PubUtils.shouldModifyArgs(['--help'], allCmds), isFalse);
+      expect(PubUtils.shouldModifyArgs(['help'], allCmds), isFalse);
+      expect(PubUtils.shouldModifyArgs(['pub'], allCmds), isFalse);
+      expect(PubUtils.shouldModifyArgs(['analyze', 'help', 'pub'], allCmds),
+          isFalse);
+
+      expect(PubUtils.shouldModifyArgs(['--some-flag', 'help', 'pub'], allCmds),
+          isTrue);
+      expect(PubUtils.shouldModifyArgs(['help', 'pub'], allCmds), isTrue);
+      expect(PubUtils.shouldModifyArgs(['help', 'pub', 'publish'], allCmds),
+          isTrue);
+      expect(PubUtils.shouldModifyArgs(['help', 'pub', 'analyze'], allCmds),
+          isTrue);
+    });
+
+    test('modifyArgs', () {
+      expect(PubUtils.modifyArgs(['--some-flag', 'help', 'pub']),
+          orderedEquals(['--some-flag', 'pub', '--help']));
+      expect(PubUtils.modifyArgs(['help', 'pub']),
+          orderedEquals(['pub', '--help']));
+      expect(PubUtils.modifyArgs(['help', 'pub', 'publish']),
+          orderedEquals(['pub', 'publish', '--help']));
+    });
+  });
 }
 
-final String _packageData = '''{
+const String _packageData = '''{
   "configVersion": 2,
   "packages": [
     {

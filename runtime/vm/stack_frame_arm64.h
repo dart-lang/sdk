@@ -50,10 +50,10 @@ static const int kLastParamSlotFromEntrySp = 0;
 
 // Entry and exit frame layout.
 #if defined(TARGET_OS_FUCHSIA)
-static const int kExitLinkSlotFromEntryFp = -23;
+static const int kExitLinkSlotFromEntryFp = -24;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 11);
 #else
-static const int kExitLinkSlotFromEntryFp = -22;
+static const int kExitLinkSlotFromEntryFp = -23;
 COMPILE_ASSERT(kAbiPreservedCpuRegCount == 10);
 #endif
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 8);

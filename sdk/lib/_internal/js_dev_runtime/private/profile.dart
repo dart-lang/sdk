@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// This file supports profiling dynamic calls.
 part of dart._debugger;
 
 class _MethodStats {
   final String typeName;
   final String frame;
-  double count;
+  double count = 0.0;
 
-  _MethodStats(this.typeName, this.frame) {
-    count = 0.0;
-  }
+  _MethodStats(this.typeName, this.frame);
 }
 
 class _CallMethodRecord {
@@ -29,7 +25,7 @@ int _callRecordSampleSize = 5000;
 
 /// If the number of dynamic calls exceeds [_callRecordSampleSize] this list
 /// will represent a random sample of the dynamic calls made.
-List<_CallMethodRecord> _callMethodRecords = List();
+var _callMethodRecords = <_CallMethodRecord>[];
 
 /// If the number of dynamic calls exceeds [_callRecordSampleSize] this value
 /// will be greater than [_callMethodRecords.length].
@@ -45,7 +41,7 @@ num _minCount = 2;
 /// speedup lookup of source map frames when running the profiler.
 /// The number of source map entries looked up makes caching more important
 /// in this case than for typical source map use cases.
-Map<String, String> _frameMappingCache = Map();
+var _frameMappingCache = <String, String>{};
 
 List<List<Object>> getDynamicStats() {
   // Process the accumulated method stats. This may be quite slow as processing
@@ -56,7 +52,7 @@ List<List<Object>> getDynamicStats() {
   // raw number of dynamic calls so that the magnitude of the dynamic call
   // performance hit is clear to users.
 
-  Map<String, _MethodStats> callMethodStats = Map();
+  var callMethodStats = <String, _MethodStats>{};
   if (_callMethodRecords.length > 0) {
     // Ratio between total record count and sampled records count.
     var recordRatio = _totalCallRecords / _callMethodRecords.length;
@@ -67,8 +63,8 @@ List<List<Object>> getDynamicStats() {
       // runtime.
       var src = frames
           .skip(2)
-          .map((f) =>
-              _frameMappingCache.putIfAbsent(f, () => stackTraceMapper('\n$f')))
+          .map((f) => _frameMappingCache.putIfAbsent(
+              f, () => stackTraceMapper!('\n$f')))
           .firstWhere((f) => !f.startsWith('dart:'), orElse: () => '');
 
       var actualTypeName = dart.typeName(record.type);
@@ -83,7 +79,7 @@ List<List<Object>> getDynamicStats() {
     // complete profile.
     if (_totalCallRecords != _callMethodRecords.length) {
       for (var k in callMethodStats.keys.toList()) {
-        var stats = callMethodStats[k];
+        var stats = callMethodStats[k]!;
         var threshold = _minCount * recordRatio;
         if (stats.count + 0.001 < threshold) {
           callMethodStats.remove(k);
@@ -94,12 +90,11 @@ List<List<Object>> getDynamicStats() {
   _callMethodRecords.clear();
   _totalCallRecords = 0;
   var keys = callMethodStats.keys.toList();
-
   keys.sort(
-      (a, b) => callMethodStats[b].count.compareTo(callMethodStats[a].count));
-  List<List<Object>> ret = [];
+      (a, b) => callMethodStats[b]!.count.compareTo(callMethodStats[a]!.count));
+  var ret = <List<Object>>[];
   for (var key in keys) {
-    var stats = callMethodStats[key];
+    var stats = callMethodStats[key]!;
     ret.add([stats.typeName, stats.frame, stats.count.round()]);
   }
   return ret;

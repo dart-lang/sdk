@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /// This library defines runtime operations on objects used by the code
 /// generator.
 part of dart._runtime;
@@ -19,7 +17,7 @@ class InvocationImpl extends Invocation {
   final bool isSetter;
   final String failureMessage;
 
-  InvocationImpl(memberName, List<Object> positionalArguments,
+  InvocationImpl(memberName, List<Object?> positionalArguments,
       {namedArguments,
       List typeArguments = const [],
       this.isMethod = false,
@@ -146,7 +144,7 @@ dput(obj, field, value) {
 /// [actuals] and [namedActuals].
 ///
 /// Returns `null` if all checks pass.
-String _argumentErrors(FunctionType type, List actuals, namedActuals) {
+String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Check for too few required arguments.
   int actualsCount = JS('!', '#.length', actuals);
   var required = type.args;
@@ -165,7 +163,7 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
   }
 
   // Check if we have invalid named arguments.
-  Iterable names;
+  Iterable? names;
   var named = type.named;
   var requiredNamed = type.requiredNamed;
   if (namedActuals != null) {
@@ -187,7 +185,7 @@ String _argumentErrors(FunctionType type, List actuals, namedActuals) {
     if (missingRequired.isNotEmpty) {
       var error = "Dynamic call with missing required named arguments: "
           "${missingRequired.join(', ')}.";
-      if (!strictNullSafety) {
+      if (!compileTimeFlag('soundNullSafety')) {
         _nullWarn(error);
       } else {
         return error;
@@ -432,7 +430,7 @@ bool instanceOf(obj, type) {
 cast(obj, type) {
   // We hoist the common case where null is checked against another type here
   // for better performance.
-  if (obj == null && !strictNullSafety) {
+  if (obj == null && !compileTimeFlag('soundNullSafety')) {
     // Check the null comparison cache to avoid emitting repeated warnings.
     _nullWarnOnType(type);
     return obj;
@@ -444,7 +442,7 @@ cast(obj, type) {
   return castError(obj, type);
 }
 
-bool test(bool obj) {
+bool test(bool? obj) {
   if (obj == null) throw BooleanConversionAssertionError();
   return obj;
 }
@@ -452,11 +450,13 @@ bool test(bool obj) {
 bool dtest(obj) {
   // Only throw an AssertionError in weak mode for compatibility. Strong mode
   // should throw a TypeError.
-  if (obj is! bool) booleanConversionFailed(strictNullSafety ? obj : test(obj));
+  if (obj is! bool)
+    booleanConversionFailed(
+        compileTimeFlag('soundNullSafety') ? obj : test(obj));
   return obj;
 }
 
-void booleanConversionFailed(obj) {
+Never booleanConversionFailed(obj) {
   var actual = typeName(getReifiedType(obj));
   throw TypeErrorImpl("type '$actual' is not a 'bool' in boolean expression");
 }
@@ -464,7 +464,7 @@ void booleanConversionFailed(obj) {
 asInt(obj) {
   // Note: null (and undefined) will fail this test.
   if (JS('!', 'Math.floor(#) != #', obj, obj)) {
-    if (obj == null && !strictNullSafety) {
+    if (obj == null && !compileTimeFlag('soundNullSafety')) {
       _nullWarnOnType(JS('', '#', int));
       return null;
     } else {
@@ -476,7 +476,9 @@ asInt(obj) {
 
 asNullableInt(obj) => obj == null ? null : asInt(obj);
 
-/// Checks that `x` is not null or undefined.
+/// Checks for null or undefined and returns [x].
+///
+/// Throws [NoSuchMethodError] when it is null or undefined.
 //
 // TODO(jmesserly): inline this, either by generating it as a function into
 // the module, or via some other pattern such as:
@@ -489,20 +491,31 @@ _notNull(x) {
   return x;
 }
 
-/// Checks that `x` is not null or undefined.
+/// Checks for null or undefined and returns [x].
 ///
-/// Unlike `_notNull`, this throws a `CastError` (under strict checking)
-/// or emits a runtime warning (otherwise).  This is only used by the
-/// compiler when casting from nullable to non-nullable variants of the
-/// same type.
+/// Throws a [TypeError] when [x] is null or undefined (under sound null safety
+/// mode) or emits a runtime warning (otherwise).
+///
+/// This is only used by the compiler when casting from nullable to non-nullable
+/// variants of the same type.
 nullCast(x, type) {
   if (x == null) {
-    if (!strictNullSafety) {
+    if (!compileTimeFlag('soundNullSafety')) {
       _nullWarnOnType(type);
     } else {
       castError(x, type);
     }
   }
+  return x;
+}
+
+/// Checks for null or undefined and returns [x].
+///
+/// Throws a [TypeError] when [x] is null or undefined.
+///
+/// This is only used by the compiler for the runtime null check operator `!`.
+nullCheck(x) {
+  if (x == null) throw TypeErrorImpl("Unexpected null value.");
   return x;
 }
 
@@ -513,11 +526,11 @@ final constantMaps = JS<Object>('!', 'new Map()');
 // Keeping the paths is probably expensive.  It would probably
 // be more space efficient to just use a direct hash table with
 // an appropriately defined structural equality function.
-Object _lookupNonTerminal(Object map, Object key) {
+Object _lookupNonTerminal(Object map, Object? key) {
   var result = JS('', '#.get(#)', map, key);
   if (result != null) return result;
   JS('', '#.set(#, # = new Map())', map, key, result);
-  return result;
+  return result!;
 }
 
 Map<K, V> constMap<K, V>(JSArray elements) {
@@ -527,7 +540,7 @@ Map<K, V> constMap<K, V>(JSArray elements) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
   map = _lookupNonTerminal(map, K);
-  Map<K, V> result = JS('', '#.get(#)', map, V);
+  Map<K, V>? result = JS('', '#.get(#)', map, V);
   if (result != null) return result;
   result = ImmutableMap<K, V>.from(elements);
   JS('', '#.set(#, #)', map, V, result);
@@ -550,7 +563,7 @@ Set<E> constSet<E>(JSArray<E> elements) {
   for (var i = 0; i < count; i++) {
     map = _lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
-  Set<E> result = JS('', '#.get(#)', map, E);
+  Set<E>? result = JS('', '#.get(#)', map, E);
   if (result != null) return result;
   result = _createImmutableSet<E>(elements);
   JS('', '#.set(#, #)', map, E, result);
@@ -772,22 +785,38 @@ void defineLazy(to, from, bool useOldSemantics) {
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
 defineLazyField(to, name, desc) => JS('', '''(() => {
   const initializer = $desc.get;
+  const final = $desc.set == null;
+  // Tracks if the initializer has been called.
+  let initialized = false;
   let init = initializer;
   let value = null;
-  let executed = false;
+  // Tracks if these local variables have been saved so they can be restored
+  // after a hot restart.
+  let savedLocals = false;
   $desc.get = function() {
     if (init == null) return value;
-    if (!executed) {
+    if (final && initialized) $throwLateInitializationError($name);
+    if (!savedLocals) {
       // Record the field on first execution so we can reset it later if
       // needed (hot restart).
       $_resetFields.push(() => {
         init = initializer;
         value = null;
-        executed = false;
+        savedLocals = false;
+        initialized = false;
       });
-      executed = true;
+      savedLocals = true;
     }
-    value = init();
+    // Must set before calling init in case it is recursive.
+    initialized = true;
+    try {
+      value = init();
+    } catch (e) {
+      // Reset to false so the initializer can be executed again if the
+      // exception was caught.
+      initialized = false;
+      throw e;
+    }
     init = null;
     return value;
   };
@@ -796,7 +825,7 @@ defineLazyField(to, name, desc) => JS('', '''(() => {
     $desc.set = function(x) {
       init = null;
       value = x;
-      // executed is dead since init is set to null
+      // savedLocals and initialized are dead since init is set to null
     };
   }
   return ${defineProperty(to, name, desc)};

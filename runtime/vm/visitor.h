@@ -52,6 +52,11 @@ class ObjectPointerVisitor {
 
   virtual bool visit_weak_persistent_handles() const { return false; }
 
+  // When visiting objects to build retaining paths, trace field values
+  // through fields.
+  // Otherwise trace field values through isolate's field_table.
+  virtual bool trace_values_through_fields() const { return false; }
+
   const SharedClassTable* shared_class_table() const {
     return shared_class_table_;
   }

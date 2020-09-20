@@ -4,7 +4,7 @@
 
 // Micro-benchmarks for sync/sync*/async/async* functionality.
 
-import "dart:async";
+import 'dart:async';
 
 const int iterationLimitAsync = 200;
 const int sumOfIterationLimitAsync =
@@ -14,35 +14,35 @@ const int iterationLimitSync = 5000;
 const int sumOfIterationLimitSync =
     iterationLimitSync * (iterationLimitSync - 1) ~/ 2;
 
-main() async {
+Future main() async {
   final target = Target();
   final target2 = Target2();
   final target3 = Target3();
 
   // Ensure the call sites will have another target in the ICData.
-  performAwaitCallsClosureTargetPolymorphic(returnAsync);
-  performAwaitCallsClosureTargetPolymorphic(returnFuture);
-  performAwaitCallsClosureTargetPolymorphic(returnFutureOr);
-  performAwaitAsyncCallsInstanceTargetPolymorphic(target);
-  performAwaitAsyncCallsInstanceTargetPolymorphic(target2);
-  performAwaitAsyncCallsInstanceTargetPolymorphic(target3);
-  performAwaitFutureCallsInstanceTargetPolymorphic(target);
-  performAwaitFutureCallsInstanceTargetPolymorphic(target2);
-  performAwaitFutureCallsInstanceTargetPolymorphic(target3);
-  performAwaitFutureOrCallsInstanceTargetPolymorphic(target);
-  performAwaitFutureOrCallsInstanceTargetPolymorphic(target2);
-  performAwaitFutureOrCallsInstanceTargetPolymorphic(target3);
+  await performAwaitCallsClosureTargetPolymorphic(returnAsync);
+  await performAwaitCallsClosureTargetPolymorphic(returnFuture);
+  await performAwaitCallsClosureTargetPolymorphic(returnFutureOr);
+  await performAwaitAsyncCallsInstanceTargetPolymorphic(target);
+  await performAwaitAsyncCallsInstanceTargetPolymorphic(target2);
+  await performAwaitAsyncCallsInstanceTargetPolymorphic(target3);
+  await performAwaitFutureCallsInstanceTargetPolymorphic(target);
+  await performAwaitFutureCallsInstanceTargetPolymorphic(target2);
+  await performAwaitFutureCallsInstanceTargetPolymorphic(target3);
+  await performAwaitFutureOrCallsInstanceTargetPolymorphic(target);
+  await performAwaitFutureOrCallsInstanceTargetPolymorphic(target2);
+  await performAwaitFutureOrCallsInstanceTargetPolymorphic(target3);
   performSyncCallsInstanceTargetPolymorphic(target);
   performSyncCallsInstanceTargetPolymorphic(target2);
   performSyncCallsInstanceTargetPolymorphic(target3);
-  performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target);
-  performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target2);
-  performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target3);
+  await performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target);
+  await performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target2);
+  await performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(target3);
 
-  performAwaitForIterationPolymorphic(generateNumbersAsyncStar);
-  performAwaitForIterationPolymorphic(generateNumbersAsyncStar2);
-  performAwaitForIterationPolymorphic(generateNumbersManualAsync);
-  performAwaitForIterationPolymorphic(generateNumbersAsyncStarManyYields);
+  await performAwaitForIterationPolymorphic(generateNumbersAsyncStar);
+  await performAwaitForIterationPolymorphic(generateNumbersAsyncStar2);
+  await performAwaitForIterationPolymorphic(generateNumbersManualAsync);
+  await performAwaitForIterationPolymorphic(generateNumbersAsyncStarManyYields);
   performSyncIterationPolymorphic(generateNumbersSyncStar);
   performSyncIterationPolymorphic(generateNumbersSyncStar2);
   performSyncIterationPolymorphic(generateNumbersManual);
@@ -105,7 +105,7 @@ main() async {
 @pragma('vm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitCallsClosureTargetPolymorphic(
-    FutureOr<int> fun(int count)) async {
+    FutureOr<int> Function(int) fun) async {
   int sum = 0;
   for (int i = 0; i < iterationLimitAsync; ++i) {
     sum += await fun(i);
@@ -286,7 +286,7 @@ Future<int> performAwaitAsyncCallsInstanceTargetPolymorphicManyAwaits(
 @pragma('vm:never-inline')
 @pragma('dart2js:noInline')
 Future<int> performAwaitForIterationPolymorphic(
-    Stream<int> fun(int count)) async {
+    Stream<int> Function(int) fun) async {
   int sum = 0;
   await for (int value in fun(iterationLimitAsync)) {
     sum += value;
@@ -297,7 +297,7 @@ Future<int> performAwaitForIterationPolymorphic(
 
 @pragma('vm:never-inline')
 @pragma('dart2js:noInline')
-int performSyncCallsClosureTarget(int fun(int count)) {
+int performSyncCallsClosureTarget(int Function(int) fun) {
   int sum = 0;
   for (int i = 0; i < iterationLimitSync; ++i) {
     sum += fun(i);
@@ -330,7 +330,7 @@ int performSyncCalls() {
 
 @pragma('vm:never-inline')
 @pragma('dart2js:noInline')
-int performSyncIterationPolymorphic(Iterable<int> fun(int count)) {
+int performSyncIterationPolymorphic(Iterable<int> Function(int) fun) {
   int sum = 0;
   for (int value in fun(iterationLimitSync)) {
     sum += value;
@@ -371,7 +371,7 @@ Stream<int> generateNumbersAsyncStar2(int limit) async* {
 @pragma('dart2js:noInline')
 Stream<int> generateNumbersManualAsync(int limit) {
   int current = 0;
-  StreamController<int> controller = StreamController(sync: true);
+  final controller = StreamController<int>(sync: true);
   void emit() {
     while (true) {
       if (controller.isPaused || !controller.hasListener) return;
@@ -746,36 +746,44 @@ class Target {
 }
 
 class Target2 extends Target {
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   FutureOr<int> returnFutureOr(int i) => i;
 
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   Future<int> returnFuture(int i) => Future.value(i);
 
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   Future<int> returnAsync(int i) async => i;
 
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   int returnSync(int i) => i;
 }
 
 class Target3 extends Target {
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   FutureOr<int> returnFutureOr(int i) => i;
 
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   Future<int> returnFuture(int i) => Future.value(i);
 
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   Future<int> returnAsync(int i) async => i;
 
+  @override
   @pragma('vm:never-inline')
   @pragma('dart2js:noInline')
   int returnSync(int i) => i;
@@ -815,7 +823,7 @@ class SyncCallBenchmark {
     final double nsPerCall = measureFor(const Duration(seconds: 2));
 
     // Report result.
-    print("$name(RunTimeRaw): $nsPerCall ns.");
+    print('$name(RunTimeRaw): $nsPerCall ns.');
   }
 }
 
@@ -850,6 +858,6 @@ class AsyncCallBenchmark {
     final double nsPerCall = await measureFor(const Duration(seconds: 2));
 
     // Report result.
-    print("$name(RunTimeRaw): $nsPerCall ns.");
+    print('$name(RunTimeRaw): $nsPerCall ns.');
   }
 }

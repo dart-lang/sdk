@@ -18,7 +18,7 @@ import 'dart:convert';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 
 /// The two possible views are available.
@@ -34,9 +34,6 @@ import 'package:observatory/src/elements/nav/notify.dart';
 enum _TimelineView { strict, frame }
 
 class TimelineDashboardElement extends CustomElement implements Renderable {
-  static const tag = const Tag<TimelineDashboardElement>('timeline-dashboard',
-      dependencies: const [NavNotifyElement.tag]);
-
   RenderingScheduler<TimelineDashboardElement> _r;
 
   Stream<RenderedEvent<TimelineDashboardElement>> get onRendered =>
@@ -68,7 +65,7 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
     return e;
   }
 
-  TimelineDashboardElement.created() : super.created(tag);
+  TimelineDashboardElement.created() : super.created('timeline-dashboard');
 
   @override
   attached() {

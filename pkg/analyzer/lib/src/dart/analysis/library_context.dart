@@ -31,15 +31,15 @@ var timerInputLibraries = Stopwatch();
 var timerLinking = Stopwatch();
 var timerLoad2 = Stopwatch();
 
-/**
- * Context information necessary to analyze one or more libraries within an
- * [AnalysisDriver].
- *
- * Currently this is implemented as a wrapper around [AnalysisContext].
- */
+/// Context information necessary to analyze one or more libraries within an
+/// [AnalysisDriver].
+///
+/// Currently this is implemented as a wrapper around [AnalysisContext].
 class LibraryContext {
   static const _maxLinkedDataInBytes = 64 * 1024 * 1024;
 
+  final int id = fileObjectId++;
+  final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
   final AnalysisSessionImpl analysisSession;
@@ -57,6 +57,7 @@ class LibraryContext {
   Set<LibraryCycle> loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
+    @required this.testView,
     @required AnalysisSessionImpl session,
     @required PerformanceLog logger,
     @required ByteStore byteStore,
@@ -65,9 +66,9 @@ class LibraryContext {
     @required SourceFactory sourceFactory,
     @required this.externalSummaries,
     @required FileState targetLibrary,
-  })  : this.logger = logger,
-        this.byteStore = byteStore,
-        this.analysisSession = session {
+  })  : logger = logger,
+        byteStore = byteStore,
+        analysisSession = session {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
@@ -76,9 +77,7 @@ class LibraryContext {
     load2(targetLibrary);
   }
 
-  /**
-   * Computes a [CompilationUnitElement] for the given library/unit pair.
-   */
+  /// Computes a [CompilationUnitElement] for the given library/unit pair.
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
     var reference = elementFactory.rootReference
         .getChild(library.uriStr)
@@ -87,16 +86,12 @@ class LibraryContext {
     return elementFactory.elementOfReference(reference);
   }
 
-  /**
-   * Get the [LibraryElement] for the given library.
-   */
+  /// Get the [LibraryElement] for the given library.
   LibraryElement getLibraryElement(FileState library) {
     return elementFactory.libraryOfUri(library.uriStr);
   }
 
-  /**
-   * Return `true` if the given [uri] is known to be a library.
-   */
+  /// Return `true` if the given [uri] is known to be a library.
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
     return elementFactory.isLibraryUri(uriStr);
@@ -115,18 +110,28 @@ class LibraryContext {
     var bytesGet = 0;
     var bytesPut = 0;
 
-    void loadBundle(LibraryCycle cycle) {
+    var thisLoadLogBuffer = StringBuffer();
+
+    void loadBundle(LibraryCycle cycle, String debugPrefix) {
       if (!loadedBundles.add(cycle)) return;
+
+      thisLoadLogBuffer.writeln('$debugPrefix$cycle');
 
       librariesTotal += cycle.libraries.length;
 
-      cycle.directDependencies.forEach(loadBundle);
+      cycle.directDependencies.forEach(
+        (e) => loadBundle(e, '$debugPrefix  '),
+      );
 
       var key = cycle.transitiveSignature + '.linked_bundle';
       var bytes = byteStore.get(key);
 
       if (bytes == null) {
         librariesLinkedTimer.start();
+
+        testView.linkedCycles.add(
+          cycle.libraries.map((e) => e.path).toSet(),
+        );
 
         timerInputLibraries.start();
         inputsTimer.start();
@@ -163,21 +168,34 @@ class LibraryContext {
               if (existingLibraryReference != null) {
                 var existingElement = existingLibraryReference.element;
                 if (existingElement != null) {
+                  var buffer = StringBuffer();
+
+                  buffer.writeln('[The library is already loaded]');
+                  buffer.writeln();
+
                   var existingSource = existingElement?.source;
+                  buffer.writeln('[oldUri: ${existingSource.uri}]');
+                  buffer.writeln('[oldPath: ${existingSource.fullName}]');
+                  buffer.writeln('[newUri: ${libraryFile.uriStr}]');
+                  buffer.writeln('[newPath: ${libraryFile.path}]');
+                  buffer.writeln('[cycle: $cycle]');
+                  buffer.writeln();
+
+                  buffer.writeln('[loadedBundles: ${loadedBundles.toList()}]');
+                  buffer.writeln();
+
+                  buffer.writeln('Bundles loaded in this load2() invocation:');
+                  buffer.writeln(thisLoadLogBuffer);
+                  buffer.writeln();
+
                   var libraryRefs = elementFactory.rootReference.children;
                   var libraryUriList = libraryRefs.map((e) => e.name).toList();
-                  var statusText = '[The library is already loaded]'
-                      '[oldUri: ${existingSource.uri}]'
-                      '[oldPath: ${existingSource.fullName}]'
-                      '[newUri: ${libraryFile.uriStr}]'
-                      '[newPath: ${libraryFile.path}]'
-                      '[cycle: $cycle]'
-                      '[loadedBundles: ${loadedBundles.toList()}]'
-                      '[elementFactory.libraries: $libraryUriList]';
-                  throw LibraryCycleLinkException(
+                  buffer.writeln('[elementFactory.libraries: $libraryUriList]');
+
+                  throw CaughtExceptionWithFiles(
                     'Cycle loading state error',
                     StackTrace.current,
-                    {'status': statusText},
+                    {'status': buffer.toString()},
                   );
                 }
               }
@@ -249,7 +267,7 @@ class LibraryContext {
 
     logger.run('Prepare linked bundles', () {
       var libraryCycle = targetLibrary.libraryCycle;
-      loadBundle(libraryCycle);
+      loadBundle(libraryCycle, '');
       logger.writeln(
         '[librariesTotal: $librariesTotal]'
         '[librariesLoaded: $librariesLoaded]'
@@ -316,15 +334,10 @@ class LibraryContext {
         fileContentMap[file.path] = file.content;
       }
     }
-    throw LibraryCycleLinkException(exception, stackTrace, fileContentMap);
+    throw CaughtExceptionWithFiles(exception, stackTrace, fileContentMap);
   }
 }
 
-/// TODO(scheglov) replace in the internal patch
-class LibraryCycleLinkException extends CaughtExceptionWithFiles {
-  LibraryCycleLinkException(
-    Object exception,
-    StackTrace stackTrace,
-    Map<String, String> fileContentMap,
-  ) : super(exception, stackTrace, fileContentMap);
+class LibraryContextTestView {
+  final List<Set<String>> linkedCycles = [];
 }

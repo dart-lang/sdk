@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -19,7 +19,7 @@ class UseCurlyBraces extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var statement = node.thisOrAncestorOfType<Statement>();
     var parent = statement?.parent;
 
@@ -47,14 +47,14 @@ class UseCurlyBraces extends CorrectionProducer {
     }
   }
 
-  Future<void> _doStatement(DartChangeBuilder builder, DoStatement node) async {
+  Future<void> _doStatement(ChangeBuilder builder, DoStatement node) async {
     var body = node.body;
     if (body is Block) return null;
 
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.endStart(node.doKeyword, body),
         ' {$eol$indent',
@@ -66,15 +66,14 @@ class UseCurlyBraces extends CorrectionProducer {
     });
   }
 
-  Future<void> _forStatement(
-      DartChangeBuilder builder, ForStatement node) async {
+  Future<void> _forStatement(ChangeBuilder builder, ForStatement node) async {
     var body = node.body;
     if (body is Block) return null;
 
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.endStart(node.rightParenthesis, body),
         ' {$eol$indent',
@@ -84,11 +83,11 @@ class UseCurlyBraces extends CorrectionProducer {
   }
 
   Future<void> _ifStatement(
-      DartChangeBuilder builder, IfStatement node, Statement thenOrElse) async {
+      ChangeBuilder builder, IfStatement node, Statement thenOrElse) async {
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       var thenStatement = node.thenStatement;
       if (thenStatement is! Block &&
           (thenOrElse == null || thenOrElse == thenStatement)) {
@@ -120,14 +119,14 @@ class UseCurlyBraces extends CorrectionProducer {
   }
 
   Future<void> _whileStatement(
-      DartChangeBuilder builder, WhileStatement node) async {
+      ChangeBuilder builder, WhileStatement node) async {
     var body = node.body;
     if (body is Block) return null;
 
     var prefix = utils.getLinePrefix(node.offset);
     var indent = prefix + utils.getIndent(1);
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         range.endStart(node.rightParenthesis, body),
         ' {$eol$indent',

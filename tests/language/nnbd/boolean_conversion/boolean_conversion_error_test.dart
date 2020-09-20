@@ -56,141 +56,141 @@ void main() {
     // Check that values of type `Null` are not usable as booleans.
     if (nil) {}
     //  ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     [if (nil) 3];
     //   ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     nil ? 3 : 4;
 //  ^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
 // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     while (nil) {}
     //     ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     do {} while (nil);
     //           ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     nil || true;
 //  ^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     nil && true;
 //  ^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     true || nil;
     //      ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     true && nil;
     //      ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     for (int i = 0; nil; i++) {}
     //              ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
     [for (int i = 0; nil; i++) 3];
     //               ^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Null' can't be assigned to a variable of type 'bool'.
   }
   {
     // Check that values of type `Object` are not usable as booleans.
     if (object) {}
     //  ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     [if (object) 3];
     //   ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     object ? 3 : 4;
 //  ^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     while (object) {}
     //     ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     do {} while (object);
     //           ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     object || true;
 //  ^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     object && true;
 //  ^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     true || object;
     //      ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     true && object;
     //      ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     for (int i = 0; object; i++) {}
     //              ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
     [for (int i = 0; object; i++) 3];
     //               ^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
   }
   {
     // Check that values of type `Object?` are not usable as booleans.
     if (objectOrNull) {}
     //  ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     [if (objectOrNull) 3];
     //   ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     objectOrNull ? 3 : 4;
 //  ^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
 // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     while (objectOrNull) {}
     //     ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     do {} while (objectOrNull);
     //           ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     objectOrNull || true;
 //  ^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     objectOrNull && true;
 //  ^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
 // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     true || objectOrNull;
     //      ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     true && objectOrNull;
     //      ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_OPERAND
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_OPERAND
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     for (int i = 0; objectOrNull; i++) {}
     //              ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
     [for (int i = 0; objectOrNull; i++) 3];
     //               ^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_CONDITION
+    // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_CONDITION
     // [cfe] A value of type 'Object?' can't be assigned to a variable of type 'bool'.
   }
 }

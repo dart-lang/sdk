@@ -118,6 +118,11 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         decoratedType.typeArguments[0], 'type argument 0 of $displayName');
   }
 
+  void checkNever(DecoratedType decoratedType, String displayName) {
+    expect(decoratedType.type, same(typeProvider.neverType));
+    checkExplicitlyNonNullable(decoratedType.node, displayName);
+  }
+
   void checkNum(
       DecoratedType decoratedType,
       void Function(NullabilityNode, String) checkNullability,
@@ -354,6 +359,10 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     var decorated = decorate(typeProvider.iterableDynamicType);
     checkIterable(
         decorated, checkExplicitlyNonNullable, checkDynamic, 'test type');
+  }
+
+  void test_decorate_never() {
+    checkNever(decorate(typeProvider.neverType), 'test type');
   }
 
   void test_decorate_typeParameterType_question() {

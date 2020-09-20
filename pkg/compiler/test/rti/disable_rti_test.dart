@@ -25,7 +25,7 @@ class E<T> extends B<T> {}
 class F<T> extends B<List<T>>{}
 class G {
   call() {}
-} 
+}
 class H implements G {
   call() {}
 }
@@ -108,7 +108,7 @@ main() {
       elementEnvironment.forEachLocalClassMember(element, processMember);
 
       List<String> expectedIsChecks = expectedIsChecksMap[element.name];
-      if (expectedIsChecks != null) {
+      if (!expectedIsChecks.isEmpty) {
         Class cls = programLookup.getClass(element);
         List<String> isChecks = cls.isChecks.map((m) => m.name.key).toList();
         if (cls.functionTypeIndex != null) {

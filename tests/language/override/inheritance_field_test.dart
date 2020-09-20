@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:meta/meta.dart" show virtual;
-
 class A {
   get getter1 => null; //# 01: ok
   num get getter2 => 0; //# 02: ok
@@ -26,12 +24,12 @@ class A {
   set setter10(int _) => null; //# 30: compile-time error
   set setter11(int _) => null; //# 31: compile-time error
 
-  @virtual int field1 = 0; //# 41: ok
+  int field1 = 0; //# 41: ok
   num field2 = 0; //# 42: compile-time error
   int field3 = 0; //# 43: compile-time error
   int field4 = 0; //# 44: compile-time error
   int field5 = 0; //# 45: compile-time error
-  @virtual num field6 = 0; //# 46: ok
+  num field6 = 0; //# 46: ok
   num field7 = 0; //# 47: compile-time error
   num get field8 => 0; //# 48: compile-time error
   num field9 = 0; //# 49: compile-time error
@@ -40,7 +38,7 @@ class A {
   void set field12(int _) {} //# 52: ok
   num field13 = 0; //# 53: compile-time error
   set field14(num _) {} //# 54: compile-time error
-  num field15 = 0; //# 55: ok
+  num field15 = 0; //# 55: compile-time error
 }
 
 class B extends A {

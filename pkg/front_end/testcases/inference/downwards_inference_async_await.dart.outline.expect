@@ -4,5 +4,5 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-static method main() → asy::Future<dynamic>*
+static method main() → asy::Future<dynamic>* async 
   ;

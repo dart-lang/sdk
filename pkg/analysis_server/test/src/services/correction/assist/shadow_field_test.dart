@@ -12,7 +12,7 @@ import 'assist_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShadowFieldTest);
-    defineReflectiveTests(ShadowFieldWithNNBDTest);
+    defineReflectiveTests(ShadowFieldWithNullSafetyTest);
   });
 }
 
@@ -108,7 +108,7 @@ class C {
 }
 
 @reflectiveTest
-class ShadowFieldWithNNBDTest extends ShadowFieldTest {
+class ShadowFieldWithNullSafetyTest extends ShadowFieldTest {
   @override
   void setUp() {
     super.setUp();

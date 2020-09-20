@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 /**
@@ -69,15 +67,14 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * isolates this way.
    */
   static Future<SecureServerSocket> bind(
-      address, int port, SecurityContext context,
+      address, int port, SecurityContext? context,
       {int backlog: 0,
       bool v6Only: false,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false,
-      List<String> supportedProtocols,
+      List<String>? supportedProtocols,
       bool shared: false}) {
-    return RawSecureServerSocket
-        .bind(address, port, context,
+    return RawSecureServerSocket.bind(address, port, context,
             backlog: backlog,
             v6Only: v6Only,
             requestClientCertificate: requestClientCertificate,
@@ -87,8 +84,8 @@ class SecureServerSocket extends Stream<SecureSocket> {
         .then((serverSocket) => new SecureServerSocket._(serverSocket));
   }
 
-  StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _socket.map((rawSocket) => new SecureSocket._(rawSocket)).listen(
         onData,
         onError: onError,
@@ -125,12 +122,12 @@ class SecureServerSocket extends Stream<SecureSocket> {
  */
 class RawSecureServerSocket extends Stream<RawSecureSocket> {
   final RawServerSocket _socket;
-  StreamController<RawSecureSocket> _controller;
-  StreamSubscription<RawSocket> _subscription;
-  final SecurityContext _context;
+  late StreamController<RawSecureSocket> _controller;
+  StreamSubscription<RawSocket>? _subscription;
+  final SecurityContext? _context;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
-  final List<String> supportedProtocols;
+  final List<String>? supportedProtocols;
   bool _closed = false;
 
   RawSecureServerSocket._(
@@ -198,15 +195,15 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * multiple isolates this way.
    */
   static Future<RawSecureServerSocket> bind(
-      address, int port, SecurityContext context,
+      address, int port, SecurityContext? context,
       {int backlog: 0,
       bool v6Only: false,
       bool requestClientCertificate: false,
       bool requireClientCertificate: false,
-      List<String> supportedProtocols,
+      List<String>? supportedProtocols,
       bool shared: false}) {
-    return RawServerSocket
-        .bind(address, port, backlog: backlog, v6Only: v6Only, shared: shared)
+    return RawServerSocket.bind(address, port,
+            backlog: backlog, v6Only: v6Only, shared: shared)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
             context,
@@ -215,8 +212,8 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
             supportedProtocols));
   }
 
-  StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -249,11 +246,8 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
       // Do nothing - connection is closed.
       return;
     }
-    _RawSecureSocket
-        .connect(connection.address, remotePort,
+    _RawSecureSocket.connect(connection.address, remotePort, true, connection,
             context: _context,
-            is_server: true,
-            socket: connection,
             requestClientCertificate: requestClientCertificate,
             requireClientCertificate: requireClientCertificate,
             supportedProtocols: supportedProtocols)
@@ -272,9 +266,9 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
 
   void _onPauseStateChange() {
     if (_controller.isPaused) {
-      _subscription.pause();
+      _subscription!.pause();
     } else {
-      _subscription.resume();
+      _subscription!.resume();
     }
   }
 

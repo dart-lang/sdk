@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -28,72 +29,12 @@ List<AstNode> getNotPotentiallyConstants(
 
 /// Return `true` if the [node] is a constant type expression.
 bool isConstantTypeExpression(TypeAnnotation node) {
-  if (node is TypeName) {
-    if (_isConstantTypeName(node.name)) {
-      var arguments = node.typeArguments?.arguments;
-      if (arguments != null) {
-        for (var argument in arguments) {
-          if (!isConstantTypeExpression(argument)) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-    if (node.type is DynamicTypeImpl) {
-      return true;
-    }
-    if (node.type is VoidType) {
-      return true;
-    }
-    return false;
-  }
-
-  if (node is GenericFunctionType) {
-    var returnType = node.returnType;
-    if (returnType != null) {
-      if (!isConstantTypeExpression(returnType)) {
-        return false;
-      }
-    }
-
-    var typeParameters = node.typeParameters?.typeParameters;
-    if (typeParameters != null) {
-      for (var parameter in typeParameters) {
-        var bound = parameter.bound;
-        if (bound != null && !isConstantTypeExpression(bound)) {
-          return false;
-        }
-      }
-    }
-
-    var formalParameters = node.parameters?.parameters;
-    if (formalParameters != null) {
-      for (var parameter in formalParameters) {
-        if (parameter is SimpleFormalParameter) {
-          if (!isConstantTypeExpression(parameter.type)) {
-            return false;
-          }
-        }
-      }
-    }
-
-    return true;
-  }
-
-  return false;
+  return _ConstantTypeChecker(potentially: false).check(node);
 }
 
 /// Return `true` if the [node] is a potentially constant type expression.
 bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
-  if (node is TypeName) {
-    var element = node.name.staticElement;
-    if (element is TypeParameterElement) {
-      return true;
-    }
-  }
-
-  return isConstantTypeExpression(node);
+  return _ConstantTypeChecker(potentially: true).check(node);
 }
 
 bool _isConstantTypeName(Identifier name) {
@@ -395,5 +336,78 @@ class _Collector {
   static bool isConstConstructorElement(ConstructorElement element) {
     if (element.isConst) return true;
     return temporaryConstConstructorElements[element] ?? false;
+  }
+}
+
+class _ConstantTypeChecker {
+  final bool potentially;
+
+  _ConstantTypeChecker({@required this.potentially});
+
+  /// Return `true` if the [node] is a constant type expression.
+  bool check(TypeAnnotation node) {
+    if (potentially) {
+      if (node is TypeName) {
+        var element = node.name.staticElement;
+        if (element is TypeParameterElement) {
+          return true;
+        }
+      }
+    }
+
+    if (node is TypeName) {
+      if (_isConstantTypeName(node.name)) {
+        var arguments = node.typeArguments?.arguments;
+        if (arguments != null) {
+          for (var argument in arguments) {
+            if (!check(argument)) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+      if (node.type is DynamicTypeImpl) {
+        return true;
+      }
+      if (node.type is VoidType) {
+        return true;
+      }
+      return false;
+    }
+
+    if (node is GenericFunctionType) {
+      var returnType = node.returnType;
+      if (returnType != null) {
+        if (!check(returnType)) {
+          return false;
+        }
+      }
+
+      var typeParameters = node.typeParameters?.typeParameters;
+      if (typeParameters != null) {
+        for (var parameter in typeParameters) {
+          var bound = parameter.bound;
+          if (bound != null && !check(bound)) {
+            return false;
+          }
+        }
+      }
+
+      var formalParameters = node.parameters?.parameters;
+      if (formalParameters != null) {
+        for (var parameter in formalParameters) {
+          if (parameter is SimpleFormalParameter) {
+            if (!check(parameter.type)) {
+              return false;
+            }
+          }
+        }
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }

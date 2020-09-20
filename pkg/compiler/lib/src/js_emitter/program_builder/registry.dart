@@ -5,14 +5,18 @@
 part of dart2js.js_emitter.program_builder;
 
 class LibraryContents {
-  final List<ClassEntity> classes = <ClassEntity>[];
-  final List<MemberEntity> members = <MemberEntity>[];
+  final List<ClassEntity> classes = [];
+  final List<MemberEntity> members = [];
+  final List<ClassEntity> classTypes = [];
 }
 
-/// Maps [LibraryEntity]s to their [ClassEntity]s and [MemberEntity]s.
+/// Maps [LibraryEntity]s to their classes, members, and class types.
 ///
 /// Fundamentally, this class nicely encapsulates a
-/// `Map<LibraryEntity, Pair<List<ClassEntity>, List<MemberEntity>>>`.
+/// `Map<LibraryEntity, Tuple<classes, members, class types>>`.
+///
+/// where both classes and class types are lists of [ClassEntity] and
+/// members is a list of [MemberEntity].
 ///
 /// There exists exactly one instance per [OutputUnit].
 class LibrariesMap {
@@ -46,6 +50,10 @@ class LibrariesMap {
     _getMapping(library).classes.add(element);
   }
 
+  void addClassType(LibraryEntity library, ClassEntity element) {
+    _getMapping(library).classTypes.add(element);
+  }
+
   void addMember(LibraryEntity library, MemberEntity element) {
     _getMapping(library).members.add(element);
   }
@@ -54,9 +62,9 @@ class LibrariesMap {
 
   void forEach(
       void f(LibraryEntity library, List<ClassEntity> classes,
-          List<MemberEntity> members)) {
+          List<MemberEntity> members, List<ClassEntity> classTypeData)) {
     _mapping.forEach((LibraryEntity library, LibraryContents mapping) {
-      f(library, mapping.classes, mapping.members);
+      f(library, mapping.classes, mapping.members, mapping.classTypes);
     });
   }
 }
@@ -120,6 +128,16 @@ class Registry {
     LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
     for (ClassEntity element in _sorter.sortClasses(elements)) {
       targetLibrariesMap.addClass(element.library, element);
+    }
+  }
+
+  /// Adds all elements to their respective libraries in the correct
+  /// libraries map.
+  void registerClassTypes(
+      OutputUnit outputUnit, Iterable<ClassEntity> elements) {
+    LibrariesMap targetLibrariesMap = _mapUnitToLibrariesMap(outputUnit);
+    for (ClassEntity element in _sorter.sortClasses(elements)) {
+      targetLibrariesMap.addClassType(element.library, element);
     }
   }
 

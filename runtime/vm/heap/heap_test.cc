@@ -571,9 +571,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   EXPECT(size_before < size_after);
 }
 
-static void NoopFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {}
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
   Isolate* isolate = Isolate::Current();
@@ -587,7 +585,8 @@ ISOLATE_UNIT_TEST_CASE(ExternalPromotion) {
   Array& neu = Array::Handle();
   for (intptr_t i = 0; i < 100; i++) {
     neu = Array::New(1, Heap::kNew);
-    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB);
+    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB,
+                                     /*auto_delete=*/true);
     old.SetAt(i, neu);
   }
 
@@ -649,7 +648,7 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
     if (response_obj.IsString()) {
       String& response = String::Handle();
       response ^= response_obj.raw();
-      msg_.reset(strdup(response.ToCString()));
+      msg_.reset(Utils::StrDup(response.ToCString()));
     } else {
       ASSERT(response_obj.IsArray());
       Array& response_array = Array::Handle();
@@ -657,7 +656,7 @@ class MergeIsolatesHeapsHandler : public MessageHandler {
       ASSERT(response_array.Length() == 1);
       ExternalTypedData& response = ExternalTypedData::Handle();
       response ^= response_array.At(0);
-      msg_.reset(strdup(reinterpret_cast<char*>(response.DataAddr(0))));
+      msg_.reset(Utils::StrDup(reinterpret_cast<char*>(response.DataAddr(0))));
     }
 
     return kOK;
@@ -753,7 +752,8 @@ ISOLATE_UNIT_TEST_CASE(ExternalAllocationStats) {
   Array& neu = Array::Handle();
   for (intptr_t i = 0; i < 100; i++) {
     neu = Array::New(1, Heap::kNew);
-    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB);
+    FinalizablePersistentHandle::New(isolate, neu, NULL, NoopFinalizer, 1 * MB,
+                                     /*auto_delete=*/true);
     old.SetAt(i, neu);
 
     if ((i % 4) == 0) {

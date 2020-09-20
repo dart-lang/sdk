@@ -651,7 +651,7 @@ class FunctionType extends DartType {
 
   final List<FunctionTypeVariable> typeVariables;
 
-  FunctionType._(
+  FunctionType._allocate(
       this.returnType,
       this.parameterTypes,
       this.optionalParameterTypes,
@@ -659,17 +659,42 @@ class FunctionType extends DartType {
       this.requiredNamedParameters,
       this.namedParameterTypes,
       this.typeVariables) {
-    assert(returnType != null, "Invalid return type in $this.");
-    assert(!parameterTypes.contains(null), "Invalid parameter types in $this.");
+    assert(returnType != null, 'Invalid return type in $this.');
+    assert(!parameterTypes.contains(null), 'Invalid parameter types in $this.');
     assert(!optionalParameterTypes.contains(null),
-        "Invalid optional parameter types in $this.");
+        'Invalid optional parameter types in $this.');
     assert(
-        !namedParameters.contains(null), "Invalid named parameters in $this.");
+        !namedParameters.contains(null), 'Invalid named parameters in $this.');
     assert(!requiredNamedParameters.contains(null),
-        "Invalid required named parameters in $this.");
+        'Invalid required named parameters in $this.');
     assert(!namedParameterTypes.contains(null),
-        "Invalid named parameter types in $this.");
-    assert(!typeVariables.contains(null), "Invalid type variables in $this.");
+        'Invalid named parameter types in $this.');
+    assert(!typeVariables.contains(null), 'Invalid type variables in $this.');
+  }
+
+  factory FunctionType._(
+      DartType returnType,
+      List<DartType> parameterTypes,
+      List<DartType> optionalParameterTypes,
+      List<String> namedParameters,
+      Set<String> requiredNamedParameters,
+      List<DartType> namedParameterTypes,
+      List<FunctionTypeVariable> typeVariables) {
+    // Canonicalize empty collections to constants to save storage.
+    if (parameterTypes.isEmpty) parameterTypes = const [];
+    if (optionalParameterTypes.isEmpty) optionalParameterTypes = const [];
+    if (namedParameterTypes.isEmpty) namedParameterTypes = const [];
+    if (requiredNamedParameters.isEmpty) requiredNamedParameters = const {};
+    if (typeVariables.isEmpty) typeVariables = const [];
+
+    return FunctionType._allocate(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        requiredNamedParameters,
+        namedParameterTypes,
+        typeVariables);
   }
 
   factory FunctionType._readFromDataSource(
@@ -1915,6 +1940,11 @@ abstract class DartTypes {
 
   bool _subtypeHelper(DartType s, DartType t,
       {bool allowPotentialSubtypes: false, bool assumeInstantiations: false}) {
+    assert(allowPotentialSubtypes || !assumeInstantiations);
+
+    // TODO(fishythefish): Add constraint solving for potential subtypes.
+    if (allowPotentialSubtypes) return true;
+
     /// Based on
     /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md.
     /// See also [_isSubtype] in `dart:_rti`.
@@ -1927,10 +1957,6 @@ abstract class DartTypes {
           env.isAssumed(s, t)) return true;
 
       if (s is AnyType) return true;
-      if (allowPotentialSubtypes &&
-          (s is TypeVariableType || t is TypeVariableType)) return true;
-      if (assumeInstantiations &&
-          (s is FunctionTypeVariable || t is FunctionTypeVariable)) return true;
 
       // Right Top:
       if (isTopType(t)) return true;
@@ -2039,10 +2065,10 @@ abstract class DartTypes {
           List<FunctionTypeVariable> sTypeVariables = s.typeVariables;
           List<FunctionTypeVariable> tTypeVariables = t.typeVariables;
           int length = tTypeVariables.length;
-          if (length == sTypeVariables.length) {
-            env ??= _Assumptions();
-            env.assumePairs(sTypeVariables, tTypeVariables);
-          } else if (!assumeInstantiations || length > 0) return false;
+          if (length != sTypeVariables.length) return false;
+
+          env ??= _Assumptions();
+          env.assumePairs(sTypeVariables, tTypeVariables);
           try {
             for (int i = 0; i < length; i++) {
               DartType sBound = sTypeVariables[i].bound;
@@ -2114,12 +2140,14 @@ abstract class DartTypes {
                 String sName = sNamed[sIndex++];
                 int comparison = sName.compareTo(tName);
                 if (comparison > 0) return false;
-                bool sIsRequired = sRequiredNamed.contains(sName);
+                bool sIsRequired =
+                    !useLegacySubtyping && sRequiredNamed.contains(sName);
                 if (comparison < 0) {
                   if (sIsRequired) return false;
                   continue;
                 }
-                bool tIsRequired = tRequiredNamed.contains(tName);
+                bool tIsRequired =
+                    !useLegacySubtyping && tRequiredNamed.contains(tName);
                 if (sIsRequired && !tIsRequired) return false;
                 if (!_isSubtype(
                     tNamedTypes[tIndex], sNamedTypes[sIndex - 1], env))
@@ -2127,8 +2155,10 @@ abstract class DartTypes {
                 break;
               }
             }
-            while (sIndex < sNamedLength) {
-              if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
+            if (!useLegacySubtyping) {
+              while (sIndex < sNamedLength) {
+                if (sRequiredNamed.contains(sNamed[sIndex++])) return false;
+              }
             }
             return true;
           } finally {
@@ -2262,5 +2292,43 @@ abstract class DartTypes {
       }
     }
     return type;
+  }
+
+  bool canAssignGenericFunctionTo(DartType type) {
+    type = type.withoutNullability;
+    return type is FunctionType && type.typeVariables.isNotEmpty ||
+        isSubtype(commonElements.functionType, type) ||
+        type is FutureOrType && canAssignGenericFunctionTo(type.typeArgument) ||
+        type is TypeVariableType &&
+            canAssignGenericFunctionTo(getTypeVariableBound(type.element)) ||
+        type is FunctionTypeVariable && canAssignGenericFunctionTo(type.bound);
+  }
+
+  /// Returns `true` if [type] occuring in a program with no sound null safety
+  /// cannot accept `null` under sound rules.
+  bool isNonNullableIfSound(DartType type) {
+    if (type is DynamicType ||
+        type is VoidType ||
+        type is AnyType ||
+        type is ErasedType) {
+      return false;
+    }
+    if (type is NullableType) return false;
+    if (type is LegacyType) {
+      return isNonNullableIfSound(type.baseType);
+    }
+    if (type is InterfaceType) {
+      if (type.isNull) return false;
+      return true;
+    }
+    if (type is FunctionType) return true;
+    if (type is NeverType) return true;
+    if (type is TypeVariableType) {
+      return isNonNullableIfSound(getTypeVariableBound(type.element));
+    }
+    if (type is FutureOrType) {
+      return isNonNullableIfSound(type.typeArgument);
+    }
+    throw UnimplementedError('isNonNullableIfSound $type');
   }
 }

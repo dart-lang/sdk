@@ -6,8 +6,7 @@
 
 import "package:expect/expect.dart";
 
-/*spec:nnbd-off|prod:nnbd-off.class: A:deps=[C.method2],direct,explicit=[A.T],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:deps=[C.method2],direct,explicit=[A.T*],needsArgs*/
+/*class: A:deps=[C.method2],direct,explicit=[A.T*],needsArgs*/
 class A<T> {
   @pragma('dart2js:noInline')
   foo(x) {

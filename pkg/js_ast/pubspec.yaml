@@ -1,8 +1,11 @@
 name: js_ast
+# This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 
 environment:
   sdk: '>=2.0.0 <3.0.0'
 
 dev_dependencies:
+  expect:
+    path: ../expect
   test: ^1.3.4

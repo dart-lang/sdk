@@ -356,6 +356,8 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _classMember(node);
+    _token(node.abstractKeyword);
+    _token(node.externalKeyword);
     _token(node.staticKeyword);
     _token(node.covariantKeyword);
     node.fields.accept(this);
@@ -904,6 +906,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _compilationUnitMember(node);
+    _token(node.externalKeyword);
     node.variables.accept(this);
     _token(node.semicolon);
   }
@@ -1087,7 +1090,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
     _token(maybe);
   }
 
-  _typedLiteral(TypedLiteral node) {
+  void _typedLiteral(TypedLiteral node) {
     _token(node.constKeyword);
     node.typeArguments?.accept(this);
   }

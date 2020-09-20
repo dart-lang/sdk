@@ -30,6 +30,7 @@ class KernelIsolate : public AllStatic {
   static const int kCompileExpressionTag;
   static const int kListDependenciesTag;
   static const int kNotifyIsolateShutdown;
+  static const int kDetectNullabilityTag;
 
   static void InitializeState();
   static bool Start();
@@ -53,12 +54,18 @@ class KernelIsolate : public AllStatic {
       const char* multiroot_filepaths = NULL,
       const char* multiroot_scheme = NULL);
 
+  static bool DetectNullSafety(const char* script_uri,
+                               const char* package_config,
+                               const char* original_working_directory);
+
   static Dart_KernelCompilationResult AcceptCompilation();
   static Dart_KernelCompilationResult UpdateInMemorySources(
       int source_files_count,
       Dart_SourceFile source_files[]);
 
   static Dart_KernelCompilationResult CompileExpressionToKernel(
+      const uint8_t* platform_kernel,
+      intptr_t platform_kernel_size,
       const char* expression,
       const Array& definitions,
       const Array& type_definitions,

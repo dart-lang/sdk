@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateSetter extends CorrectionProducer {
@@ -21,7 +21,7 @@ class CreateSetter extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CREATE_SETTER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! SimpleIdentifier) {
       return;
     }
@@ -90,8 +90,8 @@ class CreateSetter extends CorrectionProducer {
     var targetSource = targetElement.source;
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
-    await builder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.addInsertion(targetLocation.offset, (builder) {
         var parameterTypeNode = climbPropertyAccess(nameNode);
         var parameterType = inferUndefinedExpressionType(parameterTypeNode);
         builder.write(targetLocation.prefix);

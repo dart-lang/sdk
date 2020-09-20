@@ -31,7 +31,7 @@ class ParserTestListener implements Listener {
   String createTrace() {
     List<String> traceLines = StackTrace.current.toString().split("\n");
     for (int i = 0; i < traceLines.length; i++) {
-      // Find first one that's not any of the blacklisted ones.
+      // Find first one that's not any of the denylisted ones.
       String line = traceLines[i];
       if (line.contains("parser_test_listener.dart:") ||
           line.contains("parser_suite.dart:")) continue;
@@ -56,10 +56,6 @@ class ParserTestListener implements Listener {
 
   void logEvent(String name) {
     doPrint('logEvent(' '$name)');
-  }
-
-  set suppressParseErrors(bool value) {
-    doPrint('suppressParseErrors(' '$value)');
   }
 
   void beginArguments(Token token) {
@@ -101,19 +97,6 @@ class ParserTestListener implements Listener {
     seen(endToken);
     doPrint('endInvalidAwaitExpression('
         '$beginToken, '
-        '$endToken, '
-        '$errorCode)');
-  }
-
-  void endInvalidYieldStatement(Token beginToken, Token starToken,
-      Token endToken, MessageCode errorCode) {
-    indent--;
-    seen(beginToken);
-    seen(starToken);
-    seen(endToken);
-    doPrint('endInvalidYieldStatement('
-        '$beginToken, '
-        '$starToken, '
         '$endToken, '
         '$errorCode)');
   }
@@ -192,9 +175,9 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
-  void handleClassExtends(Token extendsKeyword) {
+  void handleClassExtends(Token extendsKeyword, int typeCount) {
     seen(extendsKeyword);
-    doPrint('handleClassExtends(' '$extendsKeyword)');
+    doPrint('handleClassExtends(' '$extendsKeyword, ' '$typeCount)');
   }
 
   void handleClassOrMixinImplements(
@@ -249,6 +232,12 @@ class ParserTestListener implements Listener {
     seen(mixinKeyword);
     seen(endToken);
     doPrint('endMixinDeclaration(' '$mixinKeyword, ' '$endToken)');
+  }
+
+  void beginUncategorizedTopLevelDeclaration(Token token) {
+    seen(token);
+    doPrint('beginUncategorizedTopLevelDeclaration(' '$token)');
+    indent++;
   }
 
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
@@ -520,6 +509,7 @@ class ParserTestListener implements Listener {
   }
 
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -529,6 +519,8 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(abstractToken);
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -536,6 +528,8 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endClassFields('
+        '$abstractToken, '
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -546,6 +540,7 @@ class ParserTestListener implements Listener {
   }
 
   void endMixinFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -555,6 +550,8 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(abstractToken);
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -562,6 +559,8 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endMixinFields('
+        '$abstractToken, '
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -572,6 +571,7 @@ class ParserTestListener implements Listener {
   }
 
   void endExtensionFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,
@@ -581,6 +581,8 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(abstractToken);
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -588,6 +590,8 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endExtensionFields('
+        '$abstractToken, '
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -1420,10 +1424,10 @@ class ParserTestListener implements Listener {
     doPrint('endRethrowStatement(' '$rethrowToken, ' '$endToken)');
   }
 
-  void endTopLevelDeclaration(Token token) {
+  void endTopLevelDeclaration(Token nextToken) {
     indent--;
-    seen(token);
-    doPrint('endTopLevelDeclaration(' '$token)');
+    seen(nextToken);
+    doPrint('endTopLevelDeclaration(' '$nextToken)');
   }
 
   void handleInvalidTopLevelDeclaration(Token endToken) {
@@ -1437,6 +1441,12 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
+  void beginFields(Token lastConsumed) {
+    seen(lastConsumed);
+    doPrint('beginFields(' '$lastConsumed)');
+    indent++;
+  }
+
   void endTopLevelFields(
       Token externalToken,
       Token staticToken,
@@ -1447,6 +1457,7 @@ class ParserTestListener implements Listener {
       Token beginToken,
       Token endToken) {
     indent--;
+    seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
     seen(lateToken);
@@ -1454,6 +1465,7 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endTopLevelFields('
+        '$externalToken, '
         '$staticToken, '
         '$covariantToken, '
         '$lateToken, '
@@ -1685,11 +1697,18 @@ class ParserTestListener implements Listener {
   void beginBinaryExpression(Token token) {
     seen(token);
     doPrint('beginBinaryExpression(' '$token)');
+    indent++;
   }
 
   void endBinaryExpression(Token token) {
+    indent--;
     seen(token);
     doPrint('endBinaryExpression(' '$token)');
+  }
+
+  void handleEndingBinaryExpression(Token token) {
+    seen(token);
+    doPrint('handleEndingBinaryExpression(' '$token)');
   }
 
   void beginConditionalExpression(Token question) {
@@ -1746,10 +1765,9 @@ class ParserTestListener implements Listener {
     indent++;
   }
 
-  void beginThenControlFlow(Token token) {
+  void handleThenControlFlow(Token token) {
     seen(token);
-    doPrint('beginThenControlFlow(' '$token)');
-    indent++;
+    doPrint('handleThenControlFlow(' '$token)');
   }
 
   void handleElseControlFlow(Token elseToken) {
@@ -2100,6 +2118,19 @@ class ParserTestListener implements Listener {
     doPrint('endYieldStatement(' '$yieldToken, ' '$starToken, ' '$endToken)');
   }
 
+  void endInvalidYieldStatement(Token beginToken, Token starToken,
+      Token endToken, MessageCode errorCode) {
+    indent--;
+    seen(beginToken);
+    seen(starToken);
+    seen(endToken);
+    doPrint('endInvalidYieldStatement('
+        '$beginToken, '
+        '$starToken, '
+        '$endToken, '
+        '$errorCode)');
+  }
+
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     seen(startToken);
@@ -2131,10 +2162,6 @@ class ParserTestListener implements Listener {
   void handleScript(Token token) {
     seen(token);
     doPrint('handleScript(' '$token)');
-  }
-
-  void discardTypeReplacedWithCommentTypeAssign() {
-    doPrint('discardTypeReplacedWithCommentTypeAssign()');
   }
 
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {

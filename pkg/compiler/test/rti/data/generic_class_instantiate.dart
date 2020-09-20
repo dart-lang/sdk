@@ -4,12 +4,10 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off|prod:nnbd-off.class: A:explicit=[B<A>]*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: A:explicit=[B<A*>*]*/
+/*class: A:explicit=[B<A*>*]*/
 class A {}
 
-/*spec:nnbd-off|prod:nnbd-off.class: B:deps=[C],explicit=[B<A>],needsArgs*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.class: B:deps=[C],explicit=[B<A*>*],needsArgs*/
+/*class: B:deps=[C],explicit=[B<A*>*],needsArgs*/
 class B<T> {}
 
 /*class: C:needsArgs*/

@@ -35,10 +35,17 @@ abstract class Linter implements NodeLintRule {
   /// NOTE: this is set by the framework before visit begins.
   ErrorReporter reporter;
 
-  /**
-   * Return the lint code associated with this linter.
-   */
+  /// Return the lint code associated with this linter.
   LintCode get lintCode => null;
+
+  /// Return the lint codes associated with this lint rule.
+  List<LintCode> get lintCodes {
+    var code = lintCode;
+    if (code == null) {
+      return const <LintCode>[];
+    }
+    return <LintCode>[code];
+  }
 
   /// Linter name.
   String get name;

@@ -6,12 +6,10 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M show IsolateRef, ObjectPoolRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ObjectPoolRefElement extends CustomElement implements Renderable {
-  static const tag = const Tag<ObjectPoolRefElement>('object-pool-ref');
-
   RenderingScheduler<ObjectPoolRefElement> _r;
 
   Stream<RenderedEvent<ObjectPoolRefElement>> get onRendered => _r.onRendered;
@@ -33,7 +31,7 @@ class ObjectPoolRefElement extends CustomElement implements Renderable {
     return e;
   }
 
-  ObjectPoolRefElement.created() : super.created(tag);
+  ObjectPoolRefElement.created() : super.created('object-pool-ref');
 
   @override
   void attached() {

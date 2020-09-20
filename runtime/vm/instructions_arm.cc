@@ -20,7 +20,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize, &reg,
@@ -34,7 +34,7 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
       data_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -53,7 +53,7 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xe12fff3e);
 
   Register reg;
   uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -118,42 +118,17 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   uword start = end - Instr::kInstrSize;
   int32_t instr = Instr::At(start)->InstructionBits();
   intptr_t imm = 0;
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    ASSERT((instr & 0xfff00000) == 0xe3800000);  // orr rd, rd, byte0
-    imm |= (instr & 0x000000ff);
-
+  if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
+    imm |= (instr & 0xf0000) << 12;
+    imm |= (instr & 0xfff) << 16;
     start -= Instr::kInstrSize;
     instr = Instr::At(start)->InstructionBits();
-    ASSERT((instr & 0xfff00000) == 0xe3800c00);  // orr rd, rd, (byte1 rot 12)
-    imm |= (instr & 0x000000ff);
-
-    start -= Instr::kInstrSize;
-    instr = Instr::At(start)->InstructionBits();
-    ASSERT((instr & 0xfff00f00) == 0xe3800800);  // orr rd, rd, (byte2 rot 8)
-    imm |= (instr & 0x000000ff);
-
-    start -= Instr::kInstrSize;
-    instr = Instr::At(start)->InstructionBits();
-    ASSERT((instr & 0xffff0f00) == 0xe3a00400);  // mov rd, (byte3 rot 4)
-    imm |= (instr & 0x000000ff);
-
-    *reg = static_cast<Register>((instr & 0x0000f000) >> 12);
-    *value = imm;
-  } else {
-    ASSERT(version == ARMv7);
-    if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
-      imm |= (instr & 0xf0000) << 12;
-      imm |= (instr & 0xfff) << 16;
-      start -= Instr::kInstrSize;
-      instr = Instr::At(start)->InstructionBits();
-    }
-    ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
-    imm |= (instr & 0xf0000) >> 4;
-    imm |= instr & 0xfff;
-    *reg = static_cast<Register>((instr & 0xf000) >> 12);
-    *value = imm;
   }
+  ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
+  imm |= (instr & 0xf0000) >> 4;
+  imm |= instr & 0xfff;
+  *reg = static_cast<Register>((instr & 0xf000) >> 12);
+  *value = imm;
   return start;
 }
 
@@ -303,7 +278,7 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -326,7 +301,7 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(code) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
@@ -340,13 +315,13 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc, const Code& code)
 
 CodePtr BareSwitchableCallPattern::target() const {
   const uword pc = object_pool_.RawValueAt(target_pool_index_);
-  auto rct = IsolateGroup::Current()->reverse_pc_lookup_cache();
-  if (rct->Contains(pc)) {
-    return rct->Lookup(pc);
+  CodePtr result = ReversePc::Lookup(IsolateGroup::Current(), pc);
+  if (result != Code::null()) {
+    return result;
   }
-  rct = Dart::vm_isolate()->group()->reverse_pc_lookup_cache();
-  if (rct->Contains(pc)) {
-    return rct->Lookup(pc);
+  result = ReversePc::Lookup(Dart::vm_isolate()->group(), pc);
+  if (result != Code::null()) {
+    return result;
   }
   UNREACHABLE();
 }
@@ -368,14 +343,7 @@ bool ReturnPattern::IsValid() const {
   int32_t instruction = (static_cast<int32_t>(AL) << kConditionShift) | B24 |
                         B21 | (0xfff << 8) | B4 |
                         (static_cast<int32_t>(LR) << kRmShift);
-  const ARMVersion version = TargetCPUFeatures::arm_version();
-  if (version == ARMv6) {
-    return bx_lr->InstructionBits() == instruction;
-  } else {
-    ASSERT(version == ARMv7);
-    return bx_lr->InstructionBits() == instruction;
-  }
-  return false;
+  return bx_lr->InstructionBits() == instruction;
 }
 
 bool PcRelativeCallPattern::IsValid() const {
@@ -461,7 +429,7 @@ intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   // Ensure the caller of the type testing stub (whose return address is [pc_])
   // branched via `blx R9` or a pc-relative call.
   uword pc = pc_ - Instr::kInstrSize;
-  const uword blx_r9 = 0xe12fff39;
+  const uint32_t blx_r9 = 0xe12fff39;
   if (*reinterpret_cast<uint32_t*>(pc) != blx_r9) {
     PcRelativeCallPattern pattern(pc);
     RELEASE_ASSERT(pattern.IsValid());

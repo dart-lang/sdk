@@ -5,7 +5,9 @@
 #ifndef RUNTIME_BIN_UTILS_WIN_H_
 #define RUNTIME_BIN_UTILS_WIN_H_
 
-#include "platform/globals.h"
+#include <utility>
+
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -38,30 +40,29 @@ class StringUtilsWin {
 };
 
 // These scopes provide strings converted as indicated by the scope names.
-// The provided strings are allocated with 'new' and have the same lifetime as
-// the scope.
+// The provided strings are allocated with 'malloc' and have the same lifetime
+// as the scope.
 class WideToUtf8Scope {
  public:
-  explicit WideToUtf8Scope(const wchar_t* wide) {
+  explicit WideToUtf8Scope(const wchar_t* wide)
+      : utf8_(Utils::CreateCStringUniquePtr(nullptr)) {
     intptr_t utf8_len =
         WideCharToMultiByte(CP_UTF8, 0, wide, -1, NULL, 0, NULL, NULL);
-    char* utf8 = new char[utf8_len];
+    char* utf8 = reinterpret_cast<char*>(malloc(utf8_len));
     WideCharToMultiByte(CP_UTF8, 0, wide, -1, utf8, utf8_len, NULL, NULL);
     length_ = utf8_len;
-    utf8_ = utf8;
+    utf8_ = Utils::CreateCStringUniquePtr(utf8);
   }
 
-  ~WideToUtf8Scope() {
-    delete[] utf8_;
-    utf8_ = NULL;
-  }
-
-  char* utf8() const { return utf8_; }
+  char* utf8() const { return utf8_.get(); }
   intptr_t length() const { return length_; }
+
+  // Release the ownership of the converted string and return it.
+  Utils::CStringUniquePtr release() { return std::move(utf8_); }
 
  private:
   intptr_t length_;
-  char* utf8_;
+  Utils::CStringUniquePtr utf8_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(WideToUtf8Scope);
@@ -69,23 +70,16 @@ class WideToUtf8Scope {
 
 class Utf8ToWideScope {
  public:
-  explicit Utf8ToWideScope(const char* utf8) {
-    int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0);
-    wchar_t* wide = new wchar_t[wide_len];
-    MultiByteToWideChar(CP_UTF8, 0, utf8, -1, wide, wide_len);
-    length_ = wide_len;
-    wide_ = wide;
-  }
-
-  Utf8ToWideScope(const char* utf8, intptr_t length) {
+  explicit Utf8ToWideScope(const char* utf8, intptr_t length = -1) {
     int wide_len = MultiByteToWideChar(CP_UTF8, 0, utf8, length, NULL, 0);
-    wchar_t* wide = new wchar_t[wide_len];
+    wchar_t* wide =
+        reinterpret_cast<wchar_t*>(malloc(sizeof(wchar_t) * wide_len));
     MultiByteToWideChar(CP_UTF8, 0, utf8, length, wide, wide_len);
     length_ = wide_len;
     wide_ = wide;
   }
 
-  ~Utf8ToWideScope() { delete[] wide_; }
+  ~Utf8ToWideScope() { free(wide_); }
 
   wchar_t* wide() const { return wide_; }
   intptr_t length() const { return length_; }

@@ -934,26 +934,6 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   FATAL("Cannot continue execution after illegal memory access.");
 }
 
-// Processor versions prior to ARMv7 could not do unaligned reads and writes.
-// On some ARM platforms an interrupt is caused.  On others it does a funky
-// rotation thing.  However, from version v7, unaligned access is supported.
-// Note that simulator runs have the runtime system running directly on the host
-// system and only generated code is executed in the simulator.  Since the host
-// is typically IA32 we will get the correct ARMv7-like behaviour on unaligned
-// accesses, but we should actually not generate code accessing unaligned data,
-// so we still want to know and abort if we encounter such code.
-void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
-  // The debugger will not be able to single step past this instruction, but
-  // it will be possible to disassemble the code and inspect registers.
-  char buffer[64];
-  snprintf(buffer, sizeof(buffer), "unaligned %s at 0x%" Px ", pc=%p\n", msg,
-           addr, instr);
-  SimulatorDebugger dbg(this);
-  dbg.Stop(instr, buffer);
-  // The debugger will return control in non-interactive mode.
-  FATAL("Cannot continue execution after unaligned access.");
-}
-
 void Simulator::UnimplementedInstruction(Instr* instr) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
@@ -963,67 +943,39 @@ void Simulator::UnimplementedInstruction(Instr* instr) {
 }
 
 DART_FORCE_INLINE intptr_t Simulator::ReadW(uword addr, Instr* instr) {
-  if ((addr & 3) == 0) {
-    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
-    return *ptr;
-  }
-  UnalignedAccess("read", addr, instr);
-  return 0;
+  return *reinterpret_cast<intptr_t*>(addr);
 }
 
 DART_FORCE_INLINE void Simulator::WriteW(uword addr,
                                          intptr_t value,
                                          Instr* instr) {
-  if ((addr & 3) == 0) {
-    intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
-    *ptr = value;
-    return;
-  }
-  UnalignedAccess("write", addr, instr);
+  *reinterpret_cast<intptr_t*>(addr) = value;
 }
 
 DART_FORCE_INLINE uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
-  if ((addr & 1) == 0) {
-    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
-    return *ptr;
-  }
-  UnalignedAccess("unsigned halfword read", addr, instr);
-  return 0;
+  return *reinterpret_cast<uint16_t*>(addr);
 }
 
 DART_FORCE_INLINE int16_t Simulator::ReadH(uword addr, Instr* instr) {
-  if ((addr & 1) == 0) {
-    int16_t* ptr = reinterpret_cast<int16_t*>(addr);
-    return *ptr;
-  }
-  UnalignedAccess("signed halfword read", addr, instr);
-  return 0;
+  return *reinterpret_cast<int16_t*>(addr);
 }
 
 DART_FORCE_INLINE void Simulator::WriteH(uword addr,
                                          uint16_t value,
                                          Instr* instr) {
-  if ((addr & 1) == 0) {
-    uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
-    *ptr = value;
-    return;
-  }
-  UnalignedAccess("halfword write", addr, instr);
+  *reinterpret_cast<uint16_t*>(addr) = value;
 }
 
 DART_FORCE_INLINE uint8_t Simulator::ReadBU(uword addr) {
-  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
-  return *ptr;
+  return *reinterpret_cast<uint8_t*>(addr);
 }
 
 DART_FORCE_INLINE int8_t Simulator::ReadB(uword addr) {
-  int8_t* ptr = reinterpret_cast<int8_t*>(addr);
-  return *ptr;
+  return *reinterpret_cast<int8_t*>(addr);
 }
 
 DART_FORCE_INLINE void Simulator::WriteB(uword addr, uint8_t value) {
-  uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
-  *ptr = value;
+  *reinterpret_cast<uint8_t*>(addr) = value;
 }
 
 void Simulator::ClearExclusive() {
@@ -1611,10 +1563,6 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
             // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
             uint32_t alu_out = rm_val * rs_val;
             if (instr->Bits(21, 3) == 3) {  // mls
-              if (TargetCPUFeatures::arm_version() != ARMv7) {
-                UnimplementedInstruction(instr);
-                break;
-              }
               alu_out = -alu_out;
             }
             alu_out += rd_val;
@@ -1745,18 +1693,14 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
       switch (instr->Bits(20, 5)) {
         case 16:
         case 20: {
-          if (TargetCPUFeatures::arm_version() == ARMv7) {
-            uint16_t imm16 = instr->MovwField();
-            Register rd = instr->RdField();
-            if (instr->Bit(22) == 0) {
-              // Format(instr, "movw'cond 'rd, #'imm4_12");
-              set_register(rd, imm16);
-            } else {
-              // Format(instr, "movt'cond 'rd, #'imm4_12");
-              set_register(rd, (get_register(rd) & 0xffff) | (imm16 << 16));
-            }
+          uint16_t imm16 = instr->MovwField();
+          Register rd = instr->RdField();
+          if (instr->Bit(22) == 0) {
+            // Format(instr, "movw'cond 'rd, #'imm4_12");
+            set_register(rd, imm16);
           } else {
-            UnimplementedInstruction(instr);
+            // Format(instr, "movt'cond 'rd, #'imm4_12");
+            set_register(rd, (get_register(rd) & 0xffff) | (imm16 << 16));
           }
           break;
         }

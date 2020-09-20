@@ -28,11 +28,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
       FoldingRange(
-        range1.start.line,
-        range1.start.character,
-        range1.end.line,
-        range1.end.character,
-        null,
+        startLine: range1.start.line,
+        startCharacter: range1.start.character,
+        endLine: range1.end.line,
+        endCharacter: range1.end.character,
       )
     ];
 
@@ -53,11 +52,11 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     final range1 = rangeFromMarkers(content);
     final expectedRegions = [
       FoldingRange(
-        range1.start.line,
-        range1.start.character,
-        range1.end.line,
-        range1.end.character,
-        FoldingRangeKind.Comment,
+        startLine: range1.start.line,
+        startCharacter: range1.start.character,
+        endLine: range1.end.line,
+        endCharacter: range1.end.character,
+        kind: FoldingRangeKind.Comment,
       )
     ];
 
@@ -66,6 +65,43 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
     final regions = await getFoldingRegions(mainFileUri);
     expect(regions, unorderedEquals(expectedRegions));
+  }
+
+  Future<void> test_doLoop() async {
+    final content = '''
+    f(int i) {
+      do {[[
+        print('with statements');]]
+      } while (i == 0)
+
+      do {[[
+        // only comments]]
+      } while (i == 0)
+
+      // empty
+      do {
+      } while (i == 0)
+
+      // no body
+      do;
+    }
+    ''';
+
+    final ranges = rangesFromMarkers(content);
+    final expectedRegions = ranges
+        .map((range) => FoldingRange(
+              startLine: range.start.line,
+              startCharacter: range.start.character,
+              endLine: range.end.line,
+              endCharacter: range.end.character,
+            ))
+        .toList();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
   }
 
   Future<void> test_fromPlugins_dartFile() async {
@@ -162,6 +198,39 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
+  Future<void> test_ifElseElseIf() async {
+    final content = '''
+    f(int i) {
+      if (i == 0) {[[
+        // only
+        // comments]]
+      } else if (i == 1) {[[
+        print('statements');]]
+      } else if (i == 2) {
+      } else {[[
+        // else
+        // comments]]
+      }
+    }
+    ''';
+
+    final ranges = rangesFromMarkers(content);
+    final expectedRegions = ranges
+        .map((range) => FoldingRange(
+              startLine: range.start.line,
+              startCharacter: range.start.character,
+              endLine: range.end.line,
+              endCharacter: range.end.character,
+            ))
+        .toList();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
+  }
+
   Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
@@ -170,13 +239,50 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, isEmpty);
   }
 
+  Future<void> test_whileLoop() async {
+    final content = '''
+    f(int i) {
+      while (i == 0) {[[
+        print('with statements');]]
+      }
+
+      while (i == 0) {[[
+        // only comments]]
+      }
+
+      // empty
+      while (i == 0) {
+      }
+
+      // no body
+      while (i == 0);
+    }
+    ''';
+
+    final ranges = rangesFromMarkers(content);
+    final expectedRegions = ranges
+        .map((range) => FoldingRange(
+              startLine: range.start.line,
+              startCharacter: range.start.character,
+              endLine: range.end.line,
+              endCharacter: range.end.character,
+            ))
+        .toList();
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final regions = await getFoldingRegions(mainFileUri);
+    expect(regions, containsAll(expectedRegions));
+  }
+
   FoldingRange _toFoldingRange(Range range, FoldingRangeKind kind) {
     return FoldingRange(
-      range.start.line,
-      range.start.character,
-      range.end.line,
-      range.end.character,
-      kind,
+      startLine: range.start.line,
+      startCharacter: range.start.character,
+      endLine: range.end.line,
+      endCharacter: range.end.character,
+      kind: kind,
     );
   }
 }

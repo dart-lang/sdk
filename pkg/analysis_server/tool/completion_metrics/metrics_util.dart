@@ -132,10 +132,10 @@ class MeanReciprocalRankComputer {
 
   void printMean() {
     print('Mean Reciprocal Rank \'$name\' (total = $count)');
-    print('mmr   = ${mrr.toStringAsFixed(6)} '
+    print('mrr   = ${mrr.toStringAsFixed(6)} '
         '(inverse = ${(1 / mrr).toStringAsFixed(3)})');
 
-    print('mmr_5 = ${mrr_5.toStringAsFixed(6)} '
+    print('mrr_5 = ${mrr_5.toStringAsFixed(6)} '
         '(inverse = ${(1 / mrr_5).toStringAsFixed(3)})');
   }
 }

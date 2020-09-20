@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 
 /// Instances of the class `ExitDetector` determine whether the visited AST node
 /// is guaranteed to terminate by executing a `return` statement, `throw`
@@ -423,7 +424,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       }
     }
     Element element = node.methodName.staticElement;
-    if (element != null && element.hasAlwaysThrows) {
+    if (_elementExits(element)) {
       return true;
     }
     return _nodeExits(node.argumentList);
@@ -659,5 +660,15 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   /// Return `true` if the given [node] exits.
   static bool exits(AstNode node) {
     return ExitDetector()._nodeExits(node);
+  }
+
+  static bool _elementExits(Element element) {
+    if (element is ExecutableElement) {
+      var declaration = element.declaration;
+      return declaration.hasAlwaysThrows ||
+          identical(declaration.returnType, NeverTypeImpl.instance);
+    }
+
+    return false;
   }
 }

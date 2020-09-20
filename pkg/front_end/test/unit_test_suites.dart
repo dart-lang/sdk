@@ -8,7 +8,6 @@ import 'dart:io' show File, Platform, exitCode;
 import 'dart:isolate' show Isolate, ReceivePort, SendPort;
 
 import 'package:args/args.dart' show ArgParser;
-
 import 'package:testing/src/chain.dart' show CreateContext, Result, Step;
 import 'package:testing/src/expectation.dart' show Expectation;
 import 'package:testing/src/log.dart' show Logger;
@@ -17,13 +16,14 @@ import 'package:testing/src/suite.dart' as testing show Suite;
 import 'package:testing/src/test_description.dart' show TestDescription;
 
 import 'fasta/expression_suite.dart' as expression show createContext;
-import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/fast_strong_suite.dart' as fast_strong show createContext;
 import 'fasta/incremental_suite.dart' as incremental show createContext;
 import 'fasta/messages_suite.dart' as messages show createContext;
+import 'fasta/outline_suite.dart' as outline show createContext;
 import 'fasta/strong_tester.dart' as strong show createContext;
 import 'fasta/text_serialization_tester.dart' as text_serialization
     show createContext;
+import 'fasta/textual_outline_suite.dart' as textual_outline show createContext;
 import 'fasta/weak_suite.dart' as weak show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
@@ -32,6 +32,7 @@ import 'incremental_load_from_dill_suite.dart' as incremental_load
 import 'lint_suite.dart' as lint show createContext;
 import 'old_dill_suite.dart' as old_dill show createContext;
 import 'parser_suite.dart' as parser show createContext;
+import 'parser_all_suite.dart' as parserAll show createContext;
 import 'spelling_test_not_src_suite.dart' as spelling_not_src
     show createContext;
 import 'spelling_test_src_suite.dart' as spelling_src show createContext;
@@ -266,11 +267,14 @@ const List<Suite> suites = [
   const Suite("lint", lint.createContext, "../testing.json"),
   const Suite("old_dill", old_dill.createContext, "../testing.json"),
   const Suite("parser", parser.createContext, "../testing.json"),
+  const Suite("parser_all", parserAll.createContext, "../testing.json"),
   const Suite("spelling_test_not_src", spelling_not_src.createContext,
       "../testing.json"),
   const Suite(
       "spelling_test_src", spelling_src.createContext, "../testing.json"),
   const Suite("fasta/weak", weak.createContext, "../../testing.json"),
+  const Suite("fasta/textual_outline", textual_outline.createContext,
+      "../../testing.json"),
 ];
 
 const Duration timeoutDuration = Duration(minutes: 25);
@@ -298,6 +302,9 @@ void runSuite(SuiteConfiguration configuration) {
   String name = suite.prefix;
   String fullSuiteName = "$suiteNamePrefix/$name";
   Uri suiteUri = Platform.script.resolve(suite.path ?? "${name}_suite.dart");
+  if (!new File.fromUri(suiteUri).existsSync()) {
+    throw "File doesn't exist: $suiteUri";
+  }
   ResultLogger logger = ResultLogger(
       fullSuiteName,
       configuration.resultsPort,

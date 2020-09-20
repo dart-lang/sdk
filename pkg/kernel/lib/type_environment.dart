@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.type_environment;
 
+import 'package:kernel/type_algebra.dart';
+
 import 'ast.dart';
 import 'class_hierarchy.dart';
 import 'core_types.dart';
 
-import 'src/future_or.dart';
 import 'src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'src/types.dart';
@@ -31,7 +32,6 @@ abstract class TypeEnvironment extends Types {
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
   Class get functionClass => coreTypes.functionClass;
-  Class get futureOrClass => coreTypes.futureOrClass;
   Class get objectClass => coreTypes.objectClass;
 
   InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
@@ -81,25 +81,46 @@ abstract class TypeEnvironment extends Types {
         coreTypes.futureClass, nullability, <DartType>[type]);
   }
 
-  /// Removes a level of `Future<>` types wrapping a type.
-  ///
-  /// This implements the function `flatten` from the spec, which unwraps a
+  DartType _withDeclaredNullability(DartType type, Nullability nullability) {
+    if (type == nullType) return type;
+    return type.withDeclaredNullability(
+        uniteNullabilities(type.declaredNullability, nullability));
+  }
+
+  /// Returns the `flatten` of [type] as defined in the spec, which unwraps a
   /// layer of Future or FutureOr from a type.
-  DartType unfutureType(DartType type) {
-    if (type is InterfaceType) {
-      if (type.classNode == coreTypes.futureOrClass ||
-          type.classNode == coreTypes.futureClass) {
-        return type.typeArguments[0];
-      }
-      // It is a compile-time error to implement, extend, or mixin FutureOr so
-      // we aren't concerned with it.  If a class implements multiple
-      // instantiations of Future, getTypeAsInstanceOf is responsible for
-      // picking the least one in the sense required by the spec.
+  DartType flatten(DartType t) {
+    // if T is S? then flatten(T) = flatten(S)?
+    // otherwise if T is S* then flatten(T) = flatten(S)*
+    // -- this is preserve with the calls to [_withDeclaredNullability] below.
+
+    // otherwise if T is FutureOr<S> then flatten(T) = S
+    if (t is FutureOrType) {
+      return _withDeclaredNullability(t.typeArgument, t.declaredNullability);
+    }
+
+    // otherwise if T <: Future then let S be a type such that T <: Future<S>
+    //   and for all R, if T <: Future<R> then S <: R; then flatten(T) = S
+    DartType resolved = _resolveTypeParameterType(t);
+    if (resolved is InterfaceType) {
       List<DartType> futureArguments =
-          getTypeArgumentsAsInstanceOf(type, coreTypes.futureClass);
+          getTypeArgumentsAsInstanceOf(resolved, coreTypes.futureClass);
       if (futureArguments != null) {
-        return futureArguments[0];
+        return _withDeclaredNullability(
+            futureArguments.single, t.declaredNullability);
       }
+    }
+
+    // otherwise flatten(T) = T
+    return t;
+  }
+
+  /// Returns the non-type parameter type bound of [type].
+  DartType _resolveTypeParameterType(DartType type) {
+    while (type is TypeParameterType) {
+      TypeParameterType typeParameterType = type;
+      type =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
     return type;
   }
@@ -112,11 +133,7 @@ abstract class TypeEnvironment extends Types {
   DartType forInElementType(ForInStatement node, DartType iterableType) {
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
-    while (iterableType is TypeParameterType) {
-      TypeParameterType typeParameterType = iterableType;
-      iterableType =
-          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
-    }
+    iterableType = _resolveTypeParameterType(iterableType);
     if (node.isAsync) {
       List<DartType> typeArguments =
           getTypeArgumentsAsInstanceOf(iterableType, coreTypes.streamClass);
@@ -128,66 +145,146 @@ abstract class TypeEnvironment extends Types {
     }
   }
 
-  /// Called if the computation of a static type failed due to a type error.
-  ///
-  /// This should never happen in production.  The frontend should report type
-  /// errors, and either recover from the error during translation or abort
-  /// compilation if unable to recover.
-  ///
-  /// By default, this throws an exception, since programs in kernel are assumed
-  /// to be correctly typed.
-  ///
-  /// An [errorHandler] may be provided in order to override the default
-  /// behavior and tolerate the presence of type errors.  This can be useful for
-  /// debugging IR producers which are required to produce a strongly typed IR.
-  void typeError(TreeNode node, String message) {
-    if (errorHandler != null) {
-      errorHandler(node, message);
+  /// True if [member] is a binary operator whose return type is defined by
+  /// the both operand types.
+  bool isSpecialCasedBinaryOperator(Procedure member,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      Class class_ = member.enclosingClass;
+      // TODO(johnniwinther): Do we need to recognize backend implementation
+      //  methods?
+      if (class_ == coreTypes.intClass ||
+          class_ == coreTypes.numClass ||
+          class_ == coreTypes.doubleClass) {
+        String name = member.name.text;
+        return name == '+' ||
+            name == '-' ||
+            name == '*' ||
+            name == 'remainder' ||
+            name == '%';
+      }
     } else {
-      throw '$message in $node';
-    }
-  }
-
-  /// True if [member] is a binary operator that returns an `int` if both
-  /// operands are `int`, and otherwise returns `double`.
-  ///
-  /// This is a case of type-based overloading, which in Dart is only supported
-  /// by giving special treatment to certain arithmetic operators.
-  bool isOverloadedArithmeticOperator(Procedure member) {
-    Class class_ = member.enclosingClass;
-    if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
-      String name = member.name.name;
-      return name == '+' ||
-          name == '-' ||
-          name == '*' ||
-          name == 'remainder' ||
-          name == '%';
+      Class class_ = member.enclosingClass;
+      if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
+        String name = member.name.text;
+        return name == '+' ||
+            name == '-' ||
+            name == '*' ||
+            name == 'remainder' ||
+            name == '%';
+      }
     }
     return false;
   }
 
-  /// Returns the static return type of an overloaded arithmetic operator
-  /// (see [isOverloadedArithmeticOperator]) given the static type of the
-  /// operands.
-  ///
-  /// If both types are `int`, the returned type is `int`.
-  /// If either type is `double`, the returned type is `double`.
-  /// If both types refer to the same type variable (typically with `num` as
-  /// the upper bound), then that type variable is returned.
-  /// Otherwise `num` is returned.
-  DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
-    if (type1 == type2) return type1;
-
-    if (type1 is InterfaceType && type2 is InterfaceType) {
-      if (type1.classNode == type2.classNode) {
-        return type1;
-      }
-      if (type1.classNode == coreTypes.doubleClass ||
-          type2.classNode == coreTypes.doubleClass) {
-        return coreTypes.doubleRawType(type1.nullability);
+  /// True if [member] is a ternary operator whose return type is defined by
+  /// the least upper bound of the operand types.
+  bool isSpecialCasedTernaryOperator(Procedure member,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      Class class_ = member.enclosingClass;
+      if (class_ == coreTypes.intClass || class_ == coreTypes.numClass) {
+        String name = member.name.text;
+        return name == 'clamp';
       }
     }
+    return false;
+  }
 
+  /// Returns the static return type of a special cased binary operator
+  /// (see [isSpecialCasedBinaryOperator]) given the static type of the
+  /// operands.
+  DartType getTypeOfSpecialCasedBinaryOperator(DartType type1, DartType type2,
+      {bool isNonNullableByDefault: false}) {
+    if (isNonNullableByDefault) {
+      // Let e be an expression of one of the forms e1 + e2, e1 - e2, e1 * e2,
+      // e1 % e2 or e1.remainder(e2), where the static type of e1 is a non-Never
+      // type T and T <: num, and where the static type of e2 is S and S is
+      // assignable to num. Then:
+      if (type1 is! NeverType &&
+              isSubtypeOf(type1, coreTypes.numNonNullableRawType,
+                  SubtypeCheckMode.withNullabilities) &&
+              type2 is DynamicType ||
+          isSubtypeOf(type2, coreTypes.numNonNullableRawType,
+              SubtypeCheckMode.withNullabilities)) {
+        if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+            SubtypeCheckMode.withNullabilities)) {
+          // If T <: double then the static type of e is double. This includes S
+          // being dynamic or Never.
+          return coreTypes.doubleNonNullableRawType;
+        } else if (type2 is! NeverType &&
+            isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If S <: double and not S <:Never, then the static type of e is
+          // double.
+          return coreTypes.doubleNonNullableRawType;
+        } else if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities) &&
+            type2 is! NeverType &&
+            isSubtypeOf(type2, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If T <: int , S <: int and not S <: Never, then the static type of
+          // e is int.
+          return coreTypes.intNonNullableRawType;
+        } else if (type2 is! NeverType &&
+            isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
+          // Otherwise the static type of e is num.
+          return coreTypes.numNonNullableRawType;
+        }
+      }
+      // Otherwise the static type of e is num.
+      return coreTypes.numNonNullableRawType;
+    } else {
+      type1 = _resolveTypeParameterType(type1);
+      type2 = _resolveTypeParameterType(type2);
+
+      if (type1 == type2) return type1;
+
+      if (type1 is InterfaceType && type2 is InterfaceType) {
+        if (type1.classNode == type2.classNode) {
+          return type1;
+        }
+        if (type1.classNode == coreTypes.doubleClass ||
+            type2.classNode == coreTypes.doubleClass) {
+          return coreTypes.doubleRawType(type1.nullability);
+        }
+      }
+
+      return coreTypes.numRawType(type1.nullability);
+    }
+  }
+
+  DartType getTypeOfSpecialCasedTernaryOperator(
+      DartType type1, DartType type2, DartType type3, Library clientLibrary) {
+    if (clientLibrary.isNonNullableByDefault) {
+      // Let e be a normal invocation of the form e1.clamp(e2, e3), where the
+      // static types of e1, e2 and e3 are T1, T2 and T3 respectively, and where
+      // T1, T2, and T3 are all non-Never subtypes of num. Then:
+      if (type1 is! NeverType && type2 is! NeverType && type3 is! NeverType
+          /* We skip the check that all types are subtypes of num because, if
+          not, we'll compute the static type to be num, anyway.*/
+          ) {
+        if (isSubtypeOf(type1, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type2, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type3, coreTypes.intNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If T1, T2 and T3 are all subtypes of int, the static type of e is int.
+          return coreTypes.intNonNullableRawType;
+        } else if (isSubtypeOf(type1, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type2, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities) &&
+            isSubtypeOf(type3, coreTypes.doubleNonNullableRawType,
+                SubtypeCheckMode.withNullabilities)) {
+          // If T1, T2 and T3 are all subtypes of double, the static type of e is double.
+          return coreTypes.doubleNonNullableRawType;
+        }
+      }
+      // Otherwise the static type of e is num.
+      return coreTypes.numNonNullableRawType;
+    }
     return coreTypes.numRawType(type1.nullability);
   }
 
@@ -276,7 +373,7 @@ class IsSubtypeOf {
   /// `Rn` is the result of [IsSubtypeOf.basedSolelyOnNullabilities] on the
   /// types `List<int>?` and `List<num>*`.
   factory IsSubtypeOf.basedSolelyOnNullabilities(
-      DartType subtype, DartType supertype, Class futureOrClass) {
+      DartType subtype, DartType supertype) {
     if (subtype is InvalidType) {
       if (supertype is InvalidType) {
         return const IsSubtypeOf.always();
@@ -287,34 +384,24 @@ class IsSubtypeOf {
       return const IsSubtypeOf.onlyIfIgnoringNullabilities();
     }
 
-    if (isPotentiallyNullable(subtype, futureOrClass) &&
-        isPotentiallyNonNullable(supertype, futureOrClass)) {
+    if (subtype.isPotentiallyNullable && supertype.isPotentiallyNonNullable) {
       // It's a special case to test X% <: X%, FutureOr<X%> <: FutureOr<X%>,
       // FutureOr<FutureOr<X%>> <: FutureOr<FutureOr<X%>>, etc, where X is a
       // type parameter.  In that case, the nullabilities of the subtype and the
       // supertype are related, that is, they are both nullable or non-nullable
       // at run time.
-      if (computeNullability(subtype, futureOrClass) ==
-              Nullability.undetermined &&
-          computeNullability(supertype, futureOrClass) ==
-              Nullability.undetermined) {
+      if (subtype.nullability == Nullability.undetermined &&
+          supertype.nullability == Nullability.undetermined) {
         DartType unwrappedSubtype = subtype;
         DartType unwrappedSupertype = supertype;
-        while (unwrappedSubtype is InterfaceType &&
-            unwrappedSubtype.classNode == futureOrClass) {
-          unwrappedSubtype =
-              (unwrappedSubtype as InterfaceType).typeArguments.single;
+        while (unwrappedSubtype is FutureOrType) {
+          unwrappedSubtype = (unwrappedSubtype as FutureOrType).typeArgument;
         }
-        while (unwrappedSupertype is InterfaceType &&
-            unwrappedSupertype.classNode == futureOrClass) {
+        while (unwrappedSupertype is FutureOrType) {
           unwrappedSupertype =
-              (unwrappedSupertype as InterfaceType).typeArguments.single;
+              (unwrappedSupertype as FutureOrType).typeArgument;
         }
-        Nullability unwrappedSubtypeNullability =
-            computeNullability(unwrappedSubtype, futureOrClass);
-        Nullability unwrappedSupertypeNullability =
-            computeNullability(unwrappedSupertype, futureOrClass);
-        if (unwrappedSubtypeNullability == unwrappedSupertypeNullability) {
+        if (unwrappedSubtype.nullability == unwrappedSupertype.nullability) {
           // The relationship between the types must be established elsewhere.
           return const IsSubtypeOf.always();
         }

@@ -73,7 +73,6 @@ abstract class Page {
   void visit(Uri uri, Map internalArguments) {
     this.internalArguments.clear();
     this.internalArguments.addAll(internalArguments);
-    Analytics.reportPageView(uri);
     _visit(uri);
   }
 
@@ -1006,4 +1005,20 @@ class TimelineDashboardPage extends Page {
   }
 
   bool canVisit(Uri uri) => uri.path == 'timeline-dashboard';
+}
+
+class ProcessSnapshotPage extends Page {
+  ProcessSnapshotPage(app) : super(app);
+
+  void onInstall() {
+    element = new ProcessSnapshotElement(app.vm, app.events, app.notifications,
+            queue: app.queue)
+        .element;
+  }
+
+  void _visit(Uri uri) {
+    assert(canVisit(uri));
+  }
+
+  bool canVisit(Uri uri) => uri.path == 'process-snapshot';
 }

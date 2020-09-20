@@ -312,9 +312,37 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // can also be constant folded away.
           next = replacement;
         }
-        block.remove(instruction);
+        _removeInstructionAndPureDeadInputs(instruction);
       }
       instruction = next;
+    }
+  }
+
+  /// Removes [instruction] and the DAG of pure instructions that are transitive
+  /// inputs to [instruction].
+  ///
+  /// It is worth doing the cleanup of removing the instructions in the
+  /// simplifier as it reduces the `usedBy` count, which enables rewrites that
+  /// are sensitive to the use count. Such rewrites can occur much earlier with
+  /// 'online' usedBy counting.  The cost of visiting all inputs of a rewritten
+  /// instruction is regained by avoiding visiting the dead instructions in
+  /// subsequent passes.
+  void _removeInstructionAndPureDeadInputs(HInstruction instruction) {
+    List<HInstruction> worklist = instruction.inputs.toList();
+    instruction.block.remove(instruction);
+    for (int i = 0; i < worklist.length; i++) {
+      HInstruction next = worklist[i];
+      HBasicBlock block = next.block;
+      if (block == null) continue; // Already removed.
+      if (next.usedBy.isEmpty && next.isPure(_abstractValueDomain)) {
+        // Special cases that are removed properly by other phases.
+        if (next is HParameterValue) continue;
+        if (next is HLocalValue) continue;
+        if (next is HConstant) continue;
+        if (next is HPhi) continue;
+        worklist.addAll(next.inputs);
+        block.remove(next);
+      }
     }
   }
 
@@ -481,12 +509,63 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // convert to a value parameter.
 
     if (node.usedAsVariable()) {
-      if (!node.usedBy.every((user) => user is HLocalGet)) return node;
       // Trivial SSA-conversion. Replace all HLocalGet instructions with the
       // parameter.
-      for (HLocalGet user in node.usedBy.toList()) {
-        user.block.rewrite(user, node);
+      //
+      // If there is a single assignment, it could dominate all the reads, or
+      // dominate all the reads except one read, which was used to 'check' the
+      // value at entry, like this:
+      //
+      //     t1 = HLocalGet(param);
+      //     t2 = check(t1);           // replace t1 with param
+      //     HLocalSet(param, t2);
+      //     ....
+      //     t3 = HLocalGet(param);
+      //     ... t3 ...                // replace t3 with t2
+      //
+      HLocalSet assignment;
+      for (HInstruction user in node.usedBy) {
+        if (user is HLocalSet) {
+          assert(user.local == node);
+          if (assignment != null) return node; // Two or more assignments.
+          assignment = user;
+          continue;
+        }
+        if (user is HLocalGet) continue;
+        // There should not really be anything else but there are Phis which
+        // have not been cleaned up.
+        return node;
+      }
+      HLocalGet checkedLoad;
+      HInstruction value = node;
+      if (assignment != null) {
+        value = assignment.value;
+        HInstruction source = value.nonCheck();
+        if (source is HLocalGet && source.local == node) {
+          if (source.usedBy.length != 1) return node;
+          checkedLoad = source;
+        }
+      }
+      // If there is a single assignment it will dominate all other uses.
+      List<HLocalGet> loads = [];
+      for (HInstruction user in node.usedBy) {
+        if (user == assignment) continue;
+        if (user == checkedLoad) continue;
+        assert(user is HLocalGet && user.local == node);
+        if (assignment != null && !assignment.dominates(user)) return node;
+        loads.add(user);
+      }
+
+      for (HLocalGet user in loads) {
+        user.block.rewrite(user, value);
         user.block.remove(user);
+      }
+      if (checkedLoad != null) {
+        checkedLoad.block.rewrite(checkedLoad, node);
+        checkedLoad.block.remove(checkedLoad);
+      }
+      if (assignment != null) {
+        assignment.block.remove(assignment);
       }
     }
 
@@ -690,30 +769,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     node.block.addBefore(node, splitInstruction);
 
-    HInstruction typeInfo;
-    if (_options.useNewRti) {
-      typeInfo = HLoadType.type(
-          _closedWorld.elementEnvironment.createInterfaceType(
-              commonElements.jsArrayClass, [commonElements.stringType]),
-          _abstractValueDomain.dynamicType);
-      node.block.addBefore(node, typeInfo);
-    } else {
-      HInstruction stringTypeInfo = new HTypeInfoExpression(
-          TypeInfoExpressionKind.COMPLETE,
-          _closedWorld.elementEnvironment
-              .getThisType(commonElements.stringClass),
-          <HInstruction>[],
-          _abstractValueDomain.dynamicType);
-      node.block.addBefore(node, stringTypeInfo);
-
-      typeInfo = new HTypeInfoExpression(
-          TypeInfoExpressionKind.INSTANCE,
-          _closedWorld.elementEnvironment
-              .getThisType(commonElements.jsArrayClass),
-          <HInstruction>[stringTypeInfo],
-          _abstractValueDomain.dynamicType);
-      node.block.addBefore(node, typeInfo);
-    }
+    HInstruction typeInfo = HLoadType.type(
+        _closedWorld.elementEnvironment.createInterfaceType(
+            commonElements.jsArrayClass, [commonElements.stringType]),
+        _abstractValueDomain.dynamicType);
+    node.block.addBefore(node, typeInfo);
 
     HInvokeStatic tagInstruction = new HInvokeStatic(
         commonElements.setRuntimeTypeInfo,
@@ -848,7 +908,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = node.inputs.last; // Drop interceptor.
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
@@ -859,7 +919,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
     result.sideEffects.setDependsOnSomething();
     result.sideEffects.clearAllSideEffects();
     result.setUseGvn();
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
+  }
+
+  HInstruction maybeAddNativeReturnNullCheck(
+      HInstruction node, HInstruction replacement, FunctionEntity method) {
+    if (_options.enableNativeReturnNullAssertions) {
+      if (method.library.isNonNullableByDefault) {
+        FunctionType type =
+            _closedWorld.elementEnvironment.getFunctionType(method);
+        if (_closedWorld.dartTypes.isNonNullableIfSound(type.returnType)) {
+          node.block.addBefore(node, replacement);
+          replacement = HNullCheck(replacement,
+              _abstractValueDomain.excludeNull(replacement.instructionType),
+              sticky: true);
+        }
+      }
+    }
+    return replacement;
   }
 
   // Try to 'inline' an instance setter call to a known native or js-interop
@@ -965,14 +1043,15 @@ class SsaInstructionSimplifier extends HBaseVisitor
         AbstractValueFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
     HInstruction receiver = inputs[1];
     receiver = maybeGuardWithNullCheck(receiver, node, null);
-    HInvokeExternal result = HInvokeExternal(
+    HInstruction result = HInvokeExternal(
         method,
         [receiver, ...inputs.skip(2)], // '2': Drop interceptor and receiver.
         returnType,
         nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
-    return result;
+
+    return maybeAddNativeReturnNullCheck(node, result, method);
   }
 
   @override
@@ -1140,6 +1219,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitIf(HIf node) {
     HInstruction condition = node.condition;
     if (condition.isConstant()) return node;
+
+    AbstractBool isTruthy =
+        _abstractValueDomain.isTruthy(condition.instructionType);
+    if (isTruthy.isDefinitelyTrue) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(true, _closedWorld));
+    } else if (isTruthy.isDefinitelyFalse) {
+      return _replaceHIfCondition(
+          node, _graph.addConstantBool(false, _closedWorld));
+    }
+
     bool isNegated = condition is HNot;
 
     if (isNegated) {
@@ -1162,100 +1252,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
-  @override
-  HInstruction visitIs(HIs node) {
-    DartType type = node.typeExpression;
-
-    if (!node.isRawCheck) {
-      return node;
-    } else if (type is FunctionType) {
-      return node;
-    } else if (type is FutureOrType) {
-      return node;
-    }
-
-    if (_closedWorld.dartTypes.isTopType(type)) {
-      return _graph.addConstantBool(true, _closedWorld);
-    }
-    InterfaceType interfaceType = type;
-    ClassEntity element = interfaceType.element;
-    HInstruction expression = node.expression;
-    if (expression.isInteger(_abstractValueDomain).isDefinitelyTrue) {
-      if (element == commonElements.intClass ||
-          element == commonElements.numClass ||
-          commonElements.isNumberOrStringSupertype(element)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else if (element == commonElements.doubleClass) {
-        // We let the JS semantics decide for that check. Currently
-        // the code we emit will always return true.
-        return node;
-      } else {
-        return _graph.addConstantBool(false, _closedWorld);
-      }
-    } else if (expression.isDouble(_abstractValueDomain).isDefinitelyTrue) {
-      if (element == commonElements.doubleClass ||
-          element == commonElements.numClass ||
-          commonElements.isNumberOrStringSupertype(element)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else if (element == commonElements.intClass) {
-        // We let the JS semantics decide for that check. Currently
-        // the code we emit will return true for a double that can be
-        // represented as a 31-bit integer and for -0.0.
-        return node;
-      } else {
-        return _graph.addConstantBool(false, _closedWorld);
-      }
-    } else if (expression.isNumber(_abstractValueDomain).isDefinitelyTrue) {
-      if (element == commonElements.numClass) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else {
-        // We cannot just return false, because the expression may be of
-        // type int or double.
-      }
-    } else if (expression
-            .isPrimitiveNumber(_abstractValueDomain)
-            .isPotentiallyTrue &&
-        element == commonElements.intClass) {
-      // We let the JS semantics decide for that check.
-      return node;
-      // We need the [:hasTypeArguments:] check because we don't have
-      // the notion of generics in the backend. For example, [:this:] in
-      // a class [:A<T>:], is currently always considered to have the
-      // raw type.
-    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(
-        _closedWorld.dartTypes, type)) {
-      AbstractValue expressionMask = expression.instructionType;
-      AbstractBool isInstanceOf =
-          _abstractValueDomain.isInstanceOf(expressionMask, element);
-      if (isInstanceOf.isDefinitelyTrue) {
-        return _graph.addConstantBool(true, _closedWorld);
-      } else if (isInstanceOf.isDefinitelyFalse) {
-        return _graph.addConstantBool(false, _closedWorld);
-      }
-    }
-    return node;
-  }
-
-  @override
-  HInstruction visitTypeConversion(HTypeConversion node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
-
-    // Simplify 'as T' where T is a simple type.
-    DartType checkedType = node.typeExpression;
-    if (checkedType is TypeVariableType && node.inputs.length == 2) {
-      HInstruction rep = node.typeRepresentation;
-      if (rep is HTypeInfoExpression &&
-          rep.kind == TypeInfoExpressionKind.COMPLETE &&
-          rep.inputs.isEmpty) {
-        DartType type = rep.dartType;
-        if (type is InterfaceType &&
-            _closedWorld.dartTypes.treatAsRawType(type)) {
-          return node.checkedInput.convertType(_closedWorld, type, node.kind)
-            ..sourceInformation = node.sourceInformation;
-        }
-      }
-    }
-
+  /// Returns [node] after replacing condition.
+  HInstruction _replaceHIfCondition(HIf node, HInstruction newCondition) {
+    HInstruction condition = node.condition;
+    node.inputs[0] = newCondition;
+    condition.usedBy.remove(node);
+    newCondition.usedBy.add(node);
     return node;
   }
 
@@ -1306,37 +1308,61 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitGetLength(HGetLength node) {
     HInstruction receiver = node.receiver;
-    if (_graph.allocatedFixedLists.contains(receiver)) {
-      // TODO(ngeoffray): checking if the second input is an integer
-      // should not be necessary but it currently makes it easier for
-      // other optimizations to reason about a fixed length constructor
-      // that we know takes an int.
-      if (receiver.inputs[0].isInteger(_abstractValueDomain).isDefinitelyTrue) {
-        return receiver.inputs[0];
-      }
-    } else if (receiver.isConstantList()) {
+
+    if (receiver.isConstantList()) {
       HConstant constantReceiver = receiver;
       ListConstantValue constant = constantReceiver.constant;
       return _graph.addConstantInt(constant.length, _closedWorld);
-    } else if (receiver.isConstantString()) {
+    }
+
+    if (receiver.isConstantString()) {
       HConstant constantReceiver = receiver;
       StringConstantValue constant = constantReceiver.constant;
       return _graph.addConstantInt(constant.length, _closedWorld);
-    } else {
-      AbstractValue type = receiver.instructionType;
-      if (_abstractValueDomain.isContainer(type) &&
-          _abstractValueDomain.getContainerLength(type) != null) {
-        HInstruction constant = _graph.addConstantInt(
-            _abstractValueDomain.getContainerLength(type), _closedWorld);
-        if (_abstractValueDomain.isNull(type).isPotentiallyTrue) {
+    }
+
+    AbstractValue receiverType = receiver.instructionType;
+    if (_abstractValueDomain.isContainer(receiverType)) {
+      int /*?*/ length = _abstractValueDomain.getContainerLength(receiverType);
+      if (length != null) {
+        HInstruction constant = _graph.addConstantInt(length, _closedWorld);
+        if (_abstractValueDomain.isNull(receiverType).isPotentiallyTrue) {
           // If the container can be null, we update all uses of the length
           // access to use the constant instead, but keep the length access in
           // the graph, to ensure we still have a null check.
           node.block.rewrite(node, constant);
           return node;
-        } else {
-          return constant;
         }
+        return constant;
+      }
+    }
+
+    // Can we find the length as an input to an allocation?
+    HInstruction potentialAllocation = receiver;
+    if (receiver is HInvokeStatic &&
+        receiver.element == commonElements.setRuntimeTypeInfo) {
+      // Look through `setRuntimeTypeInfo(new Array(), ...)`
+      potentialAllocation = receiver.inputs.first;
+    }
+    if (_graph.allocatedFixedLists.contains(potentialAllocation)) {
+      // TODO(sra): How do we keep this working if we lower/inline the receiver
+      // in an optimization?
+
+      HInstruction lengthInput = potentialAllocation.inputs.first;
+
+      // We don't expect a non-integer first input to the fixed-size allocation,
+      // but checking the input is an integer ensures we do not replace a
+      // HGetlength with a reference to something with a type that will confuse
+      // bounds check eliminiation.
+      if (lengthInput.isInteger(_abstractValueDomain).isDefinitelyTrue) {
+        // TODO(sra). HGetLength may have a better type than [lengthInput] as
+        // the allocation may throw on an out-of-range input. Typically the
+        // input is an unconstrained `int` and the length is non-negative. We
+        // may have done some optimizations with the better type that we won't
+        // be able to do with the broader type of [lengthInput].  We should
+        // insert a HTypeKnown witnessed by the allocation to narrow the
+        // lengthInput.
+        return lengthInput;
       }
     }
 
@@ -1503,42 +1529,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
       DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
 
-      if (_options.useNewRti) {
-        AbstractValueWithPrecision checkedType = _abstractValueDomain
-            .createFromStaticType(fieldType, nullable: true);
-        if (checkedType.isPrecise &&
-            _abstractValueDomain
-                .isIn(value.instructionType, checkedType.abstractValue)
-                .isDefinitelyTrue) {
-          return assignField();
-        }
-        // TODO(sra): Implement inlining of setters with checks for new rti. The
-        // check and field assignment for the setter should inlined if this is
-        // the only call to the setter, or the current function already computes
-        // the type of the field.
-        node.needsCheck = true;
-        return node;
+      AbstractValueWithPrecision checkedType =
+          _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
+      if (checkedType.isPrecise &&
+          _abstractValueDomain
+              .isIn(value.instructionType, checkedType.abstractValue)
+              .isDefinitelyTrue) {
+        return assignField();
       }
-
-      if (!_closedWorld.dartTypes.treatAsRawType(fieldType) ||
-          fieldType is TypeVariableType ||
-          fieldType is FunctionType ||
-          fieldType is FutureOrType) {
-        // We cannot generate the correct type representation here, so don't
-        // inline this access.
-        // TODO(sra): If the input is such that we don't need a type check, we
-        // can skip the test an generate the HFieldSet.
-        node.needsCheck = true;
-        return node;
-      }
-      HInstruction other = value.convertType(
-          _closedWorld, fieldType, HTypeConversion.TYPE_CHECK);
-      if (other != value) {
-        node.block.addBefore(node, other);
-        value = other;
-      }
-
-      return assignField();
+      // TODO(sra): Implement inlining of setters with checks for new rti. The
+      // check and field assignment for the setter should inlined if this is
+      // the only call to the setter, or the current function already computes
+      // the type of the field.
+      node.needsCheck = true;
+      return node;
     }
 
     if (member is FunctionEntity) {
@@ -1591,7 +1595,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (node.inputs.length == 2) {
         return handleArrayTypeInfo(node);
       }
-    } else if (element == commonElements.checkConcurrentModificationError) {
+    } else if (commonElements.isCheckConcurrentModificationError(element)) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
@@ -1664,7 +1668,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (user is HInterceptor) continue;
       if (user is HInvokeStatic) {
         MemberEntity element = user.element;
-        if (element == commonElements.checkConcurrentModificationError) {
+        if (commonElements.isCheckConcurrentModificationError(element)) {
           // CME check escapes the array, but we don't care.
           continue;
         }
@@ -1824,228 +1828,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   @override
-  HInstruction visitTypeInfoExpression(HTypeInfoExpression node) {
-    // Identify the case where the type info expression would be of the form:
-    //
-    //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
-    //
-    // and k is the number of type arguments of 'this'.  We can simply copy the
-    // list from 'this'.
-    HInstruction tryCopyInfo() {
-      if (node.kind != TypeInfoExpressionKind.INSTANCE) return null;
-
-      HInstruction source;
-      int expectedIndex = 0;
-
-      for (HInstruction argument in node.inputs) {
-        if (argument is HTypeInfoReadVariable) {
-          ClassEntity context = DartTypes.getClassContext(argument.variable);
-          HInstruction nextSource = argument.object;
-          if (nextSource is HRef) {
-            HRef ref = nextSource;
-            nextSource = ref.value;
-          }
-          if (nextSource is HThis) {
-            if (source == null) {
-              source = nextSource;
-              ClassEntity thisClass = nextSource.sourceElement.enclosingClass;
-              InterfaceType thisType =
-                  _closedWorld.elementEnvironment.getThisType(thisClass);
-              if (node.inputs.length != thisType.typeArguments.length) {
-                return null;
-              }
-              if (needsSubstitutionForTypeVariableAccess(thisClass)) {
-                return null;
-              }
-              if (context != null &&
-                  !_rtiSubstitutions.isTrivialSubstitution(
-                      thisClass, context)) {
-                // If inlining, the [context] is not the same as [thisClass].
-                // If this is the case, then the substitution must be trivial.
-                // Consider this:
-                //
-                //    class A {
-                //      final Object value;
-                //      A(this.value);
-                //    }
-                //    class B<T> extends A {
-                //      B(T value) : super(value);
-                //      T get value => super.value as T;
-                //    }
-                //    class C<S> extends B<List<S>> {
-                //      C(List<S> value) : super(value);
-                //      S get first => value.first;
-                //    }
-                //
-                // If `B.value` is inlined into `C.first` the type info
-                // expression is the list `[B.T]` on a `this` of type `C<S>`.
-                // Since the substitution from C to B is not trivial
-                // (S -> List<S>) this type info expression cannot be replaced
-                // with the type arguments `C<S>` (it would yield [S] instead of
-                // [List<S>]).
-                return null;
-              }
-            }
-            if (nextSource != source) return null;
-            // Check that the index is the one we expect.
-            int index = argument.variable.element.index;
-            if (index != expectedIndex++) return null;
-          } else {
-            // TODO(sra): Handle non-this cases (i.e. inlined code). Some
-            // non-this cases will have a TypeMask that does not need
-            // substitution, even though the general case does, e.g. inlining a
-            // method on an exact class.
-            return null;
-          }
-        } else {
-          return null;
-        }
-      }
-
-      if (source == null) return null;
-      return new HTypeInfoReadRaw(source, _abstractValueDomain.dynamicType);
-    }
-
-    // TODO(sra): Consider fusing type expression trees with no type variables,
-    // as these could be represented like constants.
-
-    return tryCopyInfo() ?? node;
-  }
-
-  @override
-  HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    TypeVariableType variable = node.variable;
-    ClassEntity contextClass = variable.element.typeDeclaration;
-    HInstruction object = node.object;
-
-    HInstruction finishGroundType(InterfaceType groundType) {
-      InterfaceType typeAtVariable =
-          _closedWorld.dartTypes.asInstanceOf(groundType, contextClass);
-      if (typeAtVariable != null) {
-        int index = variable.element.index;
-        DartType typeArgument = typeAtVariable.typeArguments[index];
-        HInstruction replacement = new HTypeInfoExpression(
-            TypeInfoExpressionKind.COMPLETE,
-            typeArgument,
-            const <HInstruction>[],
-            _abstractValueDomain.dynamicType,
-            isTypeVariableReplacement: true);
-        return replacement;
-      }
-      return node;
-    }
-
-    /// Read the type variable from an allocation of type [createdClass], where
-    /// [selectTypeArgumentFromObjectCreation] extracts the type argument from
-    /// the allocation for factory constructor call.
-    HInstruction finishSubstituted(ClassEntity createdClass,
-        HInstruction selectTypeArgumentFromObjectCreation(int index)) {
-      InterfaceType thisType = _closedWorld.dartTypes.getThisType(createdClass);
-
-      HInstruction instructionForTypeVariable(TypeVariableType tv) {
-        return selectTypeArgumentFromObjectCreation(
-            thisType.typeArguments.indexOf(tv));
-      }
-
-      DartType type = _closedWorld.dartTypes
-          .asInstanceOf(thisType, contextClass)
-          .typeArguments[variable.element.index];
-      if (type is TypeVariableType) {
-        return instructionForTypeVariable(type);
-      }
-      List<HInstruction> arguments = <HInstruction>[];
-      type.forEachTypeVariable((v) {
-        arguments.add(instructionForTypeVariable(v));
-      });
-      HInstruction replacement = new HTypeInfoExpression(
-          TypeInfoExpressionKind.COMPLETE,
-          type,
-          arguments,
-          _abstractValueDomain.dynamicType,
-          isTypeVariableReplacement: true);
-      return replacement;
-    }
-
-    // Type variable evaluated in the context of a constant can be replaced with
-    // a ground term type.
-    if (object is HConstant) {
-      ConstantValue value = object.constant;
-      if (value is ConstructedConstantValue) {
-        return finishGroundType(value.type);
-      }
-      return node;
-    }
-
-    // Look for an allocation with type information and re-write type variable
-    // as a function of the type parameters of the allocation.  This effectively
-    // store-forwards a type variable read through an allocation.
-
-    // Match:
-    //
-    //     HCreate(ClassElement,
-    //       [arg_i,
-    //        ...,
-    //        HTypeInfoExpression(t_0, t_1, t_2, ...)]);
-    //
-    // The `t_i` are the values of the type parameters of ClassElement.
-
-    if (object is HCreate) {
-      void registerInstantiations() {
-        // Forwarding the type variable references might cause the HCreate to
-        // become dead. This breaks the algorithm for generating the per-type
-        // runtime type information, so we instantiate them here in case the
-        // HCreate becomes dead.
-        object.instantiatedTypes?.forEach(_registry.registerInstantiation);
-      }
-
-      if (object.hasRtiInput) {
-        HInstruction typeInfo = object.rtiInput;
-        if (typeInfo is HTypeInfoExpression) {
-          registerInstantiations();
-          return finishSubstituted(
-              object.element, (int index) => typeInfo.inputs[index]);
-        }
-      } else {
-        // Non-generic type (which extends or mixes in a generic type, for
-        // example CodeUnits extends UnmodifiableListBase<int>).  Also used for
-        // raw-type when the type parameters are elided.
-        registerInstantiations();
-        return finishSubstituted(
-            object.element,
-            // If there are type arguments, all type arguments are 'dynamic'.
-            (int i) => _graph.addConstantNull(_closedWorld));
-      }
-    }
-
-    // TODO(sra): Factory constructors pass type arguments after the value
-    // arguments. The [selectTypeArgumentFromObjectCreation] argument of
-    // [finishSubstituted] indexes into these type arguments.
-
-    // Try to remove the interceptor. The interceptor is used for accessing the
-    // substitution methods.
-    if (node.isIntercepted) {
-      // If we don't need the substitution methods then we don't need the
-      // interceptor to access them.
-      if (!needsSubstitutionForTypeVariableAccess(contextClass)) {
-        return new HTypeInfoReadVariable.noInterceptor(
-            variable, object, node.instructionType);
-      }
-      // All intercepted classes extend `Interceptor`, so if the receiver can't
-      // be a class extending `Interceptor` then the substitution methods can be
-      // called directly. (We don't care about Null since contexts reading class
-      // type variables originate from instance methods.)
-      if (_abstractValueDomain
-          .isInterceptor(object.instructionType)
-          .isDefinitelyFalse) {
-        return new HTypeInfoReadVariable.noInterceptor(
-            variable, object, node.instructionType);
-      }
-    }
-
-    return node;
-  }
-
-  @override
   HInstruction visitTypeEval(HTypeEval node) {
     HInstruction environment = node.inputs.single;
     if (_typeRecipeDomain.isIdentity(node.typeExpression, node.envStructure)) {
@@ -2126,37 +1908,53 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // TODO(fishythefish): Correctly constant fold `null as T` (also in
     // [visitAsCheckSimple]) when running with strong NNBD. We might get this
     // for free if nullability is precisely propagated to the typemasks.
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
 
-    // See if this check can be lowered to a simple one.
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
-      DartType dartType = recipe.type;
-      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
-          dartType, _closedWorld.commonElements, _options.useLegacySubtyping);
-      if (specializedCheck != null) {
-        AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType, nullable: true);
-        return HAsCheckSimple(node.checkedInput, dartType, checkedType,
-            node.isTypeError, specializedCheck, node.instructionType);
-      }
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return node.checkedInput;
-      }
+      node.checkedTypeExpression = recipe.type;
+    }
+
+    if (node.isRedundant(_closedWorld, _options)) {
+      return node.checkedInput;
+    }
+
+    // See if this check can be lowered to a simple one.
+    MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
+        node.checkedTypeExpression,
+        _closedWorld.commonElements,
+        _options.useLegacySubtyping);
+    if (specializedCheck != null) {
+      AbstractValueWithPrecision checkedType = _abstractValueDomain
+          .createFromStaticType(node.checkedTypeExpression, nullable: true);
+      return HAsCheckSimple(
+          node.checkedInput,
+          node.checkedTypeExpression,
+          checkedType,
+          node.isTypeError,
+          specializedCheck,
+          node.instructionType);
     }
     return node;
   }
 
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
-    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    if (node.isRedundant(_closedWorld, _options)) {
+      return node.checkedInput;
+    }
     return node;
   }
 
   @override
   HInstruction visitIsTest(HIsTest node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      node.dartType = recipe.type;
+    }
+
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -2164,36 +1962,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return _graph.addConstantBool(true, _closedWorld);
     }
 
-    HInstruction typeInput = node.typeInput;
-    if (typeInput is HLoadType) {
-      TypeExpressionRecipe recipe = typeInput.typeExpression;
-      DartType dartType = recipe.type;
-      if (_closedWorld.dartTypes.isTopType(dartType)) {
-        return _graph.addConstantBool(true, _closedWorld);
-      }
+    IsTestSpecialization specialization =
+        SpecializedChecks.findIsTestSpecialization(
+            node.dartType, _graph, _closedWorld);
 
-      IsTestSpecialization specialization =
-          SpecializedChecks.findIsTestSpecialization(
-              dartType, _graph, _closedWorld);
+    if (specialization == IsTestSpecialization.isNull ||
+        specialization == IsTestSpecialization.notNull) {
+      HInstruction nullTest = HIdentity(node.checkedInput,
+          _graph.addConstantNull(_closedWorld), _abstractValueDomain.boolType);
+      if (specialization == IsTestSpecialization.isNull) return nullTest;
+      nullTest.sourceInformation = node.sourceInformation;
+      node.block.addBefore(node, nullTest);
+      return HNot(nullTest, _abstractValueDomain.boolType);
+    }
 
-      if (specialization == IsTestSpecialization.isNull ||
-          specialization == IsTestSpecialization.notNull) {
-        HInstruction nullTest = HIdentity(
-            node.checkedInput,
-            _graph.addConstantNull(_closedWorld),
-            _abstractValueDomain.boolType);
-        if (specialization == IsTestSpecialization.isNull) return nullTest;
-        nullTest.sourceInformation = node.sourceInformation;
-        node.block.addBefore(node, nullTest);
-        return HNot(nullTest, _abstractValueDomain.boolType);
-      }
-
-      if (specialization != null) {
-        AbstractValueWithPrecision checkedType = _abstractValueDomain
-            .createFromStaticType(dartType, nullable: false);
-        return HIsTestSimple(dartType, checkedType, specialization,
-            node.checkedInput, _abstractValueDomain.boolType);
-      }
+    if (specialization != null) {
+      AbstractValueWithPrecision checkedType = _abstractValueDomain
+          .createFromStaticType(node.dartType, nullable: false);
+      return HIsTestSimple(node.dartType, checkedType, specialization,
+          node.checkedInput, _abstractValueDomain.boolType);
     }
 
     // TODO(fishythefish): Prune now-unneeded is-tests from the metadata.
@@ -2203,7 +1990,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitIsTestSimple(HIsTestSimple node) {
-    AbstractBool result = node.evaluate(_closedWorld, _options.useNullSafety);
+    AbstractBool result = node.evaluate(_closedWorld, _options);
     if (result.isDefinitelyFalse) {
       return _graph.addConstantBool(false, _closedWorld);
     }
@@ -3264,35 +3051,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   @override
-  void visitIs(HIs instruction) {
-    DartType type = instruction.typeExpression;
-    if (!instruction.isRawCheck) {
-      return;
-    } else if (type is FutureOrType) {
-      return;
-    }
-    InterfaceType interfaceType = type;
-    ClassEntity cls = interfaceType.element;
-
-    List<HBasicBlock> trueTargets = <HBasicBlock>[];
-    List<HBasicBlock> falseTargets = <HBasicBlock>[];
-
-    collectTargets(instruction, trueTargets, falseTargets);
-
-    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
-
-    AbstractValue convertedType =
-        _abstractValueDomain.createNonNullSubtype(cls);
-    HInstruction input = instruction.expression;
-
-    for (HBasicBlock block in trueTargets) {
-      insertTypePropagationForDominatedUsers(block, input, convertedType);
-    }
-    // TODO(sra): Also strengthen uses for when the condition is known
-    // false. Avoid strengthening to `null`.
-  }
-
-  @override
   void visitIsTest(HIsTest instruction) {
     List<HBasicBlock> trueTargets = <HBasicBlock>[];
     List<HBasicBlock> falseTargets = <HBasicBlock>[];
@@ -3671,10 +3429,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   @override
   void visitInterceptor(HInterceptor instruction) {}
   @override
-  void visitIs(HIs instruction) {}
-  @override
-  void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
-  @override
   void visitNot(HNot instruction) {}
   @override
   void visitNullCheck(HNullCheck instruction) {}
@@ -3686,12 +3440,6 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitStringConcat(HStringConcat instruction) {}
   @override
   void visitTypeKnown(HTypeKnown instruction) {}
-  @override
-  void visitTypeInfoReadRaw(HTypeInfoReadRaw instruction) {}
-  @override
-  void visitTypeInfoReadVariable(HTypeInfoReadVariable instruction) {}
-  @override
-  void visitTypeInfoExpression(HTypeInfoExpression instruction) {}
 }
 
 /// A non-field based feature of an object.
@@ -3942,8 +3690,8 @@ class MemorySet {
         if (user is HIdentity && user.usedBy.length == 1) {
           HInstruction user2 = user.usedBy.single;
           if (user2 is HInvokeStatic &&
-              user2.element ==
-                  closedWorld.commonElements.checkConcurrentModificationError) {
+              closedWorld.commonElements
+                  .isCheckConcurrentModificationError(user2.element)) {
             return null;
           }
         }
@@ -3988,7 +3736,6 @@ class MemorySet {
           if (use is HFieldSet) {
             return use.value.nonCheck() != instruction;
           }
-          if (use is HTypeInfoReadVariable) return true;
           if (use is HGetLength) return true;
           if (use is HBoundsCheck) return true;
           if (use is HIndex) return true;
@@ -4005,9 +3752,8 @@ class MemorySet {
             }
           }
           if (use is HInvokeStatic) {
-            if (use.element ==
-                closedWorld.commonElements.checkConcurrentModificationError)
-              return true;
+            if (closedWorld.commonElements
+                .isCheckConcurrentModificationError(use.element)) return true;
           }
 
           return false;

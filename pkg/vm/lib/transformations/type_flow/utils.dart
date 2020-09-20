@@ -7,6 +7,9 @@
 library vm.transformations.type_flow.utils;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/src/printer.dart';
+
+String nodeToText(Node node) => node.toText(astTextStrategyForTesting);
 
 const bool kPrintTrace =
     const bool.fromEnvironment('global.type.flow.print.trace');
@@ -25,13 +28,6 @@ const bool kScopeTrace =
 
 const int kScopeIndent =
     const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
-
-/// Extended 'assert': always checks condition.
-assertx(bool cond, {details}) {
-  if (!cond) {
-    throw 'Assertion failed.' + (details != null ? ' Details: $details' : '');
-  }
-}
 
 abstract class _Logger {
   log(Object message, [int scopeChange = 0]);
@@ -106,7 +102,7 @@ bool hasReceiverArg(Member member) =>
 // Type arguments to procedures is only supported for factory constructors of
 // generic classes at the moment.
 //
-// TODO(sjindel/tfa): Extend suport to normal generic functions.
+// TODO(sjindel/tfa): Extend support to normal generic functions.
 int numTypeParams(Member member) => member is Procedure && member.isFactory
     ? member.function.typeParameters.length
     : 0;
@@ -145,6 +141,7 @@ class Statistics {
   static int maxInvocationsCachedPerSelector = 0;
   static int approximateInvocationsCreated = 0;
   static int approximateInvocationsUsed = 0;
+  static int deepInvocationsDeferred = 0;
   static int classesDropped = 0;
   static int membersDropped = 0;
   static int methodBodiesDropped = 0;
@@ -152,6 +149,9 @@ class Statistics {
   static int constructorBodiesDropped = 0;
   static int callsDropped = 0;
   static int throwExpressionsPruned = 0;
+  static int protobufMessagesUsed = 0;
+  static int protobufMetadataInitializersUpdated = 0;
+  static int protobufMetadataFieldsPruned = 0;
 
   /// Resets statistic counters.
   static void reset() {
@@ -171,6 +171,7 @@ class Statistics {
     maxInvocationsCachedPerSelector = 0;
     approximateInvocationsCreated = 0;
     approximateInvocationsUsed = 0;
+    deepInvocationsDeferred = 0;
     classesDropped = 0;
     membersDropped = 0;
     methodBodiesDropped = 0;
@@ -178,6 +179,9 @@ class Statistics {
     constructorBodiesDropped = 0;
     callsDropped = 0;
     throwExpressionsPruned = 0;
+    protobufMessagesUsed = 0;
+    protobufMetadataInitializersUpdated = 0;
+    protobufMetadataFieldsPruned = 0;
   }
 
   static void print(String caption) {
@@ -198,6 +202,7 @@ class Statistics {
     ${maxInvocationsCachedPerSelector} maximum invocations cached per selector
     ${approximateInvocationsCreated} approximate invocations created
     ${approximateInvocationsUsed} times approximate invocation is used
+    ${deepInvocationsDeferred} times invocation processing was deferred due to deep call stack
     ${classesDropped} classes dropped
     ${membersDropped} members dropped
     ${methodBodiesDropped} method bodies dropped
@@ -205,6 +210,9 @@ class Statistics {
     ${constructorBodiesDropped} constructor bodies dropped
     ${callsDropped} calls dropped
     ${throwExpressionsPruned} throw expressions pruned
+    ${protobufMessagesUsed} protobuf messages used
+    ${protobufMetadataInitializersUpdated} protobuf metadata initializers updated
+    ${protobufMetadataFieldsPruned} protobuf metadata fields pruned
     """);
   }
 }
@@ -249,6 +257,48 @@ int findOverlap(List list, List sublist) {
   return list.length;
 }
 
+/// A Union-Find data structure over integers.
+class UnionFind {
+  // Negative weight if root, parent index otherwise.
+  final List<int> _elements;
+
+  UnionFind([int initialSize = 0])
+      : _elements = List<int>.filled(initialSize, -1, growable: true);
+
+  /// Add a new singleton set.
+  int add() {
+    int id = _elements.length;
+    _elements.add(-1);
+    return id;
+  }
+
+  /// Find the canonical element for the set containing the given element.
+  /// Two elements belonging to the same set have the same canonical element.
+  int find(int id) {
+    return _elements[id] < 0 ? id : _elements[id] = find(_elements[id]);
+  }
+
+  /// Merge the sets containing the given elements.
+  void union(int id1, int id2) {
+    id1 = find(id1);
+    id2 = find(id2);
+    if (id1 == id2) return;
+    final int w1 = _elements[id1];
+    final int w2 = _elements[id2];
+    assert(w1 < 0 && w2 < 0);
+    if (w1 < w2) {
+      _elements[id1] += w2;
+      _elements[id2] = id1;
+    } else {
+      _elements[id2] += w1;
+      _elements[id1] = id2;
+    }
+  }
+
+  /// Total number of elements in the sets.
+  int get size => _elements.length;
+}
+
 const nullabilitySuffix = {
   Nullability.legacy: '*',
   Nullability.nullable: '?',
@@ -265,7 +315,7 @@ bool isNullLiteral(Expression expr) =>
     (expr is ConstantExpression && expr.constant is NullConstant);
 
 Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
-  if (node.name.name == '==') {
+  if (node.name.text == '==') {
     final lhs = node.receiver;
     final rhs = node.arguments.positional.single;
     if (isNullLiteral(lhs)) {

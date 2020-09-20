@@ -28,7 +28,6 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
-import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -78,19 +77,76 @@ const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
 const int kNotifyIsolateShutdownTag = 6;
+const int kDetectNullabilityTag = 7;
 
 bool allowDartInternalImport = false;
 
 // Null Safety command line options
 //
 // Note: The values of these constants must match the
-// values of flag null_safety in ../../../../runtime/vm/flag_list.h.
-// 0 - No null_safety option specified on the command line.
-// 1 - '--no-null-safety' specified on the command line.
-// 2 - '--null-safety' option specified on the command line.
+// values of flag sound_null_safety in ../../../../runtime/vm/flag_list.h.
+// 0 - No --[no-]sound-null-safety option specified on the command line.
+// 1 - '--no-sound-null-safety' specified on the command line.
+// 2 - '--sound-null-safety' option specified on the command line.
 const int kNullSafetyOptionUnspecified = 0;
 const int kNullSafetyOptionWeak = 1;
 const int kNullSafetyOptionStrong = 2;
+
+CompilerOptions setupCompilerOptions(
+    FileSystem fileSystem,
+    Uri platformKernelPath,
+    bool suppressWarnings,
+    bool enableAsserts,
+    int nullSafety,
+    List<String> experimentalFlags,
+    bool bytecode,
+    Uri packagesUri,
+    List<String> errors) {
+  final expFlags = <String>[];
+  if (experimentalFlags != null) {
+    for (String flag in experimentalFlags) {
+      expFlags.addAll(flag.split(","));
+    }
+  }
+
+  return new CompilerOptions()
+    ..fileSystem = fileSystem
+    ..target = new VmTarget(new TargetFlags(
+        enableNullSafety: nullSafety == kNullSafetyOptionStrong))
+    ..packagesFileUri = packagesUri
+    ..sdkSummary = platformKernelPath
+    ..verbose = verbose
+    ..omitPlatform = true
+    ..bytecode = bytecode
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(expFlags),
+        onError: (msg) => errors.add(msg))
+    ..environmentDefines = new EnvironmentMap()
+    ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
+        ? NnbdMode.Strong
+        : NnbdMode.Weak
+    ..onDiagnostic = (DiagnosticMessage message) {
+      bool printMessage;
+      switch (message.severity) {
+        case Severity.error:
+        case Severity.internalProblem:
+          // TODO(sigmund): support emitting code with errors as long as they
+          // are handled in the generated code.
+          printMessage = false; // errors are printed by VM
+          errors.addAll(message.plainTextFormatted);
+          break;
+        case Severity.warning:
+          printMessage = !suppressWarnings;
+          break;
+        case Severity.context:
+        case Severity.ignored:
+          throw "Unexpected severity: ${message.severity}";
+      }
+      if (printMessage) {
+        printDiagnosticMessage(message, stderr.writeln);
+      }
+    };
+}
 
 abstract class Compiler {
   final int isolateId;
@@ -135,50 +191,16 @@ abstract class Compiler {
       print("DFE: platformKernelPath: ${platformKernelPath}");
     }
 
-    var expFlags = List<String>();
-    if (experimentalFlags != null) {
-      for (String flag in experimentalFlags) {
-        expFlags.addAll(flag.split(","));
-      }
-    }
-
-    options = new CompilerOptions()
-      ..fileSystem = fileSystem
-      ..target = new VmTarget(new TargetFlags(
-          enableNullSafety: nullSafety == kNullSafetyOptionStrong))
-      ..packagesFileUri = packagesUri
-      ..sdkSummary = platformKernelPath
-      ..verbose = verbose
-      ..omitPlatform = true
-      ..bytecode = bytecode
-      ..experimentalFlags = parseExperimentalFlags(
-          parseExperimentalArguments(expFlags),
-          onError: (msg) => errors.add(msg))
-      ..environmentDefines = new EnvironmentMap()
-      ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
-          ? NnbdMode.Strong
-          : NnbdMode.Weak
-      ..onDiagnostic = (DiagnosticMessage message) {
-        bool printMessage;
-        switch (message.severity) {
-          case Severity.error:
-          case Severity.internalProblem:
-            // TODO(sigmund): support emitting code with errors as long as they
-            // are handled in the generated code.
-            printMessage = false; // errors are printed by VM
-            errors.addAll(message.plainTextFormatted);
-            break;
-          case Severity.warning:
-            printMessage = !suppressWarnings;
-            break;
-          case Severity.context:
-          case Severity.ignored:
-            throw "Unexpected severity: ${message.severity}";
-        }
-        if (printMessage) {
-          printDiagnosticMessage(message, stderr.writeln);
-        }
-      };
+    options = setupCompilerOptions(
+        fileSystem,
+        platformKernelPath,
+        suppressWarnings,
+        enableAsserts,
+        nullSafety,
+        experimentalFlags,
+        bytecode,
+        packagesUri,
+        errors);
   }
 
   Future<CompilerResult> compile(Uri script) {
@@ -341,7 +363,8 @@ class IncrementalCompilerWrapper extends Compiler {
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
-        bytecode: bytecode);
+        bytecode: bytecode,
+        packageConfig: packageConfig);
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
         result.options,
@@ -352,13 +375,6 @@ class IncrementalCompilerWrapper extends Compiler {
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
     if (generator == null) {
-      if ((nullSafety == kNullSafetyOptionUnspecified) &&
-          options.experimentalFlags[ExperimentalFlag.nonNullable]) {
-        await autoDetectNullSafetyMode(script, options);
-        // Reinitialize target to set correct null safety mode.
-        options.target = new VmTarget(new TargetFlags(
-            enableNullSafety: options.nnbdMode == NnbdMode.Strong));
-      }
       generator = new IncrementalCompiler(options, script);
     }
     errors.clear();
@@ -420,13 +436,6 @@ class SingleShotCompilerWrapper extends Compiler {
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
-    if ((nullSafety == kNullSafetyOptionUnspecified) &&
-        options.experimentalFlags[ExperimentalFlag.nonNullable]) {
-      await autoDetectNullSafetyMode(script, options);
-      // Reinitialize target to set correct null safety mode.
-      options.target = new VmTarget(new TargetFlags(
-          enableNullSafety: options.nnbdMode == NnbdMode.Strong));
-    }
     fe.CompilerResult compilerResult = requireMain
         ? await kernelForProgram(script, options)
         : await kernelForModule([script], options);
@@ -530,19 +539,20 @@ void invalidateSources(IncrementalCompilerWrapper compiler, List sourceFiles) {
 Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
   final int isolateId = request[2];
-  final String expression = request[3];
-  final List<String> definitions = request[4].cast<String>();
-  final List<String> typeDefinitions = request[5].cast<String>();
-  final String libraryUri = request[6];
-  final String klass = request[7]; // might be null
-  final bool isStatic = request[8];
-  final List dillData = request[9];
-  final int hotReloadCount = request[10];
-  final bool suppressWarnings = request[11];
-  final bool enableAsserts = request[12];
+  final dynamic dart_platform_kernel = request[3];
+  final String expression = request[4];
+  final List<String> definitions = request[5].cast<String>();
+  final List<String> typeDefinitions = request[6].cast<String>();
+  final String libraryUri = request[7];
+  final String klass = request[8]; // might be null
+  final bool isStatic = request[9];
+  final List dillData = request[10];
+  final int blobLoadCount = request[11];
+  final bool suppressWarnings = request[12];
+  final bool enableAsserts = request[13];
   final List<String> experimentalFlags =
-      request[13] != null ? request[13].cast<String>() : null;
-  final bool bytecode = request[14];
+      request[14] != null ? request[14].cast<String>() : null;
+  final bool bytecode = request[15];
 
   IncrementalCompilerWrapper compiler = isolateCompilers[isolateId];
 
@@ -550,7 +560,7 @@ Future _processExpressionCompilationRequest(request) async {
       isolateLoadNotifies[isolateId];
   if (isolateLoadDillData != null) {
     // Check if we can reuse the compiler.
-    if (isolateLoadDillData.hotReloadCount != hotReloadCount ||
+    if (isolateLoadDillData.blobLoadCount != blobLoadCount ||
         isolateLoadDillData.prevDillCount != dillData.length) {
       compiler = isolateCompilers[isolateId] = null;
     }
@@ -563,22 +573,52 @@ Future _processExpressionCompilationRequest(request) async {
       }
       isolateLoadNotifies[isolateId] =
           new _ExpressionCompilationFromDillSettings(
-              hotReloadCount, dillData.length);
-
-      Uri platformUri =
-          computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
-
-      List<List<int>> data = [];
-      data.add(new File.fromUri(platformUri).readAsBytesSync());
-      for (int i = 0; i < dillData.length; i++) {
-        data.add(dillData[i]);
-      }
+              blobLoadCount, dillData.length);
 
       // Create Component initialized from the bytes.
       Component component = new Component();
-      for (List<int> bytes in data) {
+
+      // First try to just load all "dillData". This *might* include the
+      // platform (and we might have the (same) platform both here and in
+      // dart_platform_kernel).
+      for (List<int> bytes in dillData) {
         // TODO(jensj): There might be an issue if main has changed.
         new BinaryBuilderWithMetadata(bytes, alwaysCreateNewNamedNodes: true)
+            .readComponent(component);
+      }
+
+      // Check if the loaded component has the platform.
+      // If it does not, try to load from dart_platform_kernel or from file.
+      bool foundDartCore = false;
+      for (Library library in component.libraries) {
+        if (library.importUri.scheme == "dart" &&
+            library.importUri.path == "core" &&
+            !library.isSynthetic) {
+          foundDartCore = true;
+          break;
+        }
+      }
+      if (!foundDartCore) {
+        List<int> platformKernel = null;
+        if (dart_platform_kernel is List<int>) {
+          platformKernel = dart_platform_kernel;
+        } else {
+          final Uri platformUri = computePlatformBinariesLocation()
+              .resolve('vm_platform_strong.dill');
+          final File platformFile = new File.fromUri(platformUri);
+          if (platformFile.existsSync()) {
+            platformKernel = platformFile.readAsBytesSync();
+          } else {
+            port.send(new CompilationResult.errors(
+                    ["No platform found to initialize incremental compiler."],
+                    null)
+                .toResponse());
+            return;
+          }
+        }
+
+        new BinaryBuilderWithMetadata(platformKernel,
+                alwaysCreateNewNamedNodes: true)
             .readComponent(component);
       }
 
@@ -589,17 +629,26 @@ Future _processExpressionCompilationRequest(request) async {
       // destroyed when corresponding isolate is shut down. To achieve that
       // kernel isolate needs to receive a message indicating that particular
       // isolate was shut down. Message should be handled here in this script.
-      compiler = new IncrementalCompilerWrapper.forExpressionCompilationOnly(
-          component, isolateId, fileSystem, null,
-          suppressWarnings: suppressWarnings,
-          enableAsserts: enableAsserts,
-          experimentalFlags: experimentalFlags,
-          bytecode: bytecode,
-          packageConfig: dotPackagesFile);
-      isolateCompilers[isolateId] = compiler;
-      await compiler.compile(
-          component.mainMethod?.enclosingLibrary?.importUri ??
-              component.libraries.last.importUri);
+      try {
+        compiler = new IncrementalCompilerWrapper.forExpressionCompilationOnly(
+            component, isolateId, fileSystem, null,
+            suppressWarnings: suppressWarnings,
+            enableAsserts: enableAsserts,
+            experimentalFlags: experimentalFlags,
+            bytecode: bytecode,
+            packageConfig: dotPackagesFile);
+        isolateCompilers[isolateId] = compiler;
+        await compiler.compile(
+            component.mainMethod?.enclosingLibrary?.importUri ??
+                component.libraries.last.importUri);
+      } catch (e) {
+        port.send(new CompilationResult.errors([
+          "Error when trying to create a compiler for expression compilation: "
+              "'$e'."
+        ], null)
+            .toResponse());
+        return;
+      }
     }
   }
 
@@ -768,6 +817,7 @@ Future _processLoadRequest(request) async {
   final String packageConfig = request[12];
   final String multirootFilepaths = request[13];
   final String multirootScheme = request[14];
+  final String workingDirectory = request[15];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -809,6 +859,30 @@ Future _processLoadRequest(request) async {
       (compiler as IncrementalCompilerWrapper).accept();
     }
     port.send(new CompilationResult.ok(null).toResponse());
+    return;
+  } else if (tag == kDetectNullabilityTag) {
+    FileSystem fileSystem = _buildFileSystem(
+        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
+    Uri packagesUri = null;
+    if (packageConfig != null) {
+      packagesUri = Uri.parse(packageConfig);
+    } else if (Platform.packageConfig != null) {
+      packagesUri = Uri.parse(Platform.packageConfig);
+    }
+    if (packagesUri != null && packagesUri.scheme == '') {
+      // Script does not have a scheme, assume that it is a path,
+      // resolve it against the working directory.
+      packagesUri = Uri.directory(workingDirectory).resolveUri(packagesUri);
+    }
+    final List<String> errors = <String>[];
+    var options = setupCompilerOptions(fileSystem, platformKernelPath, false,
+        false, nullSafety, experimentalFlags, false, packagesUri, errors);
+
+    // script should only be null for kUpdateSourcesTag.
+    assert(script != null);
+    await autoDetectNullSafetyMode(script, options);
+    bool value = options.nnbdMode == NnbdMode.Strong;
+    port.send(new CompilationResult.nullSafety(value).toResponse());
     return;
   }
 
@@ -997,6 +1071,7 @@ Future trainInternal(
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
+    null /* original working directory */,
   ];
   await _processLoadRequest(request);
 }
@@ -1044,6 +1119,8 @@ abstract class CompilationResult {
 
   factory CompilationResult.ok(Uint8List bytes) = _CompilationOk;
 
+  factory CompilationResult.nullSafety(bool val) = _CompilationNullSafety;
+
   factory CompilationResult.errors(List<String> errors, Uint8List bytes) =
       _CompilationError;
 
@@ -1073,6 +1150,20 @@ class _CompilationOk extends CompilationResult {
   get payload => bytes;
 
   String toString() => "_CompilationOk(${bytes.length} bytes)";
+}
+
+class _CompilationNullSafety extends CompilationResult {
+  final bool _null_safety;
+
+  _CompilationNullSafety(this._null_safety) : super._() {}
+
+  @override
+  Status get status => Status.ok;
+
+  @override
+  get payload => _null_safety;
+
+  String toString() => "_CompilationNullSafety($_null_safety)";
 }
 
 abstract class _CompilationFail extends CompilationResult {
@@ -1129,9 +1220,9 @@ void _debugDumpKernel(Uint8List bytes) {
 }
 
 class _ExpressionCompilationFromDillSettings {
-  int hotReloadCount;
+  int blobLoadCount;
   int prevDillCount;
 
   _ExpressionCompilationFromDillSettings(
-      this.hotReloadCount, this.prevDillCount);
+      this.blobLoadCount, this.prevDillCount);
 }

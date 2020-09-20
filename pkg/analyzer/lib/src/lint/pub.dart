@@ -24,7 +24,9 @@ PSDependencyList _processDependencies(YamlScalar key, YamlNode v) {
   YamlMap depsMap = v;
 
   _PSDependencyList deps = _PSDependencyList(_PSNode(key));
-  depsMap.nodes.forEach((k, v) => deps.add(_PSDependency(k, v)));
+  depsMap.nodes.forEach((k, v) {
+    if (k is YamlScalar) deps.add(_PSDependency(k, v));
+  });
   return deps;
 }
 
@@ -128,7 +130,7 @@ abstract class Pubspec {
   PSEntry get homepage;
   PSEntry get name;
   PSEntry get version;
-  accept(PubspecVisitor visitor);
+  void accept(PubspecVisitor visitor);
 }
 
 abstract class PubspecVisitor<T> {
@@ -159,25 +161,20 @@ class _PSDependency extends PSDependency {
   @override
   PSGitRepo git;
 
-  factory _PSDependency(dynamic k, YamlNode v) {
-    if (k is! YamlScalar) {
-      return null;
-    }
-    YamlScalar key = k;
-
+  factory _PSDependency(YamlScalar key, YamlNode value) {
     _PSDependency dep = _PSDependency._();
 
     dep.name = _PSNode(key);
 
-    if (v is YamlScalar) {
+    if (value is YamlScalar) {
       // Simple version
-      dep.version = PSEntry(null, _PSNode(v));
-    } else if (v is YamlMap) {
+      dep.version = PSEntry(null, _PSNode(value));
+    } else if (value is YamlMap) {
       // hosted:
       //   name: transmogrify
       //   url: http://your-package-server.com
       //   version: '>=0.4.0 <1.0.0'
-      YamlMap details = v;
+      YamlMap details = value;
       details.nodes.forEach((k, v) {
         if (k is! YamlScalar) {
           return;
@@ -238,7 +235,7 @@ class _PSDependencyList extends PSDependencyList {
   @override
   Iterator<PSDependency> get iterator => dependencies.iterator;
 
-  add(PSDependency dependency) {
+  void add(PSDependency dependency) {
     if (dependency != null) {
       dependencies.add(dependency);
     }
@@ -388,7 +385,7 @@ class _Pubspec implements Pubspec {
     return sb.toString();
   }
 
-  _parse(String src, {Uri sourceUrl}) {
+  void _parse(String src, {Uri sourceUrl}) {
     var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
     if (yaml is! YamlMap) {
       return;
@@ -439,7 +436,7 @@ class _StringBuilder {
   StringBuffer buffer = StringBuffer();
   @override
   String toString() => buffer.toString();
-  writelin(Object value) {
+  void writelin(Object value) {
     if (value != null) {
       buffer.writeln(value);
     }

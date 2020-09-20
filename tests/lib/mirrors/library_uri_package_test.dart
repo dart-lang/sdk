@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test library uri for a library read as a package .
+// Test library uri for a library read as a package.
 
 library MirrorsTest;
 
 import 'dart:mirrors';
-import 'package:args/args.dart';
+import 'package:expect/expect.dart';
 import 'package:async_helper/async_minitest.dart';
 
 testLibraryUri(var value, Uri expectedUri) {
@@ -26,6 +26,6 @@ main() {
   var mirrors = currentMirrorSystem();
   test("Test package library uri", () {
     testLibraryUri(
-        new ArgParser(), Uri.parse('package:args/src/arg_parser.dart'));
+        ExpectException(""), Uri.parse('package:expect/expect.dart'));
   });
 }

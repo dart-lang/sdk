@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 import 'dart:isolate';
 
@@ -104,8 +103,6 @@ class CompletionRanking {
     if (query == null) {
       return Future.value();
     }
-
-    request.checkAborted();
 
     performanceMetrics._incrementPredictionRequestCount();
 

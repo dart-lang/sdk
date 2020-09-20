@@ -612,6 +612,19 @@ class Expect {
     Expect.throws(f, (error) => error is NoSuchMethodError, reason);
   }
 
+  /// Checks that [f] throws an appropriate error on a null argument.
+  ///
+  /// In strong mode, this is expected to be a [TypeError] when casting the
+  /// `null` to some non-nullable type. In weak mode, that cast is ignored and
+  /// some later explicit validation should handle it and [ArgumentError].
+  static void throwsNullCheckError(void f()) {
+    if (isStrongMode) {
+      throwsTypeError(f);
+    } else {
+      throwsArgumentError(f);
+    }
+  }
+
   static void throwsRangeError(void f(), [String reason = "RangeError"]) {
     Expect.throws(f, (error) => error is RangeError, reason);
   }

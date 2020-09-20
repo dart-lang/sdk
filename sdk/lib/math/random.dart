@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.math;
 
 /// A generator of random bool, int, or double values.
@@ -11,14 +9,14 @@ part of dart.math;
 /// The default implementation supplies a stream of pseudo-random bits that are
 /// not suitable for cryptographic purposes.
 ///
-/// Use the [Random.secure] constructor for cryptographic purposes.
+/// Use the [Random.secure]() constructor for cryptographic purposes.
 abstract class Random {
   /// Creates a random number generator.
   ///
   /// The optional parameter [seed] is used to initialize the
   /// internal state of the generator. The implementation of the
   /// random stream can change between releases of the library.
-  external factory Random([int seed]);
+  external factory Random([int? seed]);
 
   /// Creates a cryptographically secure random number generator.
   ///

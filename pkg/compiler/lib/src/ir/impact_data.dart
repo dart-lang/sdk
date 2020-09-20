@@ -1363,30 +1363,11 @@ class _ConstructorInvocation {
 }
 
 class _ConstInstantiation {
-  static const String tag = '_ConstInstantiation';
-
   final ir.Class cls;
   final List<ir.DartType> typeArguments;
   final ir.LibraryDependency import;
 
   _ConstInstantiation(this.cls, this.typeArguments, this.import);
-
-  factory _ConstInstantiation.fromDataSource(DataSource source) {
-    source.begin(tag);
-    ir.Class cls = source.readClassNode();
-    List<ir.DartType> typeArguments = source.readDartTypeNodes();
-    ir.LibraryDependency import = source.readLibraryDependencyNodeOrNull();
-    source.end(tag);
-    return new _ConstInstantiation(cls, typeArguments, import);
-  }
-
-  void toDataSink(DataSink sink) {
-    sink.begin(tag);
-    sink.writeClassNode(cls);
-    sink.writeDartTypeNodes(typeArguments);
-    sink.writeLibraryDependencyNodeOrNull(import);
-    sink.end(tag);
-  }
 }
 
 enum _Feature {
@@ -1620,8 +1601,6 @@ class _RuntimeTypeUse {
 }
 
 class _ForInData {
-  static const String tag = '_ForInData';
-
   final ir.DartType iterableType;
   final ir.DartType iteratorType;
   final ClassRelation iteratorClassRelation;
@@ -1629,23 +1608,4 @@ class _ForInData {
 
   _ForInData(this.iterableType, this.iteratorType, this.iteratorClassRelation,
       {this.isAsync});
-
-  factory _ForInData.fromDataSource(DataSource source) {
-    source.begin(tag);
-    ir.DartType iterableType = source.readDartTypeNode();
-    ir.DartType iteratorType = source.readDartTypeNode(allowNull: true);
-    ClassRelation iteratorClassRelation = source.readEnum(ClassRelation.values);
-    bool isAsync = source.readBool();
-    return new _ForInData(iterableType, iteratorType, iteratorClassRelation,
-        isAsync: isAsync);
-  }
-
-  void toDataSink(DataSink sink) {
-    sink.begin(tag);
-    sink.writeDartTypeNode(iterableType);
-    sink.writeDartTypeNode(iteratorType);
-    sink.writeEnum(iteratorClassRelation);
-    sink.writeBool(isAsync);
-    sink.end(tag);
-  }
 }

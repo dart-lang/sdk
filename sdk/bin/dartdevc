@@ -45,4 +45,4 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 DEV_COMPILER="$DART_ROOT/pkg/dev_compiler/bin/dartdevc.dart"
 
-exec "$DART" "--packages=$DART_ROOT/.packages" "${EXTRA_VM_OPTIONS[@]}" "$DEV_COMPILER" "$SDK_ARG" "$@"
+exec "$DART" "--packages=$DART_ROOT/.packages" --enable_experiment=non-nullable "${EXTRA_VM_OPTIONS[@]}" "$DEV_COMPILER" "$SDK_ARG" "$@"

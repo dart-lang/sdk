@@ -216,6 +216,7 @@ void main() async {
       Expect.fail("Unexpected exception $e is thrown");
     } else {
       Expect.isTrue(e is SocketException);
+      Expect.isTrue(e.toString().contains('not available'));
     }
   }
 }

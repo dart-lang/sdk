@@ -316,11 +316,15 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
 
   NullErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
       : ThrowErrorSlowPathCode(instruction,
-                               kNullErrorRuntimeEntry,
+                               GetRuntimeEntry(instruction->exception_type()),
                                kNumberOfArguments,
                                try_index) {}
 
-  const char* name() override { return "check null (nsm)"; }
+  CheckNullInstr::ExceptionType exception_type() const {
+    return instruction()->AsCheckNull()->exception_type();
+  }
+
+  const char* name() override;
 
   void EmitSharedStubCall(FlowGraphCompiler* compiler,
                           bool save_fpu_registers) override;
@@ -329,27 +333,14 @@ class NullErrorSlowPath : public ThrowErrorSlowPathCode {
     CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
                                               compiler);
   }
-};
 
-class NullArgErrorSlowPath : public ThrowErrorSlowPathCode {
- public:
-  static const intptr_t kNumberOfArguments = 0;
+  static CodePtr GetStub(FlowGraphCompiler* compiler,
+                         CheckNullInstr::ExceptionType exception_type,
+                         bool save_fpu_registers);
 
-  NullArgErrorSlowPath(CheckNullInstr* instruction, intptr_t try_index)
-      : ThrowErrorSlowPathCode(instruction,
-                               kArgumentNullErrorRuntimeEntry,
-                               kNumberOfArguments,
-                               try_index) {}
-
-  const char* name() override { return "check null (arg)"; }
-
-  void EmitSharedStubCall(FlowGraphCompiler* compiler,
-                          bool save_fpu_registers) override;
-
-  void AddMetadataForRuntimeCall(FlowGraphCompiler* compiler) override {
-    CheckNullInstr::AddMetadataForRuntimeCall(instruction()->AsCheckNull(),
-                                              compiler);
-  }
+ private:
+  static const RuntimeEntry& GetRuntimeEntry(
+      CheckNullInstr::ExceptionType exception_type);
 };
 
 class RangeErrorSlowPath : public ThrowErrorSlowPathCode {
@@ -576,11 +567,6 @@ class FlowGraphCompiler : public ValueObject {
                                 intptr_t deopt_id,
                                 const String& dst_name,
                                 LocationSummary* locs);
-
-  // Returns true if we can use a type testing stub based assert
-  // assignable code pattern for the given type.
-  static bool ShouldUseTypeTestingStubFor(bool optimizing,
-                                          const AbstractType& type);
 
   void GenerateAssertAssignableViaTypeTestingStub(CompileType* receiver_type,
                                                   TokenPosition token_pos,
@@ -960,13 +946,13 @@ class FlowGraphCompiler : public ValueObject {
   friend class BoxInt64Instr;            // For AddPcRelativeCallStubTarget().
   friend class CheckNullInstr;           // For AddPcRelativeCallStubTarget().
   friend class NullErrorSlowPath;        // For AddPcRelativeCallStubTarget().
-  friend class NullArgErrorSlowPath;     // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowInstr;  // For AddPcRelativeCallStubTarget().
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreInstanceFieldInstr;  // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
   friend class CheckedSmiComparisonSlowPath;  // Same.
+  friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
@@ -1093,7 +1079,7 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
                                         intptr_t type_arguments_field_offset);
 
-  void GenerateGetterIntrinsic(intptr_t offset);
+  void GenerateGetterIntrinsic(const Function& accessor, const Field& field);
 
   // Perform a greedy local register allocation.  Consider all registers free.
   void AllocateRegistersLocally(Instruction* instr);
@@ -1149,6 +1135,10 @@ class FlowGraphCompiler : public ValueObject {
 #else
   bool CanCallDart() const { return true; }
 #endif
+
+  bool CanPcRelativeCall(const Function& target) const;
+  bool CanPcRelativeCall(const Code& target) const;
+  bool CanPcRelativeCall(const AbstractType& target) const;
 
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
@@ -1216,7 +1206,7 @@ class FlowGraphCompiler : public ValueObject {
   // The table selectors of all dispatch table calls in the current function.
   GrowableArray<const compiler::TableSelector*> dispatch_table_call_targets_;
   GrowableArray<IndirectGotoInstr*> indirect_gotos_;
-  const bool is_optimizing_;
+  bool is_optimizing_;
   SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.
   bool may_reoptimize_;

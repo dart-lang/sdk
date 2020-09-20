@@ -569,29 +569,27 @@ void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
 }
 
 void GCCompactor::SetupImagePageBoundaries() {
-  for (intptr_t i = 0; i < kMaxImagePages; i++) {
-    image_page_ranges_[i].base = 0;
-    image_page_ranges_[i].size = 0;
-  }
-  intptr_t next_offset = 0;
+  MallocGrowableArray<ImagePageRange> ranges(4);
+
   OldPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
   while (image_page != NULL) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
-    image_page_ranges_[next_offset].base = image_page->object_start();
-    image_page_ranges_[next_offset].size =
-        image_page->object_end() - image_page->object_start();
+    ImagePageRange range = {image_page->object_start(),
+                            image_page->object_end()};
+    ranges.Add(range);
     image_page = image_page->next();
-    next_offset++;
   }
   image_page = heap_->old_space()->image_pages_;
   while (image_page != NULL) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
-    image_page_ranges_[next_offset].base = image_page->object_start();
-    image_page_ranges_[next_offset].size =
-        image_page->object_end() - image_page->object_start();
+    ImagePageRange range = {image_page->object_start(),
+                            image_page->object_end()};
+    ranges.Add(range);
     image_page = image_page->next();
-    next_offset++;
   }
+
+  ranges.Sort(CompareImagePageRanges);
+  intptr_t image_page_count;
+  ranges.StealBuffer(&image_page_ranges_, &image_page_count);
+  image_page_hi_ = image_page_count - 1;
 }
 
 DART_FORCE_INLINE
@@ -602,8 +600,17 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
   }
 
   uword old_addr = ObjectLayout::ToAddr(old_target);
-  for (intptr_t i = 0; i < kMaxImagePages; i++) {
-    if ((old_addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
+  intptr_t lo = 0;
+  intptr_t hi = image_page_hi_;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    if (old_addr < image_page_ranges_[mid].start) {
+      hi = mid - 1;
+    } else if (old_addr >= image_page_ranges_[mid].end) {
+      lo = mid + 1;
+    } else {
       return;  // Not moved (unaligned image page).
     }
   }

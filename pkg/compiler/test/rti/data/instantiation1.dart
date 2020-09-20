@@ -4,15 +4,13 @@
 
 // @dart = 2.7
 
-/*spec:nnbd-off.member: f:deps=[B],direct,explicit=[f.T],needsArgs,needsInst=[<B.S>]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: f:deps=[B]*/
-/*spec:nnbd-sdk.member: f:deps=[B],direct,explicit=[f.T*],needsArgs,needsInst=[<B.S*>]*/
+/*spec.member: f:deps=[B],direct,explicit=[f.T*],needsArgs,needsInst=[<B.S*>]*/
+/*prod.member: f:deps=[B]*/
 int f<T>(T a) => null;
 
 typedef int F<R>(R a);
 
-/*spec:nnbd-off.class: B:explicit=[int Function(B.S)],indirect,needsArgs*/
-/*spec:nnbd-sdk.class: B:explicit=[int* Function(B.S*)*],indirect,needsArgs*/
+/*spec.class: B:explicit=[int* Function(B.S*)*],indirect,needsArgs*/
 class B<S> {
   F<S> c;
 

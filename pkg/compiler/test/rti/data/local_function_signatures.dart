@@ -14,19 +14,18 @@ class Class1 {
   }
 
   method2() {
-    num local(int n) => null;
+    /*needsSignature*/num local(int n) => null;
     return local;
   }
 
   method3() {
-    Object local(num n) => null;
+    /*needsSignature*/Object local(num n) => null;
     return local;
   }
 }
 
-/*prod:nnbd-off|prod:nnbd-sdk.class: Class2:needsArgs*/
-/*spec:nnbd-off.class: Class2:direct,explicit=[Class2.T],needsArgs*/
-/*spec:nnbd-sdk.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
+/*spec.class: Class2:direct,explicit=[Class2.T*],needsArgs*/
+/*prod.class: Class2:needsArgs*/
 class Class2<T> {
   method4() {
     /*needsSignature*/
@@ -44,11 +43,11 @@ class Class3<T> {
   }
 }
 
-/*spec:nnbd-off.class: Class4:direct,explicit=[Class4.T],needsArgs*/
-/*spec:nnbd-sdk.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
+/*spec.class: Class4:direct,explicit=[Class4.T*],needsArgs*/
+/*prod.class: Class4:needsArgs*/
 class Class4<T> {
   method6() {
-    num local(num n, T t) => null;
+    /*needsSignature*/num local(num n, T t) => null;
     return local;
   }
 }

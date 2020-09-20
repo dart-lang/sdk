@@ -57,6 +57,7 @@ void main() {
         ),
         libraries: [],
         breakpoints: [],
+        isSystemIsolate: false,
       );
       var request = rpcRequest("getIsolate", params: {'isolateId': isolate.id});
       when(serviceMock.getIsolate(isolate.id))
@@ -84,6 +85,7 @@ void main() {
         ),
         libraries: [],
         breakpoints: [],
+        isSystemIsolate: false,
       );
       var request = rpcRequest("setVMTimelineFlags", params: {
         'isolateId': isolate.id,

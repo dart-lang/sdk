@@ -8,7 +8,7 @@
 
 library deferred_class_library;
 
-/*class: MyClass:OutputUnit(1, {lib})*/
+/*class: MyClass:OutputUnit(1, {lib}), type=OutputUnit(1, {lib})*/
 class MyClass {
   /*member: MyClass.:OutputUnit(1, {lib})*/
   const MyClass();

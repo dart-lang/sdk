@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToTypeTest extends DriverResolutionTest {
+class AssignmentToTypeTest extends PubPackageResolutionTest {
   test_class() async {
     await assertErrorsInCode('''
 class C {}
@@ -22,7 +22,17 @@ main() {
   C = null;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 22, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 22, 1),
+    ]);
+  }
+
+  test_dynamic() async {
+    await assertErrorsInCode(r'''
+void f() {
+  dynamic = 1;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 7),
     ]);
   }
 
@@ -33,7 +43,7 @@ main() {
   E = null;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 24, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 24, 1),
     ]);
   }
 
@@ -44,7 +54,7 @@ main() {
   F = null;
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 29, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 29, 1),
     ]);
   }
 
@@ -56,7 +66,7 @@ class C<T> {
   }
 }
 ''', [
-      error(StaticWarningCode.ASSIGNMENT_TO_TYPE, 25, 1),
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1),
     ]);
   }
 }

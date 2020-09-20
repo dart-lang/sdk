@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,12 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class ExportInternalLibraryTest extends DriverResolutionTest {
+class ExportInternalLibraryTest extends PubPackageResolutionTest {
   test_export_internal_library() async {
     await assertErrorsInCode('''
-export 'dart:_interceptors';
+export 'dart:_internal';
 ''', [
-      error(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, 0, 28),
+      error(CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY, 0, 24),
     ]);
   }
 }

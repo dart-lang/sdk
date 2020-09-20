@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,12 +14,12 @@ main() {
 }
 
 @reflectiveTest
-class InvalidRequiredOptionalPositionalParamTest extends DriverResolutionTest
-    with PackageMixin {
+class InvalidRequiredOptionalPositionalParamTest
+    extends PubPackageResolutionTest {
   @override
   void setUp() {
     super.setUp();
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
   }
 
   test_positionalParameter_noDefault() async {
@@ -33,16 +32,6 @@ m([@required a]) => null;
     ]);
   }
 
-  test_positionalParameter_withDefault() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-m([@required a = 1]) => null;
-''', [
-      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15),
-    ]);
-  }
-
   test_positionalParameter_noDefault_asSecond() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -50,6 +39,16 @@ import 'package:meta/meta.dart';
 m(a, [@required b]) => null;
 ''', [
       error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 11),
+    ]);
+  }
+
+  test_positionalParameter_withDefault() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+m([@required a = 1]) => null;
+''', [
+      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15),
     ]);
   }
 

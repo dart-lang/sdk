@@ -310,8 +310,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
     assert(
         node is! ir.Expression ||
             staticType == typeEnvironment.nullType ||
-            staticType is ir.InterfaceType &&
-                staticType.classNode == typeEnvironment.futureOrClass ||
+            staticType is ir.FutureOrType ||
             typeEnvironment.isSubtypeOf(
                 staticType,
                 _getStaticTypeFromExpression(node),

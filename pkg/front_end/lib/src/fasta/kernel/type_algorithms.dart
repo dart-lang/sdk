@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor,
         DynamicType,
         FunctionType,
+        FutureOrType,
         InterfaceType,
         InvalidType,
         NamedType,
@@ -278,8 +279,8 @@ TypeBuilder substituteRange(
       assert(false, "Unexpected named type builder declaration: $declaration.");
     }
     if (arguments != null) {
-      NamedTypeBuilder newTypeBuilder =
-          new NamedTypeBuilder(type.name, type.nullabilityBuilder, arguments);
+      NamedTypeBuilder newTypeBuilder = new NamedTypeBuilder(type.name,
+          type.nullabilityBuilder, arguments, type.fileUri, type.charOffset);
       if (declaration != null) {
         newTypeBuilder.bind(declaration);
       } else {
@@ -364,8 +365,8 @@ TypeBuilder substituteRange(
     changed = changed || returnType != type.returnType;
 
     if (changed) {
-      return new FunctionTypeBuilder(
-          returnType, variables, formals, type.nullabilityBuilder);
+      return new FunctionTypeBuilder(returnType, variables, formals,
+          type.nullabilityBuilder, type.fileUri, type.charOffset);
     }
     return type;
   }
@@ -1022,6 +1023,10 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
 
   bool visitInterfaceType(InterfaceType node) {
     return anyTypeVariables(node.typeArguments);
+  }
+
+  bool visitFutureOrType(FutureOrType node) {
+    return node.typeArgument.accept(this);
   }
 
   bool visitFunctionType(FunctionType node) {

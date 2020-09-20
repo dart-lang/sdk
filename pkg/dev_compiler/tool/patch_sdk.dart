@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/fasta/resolve_input_uri.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 void main(List<String> argv) {
   var args = _parser.parse(argv);
@@ -40,7 +41,7 @@ void main(List<String> argv) {
   var outDir = resolveInputUri(outPath.endsWith('/') ? outPath : '$outPath/');
   var outLibRoot = outDir.resolve('lib/');
 
-  var inputVersion = Platform.script.resolve('../../../tools/VERSION');
+  var inputVersion = Uri.file(Platform.executable).resolve('../version');
   var outVersion = outDir.resolve('version');
 
   var specification = LibrariesSpecification.parse(
@@ -473,7 +474,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 ParseStringResult _parseString(String source, {bool useNnbd}) {
-  var features = FeatureSet.fromEnableFlags([if (useNnbd) 'non-nullable']);
+  var features = FeatureSet.fromEnableFlags2(
+    sdkLanguageVersion: Version.parse('2.10.0'),
+    flags: [if (useNnbd) 'non-nullable'],
+  );
   return parseString(content: source, featureSet: features);
 }
 

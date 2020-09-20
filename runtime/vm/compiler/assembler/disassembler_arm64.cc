@@ -711,6 +711,8 @@ void ARM64Decoder::DecodeLoadStoreReg(Instr* instr) {
     // Integer src/dst.
     if (instr->Bits(22, 2) == 0) {
       Format(instr, "str'sz 'rt, 'memop");
+    } else if (instr->Bits(23, 1) == 1) {
+      Format(instr, "ldrs'sz 'rt, 'memop");
     } else {
       Format(instr, "ldr'sz 'rt, 'memop");
     }

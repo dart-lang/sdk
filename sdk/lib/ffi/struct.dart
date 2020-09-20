@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.ffi;
 
 /// This class is extended to define structs.
@@ -31,7 +29,7 @@ abstract class Struct extends NativeType {
   Struct._fromPointer(this._addressOf);
 }
 
-/// Extension on [Struct] specialized for it's subtypes.
+/// Extension on [Struct] specialized for its subtypes.
 extension StructAddressOf<T extends Struct> on T {
   /// Returns the address backing the reference.
   Pointer<T> get addressOf => _addressOf as Pointer<T>;

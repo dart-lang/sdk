@@ -5,13 +5,12 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import '../helpers/memory_compiler.dart';
 import 'analysis_helper.dart';
 
 // TODO(johnniwinther): Remove unneeded dynamic accesses from platform source
 // code.
 main(List<String> args) {
-  var goldenFile = isDart2jsNnbd ? 'api_allowed_nnbd.json' : 'api_allowed.json';
+  var goldenFile = 'api_allowed.json';
   asyncTest(() async {
     await run(
         Uri.parse('memory:main.dart'), 'pkg/compiler/test/analyses/$goldenFile',

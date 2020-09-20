@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // part of "common_patch.dart";
 
 @patch
@@ -35,9 +33,9 @@ class _Platform {
   static String _localeName() native "Platform_LocaleName";
 
   @patch
-  static String _packageRoot() => VMLibraryHooks.packageRootString;
+  static String? _packageRoot() => VMLibraryHooks.packageRootString;
   @patch
-  static String _packageConfig() => VMLibraryHooks.packageConfigString;
+  static String? _packageConfig() => VMLibraryHooks.packageConfigString;
 
   @patch
   static Uri _script() => VMLibraryHooks.platformScript;

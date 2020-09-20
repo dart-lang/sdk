@@ -7,19 +7,19 @@
 /*class: A1:implicit=[A1]*/
 class A1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: A2:implicit=[A2]*/
+/*spec.class: A2:implicit=[A2]*/
 class A2 {}
 
 /*class: B1:implicit=[B1]*/
 class B1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: B2:implicit=[B2]*/
+/*spec.class: B2:implicit=[B2]*/
 class B2 {}
 
 /*class: C1:implicit=[C1]*/
 class C1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: C2:implicit=[C2]*/
+/*spec.class: C2:implicit=[C2]*/
 class C2 {}
 
 /*class: C3:implicit=[C3]*/
@@ -28,64 +28,56 @@ class C3 {}
 /*class: D1:implicit=[D1]*/
 class D1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: D2:implicit=[D2]*/
+/*spec.class: D2:implicit=[D2]*/
 class D2 {}
 
 /*class: E1:implicit=[E1]*/
 class E1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: E2:implicit=[E2]*/
+/*spec.class: E2:implicit=[E2]*/
 class E2 {}
 
 /*class: F1:implicit=[F1]*/
 class F1 {}
 
-/*spec:nnbd-off|spec:nnbd-sdk.class: F2:implicit=[F2]*/
+/*spec.class: F2:implicit=[F2]*/
 class F2 {}
 
 /*class: F3:implicit=[F3]*/
 class F3 {}
 
-/*spec:nnbd-off|prod:nnbd-off.member: topLevelMethod1:direct,explicit=[topLevelMethod1.T],needsArgs,selectors=[Selector(call, call, arity=2, named=[a1], types=1)]*/
-/*spec:nnbd-sdk|prod:nnbd-sdk.member: topLevelMethod1:direct,explicit=[topLevelMethod1.T*],needsArgs,selectors=[Selector(call, call, arity=2, named=[a1], types=1)]*/
 // Calls to this imply a check of the passed type arguments.
+/*member: topLevelMethod1:direct,explicit=[topLevelMethod1.T*],needsArgs,selectors=[Selector(call, call, arity=2, named=[a1], types=1)]*/
 bool topLevelMethod1<T>(T t, {a1}) => t is T;
 
-/*spec:nnbd-off.member: topLevelMethod2:direct,explicit=[topLevelMethod2.T],needsArgs,selectors=[Selector(call, call, arity=2, named=[a2], types=1)]*/
 // Calls to this does _not_ imply a check of the passed type arguments.
-/*spec:nnbd-sdk.member: topLevelMethod2:direct,explicit=[topLevelMethod2.T*],needsArgs,selectors=[Selector(call, call, arity=2, named=[a2], types=1)]*/
+/*spec.member: topLevelMethod2:direct,explicit=[topLevelMethod2.T*],needsArgs,selectors=[Selector(call, call, arity=2, named=[a2], types=1)]*/
 T topLevelMethod2<T>(T t, {a2}) => t;
 
 class Class {
-  /*spec:nnbd-off|prod:nnbd-off.member: Class.instanceMethod1:direct,explicit=[instanceMethod1.S],needsArgs,selectors=[Selector(call, call, arity=2, named=[b1], types=1),Selector(call, instanceMethod1, arity=2, named=[b1], types=1)]*/
-  /*spec:nnbd-sdk|prod:nnbd-sdk.member: Class.instanceMethod1:direct,explicit=[instanceMethod1.S*],needsArgs,selectors=[Selector(call, call, arity=2, named=[b1], types=1),Selector(call, instanceMethod1, arity=2, named=[b1], types=1)]*/
   // Calls to this imply a check of the passed type arguments.
+  /*member: Class.instanceMethod1:direct,explicit=[instanceMethod1.S*],needsArgs,selectors=[Selector(call, call, arity=2, named=[b1], types=1),Selector(call, instanceMethod1, arity=2, named=[b1], types=1)]*/
   bool instanceMethod1<S>(S s, {b1}) => s is S;
 
-  /*spec:nnbd-off.member: Class.instanceMethod2:direct,explicit=[instanceMethod2.S],needsArgs,selectors=[Selector(call, call, arity=2, named=[b2], types=1),Selector(call, instanceMethod2, arity=2, named=[b2], types=1)]*/
   // Calls to this does _not_ imply a check of the passed type arguments.
-  /*spec:nnbd-sdk.member: Class.instanceMethod2:direct,explicit=[instanceMethod2.S*],needsArgs,selectors=[Selector(call, call, arity=2, named=[b2], types=1),Selector(call, instanceMethod2, arity=2, named=[b2], types=1)]*/
+  /*spec.member: Class.instanceMethod2:direct,explicit=[instanceMethod2.S*],needsArgs,selectors=[Selector(call, call, arity=2, named=[b2], types=1),Selector(call, instanceMethod2, arity=2, named=[b2], types=1)]*/
   S instanceMethod2<S>(S s, {b2}) => s;
 }
 
 main() {
   // Calls to this imply a check of the passed type arguments.
-  /*spec:nnbd-off|prod:nnbd-off.direct,explicit=[localFunction1.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
-  /*spec:nnbd-sdk|prod:nnbd-sdk.direct,explicit=[localFunction1.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
+  /*direct,explicit=[localFunction1.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
   bool localFunction1<U>(U u, {c1}) => u is U;
 
   // Calls to this does _not_ imply a check of the passed type arguments.
-  /*spec:nnbd-off.direct,explicit=[localFunction2.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c2], types=1)]*/
-  /*spec:nnbd-sdk.direct,explicit=[localFunction2.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c2], types=1)]*/ U
-      localFunction2<U>(U u, {c2}) => u;
+  /*spec.direct,explicit=[localFunction2.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c2], types=1)]*/
+  U localFunction2<U>(U u, {c2}) => u;
 
   // Calls to this does _not_ imply a check of the passed type arguments. A
   // call to the .call function on this will, though, since it has the same
   // signature as [localFunction1] which needs its type arguments.
-  /*spec:nnbd-off.direct,explicit=[localFunction3.U],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
-  /*spec:nnbd-sdk.direct,explicit=[localFunction3.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/ localFunction3<
-          U>(U u, {c1}) =>
-      u;
+  /*spec.direct,explicit=[localFunction3.U*],needsArgs,selectors=[Selector(call, call, arity=2, named=[c1], types=1)]*/
+  localFunction3<U>(U u, {c1}) => u;
 
   var c = new Class();
 

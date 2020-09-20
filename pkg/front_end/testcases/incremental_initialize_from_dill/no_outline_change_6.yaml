@@ -7,7 +7,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     errors: true
     sources:
       main.dart: |
@@ -35,7 +35,7 @@ worlds:
         }
     expectedLibraryCount: 2
   - entry: main.dart
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     errors: true
     worldType: updated
     expectInitializeFromDill: false
@@ -63,7 +63,7 @@ worlds:
     expectedLibraryCount: 2
     expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
   - entry: main.dart
-    useExperimentalInvalidation: true
+    experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
     invalidate:

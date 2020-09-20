@@ -6,6 +6,8 @@ import 'package:analysis_server_client/protocol.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
+// TODO(devoncarew): This is only referenced from tests.
+
 /// Given a Logger and an analysis issue, render the issue to the logger.
 class IssueRenderer {
   final Logger logger;

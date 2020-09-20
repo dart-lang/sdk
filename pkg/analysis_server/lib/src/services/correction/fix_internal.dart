@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import 'dart:collection';
 import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
@@ -16,10 +14,13 @@ import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_explicit_cast.dart';
 import 'package:analysis_server/src/services/correction/dart/add_field_formal_parameters.dart';
+import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_enum_case_clauses.dart';
+import 'package:analysis_server/src/services/correction/dart/add_missing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_parameter_named.dart';
 import 'package:analysis_server/src/services/correction/dart/add_missing_required_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
+import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -59,22 +60,29 @@ import 'package:analysis_server/src/services/correction/dart/create_constructor_
 import 'package:analysis_server/src/services/correction/dart/create_constructor_super.dart';
 import 'package:analysis_server/src/services/correction/dart/create_field.dart';
 import 'package:analysis_server/src/services/correction/dart/create_file.dart';
+import 'package:analysis_server/src/services/correction/dart/create_function.dart';
 import 'package:analysis_server/src/services/correction/dart/create_getter.dart';
 import 'package:analysis_server/src/services/correction/dart/create_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
+import 'package:analysis_server/src/services/correction/dart/create_method_or_function.dart';
 import 'package:analysis_server/src/services/correction/dart/create_missing_overrides.dart';
 import 'package:analysis_server/src/services/correction/dart/create_mixin.dart';
 import 'package:analysis_server/src/services/correction/dart/create_no_such_method.dart';
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
+import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
+import 'package:analysis_server/src/services/correction/dart/import_library.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/inline_typedef.dart';
 import 'package:analysis_server/src/services/correction/dart/insert_semicolon.dart';
 import 'package:analysis_server/src/services/correction/dart/make_class_abstract.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/move_type_arguments_to_class.dart';
+import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/qualify_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
@@ -110,6 +118,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_local
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_boolean_with_bool.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_cascade_with_dot.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_colon_with_equals.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_final_with_const.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_new_with_const.dart';
@@ -120,14 +129,15 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_bracke
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_extension_name.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_filled.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
-import 'package:analysis_server/src/services/correction/dart/sort_directives.dart';
 import 'package:analysis_server/src/services/correction/dart/update_sdk_constraints.dart';
 import 'package:analysis_server/src/services/correction/dart/use_const.dart';
 import 'package:analysis_server/src/services/correction/dart/use_curly_braces.dart';
@@ -138,36 +148,17 @@ import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dar
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
-import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
-import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element, ElementKind;
-import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
-import 'package:analyzer_plugin/utilities/range_factory.dart';
-
-/// A predicate is a one-argument function that returns a boolean value.
-typedef ElementPredicate = bool Function(Element argument);
 
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
@@ -275,8 +266,6 @@ class DartFixContributor implements FixContributor {
 
 /// The computer for Dart fixes.
 class FixProcessor extends BaseProcessor {
-  static const int MAX_LEVENSHTEIN_DISTANCE = 3;
-
   /// A map from the names of lint rules to a list of generators used to create
   /// the correction producers used to build fixes for those diagnostics. The
   /// generators used for non-lint diagnostics are in the [nonLintProducerMap].
@@ -315,8 +304,13 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.newInstance,
     ],
     LintNames.avoid_returning_null_for_future: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
       WrapInFuture.newInstance,
+    ],
+    LintNames.avoid_single_cascade_in_expression_statements: [
+      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      //  diagnostics and should also be available as an assist.
+      ReplaceCascadeWithDot.newInstance,
     ],
     LintNames.avoid_types_as_parameter_names: [
       ConvertToOnType.newInstance,
@@ -338,7 +332,7 @@ class FixProcessor extends BaseProcessor {
       AddDiagnosticPropertyReference.newInstance,
     ],
     LintNames.directives_ordering: [
-      SortDirectives.newInstance,
+      OrganizeImports.newInstance,
     ],
     LintNames.empty_catches: [
       RemoveEmptyCatch.newInstance,
@@ -351,7 +345,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceWithBrackets.newInstance,
     ],
     LintNames.hash_and_equals: [
-      CreateMethod.newInstance,
+      CreateMethod.equalsOrHashCode,
     ],
     LintNames.no_duplicate_case_values: [
       RemoveDuplicateCase.newInstance,
@@ -396,6 +390,9 @@ class FixProcessor extends BaseProcessor {
       ConvertToExpressionFunctionBody.newInstance,
     ],
     LintNames.prefer_final_fields: [
+      MakeFinal.newInstance,
+    ],
+    LintNames.prefer_final_in_for_each: [
       MakeFinal.newInstance,
     ],
     LintNames.prefer_final_locals: [
@@ -463,7 +460,7 @@ class FixProcessor extends BaseProcessor {
       RemoveInterpolationBraces.newInstance,
     ],
     LintNames.unnecessary_const: [
-      RemoveUnnecesaryConst.newInstance,
+      RemoveUnnecessaryConst.newInstance,
     ],
     LintNames.unnecessary_lambdas: [
       ReplaceWithTearOff.newInstance,
@@ -496,6 +493,45 @@ class FixProcessor extends BaseProcessor {
   /// generators used for lint rules are in the [lintMultiProducerMap].
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      DataDriven.newInstance,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
+      AddMissingParameter.newInstance,
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
+      AddMissingParameter.newInstance,
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      DataDriven.newInstance,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.INVALID_ANNOTATION: [
+      ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.INVALID_OVERRIDE: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
+      DataDriven.newInstance,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+      DataDriven.newInstance,
+    ],
     CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT: [
       AddSuperConstructorInvocation.newInstance,
     ],
@@ -503,11 +539,85 @@ class FixProcessor extends BaseProcessor {
       AddSuperConstructorInvocation.newInstance,
       CreateConstructorSuper.newInstance,
     ],
+    CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.NOT_A_TYPE: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
+      ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_CLASS: [
+      DataDriven.newInstance,
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT: [
       AddSuperConstructorInvocation.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      DataDriven.newInstance,
+      ImportLibrary.forExtension,
+      ImportLibrary.forFunction,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_GETTER: [
+      DataDriven.newInstance,
+      ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      DataDriven.newInstance,
+      ImportLibrary.forExtension,
+      ImportLibrary.forFunction,
+      ImportLibrary.forTopLevelVariable,
+      ImportLibrary.forType,
+    ],
+    CompileTimeErrorCode.UNDEFINED_METHOD: [
+      DataDriven.newInstance,
+      ImportLibrary.forFunction,
+      ImportLibrary.forType,
+    ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       ChangeArgumentName.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_SETTER: [
+      DataDriven.newInstance,
+      // TODO(brianwilkerson) Support ImportLibrary
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
+      DataDriven.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
+      DataDriven.newInstance,
+    ],
+    HintCode.DEPRECATED_MEMBER_USE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.newInstance,
+    ],
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+      DataDriven.newInstance,
+    ],
+    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+      ImportLibrary.dartAsync,
     ],
   };
 
@@ -515,11 +625,31 @@ class FixProcessor extends BaseProcessor {
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintProducerMap].
   static const Map<ErrorCode, List<ProducerGenerator>> nonLintProducerMap = {
+    CompileTimeErrorCode.ASSIGNMENT_TO_FINAL: [
+      MakeFieldNotFinal.newInstance,
+    ],
+    CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL: [
+      MakeVariableNotFinal.newInstance,
+    ],
+    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      AddNullCheck.newInstance,
+      WrapInText.newInstance,
+    ],
     CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
     ],
     CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT: [
-      AddSync.newInstance,
+      AddAsync.newInstance,
+    ],
+    CompileTimeErrorCode.CAST_TO_NON_TYPE: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
     ],
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE: [
       UseConst.newInstance,
@@ -530,8 +660,15 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
       RemoveConst.newInstance,
     ],
+    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
+      ReplaceWithFilled.newInstance,
+    ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+    ],
+    CompileTimeErrorCode.EXTENDS_NON_CLASS: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
       ReplaceWithExtensionName.newInstance,
@@ -543,8 +680,31 @@ class FixProcessor extends BaseProcessor {
       CreateConstructor.newInstance,
       ConvertToNamedArguments.newInstance,
     ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
+      AddLate.newInstance,
+      CreateConstructorForFinalFields.newInstance,
+    ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
+      AddFieldFormalParameters.newInstance,
+    ],
+    CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
+      ReplaceReturnTypeFuture.newInstance,
+    ],
+    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+    ],
     CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD: [
       CreateField.newInstance,
+    ],
+    CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
+      ChangeToStaticAccess.newInstance,
     ],
     CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE: [
       ChangeToNearestPreciseValue.newInstance,
@@ -553,16 +713,75 @@ class FixProcessor extends BaseProcessor {
       ChangeTo.annotation,
       CreateClass.newInstance,
     ],
+    CompileTimeErrorCode.INVALID_ASSIGNMENT: [
+      AddExplicitCast.newInstance,
+      AddNullCheck.newInstance,
+      ChangeTypeAnnotation.newInstance,
+      MakeVariableNullable.newInstance,
+    ],
+    CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
+      RemoveParenthesesInGetterInvocation.newInstance,
+    ],
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
+    ],
+    CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
+      AddMissingRequiredArgument.newInstance,
     ],
     CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE: [
       ExtendClassForMixin.newInstance,
     ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ChangeTo.classOrMixin,
+      CreateClass.newInstance,
     ],
-//    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT : [],
+    CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
+      ChangeTo.classOrMixin,
+    ],
+    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
+      CreateConstructor.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
+        [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
+      CreateMissingOverrides.newInstance,
+      CreateNoSuchMethod.newInstance,
+      MakeClassAbstract.newInstance,
+    ],
+    CompileTimeErrorCode.NON_BOOL_CONDITION: [
+      AddNeNull.newInstance,
+    ],
+    CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.NOT_A_TYPE: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD: [
+      AddLate.newInstance,
+    ],
     CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
@@ -575,6 +794,17 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
       RemoveQuestionMark.newInstance,
     ],
+    CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
+      MakeReturnTypeNullable.newInstance,
+    ],
+    CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD: [
+      MakeReturnTypeNullable.newInstance,
+    ],
+    CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
+      ChangeTo.classOrMixin,
+      CreateClass.newInstance,
+      CreateMixin.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
       ChangeTo.annotation,
       CreateClass.newInstance,
@@ -584,31 +814,86 @@ class FixProcessor extends BaseProcessor {
       CreateClass.newInstance,
       CreateMixin.newInstance,
     ],
+    CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN: [
+      ReplaceBooleanWithBool.newInstance,
+    ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [
       ChangeTo.getterOrSetter,
       CreateGetter.newInstance,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD: [
       ChangeTo.method,
+      CreateMethod.method,
     ],
     CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER: [
       ChangeTo.getterOrSetter,
       CreateSetter.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_FUNCTION: [
+      ChangeTo.function,
+      CreateClass.newInstance,
+      CreateFunction.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_GETTER: [
+      ChangeTo.getterOrSetter,
+      CreateClass.newInstance,
+      CreateField.newInstance,
+      CreateGetter.newInstance,
+      CreateLocalVariable.newInstance,
+      CreateMethodOrFunction.newInstance,
+      CreateMixin.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [
+      ChangeTo.getterOrSetter,
+      CreateClass.newInstance,
+      CreateField.newInstance,
+      CreateGetter.newInstance,
+      CreateLocalVariable.newInstance,
+      CreateMethodOrFunction.newInstance,
+      CreateMixin.newInstance,
+      CreateSetter.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT: [
+      AddAsync.newInstance,
+    ],
+    CompileTimeErrorCode.UNDEFINED_METHOD: [
+      ChangeTo.method,
+      CreateClass.newInstance,
+      CreateFunction.newInstance,
+      CreateMethod.method,
     ],
     CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [
       AddMissingParameterNamed.newInstance,
       ConvertFlutterChild.newInstance,
       ConvertFlutterChildren.newInstance,
     ],
-    CompileTimeErrorCode
-        .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
+    CompileTimeErrorCode.UNDEFINED_SETTER: [
+      ChangeTo.getterOrSetter,
+      CreateField.newInstance,
+      CreateSetter.newInstance,
+    ],
+    CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
       // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
       QualifyReference.newInstance,
     ],
+    CompileTimeErrorCode
+        .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
+      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      //  method or setter. The existing producers would need to be updated so
+      //  that only the appropriate subset is generated.
+      QualifyReference.newInstance,
+    ],
     CompileTimeErrorCode.URI_DOES_NOT_EXIST: [
       CreateFile.newInstance,
+    ],
+    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
+      MoveTypeArgumentsToClass.newInstance,
+      RemoveTypeArguments.newInstance,
+    ],
+    CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
+      MakeReturnTypeNullable.newInstance,
     ],
 
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
@@ -639,6 +924,8 @@ class FixProcessor extends BaseProcessor {
     HintCode.DUPLICATE_SHOWN_NAME: [
       RemoveNameFromCombinator.newInstance,
     ],
+    // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
+//    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.INVALID_FACTORY_ANNOTATION: [
       RemoveAnnotation.newInstance,
     ],
@@ -681,6 +968,8 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
       RemoveAnnotation.newInstance,
     ],
+    // TODO(brianwilkerson) Add a fix to normalize the path.
+//    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
     HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
     ],
@@ -723,6 +1012,12 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.newInstance,
     ],
+    // TODO(brianwilkerson) Add a fix to remove the method.
+//    HintCode.UNNECESSARY_NO_SUCH_METHOD: [],
+    // TODO(brianwilkerson) Add a fix to remove the type check.
+//    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [],
+    // TODO(brianwilkerson) Add a fix to remove the type check.
+//    HintCode.UNNECESSARY_TYPE_CHECK_TRUE: [],
     HintCode.UNUSED_CATCH_CLAUSE: [
       RemoveUnusedCatchClause.newInstance,
     ],
@@ -747,7 +1042,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.newInstance,
     ],
-
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.newInstance,
     ],
@@ -760,731 +1054,36 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.VAR_AS_TYPE_NAME: [
       ReplaceVarWithDynamic.newInstance,
     ],
-
-    StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE: [
-      ReplaceReturnTypeFuture.newInstance,
-    ],
-    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER: [
-      ChangeToStaticAccess.newInstance,
-    ],
-    StaticTypeWarningCode.INVALID_ASSIGNMENT: [
-      AddExplicitCast.newInstance,
-      ChangeTypeAnnotation.newInstance,
-    ],
-    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION: [
-      RemoveParenthesesInGetterInvocation.newInstance,
-    ],
-    StaticTypeWarningCode.NON_BOOL_CONDITION: [
-      AddNeNull.newInstance,
-    ],
-    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT: [
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_FUNCTION: [
-      ChangeTo.function,
-      CreateClass.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_GETTER: [
-      ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_METHOD: [
-      ChangeTo.method,
-      CreateClass.newInstance,
-    ],
-    StaticTypeWarningCode.UNDEFINED_SETTER: [
-      ChangeTo.getterOrSetter,
-      CreateField.newInstance,
-      CreateSetter.newInstance,
-    ],
-    StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      MoveTypeArgumentsToClass.newInstance,
-      RemoveTypeArguments.newInstance,
-    ],
-    StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
-      //  method or setter. The existing _addFix methods would need to be
-      //  updated so that only the appropriate subset is generated.
-      QualifyReference.newInstance,
-    ],
-
-    StaticWarningCode.ASSIGNMENT_TO_FINAL: [
-      MakeFieldNotFinal.newInstance,
-    ],
-    StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL: [
-      MakeVariableNotFinal.newInstance,
-    ],
-    StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
-      WrapInText.newInstance,
-    ],
-    StaticWarningCode.CAST_TO_NON_TYPE: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.newInstance,
     ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED: [
-      CreateConstructorForFinalFields.newInstance,
-    ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
-      AddFieldFormalParameters.newInstance,
-    ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
-      AddFieldFormalParameters.newInstance,
-    ],
-    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
-      AddFieldFormalParameters.newInstance,
+    StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
+      ReplaceWithNotNullAware.newInstance,
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.newInstance,
     ],
-    StaticWarningCode.NEW_WITH_NON_TYPE: [
-      ChangeTo.classOrMixin,
-    ],
-    StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR: [
-      CreateConstructor.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO: [
-      CreateMissingOverrides.newInstance,
-      CreateNoSuchMethod.newInstance,
-      MakeClassAbstract.newInstance,
-    ],
-//    StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE : [],
-    StaticWarningCode.NOT_A_TYPE: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME: [
-      ChangeTo.classOrMixin,
-      CreateClass.newInstance,
-      CreateMixin.newInstance,
-    ],
-    StaticWarningCode.UNDEFINED_CLASS_BOOLEAN: [
-      ReplaceBooleanWithBool.newInstance,
-    ],
-    StaticWarningCode.UNDEFINED_IDENTIFIER: [
-      ChangeTo.getterOrSetter,
-      CreateClass.newInstance,
-      CreateField.newInstance,
-      CreateGetter.newInstance,
-      CreateLocalVariable.newInstance,
-      CreateMixin.newInstance,
-      CreateSetter.newInstance,
-    ],
-    StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT: [
-      AddSync.newInstance,
-    ],
   };
 
-  final DartFixContext context;
-
-  final ResourceProvider resourceProvider;
-  final TypeSystem typeSystem;
-
-  final LibraryElement unitLibraryElement;
-  final CompilationUnit unit;
-  final AnalysisError error;
-
-  final int errorOffset;
-
-  final int errorLength;
+  final DartFixContext fixContext;
 
   final List<Fix> fixes = <Fix>[];
 
-  FixProcessor(this.context)
-      : resourceProvider = context.resolveResult.session.resourceProvider,
-        typeSystem = context.resolveResult.typeSystem,
-        unitLibraryElement = context.resolveResult.libraryElement,
-        unit = context.resolveResult.unit,
-        error = context.error,
-        errorOffset = context.error.offset,
-        errorLength = context.error.length,
-        super(
-          resolvedResult: context.resolveResult,
-          workspace: context.workspace,
+  FixProcessor(this.fixContext)
+      : super(
+          resolvedResult: fixContext.resolveResult,
+          workspace: fixContext.workspace,
         );
 
-  DartType get coreTypeBool => context.resolveResult.typeProvider.boolType;
-
   Future<List<Fix>> compute() async {
-    node = NodeLocator2(errorOffset).searchWithin(unit);
-
-    // analyze ErrorCode
-    var errorCode = error.errorCode;
-    if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
-        errorCode == CompileTimeErrorCode.UNDEFINED_ANNOTATION) {
-      if (node is Annotation) {
-        Annotation annotation = node;
-        var name = annotation.name;
-        if (name != null && name.staticElement == null) {
-          node = name;
-          if (annotation.arguments == null) {
-            await _addFix_importLibrary_withTopLevelVariable();
-          } else {
-            await _addFix_importLibrary_withType();
-          }
-        }
-      }
-    }
-    // TODO(brianwilkerson) Define a syntax for deprecated members to indicate
-    //  how to update the code and implement a fix to apply the update.
-//    if (errorCode == HintCode.DEPRECATED_MEMBER_USE ||
-//        errorCode == HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE) {
-//      await _addFix_replaceDeprecatedMemberUse();
-//    }
-    // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
-//    if (errorCode == HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE) {
-//      await _addFix_convertPathToPackageUri();
-//    }
-    // TODO(brianwilkerson) Add a fix to normalize the path.
-//    if (errorCode == HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT) {
-//      await _addFix_normalizeUri();
-//    }
-    if (errorCode == HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE) {
-      await _addFix_importAsync();
-    }
-    // TODO(brianwilkerson) Add a fix to remove the method.
-//    if (errorCode == HintCode.UNNECESSARY_NO_SUCH_METHOD) {
-//      await _addFix_removeMethodDeclaration();
-//    }
-    // TODO(brianwilkerson) Add a fix to remove the type check.
-//    if (errorCode == HintCode.UNNECESSARY_TYPE_CHECK_FALSE ||
-//        errorCode == HintCode.UNNECESSARY_TYPE_CHECK_TRUE) {
-//      await _addFix_removeUnnecessaryTypeCheck();
-//    }
-    if (errorCode == CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS ||
-        errorCode ==
-            CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
-      await _addFix_addMissingParameter();
-    }
-    if (errorCode == CompileTimeErrorCode.CONST_WITH_NON_TYPE ||
-        errorCode == CompileTimeErrorCode.MIXIN_OF_NON_CLASS ||
-        errorCode == CompileTimeErrorCode.UNDEFINED_CLASS ||
-        errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
-        errorCode == StaticWarningCode.NEW_WITH_NON_TYPE ||
-        errorCode == StaticWarningCode.NOT_A_TYPE ||
-        errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME) {
-      await _addFix_importLibrary_withType();
-    }
-    if (errorCode == StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE) {
-      await _addFix_importLibrary_withType();
-    }
-    if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
-      await _addFix_createFunction_forFunctionType();
-      await _addFix_importLibrary_withType();
-      await _addFix_importLibrary_withExtension();
-      await _addFix_importLibrary_withFunction();
-      await _addFix_importLibrary_withTopLevelVariable();
-    }
-    if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
-      await _addFix_importLibrary_withType();
-    }
-    if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
-      await _addFix_importLibrary_withExtension();
-      await _addFix_importLibrary_withFunction();
-      await _addFix_importLibrary_withType();
-      await _addFix_undefinedFunction_create();
-    }
-    if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
-      await _addFix_createFunction_forFunctionType();
-      await _addFix_importLibrary_withTopLevelVariable();
-      await _addFix_importLibrary_withType();
-    }
-    if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
-      await _addFix_importLibrary_withFunction();
-      await _addFix_importLibrary_withType();
-      await _addFix_createMethod();
-      await _addFix_undefinedFunction_create();
-    }
-    if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD) {
-      await _addFix_createMethod();
-    }
     await _addFromProducers();
-
-    // done
     return fixes;
   }
 
   Future<Fix> computeFix() async {
-    var fixes = await compute();
+    await _addFromProducers();
     fixes.sort(Fix.SORT_BY_RELEVANCE);
     return fixes.isNotEmpty ? fixes.first : null;
-  }
-
-  Future<void> _addFix_addMissingParameter() async {
-    // The error is reported on ArgumentList.
-    if (node is! ArgumentList) {
-      return;
-    }
-    ArgumentList argumentList = node;
-    List<Expression> arguments = argumentList.arguments;
-
-    // Prepare the invoked element.
-    var context = ExecutableParameters(sessionHelper, node.parent);
-    if (context == null) {
-      return;
-    }
-
-    // prepare the argument to add a new parameter for
-    var numRequired = context.required.length;
-    if (numRequired >= arguments.length) {
-      return;
-    }
-    var argument = arguments[numRequired];
-
-    Future<void> addParameter(
-        FixKind kind, int offset, String prefix, String suffix) async {
-      if (offset != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(context.file, (builder) {
-          builder.addInsertion(offset, (builder) {
-            builder.write(prefix);
-            builder.writeParameterMatchingArgument(
-                argument, numRequired, <String>{});
-            builder.write(suffix);
-          });
-        });
-        _addFixFromBuilder(changeBuilder, kind);
-      }
-    }
-
-    // Suggest adding a required parameter.
-    {
-      var kind = DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
-      if (context.required.isNotEmpty) {
-        var prevNode = await context.getParameterNode(context.required.last);
-        await addParameter(kind, prevNode?.end, ', ', '');
-      } else {
-        var parameterList = await context.getParameterList();
-        var offset = parameterList?.leftParenthesis?.end;
-        var suffix = context.executable.parameters.isNotEmpty ? ', ' : '';
-        await addParameter(kind, offset, '', suffix);
-      }
-    }
-
-    // Suggest adding the first optional positional parameter.
-    if (context.optionalPositional.isEmpty && context.named.isEmpty) {
-      var kind = DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL;
-      var prefix = context.required.isNotEmpty ? ', [' : '[';
-      if (context.required.isNotEmpty) {
-        var prevNode = await context.getParameterNode(context.required.last);
-        await addParameter(kind, prevNode?.end, prefix, ']');
-      } else {
-        var parameterList = await context.getParameterList();
-        var offset = parameterList?.leftParenthesis?.end;
-        await addParameter(kind, offset, prefix, ']');
-      }
-    }
-  }
-
-  Future<void> _addFix_createFunction_forFunctionType() async {
-    if (node is SimpleIdentifier) {
-      var nameNode = node as SimpleIdentifier;
-      // prepare argument expression (to get parameter)
-      ClassElement targetElement;
-      Expression argument;
-      {
-        var target = getQualifiedPropertyTarget(node);
-        if (target != null) {
-          var targetType = target.staticType;
-          if (targetType != null && targetType.element is ClassElement) {
-            targetElement = targetType.element as ClassElement;
-            argument = target.parent as Expression;
-          } else {
-            return;
-          }
-        } else {
-          var enclosingClass =
-              node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-          targetElement = enclosingClass?.declaredElement;
-          argument = nameNode;
-        }
-      }
-      argument = stepUpNamedExpression(argument);
-      // should be argument of some invocation
-      var parameterElement = argument.staticParameterElement;
-      if (parameterElement == null) {
-        return;
-      }
-      // should be parameter of function type
-      var parameterType = parameterElement.type;
-      if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
-        parameterType = FunctionTypeImpl(
-          typeFormals: const [],
-          parameters: const [],
-          returnType: typeProvider.dynamicType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }
-      if (parameterType is! FunctionType) {
-        return;
-      }
-      var functionType = parameterType as FunctionType;
-      // add proposal
-      if (targetElement != null) {
-        await _addProposal_createFunction_method(targetElement, functionType);
-      } else {
-        await _addProposal_createFunction_function(functionType);
-      }
-    }
-  }
-
-  Future<void> _addFix_createMethod() async {
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      return;
-    }
-    var name = (node as SimpleIdentifier).name;
-    var invocation = node.parent as MethodInvocation;
-    // prepare environment
-    Element targetElement;
-    var staticModifier = false;
-
-    CompilationUnitMember targetNode;
-    var target = invocation.realTarget;
-    var utils = this.utils;
-    if (target is ExtensionOverride) {
-      targetElement = target.staticElement;
-      targetNode = await _getExtensionDeclaration(targetElement);
-      if (targetNode == null) {
-        return;
-      }
-    } else if (target is Identifier &&
-        target.staticElement is ExtensionElement) {
-      targetElement = target.staticElement;
-      targetNode = await _getExtensionDeclaration(targetElement);
-      if (targetNode == null) {
-        return;
-      }
-      staticModifier = true;
-    } else if (target == null) {
-      targetElement = unit.declaredElement;
-      var enclosingMember = node.thisOrAncestorOfType<ClassMember>();
-      if (enclosingMember == null) {
-        // If the undefined identifier isn't inside a class member, then it
-        // doesn't make sense to create a method.
-        return;
-      }
-      targetNode = enclosingMember.parent;
-      staticModifier = _inStaticContext();
-    } else {
-      var targetClassElement = _getTargetClassElement(target);
-      if (targetClassElement == null) {
-        return;
-      }
-      targetElement = targetClassElement;
-      if (targetClassElement.librarySource.isInSystemLibrary) {
-        return;
-      }
-      // prepare target ClassDeclaration
-      targetNode = await _getClassDeclaration(targetClassElement);
-      if (targetNode == null) {
-        return;
-      }
-      // maybe static
-      if (target is Identifier) {
-        staticModifier = target.staticElement.kind == ElementKind.CLASS;
-      }
-      // use different utils
-      var targetPath = targetClassElement.source.fullName;
-      var targetResolveResult = await session.getResolvedUnit(targetPath);
-      utils = CorrectionUtils(targetResolveResult);
-    }
-    var targetLocation = utils.prepareNewMethodLocation(targetNode);
-    var targetFile = targetElement.source.fullName;
-    // build method source
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
-        builder.write(targetLocation.prefix);
-        // maybe "static"
-        if (staticModifier) {
-          builder.write('static ');
-        }
-        // append return type
-        {
-          var type = _inferUndefinedExpressionType(invocation);
-          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-            builder.write(' ');
-          }
-        }
-        // append name
-        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
-          builder.write(name);
-        });
-        builder.write('(');
-        builder.writeParametersMatchingArguments(invocation.argumentList);
-        builder.write(') {}');
-        builder.write(targetLocation.suffix);
-      });
-      if (targetFile == file) {
-        builder.addLinkedPosition(range.node(node), 'NAME');
-      }
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
-  }
-
-  Future<void> _addFix_importAsync() async {
-    await _addFix_importLibrary(
-        DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async'));
-  }
-
-  Future<void> _addFix_importLibrary(FixKind kind, Uri library,
-      [String relativeURI]) async {
-    String uriText;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      uriText = builder.importLibrary(library);
-    });
-    _addFixFromBuilder(changeBuilder, kind, args: [uriText]);
-
-    if (relativeURI != null && relativeURI.isNotEmpty) {
-      var changeBuilder2 = _newDartChangeBuilder();
-      await changeBuilder2.addFileEdit(file, (DartFileEditBuilder builder) {
-        if (builder is DartFileEditBuilderImpl) {
-          builder.importLibraryWithRelativeUri(relativeURI);
-        }
-      });
-      _addFixFromBuilder(changeBuilder2, kind, args: [relativeURI]);
-    }
-  }
-
-  Future<void> _addFix_importLibrary_withElement(
-      String name,
-      List<ElementKind> elementKinds,
-      List<TopLevelDeclarationKind> kinds2) async {
-    // ignore if private
-    if (name.startsWith('_')) {
-      return;
-    }
-    // may be there is an existing import,
-    // but it is with prefix and we don't use this prefix
-    var alreadyImportedWithPrefix = <String>{};
-    for (var imp in unitLibraryElement.imports) {
-      // prepare element
-      var libraryElement = imp.importedLibrary;
-      var element = getExportedElement(libraryElement, name);
-      if (element == null) {
-        continue;
-      }
-      if (element is PropertyAccessorElement) {
-        element = (element as PropertyAccessorElement).variable;
-      }
-      if (!elementKinds.contains(element.kind)) {
-        continue;
-      }
-      // may be apply prefix
-      var prefix = imp.prefix;
-      if (prefix != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addSimpleReplacement(
-              range.startLength(node, 0), '${prefix.displayName}.');
-        });
-        _addFixFromBuilder(changeBuilder, DartFixKind.IMPORT_LIBRARY_PREFIX,
-            args: [libraryElement.displayName, prefix.displayName]);
-        continue;
-      }
-      // may be update "show" directive
-      var combinators = imp.combinators;
-      if (combinators.length == 1 && combinators[0] is ShowElementCombinator) {
-        var showCombinator = combinators[0] as ShowElementCombinator;
-        // prepare new set of names to show
-        Set<String> showNames = SplayTreeSet<String>();
-        showNames.addAll(showCombinator.shownNames);
-        showNames.add(name);
-        // prepare library name - unit name or 'dart:name' for SDK library
-        var libraryName =
-            libraryElement.definingCompilationUnit.source.uri.toString();
-        if (libraryElement.isInSdk) {
-          libraryName = libraryElement.source.shortName;
-        }
-        // don't add this library again
-        alreadyImportedWithPrefix.add(libraryElement.source.fullName);
-        // update library
-        var newShowCode = 'show ${showNames.join(', ')}';
-        var offset = showCombinator.offset;
-        var length = showCombinator.end - offset;
-        var libraryFile = context.resolveResult.libraryElement.source.fullName;
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(libraryFile,
-            (DartFileEditBuilder builder) {
-          builder.addSimpleReplacement(
-              SourceRange(offset, length), newShowCode);
-        });
-        _addFixFromBuilder(changeBuilder, DartFixKind.IMPORT_LIBRARY_SHOW,
-            args: [libraryName]);
-      }
-    }
-    // Find new top-level declarations.
-    {
-      var declarations = context.getTopLevelDeclarations(name);
-      for (var declaration in declarations) {
-        // Check the kind.
-        if (!kinds2.contains(declaration.kind)) {
-          continue;
-        }
-        // Check the source.
-        if (alreadyImportedWithPrefix.contains(declaration.path)) {
-          continue;
-        }
-        // Check that the import doesn't end with '.template.dart'
-        if (declaration.uri.path.endsWith('.template.dart')) {
-          continue;
-        }
-        // Compute the fix kind.
-        FixKind fixKind;
-        if (declaration.uri.isScheme('dart')) {
-          fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
-        } else if (_isLibSrcPath(declaration.path)) {
-          // Bad: non-API.
-          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
-        } else if (declaration.isExported) {
-          // Ugly: exports.
-          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
-        } else {
-          // Good: direct declaration.
-          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
-        }
-        // Add the fix.
-        var relativeURI =
-            _getRelativeURIFromLibrary(unitLibraryElement, declaration.path);
-        await _addFix_importLibrary(fixKind, declaration.uri, relativeURI);
-      }
-    }
-  }
-
-  Future<void> _addFix_importLibrary_withExtension() async {
-    if (node is SimpleIdentifier) {
-      var extensionName = (node as SimpleIdentifier).name;
-      await _addFix_importLibrary_withElement(
-          extensionName,
-          const [ElementKind.EXTENSION],
-          const [TopLevelDeclarationKind.extension]);
-    }
-  }
-
-  Future<void> _addFix_importLibrary_withFunction() async {
-    if (node is SimpleIdentifier) {
-      if (node.parent is MethodInvocation) {
-        var invocation = node.parent as MethodInvocation;
-        if (invocation.realTarget != null || invocation.methodName != node) {
-          return;
-        }
-      }
-
-      var name = (node as SimpleIdentifier).name;
-      await _addFix_importLibrary_withElement(name, const [
-        ElementKind.FUNCTION,
-        ElementKind.TOP_LEVEL_VARIABLE
-      ], const [
-        TopLevelDeclarationKind.function,
-        TopLevelDeclarationKind.variable
-      ]);
-    }
-  }
-
-  Future<void> _addFix_importLibrary_withTopLevelVariable() async {
-    if (node is SimpleIdentifier) {
-      var name = (node as SimpleIdentifier).name;
-      await _addFix_importLibrary_withElement(
-          name,
-          const [ElementKind.TOP_LEVEL_VARIABLE],
-          const [TopLevelDeclarationKind.variable]);
-    }
-  }
-
-  Future<void> _addFix_importLibrary_withType() async {
-    if (_mayBeTypeIdentifier(node)) {
-      var typeName = (node as SimpleIdentifier).name;
-      await _addFix_importLibrary_withElement(
-          typeName,
-          const [ElementKind.CLASS, ElementKind.FUNCTION_TYPE_ALIAS],
-          const [TopLevelDeclarationKind.type]);
-    } else if (_mayBeImplicitConstructor(node)) {
-      var typeName = (node as SimpleIdentifier).name;
-      await _addFix_importLibrary_withElement(typeName,
-          const [ElementKind.CLASS], const [TopLevelDeclarationKind.type]);
-    }
-  }
-
-  Future<void> _addFix_undefinedFunction_create() async {
-    // should be the name of the invocation
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-    } else {
-      return;
-    }
-    var name = (node as SimpleIdentifier).name;
-    var invocation = node.parent as MethodInvocation;
-    // function invocation has no target
-    var target = invocation.realTarget;
-    if (target != null) {
-      return;
-    }
-    // prepare environment
-    int insertOffset;
-    String sourcePrefix;
-    AstNode enclosingMember =
-        node.thisOrAncestorOfType<CompilationUnitMember>();
-    insertOffset = enclosingMember.end;
-    sourcePrefix = '$eol$eol';
-    utils.targetClassElement = null;
-    // build method source
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
-        builder.write(sourcePrefix);
-        // append return type
-        {
-          var type = _inferUndefinedExpressionType(invocation);
-          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-            builder.write(' ');
-          }
-        }
-        // append name
-        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
-          builder.write(name);
-        });
-        builder.write('(');
-        builder.writeParametersMatchingArguments(invocation.argumentList);
-        builder.write(') {$eol}');
-      });
-      builder.addLinkedPosition(range.node(node), 'NAME');
-    });
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FUNCTION,
-        args: [name]);
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
@@ -1500,11 +1099,13 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFromProducers() async {
+    var error = fixContext.error;
     var context = CorrectionProducerContext(
+      dartFixContext: fixContext,
       diagnostic: error,
       resolvedResult: resolvedResult,
-      selectionOffset: errorOffset,
-      selectionLength: errorLength,
+      selectionOffset: fixContext.error.offset,
+      selectionLength: fixContext.error.length,
       workspace: workspace,
     );
 
@@ -1515,7 +1116,8 @@ class FixProcessor extends BaseProcessor {
 
     Future<void> compute(CorrectionProducer producer) async {
       producer.configure(context);
-      var builder = _newDartChangeBuilder();
+      var builder = ChangeBuilder(
+          workspace: context.workspace, eol: context.utils.endOfLine);
       await producer.compute(builder);
       _addFixFromBuilder(builder, producer.fixKind,
           args: producer.fixArguments);
@@ -1547,348 +1149,5 @@ class FixProcessor extends BaseProcessor {
         }
       }
     }
-  }
-
-  /// Prepares proposal for creating function corresponding to the given
-  /// [FunctionType].
-  Future<DartChangeBuilder> _addProposal_createFunction(
-      FunctionType functionType,
-      String name,
-      String targetFile,
-      int insertOffset,
-      bool isStatic,
-      String prefix,
-      String sourcePrefix,
-      String sourceSuffix,
-      Element target) async {
-    // build method source
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
-        builder.write(sourcePrefix);
-        builder.write(prefix);
-        // may be static
-        if (isStatic) {
-          builder.write('static ');
-        }
-        // append return type
-        if (builder.writeType(functionType.returnType,
-            groupName: 'RETURN_TYPE')) {
-          builder.write(' ');
-        }
-        // append name
-        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
-          builder.write(name);
-        });
-        // append parameters
-        builder.writeParameters(functionType.parameters);
-        // close method
-        builder.write(' {$eol$prefix}');
-        builder.write(sourceSuffix);
-      });
-      if (targetFile == file) {
-        builder.addLinkedPosition(range.node(node), 'NAME');
-      }
-    });
-    return changeBuilder;
-  }
-
-  /// Adds proposal for creating method corresponding to the given
-  /// [FunctionType] in the given [ClassElement].
-  Future<void> _addProposal_createFunction_function(
-      FunctionType functionType) async {
-    var name = (node as SimpleIdentifier).name;
-    // prepare environment
-    var insertOffset = unit.end;
-    // prepare prefix
-    var prefix = '';
-    var sourcePrefix = '$eol';
-    var sourceSuffix = eol;
-    var changeBuilder = await _addProposal_createFunction(
-        functionType,
-        name,
-        file,
-        insertOffset,
-        false,
-        prefix,
-        sourcePrefix,
-        sourceSuffix,
-        unit.declaredElement);
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FUNCTION,
-        args: [name]);
-  }
-
-  /// Adds proposal for creating method corresponding to the given
-  /// [FunctionType] in the given [ClassElement].
-  Future<void> _addProposal_createFunction_method(
-      ClassElement targetClassElement, FunctionType functionType) async {
-    var name = (node as SimpleIdentifier).name;
-    // prepare environment
-    var targetSource = targetClassElement.source;
-    // prepare insert offset
-    var targetNode = await _getClassDeclaration(targetClassElement);
-    if (targetNode == null) {
-      return;
-    }
-    var insertOffset = targetNode.end - 1;
-    // prepare prefix
-    var prefix = '  ';
-    String sourcePrefix;
-    if (targetNode.members.isEmpty) {
-      sourcePrefix = '';
-    } else {
-      sourcePrefix = eol;
-    }
-    var sourceSuffix = eol;
-    var changeBuilder = await _addProposal_createFunction(
-        functionType,
-        name,
-        targetSource.fullName,
-        insertOffset,
-        _inStaticContext(),
-        prefix,
-        sourcePrefix,
-        sourceSuffix,
-        targetClassElement);
-    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
-  }
-
-  /// Return the class, enum or mixin declaration for the given [element].
-  Future<ClassOrMixinDeclaration> _getClassDeclaration(
-      ClassElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    if (result.node is ClassOrMixinDeclaration) {
-      return result.node;
-    }
-    return null;
-  }
-
-  /// Return the extension declaration for the given [element].
-  Future<ExtensionDeclaration> _getExtensionDeclaration(
-      ExtensionElement element) async {
-    var result = await sessionHelper.getElementDeclaration(element);
-    if (result.node is ExtensionDeclaration) {
-      return result.node;
-    }
-    return null;
-  }
-
-  /// Return the relative uri from the passed [library] to the given [path].
-  /// If the [path] is not in the LibraryElement, `null` is returned.
-  String _getRelativeURIFromLibrary(LibraryElement library, String path) {
-    var librarySource = library?.librarySource;
-    if (librarySource == null) {
-      return null;
-    }
-    var pathCtx = resourceProvider.pathContext;
-    var libraryDirectory = pathCtx.dirname(librarySource.fullName);
-    var sourceDirectory = pathCtx.dirname(path);
-    if (pathCtx.isWithin(libraryDirectory, path) ||
-        pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
-      var relativeFile = pathCtx.relative(path, from: libraryDirectory);
-      return pathCtx.split(relativeFile).join('/');
-    }
-    return null;
-  }
-
-  /// Returns an expected [DartType] of [expression], may be `null` if cannot be
-  /// inferred.
-  DartType _inferUndefinedExpressionType(Expression expression) {
-    var parent = expression.parent;
-    // myFunction();
-    if (parent is ExpressionStatement) {
-      if (expression is MethodInvocation) {
-        return VoidTypeImpl.instance;
-      }
-    }
-    // return myFunction();
-    if (parent is ReturnStatement) {
-      var executable = getEnclosingExecutableElement(expression);
-      return executable?.returnType;
-    }
-    // int v = myFunction();
-    if (parent is VariableDeclaration) {
-      var variableDeclaration = parent;
-      if (variableDeclaration.initializer == expression) {
-        var variableElement = variableDeclaration.declaredElement;
-        if (variableElement != null) {
-          return variableElement.type;
-        }
-      }
-    }
-    // myField = 42;
-    if (parent is AssignmentExpression) {
-      var assignment = parent;
-      if (assignment.leftHandSide == expression) {
-        var rhs = assignment.rightHandSide;
-        if (rhs != null) {
-          return rhs.staticType;
-        }
-      }
-    }
-    // v = myFunction();
-    if (parent is AssignmentExpression) {
-      var assignment = parent;
-      if (assignment.rightHandSide == expression) {
-        if (assignment.operator.type == TokenType.EQ) {
-          // v = myFunction();
-          var lhs = assignment.leftHandSide;
-          if (lhs != null) {
-            return lhs.staticType;
-          }
-        } else {
-          // v += myFunction();
-          var method = assignment.staticElement;
-          if (method != null) {
-            var parameters = method.parameters;
-            if (parameters.length == 1) {
-              return parameters[0].type;
-            }
-          }
-        }
-      }
-    }
-    // v + myFunction();
-    if (parent is BinaryExpression) {
-      var binary = parent;
-      var method = binary.staticElement;
-      if (method != null) {
-        if (binary.rightOperand == expression) {
-          var parameters = method.parameters;
-          return parameters.length == 1 ? parameters[0].type : null;
-        }
-      }
-    }
-    // foo( myFunction() );
-    if (parent is ArgumentList) {
-      var parameter = expression.staticParameterElement;
-      return parameter?.type;
-    }
-    // bool
-    {
-      // assert( myFunction() );
-      if (parent is AssertStatement) {
-        var statement = parent;
-        if (statement.condition == expression) {
-          return coreTypeBool;
-        }
-      }
-      // if ( myFunction() ) {}
-      if (parent is IfStatement) {
-        var statement = parent;
-        if (statement.condition == expression) {
-          return coreTypeBool;
-        }
-      }
-      // while ( myFunction() ) {}
-      if (parent is WhileStatement) {
-        var statement = parent;
-        if (statement.condition == expression) {
-          return coreTypeBool;
-        }
-      }
-      // do {} while ( myFunction() );
-      if (parent is DoStatement) {
-        var statement = parent;
-        if (statement.condition == expression) {
-          return coreTypeBool;
-        }
-      }
-      // !myFunction()
-      if (parent is PrefixExpression) {
-        var prefixExpression = parent;
-        if (prefixExpression.operator.type == TokenType.BANG) {
-          return coreTypeBool;
-        }
-      }
-      // binary expression '&&' or '||'
-      if (parent is BinaryExpression) {
-        var binaryExpression = parent;
-        var operatorType = binaryExpression.operator.type;
-        if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
-            operatorType == TokenType.BAR_BAR) {
-          return coreTypeBool;
-        }
-      }
-    }
-    // we don't know
-    return null;
-  }
-
-  /// Returns `true` if [node] is in static context.
-  bool _inStaticContext() {
-    // constructor initializer cannot reference "this"
-    if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
-      return true;
-    }
-    // field initializer cannot reference "this"
-    if (node.thisOrAncestorOfType<FieldDeclaration>() != null) {
-      return true;
-    }
-    // static method
-    var method = node.thisOrAncestorOfType<MethodDeclaration>();
-    return method != null && method.isStatic;
-  }
-
-  bool _isLibSrcPath(String path) {
-    var parts = resourceProvider.pathContext.split(path);
-    for (var i = 0; i < parts.length - 2; i++) {
-      if (parts[i] == 'lib' && parts[i + 1] == 'src') {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  DartChangeBuilder _newDartChangeBuilder() {
-    return DartChangeBuilderImpl.forWorkspace(context.workspace);
-  }
-
-  static ClassElement _getTargetClassElement(Expression target) {
-    var type = target.staticType;
-    if (type is InterfaceType) {
-      return type.element;
-    } else if (target is Identifier) {
-      var element = target.staticElement;
-      if (element is ClassElement) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  static bool _isNameOfType(String name) {
-    if (name.isEmpty) {
-      return false;
-    }
-    var firstLetter = name.substring(0, 1);
-    if (firstLetter.toUpperCase() != firstLetter) {
-      return false;
-    }
-    return true;
-  }
-
-  /// Return `true` if the given [node] is in a location where an implicit
-  /// constructor invocation would be allowed.
-  static bool _mayBeImplicitConstructor(AstNode node) {
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is MethodInvocation) {
-        return parent.realTarget == null;
-      }
-    }
-    return false;
-  }
-
-  /// Returns `true` if [node] is a type name.
-  static bool _mayBeTypeIdentifier(AstNode node) {
-    if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is TypeName) {
-        return true;
-      }
-      return _isNameOfType(node.name);
-    }
-    return false;
   }
 }

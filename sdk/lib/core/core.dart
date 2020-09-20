@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 /**
  *
  * Built-in types, collections,
@@ -139,17 +137,16 @@
  *
  * ## Other documentation
  *
- * For more information about how to use the built-in types, refer to [Built-in
- * Types](http://www.dartlang.org/docs/dart-up-and-running/contents/ch02.html#built-in-types)
- * in Chapter 2 of
- * [Dart: Up and Running](http://www.dartlang.org/docs/dart-up-and-running/).
+ * For more information about how to use the built-in types, refer to
+ * [Built-in Types](https://dart.dev/guides/language/language-tour#built-in-types)
+ * in
+ * [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
  *
- * Also, see [dart:core - Numbers, Collections, Strings, and
- * More](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartcore---numbers-collections-strings-and-more)
- * for more coverage of classes in this package.
+ * Also, see
+ * [dart:core - numbers, collections, strings, and more](https://dart.dev/guides/libraries/library-tour#dartcore---numbers-collections-strings-and-more)
+ * for more coverage of types in this library.
  *
- * The
- * [Dart Language Specification](http://www.dartlang.org/docs/spec/)
+ * The [Dart Language Specification](https://dart.dev/guides/language/spec)
  * provides technical details.
  *
  * {@category Core}
@@ -169,7 +166,7 @@ import "dart:convert"
         StringConversionSink,
         utf8;
 import "dart:math" show Random; // Used by List.shuffle.
-import "dart:typed_data" show Uint8List, Uint16List, Endian;
+import "dart:typed_data" show Uint8List;
 
 @Since("2.1")
 export "dart:async" show Future, Stream;

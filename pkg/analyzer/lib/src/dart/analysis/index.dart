@@ -57,10 +57,8 @@ Element declaredParameterElement(
   return element;
 }
 
-/**
- * Return the [CompilationUnitElement] that should be used for [element].
- * Throw [StateError] if the [element] is not linked into a unit.
- */
+/// Return the [CompilationUnitElement] that should be used for [element].
+/// Throw [StateError] if the [element] is not linked into a unit.
 CompilationUnitElement getUnitElement(Element element) {
   for (Element e = element; e != null; e = e.enclosingElement) {
     if (e is CompilationUnitElement) {
@@ -73,9 +71,7 @@ CompilationUnitElement getUnitElement(Element element) {
   throw StateError('Element not contained in compilation unit: $element');
 }
 
-/**
- * Index the [unit] into a new [AnalysisDriverUnitIndexBuilder].
- */
+/// Index the [unit] into a new [AnalysisDriverUnitIndexBuilder].
 AnalysisDriverUnitIndexBuilder indexUnit(CompilationUnit unit) {
   return _IndexAssembler().assemble(unit);
 }
@@ -123,11 +119,10 @@ class ElementNameComponents {
   });
 }
 
-/**
- * Information about an element that is actually put into index for some other
- * related element. For example for a synthetic getter this is the corresponding
- * non-synthetic field and [IndexSyntheticElementKind.getter] as the [kind].
- */
+/// Information about an element that is actually put into index for some other
+/// related element. For example for a synthetic getter this is the
+/// corresponding non-synthetic field and [IndexSyntheticElementKind.getter] as
+/// the [kind].
 class IndexElementInfo {
   final Element element;
   final IndexSyntheticElementKind kind;
@@ -189,51 +184,35 @@ class IndexElementInfo {
   IndexElementInfo._(this.element, this.kind);
 }
 
-/**
- * Information about an element referenced in index.
- */
+/// Information about an element referenced in index.
 class _ElementInfo {
-  /**
-   * The identifier of the [CompilationUnitElement] containing this element.
-   */
+  /// The identifier of the [CompilationUnitElement] containing this element.
   final int unitId;
 
-  /**
-   * The identifier of the top-level name, or `null` if the element is a
-   * reference to the unit.
-   */
+  /// The identifier of the top-level name, or `null` if the element is a
+  /// reference to the unit.
   final _StringInfo nameIdUnitMember;
 
-  /**
-   * The identifier of the class member name, or `null` if the element is not a
-   * class member or a named parameter of a class member.
-   */
+  /// The identifier of the class member name, or `null` if the element is not a
+  /// class member or a named parameter of a class member.
   final _StringInfo nameIdClassMember;
 
-  /**
-   * The identifier of the named parameter name, or `null` if the element is not
-   * a named parameter.
-   */
+  /// The identifier of the named parameter name, or `null` if the element is
+  /// not a named parameter.
   final _StringInfo nameIdParameter;
 
-  /**
-   * The kind of the element.
-   */
+  /// The kind of the element.
   final IndexSyntheticElementKind kind;
 
-  /**
-   * The unique id of the element.  It is set after indexing of the whole
-   * package is done and we are assembling the full package index.
-   */
+  /// The unique id of the element.  It is set after indexing of the whole
+  /// package is done and we are assembling the full package index.
   int id;
 
   _ElementInfo(this.unitId, this.nameIdUnitMember, this.nameIdClassMember,
       this.nameIdParameter, this.kind);
 }
 
-/**
- * Information about a single relation in a single compilation unit.
- */
+/// Information about a single relation in a single compilation unit.
 class _ElementRelationInfo {
   final _ElementInfo elementInfo;
   final IndexRelationKind kind;
@@ -245,73 +224,51 @@ class _ElementRelationInfo {
       this.elementInfo, this.kind, this.offset, this.length, this.isQualified);
 }
 
-/**
- * Assembler of a single [CompilationUnit] index.
- *
- * The intended usage sequence:
- *
- *  - Call [addElementRelation] for each element relation found in the unit.
- *  - Call [addNameRelation] for each name relation found in the unit.
- *  - Assign ids to all the [_ElementInfo] in [elementRelations].
- *  - Call [assemble] to produce the final unit index.
- */
+/// Assembler of a single [CompilationUnit] index.
+///
+/// The intended usage sequence:
+///
+///  - Call [addElementRelation] for each element relation found in the unit.
+///  - Call [addNameRelation] for each name relation found in the unit.
+///  - Assign ids to all the [_ElementInfo] in [elementRelations].
+///  - Call [assemble] to produce the final unit index.
 class _IndexAssembler {
-  /**
-   * The string to use in place of the `null` string.
-   */
+  /// The string to use in place of the `null` string.
   static const NULL_STRING = '--nullString--';
 
-  /**
-   * Map associating referenced elements with their [_ElementInfo]s.
-   */
+  /// Map associating referenced elements with their [_ElementInfo]s.
   final Map<Element, _ElementInfo> elementMap = {};
 
-  /**
-   * Map associating [CompilationUnitElement]s with their identifiers, which
-   * are indices into [unitLibraryUris] and [unitUnitUris].
-   */
+  /// Map associating [CompilationUnitElement]s with their identifiers, which
+  /// are indices into [unitLibraryUris] and [unitUnitUris].
   final Map<CompilationUnitElement, int> unitMap = {};
 
-  /**
-   * The fields [unitLibraryUris] and [unitUnitUris] are used together to
-   * describe each unique [CompilationUnitElement].
-   *
-   * This field contains the library URI of a unit.
-   */
+  /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
+  /// describe each unique [CompilationUnitElement].
+  ///
+  /// This field contains the library URI of a unit.
   final List<_StringInfo> unitLibraryUris = [];
 
-  /**
-   * The fields [unitLibraryUris] and [unitUnitUris] are used together to
-   * describe each unique [CompilationUnitElement].
-   *
-   * This field contains the unit URI of a unit, which might be the same as
-   * the library URI for the defining unit, or a different one for a part.
-   */
+  /// The fields [unitLibraryUris] and [unitUnitUris] are used together to
+  /// describe each unique [CompilationUnitElement].
+  ///
+  /// This field contains the unit URI of a unit, which might be the same as
+  /// the library URI for the defining unit, or a different one for a part.
   final List<_StringInfo> unitUnitUris = [];
 
-  /**
-   * Map associating strings with their [_StringInfo]s.
-   */
+  /// Map associating strings with their [_StringInfo]s.
   final Map<String, _StringInfo> stringMap = {};
 
-  /**
-   * All element relations.
-   */
+  /// All element relations.
   final List<_ElementRelationInfo> elementRelations = [];
 
-  /**
-   * All unresolved name relations.
-   */
+  /// All unresolved name relations.
   final List<_NameRelationInfo> nameRelations = [];
 
-  /**
-   * All subtypes declared in the unit.
-   */
+  /// All subtypes declared in the unit.
   final List<_SubtypeInfo> subtypes = [];
 
-  /**
-   * The [_StringInfo] to use for `null` strings.
-   */
+  /// The [_StringInfo] to use for `null` strings.
   _StringInfo nullString;
 
   _IndexAssembler() {
@@ -343,9 +300,7 @@ class _IndexAssembler {
     }
   }
 
-  /**
-   * Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
-   */
+  /// Index the [unit] and assemble a new [AnalysisDriverUnitIndexBuilder].
   AnalysisDriverUnitIndexBuilder assemble(CompilationUnit unit) {
     unit.accept(_IndexContributor(this));
 
@@ -422,10 +377,8 @@ class _IndexAssembler {
         }).toList());
   }
 
-  /**
-   * Return the unique [_ElementInfo] corresponding the [element].  The field
-   * [_ElementInfo.id] is filled by [assemble] during final sorting.
-   */
+  /// Return the unique [_ElementInfo] corresponding the [element].  The field
+  /// [_ElementInfo.id] is filled by [assemble] during final sorting.
   _ElementInfo _getElementInfo(Element element) {
     element = element.declaration;
     return elementMap.putIfAbsent(element, () {
@@ -435,10 +388,8 @@ class _IndexAssembler {
     });
   }
 
-  /**
-   * Return the unique [_StringInfo] corresponding the given [string].  The
-   * field [_StringInfo.id] is filled by [assemble] during final sorting.
-   */
+  /// Return the unique [_StringInfo] corresponding the given [string].  The
+  /// field [_StringInfo.id] is filled by [assemble] during final sorting.
   _StringInfo _getStringInfo(String string) {
     if (string == null) {
       return nullString;
@@ -449,11 +400,9 @@ class _IndexAssembler {
     });
   }
 
-  /**
-   * Add information about [unitElement] to [unitUnitUris] and
-   * [unitLibraryUris] if necessary, and return the location in those
-   * arrays representing [unitElement].
-   */
+  /// Add information about [unitElement] to [unitUnitUris] and
+  /// [unitLibraryUris] if necessary, and return the location in those
+  /// arrays representing [unitElement].
   int _getUnitId(CompilationUnitElement unitElement) {
     return unitMap.putIfAbsent(unitElement, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
@@ -464,19 +413,15 @@ class _IndexAssembler {
     });
   }
 
-  /**
-   * Return the unique [_StringInfo] corresponding [uri].  The field
-   * [_StringInfo.id] is filled by [assemble] during final sorting.
-   */
+  /// Return the unique [_StringInfo] corresponding [uri].  The field
+  /// [_StringInfo.id] is filled by [assemble] during final sorting.
   _StringInfo _getUriInfo(Uri uri) {
     String str = uri.toString();
     return _getStringInfo(str);
   }
 
-  /**
-   * Return a new [_ElementInfo] for the given [element] in the given [unitId].
-   * This method is static, so it cannot add any information to the index.
-   */
+  /// Return a new [_ElementInfo] for the given [element] in the given [unitId].
+  /// This method is static, so it cannot add any information to the index.
   _ElementInfo _newElementInfo(int unitId, Element element) {
     IndexElementInfo info = IndexElementInfo(element);
     element = info.element;
@@ -492,9 +437,7 @@ class _IndexAssembler {
   }
 }
 
-/**
- * Visits a resolved AST and adds relationships into the [assembler].
- */
+/// Visits a resolved AST and adds relationships into the [assembler].
 class _IndexContributor extends GeneralizingAstVisitor {
   final _IndexAssembler assembler;
 
@@ -504,9 +447,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
   }
 
-  /**
-   * Record that the name [node] has a relation of the given [kind].
-   */
+  /// Record that the name [node] has a relation of the given [kind].
   void recordNameRelation(
       SimpleIdentifier node, IndexRelationKind kind, bool isQualified) {
     if (node != null) {
@@ -514,19 +455,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
-  /**
-   * Record reference to the given operator [Element].
-   */
+  /// Record reference to the given operator [Element].
   void recordOperatorReference(Token operator, Element element) {
     recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
   }
 
-  /**
-   * Record that [element] has a relation of the given [kind] at the location
-   * of the given [node].  The flag [isQualified] is `true` if [node] has an
-   * explicit or implicit qualifier, so cannot be shadowed by a local
-   * declaration.
-   */
+  /// Record that [element] has a relation of the given [kind] at the location
+  /// of the given [node].  The flag [isQualified] is `true` if [node] has an
+  /// explicit or implicit qualifier, so cannot be shadowed by a local
+  /// declaration.
   void recordRelation(
       Element element, IndexRelationKind kind, AstNode node, bool isQualified) {
     if (element != null && node != null) {
@@ -535,12 +472,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
-  /**
-   * Record that [element] has a relation of the given [kind] at the given
-   * [offset] and [length].  The flag [isQualified] is `true` if the relation
-   * has an explicit or implicit qualifier, so [element] cannot be shadowed by
-   * a local declaration.
-   */
+  /// Record that [element] has a relation of the given [kind] at the given
+  /// [offset] and [length].  The flag [isQualified] is `true` if the relation
+  /// has an explicit or implicit qualifier, so [element] cannot be shadowed by
+  /// a local declaration.
   void recordRelationOffset(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     // Ignore elements that can't be referenced outside of the unit.
@@ -582,10 +517,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     assembler.addElementRelation(element, kind, offset, length, isQualified);
   }
 
-  /**
-   * Record that [element] has a relation of the given [kind] at the location
-   * of the given [token].
-   */
+  /// Record that [element] has a relation of the given [kind] at the location
+  /// of the given [token].
   void recordRelationToken(
       Element element, IndexRelationKind kind, Token token) {
     if (element != null && token != null) {
@@ -593,9 +526,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
-  /**
-   * Record a relation between a super [typeName] and its [Element].
-   */
+  /// Record a relation between a super [typeName] and its [Element].
   void recordSuperType(TypeName typeName, IndexRelationKind kind) {
     Identifier name = typeName?.name;
     if (name != null) {
@@ -621,19 +552,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitAssignmentExpression(node);
   }
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitBinaryExpression(node);
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     _addSubtypeForClassDeclaration(node);
     if (node.extendsClause == null) {
       ClassElement objectElement = node.declaredElement.supertype?.element;
@@ -645,14 +576,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
     recordIsAncestorOf(node.declaredElement);
     super.visitClassTypeAlias(node);
   }
 
   @override
-  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier fieldName = node.fieldName;
     if (fieldName != null) {
       Element element = fieldName.staticElement;
@@ -662,7 +593,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
     element = _getActualConstructorElement(element);
     // record relation
@@ -680,14 +611,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     recordUriReference(element?.exportedLibrary, node.uri);
     super.visitExportDirective(node);
   }
 
   @override
-  visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     ParameterElement parameterElement = node.staticParameterElement;
     if (parameterElement != null && parameterElement.isOptionalPositional) {
       recordRelationOffset(parameterElement, IndexRelationKind.IS_REFERENCED_BY,
@@ -697,26 +628,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitExtendsClause(ExtendsClause node) {
+  void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
   }
 
   @override
-  visitImplementsClause(ImplementsClause node) {
+  void visitImplementsClause(ImplementsClause node) {
     for (TypeName typeName in node.interfaces) {
       recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
     recordUriReference(element?.importedLibrary, node.uri);
     super.visitImportDirective(node);
   }
 
   @override
-  visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     MethodElement element = node.staticElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
@@ -726,10 +657,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitLibraryIdentifier(LibraryIdentifier node) {}
+  void visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.staticElement;
     // unresolved name invocation
@@ -748,21 +679,21 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     _addSubtypeForMixinDeclaration(node);
     recordIsAncestorOf(node.declaredElement);
     super.visitMixinDeclaration(node);
   }
 
   @override
-  visitOnClause(OnClause node) {
+  void visitOnClause(OnClause node) {
     for (TypeName typeName in node.superclassConstraints) {
       recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
     }
   }
 
   @override
-  visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     CompilationUnitElement element = node.element;
     if (element?.source != null) {
       recordUriReference(element, node.uri);
@@ -771,19 +702,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitPostfixExpression(node);
   }
 
   @override
-  visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     recordOperatorReference(node.operator, node.staticElement);
     super.visitPrefixExpression(node);
   }
 
   @override
-  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     if (node.constructorName != null) {
       int offset = node.period.offset;
@@ -799,7 +731,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     // name in declaration
     if (node.inDeclarationContext()) {
       return;
@@ -845,7 +777,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ConstructorElement element = node.staticElement;
     if (node.constructorName != null) {
       int offset = node.period.offset;
@@ -861,7 +793,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitTypeName(TypeName node) {
+  void visitTypeName(TypeName node) {
     AstNode parent = node.parent;
     if (parent is ClassTypeAlias && parent.superclass == node) {
       recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
@@ -871,15 +803,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitWithClause(WithClause node) {
+  void visitWithClause(WithClause node) {
     for (TypeName typeName in node.mixinTypes) {
       recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
     }
   }
 
-  /**
-   * Record the given class as a subclass of its direct superclasses.
-   */
+  /// Record the given class as a subclass of its direct superclasses.
   void _addSubtype(String name,
       {TypeName superclass,
       WithClause withClause,
@@ -935,9 +865,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     assembler.addSubtype(name, members, supertypes);
   }
 
-  /**
-   * Record the given class as a subclass of its direct superclasses.
-   */
+  /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclaration node) {
     _addSubtype(node.name.name,
         superclass: node.extendsClause?.superclass,
@@ -946,9 +874,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         memberNodes: node.members);
   }
 
-  /**
-   * Record the given class as a subclass of its direct superclasses.
-   */
+  /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
     _addSubtype(node.name.name,
         superclass: node.superclass,
@@ -957,9 +883,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         memberNodes: const []);
   }
 
-  /**
-   * Record the given mixin as a subclass of its direct superclasses.
-   */
+  /// Record the given mixin as a subclass of its direct superclasses.
   void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
     _addSubtype(node.name.name,
         onClause: node.onClause,
@@ -967,11 +891,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
         memberNodes: node.members);
   }
 
-  /**
-   * If the given [constructor] is a synthetic constructor created for a
-   * [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
-   * which is invoked.  Return `null` if a redirection cycle is detected.
-   */
+  /// If the given [constructor] is a synthetic constructor created for a
+  /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
+  /// which is invoked.  Return `null` if a redirection cycle is detected.
   ConstructorElement _getActualConstructorElement(
       ConstructorElement constructor) {
     Set<ConstructorElement> seenConstructors = <ConstructorElement>{};
@@ -987,10 +909,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     return constructor;
   }
 
-  /**
-   * Return `true` if [node] has an explicit or implicit qualifier, so that it
-   * cannot be shadowed by a local declaration.
-   */
+  /// Return `true` if [node] has an explicit or implicit qualifier, so that it
+  /// cannot be shadowed by a local declaration.
   bool _isQualified(SimpleIdentifier node) {
     if (node.isQualified) {
       return true;
@@ -1034,9 +954,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 }
 
-/**
- * Information about a single name relation in single compilation unit.
- */
+/// Information about a single name relation in single compilation unit.
 class _NameRelationInfo {
   final _StringInfo nameInfo;
   final IndexRelationKind kind;
@@ -1046,41 +964,27 @@ class _NameRelationInfo {
   _NameRelationInfo(this.nameInfo, this.kind, this.offset, this.isQualified);
 }
 
-/**
- * Information about a string referenced in the index.
- */
+/// Information about a string referenced in the index.
 class _StringInfo {
-  /**
-   * The value of the string.
-   */
+  /// The value of the string.
   final String value;
 
-  /**
-   * The unique id of the string.  It is set after indexing of the whole
-   * package is done and we are assembling the full package index.
-   */
+  /// The unique id of the string.  It is set after indexing of the whole
+  /// package is done and we are assembling the full package index.
   int id;
 
   _StringInfo(this.value);
 }
 
-/**
- * Information about a subtype in the index.
- */
+/// Information about a subtype in the index.
 class _SubtypeInfo {
-  /**
-   * The identifier of a direct supertype.
-   */
+  /// The identifier of a direct supertype.
   final _StringInfo supertype;
 
-  /**
-   * The name of the class.
-   */
+  /// The name of the class.
   final _StringInfo name;
 
-  /**
-   * The names of defined instance members.
-   */
+  /// The names of defined instance members.
   final List<_StringInfo> members;
 
   _SubtypeInfo(this.supertype, this.name, this.members);

@@ -9,19 +9,12 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
-import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/custom_element.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class JSONViewElement extends CustomElement implements Renderable {
-  static const tag = const Tag<JSONViewElement>('json-view',
-      dependencies: const [
-        NavTopMenuElement.tag,
-        NavNotifyElement.tag,
-        ViewFooterElement.tag
-      ]);
-
   RenderingScheduler<JSONViewElement> _r;
 
   Stream<RenderedEvent<JSONViewElement>> get onRendered => _r.onRendered;
@@ -43,7 +36,7 @@ class JSONViewElement extends CustomElement implements Renderable {
     return e;
   }
 
-  JSONViewElement.created() : super.created(tag);
+  JSONViewElement.created() : super.created('json-view');
 
   @override
   attached() {

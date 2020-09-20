@@ -66,7 +66,7 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-Function _registerCustomElement(context, document, String tag, [Map options]) {
+Function _registerCustomElement(context, document, String tag, [Map? options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -82,7 +82,7 @@ Function _registerCustomElement(context, document, String tag, [Map options]) {
   //    var e = document.createElement('x-foo');
 
   var extendsTagName = '';
-  Type type;
+  Type? type;
   if (options != null) {
     extendsTagName = options['extends'];
     type = options['prototype'];
@@ -162,7 +162,7 @@ class _JSElementUpgrader implements ElementUpgrader {
   var _constructor;
   var _nativeType;
 
-  _JSElementUpgrader(Document document, Type type, String extendsTag) {
+  _JSElementUpgrader(Document document, Type type, String? extendsTag) {
     var interceptorClass = findInterceptorConstructorForType(type);
     if (interceptorClass == null) {
       throw new ArgumentError(type);

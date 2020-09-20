@@ -5,22 +5,19 @@
 // Test that we can create a WasmMemory, edit it, and grow it.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
-  var mem = WasmMemory(1000);
-  Expect.equals(1000, mem.lengthInPages);
-  Expect.equals(1000 * WasmMemory.kPageSizeInBytes, mem.lengthInBytes);
+  var mem = WasmMemory(100);
+  Expect.equals(100, mem.lengthInPages);
+  Expect.equals(100 * WasmMemory.kPageSizeInBytes, mem.lengthInBytes);
 
   mem[123] = 45;
   Expect.equals(45, mem[123]);
 
-  mem.grow(100);
-  Expect.equals(1100, mem.lengthInPages);
-  Expect.equals(1100 * WasmMemory.kPageSizeInBytes, mem.lengthInBytes);
+  mem.grow(10);
+  Expect.equals(110, mem.lengthInPages);
+  Expect.equals(110 * WasmMemory.kPageSizeInBytes, mem.lengthInBytes);
   Expect.equals(45, mem[123]);
-
-  Expect.throwsArgumentError(() => WasmMemory(1000000000));
-  Expect.throwsArgumentError(() => mem.grow(1000000000));
 }

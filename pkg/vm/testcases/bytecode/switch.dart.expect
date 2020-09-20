@@ -11,8 +11,8 @@ Class '', script = '#lib'
 
 
 Function 'foo1', static, reflectable, debuggable
-    parameters [dart:core::int 'x'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::int* 'x'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2
@@ -57,8 +57,8 @@ ConstantPool {
 
 
 Function 'foo2', static, reflectable, debuggable
-    parameters [dart:core::int 'x'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::int* 'x'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2
@@ -114,8 +114,8 @@ ConstantPool {
 
 
 Function 'foo3', static, reflectable, debuggable
-    parameters [dart:core::int 'x'] (required: 1)
-    return-type dart:core::int
+    parameters [dart:core::int* 'x'] (required: 1)
+    return-type dart:core::int*
 
 Bytecode {
   Entry                2

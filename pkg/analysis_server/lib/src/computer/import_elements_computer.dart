@@ -2,21 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object used to compute a set of edits to add imports to a given library
@@ -49,9 +42,8 @@ class ImportElementsComputer {
       }
     }
 
-    var builder = DartChangeBuilder(libraryResult.session);
-    await builder.addFileEdit(libraryResult.path,
-        (DartFileEditBuilder builder) {
+    var builder = ChangeBuilder(session: libraryResult.session);
+    await builder.addDartFileEdit(libraryResult.path, (builder) {
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
             _findMatchingImports(existingImports, importedElements);
@@ -65,7 +57,7 @@ class ImportElementsComputer {
           var importedSource = importedFile.createSource(uri);
           var importUri = _getLibrarySourceUri(libraryElement, importedSource);
           var description = _getInsertionDescription(importUri);
-          builder.addInsertion(description.offset, (DartEditBuilder builder) {
+          builder.addInsertion(description.offset, (builder) {
             for (var i = 0; i < description.newLinesBefore; i++) {
               builder.writeln();
             }
@@ -154,8 +146,7 @@ class ImportElementsComputer {
               } else if (combinator is ShowCombinator &&
                   namesToShow.isNotEmpty) {
                 // TODO(brianwilkerson) Add the names in alphabetic order.
-                builder.addInsertion(combinator.shownNames.last.end,
-                    (DartEditBuilder builder) {
+                builder.addInsertion(combinator.shownNames.last.end, (builder) {
                   for (var nameToShow in namesToShow) {
                     builder.write(', ');
                     builder.write(nameToShow);
@@ -245,24 +236,12 @@ class ImportElementsComputer {
   /// name as in the original source.
   List<ImportedElements> _filterImportedElements(
       List<ImportedElements> originalList) {
-    var libraryElement = libraryResult.libraryElement;
-    var libraryScope = LibraryScope(libraryElement);
-    AstFactory factory = AstFactoryImpl();
     var filteredList = <ImportedElements>[];
     for (var elements in originalList) {
       var originalElements = elements.elements;
       var filteredElements = originalElements.toList();
       for (var name in originalElements) {
-        Identifier identifier = factory
-            .simpleIdentifier(StringToken(TokenType.IDENTIFIER, name, -1));
-        if (elements.prefix.isNotEmpty) {
-          var prefix = factory.simpleIdentifier(
-              StringToken(TokenType.IDENTIFIER, elements.prefix, -1));
-          Token period = SimpleToken(TokenType.PERIOD, -1);
-          identifier = factory.prefixedIdentifier(prefix, period, identifier);
-        }
-        var element = libraryScope.lookup(identifier, libraryElement);
-        if (element != null) {
+        if (_hasElement(elements.prefix, name)) {
           filteredElements.remove(name);
         }
       }
@@ -340,6 +319,22 @@ class ImportElementsComputer {
     var fromFolder = context.dirname(from.source.fullName);
     var relativeFile = context.relative(whatPath, from: fromFolder);
     return context.split(relativeFile).join('/');
+  }
+
+  bool _hasElement(String prefix, String name) {
+    var scope = libraryResult.libraryElement.scope;
+
+    if (prefix.isNotEmpty) {
+      var prefixElement = scope.lookup2(prefix).getter;
+      if (prefixElement is PrefixElement) {
+        scope = prefixElement.scope;
+      } else {
+        return false;
+      }
+    }
+
+    var lookupResult = scope.lookup2(name);
+    return lookupResult.getter != null || lookupResult.setter != null;
   }
 
   /// Return `true` if the given [import] matches the given specification of

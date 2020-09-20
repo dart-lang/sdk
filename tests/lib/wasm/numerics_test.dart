@@ -5,7 +5,7 @@
 // Test numeric types.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
@@ -30,20 +30,20 @@ void main() {
   ]);
 
   var inst = WasmModule(data).instantiate(WasmImports());
-  var addI64 = inst.lookupFunction<Int64 Function(Int64, Int64)>("addI64");
-  var addI32 = inst.lookupFunction<Int32 Function(Int32, Int32)>("addI32");
-  var addF64 = inst.lookupFunction<Double Function(Double, Double)>("addF64");
-  var addF32 = inst.lookupFunction<Float Function(Float, Float)>("addF32");
+  var addI64 = inst.lookupFunction("addI64");
+  var addI32 = inst.lookupFunction("addI32");
+  var addF64 = inst.lookupFunction("addF64");
+  var addF32 = inst.lookupFunction("addF32");
 
-  int i64 = addI64.call([0x123456789ABCDEF, 0xFEDCBA987654321]);
+  int i64 = addI64(0x123456789ABCDEF, 0xFEDCBA987654321);
   Expect.equals(0x1111111111111110, i64);
 
-  int i32 = addI32.call([0xABCDEF, 0xFEDCBA]);
+  int i32 = addI32(0xABCDEF, 0xFEDCBA);
   Expect.equals(0x1aaaaa9, i32);
 
-  double f64 = addF64.call([1234.5678, 8765.4321]);
+  double f64 = addF64(1234.5678, 8765.4321);
   Expect.approxEquals(9999.9999, f64, 1e-6);
 
-  double f32 = addF32.call([1234.5678, 8765.4321]);
+  double f32 = addF32(1234.5678, 8765.4321);
   Expect.approxEquals(9999.9999, f32, 1e-3);
 }

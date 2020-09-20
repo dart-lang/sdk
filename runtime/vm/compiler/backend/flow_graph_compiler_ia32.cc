@@ -755,16 +755,6 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   }
 }
 
-void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
-  // TOS: return address.
-  // +1 : receiver.
-  // Sequence node has one return node, its input is load field node.
-  __ Comment("Intrinsic Getter");
-  __ movl(EAX, compiler::Address(ESP, 1 * kWordSize));
-  __ movl(EAX, compiler::FieldAddress(EAX, offset));
-  __ ret();
-}
-
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {

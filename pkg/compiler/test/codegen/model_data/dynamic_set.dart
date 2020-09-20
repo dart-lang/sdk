@@ -26,23 +26,20 @@ method1(dynamic c) {
 }
 
 class Class2a<T> {
-  /*spec:nnbd-sdk.member: Class2a.field2:
+  /*spec.member: Class2a.field2:
    checked,
    emitted
   */
-  /*spec:nnbd-off.member: Class2a.field2:checked,emitted*/
-  /*prod:nnbd-off|prod:nnbd-sdk.member: Class2a.field2:emitted*/
+  /*prod.member: Class2a.field2:emitted*/
   T field2;
 }
 
-/*spec:nnbd-off.member: method2:calls=[set$field2(1)],params=1*/
-/*prod:nnbd-off.member: method2:assign=[field2],params=1*/
 @pragma('dart2js:noInline')
-/*spec:nnbd-sdk.member: method2:
+/*spec.member: method2:
  calls=[set$field2(1)],
  params=1
 */
-/*prod:nnbd-sdk.member: method2:
+/*prod.member: method2:
  assign=[field2],
  params=1
 */
@@ -51,30 +48,26 @@ method2(dynamic c) {
 }
 
 class Class3a {
-  /*spec:nnbd-sdk.member: Class3a.field3:
+  /*spec.member: Class3a.field3:
    checked,
    emitted
   */
-  /*prod:nnbd-sdk.member: Class3a.field3:
+  /*prod.member: Class3a.field3:
    emitted,
    set=simple
   */
-  /*spec:nnbd-off.member: Class3a.field3:checked,emitted*/
-  /*prod:nnbd-off.member: Class3a.field3:emitted,set=simple*/
   int field3;
 }
 
 class Class3b {
-  /*spec:nnbd-sdk.member: Class3b.field3:
+  /*spec.member: Class3b.field3:
    checked,
    emitted
   */
-  /*prod:nnbd-sdk.member: Class3b.field3:
+  /*prod.member: Class3b.field3:
    emitted,
    set=simple
   */
-  /*spec:nnbd-off.member: Class3b.field3:checked,emitted*/
-  /*prod:nnbd-off.member: Class3b.field3:emitted,set=simple*/
   int field3;
 }
 
@@ -85,28 +78,24 @@ method3(dynamic c) {
 }
 
 class Class4a {
-  /*spec:nnbd-sdk.member: Class4a.field4:
+  /*spec.member: Class4a.field4:
    checked,
    emitted
   */
-  /*prod:nnbd-sdk.member: Class4a.field4:
+  /*prod.member: Class4a.field4:
    emitted,
    set=simple
   */
-  /*spec:nnbd-off.member: Class4a.field4:checked,emitted*/
-  /*prod:nnbd-off.member: Class4a.field4:emitted,set=simple*/
   int field4;
 }
 
 class Class4b implements Class4a {
-  /*spec:nnbd-off.member: Class4b.field4:checked,emitted*/
-  /*prod:nnbd-off.member: Class4b.field4:emitted,set=simple*/
   @override
-  /*spec:nnbd-sdk.member: Class4b.field4:
+  /*spec.member: Class4b.field4:
    checked,
    emitted
   */
-  /*prod:nnbd-sdk.member: Class4b.field4:
+  /*prod.member: Class4b.field4:
    emitted,
    set=simple
   */

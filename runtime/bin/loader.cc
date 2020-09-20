@@ -12,6 +12,7 @@
 #include "bin/file.h"
 #include "bin/gzip.h"
 #include "bin/lockers.h"
+#include "bin/snapshot_utils.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
 #include "platform/growable_array.h"
@@ -80,7 +81,7 @@ Dart_Handle Loader::LoadImportExtension(const char* url_string,
   if (strncmp(lib_uri_str, "file://", 7) == 0) {
     lib_path = DartUtils::DirName(lib_uri_str + 7);
   } else {
-    lib_path = strdup(lib_uri_str);
+    lib_path = Utils::StrDup(lib_uri_str);
   }
 
   const char* path = DartUtils::RemoveScheme(url_string);
@@ -126,7 +127,7 @@ Dart_Handle Loader::ReloadNativeExtensions() {
     if (strncmp(lib_uri, "file://", 7) == 0) {
       lib_path = DartUtils::DirName(DartUtils::RemoveScheme(lib_uri));
     } else {
-      lib_path = strdup(lib_uri);
+      lib_path = Utils::StrDup(lib_uri);
     }
 
     result = Extensions::LoadExtension(lib_path, extension_path, importer);
@@ -137,18 +138,11 @@ Dart_Handle Loader::ReloadNativeExtensions() {
   return Dart_True();
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
-                                      Dart_Handle library,
-                                      Dart_Handle url) {
-  return Dart_Null();
-}
-#else
-static void MallocFinalizer(void* isolate_callback_data,
-                            Dart_WeakPersistentHandle handle,
-                            void* peer) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static void MallocFinalizer(void* isolate_callback_data, void* peer) {
   free(peer);
 }
+#endif
 
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
@@ -175,6 +169,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (tag == Dart_kKernelTag) {
     uint8_t* kernel_buffer = NULL;
     intptr_t kernel_buffer_size = 0;
@@ -184,8 +179,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
     result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,
                                        kernel_buffer_size);
-    Dart_NewWeakPersistentHandle(result, kernel_buffer, kernel_buffer_size,
-                                 MallocFinalizer);
+    Dart_NewFinalizableHandle(result, kernel_buffer, kernel_buffer_size,
+                              MallocFinalizer);
     return result;
   }
   if (tag == Dart_kImportExtensionTag) {
@@ -217,8 +212,48 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
   return DartUtils::NewError("Invalid tag : %d '%s'", tag, url_string);
-}
+#else   // !defined(DART_PRECOMPILED_RUNTIME)
+  return DartUtils::NewError("Unimplemented tag : %d '%s'", tag, url_string);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+Dart_Handle Loader::DeferredLoadHandler(intptr_t loading_unit_id) {
+  // A synchronous implementation. An asynchronous implementation would be
+  // better, but the standalone embedder only implements AOT for testing.
+
+  auto isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  char* unit_url = Utils::SCreate(
+      "%s-%" Pd ".part.so", isolate_group_data->script_url, loading_unit_id);
+
+  AppSnapshot* loading_unit_snapshot = Snapshot::TryReadAppSnapshot(unit_url);
+  Dart_Handle result;
+  if (loading_unit_snapshot != nullptr) {
+    isolate_group_data->AddLoadingUnit(loading_unit_snapshot);
+    const uint8_t* isolate_snapshot_data = nullptr;
+    const uint8_t* isolate_snapshot_instructions = nullptr;
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    loading_unit_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    result = Dart_DeferredLoadComplete(loading_unit_id, isolate_snapshot_data,
+                                       isolate_snapshot_instructions);
+    if (Dart_IsApiError(result)) {
+      result =
+          Dart_DeferredLoadCompleteError(loading_unit_id, Dart_GetError(result),
+                                         /*transient*/ false);
+    }
+  } else {
+    char* error_message = Utils::SCreate("Failed to load %s", unit_url);
+    result = Dart_DeferredLoadCompleteError(loading_unit_id, error_message,
+                                            /*transient*/ false);
+    free(error_message);
+  }
+
+  free(unit_url);
+  return result;
+}
 
 void Loader::InitOnce() {
 }

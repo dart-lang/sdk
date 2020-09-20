@@ -10,13 +10,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
 typedef _CatchClausesVerifierReporter = void Function(
   CatchClause first,
@@ -154,7 +153,7 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
   LegacyDeadCodeVerifier(this._errorReporter, {TypeSystemImpl typeSystem})
-      : this._typeSystem = typeSystem ??
+      : _typeSystem = typeSystem ??
             TypeSystemImpl(
               implicitCasts: true,
               isNonNullableByDefault: false,
@@ -390,8 +389,10 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
         // dead, and it's a BreakStatement, then assume it is a statement
         // mandated by the language spec, there to avoid a
         // CASE_BLOCK_NOT_TERMINATED error.
-        if (allowMandated && i == size - 2 && nextStatement is BreakStatement) {
-          return;
+        if (allowMandated && i == size - 2) {
+          if (_isMandatedSwitchCaseTerminatingStatement(nextStatement)) {
+            return;
+          }
         }
         int offset = nextStatement.offset;
         int length = lastStatement.end - offset;
@@ -444,6 +445,21 @@ class LegacyDeadCodeVerifier extends RecursiveAstVisitor<void> {
     }
     return false;
   }
+
+  static bool _isMandatedSwitchCaseTerminatingStatement(Statement node) {
+    if (node is BreakStatement ||
+        node is ContinueStatement ||
+        node is ReturnStatement) {
+      return true;
+    }
+    if (node is ExpressionStatement) {
+      var expression = node.expression;
+      if (expression is RethrowExpression || expression is ThrowExpression) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /// Helper for tracking dead code - [CatchClause]s and unreachable code.
@@ -489,33 +505,40 @@ class NullSafetyDeadCodeVerifier {
         return;
       }
 
-      // We know that [node] is the first dead node, or contains it.
-      // So, technically the code code interval ends at the end of [node].
-      // But we trim it to the last statement for presentation purposes.
-      if (node != _firstDeadNode) {
-        if (node is FunctionDeclaration) {
-          node = (node as FunctionDeclaration).functionExpression.body;
+      var parent = _firstDeadNode.parent;
+      if (parent is Assertion && identical(_firstDeadNode, parent.message)) {
+        // Don't report "dead code" for the message part of an assert statement,
+        // because this causes nuisance warnings for redundant `!= null`
+        // asserts.
+      } else {
+        // We know that [node] is the first dead node, or contains it.
+        // So, technically the code code interval ends at the end of [node].
+        // But we trim it to the last statement for presentation purposes.
+        if (node != _firstDeadNode) {
+          if (node is FunctionDeclaration) {
+            node = (node as FunctionDeclaration).functionExpression.body;
+          }
+          if (node is FunctionExpression) {
+            node = (node as FunctionExpression).body;
+          }
+          if (node is MethodDeclaration) {
+            node = (node as MethodDeclaration).body;
+          }
+          if (node is BlockFunctionBody) {
+            node = (node as BlockFunctionBody).block;
+          }
+          if (node is Block && node.statements.isNotEmpty) {
+            node = (node as Block).statements.last;
+          }
+          if (node is SwitchMember && node.statements.isNotEmpty) {
+            node = (node as SwitchMember).statements.last;
+          }
         }
-        if (node is FunctionExpression) {
-          node = (node as FunctionExpression).body;
-        }
-        if (node is MethodDeclaration) {
-          node = (node as MethodDeclaration).body;
-        }
-        if (node is BlockFunctionBody) {
-          node = (node as BlockFunctionBody).block;
-        }
-        if (node is Block && node.statements.isNotEmpty) {
-          node = (node as Block).statements.last;
-        }
-        if (node is SwitchMember && node.statements.isNotEmpty) {
-          node = (node as SwitchMember).statements.last;
-        }
-      }
 
-      var offset = _firstDeadNode.offset;
-      var length = node.end - offset;
-      _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+        var offset = _firstDeadNode.offset;
+        var length = node.end - offset;
+        _errorReporter.reportErrorForOffset(HintCode.DEAD_CODE, offset, length);
+      }
 
       _firstDeadNode = null;
     }

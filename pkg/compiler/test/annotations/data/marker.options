@@ -1,4 +1,2 @@
-spec:nnbd-off=pkg/compiler/test/annotations/annotations_test.dart
-prod:nnbd-off=pkg/compiler/test/annotations/annotations_test.dart
-spec:nnbd-sdk=pkg/compiler/test/annotations/annotations_test.dart
-prod:nnbd-sdk=pkg/compiler/test/annotations/annotations_test.dart
+spec=pkg/compiler/test/annotations/annotations_test.dart
+prod=pkg/compiler/test/annotations/annotations_test.dart

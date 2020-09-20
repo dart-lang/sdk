@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.convert;
 
 /// An instance of the default implementation of the [Latin1Codec].
@@ -49,9 +47,8 @@ class Latin1Codec extends Encoding {
   ///
   /// If [allowInvalid] is not provided, it defaults to the value used to create
   /// this [Latin1Codec].
-  String decode(List<int> bytes, {bool allowInvalid}) {
-    allowInvalid ??= _allowInvalid;
-    if (allowInvalid) {
+  String decode(List<int> bytes, {bool? allowInvalid}) {
+    if (allowInvalid ?? _allowInvalid) {
       return const Latin1Decoder(allowInvalid: true).convert(bytes);
     } else {
       return const Latin1Decoder(allowInvalid: false).convert(bytes);
@@ -102,11 +99,11 @@ class Latin1Decoder extends _UnicodeSubsetDecoder {
 }
 
 class _Latin1DecoderSink extends ByteConversionSinkBase {
-  StringConversionSink _sink;
+  StringConversionSink? _sink;
   _Latin1DecoderSink(this._sink);
 
   void close() {
-    _sink.close();
+    _sink!.close();
     _sink = null;
   }
 
@@ -119,12 +116,12 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
     // _sink.addSlice(source, start, end, isLast).
     // The code below is an moderately stupid workaround until a real
     // solution can be made.
-    _sink.add(String.fromCharCodes(source, start, end));
+    _sink!.add(String.fromCharCodes(source, start, end));
     if (isLast) close();
   }
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
-    end = RangeError.checkValidRange(start, end, source.length);
+    RangeError.checkValidRange(start, end, source.length);
     if (start == end) return;
     if (source is! Uint8List) {
       // List may contain value outside of the 0..255 range. If so, throw.

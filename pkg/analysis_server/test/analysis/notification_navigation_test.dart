@@ -802,6 +802,15 @@ class A {
     }
   }
 
+  Future<void> test_string_configuration() async {
+    newFile('$projectPath/bin/lib.dart', content: '').path;
+    var lib2File = newFile('$projectPath/bin/lib2.dart', content: '').path;
+    addTestFile('import "lib.dart" if (dart.library.html) "lib2.dart";');
+    await prepareNavigation();
+    assertHasRegionString('"lib2.dart"');
+    assertHasFileTarget(lib2File, 0, 0);
+  }
+
   Future<void> test_string_export() async {
     var libCode = 'library lib;';
     var libFile = newFile('$projectPath/bin/lib.dart', content: libCode).path;

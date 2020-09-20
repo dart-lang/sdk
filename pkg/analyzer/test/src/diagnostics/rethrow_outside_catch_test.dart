@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,17 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RethrowOutsideCatchTest extends DriverResolutionTest {
-  test_withoutCatch() async {
-    await assertErrorsInCode(r'''
-f() {
-  rethrow;
-}
-''', [
-      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 8, 7),
-    ]);
-  }
-
+class RethrowOutsideCatchTest extends PubPackageResolutionTest {
   test_insideCatch() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -33,5 +23,15 @@ class A {
   }
 }
 ''');
+  }
+
+  test_withoutCatch() async {
+    await assertErrorsInCode(r'''
+f() {
+  rethrow;
+}
+''', [
+      error(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, 8, 7),
+    ]);
   }
 }

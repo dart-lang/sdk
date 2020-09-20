@@ -1,8 +1,9 @@
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Constants for use in metadata annotations.
+/// Annotations that developers can use to express the intentions that otherwise
+/// can't be deduced by statically analyzing the source code.
 ///
 /// See also `@deprecated` and `@override` in the `dart:core` library.
 ///
@@ -12,11 +13,13 @@
 /// function's name differently.
 ///
 /// For information on installing and importing this library, see the [meta
-/// package on pub.dev](https://pub.dev/packages/meta).  For examples of using
+/// package on pub.dev](https://pub.dev/packages/meta). For examples of using
 /// annotations, see
 /// [Metadata](https://dart.dev/guides/language/language-tour#metadata) in the
 /// language tour.
 library meta;
+
+import 'meta_meta.dart';
 
 /// Used to annotate a function `f`. Indicates that `f` always throws an
 /// exception. Any functions that override `f`, in class inheritance, are also
@@ -57,6 +60,25 @@ const _AlwaysThrows alwaysThrows = _AlwaysThrows();
 ///
 @Deprecated('Use the `covariant` modifier instead')
 const _Checked checked = _Checked();
+
+/// Used to annotate a method, getter or top-level getter or function to
+/// indicate that the value obtained by invoking it should not be stored in a
+/// field or top-level variable. The annotation can also be applied to a class
+/// to implicitly annotate all of the valid members of the class, or applied to
+/// a library to annotate all of the valid members of the library, including
+/// classes. If a value returned by an element marked as `doNotStore` is returned
+/// from a function or getter, that function or getter should be similarly
+/// annotated.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than a library, class,
+///   method or getter, top-level getter or function, or
+/// * an invocation of a member that has this annotation is returned by a method,
+///   getter or function that is not similarly annotated as `doNotStore`, or
+/// * an invocation of a member that has this annotation is assigned to a field
+///   or top-level variable.
+const _DoNotStore doNotStore = _DoNotStore();
 
 /// Used to annotate a library, or any declaration that is part of the public
 /// interface of a library (such as top-level members, class members, and
@@ -283,6 +305,17 @@ class _AlwaysThrows {
 
 class _Checked {
   const _Checked();
+}
+
+@Target({
+  TargetKind.classType,
+  TargetKind.function,
+  TargetKind.getter,
+  TargetKind.library,
+  TargetKind.method,
+})
+class _DoNotStore {
+  const _DoNotStore();
 }
 
 class _Experimental {

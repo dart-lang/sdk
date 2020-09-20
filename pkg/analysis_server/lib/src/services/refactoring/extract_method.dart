@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
@@ -26,8 +24,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -718,7 +716,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      TypeSystem typeSystem = await resolveResult.typeSystem;
+      var typeSystem = resolveResult.typeSystem;
       var returnTypeComputer = _ReturnTypeComputer(typeSystem);
       _selectionStatements.forEach((statement) {
         statement.accept(returnTypeComputer);

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,9 +17,7 @@ main() {
   });
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a list literal.
- */
+/// Test how well the parser recovers when tokens are missing in a list literal.
 @reflectiveTest
 class ListLiteralTest extends AbstractRecoveryTest {
   void test_extraComma() {
@@ -56,33 +53,9 @@ f() => [a, if (x) b else y, c];
   }
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a map literal.
- */
+/// Test how well the parser recovers when tokens are missing in a map literal.
 @reflectiveTest
 class MapLiteralTest extends AbstractRecoveryTest {
-  final beforeUiAsCode = FeatureSet.forTesting(sdkVersion: '2.2.0');
-
-  void test_extraComma() {
-    testRecovery('''
-f() => {a: b, , c: d};
-''', [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ], '''
-f() => {a: b, _s_: _s_, c: d};
-''', featureSet: beforeUiAsCode);
-  }
-
-  void test_missingColonAndValue_last() {
-    testRecovery('''
-f() => {a: b, c };
-''', [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
-f() => {a: b, c: _s_};
-''', featureSet: beforeUiAsCode);
-  }
-
   void test_missingComma() {
     testRecovery('''
 f() => {a: b, c: d e: f};
@@ -132,9 +105,7 @@ f() => {a: _s_, b: c};
   }
 }
 
-/**
- * Test how well the parser recovers when non-paired tokens are missing.
- */
+/// Test how well the parser recovers when non-paired tokens are missing.
 @reflectiveTest
 class MissingCodeTest extends AbstractRecoveryTest {
   void test_ampersand() {
@@ -539,10 +510,8 @@ class C {
   }
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a parameter
- * list.
- */
+/// Test how well the parser recovers when tokens are missing in a parameter
+/// list.
 @reflectiveTest
 class ParameterListTest extends AbstractRecoveryTest {
   @failingTest
@@ -804,9 +773,7 @@ f([a = 0]) {}
   }
 }
 
-/**
- * Test how well the parser recovers when tokens are missing in a typedef.
- */
+/// Test how well the parser recovers when tokens are missing in a typedef.
 @reflectiveTest
 class TypedefTest extends AbstractRecoveryTest {
   @failingTest

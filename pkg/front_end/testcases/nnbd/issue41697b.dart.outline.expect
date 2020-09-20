@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1<S extends core::num = core::num>(self::test1::S s) → dynamic
+  ;
+static method test2<S extends core::num? = core::num?>(self::test2::S% s) → dynamic
+  ;
+static method test3<S extends core::int = core::int>(self::test3::S s) → dynamic
+  ;
+static method test4<S extends core::int? = core::int?>(self::test4::S% s) → dynamic
+  ;
+static method main() → dynamic
+  ;

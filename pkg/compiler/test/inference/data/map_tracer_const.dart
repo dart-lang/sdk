@@ -7,8 +7,8 @@
 /*member: closure:[exact=JSUInt31]*/
 int closure(
     int
-        /*spec:nnbd-off|spec:nnbd-sdk.Union([exact=JSDouble], [exact=JSUInt31])*/
-        /*prod:nnbd-off|prod:nnbd-sdk.[exact=JSUInt31]*/
+        /*spec.Union([exact=JSDouble], [exact=JSUInt31])*/
+        /*prod.[exact=JSUInt31]*/
         x) {
   return x;
 }

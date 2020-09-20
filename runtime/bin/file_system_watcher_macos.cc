@@ -358,7 +358,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
       mask |= kModifyContent;
     }
     if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
-      mask |= kModefyAttribute;
+      mask |= kModifyAttribute;
     }
     if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
       mask |= kCreate;

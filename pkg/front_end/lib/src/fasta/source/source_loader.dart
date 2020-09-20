@@ -25,10 +25,12 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        AsyncMarker,
         BottomType,
         Class,
         Component,
@@ -52,6 +54,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 
+import 'package:package_config/package_config.dart';
+
 import '../../api_prototype/file_system.dart';
 
 import '../../base/common.dart';
@@ -60,7 +64,7 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../../base/nnbd_mode.dart';
 
-import '../blacklisted_classes.dart' show blacklistedCoreClasses;
+import '../denylisted_classes.dart' show denylistedCoreClasses;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -77,11 +81,8 @@ import '../builder/type_declaration_builder.dart';
 
 import '../export.dart' show Export;
 
-import '../import.dart' show Import;
-
 import '../fasta_codes.dart'
     show
-        LocatedMessage,
         Message,
         SummaryTemplate,
         Template,
@@ -89,16 +90,13 @@ import '../fasta_codes.dart'
         messageObjectImplements,
         messageObjectMixesIn,
         messagePartOrphan,
+        messageStrongModeNNBDButOptOut,
         messageTypedefCause,
         messageTypedefUnaliasedTypeCause,
         noLength,
         templateAmbiguousSupertypes,
         templateCantReadFile,
         templateCyclicClassHierarchy,
-        templateDuplicatedLibraryExport,
-        templateDuplicatedLibraryExportContext,
-        templateDuplicatedLibraryImport,
-        templateDuplicatedLibraryImportContext,
         templateExtendingEnum,
         templateExtendingRestricted,
         templateIllegalMixin,
@@ -106,6 +104,7 @@ import '../fasta_codes.dart'
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme,
         templateSourceOutlineSummary,
+        templateStrongModeNNBDPackageOptOut,
         templateUntranslatableUri;
 
 import '../kernel/kernel_builder.dart'
@@ -261,8 +260,10 @@ class SourceLoader extends Loader {
             enableNonNullable: library.isNonNullableByDefault),
         languageVersionChanged:
             (Scanner scanner, LanguageVersionToken version) {
-      library.setLanguageVersion(new Version(version.major, version.minor),
-          offset: version.offset, length: version.length, explicit: true);
+      if (!suppressLexicalErrors) {
+        library.setLanguageVersion(new Version(version.major, version.minor),
+            offset: version.offset, length: version.length, explicit: true);
+      }
       scanner.configuration = new ScannerConfiguration(
           enableTripleShift: library.enableTripleShiftInLibrary,
           enableExtensionMethods: library.enableExtensionMethodsInLibrary,
@@ -289,6 +290,7 @@ class SourceLoader extends Loader {
           importUri, library.fileUri, result.lineStarts, source);
     }
     library.issuePostponedProblems();
+    library.markLanguageVersionFinal();
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
@@ -319,6 +321,81 @@ class SourceLoader extends Loader {
 
       default:
         return utf8.encode(message == null ? "" : "/* ${message.message} */");
+    }
+  }
+
+  Set<LibraryBuilder> _strongOptOutLibraries;
+
+  void registerStrongOptOutLibrary(LibraryBuilder libraryBuilder) {
+    _strongOptOutLibraries ??= {};
+    _strongOptOutLibraries.add(libraryBuilder);
+  }
+
+  @override
+  Future<Null> buildOutlines() async {
+    await super.buildOutlines();
+
+    if (_strongOptOutLibraries != null) {
+      // We have libraries that are opted out in strong mode "non-explicitly",
+      // that is, either implicitly through the package version or loaded from
+      // .dill as opt out.
+      //
+      // To reduce the verbosity of the error messages we try to reduce the
+      // message to only include the package name once for packages that are
+      // opted out.
+      //
+      // We use the current package config to retrieve the package based
+      // language version to determine whether the package as a whole is opted
+      // out. If so, we only include the package name and not the library uri
+      // in the message. For package libraries with no corresponding package
+      // config we include each library uri in the message. For non-package
+      // libraries with no corresponding package config we generate a message
+      // per library.
+      Map<String, List<LibraryBuilder>> libraryByPackage = {};
+      Version enableNonNullableVersion =
+          target.getExperimentEnabledVersion(ExperimentalFlag.nonNullable);
+      for (LibraryBuilder libraryBuilder in _strongOptOutLibraries) {
+        Package package =
+            target.uriTranslator.getPackage(libraryBuilder.importUri);
+
+        if (package != null &&
+            package.languageVersion != null &&
+            package.languageVersion is! InvalidLanguageVersion) {
+          Version version = new Version(
+              package.languageVersion.major, package.languageVersion.minor);
+          if (version < enableNonNullableVersion) {
+            (libraryByPackage[package?.name] ??= []).add(libraryBuilder);
+            continue;
+          }
+        }
+        if (libraryBuilder.importUri.scheme == 'package') {
+          (libraryByPackage[null] ??= []).add(libraryBuilder);
+        } else {
+          // Emit a message that doesn't mention running 'pub'.
+          addProblem(messageStrongModeNNBDButOptOut, -1, noLength,
+              libraryBuilder.fileUri);
+        }
+      }
+      if (libraryByPackage.isNotEmpty) {
+        List<String> dependencies = [];
+        libraryByPackage.forEach((String name, List<LibraryBuilder> libraries) {
+          if (name != null) {
+            dependencies.add('package:$name');
+          } else {
+            for (LibraryBuilder libraryBuilder in libraries) {
+              dependencies.add(libraryBuilder.importUri.toString());
+            }
+          }
+        });
+        // Emit a message that suggests to run 'pub' to check for opted in
+        // versions of the packages.
+        addProblem(
+            templateStrongModeNNBDPackageOptOut.withArguments(dependencies),
+            -1,
+            -1,
+            null);
+        _strongOptOutLibraries = null;
+      }
     }
   }
 
@@ -353,7 +430,7 @@ class SourceLoader extends Loader {
           // Part was included in multiple libraries. Skip it here.
           continue;
         }
-        Token tokens = await tokenize(part);
+        Token tokens = await tokenize(part, suppressLexicalErrors: true);
         if (tokens != null) {
           listener.uri = part.fileUri;
           parser.parseUnit(tokens);
@@ -398,7 +475,8 @@ class SourceLoader extends Loader {
         -1,
         -1,
         null,
-        null)
+        null,
+        AsyncMarker.Sync)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -663,10 +741,10 @@ class SourceLoader extends Loader {
       }
     }
 
-    Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>();
-    for (int i = 0; i < blacklistedCoreClasses.length; i++) {
-      blackListedClasses.add(coreLibrary
-          .lookupLocalMember(blacklistedCoreClasses[i], required: true));
+    Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
+    for (int i = 0; i < denylistedCoreClasses.length; i++) {
+      denyListedClasses.add(coreLibrary
+          .lookupLocalMember(denylistedCoreClasses[i], required: true));
     }
 
     // Sort the classes topologically.
@@ -698,7 +776,7 @@ class SourceLoader extends Loader {
         }
         if (allSupertypesProcessed) {
           topologicallySortedClasses.add(cls);
-          checkClassSupertypes(cls, directSupertypeMap, blackListedClasses);
+          checkClassSupertypes(cls, directSupertypeMap, denyListedClasses);
         } else {
           workList.add(cls);
         }
@@ -748,8 +826,8 @@ class SourceLoader extends Loader {
   void checkClassSupertypes(
       SourceClassBuilder cls,
       Map<TypeDeclarationBuilder, TypeAliasBuilder> directSupertypeMap,
-      Set<ClassBuilder> blackListedClasses) {
-    // Check that the direct supertypes aren't black-listed or enums.
+      Set<ClassBuilder> denyListedClasses) {
+    // Check that the direct supertypes aren't deny-listed or enums.
     List<TypeDeclarationBuilder> directSupertypes =
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
@@ -758,7 +836,7 @@ class SourceLoader extends Loader {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
-          blackListedClasses.contains(supertype)) {
+          denyListedClasses.contains(supertype)) {
         TypeAliasBuilder aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           cls.addProblem(
@@ -801,7 +879,7 @@ class SourceLoader extends Loader {
                 ]);
             return;
           } else if (!cls.library.mayImplementRestrictedTypes &&
-              blackListedClasses.contains(builder)) {
+              denyListedClasses.contains(builder)) {
             cls.addProblem(
                 templateExtendingRestricted
                     .withArguments(mixedInTypeBuilder.fullNameForErrors),
@@ -833,82 +911,7 @@ class SourceLoader extends Loader {
 
   List<SourceClassBuilder> checkSemantics(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
-    List<SourceClassBuilder> classes = handleHierarchyCycles(objectClass);
-
-    // Check imports and exports for duplicate names.
-    // This is rather silly, e.g. it makes importing 'foo' and exporting another
-    // 'foo' ok.
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library is SourceLibraryBuilder && library.loader == this) {
-        // Check exports.
-        if (library.exports.isNotEmpty) {
-          Map<String, List<Export>> nameToExports;
-          bool errorExports = false;
-          for (Export export in library.exports) {
-            String name = export.exported?.name ?? '';
-            if (name != '') {
-              nameToExports ??= new Map<String, List<Export>>();
-              List<Export> exports = nameToExports[name] ??= <Export>[];
-              exports.add(export);
-              if (exports[0].exported != export.exported) errorExports = true;
-            }
-          }
-          if (errorExports) {
-            for (String name in nameToExports.keys) {
-              List<Export> exports = nameToExports[name];
-              if (exports.length < 2) continue;
-              List<LocatedMessage> context = <LocatedMessage>[];
-              for (Export export in exports.skip(1)) {
-                context.add(templateDuplicatedLibraryExportContext
-                    .withArguments(name)
-                    .withLocation(uri, export.charOffset, noLength));
-              }
-              library.addProblem(
-                  templateDuplicatedLibraryExport.withArguments(name),
-                  exports[0].charOffset,
-                  noLength,
-                  uri,
-                  context: context);
-            }
-          }
-        }
-
-        // Check imports.
-        if (library.imports.isNotEmpty) {
-          Map<String, List<Import>> nameToImports;
-          bool errorImports;
-          for (Import import in library.imports) {
-            String name = import.imported?.name ?? '';
-            if (name != '') {
-              nameToImports ??= new Map<String, List<Import>>();
-              List<Import> imports = nameToImports[name] ??= <Import>[];
-              imports.add(import);
-              if (imports[0].imported != import.imported) errorImports = true;
-            }
-          }
-          if (errorImports != null) {
-            for (String name in nameToImports.keys) {
-              List<Import> imports = nameToImports[name];
-              if (imports.length < 2) continue;
-              List<LocatedMessage> context = <LocatedMessage>[];
-              for (Import import in imports.skip(1)) {
-                context.add(templateDuplicatedLibraryImportContext
-                    .withArguments(name)
-                    .withLocation(uri, import.charOffset, noLength));
-              }
-              library.addProblem(
-                  templateDuplicatedLibraryImport.withArguments(name),
-                  imports[0].charOffset,
-                  noLength,
-                  uri,
-                  context: context);
-            }
-          }
-        }
-      }
-    });
-    ticker.logMs("Checked imports and exports for duplicate names");
-    return classes;
+    return handleHierarchyCycles(objectClass);
   }
 
   void buildComponent() {
@@ -1203,12 +1206,6 @@ class SourceLoader extends Loader {
     }
   }
 
-  Expression instantiateInvocation(Expression receiver, String name,
-      Arguments arguments, int offset, bool isSuper) {
-    return target.backendTarget.instantiateInvocation(
-        coreTypes, receiver, name, arguments, offset, isSuper);
-  }
-
   Expression instantiateNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
       {bool isMethod: false,
@@ -1294,16 +1291,22 @@ class List<E> extends Iterable {
   factory List() => null;
   factory List.unmodifiable(elements) => null;
   factory List.filled(int length, E fill, {bool growable = false}) => null;
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) => null;
   void add(E) {}
   E operator [](int index) => null;
 }
 
 class _GrowableList<E> {
   factory _GrowableList() => null;
+  factory _GrowableList.filled() => null;
+  factory _GrowableList.generate(int length, E generator(int index)) => null;
 }
 
 class _List<E> {
   factory _List() => null;
+  factory _List.filled() => null;
+  factory _List.generate(int length, E generator(int index)) => null;
 }
 
 class MapEntry<K, V> {
@@ -1447,6 +1450,28 @@ class _StreamIterator {
 /// A minimal implementation of dart:collection that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartCollectionSource = """
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  factory LinkedHashMap(
+      {bool Function(K, K)? equals,
+      int Function(K)? hashCode,
+      bool Function(dynamic)? isValidKey}) => null;
+}
+
+class _InternalLinkedHashMap<K, V> {
+  _InternalLinkedHashMap();
+}
+
+abstract class LinkedHashSet<E> implements Set<E> {
+  factory LinkedHashSet(
+      {bool Function(E, E)? equals,
+      int Function(E)? hashCode,
+      bool Function(dynamic)? isValidKey}) => null;
+}
+
+class _CompactLinkedHashSet<E> {
+  _CompactLinkedHashSet();
+}
+
 class _UnmodifiableSet {
   final Map _map;
   const _UnmodifiableSet(this._map);

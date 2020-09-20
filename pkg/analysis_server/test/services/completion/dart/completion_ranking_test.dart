@@ -21,7 +21,7 @@ void main() {
         tokenize('if (list == null) { return; } for (final i = 0; i < list.');
     final response = await ranking.makePredictRequest(tokens);
     expect(response['data']['length'], greaterThan(0.9));
-  });
+  }, skip: 'https://github.com/dart-lang/sdk/issues/42988');
 }
 
 final directory = path.join(File.fromUri(Platform.script).parent.path, '..',

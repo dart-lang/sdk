@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -78,11 +77,6 @@ class LinkedUnitContext {
 
   /// Return `true` if this unit is a part of a bundle that is being linked.
   bool get isLinking => bundleContext.isLinking;
-
-  bool get isNNBD {
-    if (data != null) return data.isNNBD;
-    return _unit.featureSet.isEnabled(Feature.non_nullable);
-  }
 
   TypeProvider get typeProvider {
     var libraryReference = libraryContext.reference;
@@ -446,12 +440,8 @@ class LinkedUnitContext {
     }
   }
 
-  int getLanguageVersionMajor(CompilationUnit node) {
-    return LazyCompilationUnit.getLanguageVersionMajor(node);
-  }
-
-  int getLanguageVersionMinor(CompilationUnit node) {
-    return LazyCompilationUnit.getLanguageVersionMinor(node);
+  LibraryLanguageVersion getLanguageVersion(CompilationUnit node) {
+    return LazyCompilationUnit.getLanguageVersion(node);
   }
 
   Comment getLibraryDocumentationComment(CompilationUnit unit) {
@@ -642,10 +632,8 @@ class LinkedUnitContext {
   }
 
   TopLevelInferenceError getTypeInferenceError(AstNode node) {
-    if (node is DefaultFormalParameter) {
-      return getTypeInferenceError(node.parameter);
-    } else if (node is SimpleFormalParameter) {
-      return LazyFormalParameter.getTypeInferenceError(node);
+    if (node is MethodDeclaration) {
+      return LazyMethodDeclaration.getTypeInferenceError(node);
     } else if (node is VariableDeclaration) {
       return LazyVariableDeclaration.getTypeInferenceError(node);
     } else {
@@ -771,6 +759,20 @@ class LinkedUnitContext {
       return false;
     } else if (node is MethodDeclaration) {
       return LazyMethodDeclaration.isAbstract(node);
+    } else if (node is VariableDeclaration) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        var grandParent = parent.parent;
+        if (grandParent is FieldDeclaration) {
+          return grandParent.abstractKeyword != null;
+        } else {
+          throw UnimplementedError('${grandParent.runtimeType}');
+        }
+      } else {
+        throw UnimplementedError('${parent.runtimeType}');
+      }
+    } else if (node is EnumConstantDeclaration) {
+      return false;
     }
     throw UnimplementedError('${node.runtimeType}');
   }
@@ -823,6 +825,22 @@ class LinkedUnitContext {
       return node.externalKeyword != null;
     } else if (node is MethodDeclaration) {
       return node.externalKeyword != null || node.body is NativeFunctionBody;
+    } else if (node is VariableDeclaration) {
+      var parent = node.parent;
+      if (parent is VariableDeclarationList) {
+        var grandParent = parent.parent;
+        if (grandParent is FieldDeclaration) {
+          return grandParent.externalKeyword != null;
+        } else if (grandParent is TopLevelVariableDeclaration) {
+          return grandParent.externalKeyword != null;
+        } else {
+          throw UnimplementedError('${grandParent.runtimeType}');
+        }
+      } else {
+        throw UnimplementedError('${parent.runtimeType}');
+      }
+    } else if (node is EnumConstantDeclaration) {
+      return false;
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -924,10 +942,7 @@ class LinkedUnitContext {
     if (linkedType == null) return null;
 
     var kind = linkedType.kind;
-    if (kind == LinkedNodeTypeKind.bottom) {
-      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
-      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
-    } else if (kind == LinkedNodeTypeKind.dynamic_) {
+    if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {
       var typeParameterDataList = linkedType.functionTypeParameters;
@@ -987,6 +1002,9 @@ class LinkedUnitContext {
         typeArguments: linkedType.interfaceTypeArguments.map(readType).toList(),
         nullabilitySuffix: nullabilitySuffix,
       );
+    } else if (kind == LinkedNodeTypeKind.never) {
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+      return NeverTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.typeParameter) {
       TypeParameterElement element;
       var id = linkedType.typeParameterId;

@@ -5,16 +5,17 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidConstantTest);
+    defineReflectiveTests(InvalidConstantWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidConstantTest extends DriverResolutionTest {
+class InvalidConstantTest extends PubPackageResolutionTest {
   test_in_initializer_assert_condition() async {
     await assertErrorsInCode('''
 class A {
@@ -38,17 +39,17 @@ class A {
   test_in_initializer_field() async {
     await assertErrorsInCode(r'''
 class A {
-  static int C;
+  static int C = 0;
   final int a;
   const A() : a = C;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 59, 1),
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
     ]);
   }
 
   test_in_initializer_from_deferred_library_field() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;''');
     await assertErrorsInCode('''
@@ -64,7 +65,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_field_nested() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;
 ''');
@@ -81,7 +82,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_redirecting() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;
 ''');
@@ -98,7 +99,7 @@ class A {
   }
 
   test_in_initializer_from_deferred_library_super() async {
-    newFile('/test/lib/lib1.dart', content: '''
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;
 const int c = 1;
 ''');
@@ -158,5 +159,18 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 82, 1),
     ]);
+  }
+}
+
+@reflectiveTest
+class InvalidConstantWithNullSafetyTest extends InvalidConstantTest
+    with WithNullSafetyMixin {
+  test_in_initializer_field_as() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  final l;
+  const C.test(dynamic x) : l = x as List<T>;
+}
+''');
   }
 }

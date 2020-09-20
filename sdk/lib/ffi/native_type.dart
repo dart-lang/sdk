@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.ffi;
 
 /// [NativeType]'s subtypes represent a native type in C.
@@ -124,6 +122,12 @@ class Double extends _NativeDouble {
 /// type signatures.
 @unsized
 abstract class Void extends NativeType {}
+
+/// Represents `Dart_Handle` in C.
+///
+/// [Handle] is not constructible in the Dart code and serves purely as marker in
+/// type signatures.
+abstract class Handle extends NativeType {}
 
 /// Represents a function type in C.
 ///

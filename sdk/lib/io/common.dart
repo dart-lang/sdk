@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.io;
 
 // Constants used when working with native ports.
@@ -56,8 +54,8 @@ class OSError implements Exception {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 
-  /// Error message supplied by the operating system. This may be `null` or
-  /// empty if no message is associated with the error.
+  /// Error message supplied by the operating system. This will be empty if no
+  /// message is associated with the error.
   final String message;
 
   /// Error code supplied by the operating system.
@@ -108,7 +106,7 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   return new _BufferAndStart(newBuffer, 0);
 }
 
-// VM will use ClassID to check whether buffer is Uint8List or Int8List.
+// The VM will use ClassID to check whether buffer is Uint8List or Int8List.
 external bool _isDirectIOCapableTypedList(List<int> buffer);
 
 class _IOCrypto {

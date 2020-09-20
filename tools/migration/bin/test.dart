@@ -36,6 +36,14 @@ const weakConfigurations = {
   "vm": "dartk-weak-asserts-linux-release-x64",
 };
 
+const legacyConfigurations = {
+  "analyzer": "analyzer-asserts-linux",
+  "cfe": "cfe-linux",
+  "dart2js": "dart2js-hostasserts-linux-x64-d8",
+  "ddc": "dartdevk-checked-linux-release-chrome",
+  "vm": "dartk-checked-linux-release-x64",
+};
+
 final _failurePattern = RegExp(r"FAILED: [a-z0-9_-]+ [a-z0-9_-]+ (.*)");
 
 void main(List<String> arguments) async {
@@ -157,8 +165,15 @@ Future<List<String>> runTests(String compiler, String testDir,
   // configuration. Otherwise, use the right named configuration.
   List<String> testArgs;
   if (Platform.isLinux || compiler != "ddc") {
-    var configurations = isStrong ? strongConfigurations : weakConfigurations;
-    var configuration = configurations[compiler];
+    String configuration;
+    if (isLegacy) {
+      configuration = legacyConfigurations[compiler];
+    } else if (isStrong) {
+      configuration = strongConfigurations[compiler];
+    } else {
+      configuration = weakConfigurations[compiler];
+    }
+
     if (!Platform.isLinux) {
       // TODO(rnystrom): We'll probably never need to run this script on
       // Windows, but if we do... do that.

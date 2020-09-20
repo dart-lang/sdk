@@ -100,7 +100,7 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitAwaitExpression(ir.AwaitExpression node) {
-    return typeEnvironment.unfutureType(visitNode(node.operand));
+    return typeEnvironment.flatten(visitNode(node.operand));
   }
 
   @override

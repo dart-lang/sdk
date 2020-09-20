@@ -172,6 +172,9 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
       node.typeArguments.any((t) => t.accept(this));
 
   @override
+  bool visitFutureOrType(FutureOrType node) => node.typeArgument.accept(this);
+
+  @override
   bool visitTypedefType(TypedefType node) =>
       node.typeArguments.any((t) => t.accept(this));
 
@@ -303,6 +306,6 @@ bool _hasGenericCovariantParameters(Member target) {
 /// function type. Such invocations can omit argument type checks.
 bool isUncheckedClosureCall(MethodInvocation node,
         StaticTypeContext staticTypeContext, BytecodeOptions options) =>
-    node.name.name == 'call' &&
+    node.name.text == 'call' &&
     getStaticType(node.receiver, staticTypeContext) is FunctionType &&
     !options.avoidClosureCallInstructions;

@@ -2,17 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/uri.dart';
 
-/**
- * A [UriResolver] for [Resource]s.
- */
+/// A [UriResolver] for [Resource]s.
 class ResourceUriResolver extends UriResolver {
-  /**
-   * The name of the `file` scheme.
-   */
+  /// The name of the `file` scheme.
   static final String FILE_SCHEME = "file";
 
   final ResourceProvider _provider;
@@ -35,8 +31,6 @@ class ResourceUriResolver extends UriResolver {
   Uri restoreAbsolute(Source source) =>
       _provider.pathContext.toUri(source.fullName);
 
-  /**
-   * Return `true` if the given [uri] is a `file` URI.
-   */
+  /// Return `true` if the given [uri] is a `file` URI.
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 }

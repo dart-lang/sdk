@@ -10,39 +10,39 @@ dynamicIndexAssign(var list) {
   list[0] = 1;
 }
 
-/*spec:nnbd-off.member: unknownListIndexAssign:Specializer=[!IndexAssign]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: unknownListIndexAssign:Specializer=[IndexAssign]*/
+/*spec.member: unknownListIndexAssign:Specializer=[!IndexAssign]*/
+/*prod.member: unknownListIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
 unknownListIndexAssign(List list) {
   list[0] = 1;
 }
 
-/*spec:nnbd-off.member: possiblyNullMutableListIndexAssign:Specializer=[!IndexAssign]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: possiblyNullMutableListIndexAssign:Specializer=[IndexAssign]*/
+/*spec.member: possiblyNullMutableListIndexAssign:Specializer=[!IndexAssign]*/
+/*prod.member: possiblyNullMutableListIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
 possiblyNullMutableListIndexAssign(bool b) {
   var list = b ? [0] : null;
   list[0] = 1;
 }
 
-/*spec:nnbd-off.member: mutableListIndexAssign:Specializer=[!IndexAssign]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: mutableListIndexAssign:Specializer=[IndexAssign]*/
+/*spec.member: mutableListIndexAssign:Specializer=[!IndexAssign]*/
+/*prod.member: mutableListIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
 mutableListIndexAssign() {
   var list = [0];
   list[0] = 1;
 }
 
-/*spec:nnbd-off.member: mutableListDynamicIndexAssign:Specializer=[!IndexAssign]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: mutableListDynamicIndexAssign:Specializer=[IndexAssign]*/
+/*spec.member: mutableListDynamicIndexAssign:Specializer=[!IndexAssign]*/
+/*prod.member: mutableListDynamicIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
 mutableListDynamicIndexAssign(dynamic index) {
   var list = [0];
   list[index] = 1;
 }
 
-/*spec:nnbd-off.member: mutableListDynamicValueIndexAssign:Specializer=[!IndexAssign]*/
-/*prod:nnbd-off|prod:nnbd-sdk.member: mutableListDynamicValueIndexAssign:Specializer=[IndexAssign]*/
+/*spec.member: mutableListDynamicValueIndexAssign:Specializer=[!IndexAssign]*/
+/*prod.member: mutableListDynamicValueIndexAssign:Specializer=[IndexAssign]*/
 @pragma('dart2js:noInline')
 mutableListDynamicValueIndexAssign(dynamic value) {
   var list = [0];

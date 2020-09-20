@@ -370,6 +370,11 @@ String& TranslationHelper::DartString(const uint8_t* utf8_array,
   return String::ZoneHandle(Z, String::FromUTF8(utf8_array, len, space));
 }
 
+const String& TranslationHelper::DartString(
+    const GrowableHandlePtrArray<const String>& pieces) {
+  return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+}
+
 const String& TranslationHelper::DartSymbolPlain(const char* content) const {
   return String::ZoneHandle(Z, Symbols::New(thread_, content));
 }
@@ -623,6 +628,8 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
+    const auto& error = klass.EnsureIsFinalized(thread_);
+    ASSERT(error == Error::null());
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
     CheckStaticLookup(function);
@@ -646,6 +653,8 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   Function& function = Function::Handle(
       Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
   CheckStaticLookup(function);
@@ -663,6 +672,8 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
 
   String& new_name =
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+  const auto& error = owner.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
   FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
   ASSERT(function != Object::null());
   return function;
@@ -672,9 +683,10 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
                                                     const String& method_name) {
   NameIndex kernel_class = EnclosingName(target);
   Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
-
-  Function& function =
-      Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
+  Function& function = Function::Handle(Z);
+  if (klass.EnsureIsFinalized(thread_) == Error::null()) {
+    function = klass.LookupFunctionAllowPrivate(method_name);
+  }
 #ifdef DEBUG
   if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
@@ -728,8 +740,7 @@ void TranslationHelper::SetupFieldAccessorFunction(
   function.set_num_fixed_parameters(parameter_count);
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  function.set_parameter_names(
-      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  function.CreateNameArrayIncludingFlags(Heap::kNew);
 
   intptr_t pos = 0;
   if (is_method) {
@@ -1096,6 +1107,10 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kForwardingStubInterfaceTarget:
+      helper_->ReadCanonicalNameReference();
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    case kMemberSignatureTarget:
       helper_->ReadCanonicalNameReference();
       if (++next_read_ == field) return;
       FALL_THROUGH;
@@ -1798,6 +1813,57 @@ void ObfuscationProhibitionsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   return;
 }
 
+LoadingUnitsMetadataHelper::LoadingUnitsMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  Thread* T = Thread::Current();
+  Zone* Z = T->zone();
+  intptr_t unit_count = helper_->ReadUInt();
+  Array& loading_units = Array::Handle(Z, Array::New(unit_count + 1));
+  LoadingUnit& unit = LoadingUnit::Handle(Z);
+  LoadingUnit& parent = LoadingUnit::Handle(Z);
+  Library& lib = Library::Handle(Z);
+
+  for (int i = 0; i < unit_count; i++) {
+    intptr_t id = helper_->ReadUInt();
+    unit = LoadingUnit::New();
+    unit.set_id(id);
+
+    intptr_t parent_id = helper_->ReadUInt();
+    RELEASE_ASSERT(parent_id < id);
+    parent ^= loading_units.At(parent_id);
+    RELEASE_ASSERT(parent.IsNull() == (parent_id == 0));
+    unit.set_parent(parent);
+
+    intptr_t library_count = helper_->ReadUInt();
+    for (intptr_t j = 0; j < library_count; j++) {
+      const String& uri =
+          translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
+      lib = Library::LookupLibrary(T, uri);
+      if (lib.IsNull()) {
+        FATAL1("Missing library: %s\n", uri.ToCString());
+      }
+      lib.set_loading_unit(unit);
+    }
+
+    loading_units.SetAt(id, unit);
+  }
+
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  ASSERT(object_store->loading_units() == Array::null());
+  object_store->set_loading_units(loading_units);
+}
+
 CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(
     KernelReaderHelper* helper,
     TypeTranslator* type_translator)
@@ -1945,6 +2011,16 @@ NameIndex KernelReaderHelper::ReadCanonicalNameReference() {
   return reader_.ReadCanonicalNameReference();
 }
 
+NameIndex KernelReaderHelper::ReadInterfaceMemberNameReference() {
+  NameIndex name_index = reader_.ReadCanonicalNameReference();
+  NameIndex origin_name_index = reader_.ReadCanonicalNameReference();
+  if (!FLAG_precompiled_mode && origin_name_index != NameIndex::kInvalidName) {
+    // Reference to a skipped member signature target, return the origin target.
+    return origin_name_index;
+  }
+  return name_index;
+}
+
 StringIndex KernelReaderHelper::ReadNameAsStringIndex() {
   StringIndex name_index = ReadStringReference();  // read name index.
   if ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_') {
@@ -2011,6 +2087,11 @@ void KernelReaderHelper::SkipConstantReference() {
 
 void KernelReaderHelper::SkipCanonicalNameReference() {
   ReadUInt();
+}
+
+void KernelReaderHelper::SkipInterfaceMemberNameReference() {
+  SkipCanonicalNameReference();
+  SkipCanonicalNameReference();
 }
 
 void KernelReaderHelper::ReportUnexpectedTag(const char* variant, Tag tag) {
@@ -2236,35 +2317,35 @@ void KernelReaderHelper::SkipExpression() {
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kPropertySet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipExpression();              // read value.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertyGet:
       ReadPosition();                // read position.
       SkipName();                    // read name.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperPropertySet:
       ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipExpression();              // read value.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
+      SkipInterfaceMemberNameReference();  // read target_reference.
       return;
     case kDirectPropertySet:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
+      SkipInterfaceMemberNameReference();  // read target_reference.
       SkipExpression();              // read value·
       return;
     case kStaticGet:
@@ -2281,18 +2362,18 @@ void KernelReaderHelper::SkipExpression() {
       SkipExpression();              // read receiver.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kSuperMethodInvocation:
       ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
-      SkipCanonicalNameReference();  // read interface_target_reference.
+      SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kDirectMethodInvocation:
       ReadPosition();                // read position.
       SkipExpression();              // read receiver.
-      SkipCanonicalNameReference();  // read target_reference.
+      SkipInterfaceMemberNameReference();  // read target_reference.
       SkipArguments();               // read arguments.
       return;
     case kStaticInvocation:
@@ -2654,18 +2735,7 @@ TokenPosition KernelReaderHelper::ReadPosition() {
 }
 
 intptr_t KernelReaderHelper::SourceTableFieldCountFromFirstLibraryOffset() {
-  // translation_helper_.info() might not be initialized at this point so we
-  // can't use translation_helper_.info().kernel_binary_version().
-  SetOffset(KernelFormatVersionOffset);
-  uint32_t formatVersion = reader_.ReadUInt32();
-  intptr_t count_from_first_library_offset =
-      SourceTableFieldCountFromFirstLibraryOffsetPre41;
-  static_assert(kMinSupportedKernelFormatVersion < 41, "cleanup this code");
-  if (formatVersion >= 41) {
-    count_from_first_library_offset =
-        SourceTableFieldCountFromFirstLibraryOffset41Plus;
-  }
-  return count_from_first_library_offset;
+  return SourceTableFieldCountFromFirstLibraryOffset41Plus;
 }
 
 intptr_t KernelReaderHelper::SourceTableSize() {
@@ -3009,31 +3079,24 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     all_count = positional_count;
   }
 
-  const intptr_t all_count_with_receiver = all_count + 1;
-  const Array& parameter_types =
-      Array::Handle(Z, Array::New(all_count_with_receiver, Heap::kOld));
-  signature_function.set_parameter_types(parameter_types);
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(simple ? all_count_with_receiver
-                           : Function::NameArrayLengthIncludingFlags(
-                                 all_count_with_receiver),
-                    Heap::kOld));
-  signature_function.set_parameter_names(parameter_names);
-
-  intptr_t pos = 0;
-  parameter_types.SetAt(pos, AbstractType::dynamic_type());
-  parameter_names.SetAt(pos, H.DartSymbolPlain("_receiver_"));
-  ++pos;
-  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
-    BuildTypeInternal();  // read ith positional parameter.
-    parameter_types.SetAt(pos, result_);
-    parameter_names.SetAt(pos, H.DartSymbolPlain("noname"));
-  }
-
   // The additional first parameter is the receiver type (set to dynamic).
   signature_function.set_num_fixed_parameters(1 + required_count);
   signature_function.SetNumOptionalParameters(
       all_count - required_count, positional_count > required_count);
+
+  signature_function.set_parameter_types(
+      Array::Handle(Z, Array::New(1 + all_count, Heap::kOld)));
+  signature_function.CreateNameArrayIncludingFlags(Heap::kOld);
+
+  intptr_t pos = 0;
+  signature_function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+  signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("_receiver_"));
+  ++pos;
+  for (intptr_t i = 0; i < positional_count; ++i, ++pos) {
+    BuildTypeInternal();  // read ith positional parameter.
+    signature_function.SetParameterTypeAt(pos, result_);
+    signature_function.SetParameterNameAt(pos, H.DartSymbolPlain("noname"));
+  }
 
   if (!simple) {
     const intptr_t named_count =
@@ -3043,15 +3106,15 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
       const uint8_t flags = helper_->ReadFlags();  // read flags
-      parameter_types.SetAt(pos, result_);
-      parameter_names.SetAt(pos, name);
+      signature_function.SetParameterTypeAt(pos, result_);
+      signature_function.SetParameterNameAt(pos, name);
       if (!apply_legacy_erasure_ &&
           (flags & static_cast<uint8_t>(NamedTypeFlags::kIsRequired)) != 0) {
         signature_function.SetIsRequiredAt(pos);
       }
     }
-    signature_function.TruncateUnusedParameterFlags();
   }
+  signature_function.TruncateUnusedParameterFlags();
 
   if (!simple) {
     helper_->SkipOptionalDartType();  // read typedef type.
@@ -3273,6 +3336,8 @@ void TypeTranslator::LoadAndSetupTypeParameters(
           H.DartIdentifier(lib, helper.name_index_),  // read ith name index.
           null_bound, helper.IsGenericCovariantImpl(), nullability,
           TokenPosition::kNoSource);
+      parameter.SetCanonical();
+      parameter.SetDeclaration(true);
       type_parameters.SetTypeAt(i, parameter);
     }
   }
@@ -3376,11 +3441,35 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
   }
 }
 
+static void SetupUnboxingInfoOfReturnValue(
+    const Function& function,
+    const UnboxingInfoMetadata* metadata) {
+  switch (metadata->return_info) {
+    case UnboxingInfoMetadata::kUnboxedIntCandidate:
+      if (FlowGraphCompiler::SupportsUnboxedInt64()) {
+        function.set_unboxed_integer_return();
+      }
+      break;
+    case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
+      if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
+        function.set_unboxed_double_return();
+      }
+      break;
+    case UnboxingInfoMetadata::kUnboxingCandidate:
+      UNREACHABLE();
+      break;
+    case UnboxingInfoMetadata::kBoxed:
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
 void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
                                                intptr_t library_kernel_offset) {
   const intptr_t kernel_offset =
       function.kernel_offset() + library_kernel_offset;
-
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
@@ -3391,26 +3480,30 @@ void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
     for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
       SetupUnboxingInfoOfParameter(function, i, unboxing_info);
     }
+    SetupUnboxingInfoOfReturnValue(function, unboxing_info);
+  }
+}
 
-    switch (unboxing_info->return_info) {
-      case UnboxingInfoMetadata::kUnboxedIntCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedInt64()) {
-          function.set_unboxed_integer_return();
-        }
-        break;
-      case UnboxingInfoMetadata::kUnboxedDoubleCandidate:
-        if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
-          function.set_unboxed_double_return();
-        }
-        break;
-      case UnboxingInfoMetadata::kUnboxingCandidate:
-        UNREACHABLE();
-        break;
-      case UnboxingInfoMetadata::kBoxed:
-        break;
-      default:
-        UNREACHABLE();
-        break;
+void TypeTranslator::SetupUnboxingInfoMetadataForFieldAccessors(
+    const Function& field_accessor,
+    intptr_t library_kernel_offset) {
+  const intptr_t kernel_offset =
+      field_accessor.kernel_offset() + library_kernel_offset;
+  const auto unboxing_info =
+      unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
+
+  // TODO(dartbug.com/32292): accept unboxed parameters and return value
+  // when FLAG_use_table_dispatch == false.
+  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
+      FLAG_use_table_dispatch && FLAG_use_bare_instructions) {
+    if (field_accessor.IsImplicitSetterFunction()) {
+      for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
+        SetupUnboxingInfoOfParameter(field_accessor, i, unboxing_info);
+      }
+    } else {
+      ASSERT(field_accessor.IsImplicitGetterFunction() ||
+             field_accessor.IsImplicitStaticGetterFunction());
+      SetupUnboxingInfoOfReturnValue(field_accessor, unboxing_info);
     }
   }
 }
@@ -3458,10 +3551,7 @@ void TypeTranslator::SetupFunctionParameters(
 
   function.set_parameter_types(
       Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(Function::NameArrayLengthIncludingFlags(parameter_count),
-                    Heap::kOld));
-  function.set_parameter_names(parameter_names);
+  function.CreateNameArrayIncludingFlags(Heap::kOld);
   intptr_t pos = 0;
   if (is_method) {
     ASSERT(!klass.IsNull());
@@ -3483,6 +3573,8 @@ void TypeTranslator::SetupFunctionParameters(
     // Read ith variable declaration.
     VariableDeclarationHelper helper(helper_);
     helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    // The required flag should only be set on named parameters.
+    ASSERT(!helper.IsRequired());
     const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
     Tag tag = helper_->ReadTag();  // read (first part of) initializer.
     if (tag == kSomething) {

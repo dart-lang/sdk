@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class AssertInRedirectingConstructorTest extends DriverResolutionTest {
+class AssertInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_assertBeforeRedirection() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -25,14 +25,14 @@ class B {
 ''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 34, 13)]);
   }
 
-  test_redirectionBeforeAssert() async {
-    await assertErrorsInCode(r'''
+  test_justAssert() async {
+    await assertNoErrorsInCode(r'''
 class A {}
 class B {
-  B(int x) : this.name(), assert(x > 0);
+  B(int x) : assert(x > 0);
   B.name() {}
 }
-''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 47, 13)]);
+''');
   }
 
   test_justRedirection() async {
@@ -45,13 +45,13 @@ class B {
 ''');
   }
 
-  test_justAssert() async {
-    await assertNoErrorsInCode(r'''
+  test_redirectionBeforeAssert() async {
+    await assertErrorsInCode(r'''
 class A {}
 class B {
-  B(int x) : assert(x > 0);
+  B(int x) : this.name(), assert(x > 0);
   B.name() {}
 }
-''');
+''', [error(CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR, 47, 13)]);
   }
 }

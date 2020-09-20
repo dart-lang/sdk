@@ -22,7 +22,7 @@ const List<String> idTests = <String>[
   'pkg/compiler/test/member_usage/member_usage_test.dart',
   'pkg/compiler/test/optimization/optimization_test.dart',
   'pkg/compiler/test/rti/rti_need_test_helper.dart',
-  'pkg/compiler/test/rti/rti_emission_test.dart',
+  'pkg/compiler/test/rti/rti_emission_test_helper.dart',
   'pkg/compiler/test/static_type/static_type_test.dart',
   'pkg/compiler/test/static_type/type_promotion_test.dart',
   'pkg/compiler/test/equivalence/id_testing_test.dart',

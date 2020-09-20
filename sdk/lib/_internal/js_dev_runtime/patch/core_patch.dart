@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 // Patch file for dart:core classes.
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
@@ -30,14 +28,14 @@ import 'dart:typed_data' show Endian, Uint8List, Uint16List;
 
 String _symbolToString(Symbol symbol) => symbol is PrivateSymbol
     ? PrivateSymbol.getName(symbol)
-    : _symbol_dev.Symbol.getName(symbol);
+    : _symbol_dev.Symbol.getName(symbol as _symbol_dev.Symbol);
 
 @patch
-int identityHashCode(Object object) {
+int identityHashCode(Object? object) {
   if (object == null) return 0;
   // Note: this works for primitives because we define the `identityHashCode`
   // for them to be equivalent to their computed hashCode function.
-  int hash = JS('int|Null', r'#[#]', object, dart.identityHashCode_);
+  int? hash = JS<int?>('int|Null', r'#[#]', object, dart.identityHashCode_);
   if (hash == null) {
     hash = JS<int>('!', '(Math.random() * 0x3fffffff) | 0');
     JS('void', r'#[#] = #', object, dart.identityHashCode_, hash);
@@ -49,7 +47,7 @@ int identityHashCode(Object object) {
 @patch
 class Object {
   @patch
-  bool operator ==(other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   @patch
   int get hashCode => identityHashCode(this);
@@ -59,7 +57,7 @@ class Object {
       "Instance of '${dart.typeName(dart.getReifiedType(this))}'";
 
   @patch
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     return dart.defaultNoSuchMethod(this, invocation);
   }
 
@@ -68,10 +66,11 @@ class Object {
 
   // Everything is an Object.
   @JSExportName('is')
-  static bool _is_Object(Object o) => true;
+  static bool _is_Object(Object? o) => o != null;
 
   @JSExportName('as')
-  static Object _as_Object(Object o) => o;
+  static Object? _as_Object(Object? o) =>
+      o == null ? dart.cast(o, dart.unwrapType(Object)) : o;
 }
 
 @patch
@@ -80,10 +79,10 @@ class Null {
   int get hashCode => super.hashCode;
 
   @JSExportName('is')
-  static bool _is_Null(Object o) => o == null;
+  static bool _is_Null(Object? o) => o == null;
 
   @JSExportName('as')
-  static Object _as_Null(Object o) {
+  static Object? _as_Null(Object? o) {
     // Avoid extra function call to core.Null.is() by manually inlining.
     if (o == null) return o;
     return dart.cast(o, dart.unwrapType(Null));
@@ -94,8 +93,8 @@ class Null {
 @patch
 class Function {
   @patch
-  static apply(Function f, List positionalArguments,
-      [Map<Symbol, dynamic> namedArguments]) {
+  static apply(Function function, List<dynamic>? positionalArguments,
+      [Map<Symbol, dynamic>? namedArguments]) {
     positionalArguments ??= [];
     // dcall expects the namedArguments as a JS map in the last slot.
     if (namedArguments != null && namedArguments.isNotEmpty) {
@@ -103,9 +102,9 @@ class Function {
       namedArguments.forEach((symbol, arg) {
         JS('', '#[#] = #', map, _symbolToString(symbol), arg);
       });
-      return dart.dcall(f, positionalArguments, map);
+      return dart.dcall(function, positionalArguments, map);
     }
-    return dart.dcall(f, positionalArguments);
+    return dart.dcall(function, positionalArguments);
   }
 
   static Map<String, dynamic> _toMangledNames(
@@ -118,13 +117,13 @@ class Function {
   }
 
   @JSExportName('is')
-  static bool _is_Function(Object o) =>
+  static bool _is_Function(Object? o) =>
       JS<bool>('!', 'typeof $o == "function"');
 
   @JSExportName('as')
-  static Object _as_Function(Object o) {
+  static Object? _as_Function(Object? o) {
     // Avoid extra function call to core.Function.is() by manually inlining.
-    if (JS<Object>('!', 'typeof $o == "function"') || o == null) return o;
+    if (JS<bool>('!', 'typeof $o == "function"')) return o;
     return dart.cast(o, dart.unwrapType(Function));
   }
 }
@@ -132,18 +131,20 @@ class Function {
 // TODO(jmesserly): switch to WeakMap
 // Patch for Expando implementation.
 @patch
-class Expando<T> {
+class Expando<T extends Object> {
   @patch
-  Expando([String name]) : this.name = name;
+  Expando([String? name]) : this.name = name;
 
   @patch
-  T operator [](Object object) {
+  T? operator [](Object object) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
-    return (values == null) ? null : Primitives.getProperty(values, _getKey());
+    return (values == null)
+        ? null
+        : Primitives.getProperty(values, _getKey()) as T?;
   }
 
   @patch
-  void operator []=(Object object, T value) {
+  void operator []=(Object object, T? value) {
     var values = Primitives.getProperty(object, _EXPANDO_PROPERTY_NAME);
     if (values == null) {
       values = Object();
@@ -153,7 +154,7 @@ class Expando<T> {
   }
 
   String _getKey() {
-    String key = Primitives.getProperty(this, _KEY_PROPERTY_NAME);
+    var key = Primitives.getProperty(this, _KEY_PROPERTY_NAME) as String?;
     if (key == null) {
       key = "expando\$key\$${_keyCount++}";
       Primitives.setProperty(this, _KEY_PROPERTY_NAME, key);
@@ -170,7 +171,7 @@ class Expando<T> {
 class int {
   @patch
   static int parse(String source,
-      {int radix, @deprecated int onError(String source)}) {
+      {int? radix, @deprecated int onError(String source)?}) {
     var value = tryParse(source, radix: radix);
     if (value != null) return value;
     if (onError != null) return onError(source);
@@ -178,7 +179,7 @@ class int {
   }
 
   @patch
-  static int tryParse(String source, {int radix}) {
+  static int? tryParse(String source, {int? radix}) {
     return Primitives.parseInt(source, radix);
   }
 
@@ -190,15 +191,14 @@ class int {
   }
 
   @JSExportName('is')
-  static bool _is_int(Object o) {
+  static bool _is_int(Object? o) {
     return JS<bool>('!', 'typeof $o == "number" && Math.floor($o) == $o');
   }
 
   @JSExportName('as')
-  static Object _as_int(Object o) {
+  static Object? _as_int(Object? o) {
     // Avoid extra function call to core.int.is() by manually inlining.
-    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)') ||
-        o == null) {
+    if (JS<bool>('!', '(typeof $o == "number" && Math.floor($o) == $o)')) {
       return o;
     }
     return dart.cast(o, dart.unwrapType(int));
@@ -209,7 +209,7 @@ class int {
 class double {
   @patch
   static double parse(String source,
-      [@deprecated double onError(String source)]) {
+      [@deprecated double onError(String source)?]) {
     var value = tryParse(source);
     if (value != null) return value;
     if (onError != null) return onError(source);
@@ -217,19 +217,19 @@ class double {
   }
 
   @patch
-  static double tryParse(String source) {
+  static double? tryParse(String source) {
     return Primitives.parseDouble(source);
   }
 
   @JSExportName('is')
-  static bool _is_double(o) {
+  static bool _is_double(Object? o) {
     return JS<bool>('!', 'typeof $o == "number"');
   }
 
   @JSExportName('as')
-  static Object _as_double(o) {
+  static Object? _as_double(Object? o) {
     // Avoid extra function call to core.double.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    if (JS<bool>('!', 'typeof $o == "number"')) return o;
     return dart.cast(o, dart.unwrapType(double));
   }
 }
@@ -237,14 +237,14 @@ class double {
 @patch
 abstract class num implements Comparable<num> {
   @JSExportName('is')
-  static bool _is_num(o) {
+  static bool _is_num(Object? o) {
     return JS<bool>('!', 'typeof $o == "number"');
   }
 
   @JSExportName('as')
-  static Object _as_num(o) {
+  static Object? _as_num(Object? o) {
     // Avoid extra function call to core.num.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "number"') || o == null) return o;
+    if (JS<bool>('!', 'typeof $o == "number"')) return o;
     return dart.cast(o, dart.unwrapType(num));
   }
 }
@@ -259,11 +259,11 @@ class BigInt implements Comparable<BigInt> {
   static BigInt get two => _BigIntImpl.two;
 
   @patch
-  static BigInt parse(String source, {int radix}) =>
+  static BigInt parse(String source, {int? radix}) =>
       _BigIntImpl.parse(source, radix: radix);
 
   @patch
-  static BigInt tryParse(String source, {int radix}) =>
+  static BigInt? tryParse(String source, {int? radix}) =>
       _BigIntImpl._tryParse(source, radix: radix);
 
   @patch
@@ -283,7 +283,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => dart.stackTraceForError(this);
+  StackTrace? get stackTrace => dart.stackTraceForError(this);
 }
 
 @patch
@@ -319,10 +319,7 @@ class DateTime {
   @patch
   DateTime._internal(int year, int month, int day, int hour, int minute,
       int second, int millisecond, int microsecond, bool isUtc)
-      // checkBool is manually inlined here because dart2js doesn't inline it
-      // and [isUtc] is usually a constant.
-      : this.isUtc =
-            isUtc is bool ? isUtc : throw ArgumentError.value(isUtc, 'isUtc'),
+      : isUtc = isUtc,
         _value = checkInt(Primitives.valueFromDecomposedDate(
             year,
             month,
@@ -346,7 +343,7 @@ class DateTime {
   }
 
   @patch
-  static int _brokenDownDateToValue(int year, int month, int day, int hour,
+  static int? _brokenDownDateToValue(int year, int month, int day, int hour,
       int minute, int second, int millisecond, int microsecond, bool isUtc) {
     return Primitives.valueFromDecomposedDate(
         year,
@@ -367,7 +364,7 @@ class DateTime {
 
   @patch
   Duration get timeZoneOffset {
-    if (isUtc) return Duration();
+    if (isUtc) return Duration.zero;
     return Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
 
@@ -420,7 +417,7 @@ class DateTime {
   int get weekday => Primitives.getWeekday(this);
 
   @patch
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is DateTime &&
       _value == other.millisecondsSinceEpoch &&
       isUtc == other.isUtc;
@@ -444,9 +441,9 @@ class DateTime {
 @patch
 class Stopwatch {
   @patch
-  static void _initTicker() {
+  static int _initTicker() {
     Primitives.initTicker();
-    _frequency = Primitives.timerFrequency;
+    return Primitives.timerFrequency;
   }
 
   @patch
@@ -473,20 +470,27 @@ class Stopwatch {
 @patch
 class List<E> {
   @patch
-  factory List([@undefined int _length]) {
+  factory List([@undefined int? length]) {
     dynamic list;
-    if (JS<bool>('!', '# === void 0', _length)) {
+    if (JS<bool>('!', '# === void 0', length)) {
       list = JS('', '[]');
     } else {
-      int length = JS('!', '#', _length);
-      if (_length == null || length < 0) {
+      int _length = JS('!', '#', length);
+      if (length == null || _length < 0) {
         throw ArgumentError("Length must be a non-negative integer: $_length");
       }
-      list = JS('', 'new Array(#)', length);
+      list = JS('', 'new Array(#)', _length);
       JS('', '#.fill(null)', list);
       JSArray.markFixedList(list);
     }
     return JSArray<E>.of(list);
+  }
+
+  @patch
+  factory List.empty({bool growable = false}) {
+    var list = JSArray<E>.of(JS('', 'new Array()'));
+    if (!growable) JSArray.markFixedList(list);
+    return list;
   }
 
   @patch
@@ -522,6 +526,17 @@ class List<E> {
   }
 
   @patch
+  factory List.generate(int length, E generator(int index),
+      {bool growable = true}) {
+    final result = JSArray<E>.of(JS('', 'new Array(#)', length));
+    if (!growable) JSArray.markFixedList(result);
+    for (int i = 0; i < length; i++) {
+      result[i] = generator(i);
+    }
+    return result;
+  }
+
+  @patch
   factory List.unmodifiable(Iterable elements) {
     var list = List<E>.from(elements);
     JSArray.markUnmodifiableList(list);
@@ -532,7 +547,7 @@ class List<E> {
 @patch
 class Map<K, V> {
   @patch
-  factory Map.unmodifiable(Map other) {
+  factory Map.unmodifiable(Map<dynamic, dynamic> other) {
     return UnmodifiableMapView<K, V>(Map<K, V>.from(other));
   }
 
@@ -544,7 +559,7 @@ class Map<K, V> {
 class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int end]) {
+      [int start = 0, int? end]) {
     if (charCodes is JSArray) {
       return _stringFromJSArray(charCodes, start, end);
     }
@@ -569,7 +584,7 @@ class String {
   static String _stringFromJSArray(
       /*=JSArray<int>*/ list,
       int start,
-      int endOrNull) {
+      int? endOrNull) {
     int len = list.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     if (start > 0 || end < len) {
@@ -579,14 +594,14 @@ class String {
   }
 
   static String _stringFromUint8List(
-      NativeUint8List charCodes, int start, int endOrNull) {
+      NativeUint8List charCodes, int start, int? endOrNull) {
     int len = charCodes.length;
     int end = RangeError.checkValidRange(start, endOrNull, len);
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
   }
 
   static String _stringFromIterable(
-      Iterable<int> charCodes, int start, int end) {
+      Iterable<int> charCodes, int start, int? end) {
     if (start < 0) throw RangeError.range(start, 0, charCodes.length);
     if (end != null && end < start) {
       throw RangeError.range(end, start, charCodes.length);
@@ -597,7 +612,7 @@ class String {
         throw RangeError.range(start, 0, i);
       }
     }
-    var list = <int>[];
+    var list = JSArray<int>.of(JS('', 'new Array()'));
     if (end == null) {
       while (it.moveNext()) list.add(it.current);
     } else {
@@ -612,14 +627,14 @@ class String {
   }
 
   @JSExportName('is')
-  static bool _is_String(Object o) {
+  static bool _is_String(Object? o) {
     return JS<bool>('!', 'typeof $o == "string"');
   }
 
   @JSExportName('as')
-  static Object _as_String(Object o) {
+  static Object? _as_String(Object? o) {
     // Avoid extra function call to core.String.is() by manually inlining.
-    if (JS<bool>('!', 'typeof $o == "string"') || o == null) return o;
+    if (JS<bool>('!', 'typeof $o == "string"')) return o;
     return dart.cast(o, dart.unwrapType(String));
   }
 }
@@ -644,13 +659,13 @@ class bool {
   int get hashCode => super.hashCode;
 
   @JSExportName('is')
-  static bool _is_bool(Object o) =>
+  static bool _is_bool(Object? o) =>
       JS<bool>('!', '$o === true || $o === false');
 
   @JSExportName('as')
-  static Object _as_bool(Object o) {
+  static Object? _as_bool(Object? o) {
     // Avoid extra function call to core.bool.is() by manually inlining.
-    if (JS<bool>("!", '$o === true || $o === false') || o == null) return o;
+    if (JS<bool>("!", '$o === true || $o === false')) return o;
     return dart.cast(o, dart.unwrapType(bool));
   }
 }
@@ -675,7 +690,7 @@ class RegExp {
 
 // Patch for 'identical' function.
 @patch
-bool identical(Object a, Object b) {
+bool identical(Object? a, Object? b) {
   return JS<bool>('!', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
@@ -690,7 +705,7 @@ class StringBuffer {
   int get length => _contents.length;
 
   @patch
-  void write(Object obj) {
+  void write(Object? obj) {
     _writeString('$obj');
   }
 
@@ -700,12 +715,12 @@ class StringBuffer {
   }
 
   @patch
-  void writeAll(Iterable objects, [String separator = ""]) {
+  void writeAll(Iterable<dynamic> objects, [String separator = ""]) {
     _contents = _writeAll(_contents, objects, separator);
   }
 
   @patch
-  void writeln([Object obj = ""]) {
+  void writeln([Object? obj = ""]) {
     _writeString('$obj\n');
   }
 
@@ -717,7 +732,7 @@ class StringBuffer {
   @patch
   String toString() => Primitives.flattenString(_contents);
 
-  void _writeString(str) {
+  void _writeString(String str) {
     _contents = Primitives.stringConcatUnchecked(_contents, str);
   }
 
@@ -738,7 +753,7 @@ class StringBuffer {
     return string;
   }
 
-  static String _writeOne(String string, Object obj) {
+  static String _writeOne(String string, Object? obj) {
     return Primitives.stringConcatUnchecked(string, '$obj');
   }
 }
@@ -752,46 +767,44 @@ class _CompileTimeError extends Error {
 
 @patch
 class NoSuchMethodError {
-  final Object _receiver;
+  final Object? _receiver;
   final Symbol _memberName;
-  final List _arguments;
-  final Map<Symbol, dynamic> _namedArguments;
-  final List _existingArgumentNames;
-  final Invocation _invocation;
+  final List? _arguments;
+  final Map<Symbol, dynamic>? _namedArguments;
+  final Invocation? _invocation;
 
   @patch
-  NoSuchMethodError(Object receiver, Symbol memberName,
-      List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null])
+  NoSuchMethodError(Object? receiver, Symbol memberName,
+      List? positionalArguments, Map<Symbol, dynamic>? namedArguments)
       : _receiver = receiver,
         _memberName = memberName,
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
-        _existingArgumentNames = existingArgumentNames,
         _invocation = null;
 
   @patch
-  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
+  NoSuchMethodError.withInvocation(Object? receiver, Invocation invocation)
       : _receiver = receiver,
         _memberName = invocation.memberName,
         _arguments = invocation.positionalArguments,
         _namedArguments = invocation.namedArguments,
-        _existingArgumentNames = null,
         _invocation = invocation;
 
   @patch
   String toString() {
     StringBuffer sb = StringBuffer('');
     String comma = '';
-    if (_arguments != null) {
-      for (var argument in _arguments) {
+    var arguments = _arguments;
+    if (arguments != null) {
+      for (var argument in arguments) {
         sb.write(comma);
         sb.write(Error.safeToString(argument));
         comma = ', ';
       }
     }
-    if (_namedArguments != null) {
-      _namedArguments.forEach((Symbol key, var value) {
+    var namedArguments = _namedArguments;
+    if (namedArguments != null) {
+      namedArguments.forEach((Symbol key, var value) {
         sb.write(comma);
         sb.write(_symbolToString(key));
         sb.write(": ");
@@ -802,22 +815,14 @@ class NoSuchMethodError {
     String memberName = _symbolToString(_memberName);
     String receiverText = Error.safeToString(_receiver);
     String actualParameters = '$sb';
-    var failureMessage = (_invocation is dart.InvocationImpl)
-        ? (_invocation as dart.InvocationImpl).failureMessage
+    var invocation = _invocation;
+    var failureMessage = (invocation is dart.InvocationImpl)
+        ? invocation.failureMessage
         : 'method not found';
-    if (_existingArgumentNames == null) {
-      return "NoSuchMethodError: '$memberName'\n"
-          "$failureMessage\n"
-          "Receiver: ${receiverText}\n"
-          "Arguments: [$actualParameters]";
-    } else {
-      String formalParameters = _existingArgumentNames.join(', ');
-      return "NoSuchMethodError: incorrect number of arguments passed to "
-          "method named '$memberName'\n"
-          "Receiver: ${receiverText}\n"
-          "Tried calling: $memberName($actualParameters)\n"
-          "Found: $memberName($formalParameters)";
-    }
+    return "NoSuchMethodError: '$memberName'\n"
+        "$failureMessage\n"
+        "Receiver: ${receiverText}\n"
+        "Arguments: [$actualParameters]";
   }
 }
 
@@ -973,14 +978,14 @@ class _BigIntImpl implements BigInt {
 
   // Result cache for last _divRem call.
   // Result cache for last _divRem call.
-  static Uint16List _lastDividendDigits;
-  static int _lastDividendUsed;
-  static Uint16List _lastDivisorDigits;
-  static int _lastDivisorUsed;
-  static Uint16List _lastQuoRemDigits;
-  static int _lastQuoRemUsed;
-  static int _lastRemUsed;
-  static int _lastRem_nsh;
+  static Uint16List? _lastDividendDigits;
+  static int? _lastDividendUsed;
+  static Uint16List? _lastDivisorDigits;
+  static int? _lastDivisorUsed;
+  static Uint16List? _lastQuoRemDigits;
+  static int? _lastQuoRemUsed;
+  static int? _lastRemUsed;
+  static int? _lastRem_nsh;
 
   /// Whether this bigint is negative.
   final bool _isNegative;
@@ -1021,7 +1026,7 @@ class _BigIntImpl implements BigInt {
    * Throws a [FormatException] if the [source] is not a valid integer literal,
    * optionally prefixed by a sign.
    */
-  static _BigIntImpl parse(String source, {int radix}) {
+  static _BigIntImpl parse(String source, {int? radix}) {
     var result = _tryParse(source, radix: radix);
     if (result == null) {
       throw FormatException("Could not parse BigInt", source);
@@ -1040,7 +1045,7 @@ class _BigIntImpl implements BigInt {
     // Read in the source 4 digits at a time.
     // The first part may have a few leading virtual '0's to make the remaining
     // parts all have exactly 4 digits.
-    int digitInPartCount = 4 - source.length.remainder(4);
+    var digitInPartCount = 4 - source.length.remainder(4);
     if (digitInPartCount == 4) digitInPartCount = 0;
     for (int i = 0; i < source.length; i++) {
       part = part * 10 + source.codeUnitAt(i) - _0;
@@ -1082,7 +1087,7 @@ class _BigIntImpl implements BigInt {
   /// If [isNegative] is true, negates the result before returning it.
   ///
   /// The [source] (substring) must be a valid hex literal.
-  static _BigIntImpl _parseHex(String source, int startPos, bool isNegative) {
+  static _BigIntImpl? _parseHex(String source, int startPos, bool isNegative) {
     int hexDigitsPerChunk = _digitBits ~/ 4;
     int sourceLength = source.length - startPos;
     int chunkCount = (sourceLength / hexDigitsPerChunk).ceil();
@@ -1116,7 +1121,7 @@ class _BigIntImpl implements BigInt {
   ///
   /// The [source] will be checked for invalid characters. If it is invalid,
   /// this function returns `null`.
-  static _BigIntImpl _parseRadix(String source, int radix, bool isNegative) {
+  static _BigIntImpl? _parseRadix(String source, int radix, bool isNegative) {
     var result = zero;
     var base = _BigIntImpl._fromInt(radix);
     for (int i = 0; i < source.length; i++) {
@@ -1133,7 +1138,7 @@ class _BigIntImpl implements BigInt {
   /// Returns the parsed big integer, or `null` if it failed.
   ///
   /// If the [radix] is `null` accepts decimal literals or `0x` hex literals.
-  static _BigIntImpl _tryParse(String source, {int radix}) {
+  static _BigIntImpl? _tryParse(String source, {int? radix}) {
     if (source == "") return null;
 
     var match = _parseRE.firstMatch(source);
@@ -1145,9 +1150,9 @@ class _BigIntImpl implements BigInt {
 
     bool isNegative = match[signIndex] == "-";
 
-    String decimalMatch = match[decimalIndex];
-    String hexMatch = match[hexIndex];
-    String nonDecimalMatch = match[nonDecimalHexIndex];
+    String? decimalMatch = match[decimalIndex];
+    String? hexMatch = match[hexIndex];
+    String? nonDecimalMatch = match[nonDecimalHexIndex];
 
     if (radix == null) {
       if (decimalMatch != null) {
@@ -1168,11 +1173,11 @@ class _BigIntImpl implements BigInt {
       return _parseDecimal(decimalMatch, isNegative);
     }
     if (radix == 16 && (decimalMatch != null || nonDecimalMatch != null)) {
-      return _parseHex(decimalMatch ?? nonDecimalMatch, 0, isNegative);
+      return _parseHex(decimalMatch ?? nonDecimalMatch!, 0, isNegative);
     }
 
     return _parseRadix(
-        decimalMatch ?? nonDecimalMatch ?? hexMatch, radix, isNegative);
+        decimalMatch ?? nonDecimalMatch ?? hexMatch!, radix, isNegative);
   }
 
   static RegExp _parseRE = RegExp(
@@ -1220,7 +1225,7 @@ class _BigIntImpl implements BigInt {
     // then use the bit-manipulating `_fromDouble` for all other values.
     if (value.abs() < 0x100000000) return _BigIntImpl._fromInt(value.toInt());
     if (value is double) return _BigIntImpl._fromDouble(value);
-    return _BigIntImpl._fromInt(value);
+    return _BigIntImpl._fromInt(value as int);
   }
 
   factory _BigIntImpl._fromInt(int value) {
@@ -1984,9 +1989,9 @@ class _BigIntImpl implements BigInt {
     _divRem(other);
     // Return quotient, i.e.
     // _lastQuoRem_digits[_lastRem_used.._lastQuoRem_used-1] with proper sign.
-    var lastQuo_used = _lastQuoRemUsed - _lastRemUsed;
+    var lastQuo_used = _lastQuoRemUsed! - _lastRemUsed!;
     var quo_digits = _cloneDigits(
-        _lastQuoRemDigits, _lastRemUsed, _lastQuoRemUsed, lastQuo_used);
+        _lastQuoRemDigits!, _lastRemUsed!, _lastQuoRemUsed!, lastQuo_used);
     var quo = _BigIntImpl._(false, lastQuo_used, quo_digits);
     if ((_isNegative != other._isNegative) && (quo._used > 0)) {
       quo = -quo;
@@ -2004,10 +2009,10 @@ class _BigIntImpl implements BigInt {
     // Return remainder, i.e.
     // denormalized _lastQuoRem_digits[0.._lastRem_used-1] with proper sign.
     var remDigits =
-        _cloneDigits(_lastQuoRemDigits, 0, _lastRemUsed, _lastRemUsed);
-    var rem = _BigIntImpl._(false, _lastRemUsed, remDigits);
-    if (_lastRem_nsh > 0) {
-      rem = rem >> _lastRem_nsh; // Denormalize remainder.
+        _cloneDigits(_lastQuoRemDigits!, 0, _lastRemUsed!, _lastRemUsed!);
+    var rem = _BigIntImpl._(false, _lastRemUsed!, remDigits);
+    if (_lastRem_nsh! > 0) {
+      rem = rem >> _lastRem_nsh!; // Denormalize remainder.
     }
     if (_isNegative && (rem._used > 0)) {
       rem = -rem;

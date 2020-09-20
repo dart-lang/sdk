@@ -172,8 +172,12 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           }
           stat_success =
               TEMP_FAILURE_RETRY(fstatat(ns.fd(), ns.path(), &entry_info, 0));
-          if (stat_success == -1) {
+          if (stat_success == -1 || (S_IFMT & entry_info.st_mode) == 0) {
             // Report a broken link as a link, even if follow_links is true.
+            // A symbolic link can potentially point to an anon_inode. For
+            // example, an epoll file descriptor will have a symbolic link whose
+            // content is the string anon_inode:[eventpoll]. In this case, the
+            // target doesn't belong to any regular file catogory.
             return kListLink;
           }
           if (S_ISDIR(entry_info.st_mode)) {
@@ -193,16 +197,12 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             return Next(listing);
           }
           return kListDirectory;
-        } else if (S_ISREG(entry_info.st_mode) || S_ISCHR(entry_info.st_mode) ||
-                   S_ISBLK(entry_info.st_mode) ||
-                   S_ISFIFO(entry_info.st_mode) ||
-                   S_ISSOCK(entry_info.st_mode)) {
-          return kListFile;
         } else if (S_ISLNK(entry_info.st_mode)) {
           return kListLink;
         } else {
-          FATAL1("Unexpected st_mode: %d\n", entry_info.st_mode);
-          return kListError;
+          // Regular files, character devices, block devices, fifos, sockets and
+          // unknown types are all considered as files.
+          return kListFile;
         }
       }
 

@@ -38,6 +38,7 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:path/path.dart' as path;
 import 'package:telemetry/crash_reporting.dart';
@@ -326,6 +327,14 @@ class Driver implements ServerStarter {
     analysisServerOptions.newAnalysisDriverLog =
         results[NEW_ANALYSIS_DRIVER_LOG];
     analysisServerOptions.clientId = results[CLIENT_ID];
+    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    // For clients that don't supply their own identifier, use a default based on
+    // whether the server will run in LSP mode or not.
+    analysisServerOptions.clientId ??=
+        analysisServerOptions.useLanguageServerProtocol
+            ? 'unknown.client.lsp'
+            : 'unknown.client.classic';
+
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     if (results.wasParsed(ENABLE_EXPERIMENT_OPTION)) {
@@ -333,7 +342,6 @@ class Driver implements ServerStarter {
           (results[ENABLE_EXPERIMENT_OPTION] as List).cast<String>().toList();
     }
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
-    analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
@@ -341,7 +349,12 @@ class Driver implements ServerStarter {
     analysisServerOptions.configurationOverrides = sdkConfig;
 
     // ML model configuration.
-    final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
+    // TODO(brianwilkerson) Uncomment the line below and delete the second line
+    //  when there is a new completion model to query. Until then we ignore the
+    //  flag to enable the model so that we can't try to read from a file that
+    //  doesn't exist.
+//    final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
+    final enableCompletionModel = false;
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
     if (results.wasParsed(ENABLE_COMPLETION_MODEL) && !enableCompletionModel) {
@@ -382,8 +395,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.analytics = analytics;
 
     // Record the client name as the application installer ID.
-    analytics.setSessionValue(
-        'aiid', analysisServerOptions.clientId ?? 'not-set');
+    analytics.setSessionValue('aiid', analysisServerOptions.clientId);
     if (analysisServerOptions.clientVersion != null) {
       analytics.setSessionValue('cd1', analysisServerOptions.clientVersion);
     }
@@ -437,12 +449,12 @@ class Driver implements ServerStarter {
     }
 
     final defaultSdkPath = _getSdkPath(results);
-    final dartSdkManager = DartSdkManager(defaultSdkPath, true);
+    final dartSdkManager = DartSdkManager(defaultSdkPath);
 
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    var defaultSdk = _createDefaultSdk(defaultSdkPath, true);
+    var defaultSdk = _createDefaultSdk(defaultSdkPath);
     //
     // Initialize the instrumentation service.
     //
@@ -463,13 +475,14 @@ class Driver implements ServerStarter {
         MulticastInstrumentationService(allInstrumentationServices);
 
     instrumentationService.logVersion(
-        results[TRAIN_USING] != null
-            ? 'training-0'
-            : _readUuid(instrumentationService),
-        analysisServerOptions.clientId,
-        analysisServerOptions.clientVersion,
-        PROTOCOL_VERSION,
-        defaultSdk.sdkVersion);
+      results[TRAIN_USING] != null
+          ? 'training-0'
+          : _readUuid(instrumentationService),
+      analysisServerOptions.clientId,
+      analysisServerOptions.clientVersion,
+      PROTOCOL_VERSION,
+      defaultSdk.languageVersion.toString(),
+    );
     AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     int diagnosticServerPort;
@@ -820,17 +833,18 @@ class Driver implements ServerStarter {
     // Temporary flags.
     //
     parser.addFlag(USE_NEW_RELEVANCE,
+        defaultsTo: true,
         help: 'Use the new relevance computation for code completion.');
 
     return parser;
   }
 
-  DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
+  DartSdk _createDefaultSdk(String defaultSdkPath) {
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
-    var sdk = FolderBasedDartSdk(
-        resourceProvider, resourceProvider.getFolder(defaultSdkPath));
-    sdk.useSummary = useSummaries;
-    return sdk;
+    return FolderBasedDartSdk(
+      resourceProvider,
+      resourceProvider.getFolder(defaultSdkPath),
+    );
   }
 
   /// Constructs a uuid combining the current date and a random integer.
@@ -844,11 +858,7 @@ class Driver implements ServerStarter {
     if (args[SDK_OPTION] != null) {
       return args[SDK_OPTION];
     } else {
-      // No path to the SDK was provided.
-      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
-      return FolderBasedDartSdk.defaultSdkDirectory(
-        PhysicalResourceProvider.INSTANCE,
-      ).path;
+      return getSdkPath();
     }
   }
 

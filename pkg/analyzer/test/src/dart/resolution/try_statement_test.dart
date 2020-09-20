@@ -5,22 +5,17 @@
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../constant/potentially_constant_test.dart';
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TryStatementTest);
-    defineReflectiveTests(TryStatementNullSafetyTest);
+    defineReflectiveTests(TryStatementWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class TryStatementNullSafetyTest extends TryStatementTest
-    with WithNullSafetyMixin {}
-
-@reflectiveTest
-class TryStatementTest extends DriverResolutionTest {
+class TryStatementTest extends PubPackageResolutionTest {
   test_catch_withoutType() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -68,3 +63,7 @@ main() {
     expect(node.stackTraceParameter.staticElement, st);
   }
 }
+
+@reflectiveTest
+class TryStatementWithNullSafetyTest extends TryStatementTest
+    with WithNullSafetyMixin {}

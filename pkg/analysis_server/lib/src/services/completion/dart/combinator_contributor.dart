@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -15,11 +13,11 @@ import 'package:analyzer/dart/element/element.dart';
 /// when the completion is in a show or hide combinator of an import or export.
 class CombinatorContributor extends DartCompletionContributor {
   @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, SuggestionBuilder builder) async {
     var node = request.target.containingNode;
     if (node is! Combinator) {
-      return const <CompletionSuggestion>[];
+      return;
     }
     // Build the list of suggestions.
     var directive = node.thisOrAncestorOfType<NamespaceDirective>();
@@ -35,7 +33,6 @@ class CombinatorContributor extends DartCompletionContributor {
         }
       }
     }
-    return const <CompletionSuggestion>[];
   }
 
   List<String> _getCombinatorNames(NamespaceDirective directive) {

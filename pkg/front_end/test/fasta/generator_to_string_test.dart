@@ -72,6 +72,7 @@ main() async {
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
         uri,
         uri,
+        /*packageUri*/ null,
         new KernelTarget(
                 null,
                 false,

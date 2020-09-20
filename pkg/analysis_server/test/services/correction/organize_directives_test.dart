@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
-import 'package:analysis_server/src/services/correction/organize_directives.dart';
+import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
@@ -85,14 +83,14 @@ import 'dart:async';
 import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
 }''');
     // validate change
     _assertOrganize(r'''
 import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
 }''', removeUnused: true);
   }
 
@@ -140,7 +138,7 @@ import 'dart:convert';
 import 'dart:collection';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''');
@@ -152,7 +150,7 @@ import 'dart:collection';
 import 'dart:math';
 
 main() {
-  print(PI);
+  print(pi);
   new HashMap();
 }
 ''', removeUnused: true);
@@ -166,7 +164,7 @@ import 'dart:math';
 class A {}
 
 main() {
-  Future f;
+  Completer f;
 }''');
     // validate change
     _assertOrganize(r'''
@@ -175,7 +173,7 @@ import 'dart:async';
 class A {}
 
 main() {
-  Future f;
+  Completer f;
 }''', removeUnused: true);
   }
 
@@ -262,6 +260,162 @@ main() {
 ''');
   }
 
+  Future<void> test_sort_commentsAnnotations_library() async {
+    await _computeUnitAndErrors(r'''
+// Library docs 1
+// Library docs 2
+library foo;
+
+// Import c comment
+@annotation
+import 'c.dart'; // Trailing comment C
+// Import b comment
+@annotation
+import 'b.dart'; // Trailing comment B
+// Import a comment
+@annotation
+import 'a.dart'; // Trailing comment A
+
+/** doc */
+main() {
+}
+''');
+    // validate change
+    _assertOrganize(r'''
+// Library docs 1
+// Library docs 2
+library foo;
+
+// Import a comment
+@annotation
+import 'a.dart'; // Trailing comment A
+// Import b comment
+@annotation
+import 'b.dart'; // Trailing comment B
+// Import c comment
+@annotation
+import 'c.dart'; // Trailing comment C
+
+/** doc */
+main() {
+}
+''');
+  }
+
+  Future<void> test_sort_commentsAnnotations_noLibrary() async {
+    await _computeUnitAndErrors(r'''
+// Library docs 1
+// Library docs 2
+@annotation
+import 'c.dart'; // Trailing comment C
+// Import b comment
+@annotation
+import 'b.dart'; // Trailing comment B
+// Import a comment
+@annotation
+import 'a.dart'; // Trailing comment A
+
+/** doc */
+main() {
+}
+''');
+    // validate change
+    _assertOrganize(r'''
+// Library docs 1
+// Library docs 2
+// Import a comment
+@annotation
+import 'a.dart'; // Trailing comment A
+// Import b comment
+@annotation
+import 'b.dart'; // Trailing comment B
+@annotation
+import 'c.dart'; // Trailing comment C
+
+/** doc */
+main() {
+}
+''');
+  }
+
+  Future<void> test_sort_documentationAnnotations_library() async {
+    await _computeUnitAndErrors(r'''
+/// Library docs 1
+/// Library docs 2
+library foo;
+
+/// Import c docs
+@annotation
+import 'c.dart'; // Trailing comment C
+/// Import b docs
+@annotation
+import 'b.dart'; // Trailing comment B
+/// Import a docs
+@annotation
+import 'a.dart'; // Trailing comment A
+
+/** doc */
+main() {
+}
+''');
+    // validate change
+    _assertOrganize(r'''
+/// Library docs 1
+/// Library docs 2
+library foo;
+
+/// Import a docs
+@annotation
+import 'a.dart'; // Trailing comment A
+/// Import b docs
+@annotation
+import 'b.dart'; // Trailing comment B
+/// Import c docs
+@annotation
+import 'c.dart'; // Trailing comment C
+
+/** doc */
+main() {
+}
+''');
+  }
+
+  Future<void> test_sort_documentationAnnotations_noLibrary() async {
+    await _computeUnitAndErrors(r'''
+/// Library docs 1
+/// Library docs 2
+@annotation
+import 'c.dart'; // Trailing comment C
+/// Import b docs
+@annotation
+import 'b.dart'; // Trailing comment B
+/// Import a docs
+@annotation
+import 'a.dart'; // Trailing comment A
+
+/** doc */
+main() {
+}
+''');
+    // validate change
+    _assertOrganize(r'''
+/// Library docs 1
+/// Library docs 2
+/// Import a docs
+@annotation
+import 'a.dart'; // Trailing comment A
+/// Import b docs
+@annotation
+import 'b.dart'; // Trailing comment B
+@annotation
+import 'c.dart'; // Trailing comment C
+
+/** doc */
+main() {
+}
+''');
+  }
+
   Future<void> test_sort_hasComments() async {
     await _computeUnitAndErrors(r'''
 // header
@@ -290,6 +444,53 @@ main() {
 ''');
   }
 
+  Future<void>
+      test_sort_imports_dontConnectFirstCommentsWithBlankLinesBetween() async {
+    await _computeUnitAndErrors(r'''
+// Copyright...
+
+// Some comment related to the line below
+import 'package:b/a.dart';
+import 'package:a/b.dart';''');
+    _assertOrganize(r'''
+// Copyright...
+
+import 'package:a/b.dart';
+// Some comment related to the line below
+import 'package:b/a.dart';''');
+  }
+
+  Future<void> test_sort_imports_keepFirstCommentUntouched() async {
+    await _computeUnitAndErrors(r'''
+// Copyright
+// Copyright2
+// Copyright3
+import 'package:b/a.dart';
+import 'package:a/b.dart';''');
+
+    _assertOrganize(r'''
+// Copyright
+// Copyright2
+// Copyright3
+import 'package:a/b.dart';
+import 'package:b/a.dart';''');
+  }
+
+  Future<void> test_sort_imports_keepSubsequentComments() async {
+    await _computeUnitAndErrors(r'''
+/// Copyright...
+library lib;
+
+import 'package:b/a.dart'; // We are keeping this because ...
+import 'package:a/b.dart';''');
+    _assertOrganize(r'''
+/// Copyright...
+library lib;
+
+import 'package:a/b.dart';
+import 'package:b/a.dart'; // We are keeping this because ...''');
+  }
+
   Future<void> test_sort_imports_packageAndPath() async {
     await _computeUnitAndErrors(r'''
 library lib;
@@ -314,8 +515,64 @@ import 'package:product2.client/entity.dart';
 ''');
   }
 
+  Future<void> test_sort_imports_splits_comments() async {
+    // Here, the comments "b" and "ccc1" will be part of the same list
+    // of comments so need to be split.
+    await _computeUnitAndErrors(r'''
+// copyright
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
+// aaa1
+// aaa2
+import 'a.dart'; // a
+''');
+
+    _assertOrganize(r'''
+// copyright
+// aaa1
+// aaa2
+import 'a.dart'; // a
+import 'b.dart'; // b
+// ccc1
+// ccc2
+import 'c.dart'; // c
+''');
+  }
+
+  Future<void> test_sort_imports_with_library_keepPrecedingComments() async {
+    await _computeUnitAndErrors(r'''
+/// Copyright...
+library lib;
+
+// Test comment
+
+// We are keeping this because ... l1
+// We are keeping this because ... l2
+// We are keeping this because ... l3
+import 'package:b/a.dart';
+// Comment for a
+
+import 'package:a/b.dart';''');
+
+    _assertOrganize(r'''
+/// Copyright...
+library lib;
+
+// Test comment
+
+// Comment for a
+
+import 'package:a/b.dart';
+// We are keeping this because ... l1
+// We are keeping this because ... l2
+// We are keeping this because ... l3
+import 'package:b/a.dart';''');
+  }
+
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {
-    var organizer = DirectiveOrganizer(testCode, testUnit, testErrors,
+    var organizer = ImportOrganizer(testCode, testUnit, testErrors,
         removeUnused: removeUnused);
     var edits = organizer.organize();
     var result = SourceEdit.applySequence(testCode, edits);

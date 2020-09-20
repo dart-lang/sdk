@@ -12,10 +12,10 @@ $!MEMBERS
     _readEntries((values) {
       values.forEach((value) {
         applyExtension('Entry', value);
-        Entry entry = value as Entry;  
-        if (entry.isFile)
+        Entry entry = value as Entry;
+        if (entry.isFile$NULLASSERT)
           applyExtension('FileEntry', entry);
-        else if (entry.isDirectory)
+        else if (entry.isDirectory$NULLASSERT)
           applyExtension('DirectoryEntry', entry);
       });
       completer.complete(new List<Entry>.from(values));

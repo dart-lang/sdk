@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.6
-
 part of dart.core;
 
 /**
@@ -16,9 +14,9 @@ part of dart.core;
  * to return a string describing an instance of that class.
  * You might also need to define [hashCode] and [operator ==], as described in the
  * [Implementing map
- * keys](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#implementing-map-keys)
+ * keys](https://dart.dev/guides/libraries/library-tour#implementing-map-keys)
  * section of the [library
- * tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
+ * tour](https://dart.dev/guides/libraries/library-tour).
  */
 @pragma("vm:entry-point")
 class Object {
@@ -59,7 +57,7 @@ class Object {
    * If a subclass overrides the equality operator it should override
    * the [hashCode] method as well to maintain consistency.
    */
-  external bool operator ==(other);
+  external bool operator ==(Object other);
 
   /**
    * The hash code for this object.

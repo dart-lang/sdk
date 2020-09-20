@@ -18,7 +18,7 @@ main() async {
   test('Basic Promise Test', () async {
     try {
       thenEstimateBefore = true;
-      window.navigator.storage.estimate().then((value) {
+      window.navigator.storage!.estimate().then((value) {
         thenEstimate = value!;
         thenEstimateDone = true;
       });
@@ -27,7 +27,7 @@ main() async {
       fail("StorageManger failed: $msg");
     }
 
-    Map estimate = await window.navigator.storage.estimate() as Map;
+    Map estimate = await window.navigator.storage!.estimate() as Map;
 
     expect(thenEstimate['usage'] >= 0, true);
     expect(thenEstimate['quota'] > 1, true);

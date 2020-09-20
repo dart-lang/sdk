@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -17,7 +18,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
@@ -102,7 +102,7 @@ class BinaryExpressionResolver {
   void _checkNonBoolOperand(Expression operand, String operator) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      errorCode: StaticTypeWarningCode.NON_BOOL_OPERAND,
+      errorCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
       arguments: [operator],
     );
   }
@@ -136,13 +136,18 @@ class BinaryExpressionResolver {
     left = node.leftOperand;
 
     var flow = _flowAnalysis?.flow;
-    flow?.equalityOp_rightBegin(left);
+    var leftExtensionOverride = left is ExtensionOverride;
+    if (!leftExtensionOverride) {
+      flow?.equalityOp_rightBegin(left, left.staticType);
+    }
 
     var right = node.rightOperand;
     right.accept(_resolver);
     right = node.rightOperand;
 
-    flow?.equalityOp_end(node, right, notEqual: notEqual);
+    if (!leftExtensionOverride) {
+      flow?.equalityOp_end(node, right, right.staticType, notEqual: notEqual);
+    }
 
     _resolveUserDefinableElement(
       node,
@@ -173,7 +178,7 @@ class BinaryExpressionResolver {
     }
     InferenceContext.setType(right, rightContextType);
 
-    flow?.ifNullExpression_rightBegin(left);
+    flow?.ifNullExpression_rightBegin(left, leftType);
     right.accept(_resolver);
     right = node.rightOperand;
     flow?.ifNullExpression_end();
@@ -270,6 +275,7 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
 
     left.accept(_resolver);
+    left = node.leftOperand; // In case it was rewritten
 
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);
@@ -279,7 +285,13 @@ class BinaryExpressionResolver {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
-      InferenceContext.setType(right, rightParam.type);
+      InferenceContext.setType(
+          right,
+          _typeSystem.refineNumericInvocationContext(
+              left.staticType,
+              node.staticElement,
+              InferenceContext.getContext(node),
+              rightParam.type));
     }
 
     right.accept(_resolver);
@@ -327,21 +339,21 @@ class BinaryExpressionResolver {
       receiverType: leftType,
       name: methodName,
       receiverErrorNode: leftOperand,
-      nameErrorNode: node,
+      nameErrorEntity: node,
     );
 
     node.staticElement = result.getter;
     node.staticInvokeType = result.getter?.type;
-    if (_shouldReportInvalidMember(leftType, result)) {
+    if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           node.operator,
           [methodName, leftType],
         );
       } else {
         _errorReporter.reportErrorForToken(
-          StaticTypeWarningCode.UNDEFINED_OPERATOR,
+          CompileTimeErrorCode.UNDEFINED_OPERATOR,
           node.operator,
           [methodName, leftType],
         );
@@ -363,22 +375,9 @@ class BinaryExpressionResolver {
         node.operator.type,
         node.rightOperand.staticType,
         staticType,
+        node.staticElement,
       );
     }
     _inferenceHelper.recordStaticType(node, staticType);
-  }
-
-  /// Return `true` if we should report an error for the lookup [result] on
-  /// the [type].
-  ///
-  /// TODO(scheglov) this is duplicate
-  bool _shouldReportInvalidMember(DartType type, ResolutionResult result) {
-    if (result.isNone && type != null && !type.isDynamic) {
-      if (_isNonNullableByDefault && _typeSystem.isPotentiallyNullable(type)) {
-        return false;
-      }
-      return true;
-    }
-    return false;
   }
 }
