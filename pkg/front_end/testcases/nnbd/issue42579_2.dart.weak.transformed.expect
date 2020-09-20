@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42579_2.dart:19:32: Error: The method 'unknown' isn't defined for the class 'Object'.
+//  - 'Object' is from 'dart:core'.
+// Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
+//   wrap2(() => foo()..property?.unknown());
+//                                ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  get property() → self::A::T%
+    return throw "A.property";
+}
+static method foo<S extends core::Object? = dynamic>() → self::foo::S%
+  return throw "foo";
+static method wrap<R extends core::Object? = dynamic>(() → self::wrap::R% f) → dynamic {}
+static method wrap2<R extends core::Object? = dynamic>(() → self::A<self::wrap2::R%> f) → dynamic {}
+static method bar() → dynamic {
+  new self::A::•<dynamic>().{self::A::property}.unknown();
+  self::foo<dynamic>().unknown();
+  self::wrap<dynamic>(() → dynamic => let final dynamic #t1 = self::foo<dynamic>() in block {
+    #t1.unknown();
+  } =>#t1);
+  self::wrap2<core::Object?>(() → self::A<core::Object?> => let final self::A<core::Object?> #t2 = self::foo<self::A<core::Object?>>() in block {
+    let final core::Object? #t3 = #t2.{self::A::property} in #t3.{core::Object::==}(null) ?{dynamic} null : invalid-expression "pkg/front_end/testcases/nnbd/issue42579_2.dart:19:32: Error: The method 'unknown' isn't defined for the class 'Object'.
+ - 'Object' is from 'dart:core'.
+Try correcting the name to the name of an existing method, or defining a method named 'unknown'.
+  wrap2(() => foo()..property?.unknown());
+                               ^^^^^^^";
+  } =>#t2);
+}
+static method main() → dynamic {}

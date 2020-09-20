@@ -1,0 +1,10 @@
+// @dart = 2.7
+import 'dart:io';
+
+class Mock {
+  noSuchMethod(Invocation invocation) => null;
+}
+
+class MockHttpHeaders extends Mock implements HttpHeaders {}
+
+main() {}

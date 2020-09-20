@@ -25,13 +25,11 @@ void sendFlutterNotificationOutline(
 
 /// Runs the given notification producing function [f], catching exceptions.
 void _sendNotification(AnalysisServer server, Function() f) {
-  ServerPerformanceStatistics.notices.makeCurrentWhile(() {
-    try {
-      f();
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.instrumentationService.logException(
-          CaughtException.withMessage(
-              'Failed to send notification', exception, stackTrace));
-    }
-  });
+  try {
+    f();
+  } catch (exception, stackTrace) {
+    AnalysisEngine.instance.instrumentationService.logException(
+        CaughtException.withMessage(
+            'Failed to send notification', exception, stackTrace));
+  }
 }

@@ -146,7 +146,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// When [reportInvalidInferredDeferredTypes] shows no errors, we expect this
   /// flag to produce the same or better results than the current unsound
   /// implementation.
-  bool newDeferredSplit = false;
+  bool newDeferredSplit = true; // default value.
+  bool _newDeferredSplit = false;
+  bool _noNewDeferredSplit = false;
 
   /// Show errors when a deferred type is inferred as a return type of a closure
   /// or in a type parameter. Those cases cause the compiler today to behave
@@ -156,6 +158,11 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// This flag is presented to help developers find and fix the affected code.
   bool reportInvalidInferredDeferredTypes = false;
+
+  /// Whether to defer load class types.
+  bool deferClassTypes = true; // default value.
+  bool _deferClassTypes = false;
+  bool _noDeferClassTypes = false;
 
   /// Whether to disable inlining during the backend optimizations.
   // TODO(sigmund): negate, so all flags are positive
@@ -192,6 +199,12 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to use the trivial abstract value domain.
   bool useTrivialAbstractValueDomain = false;
+
+  /// Whether to use the wrapped abstract value domain (experimental).
+  bool experimentalWrapped = false;
+
+  /// Whether to use the powersets abstract value domain (experimental).
+  bool experimentalPowersets = false;
 
   /// Whether to disable optimization for need runtime type information.
   bool disableRtiOptimization = false;
@@ -231,6 +244,17 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
+
+  /// Whether to generate code asserting that non-nullable parameters in opt-in
+  /// code are not null. In mixed mode code (some opting into non-nullable, some
+  /// not), null-safety is unsound, allowing `null` values to be assigned to
+  /// variables with non-nullable types. This assertion lets the opt-in code
+  /// operate with a stronger guarantee.
+  bool enableNullAssertions = false;
+
+  /// Whether to generate code asserting that non-nullable return values of
+  /// `@Native` methods are checked for being non-null.
+  bool enableNativeReturnNullAssertions = false;
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
@@ -322,6 +346,14 @@ class CompilerOptions implements DiagnosticOptions {
   /// during each phase of compilation.
   bool showInternalProgress = false;
 
+  /// Enable printing of metrics at end of compilation.
+  // TODO(sra): Add command-line filtering of metrics.
+  bool reportPrimaryMetrics = false;
+
+  /// Enable printing of more metrics at end of compilation.
+  // TODO(sra): Add command-line filtering of metrics.
+  bool reportSecondaryMetrics = false;
+
   /// Track allocations in the JS output.
   ///
   /// This is an experimental feature.
@@ -332,6 +364,10 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Experimental reliance on JavaScript ToBoolean conversions.
   bool experimentToBoolean = false;
+
+  // Experiment to make methods that are inferred as unreachable throw an
+  // exception rather than generate suspect code.
+  bool experimentUnreachableMethodsThrow = false;
 
   /// Experimental instrumentation to investigate code bloat.
   ///
@@ -413,9 +449,12 @@ class CompilerOptions implements DiagnosticOptions {
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
       ..deferredMapUri = _extractUriOption(options, '--deferred-map=')
-      ..newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      .._newDeferredSplit = _hasOption(options, Flags.newDeferredSplit)
+      .._noNewDeferredSplit = _hasOption(options, Flags.noNewDeferredSplit)
       ..reportInvalidInferredDeferredTypes =
           _hasOption(options, Flags.reportInvalidInferredDeferredTypes)
+      .._deferClassTypes = _hasOption(options, Flags.deferClassTypes)
+      .._noDeferClassTypes = _hasOption(options, Flags.noDeferClassTypes)
       ..fatalWarnings = _hasOption(options, Flags.fatalWarnings)
       ..terseDiagnostics = _hasOption(options, Flags.terse)
       ..suppressWarnings = _hasOption(options, Flags.suppressWarnings)
@@ -428,6 +467,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..disableTypeInference = _hasOption(options, Flags.disableTypeInference)
       ..useTrivialAbstractValueDomain =
           _hasOption(options, Flags.useTrivialAbstractValueDomain)
+      ..experimentalWrapped = _hasOption(options, Flags.experimentalWrapped)
+      ..experimentalPowersets = _hasOption(options, Flags.experimentalPowersets)
       ..disableRtiOptimization =
           _hasOption(options, Flags.disableRtiOptimization)
       ..dumpInfo = _hasOption(options, Flags.dumpInfo)
@@ -441,6 +482,8 @@ class CompilerOptions implements DiagnosticOptions {
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
+      ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
+          _hasOption(options, Flags.enableNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
@@ -448,6 +491,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentStartupFunctions =
           _hasOption(options, Flags.experimentStartupFunctions)
       ..experimentToBoolean = _hasOption(options, Flags.experimentToBoolean)
+      ..experimentUnreachableMethodsThrow =
+          _hasOption(options, Flags.experimentUnreachableMethodsThrow)
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
@@ -472,6 +517,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..useMultiSourceInfo = _hasOption(options, Flags.useMultiSourceInfo)
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..verbose = _hasOption(options, Flags.verbose)
+      ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
+      ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
       ..showInternalProgress = _hasOption(options, Flags.progress)
       ..dillDependencies =
           _extractUriListOption(options, '${Flags.dillDependencies}')
@@ -513,6 +560,14 @@ class CompilerOptions implements DiagnosticOptions {
     if (!useNullSafety && _soundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
+    }
+    if (_deferClassTypes && _noDeferClassTypes) {
+      throw ArgumentError("'${Flags.deferClassTypes}' incompatible with "
+          "'${Flags.noDeferClassTypes}'");
+    }
+    if (_newDeferredSplit && _noNewDeferredSplit) {
+      throw ArgumentError("'${Flags.newDeferredSplit}' incompatible with "
+          "'${Flags.noNewDeferredSplit}'");
     }
   }
 
@@ -575,6 +630,17 @@ class CompilerOptions implements DiagnosticOptions {
     if (_disableMinification) {
       enableMinification = false;
     }
+
+    if (_deferClassTypes) deferClassTypes = true;
+    if (_noDeferClassTypes) deferClassTypes = false;
+
+    if (enableNullAssertions) {
+      // TODO(sra): Add a command-line flag to control this independently.
+      enableNativeReturnNullAssertions = true;
+    }
+
+    if (_newDeferredSplit) newDeferredSplit = true;
+    if (_noNewDeferredSplit) newDeferredSplit = false;
   }
 
   /// Returns `true` if warnings and hints are shown for all packages.

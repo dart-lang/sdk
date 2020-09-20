@@ -23,7 +23,7 @@ main() {
 
   x = topLevel(3);
   //  ^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
   // [cfe] Getter not found: 'topLevel'.
   Expect.equals(6, x);
 }

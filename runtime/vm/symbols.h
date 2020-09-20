@@ -108,6 +108,8 @@ class ObjectPointerVisitor;
   V(Double, "double")                                                          \
   V(Dynamic, "dynamic")                                                        \
   V(DynamicCall, "dyn:call")                                                   \
+  V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
+  V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \
   V(EqualOperator, "==")                                                       \
@@ -269,6 +271,7 @@ class ObjectPointerVisitor;
   V(Struct, "Struct")                                                          \
   V(StructFromPointer, "#fromPointer")                                         \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
+  V(LoadingUnit, "LoadingUnit")                                                \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
@@ -361,6 +364,8 @@ class ObjectPointerVisitor;
   V(_FutureListener, "_FutureListener")                                        \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
+  V(_GrowableListFilledFactory, "_GrowableList.filled")                        \
+  V(_GrowableListGenerateFactory, "_GrowableList.generate")                    \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
@@ -388,6 +393,8 @@ class ObjectPointerVisitor;
   V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
+  V(_ListFilledFactory, "_List.filled")                                        \
+  V(_ListGenerateFactory, "_List.generate")                                    \
   V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
@@ -488,6 +495,7 @@ class ObjectPointerVisitor;
   V(start_index_param, ":start_index_param")                                   \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
+  V(timeout, "timeout")                                                        \
   V(toString, "toString")                                                      \
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
@@ -672,11 +680,6 @@ class Symbols : public AllStatic {
                              const uint16_t* utf16_array,
                              intptr_t len);
 
-  // Creates a new Symbol from an array of UTF-32 encoded characters.
-  static StringPtr FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
-                             intptr_t len);
-
   static StringPtr New(Thread* thread, const String& str);
   static StringPtr New(Thread* thread,
                        const String& str,
@@ -704,7 +707,7 @@ class Symbols : public AllStatic {
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static StringPtr FromCharCode(Thread* thread, int32_t char_code);
+  static StringPtr FromCharCode(Thread* thread, uint16_t char_code);
 
   static StringPtr* PredefinedAddress() {
     return reinterpret_cast<StringPtr*>(&predefined_);

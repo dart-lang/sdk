@@ -301,7 +301,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   options.debugDump = printCode;
   options.target = new NoneTarget(config.targetFlags);
   options.experimentalFlags.addAll(config.experimentalFlags);
-  options.allowedExperimentalFlags = config.allowedExperimentalFlags;
+  options.allowedExperimentalFlagsForTesting = config.allowedExperimentalFlags;
   options.nnbdMode = config.nnbdMode;
   if (config.librariesSpecificationUri != null) {
     Set<Uri> testFiles =

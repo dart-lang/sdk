@@ -4,6 +4,10 @@
 
 import 'package:analyzer/error/error.dart';
 
+// It is hard to visually separate each code's _doc comment_ from its published
+// _documentation comment_ when each is written as an end-of-line comment.
+// ignore_for_file: slash_for_doc_comments
+
 /**
  * The error code indicating a marker in code for work that needs to be finished
  * or revisited.

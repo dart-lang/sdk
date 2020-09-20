@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ForEachElementTest);
-    defineReflectiveTests(ForEachElementWithNnbdTest);
+    defineReflectiveTests(ForEachElementWithNullSafetyTest);
     defineReflectiveTests(ForLoopElementTest);
   });
 }
 
 @reflectiveTest
-class ForEachElementTest extends DriverResolutionTest {
+class ForEachElementTest extends PubPackageResolutionTest {
   test_withDeclaration_scope() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -51,14 +49,10 @@ main() {
 }
 
 @reflectiveTest
-class ForEachElementWithNnbdTest extends ForEachElementTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-
+class ForEachElementWithNullSafetyTest extends ForEachElementTest
+    with WithNullSafetyMixin {
   test_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A implements Iterable<int> {
   Iterator<int> iterator => throw 0;
 }
@@ -78,7 +72,7 @@ main(A a) {
 }
 
 @reflectiveTest
-class ForLoopElementTest extends DriverResolutionTest {
+class ForLoopElementTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 main(bool Function() b) {

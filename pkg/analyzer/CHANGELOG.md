@@ -1,3 +1,110 @@
+## 0.40.2
+* Require `meta: ^1.2.3`.
+
+## 0.40.1
+* Added `LocalVariableElement.hasInitializer`,
+  `PropertyInducingElement.hasInitializer`, `ParameterElement.hasDefaultValue`.
+* `ElementImpl.toString()` uses `getDisplayString(withNullability: true)`.
+* Deprecated `ElementAnnotation.constantValue`, it does not guarantee that
+  the value has been computed. Use `computeConstantValue()` instead.
+* Added `CompoundAssignmentExpression` with read/write element/type getters.
+  This interface is implemented by `AssignmentExpression`, `PostfixExpression`
+  and `PrefixExpression`. Use it instead of `staticElement` and `staticType`
+  of the left-hand side expressions (target expressions in case of postfix
+  or prefix expressions with increment operator).
+* Changes to the way experiments are handled, and SDK version.
+* Bug fixes: 43268, 43214, 39642, 42379, 42629, 43168, 43144, 43100,
+  43032, 43073.
+
+## 0.40.0
+* Added `LibraryElement.featureSet`.
+* Removed deprecated `EmbedderSdk` and related classes.
+* `FunctionType` returned from `ExecutableElement.type` return `null`
+   as its `element`. Use `ExecutableElement`s directly if necessary.
+* `FunctionTypeAliasElement` does not implement `FunctionTypedElement`
+   anymore, implements `TypeParameterizedElement` instead.
+* Removed deprecated `CustomUriResolver`.
+* Removed deprecated `ExplicitSourceResolver`, `FileUriResolver`,
+  `LocalSourcePredicate`, `PackageUriResolver`, `RelativeFileUriResolver`.
+* Removed deprecated `ErrorCode` instances.
+* The `withNullability` flag in `DartType.getDisplayString()` is now required.
+* Removed deprecated `DartType.substitute2`, and `FunctionType.substitute3`,
+  use `ClassElement.instantiate`, `FunctionTypeAliasElement.instantiate()`,
+  or `FunctionType.instantiate()`.
+* Removed deprecated `FunctionType.boundTypeParameters`, use `typeFormals`
+  for now. Later, it will be deprecated, and replaced with `typeParameters`.
+* Removed `InterfaceType.instantiate()`, `InterfaceType.substitute4`,
+  use `ClassElement.instantiate()`.
+* Removed `typeParameters` and `instantiate()` from `ParameterizedType`.
+  Use `typeParameters` and `instantiate()` from `ClassElement`.
+* Removed deprecated methods from `DeclaredVariables`.
+* Removed deprecated `typeProvider` and `typeSystem` getters.
+  Use corresponding `LibraryElement` getters instead.
+* Removed deprecated options from `AnalysisOptions`.
+* Removed deprecated `ClassElement.hasReferenceToSuper`.
+* Removed deprecated `DartType.isObject`.
+  Use `DartType.isDartCoreObject` instead.
+* Removed deprecated declarations in `AnalysisContext` and `ContextLocator`.
+* Removed deprecated libraries.
+* Removed deprecated declarations from TypeProvider.
+* Removed deprecated `ParseResult` and `ResolveResult`.
+* Removed deprecated `AnalysisContext.typeProvider` and `typeSystem`.
+  Use the corresponding getters of `LibraryElement`.
+* Removed deprecated methods of `AnalysisSession`.
+* Removed deprecated declarations from `dart/ast/ast.dart`.
+* Removed deprecated methods from `AstFactory`.
+* Removed deprecated `parseFile2`..
+* Removed deprecated `TypeDefiningElement.type`.
+* Features in `Feature` are not constants anymore.
+* Replaced `Feature.firstSupportedVersion` with `releaseVersion`.
+
+## 0.39.17
+* Depend on cli_util 0.2.0.
+
+## 0.39.16
+* Added `TypeVisitorWithArgument` and `DartType.acceptWithArgument`.
+* Bumped the analyzer's SDK requirement to `>=2.7.0`, so that extension methods
+  can be used within the analyzer implementation. Previously it was `2.6.0`,
+  but there is an [issue](https://github.com/dart-lang/sdk/issues/42888).
+
+## 0.39.15
+* Move `asInstanceOf(ClassElement)` to `DartType`, so that it is also
+  supported for `TypeParameterType` when its bound implements the
+  requested interface.
+* Fixed invalid implicit downcast in `InterfaceType.allSupertypes`.
+* The internal `currentVersion` of the language updated to `2.10`.
+* Bug fixes: 41065, 42797, 42770, 42668.
+
+## 0.39.14
+* Removed `defaultSdkDirectory()` and `getSdkProperty()` from internal
+  `FolderBasedDartSdk`. It is up to the clients to decide how to
+  find SDK, for example using `package:cli_util`.
+* Fixed `LintDriver` for the new way to access `WorkspacePackage`.
+* Deprecated `Scope.lookup()`, use `Scope.lookup2()` instead.
+* Updated implementations of `ContextBuilder.createContext()` and
+  `ContextLocator.locateContexts` to use the current SDK if `sdkPath`
+  is not provided.
+* Bug fixes: #41981, #29731, #42720, #33545, #42599, #42699.
+
+## 0.39.13
+* Added 'dart/sdk/build_sdk_summary.dart' with `buildSdkSummary`.
+* Added `DynamicType`, `NeverType`, and `VoidType` interfaces.
+* Added `TypeVisitor` and `DartType.accept(TypeVisitor)`.
+* Changed `ConstructorElement.returnType` to `InterfaceType`.
+* Added `InterfaceType.allSupertypes`.
+* Added `InterfaceType.asInstanceOf(ClassElement)`.
+* Removed deprecated internal `bogus-disabled` and `bogus-enabled`.
+* Added `Scope`, `LibraryElement.scope`, and `PrefixElement.scope`.
+* Bug fixes: #32192, #42620, #42256, #42605.
+
+## 0.39.12
+* Deprecated `canUseSummaries` in `DartSdkManager` constructor.
+  Summaries are not supported this way for SDK.
+* Set uri for implicit dart:core import.
+* Add overrideKnownFeaturesAsync() for DartDoc testing.
+* Remove DartSdk.useSummary.
+* Move TypeSystemImpl to src/dart/element/type_system.dart
+
 ## 0.39.11
 * Deprecated `ClassElement.hasReferenceToSuper`.
   It was used internally, should not be part of API.

@@ -33,7 +33,7 @@ test() async {
   Divergent<Divergent<int>> x = await new Divergent<int>(); //# 09: runtime error
   Future<Divergent<Divergent<int>>> f() async => new Divergent<int>(); //# 10: ok
   Future<Divergent<Divergent<int>>> f() async { return new Divergent<int>(); } //# 11: ok
-  Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())(); //# 12: runtime error
+  Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())(); //# 12: compile-time error
 }
 
 main() {

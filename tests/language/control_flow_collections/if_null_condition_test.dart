@@ -6,16 +6,16 @@ void main() {
   bool? nullBool;
   var a = <int>[if (nullBool) 1];
   //                ^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   var b = <int, int>{if (nullBool) 1: 1};
   //                     ^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 
   var c = <int>{if (nullBool) 1};
   //                ^^^^^^^^
-  // [analyzer] STATIC_WARNING.UNCHECKED_USE_OF_NULLABLE_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
   // [cfe] A value of type 'bool?' can't be assigned to a variable of type 'bool'.
 }

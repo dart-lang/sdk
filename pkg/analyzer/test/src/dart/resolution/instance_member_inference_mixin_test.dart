@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InstanceMemberInferenceClassTest extends DriverResolutionTest {
+class InstanceMemberInferenceClassTest extends PubPackageResolutionTest {
   test_invalid_inheritanceCycle() async {
     await resolveTestCode('''
 class A extends C {}
@@ -323,15 +321,7 @@ class B<T> extends A<T> {
 
 @reflectiveTest
 class InstanceMemberInferenceClassWithNullSafetyTest
-    extends InstanceMemberInferenceClassTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+    extends InstanceMemberInferenceClassTest with WithNullSafetyMixin {
   test_method_parameter_required_multiple_different_merge() async {
     await resolveTestCode('''
 class A {

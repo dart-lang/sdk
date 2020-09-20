@@ -768,13 +768,16 @@ class _Future<T> implements Future<T> {
     }
   }
 
+  @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
     if (_isComplete) return new _Future.immediate(this);
-    _Future<T> result = new _Future<T>();
+    // This is a VM recognised method, and the _future variable is deliberately
+    // allocated in a specific slot in the closure context for stack unwinding.
+    _Future<T> _future = new _Future<T>();
     Timer timer;
     if (onTimeout == null) {
       timer = new Timer(timeLimit, () {
-        result._completeError(
+        _future._completeError(
             new TimeoutException("Future not completed", timeLimit),
             StackTrace.empty);
       });
@@ -785,24 +788,24 @@ class _Future<T> implements Future<T> {
 
       timer = new Timer(timeLimit, () {
         try {
-          result._complete(zone.run(onTimeoutHandler));
+          _future._complete(zone.run(onTimeoutHandler));
         } catch (e, s) {
-          result._completeError(e, s);
+          _future._completeError(e, s);
         }
       });
     }
     this.then((T v) {
       if (timer.isActive) {
         timer.cancel();
-        result._completeWithValue(v);
+        _future._completeWithValue(v);
       }
     }, onError: (Object e, StackTrace s) {
       if (timer.isActive) {
         timer.cancel();
-        result._completeError(e, s);
+        _future._completeError(e, s);
       }
     });
-    return result;
+    return _future;
   }
 }
 

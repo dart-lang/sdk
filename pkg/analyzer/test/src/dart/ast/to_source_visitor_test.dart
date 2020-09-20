@@ -898,6 +898,22 @@ class ToSourceVisitor2Test {
                 [AstTestFactory.identifier3('o')])));
   }
 
+  void test_visitFieldDeclaration_abstract() {
+    _assertSource(
+        "abstract var a;",
+        AstTestFactory.fieldDeclaration(
+            false, Keyword.VAR, null, [AstTestFactory.variableDeclaration("a")],
+            isAbstract: true));
+  }
+
+  void test_visitFieldDeclaration_external() {
+    _assertSource(
+        "external var a;",
+        AstTestFactory.fieldDeclaration(
+            false, Keyword.VAR, null, [AstTestFactory.variableDeclaration("a")],
+            isExternal: true));
+  }
+
   void test_visitFieldDeclaration_instance() {
     _assertSource(
         "var a;",
@@ -1741,9 +1757,12 @@ class ToSourceVisitor2Test {
 
   void test_visitIndexExpression() {
     _assertSource(
-        "a[i]",
-        AstTestFactory.indexExpression(
-            AstTestFactory.identifier3("a"), AstTestFactory.identifier3("i")));
+      "a[i]",
+      AstTestFactory.indexExpression(
+        target: AstTestFactory.identifier3("a"),
+        index: AstTestFactory.identifier3("i"),
+      ),
+    );
   }
 
   void test_visitInstanceCreationExpression_const() {
@@ -2595,6 +2614,14 @@ class ToSourceVisitor2Test {
   void test_visitThrowStatement() {
     _assertSource("throw e",
         AstTestFactory.throwExpression2(AstTestFactory.identifier3("e")));
+  }
+
+  void test_visitTopLevelVariableDeclaration_external() {
+    _assertSource(
+        "external var a;",
+        AstTestFactory.topLevelVariableDeclaration2(
+            Keyword.VAR, [AstTestFactory.variableDeclaration("a")],
+            isExternal: true));
   }
 
   void test_visitTopLevelVariableDeclaration_multiple() {

@@ -357,7 +357,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List _getBucket(var table, var key) {
+  List? _getBucket(var table, var key) {
     var hash = _computeHashCode(key);
     return JS('var', '#[#]', table, hash);
   }
@@ -905,7 +905,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     var bucket = _getBucket(rest, object);
     var index = _findBucketIndex(bucket, object);
     if (index < 0) return null;
-    return bucket[index];
+    return JS('', '#[#]', bucket, index);
   }
 
   // Collection.
@@ -1091,7 +1091,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List _getBucket(var table, var element) {
+  List? _getBucket(var table, var element) {
     var hash = _computeHashCode(element);
     return JS('var', '#[#]', table, hash);
   }
@@ -1357,7 +1357,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     var bucket = _getBucket(rest, object);
     var index = _findBucketIndex(bucket, object);
     if (index < 0) return null;
-    return bucket[index]._element;
+    return JS<_LinkedHashSetCell>('', '#[#]', bucket, index)._element;
   }
 
   void forEach(void action(E element)) {
@@ -1564,7 +1564,7 @@ class _LinkedHashSet<E> extends _SetBase<E> implements LinkedHashSet<E> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  List _getBucket(var table, var element) {
+  List? _getBucket(var table, var element) {
     var hash = _computeHashCode(element);
     return JS('var', '#[#]', table, hash);
   }

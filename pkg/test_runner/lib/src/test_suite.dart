@@ -55,14 +55,16 @@ abstract class TestSuite {
   TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
     _environmentOverrides = {
       'DART_CONFIGURATION': configuration.configurationDirectory,
+      if (Platform.isWindows) 'DART_SUPPRESS_WER': '1',
+      if (Platform.isWindows && configuration.copyCoreDumps)
+        'DART_CRASHPAD_HANDLER':
+            Uri.base.resolve(buildDir + '/crashpad_handler.exe').toFilePath(),
+      if (configuration.chromePath != null)
+        'CHROME_PATH': Uri.base.resolve(configuration.chromePath).toFilePath(),
+      if (configuration.firefoxPath != null)
+        'FIREFOX_PATH':
+            Uri.base.resolve(configuration.firefoxPath).toFilePath(),
     };
-    if (Platform.isWindows) {
-      _environmentOverrides['DART_SUPPRESS_WER'] = '1';
-      if (configuration.copyCoreDumps) {
-        _environmentOverrides['DART_CRASHPAD_HANDLER'] =
-            Path(buildDir + '/crashpad_handler.exe').absolute.toNativePath();
-      }
-    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -163,7 +165,19 @@ abstract class TestSuite {
       }
     }
 
-    return true;
+    // Normal runtime tests are always run.
+    if (testFile.isRuntimeTest) return true;
+
+    // Tests of web-specific static errors are run on web compilers.
+    if (testFile.isWebStaticErrorTest &&
+        (configuration.compiler == Compiler.dart2js ||
+            configuration.compiler == Compiler.dartdevc)) {
+      return true;
+    }
+
+    // Other static error tests are run on front-end-only configurations.
+    return configuration.compiler == Compiler.dart2analyzer ||
+        configuration.compiler == Compiler.fasta;
   }
 
   /// Whether a test with [expectations] should be skipped under the current
@@ -555,21 +569,6 @@ class StandardTestSuite extends TestSuite {
   /// options.
   void _testCasesFromTestFile(
       TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
-    // Static error tests are skipped on every implementation except analyzer
-    // and Fasta.
-    // TODO(rnystrom): Should other configurations that use CFE support static
-    // error tests?
-    // TODO(rnystrom): Skipping this here is a little unusual because most
-    // skips are handled in _addTestCase(). However, if the configuration
-    // is running on a browser, calling _addTestCase() will try to create
-    // a set of commands which ultimately causes an exception in
-    // DummyRuntimeConfiguration. This avoids that.
-    if (testFile.isStaticErrorTest &&
-        configuration.compiler != Compiler.dart2analyzer &&
-        configuration.compiler != Compiler.fasta) {
-      return;
-    }
-
     // The configuration must support everything the test needs.
     if (!configuration.supportedFeatures.containsAll(testFile.requirements)) {
       return;
@@ -577,7 +576,7 @@ class StandardTestSuite extends TestSuite {
 
     var expectationSet = expectations.expectations(testFile.name);
     if (configuration.compilerConfiguration.hasCompiler &&
-        (testFile.hasCompileError || testFile.isStaticErrorTest)) {
+        (testFile.hasCompileError || !testFile.isRuntimeTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -596,14 +595,14 @@ class StandardTestSuite extends TestSuite {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
-    assert(!vmOptionsList.isEmpty);
+    assert(vmOptionsList.isNotEmpty);
 
     for (var vmOptionsVariant = 0;
         vmOptionsVariant < vmOptionsList.length;
         vmOptionsVariant++) {
       var vmOptions = vmOptionsList[vmOptionsVariant];
       var allVmOptions = vmOptions;
-      if (!extraVmOptions.isEmpty) {
+      if (extraVmOptions.isNotEmpty) {
         allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
@@ -624,7 +623,7 @@ class StandardTestSuite extends TestSuite {
     var commonArguments = _commonArgumentsFromFile(testFile);
 
     var vmOptionsList = getVmOptions(testFile);
-    assert(!vmOptionsList.isEmpty);
+    assert(vmOptionsList.isNotEmpty);
 
     var emitDdsTest = false;
     for (var i = 0; i < 2; ++i) {
@@ -633,7 +632,7 @@ class StandardTestSuite extends TestSuite {
           vmOptionsVariant++) {
         var vmOptions = vmOptionsList[vmOptionsVariant];
         var allVmOptions = vmOptions;
-        if (!extraVmOptions.isEmpty) {
+        if (extraVmOptions.isNotEmpty) {
           allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
         }
         if (emitDdsTest) {
@@ -679,7 +678,7 @@ class StandardTestSuite extends TestSuite {
       for (var name in testFile.otherResources) {
         var namePath = Path(name);
         var fromPath = testFile.path.directoryPath.join(namePath);
-        File('$tempDir/$name').parent.createSync(recursive: true);
+        File('$tempDir/$name').createSync(recursive: true);
         File(fromPath.toNativePath()).copySync('$tempDir/$name');
       }
     }
@@ -690,7 +689,7 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (testFile.hasCompileError &&
+    if ((testFile.hasCompileError || testFile.isStaticErrorTest) &&
         compilerConfiguration.hasCompiler &&
         !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
@@ -744,10 +743,9 @@ class StandardTestSuite extends TestSuite {
       return "/$prefixDartDir/$fileRelativeToDartDir";
     }
 
-    // Unreachable.
     print("Cannot create URL for path $file. Not in build or dart directory.");
     exit(1);
-    return null;
+    throw "unreachable";
   }
 
   String _uriForBrowserTest(String pathComponent) {
@@ -808,8 +806,10 @@ class StandardTestSuite extends TestSuite {
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
+        var nullAssertions =
+            testFile.sharedOptions.contains('--null-assertions');
         content = dartdevcHtml(nameNoExt, nameFromModuleRootNoExt, jsDir,
-            configuration.compiler, configuration.nnbdMode);
+            configuration.compiler, configuration.nnbdMode, nullAssertions);
       }
     }
 

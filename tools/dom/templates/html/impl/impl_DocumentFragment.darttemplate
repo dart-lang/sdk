@@ -60,7 +60,12 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
-  String get innerHtml {
+$if NNBD
+  // innerHtml is marked as nullable, even though it is guaranteed to return a
+  // non-nullable, because ShadowRoot.innerHtml overrides it and can be
+  // incompatible.
+$endif
+  String$NULLABLE get innerHtml {
     final e = new DivElement();
     e.append(this.clone(true));
     return e.innerHtml;

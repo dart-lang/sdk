@@ -2,22 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstNotInitializedTest);
-    defineReflectiveTests(ConstNotInitializedWithNnbdTest);
+    defineReflectiveTests(ConstNotInitializedWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConstNotInitializedTest extends DriverResolutionTest {
+class ConstNotInitializedTest extends PubPackageResolutionTest {
   test_extension_static() async {
     await assertErrorsInCode('''
 extension E on String {
@@ -58,9 +56,5 @@ const F;
 }
 
 @reflectiveTest
-class ConstNotInitializedWithNnbdTest extends ConstNotInitializedTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
-}
+class ConstNotInitializedWithNullSafetyTest extends ConstNotInitializedTest
+    with WithNullSafetyMixin {}

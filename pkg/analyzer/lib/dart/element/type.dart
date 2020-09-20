@@ -21,7 +21,9 @@
 /// the references to `String` and `int` are type arguments.
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
+import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
@@ -107,10 +109,6 @@ abstract class DartType {
   /// Return `true` if this type represents the type 'dynamic'.
   bool get isDynamic;
 
-  /// Return `true` if this type represents the type 'Object'.
-  @Deprecated('Use isDartCoreObject')
-  bool get isObject;
-
   /// Return `true` if this type represents the type 'void'.
   bool get isVoid;
 
@@ -121,6 +119,32 @@ abstract class DartType {
 
   /// Return the nullability suffix of this type.
   NullabilitySuffix get nullabilitySuffix;
+
+  /// Use the given [visitor] to visit this type.
+  R accept<R>(TypeVisitor<R> visitor);
+
+  /// Use the given [visitor] to visit this type.
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  );
+
+  /// Return the canonical interface that this type implements for [element],
+  /// or `null` if such an interface does not exist.
+  ///
+  /// For example, given the following definitions
+  /// ```
+  /// class A<E> {}
+  /// class B<E> implements A<E> {}
+  /// class C implements A<String> {}
+  /// ```
+  /// Asking the type `B<int>` for the type associated with `A` will return the
+  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
+  /// return the type `A<String>`.
+  ///
+  /// For a [TypeParameterType] with a bound (declared or promoted), returns
+  /// the interface implemented by the bound.
+  InterfaceType asInstanceOf(ClassElement element);
 
   /// Return the presentation of this type as it should appear when presented
   /// to users in contexts such as error messages.
@@ -134,7 +158,7 @@ abstract class DartType {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
-  String getDisplayString({bool withNullability = false});
+  String getDisplayString({@required bool withNullability});
 
   /// If this type is a [TypeParameterType], returns its bound if it has one, or
   /// [objectType] otherwise.
@@ -142,28 +166,13 @@ abstract class DartType {
   /// For any other type, returns `this`. Applies recursively -- if the bound is
   /// itself a type parameter, that is resolved too.
   DartType resolveToBound(DartType objectType);
-
-  /// Return the type resulting from substituting the given [argumentTypes] for
-  /// the given [parameterTypes] in this type. The specification defines this
-  /// operation in section 2:
-  /// <blockquote>
-  /// The notation <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ...,
-  /// y<sub>n</sub>]E</i> denotes a copy of <i>E</i> in which all occurrences of
-  /// <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
-  /// <i>x<sub>i</sub></i>.
-  /// </blockquote>
-  /// Note that, contrary to the specification, this method will not create a
-  /// copy of this type if no substitutions were required, but will return this
-  /// type directly.
-  ///
-  /// Note too that the current implementation of this method is only guaranteed
-  /// to work when the parameter types are type variables.
-  @Deprecated("""
-Use ClassElement.instantiate() or FunctionTypeAliasElement.instantiate()
-""")
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
+
+/// The type `dynamic` is a type which is a supertype of all other types, just
+/// like `Object`, with the difference that the static analysis assumes that
+/// every member access has a corresponding member with a signature that
+/// admits the given access.
+abstract class DynamicType implements DartType {}
 
 /// The type of a function, method, constructor, getter, or setter. Function
 /// types come in three variations:
@@ -179,10 +188,6 @@ Use ClassElement.instantiate() or FunctionTypeAliasElement.instantiate()
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionType implements ParameterizedType {
-  /// Deprecated: use [typeFormals].
-  @deprecated
-  List<TypeParameterElement> get boundTypeParameters;
-
   /// Return a map from the names of named parameters to the types of the named
   /// parameters of this type of function. The entries in the map will be
   /// iterated in the same order as the order in which the named parameters were
@@ -227,19 +232,10 @@ abstract class FunctionType implements ParameterizedType {
   /// from the perspective of this function type.
   List<TypeParameterElement> get typeFormals;
 
-  @override
+  /// Produces a new function type by substituting type parameters of this
+  /// function type with the given [typeArguments]. The resulting function
+  /// type will have no type parameters.
   FunctionType instantiate(List<DartType> argumentTypes);
-
-  @Deprecated("Use FunctionTypeAliasElement.instantiate()")
-  @override
-  FunctionType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
-
-  /// Return the type resulting from substituting the given [argumentTypes] for
-  /// this type's parameters. This is fully equivalent to
-  /// `substitute(argumentTypes, getTypeArguments())`.
-  @deprecated // use instantiate
-  FunctionType substitute3(List<DartType> argumentTypes);
 }
 
 /// The type introduced by either a class or an interface, or a reference to
@@ -250,6 +246,10 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this type.
   List<PropertyAccessorElement> get accessors;
+
+  /// Return all the super-interfaces implemented by this interface. This
+  /// includes superclasses, mixins, interfaces, and superclass constraints.
+  List<InterfaceType> get allSupertypes;
 
   /// Return a list containing all of the constructors declared in this type.
   List<ConstructorElement> get constructors;
@@ -299,10 +299,6 @@ abstract class InterfaceType implements ParameterizedType {
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
   PropertyAccessorElement getSetter(String name);
-
-  @Deprecated("Use ClassElement.instantiate()")
-  @override
-  InterfaceType instantiate(List<DartType> argumentTypes);
 
   /// Return the element representing the constructor that results from looking
   /// up the constructor with the given [name] in this class with respect to the
@@ -528,17 +524,6 @@ abstract class InterfaceType implements ParameterizedType {
   PropertyAccessorElement lookUpSetterInSuperclass(
       String name, LibraryElement library);
 
-  @Deprecated("Use ClassElement.instantiate()")
-  @override
-  InterfaceType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
-
-  /// Return the type resulting from substituting the given arguments for this
-  /// type's parameters. This is fully equivalent to `substitute2(argumentTypes,
-  /// getTypeArguments())`.
-  @deprecated // use instantiate
-  InterfaceType substitute4(List<DartType> argumentTypes);
-
   /// Returns a "smart" version of the "least upper bound" of the given types.
   ///
   /// If these types have the same element and differ only in terms of the type
@@ -550,6 +535,9 @@ abstract class InterfaceType implements ParameterizedType {
           InterfaceType first, InterfaceType second) =>
       InterfaceTypeImpl.getSmartLeastUpperBound(first, second);
 }
+
+/// The type `Never` represents the uninhabited bottom type.
+abstract class NeverType implements DartType {}
 
 /// A type that can track substituted type parameters, either for itself after
 /// instantiation, or from a surrounding context.
@@ -571,16 +559,6 @@ abstract class ParameterizedType implements DartType {
   /// A [FunctionType] has type arguments only if it is a result of a typedef
   /// instantiation, otherwise the result is `null`.
   List<DartType> get typeArguments;
-
-  /// Return a list containing all of the type parameters declared for this
-  /// type.
-  @Deprecated("Use ClassElement.typeParameters or FunctionType.typeFormals")
-  List<TypeParameterElement> get typeParameters;
-
-  /// Return the type resulting from instantiating (replacing) the given
-  /// [argumentTypes] for this type's bound type parameters.
-  @Deprecated("Use ClassElement.instantiate()")
-  ParameterizedType instantiate(List<DartType> argumentTypes);
 }
 
 /// The type introduced by a type parameter.
@@ -601,3 +579,7 @@ abstract class TypeParameterType implements DartType {
   @override
   TypeParameterElement get element;
 }
+
+/// The special type `void` is used to indicate that the value of an
+/// expression is meaningless, and intended to be discarded.
+abstract class VoidType implements DartType {}

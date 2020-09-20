@@ -3690,6 +3690,8 @@ class NavigationRegion implements HasToJson {
 ///   "length": int
 ///   "startLine": int
 ///   "startColumn": int
+///   "codeOffset": optional int
+///   "codeLength": optional int
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3705,6 +3707,10 @@ class NavigationTarget implements HasToJson {
   int _startLine;
 
   int _startColumn;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   /// The kind of the element.
   ElementKind get kind => _kind;
@@ -3726,54 +3732,73 @@ class NavigationTarget implements HasToJson {
     _fileIndex = value;
   }
 
-  /// The offset of the region to which the user can navigate.
+  /// The offset of the name of the target to which the user can navigate.
   int get offset => _offset;
 
-  /// The offset of the region to which the user can navigate.
+  /// The offset of the name of the target to which the user can navigate.
   set offset(int value) {
     assert(value != null);
     _offset = value;
   }
 
-  /// The length of the region to which the user can navigate.
+  /// The length of the name of the target to which the user can navigate.
   int get length => _length;
 
-  /// The length of the region to which the user can navigate.
+  /// The length of the name of the target to which the user can navigate.
   set length(int value) {
     assert(value != null);
     _length = value;
   }
 
   /// The one-based index of the line containing the first character of the
-  /// region.
+  /// name of the target.
   int get startLine => _startLine;
 
   /// The one-based index of the line containing the first character of the
-  /// region.
+  /// name of the target.
   set startLine(int value) {
     assert(value != null);
     _startLine = value;
   }
 
   /// The one-based index of the column containing the first character of the
-  /// region.
+  /// name of the target.
   int get startColumn => _startColumn;
 
   /// The one-based index of the column containing the first character of the
-  /// region.
+  /// name of the target.
   set startColumn(int value) {
     assert(value != null);
     _startColumn = value;
   }
 
+  /// The offset of the target code to which the user can navigate.
+  int get codeOffset => _codeOffset;
+
+  /// The offset of the target code to which the user can navigate.
+  set codeOffset(int value) {
+    _codeOffset = value;
+  }
+
+  /// The length of the target code to which the user can navigate.
+  int get codeLength => _codeLength;
+
+  /// The length of the target code to which the user can navigate.
+  set codeLength(int value) {
+    _codeLength = value;
+  }
+
   NavigationTarget(ElementKind kind, int fileIndex, int offset, int length,
-      int startLine, int startColumn) {
+      int startLine, int startColumn,
+      {int codeOffset, int codeLength}) {
     this.kind = kind;
     this.fileIndex = fileIndex;
     this.offset = offset;
     this.length = length;
     this.startLine = startLine;
     this.startColumn = startColumn;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
   }
 
   factory NavigationTarget.fromJson(
@@ -3820,8 +3845,19 @@ class NavigationTarget implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
+      int codeOffset;
+      if (json.containsKey('codeOffset')) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + '.codeOffset', json['codeOffset']);
+      }
+      int codeLength;
+      if (json.containsKey('codeLength')) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + '.codeLength', json['codeLength']);
+      }
       return NavigationTarget(
-          kind, fileIndex, offset, length, startLine, startColumn);
+          kind, fileIndex, offset, length, startLine, startColumn,
+          codeOffset: codeOffset, codeLength: codeLength);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'NavigationTarget', json);
     }
@@ -3836,6 +3872,12 @@ class NavigationTarget implements HasToJson {
     result['length'] = length;
     result['startLine'] = startLine;
     result['startColumn'] = startColumn;
+    if (codeOffset != null) {
+      result['codeOffset'] = codeOffset;
+    }
+    if (codeLength != null) {
+      result['codeLength'] = codeLength;
+    }
     return result;
   }
 
@@ -3850,7 +3892,9 @@ class NavigationTarget implements HasToJson {
           offset == other.offset &&
           length == other.length &&
           startLine == other.startLine &&
-          startColumn == other.startColumn;
+          startColumn == other.startColumn &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength;
     }
     return false;
   }
@@ -3864,6 +3908,8 @@ class NavigationTarget implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
     hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
     hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

@@ -62,7 +62,15 @@ library /*isNonNullableByDefault*/;
 //   nonNullableClass.nullableField += 2; // error
 //                                  ^
 //
+// pkg/front_end/testcases/nnbd/null_access.dart:48:34: Error: A value of type 'num' can't be assigned to a variable of type 'int?'.
+//   nonNullableClass.nullableField += 2; // error
+//                                  ^
+//
 // pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+//   nullableClass?.nullableField += 2; // error
+//                                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: A value of type 'num' can't be assigned to a variable of type 'int?'.
 //   nullableClass?.nullableField += 2; // error
 //                                ^
 //
@@ -171,22 +179,26 @@ Try accessing using ?. instead.
   let final self::Class? #t28 = nullableClass in #t28.{core::Object::==}(null) ?{core::int?} null : #t28.{self::Class::nonNullableField} = #t28.{self::Class::nonNullableField}.{core::num::+}(2);
   let final self::Class? #t29 = nullableClass in #t29.{core::Object::==}(null) ?{core::int?} null : #t29{self::Class}.{self::Class::nonNullableClass}.{self::Class::nonNullableField};
   let final self::Class? #t30 = nullableClass in #t30.{core::Object::==}(null) ?{core::int?} null : #t30{self::Class}.{self::Class::nonNullableClass}.{self::Class::nonNullableField} = 2;
-  let final self::Class #t31 = nonNullableClass in #t31.{self::Class::nullableField} = let final<BottomType> #t32 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:48:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  let final self::Class #t31 = nonNullableClass in #t31.{self::Class::nullableField} = let final<BottomType> #t32 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:48:34: Error: A value of type 'num' can't be assigned to a variable of type 'int?'.
   nonNullableClass.nullableField += 2; // error
-                                 ^" in #t31.{self::Class::nullableField}.{core::num::+}(2);
-  let final self::Class? #t33 = nullableClass in #t33.{core::Object::==}(null) ?{core::int?} null : #t33.{self::Class::nullableField} = let final<BottomType> #t34 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+                                 ^" in (let final<BottomType> #t33 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:48:34: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  nonNullableClass.nullableField += 2; // error
+                                 ^" in #t31.{self::Class::nullableField}.{core::num::+}(2)) as{TypeError,ForNonNullableByDefault} core::int?;
+  let final self::Class? #t34 = nullableClass in #t34.{core::Object::==}(null) ?{core::num?} null : #t34.{self::Class::nullableField} = let final<BottomType> #t35 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: A value of type 'num' can't be assigned to a variable of type 'int?'.
   nullableClass?.nullableField += 2; // error
-                               ^" in #t33.{self::Class::nullableField}.{core::num::+}(2);
-  let final self::Class? #t35 = nullableClass in #t35.{core::Object::==}(null) ?{core::int?} null : #t35.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t35.{self::Class::nonNullableField} = 0 : null;
-  let final self::Class? #t36 = nullableClass in #t36.{core::Object::==}(null) ?{core::int?} null : #t36.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t36.{self::Class::nullableField} = 0 : null;
-  let final self::Class? #t37 = nullableClass in #t37.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t38 = #t37{self::Class}.{self::Class::nonNullableClass} in #t38{self::Class}.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t38{self::Class}.{self::Class::nonNullableField} = 0 : null;
-  let final self::Class? #t39 = nullableClass in #t39.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t40 = #t39{self::Class}.{self::Class::nonNullableClass} in #t40{self::Class}.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t40{self::Class}.{self::Class::nullableField} = 0 : null;
-  let final<BottomType> #t41 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
+                               ^" in (let final<BottomType> #t36 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:49:32: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  nullableClass?.nullableField += 2; // error
+                               ^" in #t34.{self::Class::nullableField}.{core::num::+}(2)) as{TypeError,ForNonNullableByDefault} core::int?;
+  let final self::Class? #t37 = nullableClass in #t37.{core::Object::==}(null) ?{core::int?} null : #t37.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t37.{self::Class::nonNullableField} = 0 : null;
+  let final self::Class? #t38 = nullableClass in #t38.{core::Object::==}(null) ?{core::int?} null : #t38.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t38.{self::Class::nullableField} = 0 : null;
+  let final self::Class? #t39 = nullableClass in #t39.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t40 = #t39{self::Class}.{self::Class::nonNullableClass} in #t40{self::Class}.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t40{self::Class}.{self::Class::nonNullableField} = 0 : null;
+  let final self::Class? #t41 = nullableClass in #t41.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t42 = #t41{self::Class}.{self::Class::nonNullableClass} in #t42{self::Class}.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t42{self::Class}.{self::Class::nullableField} = 0 : null;
+  let final<BottomType> #t43 = invalid-expression "pkg/front_end/testcases/nnbd/null_access.dart:57:16: Error: Can't use an expression of type 'Class?' as a function because it's potentially null.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
 Try calling using ?.call instead.
   nullableClass(); // error
                ^" in nullableClass.{self::Class::call}();
   nonNullableClass.{self::Class::call}();
-  let final self::Class #t42 = nonNullableClass in #t42.{core::Object::==}(null) ?{self::Class?} null : #t42.{self::Class::nonNullableClass}.{self::Class::call}();
-  let final self::Class #t43 = nonNullableClass in #t43.{core::Object::==}(null) ?{self::Class?} null : #t43.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}.{self::Class::call}();
+  let final self::Class #t44 = nonNullableClass in #t44.{core::Object::==}(null) ?{self::Class?} null : #t44.{self::Class::nonNullableClass}.{self::Class::call}();
+  let final self::Class #t45 = nonNullableClass in #t45.{core::Object::==}(null) ?{self::Class?} null : #t45.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}.{self::Class::call}();
 }

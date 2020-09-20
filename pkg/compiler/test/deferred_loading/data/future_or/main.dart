@@ -8,10 +8,7 @@ import 'dart:async';
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib2;
 
-/*member: main:
- OutputUnit(main, {}),
- constants=[ConstructedConstant(A())=OutputUnit(1, {lib1})]
-*/
+/*member: main:OutputUnit(main, {}),constants=[ConstructedConstant(A())=OutputUnit(1, {lib1})]*/
 main() async {
   await lib1.loadLibrary();
   lib1.field is FutureOr<lib2.A>;

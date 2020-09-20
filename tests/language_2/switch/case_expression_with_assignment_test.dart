@@ -15,7 +15,7 @@ errorToString(error) {
       return "ERROR_A";
     case ERROR_B = 1:
     //   ^^^^^^^
-    // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_CONST
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
     //   ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_CASE_EXPRESSION
     //           ^

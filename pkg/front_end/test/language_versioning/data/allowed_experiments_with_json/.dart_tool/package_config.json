@@ -1,0 +1,10 @@
+{
+    "configVersion": 2,
+    "packages": [
+        {
+            "name": "collection",
+            "rootUri": "../foo/",
+            "packageUri": "lib/"
+        }
+    ]
+}

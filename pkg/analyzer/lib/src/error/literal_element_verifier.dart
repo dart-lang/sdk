@@ -8,8 +8,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 
 /// Verifier for [CollectionElement]s in list, set, or map literals.
 class LiteralElementVerifier {
@@ -50,8 +50,8 @@ class LiteralElementVerifier {
   void _checkAssignableToElementType(DartType type, AstNode errorNode) {
     if (!typeSystem.isAssignableTo2(type, elementType)) {
       var errorCode = forList
-          ? StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-          : StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
+          ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+          : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
       errorReporter.reportErrorForNode(
         errorCode,
         errorNode,
@@ -110,7 +110,7 @@ class LiteralElementVerifier {
     var keyType = entry.key.staticType;
     if (!typeSystem.isAssignableTo2(keyType, mapKeyType)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         entry.key,
         [keyType, mapKeyType],
       );
@@ -119,7 +119,7 @@ class LiteralElementVerifier {
     var valueType = entry.value.staticType;
     if (!typeSystem.isAssignableTo2(valueType, mapValueType)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         entry.value,
         [valueType, mapValueType],
       );
@@ -132,22 +132,36 @@ class LiteralElementVerifier {
     var expressionType = expression.staticType;
     if (expressionType.isDynamic) return;
 
-    if (expressionType.isDartCoreNull) {
-      if (!isNullAware) {
+    if (typeSystem.isNonNullableByDefault) {
+      if (typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+        return;
+      }
+      if (typeSystem.isSubtypeOf2(expressionType, typeSystem.nullNone)) {
+        if (isNullAware) {
+          return;
+        }
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
           expression,
         );
+        return;
       }
-      return;
+    } else {
+      if (expressionType.isDartCoreNull) {
+        if (isNullAware) {
+          return;
+        }
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+          expression,
+        );
+        return;
+      }
     }
 
-    expressionType = typeSystem.resolveToBound(expressionType);
-
-    InterfaceType iterableType;
-    if (expressionType is InterfaceTypeImpl) {
-      iterableType = expressionType.asInstanceOf(typeProvider.iterableElement);
-    }
+    var iterableType = expressionType.asInstanceOf(
+      typeProvider.iterableElement,
+    );
 
     if (iterableType == null) {
       return errorReporter.reportErrorForNode(
@@ -159,8 +173,8 @@ class LiteralElementVerifier {
     var iterableElementType = iterableType.typeArguments[0];
     if (!typeSystem.isAssignableTo2(iterableElementType, elementType)) {
       var errorCode = forList
-          ? StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-          : StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
+          ? CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+          : CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE;
       errorReporter.reportErrorForNode(
         errorCode,
         expression,
@@ -175,22 +189,36 @@ class LiteralElementVerifier {
     var expressionType = expression.staticType;
     if (expressionType.isDynamic) return;
 
-    if (expressionType.isDartCoreNull) {
-      if (!isNullAware) {
+    if (typeSystem.isNonNullableByDefault) {
+      if (typeSystem.isSubtypeOf2(expressionType, NeverTypeImpl.instance)) {
+        return;
+      }
+      if (typeSystem.isSubtypeOf2(expressionType, typeSystem.nullNone)) {
+        if (isNullAware) {
+          return;
+        }
         errorReporter.reportErrorForNode(
           CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
           expression,
         );
+        return;
       }
-      return;
+    } else {
+      if (expressionType.isDartCoreNull) {
+        if (isNullAware) {
+          return;
+        }
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
+          expression,
+        );
+        return;
+      }
     }
 
-    expressionType = typeSystem.resolveToBound(expressionType);
-
-    InterfaceType mapType;
-    if (expressionType is InterfaceTypeImpl) {
-      mapType = expressionType.asInstanceOf(typeProvider.mapElement);
-    }
+    var mapType = expressionType.asInstanceOf(
+      typeProvider.mapElement,
+    );
 
     if (mapType == null) {
       return errorReporter.reportErrorForNode(
@@ -202,7 +230,7 @@ class LiteralElementVerifier {
     var keyType = mapType.typeArguments[0];
     if (!typeSystem.isAssignableTo2(keyType, mapKeyType)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         expression,
         [keyType, mapKeyType],
       );
@@ -211,7 +239,7 @@ class LiteralElementVerifier {
     var valueType = mapType.typeArguments[1];
     if (!typeSystem.isAssignableTo2(valueType, mapValueType)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         expression,
         [valueType, mapValueType],
       );

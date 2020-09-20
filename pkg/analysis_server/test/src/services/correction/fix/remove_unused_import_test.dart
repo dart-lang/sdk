@@ -72,7 +72,7 @@ main() {
 import 'dart:math'; import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
   print(f);
 }
 ''');
@@ -80,7 +80,7 @@ main() {
 import 'dart:async';
 
 main() {
-  Future f;
+  Completer f;
   print(f);
 }
 ''');

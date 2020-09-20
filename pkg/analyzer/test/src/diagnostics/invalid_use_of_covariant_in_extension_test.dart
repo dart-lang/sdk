@@ -5,7 +5,7 @@
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class InvalidUseOfCovariantInExtensionTest extends DriverResolutionTest {
+class InvalidUseOfCovariantInExtensionTest extends PubPackageResolutionTest {
   test_optional_named() async {
     await assertErrorsInCode('''
 extension E on String {

@@ -188,25 +188,25 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   Class2? nullable2 = n2;
   Class3? nullable3 = n3;
 
-  Extension1(n1)?.[nullable1];
-  Extension1(n1)?.[nullable1] = new Class1();
-  Extension1(n1)?.[nullable1]?.nonNullable1Method();
+  Extension1(n1)?[nullable1];
+  Extension1(n1)?[nullable1] = new Class1();
+  Extension1(n1)?[nullable1]?.nonNullable1Method();
   Extension1(n1)?.nonNullable1[nullable1];
   Extension1(n1)?.nonNullable1[nullable1] = new Class1();
   nullable1 = Extension1(n1)?.nonNullable1[nullable1] = new Class1();
   Extension1(n1)?.nonNullable1[nullable1]?.nonNullable1Method();
   Extension1(n1)?.nonNullable2[nullable2] += 0;
   nullable2 = Extension1(n1)?.nonNullable2[nullable2] += 0;
-  Extension1(n1)?.[nullable1] ??= nullable1;
-  nullable1 = Extension1(n1)?.[nullable1] ??= nullable1;
-  Extension2(n2)?.[nullable2] += 0;
-  nullable2 = Extension2(n2)?.[nullable2] += 0;
-  Extension2(n2)?.[nullable2] += 0;
-  nullable2 = Extension2(n2)?.[nullable2] += 0;
-  Extension2(n2)?.[nullable2]++;
-  nullable2 = Extension2(n2)?.[nullable2]++;
-  ++Extension2(n2)?.[nullable2];
-  nullable2 = ++Extension2(n2)?.[nullable2];
+  Extension1(n1)?[nullable1] ??= nullable1;
+  nullable1 = Extension1(n1)?[nullable1] ??= nullable1;
+  Extension2(n2)?[nullable2] += 0;
+  nullable2 = Extension2(n2)?[nullable2] += 0;
+  Extension2(n2)?[nullable2] += 0;
+  nullable2 = Extension2(n2)?[nullable2] += 0;
+  Extension2(n2)?[nullable2]++;
+  nullable2 = Extension2(n2)?[nullable2]++;
+  ++Extension2(n2)?[nullable2];
+  nullable2 = ++Extension2(n2)?[nullable2];
   Extension1(n1)?.nonNullable2[nullable2]++;
   nullable2 = Extension1(n1)?.nonNullable2[nullable2]++;
   ++Extension1(n1)?.nonNullable2[nullable2];
@@ -223,19 +223,19 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   ++Extension1(n1)?.nonNullable2[nullable2][nullable2];
   nullable2 = ++Extension1(n1)?.nonNullable2[nullable2][nullable2];
 
-  Extension1(n1)?.[nullable1]?.[nullable1];
-  Extension1(n1)?.[nullable1]?.[nullable1] = new Class1();
-  nullable1 = Extension1(n1)?.[nullable1]?.[nullable1] = new Class1();
-  Extension1(n1)?.[nullable1]?.[nullable1]?.nonNullable1Method();
-  nullable1 = Extension1(n1)?.[nullable1]?.[nullable1]?.nonNullable1Method();
-  Extension1(n1)?.[nullable1]?.[nullable1] ??= nullable1;
-  nullable1 = Extension1(n1)?.[nullable1]?.[nullable1] ??= nullable1;
-  Extension3(n3)?.[nullable3]?.[nullable2] += 0;
-  nullable2 = Extension3(n3)?.[nullable3]?.[nullable2] += 0;
-  Extension3(n3)?.[nullable3]?.[nullable2]++;
-  nullable2 = Extension3(n3)?.[nullable3]?.[nullable2]++;
-  ++Extension3(n3)?.[nullable3]?.[nullable2];
-  nullable2 = ++Extension3(n3)?.[nullable3]?.[nullable2];
+  Extension1(n1)?[nullable1]?[nullable1];
+  Extension1(n1)?[nullable1]?[nullable1] = new Class1();
+  nullable1 = Extension1(n1)?[nullable1]?[nullable1] = new Class1();
+  Extension1(n1)?[nullable1]?[nullable1]?.nonNullable1Method();
+  nullable1 = Extension1(n1)?[nullable1]?[nullable1]?.nonNullable1Method();
+  Extension1(n1)?[nullable1]?[nullable1] ??= nullable1;
+  nullable1 = Extension1(n1)?[nullable1]?[nullable1] ??= nullable1;
+  Extension3(n3)?[nullable3]?[nullable2] += 0;
+  nullable2 = Extension3(n3)?[nullable3]?[nullable2] += 0;
+  Extension3(n3)?[nullable3]?[nullable2]++;
+  nullable2 = Extension3(n3)?[nullable3]?[nullable2]++;
+  ++Extension3(n3)?[nullable3]?[nullable2];
+  nullable2 = ++Extension3(n3)?[nullable3]?[nullable2];
 }
 
 void operatorAccess(Class1? n1, Class2? n2) {

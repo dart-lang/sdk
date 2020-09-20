@@ -14,6 +14,8 @@ class A {
   factory A.factory5([int? i]) = A.constructor5;
   factory A.factory6({int? i}) = A.constructor6;
   factory A.factory7({required int i}) = A.constructor7;
+  factory A.factory8([int i]) => new A.constructor3();
+  factory A.factory9({int i}) => new A.constructor4();
   method3([int i]) {}
   method4({int i}) {}
   method5([int? i]) {}
@@ -46,6 +48,8 @@ class C implements B {
   factory C.factory5([int? i]) = C.constructor5;
   factory C.factory6({int? i}) = C.constructor6;
   factory C.factory7({required int i}) = C.constructor7;
+  factory C.factory8([int i]) => new C.constructor3();
+  factory C.factory9({int i}) => new C.constructor4();
   method3([i]) {}
   method4({i}) {}
   method5([i]) {}

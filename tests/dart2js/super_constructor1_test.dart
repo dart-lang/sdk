@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-String message;
+String? message;
 
 class A {
   int x;
@@ -33,7 +33,7 @@ class C extends B {
 
 main() {
   message = '';
-  var c = new C(7);
+  var c = C(7);
   Expect.equals(27, c.x);
   Expect.equals(21, c.y);
   Expect.equals(7, c.z);

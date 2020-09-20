@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/executable_parameters.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingParameterNamed extends CorrectionProducer {
@@ -19,7 +19,7 @@ class AddMissingParameterNamed extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_MISSING_PARAMETER_NAMED;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     // Prepare the name of the missing parameter.
     if (this.node is! SimpleIdentifier) {
       return;
@@ -52,7 +52,7 @@ class AddMissingParameterNamed extends CorrectionProducer {
 
     Future<void> addParameter(int offset, String prefix, String suffix) async {
       if (offset != null) {
-        await builder.addFileEdit(context.file, (builder) {
+        await builder.addDartFileEdit(context.file, (builder) {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
             builder

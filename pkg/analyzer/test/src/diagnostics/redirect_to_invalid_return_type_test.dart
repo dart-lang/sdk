@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class RedirectToInvalidReturnTypeTest extends DriverResolutionTest {
+class RedirectToInvalidReturnTypeTest extends PubPackageResolutionTest {
   test_redirectToInvalidReturnType() async {
     await assertErrorsInCode('''
 class A {
@@ -23,7 +23,7 @@ class A {
 class B {
   factory B() = A;
 }''', [
-      error(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1),
+      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1),
     ]);
   }
 }

@@ -19,20 +19,22 @@ enum ExperimentalFlag {
   setLiterals,
   spreadCollections,
   tripleShift,
+  valueClass,
   variance,
 }
 
 const Version enableAlternativeInvalidationStrategyVersion =
-    const Version(2, 9);
+    const Version(2, 10);
 const Version enableConstantUpdate2018Version = const Version(2, 4);
-const Version enableControlFlowCollectionsVersion = const Version(2, 2);
+const Version enableControlFlowCollectionsVersion = const Version(2, 0);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
-const Version enableNonNullableVersion = const Version(2, 9);
-const Version enableNonfunctionTypeAliasesVersion = const Version(2, 9);
-const Version enableSetLiteralsVersion = const Version(2, 2);
-const Version enableSpreadCollectionsVersion = const Version(2, 2);
-const Version enableTripleShiftVersion = const Version(2, 9);
-const Version enableVarianceVersion = const Version(2, 9);
+const Version enableNonNullableVersion = const Version(2, 10);
+const Version enableNonfunctionTypeAliasesVersion = const Version(2, 10);
+const Version enableSetLiteralsVersion = const Version(2, 0);
+const Version enableSpreadCollectionsVersion = const Version(2, 0);
+const Version enableTripleShiftVersion = const Version(2, 10);
+const Version enableValueClassVersion = const Version(2, 10);
+const Version enableVarianceVersion = const Version(2, 10);
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
@@ -54,6 +56,8 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
       return ExperimentalFlag.spreadCollections;
     case "triple-shift":
       return ExperimentalFlag.tripleShift;
+    case "value-class":
+      return ExperimentalFlag.valueClass;
     case "variance":
       return ExperimentalFlag.variance;
   }
@@ -70,6 +74,7 @@ const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
   ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
   ExperimentalFlag.variance: false,
 };
 
@@ -83,7 +88,36 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
   ExperimentalFlag.tripleShift: false,
+  ExperimentalFlag.valueClass: false,
   ExperimentalFlag.variance: false,
+};
+
+const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 10),
+  ExperimentalFlag.constantUpdate2018: const Version(2, 4),
+  ExperimentalFlag.controlFlowCollections: const Version(2, 0),
+  ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.nonNullable: const Version(2, 10),
+  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 10),
+  ExperimentalFlag.setLiterals: const Version(2, 0),
+  ExperimentalFlag.spreadCollections: const Version(2, 0),
+  ExperimentalFlag.tripleShift: const Version(2, 10),
+  ExperimentalFlag.valueClass: const Version(2, 10),
+  ExperimentalFlag.variance: const Version(2, 10),
+};
+
+const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 10),
+  ExperimentalFlag.constantUpdate2018: const Version(2, 4),
+  ExperimentalFlag.controlFlowCollections: const Version(2, 0),
+  ExperimentalFlag.extensionMethods: const Version(2, 6),
+  ExperimentalFlag.nonNullable: const Version(2, 10),
+  ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 10),
+  ExperimentalFlag.setLiterals: const Version(2, 0),
+  ExperimentalFlag.spreadCollections: const Version(2, 0),
+  ExperimentalFlag.tripleShift: const Version(2, 10),
+  ExperimentalFlag.valueClass: const Version(2, 10),
+  ExperimentalFlag.variance: const Version(2, 10),
 };
 
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
@@ -108,10 +142,22 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "collection": {
     ExperimentalFlag.nonNullable,
   },
+  "convert": {
+    ExperimentalFlag.nonNullable,
+  },
+  "crypto": {
+    ExperimentalFlag.nonNullable,
+  },
+  "csslib": {
+    ExperimentalFlag.nonNullable,
+  },
   "dart_internal": {
     ExperimentalFlag.nonNullable,
   },
   "fake_async": {
+    ExperimentalFlag.nonNullable,
+  },
+  "file": {
     ExperimentalFlag.nonNullable,
   },
   "fixnum": {
@@ -121,6 +167,12 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     ExperimentalFlag.nonNullable,
   },
   "flutter_test": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_goldens": {
+    ExperimentalFlag.nonNullable,
+  },
+  "flutter_goldens_client": {
     ExperimentalFlag.nonNullable,
   },
   "js": {
@@ -138,7 +190,13 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "pedantic": {
     ExperimentalFlag.nonNullable,
   },
+  "platform": {
+    ExperimentalFlag.nonNullable,
+  },
   "pool": {
+    ExperimentalFlag.nonNullable,
+  },
+  "process": {
     ExperimentalFlag.nonNullable,
   },
   "sky_engine": {

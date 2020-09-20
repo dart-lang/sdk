@@ -11,6 +11,6 @@ executables:
 
 dependencies:
    args: ^1.4.0
+   path: any
 
 dev_dependencies:
-

@@ -8,7 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'results.dart';
+import 'package:test_runner/bot_results.dart';
 
 const skipped = 'skipped';
 

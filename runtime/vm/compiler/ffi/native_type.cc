@@ -316,12 +316,12 @@ static const char* FundamentalTypeToCString(FundamentalType rep) {
   }
 }
 
-void NativeType::PrintTo(BufferFormatter* f) const {
-  f->Print("I");
+void NativeType::PrintTo(BaseTextBuffer* f) const {
+  f->AddString("I");
 }
 
-void NativeFundamentalType::PrintTo(BufferFormatter* f) const {
-  f->Print("%s", FundamentalTypeToCString(representation_));
+void NativeFundamentalType::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("%s", FundamentalTypeToCString(representation_));
 }
 
 const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {

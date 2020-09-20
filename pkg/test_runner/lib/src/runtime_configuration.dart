@@ -7,6 +7,7 @@ import 'dart:io';
 import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
+import 'fuchsia.dart';
 import 'repository.dart';
 import 'utils.dart';
 
@@ -42,6 +43,8 @@ abstract class RuntimeConfiguration {
       case Runtime.vm:
         if (configuration.system == System.android) {
           return DartkAdbRuntimeConfiguration();
+        } else if (configuration.system == System.fuchsia) {
+          return DartkFuchsiaEmulatorRuntimeConfiguration();
         }
         return StandaloneDartRuntimeConfiguration();
 
@@ -300,7 +303,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   final bool useElf;
-  DartPrecompiledRuntimeConfiguration({bool useElf}) : useElf = useElf;
+  DartPrecompiledRuntimeConfiguration({this.useElf});
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -357,7 +360,7 @@ class DartPrecompiledAdbRuntimeConfiguration
   static const deviceTestDir = '/data/local/tmp/precompilation-testing/test';
 
   final bool useElf;
-  DartPrecompiledAdbRuntimeConfiguration({bool useElf}) : useElf = useElf;
+  DartPrecompiledAdbRuntimeConfiguration({this.useElf});
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -375,6 +378,34 @@ class DartPrecompiledAdbRuntimeConfiguration
     return [
       AdbPrecompilationCommand(
           buildDir, processTest, script, arguments, useElf, extraLibs)
+    ];
+  }
+}
+
+class DartkFuchsiaEmulatorRuntimeConfiguration
+    extends DartVmRuntimeConfiguration {
+  List<Command> computeRuntimeCommands(
+      CommandArtifact artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      List<String> extraLibs,
+      bool isCrashExpected) {
+    var script = artifact.filename;
+    var type = artifact.mimeType;
+    if (script != null &&
+        type != 'application/dart' &&
+        type != 'application/dart-snapshot' &&
+        type != 'application/kernel-ir' &&
+        type != 'application/kernel-ir-fully-linked') {
+      throw "Dart VM cannot run files of type '$type'.";
+    }
+    var runtimeArgs =
+        FuchsiaEmulator.getTestArgs(_configuration.mode.name, arguments);
+    if (isCrashExpected) {
+      runtimeArgs.insert(0, '--suppress-core-dump');
+    }
+    return [
+      VMCommand(FuchsiaEmulator.fsshTool, runtimeArgs, environmentOverrides)
     ];
   }
 }

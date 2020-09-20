@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:matcher/matcher.dart';
@@ -89,6 +90,79 @@ class B {}
     assertErrorsInResolvedUnit(result, []);
   }
 
+  test_changeFile_resolution_flushInheritanceManager() async {
+    newFile(aPath, content: r'''
+class A {
+  final int foo = 0;
+}
+''');
+
+    newFile(bPath, content: r'''
+import 'a.dart';
+
+void f(A a) {
+  a.foo = 1;
+}
+''');
+
+    result = await resolveFile(bPath);
+    assertErrorsInResolvedUnit(result, [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 36, 3),
+    ]);
+
+    newFile(aPath, content: r'''
+class A {
+  int foo = 0;
+}
+''');
+    fileResolver.changeFile(aPath);
+
+    result = await resolveFile(bPath);
+    assertErrorsInResolvedUnit(result, []);
+  }
+
+  test_changeFile_resolution_missingChangeFileForPart() async {
+    newFile(aPath, content: r'''
+part 'b.dart';
+
+var b = B(0);
+''');
+
+    result = await resolveFile(aPath);
+    assertErrorsInResolvedUnit(result, [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
+      error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 24, 1),
+    ]);
+
+    // Update a.dart, and notify the resolver. We need this to have at least
+    // one change, so that we decided to rebuild the library summary.
+    newFile(aPath, content: r'''
+part 'b.dart';
+
+var b = B(1);
+''');
+    fileResolver.changeFile(aPath);
+
+    // Update b.dart, but do not notify the resolver.
+    // If we try to read it now, it will throw.
+    newFile(bPath, content: r'''
+part of 'a.dart';
+
+class B {
+  B(int _);
+}
+''');
+
+    expect(() async {
+      await resolveFile(aPath);
+    }, throwsStateError);
+
+    // Notify the resolver about b.dart, it is OK now.
+    fileResolver.changeFile(bPath);
+    result = await resolveFile(aPath);
+    assertErrorsInResolvedUnit(result, []);
+  }
+
   test_changePartFile_refreshedFiles() async {
     newFile(aPath, content: r'''
 part 'b.dart';
@@ -141,6 +215,9 @@ import 'a.dart';
 
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
+  @override
+  bool typeToStringWithNullability = false;
+
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', content: r'''
 analyzer:
@@ -152,7 +229,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 
@@ -167,7 +244,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 
@@ -184,7 +261,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 
@@ -235,7 +312,7 @@ var foo = 0;
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.errors, [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
@@ -260,7 +337,7 @@ var foo = 0;
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, []);
+    expect(fileResolver.testView.resolvedFiles, <Object>[]);
 
     // Change the file, new resolver.
     // With changed file the previously cached result cannot be used.
@@ -273,7 +350,7 @@ var foo = 0;
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, []);
+    expect(fileResolver.testView.resolvedFiles, <Object>[]);
   }
 
   test_getErrors_reuse_changeDependency() {
@@ -313,7 +390,7 @@ var a = 4.2;
     // Still has cached, will be not resolved.
     createFileResolver();
     expect(getTestErrors().errors, hasLength(1));
-    expect(fileResolver.testView.resolvedFiles, []);
+    expect(fileResolver.testView.resolvedFiles, <Object>[]);
   }
 
   test_hint() async {
@@ -322,6 +399,44 @@ import 'dart:math';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
+  }
+
+  test_nullSafety_enabled() async {
+    typeToStringWithNullability = true;
+
+    newFile('/workspace/dart/test/BUILD', content: r'''
+dart_package(
+  null_safety = True,
+)
+''');
+
+    await assertNoErrorsInCode(r'''
+void f(int? a) {
+  if (a != null) {
+    a.isEven;
+  }
+}
+''');
+
+    assertType(
+      findElement.parameter('a').type,
+      'int?',
+    );
+  }
+
+  test_nullSafety_notEnabled() async {
+    typeToStringWithNullability = true;
+
+    await assertErrorsInCode(r'''
+void f(int? a) {}
+''', [
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
+    ]);
+
+    assertType(
+      findElement.parameter('a').type,
+      'int*',
+    );
   }
 
   test_resolve_part_of() async {
@@ -383,7 +498,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
 
     // Implicit casts are enabled in 'bbb'.
@@ -398,7 +513,7 @@ int b = a;
 num a = 0;
 int b = a;
 ''', [
-      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 19, 1),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 1),
     ]);
   }
 

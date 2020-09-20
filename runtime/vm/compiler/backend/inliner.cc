@@ -194,6 +194,12 @@ class GraphInfoCollector : public ValueObject {
         if (current->IsRedefinition()) {
           continue;
         }
+        // UnboxedConstant is often folded into the indexing
+        // instructions (similar to Constant instructions which
+        // belong to initial definitions and not counted here).
+        if (current->IsUnboxedConstant()) {
+          continue;
+        }
         ++instruction_count_;
         // Count inputs of certain instructions as if separate PushArgument
         // instructions are used for inputs. This is done in order to

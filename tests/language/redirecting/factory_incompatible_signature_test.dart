@@ -11,7 +11,7 @@ class A {
   A(a, b);
   factory A.f() = A;
   //              ^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_FUNCTION_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_FUNCTION_TYPE
   // [cfe] The constructor function type 'A Function(dynamic, dynamic)' isn't a subtype of 'A Function()'.
 }
 

@@ -113,7 +113,7 @@ class GitPackage extends Package {
     return pathParts[indexOfName];
   }
 
-  static RegExp _pathAndPeriodSplitter = new RegExp('[\\/.]');
+  static final RegExp _pathAndPeriodSplitter = RegExp('[\\/.]');
 
   /// Initialize the package with a shallow clone.  Run only once per
   /// [GitPackage] instance.
@@ -171,7 +171,7 @@ class PubPackage extends Package {
 /// Abstraction for a package located within pkg or third_party/pkg.
 class SdkPackage extends Package {
   /// Where to find packages.  Constructor searches in-order.
-  static List<String> _searchPaths = [
+  static final List<String> _searchPaths = [
     'pkg',
     path.join('third_party', 'pkg'),
   ];
@@ -183,8 +183,9 @@ class SdkPackage extends Package {
         _packagePath = potentialPath;
       }
     }
-    if (_packagePath == null)
+    if (_packagePath == null) {
       throw ArgumentError('Package $name not found in SDK');
+    }
   }
 
   /* late final */ String _packagePath;

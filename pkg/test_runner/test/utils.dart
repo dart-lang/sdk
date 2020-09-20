@@ -26,8 +26,8 @@ StandardTestSuite makeTestSuite(
     _MockTestSuite(configuration, testFiles);
 
 StaticError makeError(
-    {int line,
-    int column,
+    {int line = 1,
+    int column = 2,
     int length,
     String analyzerError,
     String cfeError,

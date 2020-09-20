@@ -39,7 +39,7 @@ class ContextRoot {
   }
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is ContextRoot) {
       return root == other.root &&
           _listEqual(exclude, other.exclude, (String a, String b) => a == b);

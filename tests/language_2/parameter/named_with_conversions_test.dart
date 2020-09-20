@@ -29,9 +29,9 @@ Validate(tag, a, b) {
 }
 
 class HasMethod {
-  int calls;
+  int calls = 0;
 
-  HasMethod() : calls = 0 {}
+  HasMethod();
 
   foo(tag, [a = 10, b = 20]) {
     calls += 1;
@@ -45,11 +45,10 @@ class HasMethod {
 }
 
 class HasField {
-  int calls;
-  var foo, foo2;
+  int calls = 0;
+  dynamic foo, foo2;
 
   HasField() {
-    calls = 0;
     foo = makeFoo(this);
     foo2 = makeFoo2(this);
   }
@@ -72,16 +71,6 @@ class HasField {
 }
 
 class NamedParametersWithConversionsTest {
-  static checkException(thunk) {
-    bool threw = false;
-    try {
-      thunk();
-    } catch (e) {
-      threw = true;
-    }
-    Expect.isTrue(threw);
-  }
-
   static testMethodCallSyntax(a) {
     a.foo('');
     a.foo('a', 111);
@@ -93,10 +82,12 @@ class NamedParametersWithConversionsTest {
 
     Expect.equals(7, a.calls);
 
-    checkException(() => a.foo()); //                  Too few arguments.
-    checkException(() => a.foo('abc', 1, 2, 3)); //    Too many arguments.
-    checkException(() => a.foo2('c', c: 1)); //        Bad name.
-    checkException(() => a.foo2('c', a: 111, c: 1)); // Bad name.
+    Expect.throwsNoSuchMethodError(() => a.foo()); // Too few arguments.
+    Expect.throwsNoSuchMethodError(
+        () => a.foo('abc', 1, 2, 3)); //              Too many arguments.
+    Expect.throwsNoSuchMethodError(() => a.foo2('c', c: 1)); // Bad name.
+    Expect.throwsNoSuchMethodError(
+        () => a.foo2('c', a: 111, c: 1)); //                    Bad name.
 
     Expect.equals(7, a.calls);
   }
@@ -114,10 +105,11 @@ class NamedParametersWithConversionsTest {
 
     Expect.equals(7, a.calls);
 
-    checkException(() => f()); //                   Too few arguments.
-    checkException(() => f('abc', 1, 2, 3)); //     Too many arguments.
-    checkException(() => f2('c', c: 1)); //         Bad name.
-    checkException(() => f2('c', a: 111, c: 1)); // Bad name.
+    Expect.throwsNoSuchMethodError(() => f()); // Too few arguments.
+    Expect.throwsNoSuchMethodError(
+        () => f('abc', 1, 2, 3)); //              Too many arguments.
+    Expect.throwsNoSuchMethodError(() => f2('c', c: 1)); //         Bad name.
+    Expect.throwsNoSuchMethodError(() => f2('c', a: 111, c: 1)); // Bad name.
 
     Expect.equals(7, a.calls);
   }

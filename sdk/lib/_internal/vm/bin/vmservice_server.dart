@@ -4,7 +4,7 @@
 
 part of vmservice_io;
 
-final bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
+bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
 
 void serverPrint(String s) {
   if (silentObservatory) {
@@ -158,8 +158,13 @@ class Server {
 
   /// Returns the server address including the auth token.
   Uri? get serverAddress {
-    if (!running) {
+    if (!running || _service.isExiting) {
       return null;
+    }
+    // If DDS is connected it should be treated as the "true" VM service and be
+    // advertised as such.
+    if (_service.ddsUri != null) {
+      return _service.ddsUri;
     }
     final server = _server!;
     final ip = server.address.address;
@@ -354,15 +359,21 @@ class Server {
 
     final String path = result;
     if (path == WEBSOCKET_PATH) {
+      final subprotocols = request.headers['sec-websocket-protocol'];
       if (acceptNewWebSocketConnections) {
         WebSocketTransformer.upgrade(request,
+                protocolSelector:
+                    subprotocols == null ? null : (_) => 'implicit-redirect',
                 compression: CompressionOptions.compressionOff)
             .then((WebSocket webSocket) {
           WebSocketClient(webSocket, _service);
         });
       } else {
-        // Forward the websocket connection request to DDS.
-        request.response.redirect(_service.ddsUri!);
+        request.response.statusCode = HttpStatus.forbidden;
+        request.response.write('Cannot connect directly to the VM service as '
+            'a Dart Development Service (DDS) instance has taken control and '
+            'can be found at ${_service.ddsUri}.');
+        request.response.close();
       }
       return;
     }
@@ -393,7 +404,7 @@ class Server {
       'uri': serverAddress.toString(),
     };
     final file = File.fromUri(Uri.parse(serviceInfoFilenameLocal));
-    return file.writeAsString(json.encode(serviceInfo));
+    return file.writeAsString(json.encode(serviceInfo)) as Future<void>;
   }
 
   Future<Server> startup() async {
@@ -450,11 +461,21 @@ class Server {
     }
     final server = _server!;
     server.listen(_requestHandler, cancelOnError: true);
+    if (!_waitForDdsToAdvertiseService) {
+      await outputConnectionInformation();
+    }
+    // Server is up and running.
+    _notifyServerState(serverAddress.toString());
+    onServerAddressChange('$serverAddress');
+    return this;
+  }
+
+  Future<void> outputConnectionInformation() async {
     serverPrint('Observatory listening on $serverAddress');
     if (Platform.isFuchsia) {
       // Create a file with the port number.
       final tmp = Directory.systemTemp.path;
-      final path = '$tmp/dart.services/${server.port}';
+      final path = '$tmp/dart.services/${_server!.port}';
       serverPrint('Creating $path');
       File(path)..createSync(recursive: true);
     }
@@ -463,10 +484,6 @@ class Server {
         serviceInfoFilenameLocal.isNotEmpty) {
       await _dumpServiceInfoToFile(serviceInfoFilenameLocal);
     }
-    // Server is up and running.
-    _notifyServerState(serverAddress.toString());
-    onServerAddressChange('$serverAddress');
-    return this;
   }
 
   Future<void> cleanup(bool force) {

@@ -346,16 +346,6 @@ abstract class AstFactory {
       TypeArgumentList typeArguments,
       @required ArgumentList argumentList});
 
-  /// Returns a newly created field declaration. Either or both of the [comment]
-  /// and [metadata] can be `null` if the declaration does not have the
-  /// corresponding attribute. The [staticKeyword] can be `null` if the field is
-  /// not a static field.
-  ///
-  /// Use [fieldDeclaration2] instead.
-  @deprecated
-  FieldDeclaration fieldDeclaration(Comment comment, List<Annotation> metadata,
-      Token staticKeyword, VariableDeclarationList fieldList, Token semicolon);
-
   /// Returns a newly created field declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The [staticKeyword] can be `null` if the
@@ -363,31 +353,12 @@ abstract class AstFactory {
   FieldDeclaration fieldDeclaration2(
       {Comment comment,
       List<Annotation> metadata,
+      Token abstractKeyword,
       Token covariantKeyword,
+      Token externalKeyword,
       Token staticKeyword,
       @required VariableDeclarationList fieldList,
       @required Token semicolon});
-
-  /// Returns a newly created formal parameter. Either or both of the [comment]
-  /// and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [keyword] can be `null` if there is a type.
-  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
-  /// [period] can be `null` if the keyword 'this' was not provided.  The
-  /// [parameters] can be `null` if this is not a function-typed field formal
-  /// parameter.
-  ///
-  /// Use [fieldFormalParameter2] instead.
-  @deprecated
-  FieldFormalParameter fieldFormalParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeAnnotation type,
-      Token thisKeyword,
-      Token period,
-      SimpleIdentifier identifier,
-      TypeParameterList typeParameters,
-      FormalParameterList parameters);
 
   /// Returns a newly created formal parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the
@@ -510,21 +481,6 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [returnType] can be `null` if no return type
   /// was specified.
-  ///
-  /// Use [functionTypedFormalParameter2] instead.
-  @deprecated
-  FunctionTypedFormalParameter functionTypedFormalParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      TypeAnnotation returnType,
-      SimpleIdentifier identifier,
-      TypeParameterList typeParameters,
-      FormalParameterList parameters);
-
-  /// Returns a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [returnType] can be `null` if no return type
-  /// was specified.
   FunctionTypedFormalParameter functionTypedFormalParameter2(
       {Comment comment,
       List<Annotation> metadata,
@@ -606,12 +562,6 @@ abstract class AstFactory {
       List<Combinator> combinators,
       Token semicolon);
 
-  /// Returns a newly created index expression suitable for use in a cascade
-  /// expression.
-  @Deprecated('Use indexExpressionForCascade2')
-  IndexExpression indexExpressionForCascade(
-      Token period, Token leftBracket, Expression index, Token rightBracket);
-
   /// Returns a newly created index expression.
   IndexExpression indexExpressionForCascade2(
       {@required Token period,
@@ -619,12 +569,6 @@ abstract class AstFactory {
       @required Token leftBracket,
       @required Expression index,
       @required Token rightBracket});
-
-  /// Returns a newly created index expression suitable for use outside a
-  /// cascade expression.
-  @Deprecated('Use indexExpressionForTarget2')
-  IndexExpression indexExpressionForTarget(Expression target, Token leftBracket,
-      Expression index, Token rightBracket);
 
   /// Returns a newly created index expression.
   IndexExpression indexExpressionForTarget2(
@@ -822,20 +766,6 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [keyword] can be `null` if a type was
   /// specified. The [type] must be `null` if the keyword is 'var'.
-  ///
-  /// Use [simpleFormalParameter2] instead.
-  @deprecated
-  SimpleFormalParameter simpleFormalParameter(
-      Comment comment,
-      List<Annotation> metadata,
-      Token keyword,
-      TypeAnnotation type,
-      SimpleIdentifier identifier);
-
-  /// Returns a newly created formal parameter. Either or both of the
-  /// [comment] and [metadata] can be `null` if the parameter does not have the
-  /// corresponding attribute. The [keyword] can be `null` if a type was
-  /// specified. The [type] must be `null` if the keyword is 'var'.
   SimpleFormalParameter simpleFormalParameter2(
       {Comment comment,
       List<Annotation> metadata,
@@ -907,7 +837,8 @@ abstract class AstFactory {
       Comment comment,
       List<Annotation> metadata,
       VariableDeclarationList variableList,
-      Token semicolon);
+      Token semicolon,
+      {Token externalKeyword});
 
   /// Returns a newly created try statement. The list of [catchClauses] can be
   /// `null` if there are no catch clauses. The [finallyKeyword] and

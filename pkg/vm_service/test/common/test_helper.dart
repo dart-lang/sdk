@@ -6,7 +6,7 @@ library test_helper;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 import 'package:vm_service/vm_service_io.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
@@ -22,11 +22,6 @@ const List<String> extraDebuggingArgs = useCausalAsyncStacks
     ? ['--causal-async-stacks', '--no-lazy-async-stacks']
     : ['--no-causal-async-stacks', '--lazy-async-stacks'];
 
-List<IsolateTest> ifLazyAsyncStacks(List<IsolateTest> lazyTests) {
-  if (useCausalAsyncStacks) return const <IsolateTest>[];
-  return lazyTests;
-}
-
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
 String serviceHttpAddress;
@@ -35,21 +30,22 @@ String serviceWebsocketAddress;
 const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
 const Map<String, String> _TESTEE_SPAWN_ENV = {_TESTEE_ENV_KEY: 'true'};
 bool _isTestee() {
-  return Platform.environment.containsKey(_TESTEE_ENV_KEY);
+  return io.Platform.environment.containsKey(_TESTEE_ENV_KEY);
 }
 
 Uri _getTestUri() {
-  if (Platform.script.scheme == 'data') {
+  if (io.Platform.script.scheme == 'data') {
     // If we're using pub to run these tests this value isn't a file URI.
     // We'll need to parse the actual URI out...
     final fileRegExp = RegExp(r'file:\/\/\/.*\.dart');
-    final path = fileRegExp.stringMatch(Platform.script.data.contentAsString());
+    final path =
+        fileRegExp.stringMatch(io.Platform.script.data.contentAsString());
     if (path == null) {
       throw 'Unable to determine file path for script!';
     }
     return Uri.parse(path);
   } else {
-    return Platform.script;
+    return io.Platform.script;
   }
 }
 
@@ -77,7 +73,7 @@ class _ServiceTesteeRunner {
     if (!pause_on_exit) {
       // Wait around for the process to be killed.
       // ignore: unawaited_futures
-      stdin.first.then((_) => exit(0));
+      io.stdin.first.then((_) => io.exit(0));
     }
   }
 
@@ -97,20 +93,20 @@ class _ServiceTesteeRunner {
     }
     if (!pause_on_exit) {
       // Wait around for the process to be killed.
-      stdin.first.then((_) => exit(0));
+      io.stdin.first.then((_) => io.exit(0));
     }
   }
 }
 
 class _ServiceTesteeLauncher {
-  Process process;
+  io.Process process;
   List<String> args;
   bool killedByTester = false;
 
   _ServiceTesteeLauncher() : args = [_getTestUri().toFilePath()];
 
   // Spawn the testee process.
-  Future<Process> _spawnProcess(
+  Future<io.Process> _spawnProcess(
     bool pause_on_start,
     bool pause_on_exit,
     bool pause_on_unhandled_exceptions,
@@ -132,14 +128,14 @@ class _ServiceTesteeLauncher {
         extraArgs);
   }
 
-  Future<Process> _spawnDartProcess(
+  Future<io.Process> _spawnDartProcess(
       bool pause_on_start,
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
       bool useAuthToken,
       List<String> extraArgs) {
-    String dartExecutable = Platform.executable;
+    String dartExecutable = io.Platform.executable;
 
     var fullArgs = <String>[
       '--disable-dart-dev',
@@ -148,7 +144,7 @@ class _ServiceTesteeLauncher {
       fullArgs.add('--pause-isolates-on-start');
     }
     if (pause_on_exit) {
-      fullArgs.add('--pause-isolates-on-exit');
+      fullArgs.add('--pause-isolates-on-io.exit');
     }
     if (!useAuthToken) {
       fullArgs.add('--disable-service-auth-codes');
@@ -161,7 +157,7 @@ class _ServiceTesteeLauncher {
       fullArgs.addAll(extraArgs);
     }
 
-    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.addAll(io.Platform.executableArguments);
     if (!testeeControlsServer) {
       fullArgs.add('--enable-vm-service:0');
     }
@@ -170,7 +166,7 @@ class _ServiceTesteeLauncher {
     return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
-  Future<Process> _spawnCommon(String executable, List<String> arguments,
+  Future<io.Process> _spawnCommon(String executable, List<String> arguments,
       Map<String, String> dartEnvironment) {
     var environment = _TESTEE_SPAWN_ENV;
     var bashEnvironment = StringBuffer();
@@ -181,7 +177,7 @@ class _ServiceTesteeLauncher {
       });
     }
     print('** Launching $bashEnvironment$executable ${arguments.join(' ')}');
-    return Process.start(executable, arguments, environment: environment);
+    return io.Process.start(executable, arguments, environment: environment);
   }
 
   Future<Uri> launch(
@@ -222,17 +218,17 @@ class _ServiceTesteeLauncher {
           first = false;
           print('** Signaled to run test queries on $uri');
         }
-        print('>testee>out> $line');
+        io.stdout.write('>testee>out> ${line}\n');
       });
       process.stderr
           .transform(utf8.decoder)
           .transform(LineSplitter())
           .listen((line) {
-        print('>testee>err> $line');
+        io.stdout.write('>testee>err> ${line}\n');
       });
       process.exitCode.then((exitCode) {
-        if ((exitCode != 0) && !killedByTester) {
-          throw "Testee exited with $exitCode";
+        if ((io.exitCode != 0) && !killedByTester) {
+          throw "Testee io.exited with $exitCode";
         }
         print("** Process exited");
       });
@@ -280,7 +276,7 @@ class _ServiceTesterRunner {
           var pid = process.process.pid;
           var wait = Duration(seconds: 10);
           print("Testee has pid $pid, waiting $wait before continuing");
-          sleep(wait);
+          io.sleep(wait);
         }
         setupAddresses(serverAddress);
         vm = await vmServiceConnectUri(serviceWebsocketAddress);

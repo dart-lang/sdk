@@ -718,12 +718,42 @@ void ReadParameterCovariance(const Function& function,
 bool NeedsDynamicInvocationForwarder(const Function& function) {
   Zone* zone = Thread::Current()->zone();
 
+  // Right now closures do not need a dyn:* forwarder.
+  // See https://github.com/dart-lang/sdk/issues/40813
+  if (function.IsClosureFunction()) return false;
+
+  // Method extractors have no parameters to check and return value is a closure
+  // and therefore not an unboxed primitive type.
+  if (function.IsMethodExtractor()) {
+    return false;
+  }
+
+  // Invoke field dispatchers are dynamically generated, will invoke a getter to
+  // obtain the field value and then invoke ".call()" on the result.
+  // Those dynamically generated dispathers don't have proper kernel metadata
+  // associated with them - we can therefore not query if there are dynamic
+  // calls to them or not and are therefore conservative.
+  if (function.IsInvokeFieldDispatcher()) {
+    return true;
+  }
+
+  // The dyn:* forwarders perform unboxing of parameters before calling the
+  // actual target (which accepts unboxed parameters) and boxes return values
+  // of the return value.
+  if (function.HasUnboxedParameters() || function.HasUnboxedReturnValue()) {
+    return true;
+  }
+
+  // There are no parameters to type check for getters and if the return value
+  // is boxed, then the dyn:* forwarder is not needed.
+  if (function.IsImplicitGetterFunction()) {
+    return false;
+  }
+
   // Covariant parameters (both explicitly covariant and generic-covariant-impl)
   // are checked in the body of a function and therefore don't need checks in a
   // dynamic invocation forwarder. So dynamic invocation forwarder is only
   // needed if there are non-covariant parameters of non-top type.
-
-  ASSERT(!function.IsImplicitGetterFunction());
   if (function.IsImplicitSetterFunction()) {
     const auto& field = Field::Handle(zone, function.accessor_field());
     return !(field.is_covariant() || field.is_generic_covariant_impl());

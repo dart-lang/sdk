@@ -2,24 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeArgumentNotMatchingBoundsTest);
     defineReflectiveTests(
-      TypeArgumentNotMatchingBoundsWithNnbdTest,
+      TypeArgumentNotMatchingBoundsWithNullSafetyTest,
     );
   });
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsTest extends DriverResolutionTest {
+class TypeArgumentNotMatchingBoundsTest extends PubPackageResolutionTest {
   test_classTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -349,9 +347,22 @@ class X<T extends A> {
   factory X.name(int x, int y) = X<B>;
 }
 ''', [
-      error(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
+      error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 101, 1),
     ]);
+  }
+
+  test_regression_42196_Null() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Null, Null>>, dynamic>>();
+}
+''');
   }
 
   test_typeArgumentList() async {
@@ -402,15 +413,10 @@ class C extends Object with G<B>{}
 }
 
 @reflectiveTest
-class TypeArgumentNotMatchingBoundsWithNnbdTest
-    extends TypeArgumentNotMatchingBoundsTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
-
+class TypeArgumentNotMatchingBoundsWithNullSafetyTest
+    extends TypeArgumentNotMatchingBoundsTest with WithNullSafetyMixin {
   test_extends_optIn_fromOptOut_Null() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A<X extends int> {}
 ''');
 
@@ -423,7 +429,7 @@ class A1<T extends Null> extends A<T> {}
   }
 
   test_extends_optIn_fromOptOut_otherTypeParameter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 void foo<T extends U, U>() {
 }
 ''');
@@ -437,6 +443,62 @@ class B extends A {}
 
 main() {
   foo<B, A>();
+}
+''');
+  }
+
+  test_regression_42196() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, dynamic>>();
+}
+''');
+  }
+
+  @override
+  test_regression_42196_Null() async {
+    await assertErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X,Y>>, Y extends X> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Null, Null>>, dynamic>>();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 120, 16),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 124, 4),
+    ]);
+  }
+
+  test_regression_42196_object() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X, Y>>, Y extends Never> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, Object?>>();
+}
+''');
+  }
+
+  test_regression_42196_void() async {
+    await assertNoErrorsInCode(r'''
+typedef G<X> = Function(X);
+class A<X extends G<A<X, Y>>, Y extends Never> {}
+
+test<X>() { print("OK"); }
+
+main() {
+  test<A<G<A<Never, Never>>, void>>();
 }
 ''');
   }

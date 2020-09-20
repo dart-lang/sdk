@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ConflictingTypeVariableAndClassTest extends DriverResolutionTest {
+class ConflictingTypeVariableAndClassTest extends PubPackageResolutionTest {
   test_conflict_on_class() async {
     await assertErrorsInCode(r'''
 class T<T> {}
@@ -34,7 +34,7 @@ mixin T<T> {}
 }
 
 @reflectiveTest
-class ConflictingTypeVariableAndExtensionTest extends DriverResolutionTest {
+class ConflictingTypeVariableAndExtensionTest extends PubPackageResolutionTest {
   test_conflict() async {
     await assertErrorsInCode(r'''
 extension T<T> on String {}

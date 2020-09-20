@@ -4,16 +4,18 @@
 
 import 'native_testing.dart';
 
-// Test that type checks occur on assignment to fields of native methods.
+// Test that type checks occur on assignment to properties of native classes.
 
 @Native("A")
 class A {
-  int foo;
+  void set foo(int unused) native;
+  int get foo native;
 }
 
 @Native("B")
 class B {
-  String foo;
+  void set foo(String unused) native;
+  String get foo native;
 }
 
 A makeA() native;
@@ -79,7 +81,7 @@ bool isComplianceMode() {
   var a = stuff[0];
   // Detect whether we are using --omit-implicit-checks.
   try {
-    String s = a;
+    String s = a as dynamic;
     return false;
   } catch (e) {
     // Ignore.

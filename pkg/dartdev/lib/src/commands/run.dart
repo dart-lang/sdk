@@ -4,75 +4,192 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:dds/dds.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../core.dart';
+import '../events.dart';
 import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
+import '../vm_interop_handler.dart';
 
 class RunCommand extends DartdevCommand<int> {
+  static const String cmdName = 'run';
+
+  // kErrorExitCode, as defined in runtime/bin/error_exit.h
+  static const errorExitCode = 255;
+
+  // This argument parser is here solely to ensure that VM specific flags are
+  // provided before any command and to provide a more consistent help message
+  // with the rest of the tool.
   @override
-  final ArgParser argParser = ArgParser.allowAnything();
+  ArgParser createArgParser() {
+    return ArgParser(
+      // Don't parse flags after script name.
+      allowTrailingOptions: false,
+      usageLineLength: dartdevUsageLineLength,
+    );
+  }
+
+  @override
   final bool verbose;
 
-  RunCommand({this.verbose = false}) : super('run', '''
-Run a Dart file.''');
+  RunCommand({this.verbose = false})
+      : super(
+          cmdName,
+          'Run a Dart program.',
+        ) {
+    // NOTE: When updating this list of flags, be sure to add any VM flags to
+    // the list of flags in Options::ProcessVMDebuggingOptions in
+    // runtime/bin/main_options.cc. Failure to do so will result in those VM
+    // options being ignored.
+    argParser
+      ..addSeparator(
+        'Debugging options:',
+      )
+      ..addOption(
+        'observe',
+        help: 'The observe flag is a convenience flag used to run a program '
+            'with a set of common options useful for debugging.',
+        valueHelp: '[<port>[/<bind-address>]]',
+      )
+      ..addOption('launch-dds', hide: true, help: 'Launch DDS.')
+      ..addSeparator(
+        'Options implied by --observe are currently:',
+      )
+      ..addOption(
+        'enable-vm-service',
+        help: 'Enables the VM service and listens on the specified port for '
+            'connections (default port number is 8181, default bind address '
+            'is localhost).',
+        valueHelp: '[<port>[/<bind-address>]]',
+      )
+      ..addFlag(
+        'pause-isolates-on-exit',
+        help: 'Pause isolates on exit when '
+            'running with --enable-vm-service.',
+      )
+      ..addFlag(
+        'pause-isolates-on-unhandled-exceptions',
+        help: 'Pause isolates when an unhandled exception is encountered '
+            'when running with --enable-vm-service.',
+      )
+      ..addFlag(
+        'warn-on-pause-with-no-debugger',
+        help: 'Print a warning when an isolate pauses with no attached debugger'
+            ' when running with --enable-vm-service.',
+      )
+      ..addSeparator(
+        'Other debugging options:',
+      )
+      ..addFlag(
+        'pause-isolates-on-start',
+        help: 'Pause isolates on start when '
+            'running with --enable-vm-service.',
+      )
+      ..addFlag(
+        'enable-asserts',
+        help: 'Enable assert statements.',
+      );
+
+    if (verbose) {
+      argParser
+        ..addSeparator(
+          'Advanced options:',
+        );
+    }
+    argParser
+      ..addFlag(
+        'disable-service-auth-codes',
+        hide: !verbose,
+        negatable: false,
+        help: 'Disables the requirement for an authentication code to '
+            'communicate with the VM service. Authentication codes help '
+            'protect against CSRF attacks, so it is not recommended to '
+            'disable them unless behind a firewall on a secure device.',
+      )
+      ..addFlag(
+        'enable-service-port-fallback',
+        hide: !verbose,
+        negatable: false,
+        help: 'When the VM service is told to bind to a particular port, '
+            'fallback to 0 if it fails to bind instread of failing to '
+            'start.',
+      )
+      ..addOption(
+        'namespace',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to a directory that dart:io calls will treat as the '
+            'root of the filesystem.',
+      )
+      ..addOption(
+        'root-certs-file',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to a file containing the trusted root certificates '
+            'to use for secure socket connections.',
+      )
+      ..addOption(
+        'root-certs-cache',
+        hide: !verbose,
+        valueHelp: 'path',
+        help: 'The path to a cache directory containing the trusted root '
+            'certificates to use for secure socket connections.',
+      )
+      ..addFlag(
+        'trace-loading',
+        hide: !verbose,
+        negatable: false,
+        help: 'Enables tracing of library and script loading.',
+      );
+  }
 
   @override
   String get invocation => '${super.invocation} <dart file | package target>';
 
   @override
-  void printUsage() {
-    // Override [printUsage] for invocations of 'dart help run' which won't
-    // execute [run] below.  Without this, the 'dart help run' reports the
-    // command pub with no commands or flags.
-    final command = sdk.dart;
-    final args = [
-      '--disable-dart-dev',
-      '--help',
-      if (verbose) '--verbose',
-    ];
-
-    log.trace('$command ${args.first}');
-
-    // Call 'dart --help'
-    // Process.runSync(..) is used since [printUsage] is not an async method,
-    // and we want to guarantee that the result (the help text for the console)
-    // is printed before command exits.
-    final result = Process.runSync(command, args);
-    if (result.stderr.isNotEmpty) {
-      stderr.write(result.stderr);
-    }
-    if (result.stdout.isNotEmpty) {
-      stdout.write(result.stdout);
-    }
-  }
-
-  @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     // The command line arguments after 'run'
     var args = argResults.arguments.toList();
+    // --launch-dds is provided by the VM if the VM service is to be enabled. In
+    // that case, we need to launch DDS as well.
+    bool launchDds = false;
+    String ddsHost = '';
+    String ddsPort = '';
 
-    var argsContainFileOrHelp = false;
+    final launchDdsArg = args.singleWhere(
+      (element) => element.startsWith('--launch-dds'),
+      orElse: () => null,
+    );
+    if (launchDdsArg != null) {
+      launchDds = true;
+      final ddsUrl = (launchDdsArg.split('=')[1]).split(':');
+      ddsHost = ddsUrl[0];
+      ddsPort = ddsUrl[1];
+    }
+
+    var argsContainFile = false;
     for (var arg in args) {
       // The arg.contains('.') matches a file name pattern, i.e. some 'foo.dart'
-      if (arg.contains('.') ||
-          arg == '--help' ||
-          arg == '-h' ||
-          arg == 'help') {
-        argsContainFileOrHelp = true;
-        break;
+      if (arg.contains('.')) {
+        argsContainFile = true;
+      } else if (arg == '--help' || arg == '-h' || arg == 'help') {
+        printUsage();
+        return 0;
       }
     }
 
-    final cwd = Directory.current;
+    var disableServiceAuthCodes =
+        argResults['disable-service-auth-codes'] ?? false;
 
-    if (!argsContainFileOrHelp && cwd.existsSync()) {
+    final cwd = Directory.current;
+    if (!argsContainFile && cwd.existsSync()) {
       var foundImplicitFileToRun = false;
       var cwdName = cwd.name;
       for (var entity in cwd.listSync(followLinks: false)) {
@@ -94,17 +211,15 @@ Run a Dart file.''');
       }
 
       if (!foundImplicitFileToRun) {
-        log.stderr(
-          'Could not find the implicit file to run: '
-          'bin$separator$cwdName.dart.',
-        );
+        // This throws.
+        usageException('Could not find the implicit file to run: '
+            'bin$separator$cwdName.dart.');
       }
     }
 
     // Pass any --enable-experiment options along.
-    // todo: test
-    if (args.isNotEmpty && wereExperimentsSpecified(globalResults)) {
-      List<String> experimentIds = specifiedExperiments(globalResults);
+    if (args.isNotEmpty && wereExperimentsSpecified) {
+      List<String> experimentIds = specifiedExperiments;
       args = [
         '--$experimentFlagName=${experimentIds.join(',')}',
         ...args,
@@ -116,213 +231,99 @@ Run a Dart file.''');
     // service intermediary which implements the VM service protocol and
     // provides non-VM specific extensions (e.g., log caching, client
     // synchronization).
-    if (args.any((element) =>
-        element.startsWith('--observe') ||
-        element.startsWith('--enable-vm-service'))) {
-      return await _DebuggingSession(this, args).start();
-    } else {
-      // Starting in ProcessStartMode.inheritStdio mode means the child process
-      // can detect support for ansi chars.
-      final process = await Process.start(
-          sdk.dart, ['--disable-dart-dev', ...args],
-          mode: ProcessStartMode.inheritStdio);
-      return process.exitCode;
+    _DebuggingSession debugSession;
+    if (launchDds) {
+      debugSession = _DebuggingSession();
+      if (!await debugSession.start(
+          ddsHost, ddsPort, disableServiceAuthCodes)) {
+        return errorExitCode;
+      }
+    }
+
+    var path = args.firstWhere((e) => !e.startsWith('-'));
+    final pathIndex = args.indexOf(path);
+    final runArgs = (pathIndex + 1 == args.length)
+        ? <String>[]
+        : args.sublist(pathIndex + 1);
+    try {
+      path = Uri.parse(path).toFilePath();
+    } catch (_) {
+      // Input path will either be a valid path or a file uri
+      // (e.g /directory/file.dart or file:///directory/file.dart). We will try
+      // parsing it as a Uri, but if parsing failed for any reason (likely
+      // because path is not a file Uri), `path` will be passed without
+      // modification to the VM.
+    }
+    VmInteropHandler.run(path, runArgs);
+    return 0;
+  }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => RunUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        specifiedExperiments: specifiedExperiments,
+        args: argResults.arguments,
+      );
+}
+
+class _DebuggingSession {
+  Future<bool> start(
+      String host, String port, bool disableServiceAuthCodes) async {
+    final serviceInfo = await Service.getInfo();
+    final ddsSnapshot = (dirname(sdk.dart).endsWith('bin'))
+        ? sdk.ddsSnapshot
+        : absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot');
+    if (!Sdk.checkArtifactExists(ddsSnapshot)) {
+      return false;
+    }
+    final process = await Process.start(
+        sdk.dart,
+        [
+          if (dirname(sdk.dart).endsWith('bin'))
+            sdk.ddsSnapshot
+          else
+            absolute(dirname(sdk.dart), 'gen', 'dds.dart.snapshot'),
+          serviceInfo.serverUri.toString(),
+          host,
+          port,
+          disableServiceAuthCodes.toString(),
+        ],
+        mode: ProcessStartMode.detachedWithStdio);
+    final completer = Completer<void>();
+    StreamSubscription sub;
+    sub = process.stderr.transform(utf8.decoder).listen((event) {
+      if (event == 'DDS started') {
+        sub.cancel();
+        completer.complete();
+      } else if (event.contains('Failed to start DDS')) {
+        sub.cancel();
+        completer.completeError(event.replaceAll(
+          'Failed to start DDS',
+          'Could not start Observatory HTTP server',
+        ));
+      }
+    });
+    try {
+      await completer.future;
+      return true;
+    } catch (e) {
+      stderr.write(e);
+      return false;
     }
   }
 }
 
-class _DebuggingSession {
-  _DebuggingSession(this._runCommand, List<String> args)
-      : _args = args.toList() {
-    // Process flags that are meant to configure the VM service HTTP server or
-    // dump VM service connection information to a file. Since the VM service
-    // clients won't actually be connecting directly to the service, we'll make
-    // DDS appear as if it is the actual VM service.
-    for (final arg in _args) {
-      final isObserve = arg.startsWith('--observe');
-      if (isObserve || arg.startsWith('--enable-vm-service')) {
-        if (isObserve) {
-          _observe = true;
-        }
-        if (arg.contains('=') || arg.contains(':')) {
-          // These flags can be provided by the embedder so we need to check for
-          // both `=` and `:` separators.
-          final observatoryBindInfo =
-              (arg.contains('=') ? arg.split('=') : arg.split(':'))[1]
-                  .split('/');
-          _port = int.tryParse(observatoryBindInfo.first) ?? 0;
-          if (observatoryBindInfo.length > 1) {
-            try {
-              _bindAddress = Uri.http(observatoryBindInfo[1], '');
-            } on FormatException {
-              // TODO(bkonyi): log invalid parse? The VM service just ignores
-              // bad input flags.
-              // Ignore.
-            }
-          }
-        }
-      } else if (arg.startsWith('--write-service-info=')) {
-        try {
-          final split = arg.split('=');
-          if (split[1].isNotEmpty) {
-            _serviceInfoUri = Uri.parse(split[1]);
-          } else {
-            _runCommand.usageException(
-                'Invalid URI argument to --write-service-info: "${split[1]}"');
-          }
-        } on FormatException {
-          // TODO(bkonyi): log invalid parse? The VM service just ignores bad
-          // input flags.
-          // Ignore.
-        }
-      } else if (arg == '--disable-service-auth-codes') {
-        _disableServiceAuthCodes = true;
-      }
-    }
-
-    // Strip --observe and --write-service-info from the arguments as we'll be
-    // providing our own.
-    _args.removeWhere(
-      (arg) =>
-          arg.startsWith('--observe') ||
-          arg.startsWith('--enable-vm-service') ||
-          arg.startsWith('--write-service-info'),
-    );
-  }
-
-  FutureOr<int> start() async {
-    // Output the service information for the target process to a temporary
-    // file so we can avoid scraping stderr for the service URI.
-    final serviceInfoDir =
-        await Directory.systemTemp.createTemp('dart_service');
-    final serviceInfoUri = serviceInfoDir.uri.resolve('service_info.json');
-    final serviceInfoFile = await File.fromUri(serviceInfoUri).create();
-
-    // Start using ProcessStartMode.normal and forward stdio manually as we
-    // need to filter the true VM service URI and replace it with the DDS URI.
-    _process = await Process.start(
-      sdk.dart,
-      [
-        '--disable-dart-dev',
-        // We don't care which port the VM service binds to.
-        _observe ? '--observe=0' : '--enable-vm-service=0',
-        '--write-service-info=$serviceInfoUri',
-        ..._args,
-      ],
-    );
-    _forwardAndFilterStdio(_process);
-
-    // Start DDS once the VM service has finished starting up.
-    await Future.any([
-      _waitForRemoteServiceUri(serviceInfoFile).then(_startDDS),
-      _process.exitCode,
-    ]);
-
-    return _process.exitCode.then((exitCode) async {
-      // Shutdown DDS if it was started and wait for the process' stdio streams
-      // to close so we don't truncate program output.
-      await Future.wait([
-        if (_dds != null) _dds.shutdown(),
-        _stderrDone,
-        _stdoutDone,
-      ]);
-      return exitCode;
-    });
-  }
-
-  Future<Uri> _waitForRemoteServiceUri(File serviceInfoFile) async {
-    // Wait for VM service to write its connection info to disk.
-    while (await serviceInfoFile.length() <= 5) {
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
-    final serviceInfoStr = await serviceInfoFile.readAsString();
-    return Uri.parse(jsonDecode(serviceInfoStr)['uri']);
-  }
-
-  Future<void> _startDDS(Uri remoteVmServiceUri) async {
-    _dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
-      serviceUri: _bindAddress.replace(port: _port),
-      enableAuthCodes: !_disableServiceAuthCodes,
-    );
-    if (_serviceInfoUri != null) {
-      // Output the service connection information.
-      await File.fromUri(_serviceInfoUri).writeAsString(
-        json.encode({
-          'uri': _dds.uri.toString(),
-        }),
-      );
-    }
-    _ddsCompleter.complete();
-  }
-
-  void _forwardAndFilterStdio(Process process) {
-    // Since VM service clients cannot connect to the real VM service once DDS
-    // has started, replace all instances of the real VM service's URI with the
-    // DDS URI. Clients should only know that they are connected to DDS if they
-    // explicitly request that information via the protocol.
-    String filterObservatoryUri(String msg) {
-      if (_dds == null) {
-        return msg;
-      }
-      if (msg.contains('Observatory listening on') ||
-          msg.contains('Connect to Observatory at')) {
-        // Search for the VM service URI in the message and replace it.
-        msg = msg.replaceFirst(
-          RegExp(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.'
-              r'[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)'),
-          _dds.uri.toString(),
-        );
-      }
-      return msg;
-    }
-
-    // Wait for DDS to start before handling any stdio events from the target
-    // to ensure we don't let any unfiltered messages slip through.
-    // TODO(bkonyi): consider filtering on bytes rather than decoding the UTF8.
-    _stderrDone = process.stderr
-        .transform(const Utf8Decoder(allowMalformed: true))
-        .listen((event) async {
-      await _waitForDDS();
-      stderr.write(filterObservatoryUri(event));
-    }).asFuture();
-
-    _stdoutDone = process.stdout
-        .transform(const Utf8Decoder(allowMalformed: true))
-        .listen((event) async {
-      await _waitForDDS();
-      stdout.write(filterObservatoryUri(event));
-    }).asFuture();
-
-    stdin.listen(
-      (event) async {
-        await _waitForDDS();
-        process.stdin.add(event);
-      },
-    );
-  }
-
-  Future<void> _waitForDDS() async {
-    if (!_ddsCompleter.isCompleted) {
-      // No need to wait for DDS if the process has already exited.
-      await Future.any([
-        _ddsCompleter.future,
-        _process.exitCode,
-      ]);
-    }
-  }
-
-  Uri _bindAddress = Uri.http('127.0.0.1', '');
-  bool _disableServiceAuthCodes = false;
-  DartDevelopmentService _dds;
-  bool _observe = false;
-  int _port = 8181;
-  Process _process;
-  Uri _serviceInfoUri;
-  Future _stderrDone;
-  Future _stdoutDone;
-
-  final List<String> _args;
-  final Completer<void> _ddsCompleter = Completer();
-  final RunCommand _runCommand;
+/// The [UsageEvent] for the run command.
+class RunUsageEvent extends UsageEvent {
+  RunUsageEvent(String usagePath,
+      {String label,
+      @required int exitCode,
+      @required List<String> specifiedExperiments,
+      @required List<String> args})
+      : super(RunCommand.cmdName, usagePath,
+            label: label,
+            exitCode: exitCode,
+            specifiedExperiments: specifiedExperiments,
+            args: args);
 }

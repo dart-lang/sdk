@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,16 +14,16 @@ main() {
 }
 
 @reflectiveTest
-class ExportResolutionTest extends DriverResolutionTest {
+class ExportResolutionTest extends PubPackageResolutionTest {
   test_configurations_default() async {
-    newFile('/test/lib/a.dart', content: 'class A {}');
-    newFile('/test/lib/a_html.dart', content: 'class A {}');
-    newFile('/test/lib/a_io.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
 
-    _setDeclaredVariables({
+    declaredVariables = {
       'dart.library.html': 'false',
       'dart.library.io': 'false',
-    });
+    };
 
     await assertNoErrorsInCode(r'''
 export 'a.dart'
@@ -45,14 +44,14 @@ export 'a.dart'
   }
 
   test_configurations_first() async {
-    newFile('/test/lib/a.dart', content: 'class A {}');
-    newFile('/test/lib/a_html.dart', content: 'class A {}');
-    newFile('/test/lib/a_io.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
 
-    _setDeclaredVariables({
+    declaredVariables = {
       'dart.library.html': 'true',
       'dart.library.io': 'false',
-    });
+    };
 
     await assertNoErrorsInCode(r'''
 export 'a.dart'
@@ -73,14 +72,14 @@ export 'a.dart'
   }
 
   test_configurations_second() async {
-    newFile('/test/lib/a.dart', content: 'class A {}');
-    newFile('/test/lib/a_html.dart', content: 'class A {}');
-    newFile('/test/lib/a_io.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a_html.dart', content: 'class A {}');
+    newFile('$testPackageLibPath/a_io.dart', content: 'class A {}');
 
-    _setDeclaredVariables({
+    declaredVariables = {
       'dart.library.html': 'false',
       'dart.library.io': 'true',
-    });
+    };
 
     await assertNoErrorsInCode(r'''
 export 'a.dart'
@@ -102,7 +101,7 @@ export 'a.dart'
 
   /// Test that both getter and setter are in the export namespace.
   test_namespace_getter_setter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 get f => null;
 set f(_) {}
 ''');
@@ -112,10 +111,5 @@ export 'a.dart';
     var exportNamespace = result.libraryElement.exportNamespace;
     expect(exportNamespace.get('f'), isNotNull);
     expect(exportNamespace.get('f='), isNotNull);
-  }
-
-  void _setDeclaredVariables(Map<String, String> map) {
-    driver.declaredVariables = DeclaredVariables.fromMap(map);
-    driver.configure();
   }
 }

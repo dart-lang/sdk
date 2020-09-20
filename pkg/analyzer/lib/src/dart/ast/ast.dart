@@ -612,7 +612,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 ///    assignmentExpression ::=
 ///        [Expression] operator [Expression]
 class AssignmentExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   /// The expression used to compute the left hand side.
   ExpressionImpl _leftHandSide;
@@ -2155,6 +2155,20 @@ abstract class CompilationUnitMemberImpl extends DeclarationImpl
       : super(comment, metadata);
 }
 
+mixin CompoundAssignmentExpressionImpl implements CompoundAssignmentExpression {
+  @override
+  Element readElement;
+
+  @override
+  Element writeElement;
+
+  @override
+  DartType readType;
+
+  @override
+  DartType writeType;
+}
+
 /// A conditional expression.
 ///
 ///    conditionalExpression ::=
@@ -2303,16 +2317,6 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @override
   Token get endToken => _uri.endToken;
-
-  @deprecated
-  @override
-  StringLiteral get libraryUri => _uri;
-
-  @deprecated
-  @override
-  set libraryUri(StringLiteral libraryUri) {
-    _uri = _becomeParentOf(libraryUri as StringLiteralImpl);
-  }
 
   @override
   DottedName get name => _name;
@@ -2484,12 +2488,6 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addAll(initializers)
     ..add(_redirectedConstructor)
     ..add(_body);
-
-  @deprecated
-  @override
-  set element(ConstructorElement element) {
-    declaredElement = element;
-  }
 
   @override
   Token get endToken {
@@ -3886,7 +3884,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
   bool get isNullAware {
     var nextType = argumentList.endToken.next.type;
     return nextType == TokenType.QUESTION_PERIOD ||
-        nextType == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+        nextType == TokenType.QUESTION;
   }
 
   @override
@@ -3920,9 +3918,15 @@ class ExtensionOverrideImpl extends ExpressionImpl
 ///    fieldDeclaration ::=
 ///        'static'? [VariableDeclarationList] ';'
 class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
+  @override
+  Token abstractKeyword;
+
   /// The 'covariant' keyword, or `null` if the keyword was not used.
   @override
   Token covariantKeyword;
+
+  @override
+  Token externalKeyword;
 
   /// The token representing the 'static' keyword, or `null` if the fields are
   /// not static.
@@ -3943,7 +3947,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   FieldDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      this.abstractKeyword,
       this.covariantKeyword,
+      this.externalKeyword,
       this.staticKeyword,
       VariableDeclarationListImpl fieldList,
       this.semicolon)
@@ -3971,7 +3977,11 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword != null) {
+    if (abstractKeyword != null) {
+      return abstractKeyword;
+    } else if (externalKeyword != null) {
+      return externalKeyword;
+    } else if (covariantKeyword != null) {
       return covariantKeyword;
     } else if (staticKeyword != null) {
       return staticKeyword;
@@ -4311,35 +4321,30 @@ abstract class FormalParameterImpl extends AstNodeImpl
   }
 
   @override
-  bool get isNamed =>
-      kind == ParameterKind.NAMED || kind == ParameterKind.NAMED_REQUIRED;
+  bool get isNamed => kind.isNamed;
 
   @override
-  bool get isOptional =>
-      kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+  bool get isOptional => kind.isOptional;
 
   @override
-  bool get isOptionalNamed => kind == ParameterKind.NAMED;
+  bool get isOptionalNamed => kind.isOptionalNamed;
 
   @override
-  bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
+  bool get isOptionalPositional => kind.isOptionalPositional;
 
   @override
-  bool get isPositional =>
-      kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
+  bool get isPositional => kind.isPositional;
 
   @override
-  bool get isRequired =>
-      kind == ParameterKind.REQUIRED || kind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequired => kind.isRequired;
 
   @override
-  bool get isRequiredNamed => kind == ParameterKind.NAMED_REQUIRED;
+  bool get isRequiredNamed => kind.isRequiredNamed;
 
   @override
-  bool get isRequiredPositional => kind == ParameterKind.REQUIRED;
+  bool get isRequiredPositional => kind.isRequiredPositional;
 
-  @override
-  // Overridden to remove the 'deprecated' annotation.
+  /// Return the kind of this parameter.
   ParameterKind get kind;
 }
 
@@ -4922,12 +4927,6 @@ class FunctionExpressionImpl extends ExpressionImpl
   @override
   Iterable<SyntacticEntity> get childEntities =>
       ChildEntities()..add(_parameters)..add(_body);
-
-  @deprecated
-  @override
-  set element(ExecutableElement element) {
-    declaredElement = element;
-  }
 
   @override
   Token get endToken {
@@ -5868,7 +5867,6 @@ class IndexExpressionImpl extends ExpressionImpl
       return _ancestorCascade.isNullAware;
     }
     return question != null ||
-        leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
         (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
             period != null &&
             period.type == TokenType.QUESTION_PERIOD_PERIOD);
@@ -6044,14 +6042,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.primary;
-
-  @Deprecated('Use constructorName.staticElement')
-  @override
-  ConstructorElement get staticElement => constructorName.staticElement;
-
-  @Deprecated('Use constructorName.staticElement')
-  @override
-  set staticElement(ConstructorElement staticElement) {}
 
   /// Return the type arguments associated with the constructor, rather than
   /// with the class in which the constructor is defined. It is always an error
@@ -6279,20 +6269,22 @@ class InterpolationStringImpl extends InterpolationElementImpl
   Iterable<SyntacticEntity> get childEntities => ChildEntities()..add(contents);
 
   @override
-  int get contentsEnd {
-    String lexeme = contents.lexeme;
-    return offset + StringLexemeHelper(lexeme, true, true).end;
-  }
+  int get contentsEnd => offset + _lexemeHelper.end;
 
   @override
-  int get contentsOffset {
-    int offset = contents.offset;
-    String lexeme = contents.lexeme;
-    return offset + StringLexemeHelper(lexeme, true, true).start;
-  }
+  int get contentsOffset => contents.offset + _lexemeHelper.start;
 
   @override
   Token get endToken => contents;
+
+  @override
+  StringInterpolation get parent => super.parent;
+
+  StringLexemeHelper get _lexemeHelper {
+    String lexeme = contents.lexeme;
+    return StringLexemeHelper(lexeme, identical(this, parent.elements.first),
+        identical(this, parent.elements.last));
+  }
 
   @override
   E accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
@@ -7376,16 +7368,6 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   @override
   Token get firstTokenAfterCommentAndMetadata => keyword;
 
-  @deprecated
-  @override
-  Source get source => selectedSource;
-
-  @deprecated
-  @override
-  set source(Source source) {
-    selectedSource = source;
-  }
-
   @override
   LibraryElement get uriElement;
 }
@@ -7490,7 +7472,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 /// A list of AST nodes that have a common parent.
 class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   /// The node that is the parent of each of the elements in the list.
-  AstNodeImpl _owner;
+  final AstNodeImpl _owner;
 
   /// The elements contained in the list.
   List<E> _elements = <E>[];
@@ -7522,7 +7504,6 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
   @override
   int get length => _elements.length;
 
-  @deprecated // Never intended for public use.
   @override
   set length(int newLength) {
     throw UnsupportedError("Cannot resize NodeList.");
@@ -7530,11 +7511,6 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   AstNode get owner => _owner;
-
-  @override
-  set owner(AstNode value) {
-    _owner = value as AstNodeImpl;
-  }
 
   @override
   E operator [](int index) {
@@ -7686,11 +7662,10 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     _identifier = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
 
-  @deprecated
   @override
   ParameterKind get kind {
     AstNode parent = this.parent;
-    if (parent is DefaultFormalParameter) {
+    if (parent is DefaultFormalParameterImpl) {
       return parent.kind;
     }
     return ParameterKind.REQUIRED;
@@ -8049,7 +8024,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 ///    postfixExpression ::=
 ///        [Expression] [Token]
 class PostfixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PostfixExpression {
   /// The expression computing the operand for the operator.
   ExpressionImpl _operand;
@@ -8117,7 +8092,8 @@ class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  bool _extendsNullShorting(Expression child) => identical(child, operand);
+  bool _extendsNullShorting(Expression child) =>
+      operator.type != TokenType.BANG && identical(child, operand);
 }
 
 /// An identifier that is prefixed or an access to an object property where the
@@ -8218,7 +8194,7 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 ///    prefixExpression ::=
 ///        [Token] [Expression]
 class PrefixExpressionImpl extends ExpressionImpl
-    with NullShortableExpressionImpl
+    with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PrefixExpression {
   /// The prefix operator being applied to the operand.
   @override
@@ -8286,7 +8262,8 @@ class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @override
-  bool _extendsNullShorting(Expression child) => identical(child, operand);
+  bool _extendsNullShorting(Expression child) =>
+      identical(child, operand) && operator.type.isIncrementOperator;
 }
 
 /// The access of a property of an object.
@@ -8885,6 +8862,33 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   Precedence get precedence => Precedence.primary;
+
+  /// This element is set when this identifier is used not as an expression,
+  /// but just to reference some element.
+  ///
+  /// Examples are the name of the type in a [TypeName], the name of the method
+  /// in a [MethodInvocation], the name of the constructor in a
+  /// [ConstructorName], the name of the property in a [PropertyAccess], the
+  /// prefix and the identifier in a [PrefixedIdentifier] (which then can be
+  /// used to read or write a value).
+  ///
+  /// In invalid code, for recovery, any element could be used, e.g. a
+  /// setter as a type name `set mySetter(_) {} mySetter topVar;`. We do this
+  /// to help the user to navigate to this element, and maybe change its name,
+  /// add a new declaration, etc.
+  ///
+  /// Return `null` if this identifier is used to either read or write a value,
+  /// or the AST structure has not been resolved, or if this identifier could
+  /// not be resolved.
+  ///
+  /// If either [readElement] or [writeElement] are not `null`, the
+  /// [referenceElement] is `null`, because the identifier is being used to
+  /// read or write a value.
+  ///
+  /// All three [readElement], [writeElement], and [referenceElement] can be
+  /// `null` when the AST structure has not been resolved, or this identifier
+  /// could not be resolved.
+  Element get referenceElement => null;
 
   @override
   Element get staticElement => _staticElement;
@@ -9789,6 +9793,9 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   /// The top-level variables being declared.
   VariableDeclarationListImpl _variableList;
 
+  @override
+  Token externalKeyword;
+
   /// The semicolon terminating the declaration.
   @override
   Token semicolon;
@@ -9799,6 +9806,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   TopLevelVariableDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      this.externalKeyword,
       VariableDeclarationListImpl variableList,
       this.semicolon)
       : super(comment, metadata) {
@@ -9816,7 +9824,8 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   Token get endToken => semicolon;
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => _variableList.beginToken;
+  Token get firstTokenAfterCommentAndMetadata =>
+      externalKeyword ?? _variableList.beginToken;
 
   @override
   VariableDeclarationList get variables => _variableList;
@@ -10292,16 +10301,6 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
       CommentImpl comment, List<Annotation> metadata, StringLiteralImpl uri)
       : super(comment, metadata) {
     _uri = _becomeParentOf(uri);
-  }
-
-  @deprecated
-  @override
-  Source get source => uriSource;
-
-  @deprecated
-  @override
-  set source(Source source) {
-    uriSource = source;
   }
 
   @override

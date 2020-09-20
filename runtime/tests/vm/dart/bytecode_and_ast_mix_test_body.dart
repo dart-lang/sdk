@@ -16,7 +16,7 @@ class B extends A {
 
 main() {
   ClassMirror classB = reflectClass(B);
-  MethodMirror foo = classB.declarations[#foo];
+  MethodMirror foo = classB.declarations[#foo] as MethodMirror;
   final annotation = foo.metadata[0].reflectee;
   Expect.isTrue(annotation.toString().contains('_Override'));
   print('OK');

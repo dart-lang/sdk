@@ -29,13 +29,6 @@ const bool kScopeTrace =
 const int kScopeIndent =
     const int.fromEnvironment('global.type.flow.scope.indent', defaultValue: 1);
 
-/// Extended 'assert': always checks condition.
-assertx(bool cond, {details}) {
-  if (!cond) {
-    throw 'Assertion failed.' + (details != null ? ' Details: $details' : '');
-  }
-}
-
 abstract class _Logger {
   log(Object message, [int scopeChange = 0]);
 }
@@ -109,7 +102,7 @@ bool hasReceiverArg(Member member) =>
 // Type arguments to procedures is only supported for factory constructors of
 // generic classes at the moment.
 //
-// TODO(sjindel/tfa): Extend suport to normal generic functions.
+// TODO(sjindel/tfa): Extend support to normal generic functions.
 int numTypeParams(Member member) => member is Procedure && member.isFactory
     ? member.function.typeParameters.length
     : 0;
@@ -148,6 +141,7 @@ class Statistics {
   static int maxInvocationsCachedPerSelector = 0;
   static int approximateInvocationsCreated = 0;
   static int approximateInvocationsUsed = 0;
+  static int deepInvocationsDeferred = 0;
   static int classesDropped = 0;
   static int membersDropped = 0;
   static int methodBodiesDropped = 0;
@@ -177,6 +171,7 @@ class Statistics {
     maxInvocationsCachedPerSelector = 0;
     approximateInvocationsCreated = 0;
     approximateInvocationsUsed = 0;
+    deepInvocationsDeferred = 0;
     classesDropped = 0;
     membersDropped = 0;
     methodBodiesDropped = 0;
@@ -207,6 +202,7 @@ class Statistics {
     ${maxInvocationsCachedPerSelector} maximum invocations cached per selector
     ${approximateInvocationsCreated} approximate invocations created
     ${approximateInvocationsUsed} times approximate invocation is used
+    ${deepInvocationsDeferred} times invocation processing was deferred due to deep call stack
     ${classesDropped} classes dropped
     ${membersDropped} members dropped
     ${methodBodiesDropped} method bodies dropped
@@ -289,7 +285,7 @@ class UnionFind {
     if (id1 == id2) return;
     final int w1 = _elements[id1];
     final int w2 = _elements[id2];
-    assertx(w1 < 0 && w2 < 0);
+    assert(w1 < 0 && w2 < 0);
     if (w1 < w2) {
       _elements[id1] += w2;
       _elements[id2] = id1;
@@ -319,7 +315,7 @@ bool isNullLiteral(Expression expr) =>
     (expr is ConstantExpression && expr.constant is NullConstant);
 
 Expression getArgumentOfComparisonWithNull(MethodInvocation node) {
-  if (node.name.name == '==') {
+  if (node.name.text == '==') {
     final lhs = node.receiver;
     final rhs = node.arguments.positional.single;
     if (isNullLiteral(lhs)) {

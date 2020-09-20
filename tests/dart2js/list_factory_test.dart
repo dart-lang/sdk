@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  var a = new List(4);
+  var a = List.filled(4, 0);
   Expect.equals(4, a.length);
   a[0] = 42;
   a[1] = 43;
@@ -15,7 +15,7 @@ main() {
     Expect.equals(42 + i, a[i]);
   }
 
-  a = new List();
+  a = List.empty(growable: true);
   a.add(42);
   a.add(43);
   a.add(44);

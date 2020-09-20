@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -286,6 +287,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.compilationUnit(
       compilationUnit_declarations: _writeNodeList(node.declarations),
       compilationUnit_directives: _writeNodeList(node.directives),
+      compilationUnit_featureSet:
+          (node.featureSet as ExperimentStatus).toStorage(),
       compilationUnit_languageVersion: LinkedLibraryLanguageVersionBuilder(
         package: LinkedLanguageVersionBuilder(
           major: nodeImpl.languageVersion.package.major,
@@ -554,7 +557,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       informativeId: getInformativeId(node),
     );
     builder.flags = AstBinaryFlags.encode(
+      isAbstract: node.abstractKeyword != null,
       isCovariant: node.covariantKeyword != null,
+      isExternal: node.externalKeyword != null,
       isStatic: node.staticKeyword != null,
     );
     _storeClassMember(builder, node);
@@ -1325,6 +1330,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       var builder = LinkedNodeBuilder.topLevelVariableDeclaration(
         informativeId: getInformativeId(node),
         topLevelVariableDeclaration_variableList: node.variables?.accept(this),
+      );
+      builder.flags = AstBinaryFlags.encode(
+        isExternal: node.externalKeyword != null,
       );
       _storeCompilationUnitMember(builder, node);
 

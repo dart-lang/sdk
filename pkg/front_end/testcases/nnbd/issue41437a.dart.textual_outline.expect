@@ -1,0 +1,12 @@
+dynamic getNull() => null;
+Future<dynamic> getFutureNull() async {}
+Future<bool> getFutureBool() async {}
+Future<bool> test1() async => await getNull();
+Future<bool> test2() => getNull();
+bool test3() => getNull();
+Future<bool> test4() async => await getFutureNull();
+Future<bool> test5() => getFutureNull();
+Future<bool> test6() => getFutureBool();
+Future<bool> test7() async => getFutureBool();
+test() async {}
+main() {}

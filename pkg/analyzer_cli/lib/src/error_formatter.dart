@@ -137,10 +137,9 @@ class CLIError implements Comparable<CLIError> {
   bool get isWarning => severity == 'warning';
 
   @override
-  bool operator ==(other) {
-    if (other is! CLIError) return false;
-
-    return severity == other.severity &&
+  bool operator ==(Object other) {
+    return other is CLIError &&
+        severity == other.severity &&
         sourcePath == other.sourcePath &&
         errorCode == other.errorCode &&
         offset == other.offset;

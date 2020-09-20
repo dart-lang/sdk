@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -22,6 +25,7 @@ import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,7 +41,7 @@ main() {
 @reflectiveTest
 class AssignmentCheckerTest extends Object
     with EdgeTester, DecoratedTypeTester {
-  static const EdgeOrigin origin = const _TestEdgeOrigin();
+  static const EdgeOrigin origin = _TestEdgeOrigin();
 
   LibraryElementImpl _myLibrary;
 
@@ -460,8 +464,17 @@ class AssignmentCheckerTest extends Object
 
     var uriStr = 'package:test/test.dart';
 
-    _myLibrary = LibraryElementImpl(analysisContext, analysisSession, uriStr,
-        -1, 0, typeSystem.isNonNullableByDefault);
+    _myLibrary = LibraryElementImpl(
+      analysisContext,
+      analysisSession,
+      uriStr,
+      -1,
+      0,
+      FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: Version.parse('2.10.0'),
+        flags: [EnableString.non_nullable],
+      ),
+    );
     _myLibrary.typeSystem = typeSystem;
     _myLibrary.typeProvider = coreLibrary.typeProvider;
 
@@ -6809,6 +6822,29 @@ FutureOr<int> f() async {
 int g() => 1;
 ''');
     // No assertions; just checking that it doesn't crash.
+  }
+
+  Future<void> test_return_from_async_futureOr_to_future() async {
+    await analyze('''
+import 'dart:async';
+Future<Object> f(FutureOr<int> x) async => x;
+''');
+    var lubNodeMatcher = anyNode;
+    assertEdge(lubNodeMatcher, decoratedTypeAnnotation('Object').node,
+        hard: false, checkable: false);
+    var lubNode = lubNodeMatcher.matchingNode as NullabilityNodeForLUB;
+    expect(lubNode.left, same(decoratedTypeAnnotation('int> x').node));
+    expect(lubNode.right, same(decoratedTypeAnnotation('FutureOr<int>').node));
+  }
+
+  Future<void> test_return_from_async_list_to_future() async {
+    await analyze('''
+import 'dart:async';
+Future<Object> f(List<int> x) async => x;
+''');
+    assertEdge(decoratedTypeAnnotation('List<int>').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: false, checkable: false);
   }
 
   Future<void> test_return_from_async_null() async {

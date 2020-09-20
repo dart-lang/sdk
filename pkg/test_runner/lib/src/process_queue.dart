@@ -405,7 +405,7 @@ class CommandQueue {
   void _tryRunNextCommand() {
     _checkDone();
 
-    if (_numProcesses < _maxProcesses && !_runQueue.isEmpty) {
+    if (_numProcesses < _maxProcesses && _runQueue.isNotEmpty) {
       var command = _runQueue.removeFirst();
       var isBrowserCommand = command is BrowserTestCommand;
 
@@ -1186,7 +1186,6 @@ class BatchRunnerProcess {
       // it will always fail. So rather than re-trying a 1000+ times, we
       // exit.
       io.exit(1);
-      return true;
     });
   }
 

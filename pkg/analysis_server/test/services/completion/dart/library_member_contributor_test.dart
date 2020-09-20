@@ -121,7 +121,7 @@ extension MyExt on int {}
     addTestSource('import "b.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
-    assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
+    assertSuggestClass('B1', isDeprecated: true);
     assertSuggestClass('A');
     assertNotSuggested('C');
   }

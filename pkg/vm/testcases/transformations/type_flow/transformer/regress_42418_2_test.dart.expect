@@ -1,0 +1,49 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+import "dart:math" as math;
+
+import "dart:math";
+import "package:expect/expect.dart";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
+  method bar([@vm.inferred-type.metadata=int] core::int* x) → void
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd] [@vm.inferred-type.metadata=dart.core::bool] x.{core::int::isOdd});
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C3
+  method bar([@vm.inferred-type.metadata=int?] core::int* x) → void
+    return [@vm.inferred-type.metadata=dart.core::Null? (value: null)] exp::Expect::isTrue([@vm.direct-call.metadata=dart.core::_IntegerImplementation.isOdd??] [@vm.inferred-type.metadata=dart.core::bool] x.{core::int::isOdd});
+}
+class C extends self::A implements self::B {
+  synthetic constructor •() → self::C*
+    : super self::A::•()
+    ;
+}
+[@vm.inferred-type.metadata=dart.core::bool?]static final field core::bool* alwaysFalse = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1").{core::num::==}(2);
+static method main() → dynamic {
+  final math::Random* r = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
+  if([@vm.inferred-type.metadata=dart.core::bool?] self::alwaysFalse) {
+    [@vm.direct-call.metadata=#lib::A.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10));
+    [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10));
+    [@vm.direct-call.metadata=#lib::B.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::bar}(null);
+  }
+  final core::List<self::B*>* l = <self::B*>[new self::B::•(), new self::C::•()];
+  {
+    core::Iterator<self::B*>* :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B*>] l.{core::Iterable::iterator};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(); ) {
+      self::B* b = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current};
+      {
+        b.{self::B::bar}(13);
+      }
+    }
+  }
+}

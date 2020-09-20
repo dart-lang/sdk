@@ -1,7 +1,7 @@
 class C {
-  static set C(v) { }
+  static set C(v) {}
 }
 class D {
-  set D(v) { }
+  set D(v) {}
 }
-main() { }
+main() {}

@@ -20,9 +20,8 @@ void main() {
 class NamedConstructorContributorTest extends DartCompletionContributorTest {
   CompletionSuggestion assertSuggestNamedConstructor(
       String name, String returnType,
-      [int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    var cs = assertSuggest(name, csKind: kind, relevance: relevance);
+      [CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+    var cs = assertSuggest(name, csKind: kind);
     var element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.CONSTRUCTOR));

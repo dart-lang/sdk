@@ -25,13 +25,10 @@ class Error;
 class Field;
 class Function;
 class GrowableObjectArray;
-class SequenceNode;
 class String;
-class ParsedJSONObject;
-class ParsedJSONArray;
 class Precompiler;
 class FlowGraph;
-class PrecompilerEntryPointsPrinter;
+class PrecompilerTracer;
 
 class TableSelectorKeyValueTrait {
  public:
@@ -249,8 +246,26 @@ class Precompiler : public ValueObject {
 
   Phase phase() const { return phase_; }
 
+  bool is_tracing() const { return is_tracing_; }
+
  private:
   static Precompiler* singleton_;
+
+  // Scope which activates machine readable precompiler tracing if tracer
+  // is available.
+  class TracingScope : public ValueObject {
+   public:
+    explicit TracingScope(Precompiler* precompiler)
+        : precompiler_(precompiler), was_tracing_(precompiler->is_tracing_) {
+      precompiler->is_tracing_ = (precompiler->tracer_ != nullptr);
+    }
+
+    ~TracingScope() { precompiler_->is_tracing_ = was_tracing_; }
+
+   private:
+    Precompiler* const precompiler_;
+    const bool was_tracing_;
+  };
 
   explicit Precompiler(Thread* thread);
   ~Precompiler();
@@ -286,7 +301,7 @@ class Precompiler : public ValueObject {
 
   void TraceForRetainedFunctions();
   void FinalizeDispatchTable();
-  void ReplaceFunctionPCRelativeCallEntries();
+  void ReplaceFunctionStaticCallEntries();
   void DropFunctions();
   void DropFields();
   void TraceTypesFromRetainedClasses();
@@ -356,6 +371,8 @@ class Precompiler : public ValueObject {
   void* il_serialization_stream_;
 
   Phase phase_ = Phase::kPreparation;
+  PrecompilerTracer* tracer_ = nullptr;
+  bool is_tracing_ = false;
 };
 
 class FunctionsTraits {
@@ -364,26 +381,12 @@ class FunctionsTraits {
   static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
-    Zone* zone = Thread::Current()->zone();
-    String& a_s = String::Handle(zone);
-    String& b_s = String::Handle(zone);
-    a_s = a.IsFunction() ? Function::Cast(a).name() : String::Cast(a).raw();
-    b_s = b.IsFunction() ? Function::Cast(b).name() : String::Cast(b).raw();
-    ASSERT(a_s.IsSymbol() && b_s.IsSymbol());
-    return a_s.raw() == b_s.raw();
+    return String::Cast(a).raw() == String::Cast(b).raw();
   }
-  static uword Hash(const Object& obj) {
-    if (obj.IsFunction()) {
-      return String::Handle(Function::Cast(obj).name()).Hash();
-    } else {
-      ASSERT(String::Cast(obj).IsSymbol());
-      return String::Cast(obj).Hash();
-    }
-  }
-  static ObjectPtr NewKey(const Function& function) { return function.raw(); }
+  static uword Hash(const Object& obj) { return String::Cast(obj).Hash(); }
 };
 
-typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
+typedef UnorderedHashMap<FunctionsTraits> UniqueFunctionsMap;
 
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
 // ObfuscationMap maps Strings to Strings.

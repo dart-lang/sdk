@@ -16,6 +16,7 @@
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/frontend/bytecode_reader.h"
@@ -110,7 +111,7 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_use_bare_instructions) {
       Thread* thread = Thread::Current();
       thread->set_global_object_pool(
           thread->isolate()->object_store()->global_object_pool());
@@ -215,8 +216,6 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const intptr_t receiver_index = args_desc.FirstArgIndex();
   const intptr_t type_args_len = args_desc.TypeArgsLen();
-  const intptr_t args_count = args_desc.Count();
-  const intptr_t named_args_count = args_desc.NamedCount();
   const auto& getter_name = Symbols::GetCall();
 
   auto& instance = Instance::Handle(zone);
@@ -226,11 +225,19 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
   // The null instance cannot resolve to a callable, so we can stop there.
   for (instance ^= arguments.At(receiver_index); !instance.IsNull();
        instance ^= arguments.At(receiver_index)) {
-    // If the current instance is a compatible callable, return its function.
-    if (instance.IsCallable(&function) &&
-        function.AreValidArgumentCounts(type_args_len, args_count,
-                                        named_args_count, nullptr)) {
-      return function.raw();
+    // The instance is a callable, so check that its function is compatible.
+    if (instance.IsCallable(&function)) {
+      bool matches = function.AreValidArguments(args_desc, nullptr);
+
+      if (matches && type_args_len > 0 && function.IsClosureFunction()) {
+        // Though the closure function is generic, the closure itself may
+        // not be because it closes over delayed function type arguments.
+        matches = Closure::Cast(instance).IsGeneric(thread);
+      }
+
+      if (matches) {
+        return function.raw();
+      }
     }
 
     // Special case: closures are implemented with a call getter instead of a
@@ -239,38 +246,31 @@ ObjectPtr DartEntry::ResolveCallable(const Array& arguments,
       break;
     }
 
+    cls = instance.clazz();
     // Find a call getter, if any, in the class hierarchy.
-    for (cls = instance.clazz(); !cls.IsNull(); cls = cls.SuperClass()) {
-      function = cls.LookupDynamicFunction(getter_name);
-      if (function.IsNull()) {
-        continue;
-      }
-
-      if (!OSThread::Current()->HasStackHeadroom()) {
-        const Instance& exception =
-            Instance::Handle(zone, isolate->object_store()->stack_overflow());
-        return UnhandledException::New(exception, StackTrace::Handle(zone));
-      }
-
-      const Array& getter_arguments = Array::Handle(zone, Array::New(1));
-      getter_arguments.SetAt(0, instance);
-      const Object& getter_result = Object::Handle(
-          zone, DartEntry::InvokeFunction(function, getter_arguments));
-      if (getter_result.IsError()) {
-        return getter_result.raw();
-      }
-      ASSERT(getter_result.IsNull() || getter_result.IsInstance());
-
-      // We have a new possibly compatible callable, so set the first argument
-      // accordingly so it gets picked up in the main loop.
-      arguments.SetAt(receiver_index, getter_result);
+    function = Resolver::ResolveDynamicAnyArgs(zone, cls, getter_name,
+                                               /*allow_add=*/false);
+    if (function.IsNull()) {
       break;
     }
-
-    // No call getter was found in the hierarchy, so stop the search.
-    if (cls.IsNull()) {
-      break;
+    if (!OSThread::Current()->HasStackHeadroom()) {
+      const Instance& exception =
+          Instance::Handle(zone, isolate->object_store()->stack_overflow());
+      return UnhandledException::New(exception, StackTrace::Handle(zone));
     }
+
+    const Array& getter_arguments = Array::Handle(zone, Array::New(1));
+    getter_arguments.SetAt(0, instance);
+    const Object& getter_result = Object::Handle(
+        zone, DartEntry::InvokeFunction(function, getter_arguments));
+    if (getter_result.IsError()) {
+      return getter_result.raw();
+    }
+    ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+
+    // We have a new possibly compatible callable, so set the first argument
+    // accordingly so it gets picked up in the main loop.
+    arguments.SetAt(receiver_index, getter_result);
   }
 
   // No compatible callable was found.
@@ -335,6 +335,9 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   Class& invocation_mirror_class = Class::Handle(core_lib.LookupClass(
       String::Handle(core_lib.PrivateName(Symbols::InvocationMirror()))));
   ASSERT(!invocation_mirror_class.IsNull());
+  Thread* thread = Thread::Current();
+  const auto& error = invocation_mirror_class.EnsureIsFinalized(thread);
+  ASSERT(error == Error::null());
   const String& function_name =
       String::Handle(core_lib.PrivateName(Symbols::AllocateInvocationMirror()));
   const Function& allocation_function = Function::Handle(
@@ -363,7 +366,6 @@ ObjectPtr DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
-    Thread* thread = Thread::Current();
     function = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(thread->zone(),
                       thread->isolate()->object_store()->object_class()),
@@ -431,6 +433,32 @@ ArrayPtr ArgumentsDescriptor::GetArgumentNames() const {
     names.SetAt(index, name);
   }
   return names.raw();
+}
+
+void ArgumentsDescriptor::PrintTo(BaseTextBuffer* buffer) const {
+  buffer->Printf("%" Pd " arg%s", Count(), Count() == 1 ? "" : "s");
+  if (TypeArgsLen() > 0) {
+    buffer->Printf(", %" Pd " type arg%s", TypeArgsLen(),
+                   TypeArgsLen() == 1 ? "" : "s");
+  }
+  if (NamedCount() > 0) {
+    buffer->AddString(", names [");
+    auto& str = String::Handle();
+    for (intptr_t i = 0; i < NamedCount(); i++) {
+      if (i != 0) {
+        buffer->AddString(", ");
+      }
+      str = NameAt(i);
+      buffer->Printf("'%s'", str.ToCString());
+    }
+    buffer->Printf("]");
+  }
+}
+
+const char* ArgumentsDescriptor::ToCString() const {
+  ZoneTextBuffer buf(Thread::Current()->zone());
+  PrintTo(&buf);
+  return buf.buffer();
 }
 
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
@@ -617,6 +645,9 @@ ObjectPtr DartLibraryCalls::ToString(const Instance& receiver) {
   const int kNumArguments = 1;  // Receiver.
   ArgumentsDescriptor args_desc(Array::Handle(
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
+  const Class& receiver_class = Class::Handle(receiver.clazz());
+  const auto& error = receiver_class.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver, Symbols::toString(), args_desc));
   ASSERT(!function.IsNull());

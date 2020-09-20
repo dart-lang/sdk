@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -704,6 +703,162 @@ f() {
   try {
     throw 'error';/*caret*/
   } on String catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    await _prepareCompletion('.tryon', '''
+f() {
+  throw 'error';.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+f() {
+  try {
+    throw 'error';/*caret*/
+  } on String catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd_into_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    newFile('/home/test/lib/a.dart', content: r'''
+String? x;
+''');
+    await _prepareCompletion('.tryon', '''
+// @dart = 2.8
+import 'a.dart';
+f() {
+  throw x;.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+// @dart = 2.8
+import 'a.dart';
+f() {
+  try {
+    throw x;/*caret*/
+  } on String catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd_into_legacy_nested() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    newFile('/home/test/lib/a.dart', content: r'''
+List<String?> x;
+''');
+    await _prepareCompletion('.tryon', '''
+// @dart = 2.8
+import 'a.dart';
+f() {
+  throw x;.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+// @dart = 2.8
+import 'a.dart';
+f() {
+  try {
+    throw x;/*caret*/
+  } on List<String> catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd_legacy() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    newFile('/home/test/lib/a.dart', content: r'''
+// @dart = 2.8
+String x;
+''');
+    await _prepareCompletion('.tryon', '''
+import 'a.dart';
+f() {
+  throw x;.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+import 'a.dart';
+f() {
+  try {
+    throw x;/*caret*/
+  } on String catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd_legacy_nested() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    newFile('/home/test/lib/a.dart', content: r'''
+// @dart = 2.8
+List<String> x;
+''');
+    await _prepareCompletion('.tryon', '''
+import 'a.dart';
+f() {
+  throw x;.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+import 'a.dart';
+f() {
+  try {
+    throw x;/*caret*/
+  } on List<String> catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd_nullable() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    await _prepareCompletion('.tryon', '''
+f() {
+  String? x;
+  throw x;.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+f() {
+  String? x;
+  try {
+    throw x;/*caret*/
+  } on String catch (e, s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  Future<void> test_tryonThrowStatement_nnbd_nullable_nested() async {
+    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
+    await _prepareCompletion('.tryon', '''
+f() {
+  List<String?>? x;
+  throw x;.tryon
+}
+''');
+    _assertHasChange('Expand .tryon', '''
+f() {
+  List<String?>? x;
+  try {
+    throw x;/*caret*/
+  } on List<String?> catch (e, s) {
     print(s);
   }
 }

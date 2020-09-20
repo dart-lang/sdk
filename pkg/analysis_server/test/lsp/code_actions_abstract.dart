@@ -100,12 +100,13 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     final commandResponse = await handleExpectedRequest<Object,
         ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
       Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
       () => executeCommand(command),
       handler: (edit) {
         // When the server sends the edit back, just keep a copy and say we
         // applied successfully (it'll be verified below).
         editParams = edit;
-        return ApplyWorkspaceEditResponse(true, null);
+        return ApplyWorkspaceEditResponse(applied: true);
       },
     );
     // Successful edits return an empty success() response.

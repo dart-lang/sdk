@@ -6,11 +6,10 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:args/args.dart';
-import 'package:path/path.dart';
+import 'package:cli_util/cli_util.dart';
 
 const String analysisOptionsFileOption = 'options';
 const String defineVariableOption = 'D';
@@ -55,17 +54,35 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
   }
 }
 
-/// Use the command-line [args] to create a context builder.
-ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
+/// Use the command-line [args] to create a context builder options.
+ContextBuilderOptions createContextBuilderOptions(
+  ResourceProvider resourceProvider,
+  ArgResults args,
+) {
+  String absoluteNormalizedPath(String path) {
+    if (path == null) {
+      return null;
+    }
+    var pathContext = resourceProvider.pathContext;
+    return pathContext.normalize(
+      pathContext.absolute(path),
+    );
+  }
+
   ContextBuilderOptions builderOptions = ContextBuilderOptions();
   builderOptions.argResults = args;
   //
   // File locations.
   //
-  builderOptions.dartSdkSummaryPath = args[sdkSummaryPathOption];
-  builderOptions.defaultAnalysisOptionsFilePath =
-      args[analysisOptionsFileOption];
-  builderOptions.defaultPackageFilePath = args[packagesOption];
+  builderOptions.dartSdkSummaryPath = absoluteNormalizedPath(
+    args[sdkSummaryPathOption],
+  );
+  builderOptions.defaultAnalysisOptionsFilePath = absoluteNormalizedPath(
+    args[analysisOptionsFileOption],
+  );
+  builderOptions.defaultPackageFilePath = absoluteNormalizedPath(
+    args[packagesOption],
+  );
   //
   // Analysis options.
   //
@@ -103,18 +120,10 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args) {
 /// SDK manager. The manager will use summary information if [useSummaries] is
 /// `true` and if the summary information exists.
 DartSdkManager createDartSdkManager(
-    ResourceProvider resourceProvider, bool useSummaries, ArgResults args) {
-  String sdkPath = args[sdkPathOption];
+    ResourceProvider resourceProvider, ArgResults args) {
+  String sdkPath = args[sdkPathOption] ?? getSdkPath();
 
-  bool canUseSummaries = useSummaries &&
-      args.rest.every((String sourcePath) {
-        sourcePath = context.absolute(sourcePath);
-        sourcePath = context.normalize(sourcePath);
-        return !context.isWithin(sdkPath, sourcePath);
-      });
-  return DartSdkManager(
-      sdkPath ?? FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)?.path,
-      canUseSummaries);
+  return DartSdkManager(sdkPath);
 }
 
 /// Add the standard flags and options to the given [parser]. The standard flags
@@ -124,7 +133,7 @@ DartSdkManager createDartSdkManager(
 /// TODO(danrubel) Update DDC to support all the options defined in this method
 /// then remove the [ddc] named argument from this method.
 void defineAnalysisArguments(ArgParser parser,
-    {bool hide = true, ddc = false}) {
+    {bool hide = true, bool ddc = false}) {
   parser.addOption(sdkPathOption,
       help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,

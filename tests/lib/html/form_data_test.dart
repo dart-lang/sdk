@@ -68,7 +68,7 @@ void main() {
             '${window.location.protocol}//${window.location.host}/echo');
 
         xhr.onLoad.listen(expectAsync((e) {
-          expect(xhr.responseText.contains(blobString), isTrue);
+          expect(xhr.responseText!.contains(blobString), isTrue);
         }));
         xhr.onError.listen((e) {
           fail('$e');

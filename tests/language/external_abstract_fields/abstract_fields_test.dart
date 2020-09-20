@@ -66,7 +66,7 @@ class Logger {
   }
   int get y {
     lastName = #y;
-    return 0;
+    return _y;
   }
   set y(int value) {
     lastName = #y;

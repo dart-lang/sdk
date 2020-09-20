@@ -329,7 +329,7 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
     case Slot::Kind::kDartField:  // Instance
       return true;
 
-#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, type, modifiers)   \
+#define FOR_EACH_NATIVE_SLOT(class, underlying_type, field, __, ___)           \
   case Slot::Kind::k##class##_##field:                                         \
     return std::is_base_of<InstanceLayout, underlying_type>::value ||          \
            std::is_base_of<ContextLayout, underlying_type>::value ||           \

@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ReplaceWithFilled extends CorrectionProducer {
@@ -14,7 +14,7 @@ class ReplaceWithFilled extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REPLACE_WITH_FILLED;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var typeName = node is SimpleIdentifier ? node.parent : node;
     var creation = typeName?.parent?.parent;
     if (typeName is TypeName && creation is InstanceCreationExpression) {
@@ -22,7 +22,7 @@ class ReplaceWithFilled extends CorrectionProducer {
       if (typeSystem.isNullable(elementType)) {
         var argumentList = creation.argumentList;
         if (argumentList.arguments.length == 1) {
-          await builder.addFileEdit(file, (builder) {
+          await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleInsertion(argumentList.offset, '.filled');
             builder.addSimpleInsertion(
                 argumentList.arguments[0].end, ', null, growable: false');

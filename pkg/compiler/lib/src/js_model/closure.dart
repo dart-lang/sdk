@@ -239,6 +239,11 @@ class ClosureDataBuilder {
             }
             break;
           case VariableUseKind.localReturnType:
+            if (usage.localFunction.function.asyncMarker !=
+                ir.AsyncMarker.Sync) {
+              // The Future/Iterator/Stream implementation requires the type.
+              return true;
+            }
             if (rtiNeed.localFunctionNeedsSignature(usage.localFunction)) {
               return true;
             }

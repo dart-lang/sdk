@@ -21,7 +21,8 @@ class VmService {
                     const char* write_service_info_filename,
                     bool trace_loading,
                     bool deterministic,
-                    bool enable_service_port_fallback);
+                    bool enable_service_port_fallback,
+                    bool wait_for_dds_to_advertise_service);
 
   static void SetNativeResolver();
 

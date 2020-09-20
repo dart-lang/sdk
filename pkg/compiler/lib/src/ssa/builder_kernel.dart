@@ -461,6 +461,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
               registry.registerStaticUse(new StaticUse.staticInvoke(
                   closedWorld.commonElements.cyclicThrowHelper,
                   CallStructure.ONE_ARG));
+              registry.registerStaticUse(new StaticUse.staticInvoke(
+                  closedWorld.commonElements.throwLateInitializationError,
+                  CallStructure.ONE_ARG));
             }
             if (targetElement.isInstanceMember) {
               if (fieldData.isEffectivelyFinal ||
@@ -588,13 +591,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       // If the method is intercepted, we want the actual receiver
       // to be the first parameter.
       graph.entry.addBefore(graph.entry.last, parameter);
+      DartType type = _getDartTypeIfValid(node.type);
       HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          field, parameter, _getDartTypeIfValid(node.type));
+          field, parameter, type);
       // TODO(sra): Pass source information to
       // [potentiallyCheckOrTrustTypeOfParameter].
       // TODO(sra): The source information should indiciate the field and
       // possibly its type but not the initializer.
       value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
+      value = _potentiallyAssertNotNull(node, value, type);
       if (!_fieldAnalysis.getFieldData(field).isElided) {
         add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
       }
@@ -1237,30 +1242,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         parameterStructure: function.parameterStructure,
         checks: _checksForFunction(function));
 
-    // If [functionNode] is `operator==` we explicitly add a null check at the
-    // beginning of the method. This is to avoid having call sites do the null
-    // check.
-    if (function.name == '==') {
-      if (!_commonElements.operatorEqHandlesNullArgument(function)) {
-        _handleIf(
-            visitCondition: () {
-              HParameterValue parameter = parameters.values.first;
-              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                  _abstractValueDomain.boolType));
-            },
-            visitThen: () {
-              _closeAndGotoExit(HReturn(
-                  _abstractValueDomain,
-                  graph.addConstantBool(false, closedWorld),
-                  _sourceInformationBuilder.buildReturn(functionNode)));
-            },
-            visitElse: null,
-            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
-      }
-    }
-    if (const bool.fromEnvironment('unreachable-throw')) {
-      var emptyParameters = parameters.values.where((p) =>
-          _abstractValueDomain.isEmpty(p.instructionType).isDefinitelyTrue);
+    if (options.experimentUnreachableMethodsThrow) {
+      var emptyParameters = parameters.values.where((parameter) =>
+          _abstractValueDomain
+              .isEmpty(parameter.instructionType)
+              .isDefinitelyTrue);
       if (emptyParameters.length > 0) {
         _addComment('${emptyParameters} inferred as [empty]');
         add(new HInvokeStatic(
@@ -1432,7 +1418,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         newParameter = _typeBuilder.trustTypeOfParameter(
             targetElement, newParameter, type);
       }
-
+      // TODO(sra): Hoist out of loop.
+      newParameter = _potentiallyAssertNotNull(variable, newParameter, type);
       localsHandler.updateLocal(local, newParameter);
     }
 
@@ -1457,6 +1444,41 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         }
       }
     }
+  }
+
+  /// In mixed mode, inserts an assertion of the form `assert(x != null)` for
+  /// parameters in opt-in libraries that have a static type that cannot be
+  /// nullable under a strong interpretation.
+  HInstruction _potentiallyAssertNotNull(
+      ir.TreeNode context, HInstruction value, DartType type) {
+    if (!options.enableNullAssertions) return value;
+    if (!_isNonNullableByDefault(context)) return value;
+    if (!dartTypes.isNonNullableIfSound(type)) return value;
+
+    if (options.enableUserAssertions) {
+      pushCheckNull(value);
+      push(HNot(pop(), _abstractValueDomain.boolType));
+      var sourceInformation = _sourceInformationBuilder.buildAssert(context);
+      _pushStaticInvocation(
+          _commonElements.assertHelper,
+          <HInstruction>[pop()],
+          _typeInferenceMap.getReturnTypeOf(_commonElements.assertHelper),
+          const <DartType>[],
+          sourceInformation: sourceInformation);
+      pop();
+      return value;
+    } else {
+      HInstruction nullCheck = HNullCheck(
+          value, _abstractValueDomain.excludeNull(value.instructionType))
+        ..sourceInformation = value.sourceInformation;
+      add(nullCheck);
+      return nullCheck;
+    }
+  }
+
+  bool _isNonNullableByDefault(ir.TreeNode node) {
+    if (node is ir.Library) return node.isNonNullableByDefault;
+    return _isNonNullableByDefault(node.parent);
   }
 
   /// Builds a SSA graph for FunctionNodes of external methods. This produces a
@@ -1523,8 +1545,18 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       push(HInvokeExternal(targetElement, inputs, returnType, nativeBehavior,
           sourceInformation: null));
-      // TODO(johnniwinther): Provide source information.
       HInstruction value = pop();
+      // TODO(johnniwinther): Provide source information.
+      if (options.enableNativeReturnNullAssertions) {
+        if (_isNonNullableByDefault(functionNode)) {
+          DartType type = _getDartTypeIfValid(functionNode.returnType);
+          if (dartTypes.isNonNullableIfSound(type)) {
+            push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
+                sticky: true));
+            value = pop();
+          }
+        }
+      }
       if (targetElement.isSetter) {
         _closeAndGotoExit(HGoto(_abstractValueDomain));
       } else {
@@ -1616,6 +1648,29 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     _addClassTypeVariablesIfNeeded(member);
     _addFunctionTypeVariablesIfNeeded(member);
+
+    // If [member] is `operator==` we explicitly add a null check at the
+    // beginning of the method. This is to avoid having call sites do the null
+    // check. The null check is added before the argument type checks since in
+    // strong mode, the parameter type might be non-nullable.
+    if (member.name == '==') {
+      if (!_commonElements.operatorEqHandlesNullArgument(member)) {
+        _handleIf(
+            visitCondition: () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+                  _abstractValueDomain.boolType));
+            },
+            visitThen: () {
+              _closeAndGotoExit(HReturn(
+                  _abstractValueDomain,
+                  graph.addConstantBool(false, closedWorld),
+                  _sourceInformationBuilder.buildReturn(functionNode)));
+            },
+            visitElse: null,
+            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
+      }
+    }
 
     if (functionNode != null) {
       _potentiallyAddFunctionParameterTypeChecks(functionNode, checks);
@@ -3603,13 +3658,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           }
         }
         assert(namedValues.isEmpty);
-      } else {
-        // Throw an error because JS cannot handle named parameters.
-        reporter.reportErrorMessage(
-            _elementMap.getSpannable(targetElement, target),
-            MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
-            {'method': function.name});
-        return null;
       }
     }
     return values;
@@ -3890,9 +3938,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     } else if (isJSArrayTypedConstructor) {
       // TODO(sra): Instead of calling the identity-like factory constructor,
       // simply select the single argument.
+
       // Factory constructors take type parameters.
-      if (closedWorld.rtiNeed
-          .classNeedsTypeArguments(function.enclosingClass)) {}
       List<DartType> typeArguments =
           _getConstructorTypeArguments(function, invocation.arguments);
       // TODO(johnniwinther): Remove this when type arguments are passed to
@@ -3917,6 +3964,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _addImplicitInstantiation(instanceType);
       _pushStaticInvocation(function, arguments, typeMask, typeArguments,
           sourceInformation: sourceInformation, instanceType: instanceType);
+
+      // TODO(sra): Special handling of List.filled, List.generate, List.of and
+      // other list constructors where 'growable' is false.
     }
 
     HInstruction newInstance = stack.last;
@@ -4194,7 +4244,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return '$count ${adjective}arguments';
     }
 
-    String name() => invocation.target.name.name;
+    String name() => invocation.target.name.text;
 
     ir.Arguments arguments = invocation.arguments;
     bool bad = false;
@@ -5500,10 +5550,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       // Don't inline operator== methods if the parameter can be null.
       if (function.name == '==') {
-        if (function.enclosingClass != _commonElements.objectClass &&
-            providedArguments[1]
-                .isNull(_abstractValueDomain)
-                .isPotentiallyTrue) {
+        if (providedArguments[1]
+            .isNull(_abstractValueDomain)
+            .isPotentiallyTrue) {
           return false;
         }
       }
@@ -6053,6 +6102,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         checkedOrTrusted = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             function, argument, type);
       }
+      checkedOrTrusted =
+          _potentiallyAssertNotNull(variable, checkedOrTrusted, type);
       localsHandler.updateLocal(parameter, checkedOrTrusted);
     });
   }
@@ -6274,7 +6325,7 @@ class TryCatchFinallyBuilder {
 
     AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
         .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
-    if (!kernelBuilder.options.useLegacySubtyping) {
+    if (kernelBuilder.options.useNullSafety) {
       // Global type analysis does not currently understand that strong mode
       // `Object` is not nullable, so is imprecise in the return type of the
       // unwrapper, which leads to unnecessary checks for 'on Object'.
@@ -6292,7 +6343,6 @@ class TryCatchFinallyBuilder {
     int catchesIndex = 0;
 
     void pushCondition(ir.Catch catchBlock) {
-      // `guard` is often `dynamic`, which generates `true`.
       kernelBuilder._pushIsTest(catchBlock.guard, unwrappedException,
           kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
     }
@@ -6689,7 +6739,7 @@ class InlineWeeder extends ir.Visitor {
   final bool enableUserAssertions;
   final bool omitImplicitCasts;
 
-  final InlineData data = new InlineData();
+  final InlineData data = InlineData();
   bool seenReturn = false;
 
   /// Whether node-count is collector to determine if a function can be
@@ -6714,6 +6764,11 @@ class InlineWeeder extends ir.Visitor {
   // TODO(25231): Make larger string constants eligible by sharing references.
   bool countReductiveNode = true;
 
+  // When handling a generative constructor factory, the super constructor calls
+  // are 'inlined', so tend to reuse the same parameters. [discountParameters]
+  // is true to avoid double-counting these parameters.
+  bool discountParameters = false;
+
   InlineWeeder(
       {this.enableUserAssertions: false, this.omitImplicitCasts: false});
 
@@ -6724,17 +6779,18 @@ class InlineWeeder extends ir.Visitor {
         enableUserAssertions: enableUserAssertions,
         omitImplicitCasts: omitImplicitCasts);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
-    node.accept(visitor);
     if (function.isConstructor) {
       visitor.data.isConstructor = true;
       MemberDefinition definition = elementMap.getMemberDefinition(function);
-      visitor.skipReductiveNodes(() {
-        ir.Node node = definition.node;
-        if (node is ir.Constructor) {
-          visitor.visitList(node.initializers);
-        }
-      });
+      ir.Node node = definition.node;
+      if (node is ir.Constructor) {
+        visitor.skipReductiveNodes(() {
+          visitor.handleGenerativeConstructorFactory(node);
+        });
+        return visitor.data;
+      }
     }
+    node.accept(visitor);
     return visitor.data;
   }
 
@@ -6752,9 +6808,9 @@ class InlineWeeder extends ir.Visitor {
     countReductiveNode = oldCountReductiveNode;
   }
 
-  void registerRegularNode() {
+  void registerRegularNode([int count = 1]) {
     if (countRegularNode) {
-      data.regularNodeCount++;
+      data.regularNodeCount += count;
       if (seenReturn) {
         data.codeAfterReturn = true;
       }
@@ -6986,6 +7042,7 @@ class InlineWeeder extends ir.Visitor {
 
   @override
   visitVariableGet(ir.VariableGet node) {
+    if (discountParameters && node.variable.parent is ir.FunctionNode) return;
     registerRegularNode();
     registerReductiveNode();
     skipReductiveNodes(() => visit(node.promotedType));
@@ -7096,5 +7153,176 @@ class InlineWeeder extends ir.Visitor {
     registerRegularNode();
     node.visitChildren(this);
     data.hasIf = true;
+  }
+
+  void handleGenerativeConstructorFactory(ir.Constructor node) {
+    // Generative constructors are compiled to a factory constructor which
+    // contains inlined all the initializations up the inheritance chain and
+    // then call each of the constructor bodies down the inheritance chain.
+    ir.Constructor constructor = node;
+
+    Set<ir.Field> initializedFields = {};
+    bool hasCallToSomeConstructorBody = false;
+
+    inheritance_loop:
+    while (constructor != null) {
+      ir.Constructor superConstructor;
+      for (var initializer in constructor.initializers) {
+        if (initializer is ir.RedirectingInitializer) {
+          // Discount the size of the arguments by references that are
+          // pass-through.
+          // TODO(sra): Need to add size of defaulted arguments.
+          var discountParametersOld = discountParameters;
+          discountParameters = true;
+          initializer.arguments.accept(this);
+          discountParameters = discountParametersOld;
+          constructor = initializer.target;
+          continue inheritance_loop;
+        } else if (initializer is ir.SuperInitializer) {
+          superConstructor = initializer.target;
+          // Discount the size of the arguments by references that are
+          // pass-through.
+          // TODO(sra): Need to add size of defaulted arguments.
+          var discountParametersOld = discountParameters;
+          discountParameters = true;
+          initializer.arguments.accept(this);
+          discountParameters = discountParametersOld;
+        } else if (initializer is ir.FieldInitializer) {
+          initializedFields.add(initializer.field);
+          initializer.value.accept(this);
+        } else if (initializer is ir.AssertInitializer) {
+          if (enableUserAssertions) {
+            initializer.accept(this);
+          }
+        } else {
+          initializer.accept(this);
+        }
+      }
+
+      _handleFields(constructor.enclosingClass, initializedFields);
+
+      // There will be a call to the constructor's body, which might be empty
+      // and inlined away.
+      var function = constructor.function;
+      var body = function.body;
+      if (!isEmptyBody(body)) {
+        // All of the parameters are passed to the body.
+        int parameterCount = function.positionalParameters.length +
+            function.namedParameters.length +
+            function.typeParameters.length;
+
+        hasCallToSomeConstructorBody = true;
+        registerCall();
+        // A body call looks like "t.Body$(arguments);", i.e. an expression
+        // statement with an instance member call, but the receiver is not
+        // counted in the arguments. I'm guessing about 6 nodes for this.
+        registerRegularNode(
+            6 + parameterCount * INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR);
+
+        // We can't inline a generative constructor factory when one of the
+        // bodies rewrites the environment to put locals or parameters into a
+        // box. The box is created in the generative constructor factory since
+        // the box may be shared between closures in the initializer list and
+        // closures in the constructor body.
+        var bodyVisitor = InlineWeederBodyClosure();
+        body.accept(bodyVisitor);
+        if (bodyVisitor.tooDifficult) {
+          data.hasClosure = true;
+        }
+      }
+
+      if (superConstructor != null) {
+        // The class of the super-constructor may not be the supertype class. In
+        // this case, we must go up the class hierarchy until we reach the class
+        // containing the super-constructor.
+        ir.Supertype supertype = constructor.enclosingClass.supertype;
+        while (supertype.classNode != superConstructor.enclosingClass) {
+          _handleFields(supertype.classNode, initializedFields);
+          supertype = supertype.classNode.supertype;
+        }
+      }
+      constructor = superConstructor;
+    }
+
+    // In addition to the initializer expressions and body calls, there is an
+    // allocator call.
+    if (hasCallToSomeConstructorBody) {
+      // A temporary is requried so we have
+      //
+      //     t=new ...;
+      //     ...;
+      //     use(t);
+      //
+      // I'm guessing it takes about 4 nodes to introduce the temporary and
+      // assign it.
+      registerRegularNode(4); // A temporary is requried.
+    }
+    // The initial field values are passed to the allocator.
+    registerRegularNode(
+        initializedFields.length * INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR);
+  }
+
+  void _handleFields(ir.Class cls, Set<ir.Field> initializedFields) {
+    for (ir.Field field in cls.fields) {
+      if (!field.isInstanceMember) continue;
+      ir.Expression initializer = field.initializer;
+      if (initializer == null ||
+          initializer is ir.ConstantExpression &&
+              initializer.constant is ir.PrimitiveConstant ||
+          initializer is ir.BasicLiteral) {
+        // Simple field initializers happen in the allocator, so do not
+        // contribute to the size of the generative constructor factory.
+        // TODO(sra): Use FieldInfo which tells us if the field is elided or
+        // initialized in the allocator.
+        continue;
+      }
+      if (!initializedFields.add(field)) continue;
+      initializer.accept(this);
+    }
+    // If [cls] is a mixin application, include fields from mixed in class.
+    if (cls.mixedInType != null) {
+      _handleFields(cls.mixedInType.classNode, initializedFields);
+    }
+  }
+
+  bool isEmptyBody(ir.Statement body) {
+    if (body is ir.EmptyStatement) return true;
+    if (body is ir.Block) return body.statements.every(isEmptyBody);
+    if (body is ir.AssertStatement && !enableUserAssertions) return true;
+    return false;
+  }
+}
+
+/// Visitor to detect environment-rewriting that prevents inlining
+/// (e.g. closures).
+class InlineWeederBodyClosure extends ir.Visitor<void> {
+  bool tooDifficult = false;
+
+  InlineWeederBodyClosure();
+
+  @override
+  defaultNode(ir.Node node) {
+    if (tooDifficult) return;
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression node) {
+    tooDifficult = true;
+  }
+
+  @override
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    tooDifficult = true;
+  }
+
+  @override
+  void visitFunctionNode(ir.FunctionNode node) {
+    assert(false);
+    if (node.asyncMarker != ir.AsyncMarker.Sync) {
+      tooDifficult = true;
+      return;
+    }
+    node.visitChildren(this);
   }
 }

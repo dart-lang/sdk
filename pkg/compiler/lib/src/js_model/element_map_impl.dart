@@ -148,8 +148,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       IndexedLibrary oldLibrary = _elementMap.libraries.getEntity(libraryIndex);
       KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
       KLibraryData data = _elementMap.libraries.getData(oldLibrary);
-      IndexedLibrary newLibrary =
-          new JLibrary(oldLibrary.name, oldLibrary.canonicalUri);
+      IndexedLibrary newLibrary = new JLibrary(oldLibrary.name,
+          oldLibrary.canonicalUri, oldLibrary.isNonNullableByDefault);
       JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMemberUsage);
       libraryMap[oldEnv.library] =
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
@@ -820,7 +820,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     while (superclass != null) {
       JClassEnv env = classes.getEnv(superclass);
       MemberEntity superMember =
-          env.lookupMember(this, name.name, setter: setter);
+          env.lookupMember(this, name.text, setter: setter);
       if (superMember != null) {
         if (!superMember.isInstanceMember) return null;
         if (!superMember.isAbstract) {
@@ -917,7 +917,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     for (ir.VariableDeclaration variable in sortedNamedParameters) {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getParameterType(variable));
-      if (variable.isRequired && !options.useLegacySubtyping) {
+      if (variable.isRequired) {
         requiredNamedParameters.add(variable.name);
       }
     }
@@ -1243,7 +1243,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   Name getName(ir.Name name) {
     return new Name(
-        name.name, name.isPrivate ? getLibrary(name.library) : null);
+        name.text, name.isPrivate ? getLibrary(name.library) : null);
   }
 
   @override
@@ -1302,13 +1302,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   Selector getGetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.getter(name);
   }
 
   Selector getSetterSelector(ir.Name irName) {
     Name name = new Name(
-        irName.name, irName.isPrivate ? getLibrary(irName.library) : null);
+        irName.text, irName.isPrivate ? getLibrary(irName.library) : null);
     return new Selector.setter(name);
   }
 
@@ -2003,15 +2003,15 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           fieldNumber++;
         }
       } else if (variable is TypeVariableTypeWithContext) {
-        _constructClosureField(
-            localsMap.getLocalTypeVariable(variable.type, this),
-            closureClassInfo,
-            memberThisType,
-            memberMap,
-            variable.type.parameter,
-            true,
-            false,
-            fieldNumber);
+        Local capturedLocal =
+            localsMap.getLocalTypeVariable(variable.type, this);
+        // We can have distinct TypeVariableTypeWithContexts that have the same
+        // local variable but with different nullabilities. We only want to
+        // construct a closure field once for each local variable.
+        if (closureClassInfo.localToFieldMap.containsKey(capturedLocal))
+          continue;
+        _constructClosureField(capturedLocal, closureClassInfo, memberThisType,
+            memberMap, variable.type.parameter, true, false, fieldNumber);
         fieldNumber++;
       } else {
         throw new UnsupportedError("Unexpected field node type: $variable");
@@ -2140,7 +2140,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         if (node.kind == ir.ProcedureKind.Factory) {
           parts.add(utils.reconstructConstructorName(getMember(node)));
         } else {
-          parts.add(utils.operatorNameToIdentifier(node.name.name));
+          parts.add(utils.operatorNameToIdentifier(node.name.text));
         }
       } else if (node is ir.Constructor) {
         parts.add(utils.reconstructConstructorName(getMember(node)));

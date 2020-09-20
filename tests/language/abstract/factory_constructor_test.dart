@@ -26,7 +26,7 @@ class A2 {
   // Intentionally abstract method.
   method();
 //^^^^^^^^^
-// [analyzer] STATIC_WARNING.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+// [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
   A2.make() {}
 }
 

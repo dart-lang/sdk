@@ -62,6 +62,7 @@ class StubCode : public AllStatic {
 #undef STUB_CODE_ACCESSOR
 
   static CodePtr GetAllocationStubForClass(const Class& cls);
+  static CodePtr GetAllocationStubForTypedData(classid_t class_id);
 
 #if !defined(TARGET_ARCH_IA32)
   static CodePtr GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool);

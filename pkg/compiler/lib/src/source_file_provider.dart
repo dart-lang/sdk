@@ -586,3 +586,63 @@ class BazelInputProvider extends SourceFileProvider {
     return null;
   }
 }
+
+/// Adapter to support one or more synthetic uri schemes.
+///
+/// These custom uris map to one or more real directories on the file system,
+/// providing a merged view - or "overlay" file system.
+///
+/// This also allows for hermetic builds which do not encode machine specific
+/// absolute uris by creating a synthetic "root" of the file system.
+///
+/// TODO(sigmund): Remove the [BazelInputProvider] in favor of this.
+/// TODO(sigmund): Remove this and use the common `MultiRootFileSystem`
+/// implementation.
+class MultiRootInputProvider extends SourceFileProvider {
+  final List<Uri> roots;
+  final String markerScheme;
+
+  MultiRootInputProvider(this.markerScheme, this.roots);
+
+  @override
+  Future<api.Input<List<int>>> readFromUri(Uri uri,
+      {InputKind inputKind: InputKind.UTF8}) async {
+    var resolvedUri = uri;
+    if (resolvedUri.scheme == markerScheme) {
+      var path = resolvedUri.path;
+      if (path.startsWith('/')) path = path.substring(1);
+      for (var dir in roots) {
+        var fileUri = dir.resolve(path);
+        if (await new File.fromUri(fileUri).exists()) {
+          resolvedUri = fileUri;
+          break;
+        }
+      }
+    }
+    api.Input<List<int>> result =
+        await readBytesFromUri(resolvedUri, inputKind);
+    switch (inputKind) {
+      case InputKind.UTF8:
+        utf8SourceFiles[uri] = utf8SourceFiles[resolvedUri];
+        break;
+      case InputKind.binary:
+        binarySourceFiles[uri] = binarySourceFiles[resolvedUri];
+        break;
+    }
+    return result;
+  }
+
+  @override
+  api.Input autoReadFromFile(Uri resourceUri) {
+    if (resourceUri.scheme == markerScheme) {
+      var path = resourceUri.path;
+      for (var dir in roots) {
+        var file = dir.resolve(path);
+        if (new File.fromUri(file).existsSync()) {
+          return super.autoReadFromFile(file);
+        }
+      }
+    }
+    return null;
+  }
+}

@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  static int b;
+  static int? b;
 
   setA(val) {
     b = val;
@@ -21,7 +21,7 @@ class A {
 }
 
 main() {
-  A a = new A();
+  A a = A();
   a.setA(42);
   Expect.equals(42, a.bar());
   Expect.equals(42, a.bar2());

@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,13 +14,19 @@ main() {
 }
 
 @reflectiveTest
-class IllegalAsyncReturnTypeTest extends DriverResolutionTest {
+class IllegalAsyncReturnTypeTest extends PubPackageResolutionTest {
   test_function_nonFuture() async {
     await assertErrorsInCode('''
 int f() async {}
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
     ]);
+  }
+
+  test_function_nonFuture_void() async {
+    await assertNoErrorsInCode('''
+void f() async {}
+''');
   }
 
   test_function_nonFuture_withReturn() async {
@@ -29,19 +35,18 @@ int f() async {
   return 2;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
     ]);
   }
 
   test_function_subtypeOfFuture() async {
     await assertErrorsInCode('''
-import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
 SubFuture<int> f() async {
   return 0;
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 73, 14),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 52, 14),
     ]);
   }
 
@@ -51,13 +56,20 @@ class C {
   int m() async {}
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
     ]);
+  }
+
+  test_method_nonFuture_void() async {
+    await assertNoErrorsInCode('''
+class C {
+  void m() async {}
+}
+''');
   }
 
   test_method_subtypeOfFuture() async {
     await assertErrorsInCode('''
-import 'dart:async';
 abstract class SubFuture<T> implements Future<T> {}
 class C {
   SubFuture<int> m() async {
@@ -65,7 +77,7 @@ class C {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 85, 14),
+      error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 64, 14),
     ]);
   }
 }

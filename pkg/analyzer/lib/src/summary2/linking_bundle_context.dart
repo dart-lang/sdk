@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -79,12 +78,7 @@ class LinkingBundleContext {
   LinkedNodeTypeBuilder writeType(DartType type) {
     if (type == null) return null;
 
-    if (type.isBottom) {
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.bottom,
-        nullabilitySuffix: _nullabilitySuffix(type),
-      );
-    } else if (type.isDynamic) {
+    if (type.isDynamic) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.dynamic_,
       );
@@ -95,6 +89,11 @@ class LinkingBundleContext {
         kind: LinkedNodeTypeKind.interface,
         interfaceClass: indexOfElement(type.element),
         interfaceTypeArguments: type.typeArguments.map(writeType).toList(),
+        nullabilitySuffix: _nullabilitySuffix(type),
+      );
+    } else if (type is NeverType) {
+      return LinkedNodeTypeBuilder(
+        kind: LinkedNodeTypeKind.never,
         nullabilitySuffix: _nullabilitySuffix(type),
       );
     } else if (type is TypeParameterType) {

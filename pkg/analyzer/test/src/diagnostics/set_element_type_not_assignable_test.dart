@@ -2,23 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementTypeNotAssignableTest);
-    defineReflectiveTests(SetElementTypeNotAssignableWithConstantTest);
+    defineReflectiveTests(SetElementTypeNotAssignableTest_language24);
   });
 }
 
 @reflectiveTest
-class SetElementTypeNotAssignableTest extends DriverResolutionTest {
+class SetElementTypeNotAssignableTest extends PubPackageResolutionTest
+    with SetElementTypeNotAssignableTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class SetElementTypeNotAssignableTest_language24
+    extends PubPackageResolutionTest with SetElementTypeNotAssignableTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin SetElementTypeNotAssignableTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_ifElement_thenElseFalse_intInt() async {
     await assertErrorsInCode(
         '''
@@ -26,7 +47,7 @@ const dynamic a = 0;
 const dynamic b = 0;
 var v = const <int>{if (1 < 0) a else b};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 62, 19),
@@ -40,9 +61,10 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>{if (1 < 0) a else b};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
-                error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1),
+                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 82,
+                    1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 64, 19),
@@ -54,13 +76,15 @@ var v = const <int>{if (1 < 0) a else b};
         '''
 var v = const <int>{if (1 < 0) 'a'};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
-                error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
+                    3),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 20, 14),
-                error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3),
+                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 31,
+                    3),
               ]);
   }
 
@@ -70,7 +94,7 @@ var v = const <int>{if (1 < 0) 'a'};
 const dynamic a = 'a';
 var v = const <int>{if (1 < 0) a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 43, 12),
@@ -83,7 +107,7 @@ var v = const <int>{if (1 < 0) a};
 const dynamic a = 0;
 var v = const <int>{if (true) a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 41, 11),
@@ -96,9 +120,10 @@ var v = const <int>{if (true) a};
 const dynamic a = 'a';
 var v = const <int>{if (true) a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
-                error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1),
+                error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 53,
+                    1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 43, 11),
@@ -110,7 +135,7 @@ var v = const <int>{if (true) a};
         '''
 var v = const <int>{...[0, 1]};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 20, 9),
@@ -121,7 +146,7 @@ var v = const <int>{...[0, 1]};
     await assertErrorsInCode('''
 var v = const <String>{42};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2),
     ]);
   }
 
@@ -137,7 +162,7 @@ var v = const <String>{x};
 const dynamic x = 42;
 var v = const <String>{x};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1),
     ]);
   }
 
@@ -145,7 +170,7 @@ var v = const <String>{x};
     await assertErrorsInCode('''
 var v = <String>{42};
 ''', [
-      error(StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
+      error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2),
     ]);
   }
 
@@ -169,7 +194,7 @@ var v = <int>{if (1 < 0) a else b};
     await assertErrorsInCode('''
 var v = <int>[if (1 < 0) 'a'];
 ''', [
-      error(StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3),
+      error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3),
     ]);
   }
 
@@ -192,14 +217,4 @@ var v = <int>{if (true) a};
 var v = <int>{...[0, 1]};
 ''');
   }
-}
-
-@reflectiveTest
-class SetElementTypeNotAssignableWithConstantTest
-    extends SetElementTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

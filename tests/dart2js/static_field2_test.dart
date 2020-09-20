@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  static int b;
+  static int? b;
 }
 
 main() {

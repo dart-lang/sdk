@@ -88,17 +88,23 @@ class ProgramInfo {
     recurse(root);
   }
 
-  int get totalSize {
-    var result = 0;
-    visit((pkg, lib, cls, fun, node) {
-      result += node.size ?? 0;
-    });
-    return result;
-  }
+  /// Total size of all the nodes in the program.
+  int get totalSize => root.totalSize;
 
   /// Convert this program info to a JSON map using [infoToJson] to convert
   /// data attached to nodes into its JSON representation.
   Map<String, dynamic> toJson() => root.toJson();
+
+  /// Lookup a node in the program given a path to it.
+  ProgramInfoNode lookup(List<String> path) {
+    var n = root;
+    for (var p in path) {
+      if ((n = n.children[p]) == null) {
+        break;
+      }
+    }
+    return n;
+  }
 }
 
 enum NodeType {
@@ -114,6 +120,7 @@ String _typeToJson(NodeType type) => const {
       NodeType.libraryNode: 'library',
       NodeType.classNode: 'class',
       NodeType.functionNode: 'function',
+      NodeType.other: 'other',
     }[type];
 
 class ProgramInfoNode {
@@ -161,6 +168,46 @@ class ProgramInfoNode {
         if (children.isNotEmpty)
           for (var clo in children.entries) clo.key: clo.value.toJson()
       };
+
+  /// Returns the name of this node prefixed by the [qualifiedName] of its
+  /// [parent].
+  String get qualifiedName {
+    var prefix = '';
+    // Do not include root name or package name (library uri already contains
+    // package name).
+    if (parent?.parent != null && parent?.type != NodeType.packageNode) {
+      prefix = parent.qualifiedName;
+      if (parent.type != NodeType.libraryNode) {
+        prefix += '.';
+      } else {
+        prefix += '::';
+      }
+    }
+    return '$prefix$name';
+  }
+
+  @override
+  String toString() {
+    return '${_typeToJson(type)} ${qualifiedName}';
+  }
+
+  /// Returns path to this node such that [ProgramInfo.lookup] would return
+  /// this node given its [path].
+  List<String> get path {
+    final result = <String>[];
+    var n = this;
+    while (n.parent != null) {
+      result.add(n.name);
+      n = n.parent;
+    }
+    return result.reversed.toList();
+  }
+
+  /// Cumulative size of this node and all of its children.
+  int get totalSize {
+    return (size ?? 0) +
+        children.values.fold<int>(0, (s, n) => s + n.totalSize);
+  }
 }
 
 /// Computes the size difference between two [ProgramInfo].
@@ -239,6 +286,14 @@ class Histogram {
 
     return Histogram._(bucketInfo, buckets);
   }
+
+  /// Rebuckets the histogram given the new bucketing rule.
+  Histogram map(String Function(String) bucketFor) {
+    return Histogram.fromIterable(buckets.keys,
+        sizeOf: (key) => buckets[key],
+        bucketFor: bucketFor,
+        bucketInfo: bucketInfo);
+  }
 }
 
 /// Construct the histogram of specific [type] given a [ProgramInfo].
@@ -280,11 +335,10 @@ Histogram computeHistogram(ProgramInfo info, HistogramType type,
       if (node.size == null || node.size == 0) {
         return;
       }
-
-      final bucket = bucketing.bucketFor(pkg, lib, cls, fun);
       if (!matchesFilter(lib, cls, fun)) {
         return;
       }
+      final bucket = bucketing.bucketFor(pkg, lib, cls, fun);
       buckets[bucket] = (buckets[bucket] ?? 0) + node.size;
     });
 

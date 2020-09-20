@@ -9,6 +9,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/world.dart';
 import 'type_mask_test_helper.dart';
@@ -109,8 +110,9 @@ class RuleSet {
 }
 
 void testUnion(JClosedWorld closedWorld) {
+  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
   RuleSet ruleSet = new RuleSet(
-      'union', (t1, t2) => simplify(t1.union(t2, closedWorld), closedWorld));
+      'union', (t1, t2) => simplify(t1.union(t2, commonMasks), commonMasks));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
   check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
 
@@ -420,8 +422,8 @@ void testUnion(JClosedWorld closedWorld) {
 }
 
 void testIntersection(JClosedWorld closedWorld) {
-  RuleSet ruleSet =
-      new RuleSet('intersection', (t1, t2) => t1.intersection(t2, closedWorld));
+  RuleSet ruleSet = new RuleSet('intersection',
+      (t1, t2) => t1.intersection(t2, closedWorld.abstractValueDomain));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
 
   rule(emptyType, emptyType, emptyType);
@@ -737,8 +739,10 @@ void testIntersection(JClosedWorld closedWorld) {
 void testRegressions(JClosedWorld closedWorld) {
   TypeMask nonNullPotentialString =
       new TypeMask.nonNullSubtype(patternClass, closedWorld);
-  Expect.equals(potentialString,
-      jsStringOrNull.union(nonNullPotentialString, closedWorld));
+  Expect.equals(
+      potentialString,
+      jsStringOrNull.union(
+          nonNullPotentialString, closedWorld.abstractValueDomain));
 }
 
 void main() {

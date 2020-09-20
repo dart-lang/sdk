@@ -45,6 +45,8 @@ class C {
       use(x); // Refers to top-level x.
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+      //  ^
+      // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
       use(y); // Refers to top-level y.
       //  ^
       // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
@@ -76,7 +78,7 @@ class C {
     //                   ^
     // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
     //                   ^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   }
 
   test() {
@@ -100,6 +102,8 @@ void testLibPrefix() {
   var pie = math.pi;
   //        ^^^^
   // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
+  //        ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.READ_POTENTIALLY_UNASSIGNED_FINAL
   final math = 0;
   //    ^
   // [cfe] Can't declare 'math' because it was already used in this scope.

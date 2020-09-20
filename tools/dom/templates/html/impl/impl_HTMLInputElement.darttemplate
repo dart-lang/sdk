@@ -53,22 +53,22 @@ abstract class InputElementBase implements Element {
   bool get autofocus;
   set autofocus(bool value);
 
-  bool get disabled;
-  set disabled(bool value);
+  bool$NULLABLE get disabled;
+  set disabled(bool$NULLABLE value);
 
-  bool get incremental;
-  set incremental(bool value);
+  bool$NULLABLE get incremental;
+  set incremental(bool$NULLABLE value);
 
-  bool get indeterminate;
-  set indeterminate(bool value);
+  bool$NULLABLE get indeterminate;
+  set indeterminate(bool$NULLABLE value);
 
-  String get name;
-  set name(String value);
+  String$NULLABLE get name;
+  set name(String$NULLABLE value);
 
-  String get value;
+  String$NULLABLE get value;
   set value(String$NULLABLE value);
 
-  List<Node> get labels;
+  List<Node>$NULLABLE get labels;
 
   String get validationMessage;
 
@@ -96,8 +96,8 @@ abstract class TextInputElementBase implements InputElementBase {
   String get autocomplete;
   set autocomplete(String value);
 
-  int get maxLength;
-  set maxLength(int value);
+  int$NULLABLE get maxLength;
+  set maxLength(int$NULLABLE value);
 
   String get pattern;
   set pattern(String value);
@@ -105,14 +105,14 @@ abstract class TextInputElementBase implements InputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
 
-  int get size;
-  set size(int value);
+  int$NULLABLE get size;
+  set size(int$NULLABLE value);
 
   void select();
 
@@ -141,8 +141,8 @@ abstract class TextInputElementBase implements InputElementBase {
 abstract class SearchInputElement implements TextInputElementBase {
   factory SearchInputElement() => new InputElement(type: 'search');
 
-  String get dirName;
-  set dirName(String value);
+  String$NULLABLE get dirName;
+  set dirName(String$NULLABLE value);
 
   Element$NULLABLE get list;
 
@@ -158,8 +158,8 @@ abstract class SearchInputElement implements TextInputElementBase {
 abstract class TextInputElement implements TextInputElementBase {
   factory TextInputElement() => new InputElement(type: 'text');
 
-  String get dirName;
-  set dirName(String value);
+  String$NULLABLE get dirName;
+  set dirName(String$NULLABLE value);
 
   Element$NULLABLE get list;
 }
@@ -227,11 +227,11 @@ abstract class EmailInputElement implements TextInputElementBase {
 
   Element$NULLABLE get list;
 
-  int get maxLength;
-  set maxLength(int value);
+  int$NULLABLE get maxLength;
+  set maxLength(int$NULLABLE value);
 
-  bool get multiple;
-  set multiple(bool value);
+  bool$NULLABLE get multiple;
+  set multiple(bool$NULLABLE value);
 
   String get pattern;
   set pattern(String value);
@@ -239,14 +239,14 @@ abstract class EmailInputElement implements TextInputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
 
-  int get size;
-  set size(int value);
+  int$NULLABLE get size;
+  set size(int$NULLABLE value);
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -268,17 +268,17 @@ abstract class RangeInputElementBase implements InputElementBase {
 
   Element$NULLABLE get list;
 
-  String get max;
-  set max(String value);
+  String$NULLABLE get max;
+  set max(String$NULLABLE value);
 
-  String get min;
-  set min(String value);
+  String$NULLABLE get min;
+  set min(String$NULLABLE value);
 
-  String get step;
-  set step(String value);
+  String$NULLABLE get step;
+  set step(String$NULLABLE value);
 
-  num get valueAsNumber;
-  set valueAsNumber(num value);
+  num$NULLABLE get valueAsNumber;
+  set valueAsNumber(num$NULLABLE value);
 
   void stepDown([int$NULLABLE n]);
 
@@ -297,8 +297,8 @@ abstract class DateInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -321,8 +321,8 @@ abstract class MonthInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -345,8 +345,8 @@ abstract class WeekInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -369,8 +369,8 @@ abstract class TimeInputElement implements RangeInputElementBase {
   DateTime get valueAsDate;
   set valueAsDate(DateTime value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -392,8 +392,8 @@ abstract class LocalDateTimeInputElement implements RangeInputElementBase {
   factory LocalDateTimeInputElement() =>
       new InputElement(type: 'datetime-local');
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -416,8 +416,8 @@ abstract class NumberInputElement implements RangeInputElementBase {
   String get placeholder;
   set placeholder(String value);
 
-  bool get readOnly;
-  set readOnly(bool value);
+  bool$NULLABLE get readOnly;
+  set readOnly(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -454,8 +454,8 @@ abstract class RangeInputElement implements RangeInputElementBase {
 abstract class CheckboxInputElement implements InputElementBase {
   factory CheckboxInputElement() => new InputElement(type: 'checkbox');
 
-  bool get checked;
-  set checked(bool value);
+  bool$NULLABLE get checked;
+  set checked(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -476,8 +476,8 @@ abstract class CheckboxInputElement implements InputElementBase {
 abstract class RadioButtonInputElement implements InputElementBase {
   factory RadioButtonInputElement() => new InputElement(type: 'radio');
 
-  bool get checked;
-  set checked(bool value);
+  bool$NULLABLE get checked;
+  set checked(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -489,11 +489,11 @@ abstract class RadioButtonInputElement implements InputElementBase {
 abstract class FileUploadInputElement implements InputElementBase {
   factory FileUploadInputElement() => new InputElement(type: 'file');
 
-  String get accept;
-  set accept(String value);
+  String$NULLABLE get accept;
+  set accept(String$NULLABLE value);
 
-  bool get multiple;
-  set multiple(bool value);
+  bool$NULLABLE get multiple;
+  set multiple(bool$NULLABLE value);
 
   bool get required;
   set required(bool value);
@@ -530,8 +530,8 @@ abstract class SubmitButtonInputElement implements InputElementBase {
 abstract class ImageButtonInputElement implements InputElementBase {
   factory ImageButtonInputElement() => new InputElement(type: 'image');
 
-  String get alt;
-  set alt(String value);
+  String$NULLABLE get alt;
+  set alt(String$NULLABLE value);
 
   String get formAction;
   set formAction(String value);
@@ -548,14 +548,14 @@ abstract class ImageButtonInputElement implements InputElementBase {
   String get formTarget;
   set formTarget(String value);
 
-  int get height;
-  set height(int value);
+  int$NULLABLE get height;
+  set height(int$NULLABLE value);
 
-  String get src;
-  set src(String value);
+  String$NULLABLE get src;
+  set src(String$NULLABLE value);
 
-  int get width;
-  set width(int value);
+  int$NULLABLE get width;
+  set width(int$NULLABLE value);
 }
 
 /**

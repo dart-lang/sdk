@@ -399,7 +399,7 @@ void EventHandlerImplementation::UpdatePort(intptr_t old_mask,
   } else if ((old_mask == 0) && (new_mask != 0)) {
     AddToPort(port_handle_, di);
   } else if ((old_mask != 0) && (new_mask != 0)) {
-    ASSERT(!di->IsListeningSocket());
+    ASSERT((old_mask == new_mask) || !di->IsListeningSocket());
     RemoveFromPort(port_handle_, di);
     AddToPort(port_handle_, di);
   }

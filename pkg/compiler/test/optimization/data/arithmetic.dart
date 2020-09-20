@@ -114,6 +114,14 @@ main() {
   roundNull(null);
   roundString(1);
   roundString('');
+
+  toInt(1);
+  toIntNum(1);
+  toIntNum(1.5);
+  toIntNull(1);
+  toIntNull(null);
+  toIntString(1);
+  toIntString('');
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -488,4 +496,32 @@ roundNull(o) {
 @pragma('dart2js:noInline')
 roundString(o) {
   return o.round();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// .toInt()
+////////////////////////////////////////////////////////////////////////////////
+
+/*member: toInt:Specializer=[ToInt]*/
+@pragma('dart2js:noInline')
+toInt(o) {
+  return o.toInt();
+}
+
+/*member: toIntNum:Specializer=[ToInt]*/
+@pragma('dart2js:noInline')
+toIntNum(o) {
+  return o.toInt();
+}
+
+/*member: toIntNull:Specializer=[ToInt]*/
+@pragma('dart2js:noInline')
+toIntNull(o) {
+  return o.toInt();
+}
+
+/*member: toIntString:Specializer=[!ToInt]*/
+@pragma('dart2js:noInline')
+toIntString(o) {
+  return o.toInt();
 }

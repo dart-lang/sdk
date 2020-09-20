@@ -2,31 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedIdentifierTest);
-    defineReflectiveTests(UndefinedIdentifierWithNnbdTest);
+    defineReflectiveTests(UndefinedIdentifierWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class UndefinedIdentifierTest extends DriverResolutionTest {
+class UndefinedIdentifierTest extends PubPackageResolutionTest {
   @failingTest
   test_commentReference() async {
     await assertErrorsInCode('''
 /** [m] xxx [new B.c] */
 class A {
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 5, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 17, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 5, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
     ]);
   }
 
@@ -36,7 +34,7 @@ f(var l) {
   for (e in l) {
   }
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 18, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
     ]);
   }
 
@@ -55,7 +53,19 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 40, 1),
+    ]);
+  }
+
+  test_forStatement_ForPartsWithDeclarations_initializer() async {
+    await assertErrorsInCode('''
+void f() {
+  for (var x = x;;) {
+    x;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1),
     ]);
   }
 
@@ -77,7 +87,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
     ]);
   }
 
@@ -85,7 +95,7 @@ f() {
     await assertErrorsInCode('''
 int a() => b;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 11, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 1),
     ]);
   }
 
@@ -96,7 +106,7 @@ main() {
   List;
   String;
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 49, 6),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 49, 6),
     ]);
   }
 
@@ -104,7 +114,7 @@ main() {
     await assertErrorsInCode('''
 var a = b;
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1),
     ]);
   }
 
@@ -112,12 +122,12 @@ var a = b;
     await assertErrorsInCode('''
 f() { C.m(); }
 ''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 6, 1),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 6, 1),
     ]);
   }
 
   test_private_getter() async {
-    newFile("/test/lib/lib.dart", content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 class A {
   var _foo;
@@ -130,12 +140,12 @@ class B extends A {
   }
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 62, 4),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 4),
     ]);
   }
 
   test_private_setter() async {
-    newFile("/test/lib/lib.dart", content: '''
+    newFile('$testPackageLibPath/lib.dart', content: '''
 library lib;
 class A {
   var _foo;
@@ -147,7 +157,7 @@ class B extends A {
     _foo = 42;
   }
 }''', [
-      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 54, 4),
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 54, 4),
     ]);
   }
 
@@ -170,16 +180,35 @@ main(int p) {
 }
 ''', [
       error(ParserErrorCode.MISSING_IDENTIFIER, 30, 1),
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 31, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class UndefinedIdentifierWithNnbdTest extends UndefinedIdentifierTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+class UndefinedIdentifierWithNullSafetyTest extends UndefinedIdentifierTest
+    with WithNullSafetyMixin {
+  test_get_from_external_variable_final_valid() async {
+    await assertNoErrorsInCode('''
+external final int x;
+int f() => x;
+''');
+  }
+
+  test_get_from_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+int f() => x;
+''');
+  }
+
+  test_set_external_variable_valid() async {
+    await assertNoErrorsInCode('''
+external int x;
+void f(int value) {
+  x = value;
+}
+''');
+  }
 }

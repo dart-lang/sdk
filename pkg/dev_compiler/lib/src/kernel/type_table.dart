@@ -74,7 +74,9 @@ class _CacheTable {
   String _typeString(DartType type, {bool flat = false}) {
     var nullability = type.declaredNullability == Nullability.legacy
         ? 'L'
-        : type.declaredNullability == Nullability.nullable ? 'N' : '';
+        : type.declaredNullability == Nullability.nullable
+            ? 'N'
+            : '';
     assert(isKnownDartTypeImplementor(type));
     if (type is InterfaceType) {
       var name = '${type.classNode.name}$nullability';
@@ -121,7 +123,7 @@ class _CacheTable {
   /// Heuristically choose a good name for the cache and generator
   /// variables.
   js_ast.TemporaryId chooseTypeName(DartType type) {
-    return js_ast.TemporaryId(_typeString(type));
+    return js_ast.TemporaryId(escapeIdentifier(_typeString(type)));
   }
 }
 

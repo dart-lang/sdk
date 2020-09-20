@@ -11,7 +11,7 @@ Id computeMemberId(Member node) {
   if (node.enclosingClass != null) {
     className = node.enclosingClass.name;
   }
-  String memberName = node.name.name;
+  String memberName = node.name.text;
   if (node is Procedure && node.kind == ProcedureKind.Setter) {
     memberName += '=';
   }
@@ -203,14 +203,14 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       // This is an invocation of a named local function.
       computeForNode(node, createInvokeId(node.receiver));
       node.arguments.accept(this);
-    } else if (node.name.name == '==' &&
+    } else if (node.name.text == '==' &&
         receiver is VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
-    } else if (node.name.name == '[]') {
+    } else if (node.name.text == '[]') {
       computeForNode(node, computeDefaultNodeId(node));
       super.visitMethodInvocation(node);
-    } else if (node.name.name == '[]=') {
+    } else if (node.name.text == '[]=') {
       computeForNode(node, createUpdateId(node));
       super.visitMethodInvocation(node);
     } else {

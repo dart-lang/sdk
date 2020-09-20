@@ -25,7 +25,8 @@ Future<Null> testeeBefore() async {
   {
     // Now, start the web server and store the URI which is expected to be
     // non NULL in the top level variable.
-    ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
+    ServiceProtocolInfo info =
+        await Service.controlWebServer(enable: true, silenceOutput: true);
     Expect.equals(info.majorVersion, majorVersion);
     Expect.equals(info.minorVersion, minorVersion);
     Expect.isNotNull(info.serverUri);

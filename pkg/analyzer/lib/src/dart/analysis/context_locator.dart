@@ -4,27 +4,12 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/src/context/builder.dart'
-    show ContextBuilder, ContextBuilderOptions;
-import 'package:analyzer/src/context/context_root.dart' as old;
-import 'package:analyzer/src/dart/analysis/byte_store.dart'
-    show MemoryByteStore;
 import 'package:analyzer/src/dart/analysis/context_root.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart'
-    show AnalysisDriver, AnalysisDriverScheduler;
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart'
-    show FileContentOverlay;
-import 'package:analyzer/src/dart/analysis/performance_logger.dart'
-    show PerformanceLog;
-import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
-import 'package:analyzer/src/generated/sdk.dart' show DartSdkManager;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:glob/glob.dart';
@@ -37,8 +22,14 @@ class ContextLocatorImpl implements ContextLocator {
   /// The name of the analysis options file.
   static const String ANALYSIS_OPTIONS_NAME = 'analysis_options.yaml';
 
+  /// The name of the `.dart_tool` directory.
+  static const String DOT_DART_TOOL_NAME = '.dart_tool';
+
   /// The name of the packages file.
-  static const String PACKAGES_FILE_NAME = '.packages';
+  static const String PACKAGE_CONFIG_JSON_NAME = 'package_config.json';
+
+  /// The name of the packages file.
+  static const String DOT_PACKAGES_NAME = '.packages';
 
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
@@ -47,56 +38,8 @@ class ContextLocatorImpl implements ContextLocator {
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
   ContextLocatorImpl({ResourceProvider resourceProvider})
-      : this.resourceProvider =
+      : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE;
-
-  /// Return the path to the default location of the SDK.
-  String get _defaultSdkPath =>
-      FolderBasedDartSdk.defaultSdkDirectory(resourceProvider).path;
-
-  @deprecated
-  @override
-  List<AnalysisContext> locateContexts(
-      {@required List<String> includedPaths,
-      List<String> excludedPaths = const <String>[],
-      String optionsFile,
-      String packagesFile,
-      String sdkPath}) {
-    List<ContextRoot> roots = locateRoots(
-        includedPaths: includedPaths,
-        excludedPaths: excludedPaths,
-        optionsFile: optionsFile,
-        packagesFile: packagesFile);
-    if (roots.isEmpty) {
-      return const <AnalysisContext>[];
-    }
-    PerformanceLog performanceLog = PerformanceLog(StringBuffer());
-    AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(performanceLog);
-    DartSdkManager sdkManager =
-        DartSdkManager(sdkPath ?? _defaultSdkPath, true);
-    scheduler.start();
-    ContextBuilderOptions options = ContextBuilderOptions();
-    ContextBuilder builder =
-        ContextBuilder(resourceProvider, sdkManager, null, options: options);
-    if (packagesFile != null) {
-      options.defaultPackageFilePath = packagesFile;
-    }
-    builder.analysisDriverScheduler = scheduler;
-    builder.byteStore = MemoryByteStore();
-    builder.fileContentOverlay = FileContentOverlay();
-    builder.performanceLog = performanceLog;
-    List<AnalysisContext> contextList = <AnalysisContext>[];
-    for (ContextRoot root in roots) {
-      old.ContextRoot contextRoot = old.ContextRoot(
-          root.root.path, root.excludedPaths.toList(),
-          pathContext: resourceProvider.pathContext);
-      AnalysisDriver driver = builder.buildDriver(contextRoot);
-      DriverBasedAnalysisContext context =
-          DriverBasedAnalysisContext(resourceProvider, root, driver);
-      contextList.add(context);
-    }
-    return contextList;
-  }
 
   @override
   List<ContextRoot> locateRoots(
@@ -372,7 +315,16 @@ class ContextLocatorImpl implements ContextLocator {
 
   /// Return the packages file in the given [folder], or `null` if the folder
   /// does not contain a packages file.
-  File _getPackagesFile(Folder folder) => _getFile(folder, PACKAGES_FILE_NAME);
+  File _getPackagesFile(Folder folder) {
+    var file = folder
+        .getChildAssumingFolder(DOT_DART_TOOL_NAME)
+        .getChildAssumingFile(PACKAGE_CONFIG_JSON_NAME);
+    if (file.exists) {
+      return file;
+    }
+
+    return _getFile(folder, DOT_PACKAGES_NAME);
+  }
 
   /// Add to the given lists of [folders] and [files] all of the resources in
   /// the given list of [paths] that exist and are not contained within one of

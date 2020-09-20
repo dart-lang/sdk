@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 1.0
+# Dart Development Service Protocol 1.1
 
-This document describes _version 1.0_ of the Dart Development Service Protocol.
+This document describes _version 1.1_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 

@@ -115,6 +115,8 @@ class TokenDetailBuilder {
     } else if (type is InterfaceType) {
       Element element = type.element;
       if (element == null || element.isSynthetic) {
+        assert(false, 'untested branch may print nullable types wrong');
+        // TODO: test this, use the the library's nullability (not tracked yet).
         buffer.write(type.getDisplayString(withNullability: false));
       } else {
 //        String uri = element.library.source.uri.toString();
@@ -132,7 +134,9 @@ class TokenDetailBuilder {
         }
       }
     } else {
-      // Handle `void` and `dynamic`.
+      // Handle `void` and `dynamic`. Nullability doesn't affect this.
+      assert(type.getDisplayString(withNullability: false) ==
+          type.getDisplayString(withNullability: true));
       buffer.write(type.getDisplayString(withNullability: false));
     }
   }

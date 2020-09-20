@@ -226,6 +226,7 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
       int charEndOffset,
       Procedure referenceFrom,
       this._tearOffReferenceFrom,
+      AsyncMarker asyncModifier,
       [String nativeMethodName])
       : super(
             metadata,
@@ -241,7 +242,9 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
             charOpenParenOffset,
             charEndOffset,
             referenceFrom,
-            nativeMethodName);
+            nativeMethodName) {
+    this.asyncModifier = asyncModifier;
+  }
 
   bool _typeEnsured = false;
   Set<ClassMember> _overrideDependencies;
@@ -562,13 +565,16 @@ class SourceProcedureBuilder extends ProcedureBuilderImpl {
     return null;
   }
 
+  List<ClassMember> _localMembers;
+  List<ClassMember> _localSetters;
+
   @override
-  List<ClassMember> get localMembers => isSetter
+  List<ClassMember> get localMembers => _localMembers ??= isSetter
       ? const <ClassMember>[]
       : <ClassMember>[new SourceProcedureMember(this)];
 
   @override
-  List<ClassMember> get localSetters => isSetter
+  List<ClassMember> get localSetters => _localSetters ??= isSetter
       ? <ClassMember>[new SourceProcedureMember(this)]
       : const <ClassMember>[];
 }

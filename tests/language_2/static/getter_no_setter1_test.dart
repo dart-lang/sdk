@@ -10,7 +10,7 @@ class Class {
   method() {
     getter++;
 //  ^^^^^^
-// [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
 // [cfe] Setter not found: 'getter'.
   }
 }

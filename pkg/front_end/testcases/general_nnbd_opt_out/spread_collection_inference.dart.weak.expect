@@ -76,15 +76,15 @@ library;
 //   Map<String, String> map61 = <String, String>{...mapSpread};
 //                                                   ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type 'Null'.
 //   List<int> lhs70 = <int>[...null];
 //                              ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type 'Null'.
 //   Set<int> set70 = <int>{...null};
 //                             ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:139:8: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:139:8: Error: Can't spread a value with static type 'Null'.
 //     ...null,
 //        ^
 //
@@ -92,7 +92,7 @@ library;
 //     ...null,
 //        ^
 //
-// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type Null.
+// pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type 'Null'.
 //   Map<String, int> map70 = <String, int>{...null};
 //                                             ^
 //
@@ -302,10 +302,10 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::String*, core::String*>* map61 = <core::String*, core::String*>{null: invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:131:51: Error: Can't assign spread entry values of type 'int' to map entry values of type 'String'.
   Map<String, String> map61 = <String, String>{...mapSpread};
                                                   ^"};
-  core::List<core::int*>* lhs70 = <core::int*>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type Null.
+  core::List<core::int*>* lhs70 = <core::int*>[invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:133:30: Error: Can't spread a value with static type 'Null'.
   List<int> lhs70 = <int>[...null];
                              ^"];
-  core::Set<core::int*>* set70 = let final core::Set<core::int*>* #t66 = col::LinkedHashSet::•<core::int*>() in let final dynamic #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type Null.
+  core::Set<core::int*>* set70 = let final core::Set<core::int*>* #t66 = col::LinkedHashSet::•<core::int*>() in let final dynamic #t67 = #t66.{core::Set::add}(invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:135:29: Error: Can't spread a value with static type 'Null'.
   Set<int> set70 = <int>{...null};
                             ^") in #t66;
   core::Set<dynamic>* set71ambiguous = block {
@@ -318,7 +318,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
       #t68.{core::Set::add}(#t70);
     }
   } =>#t68;
-  core::Map<core::String*, core::int*>* map70 = <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type Null.
+  core::Map<core::String*, core::int*>* map70 = <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/spread_collection_inference.dart:144:45: Error: Can't spread a value with static type 'Null'.
   Map<String, int> map70 = <String, int>{...null};
                                             ^": null};
   core::List<core::int*>* lhs80 = block {

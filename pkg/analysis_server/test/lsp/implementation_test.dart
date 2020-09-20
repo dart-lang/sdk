@@ -173,7 +173,7 @@ class ImplementationTest extends AbstractLspAnalysisServerTest {
     );
 
     final expectedLocations = rangesFromMarkers(content)
-        .map((r) => Location(mainFileUri.toString(), r));
+        .map((r) => Location(uri: mainFileUri.toString(), range: r));
 
     if (shouldMatch) {
       expect(res, equals(expectedLocations));

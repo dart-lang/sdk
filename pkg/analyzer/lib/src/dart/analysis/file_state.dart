@@ -38,6 +38,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
@@ -45,6 +46,7 @@ import 'package:pub_semver/pub_semver.dart';
 
 var counterFileStateRefresh = 0;
 var counterUnlinkedLinkedBytes = 0;
+int fileObjectId = 0;
 var timerFileStateRefresh = Stopwatch();
 
 /// [FileContentOverlay] is used to temporary override content of files.
@@ -91,6 +93,11 @@ class FileState {
   /// The [Source] of the file with the [uri].
   final Source source;
 
+  /// The [WorkspacePackage] that contains this file.
+  ///
+  /// It might be `null` if the file is outside of the workspace.
+  final WorkspacePackage workspacePackage;
+
   /// Return `true` if this file is a stub created for a file in the provided
   /// external summary store. The values of most properties are not the same
   /// as they would be if the file were actually read from the file system.
@@ -108,7 +115,10 @@ class FileState {
   final FeatureSet _contextFeatureSet;
 
   /// The language version for the package that contains this file.
-  final Version _packageLanguageVersion;
+  final Version packageLanguageVersion;
+
+  int id = fileObjectId++;
+  int refreshId;
 
   bool _exists;
   String _content;
@@ -144,17 +154,19 @@ class FileState {
     this.path,
     this.uri,
     this.source,
+    this.workspacePackage,
     this._contextFeatureSet,
-    this._packageLanguageVersion,
+    this.packageLanguageVersion,
   ) : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
         source = null,
+        workspacePackage = null,
         _exists = true,
         _contextFeatureSet = null,
-        _packageLanguageVersion = null {
+        packageLanguageVersion = null {
     _apiSignature = Uint8List(16);
     _libraryCycle = LibraryCycle.external();
   }
@@ -288,7 +300,7 @@ class FileState {
   /// Return the signature of the file, based on API signatures of the
   /// transitive closure of imported / exported files.
   String get transitiveSignature {
-    this.libraryCycle; // sets _transitiveSignature
+    libraryCycle; // sets _transitiveSignature
     return _transitiveSignature;
   }
 
@@ -325,9 +337,7 @@ class FileState {
   CompilationUnit parse([AnalysisErrorListener errorListener]) {
     errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
-      return PerformanceStatistics.parse.makeCurrentWhile(() {
-        return _parse(errorListener);
-      });
+      return _parse(errorListener);
     } catch (_) {
       return _createEmptyCompilationUnit();
     }
@@ -343,6 +353,7 @@ class FileState {
   /// Return `true` if the API signature changed since the last refresh.
   bool refresh({bool allowCached = false}) {
     counterFileStateRefresh++;
+    refreshId = fileObjectId++;
 
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
@@ -364,7 +375,7 @@ class FileState {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
       signature.addFeatureSet(_contextFeatureSet);
-      signature.addLanguageVersion(_packageLanguageVersion);
+      signature.addLanguageVersion(packageLanguageVersion);
       signature.addString(_contentHash);
       signature.addBool(_exists);
       contentSignature = signature.toByteList();
@@ -484,7 +495,7 @@ class FileState {
     if (path == null) {
       return '<unresolved>';
     } else {
-      return '$uri = $path';
+      return '[id: $id][rid: $refreshId]$uri = $path';
     }
   }
 
@@ -499,7 +510,7 @@ class FileState {
     unit.lineInfo = LineInfo(const <int>[0]);
 
     unit.languageVersion = LibraryLanguageVersion(
-      package: _packageLanguageVersion,
+      package: packageLanguageVersion,
       override: null,
     );
 
@@ -550,12 +561,10 @@ class FileState {
       ..configureFeatures(
         featureSetForOverriding: _contextFeatureSet,
         featureSet: _contextFeatureSet.restrictToVersion(
-          _packageLanguageVersion,
+          packageLanguageVersion,
         ),
       );
-    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize(reportScannerErrors: false);
-    });
+    Token token = scanner.tokenize(reportScannerErrors: false);
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
 
     bool useFasta = analysisOptions.useFastaParser;
@@ -631,7 +640,7 @@ $content
 
     var unitImpl = unit as CompilationUnitImpl;
     unitImpl.languageVersion = LibraryLanguageVersion(
-      package: _packageLanguageVersion,
+      package: packageLanguageVersion,
       override: overrideVersion,
     );
   }
@@ -734,6 +743,7 @@ class FileSystemState {
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
+  final Workspace _workspace;
   final AnalysisOptions _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final Uint32List _saltForUnlinked;
@@ -793,6 +803,7 @@ class FileSystemState {
     this._resourceProvider,
     this.contextName,
     this._sourceFactory,
+    this._workspace,
     this._analysisOptions,
     this._declaredVariables,
     this._saltForUnlinked,
@@ -813,12 +824,27 @@ class FileSystemState {
   /// Return the [FileState] instance that correspond to an unresolved URI.
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      var featureSet = FeatureSet.fromEnableFlags([]);
-      _unresolvedFile = FileState._(
-          this, null, null, null, featureSet, ExperimentStatus.currentVersion);
+      var featureSet = FeatureSet.latestLanguageVersion();
+      _unresolvedFile = FileState._(this, null, null, null, null, featureSet,
+          ExperimentStatus.currentVersion);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
+  }
+
+  FeatureSet contextFeatureSet(
+    String path,
+    Uri uri,
+    WorkspacePackage workspacePackage,
+  ) {
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      return featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    return featureSetProvider.getFeatureSet(path, uri);
   }
 
   /// Return the canonical [FileState] for the given absolute [path]. The
@@ -841,11 +867,12 @@ class FileSystemState {
       }
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
-      FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
+      WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
+      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
-      file = FileState._(
-          this, path, uri, uriSource, featureSet, packageLanguageVersion);
+      file = FileState._(this, path, uri, uriSource, workspacePackage,
+          featureSet, packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -884,11 +911,12 @@ class FileSystemState {
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
-      FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
+      WorkspacePackage workspacePackage = _workspace?.findPackageFor(path);
+      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
       Version packageLanguageVersion =
           featureSetProvider.getLanguageVersion(path, uri);
-      file = FileState._(
-          this, path, uri, source, featureSet, packageLanguageVersion);
+      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
+          packageLanguageVersion);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);

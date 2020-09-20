@@ -7,6 +7,7 @@ switch/case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
 [ $compiler != fasta ]
 nonfunction_type_aliases/*: Skip # github.com/dart-lang/language/issues/115
+value_class/*: Skip # Internship, jlcontreras
 
 [ $compiler == none ]
 invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
@@ -34,6 +35,9 @@ regress/regress13474_test: SkipByDesign # Requires checked mode.
 regress/regress29784_test/02: SkipByDesign # Requires checked mode.
 stack_trace/demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type/checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+
+[ $compiler != dart2analyzer && $compiler != fasta ]
+identifier/built_in_type_annotation_test/*: SkipByDesign # Analyzer/CFE only tests.
 
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.

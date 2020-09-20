@@ -5,7 +5,6 @@
 #include "vm/version.h"
 
 #include "vm/cpu.h"
-#include "vm/flags.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -30,16 +29,13 @@ const char* Version::CommitString() {
   return commit_;
 }
 
-int Version::CurrentAbiVersion() {
-  return {{ABI_VERSION}};
-}
-
-int Version::OldestSupportedAbiVersion() {
-  return {{OLDEST_SUPPORTED_ABI_VERSION}};
+const char* Version::SdkHash() {
+  return git_short_hash_;
 }
 
 const char* Version::snapshot_hash_ = "{{SNAPSHOT_HASH}}";
 const char* Version::str_ = "{{VERSION_STR}} ({{CHANNEL}}) ({{COMMIT_TIME}})";
 const char* Version::commit_ = "{{VERSION_STR}}";
+const char* Version::git_short_hash_ = "{{GIT_HASH}}";
 
 }  // namespace dart

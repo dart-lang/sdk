@@ -47,7 +47,7 @@ declare_args() {
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
-# ........dartdev.dart.snapshot
+# ........dds.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
@@ -61,11 +61,6 @@ declare_args() {
 # ...........packages
 # ..........resources/
 # ..........templates/
-# ......model/
-# ........lexeme/
-# ..........idx2word.json
-# ..........model.tflite
-# ..........word2idx.json
 # ....include/
 # ......dart_api.h
 # ......dart_native_api.h
@@ -78,6 +73,7 @@ declare_args() {
 # ........dart2js_server_platform.dill
 # ........dart2js_platform_strong.dill
 # ........dart2js_server_platform_strong.dill
+# ........dartdev.dill
 # ........vm_platform_strong.dill
 # ........dev_compiler/
 # ......async/
@@ -122,16 +118,16 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
-    "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
-  ],
-  [
     "dartdoc",
     "../utils/dartdoc",
   ],
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "dds",
+    "../utils/dds:dds",
   ],
   [
     "pub",
@@ -167,10 +163,6 @@ _full_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
-    "dartdev",
-    "../utils/dartdev:generate_dartdev_snapshot",
-  ],
-  [
     "dartdevc",
     "../utils/dartdevc",
   ],
@@ -181,6 +173,10 @@ _full_sdk_snapshots = [
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "dds",
+    "../utils/dds:dds",
   ],
   [
     "kernel_worker",
@@ -322,16 +318,6 @@ if (is_win) {
 }
 
 if (target_cpu == "x64") {
-  copy_tree_specs += [
-    {
-      target = "copy_language_model"
-      visibility = [ ":create_common_sdk" ]
-      deps = [ ":copy_libraries" ]
-      source = "../pkg/analysis_server/language_model"
-      dest = "$root_out_dir/dart-sdk/bin/model"
-      ignore_patterns = "{}"
-    },
-  ]
   if (is_linux || is_android || is_fuchsia) {
     copy_tree_specs += [
       {
@@ -596,6 +582,23 @@ copy("copy_analysis_summaries") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
+copy("copy_wasmer") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../third_party/wasmer:wasmer_wrapper",
+  ]
+  outputs =
+      [ "$root_out_dir/dart-sdk/bin/third_party/wasmer/{{source_file_part}}" ]
+  if (is_win) {
+    sources = [ "$root_out_dir/wasmer_wrapper.dll" ]
+  } else if (is_mac) {
+    sources = [ "$root_out_dir/libwasmer_wrapper.dylib" ]
+  } else {
+    sources = [ "$root_out_dir/libwasmer_wrapper.so" ]
+  }
+}
+
 # This rule copies dill files to lib/_internal.
 copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
@@ -607,10 +610,14 @@ copy("copy_vm_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-copy("copy_abi_dill_files") {
-  visibility = [ ":create_sdk_with_abi_versions" ]
-  sources = [ "../tools/abiversions" ]
-  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/abiversions" ]
+copy("copy_dartdev_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/dartdev:dartdev",
+  ]
+  sources = [ "$root_out_dir/dartdev.dill" ]
+  outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
 copy("copy_dart2js_dill_files") {
@@ -631,27 +638,32 @@ copy("copy_dart2js_dill_files") {
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
-# Copies DDC's SDK outline .dill to lib/_internal
-copy("copy_dev_compiler_outline") {
+# Copies DDC's SDK weak outline .dill to lib/_internal
+# TODO(nshahan) Fix the outline to be consistent and merge with below as a
+# breaking change.
+copy("copy_dev_compiler_weak_outline") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_platform",
   ]
   sources = [ "$root_out_dir/ddc_outline.dill" ]
-
-  # TODO(nshahan) Fix the name here to be consistent and merge with below.
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/ddc_sdk.dill" ]
 }
 
-# Copies DDC's SDK outline .dill with sound null safety to lib/_internal
-copy("copy_dev_compiler_outline_sound") {
-  visibility = [ "../utils/dartdevc:dartdevc_test" ]
+# Copies DDC's SDK full and outline .dill files to lib/_internal.
+copy("copy_dev_compiler_dills") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
+    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_platform_sound",
   ]
-  sources = [ "$root_out_dir/ddc_outline_sound.dill" ]
+  sources = [
+    "$root_out_dir/ddc_outline_sound.dill",
+    "$root_out_dir/ddc_platform.dill",
+    "$root_out_dir/ddc_platform_sound.dill",
+  ]
   outputs = [ "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}" ]
 }
 
@@ -731,9 +743,10 @@ copy("copy_dev_compiler_tools") {
 group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
+    ":copy_dev_compiler_dills",
     ":copy_dev_compiler_js",
-    ":copy_dev_compiler_outline",
     ":copy_dev_compiler_tools",
+    ":copy_dev_compiler_weak_outline",
   ]
 }
 
@@ -793,7 +806,10 @@ group("copy_libraries") {
 
 # This rule writes the version file.
 action("write_version_file") {
-  visibility = [ ":create_common_sdk" ]
+  visibility = [
+    ":create_common_sdk",
+    "../utils/dartanalyzer:generate_summary_strong",
+  ]
   inputs = [
     "../tools/VERSION",
     "$default_git_folder/logs/HEAD",
@@ -878,6 +894,7 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
@@ -900,10 +917,15 @@ group("create_common_sdk") {
     public_deps += [ ":copy_7zip" ]
   }
   if (target_cpu == "x64") {
-    public_deps += [
-      ":copy_language_model",
-      ":copy_libtensorflowlite_c",
-    ]
+    public_deps += [ ":copy_libtensorflowlite_c" ]
+  }
+
+  # CIPD only has versions of the Rust compiler for linux and mac x64 hosts.
+  # We also disallow cross-compialtion (it may be possible in future, but it
+  # isn't ready yet).
+  if (host_cpu == "x64" && (host_os == "linux" || host_os == "mac") &&
+      host_cpu == current_cpu && host_os == current_os && dart_enable_wasm) {
+    public_deps += [ ":copy_wasmer" ]
   }
 }
 
@@ -949,12 +971,4 @@ group("create_sdk") {
   } else {
     public_deps += [ ":create_full_sdk" ]
   }
-}
-
-# Same as create_sdk, but with abi version files.
-group("create_sdk_with_abi_versions") {
-  public_deps = [
-    ":copy_abi_dill_files",
-    ":create_sdk",
-  ]
 }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -590,12 +588,16 @@ class B extends A {
   }
 
   Future<void> test_invocation_sdk_relevancy_on() {
-    addTestFile('main() {Map m; m.^}');
-    return getSuggestions().then((_) {
-      // Assert that the CommonUsageComputer is working
-      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
-          isTrue);
-    });
+    if (!server.options.useNewRelevance) {
+      addTestFile('main() {Map m; m.^}');
+      return getSuggestions().then((_) {
+        // Assert that the CommonUsageComputer is working
+        expect(
+            suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+            isTrue);
+      });
+    }
+    return Future.value(null);
   }
 
   Future<void> test_invocation_withTrailingStmt() {

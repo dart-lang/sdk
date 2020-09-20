@@ -137,6 +137,12 @@ class PackageBuildWorkspace extends Workspace {
   /// package:build does it.
   static const String _pubspecName = 'pubspec.yaml';
 
+  static const List<String> _generatedPathParts = [
+    '.dart_tool',
+    'build',
+    'generated'
+  ];
+
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
@@ -152,13 +158,25 @@ class PackageBuildWorkspace extends Workspace {
   /// matches the behavior of package:build.
   final String projectPackageName;
 
+  /// `.dart_tool/build/generated` in [root].
+  final String generatedRootPath;
+
+  /// [projectPackageName] in [generatedRootPath].
+  final String generatedThisPath;
+
   /// The singular package in this workspace.
   ///
   /// Each "package:build" workspace is itself one package.
   PackageBuildWorkspacePackage _theOnlyPackage;
 
   PackageBuildWorkspace._(
-      this.provider, this._packageMap, this.root, this.projectPackageName);
+    this.provider,
+    this._packageMap,
+    this.root,
+    this.projectPackageName,
+    this.generatedRootPath,
+    this.generatedThisPath,
+  );
 
   @override
   UriResolver get packageUriResolver => PackageBuildPackageUriResolver(
@@ -231,15 +249,22 @@ class PackageBuildWorkspace extends Workspace {
   }
 
   @override
-  WorkspacePackage findPackageFor(String filePath) {
-    path.Context context = provider.pathContext;
-    final folder = provider.getFolder(context.dirname(filePath));
-    if (context.isWithin(root, folder.path)) {
-      _theOnlyPackage ??= PackageBuildWorkspacePackage(root, this);
-      return _theOnlyPackage;
-    } else {
+  WorkspacePackage findPackageFor(String path) {
+    var pathContext = provider.pathContext;
+
+    // Must be in this workspace.
+    if (!pathContext.isWithin(root, path)) {
       return null;
     }
+
+    // If generated, must be for this package.
+    if (pathContext.isWithin(generatedRootPath, path)) {
+      if (!pathContext.isWithin(generatedThisPath, path)) {
+        return null;
+      }
+    }
+
+    return _theOnlyPackage ??= PackageBuildWorkspacePackage(root, this);
   }
 
   /// Find the package:build workspace that contains the given [filePath].
@@ -265,8 +290,13 @@ class PackageBuildWorkspace extends Workspace {
       if (dartToolBuildDir.exists && pubspec.exists) {
         try {
           final yaml = loadYaml(pubspec.readAsStringSync());
-          return PackageBuildWorkspace._(
-              provider, packageMap, folder.path, yaml['name']);
+          final packageName = yaml['name'] as String;
+          final generatedRootPath = provider.pathContext
+              .joinAll([folder.path, ..._generatedPathParts]);
+          final generatedThisPath =
+              provider.pathContext.join(generatedRootPath, packageName);
+          return PackageBuildWorkspace._(provider, packageMap, folder.path,
+              packageName, generatedRootPath, generatedThisPath);
         } catch (_) {}
       }
 
@@ -292,12 +322,44 @@ class PackageBuildWorkspacePackage extends WorkspacePackage {
 
   @override
   bool contains(Source source) {
-    String filePath = filePathFromSource(source);
+    var uri = source.uri;
+
+    if (uri.isScheme('package')) {
+      var packageName = uri.pathSegments[0];
+      return packageName == workspace.projectPackageName;
+    }
+
+    if (uri.isScheme('file')) {
+      var path = source.fullName;
+      return workspace.findPackageFor(path) != null;
+    }
+
+    return false;
+  }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace._packageMap;
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
     if (filePath == null) return false;
-    // There is a 1-1 relationship between PackageBuildWorkspaces and
-    // PackageBuildWorkspacePackages. If a file is in a package's workspace,
-    // then it is in the package as well.
-    return workspace.provider.pathContext.isWithin(workspace.root, filePath) &&
-        workspace.findFile(filePath) != null;
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$root/lib" is public iff it is not in "$root/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+
+    libFolder = workspace.provider.pathContext.joinAll(
+        [root, ...PackageBuildWorkspace._generatedPathParts, 'test', 'lib']);
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$generated/lib" is public iff it is not in
+      // "$generated/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+    return false;
   }
 }

@@ -1,6 +1,6 @@
 class Class<T> {
   static var field;
 }
-extension Extension<T> ( ){ }
-on Class<T> (){ }
-main() { }
+extension Extension<T> (){}
+on Class<T> (){}
+main() {}

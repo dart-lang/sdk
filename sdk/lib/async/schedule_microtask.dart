@@ -128,7 +128,7 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
  *
  * ## Other resources
  *
- * * [The Event Loop and Dart](https://www.dartlang.org/articles/event-loop/):
+ * * [The Event Loop and Dart](https://dart.dev/articles/event-loop/):
  * Learn how Dart handles the event queue and microtask queue, so you can write
  * better asynchronous code with fewer surprises.
  */

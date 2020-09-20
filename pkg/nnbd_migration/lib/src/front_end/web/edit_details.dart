@@ -174,7 +174,7 @@ class TraceEntry {
         'description': description,
         if (function != null) 'function': function,
         if (link != null) 'link': link.toJson(),
-        if (!hintActions.isEmpty)
+        if (hintActions.isNotEmpty)
           'hintActions': hintActions.map((action) => action.toJson()).toList()
       };
 

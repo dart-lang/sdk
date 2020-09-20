@@ -30,12 +30,42 @@ void testCopySync() {
   Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
   Expect.equals(FILE_CONTENT2, file2.readAsStringSync());
 
+  // Check there is no temporary files existing.
+  var list = tmp.listSync();
+  Expect.equals(2, list.length);
+  for (var file in list) {
+    final fileName = file.path.toString();
+    Expect.isTrue(fileName.contains("file1") || fileName.contains("file2"));
+  }
+
   // Fail when coping to directory.
   var dir = new Directory('${tmp.path}/dir')..createSync();
   Expect.throws(() => file1.copySync(dir.path));
   Expect.equals(FILE_CONTENT2, file1.readAsStringSync());
 
   tmp.deleteSync(recursive: true);
+}
+
+void testWithForwardSlashes() {
+  if (Platform.isWindows) {
+    final tmp = Directory.systemTemp.createTempSync('dart-file-copy');
+
+    final file1 = File('${tmp.path}/file1');
+    file1.writeAsStringSync(FILE_CONTENT1);
+    Expect.equals(FILE_CONTENT1, file1.readAsStringSync());
+
+    // Test with a path contains only forward slashes.
+    final dest = tmp.path.toString().replaceAll("\\", "/");
+    final file2 = file1.copySync('${dest}/file2');
+    Expect.equals(FILE_CONTENT1, file2.readAsStringSync());
+
+    // Test with a path mixing both forward and backward slashes.
+    final file3 = file1.copySync('${dest}\\file3');
+    Expect.equals(FILE_CONTENT1, file3.readAsStringSync());
+
+    // Clean up the directory
+    tmp.deleteSync(recursive: true);
+  }
 }
 
 void testCopy() {
@@ -76,4 +106,6 @@ void testCopy() {
 main() {
   testCopySync();
   testCopy();
+  // This is Windows only test.
+  testWithForwardSlashes();
 }

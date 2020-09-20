@@ -16,7 +16,7 @@ library foo;
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
-/*class: A:checkedInstance,checks=[],instance*/
+/*class: A:checkedInstance,checks=[],instance,onlyForRti*/
 @JS()
 @anonymous
 class A<T> {
@@ -26,17 +26,17 @@ class A<T> {
 /*class: B:checkedInstance*/
 class B<T> {}
 
-/*class: C:checks=[],instance*/
+/*class: C:checks=[],instance,onlyForRti*/
 @JS()
 @anonymous
 class C implements B<int> {
   external factory C();
 }
 
-/*class: D:checkedInstance*/
+/*class: D:*/
 class D<T> {}
 
-/*class: E:checks=[],instance*/
+/*class: E:checks=[],instance,onlyForRti*/
 @JS()
 @anonymous
 class E implements B<String> {

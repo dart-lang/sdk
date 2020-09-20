@@ -98,7 +98,7 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
 
   /// Initialize a newly created visitor to use each of the given delegate
   /// visitors to visit the nodes of an AST structure.
-  DelegatingAstVisitor(this.delegates);
+  const DelegatingAstVisitor(this.delegates);
 
   @override
   T visitNode(AstNode node) {
@@ -128,6 +128,9 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
 ///
 /// Clients may extend this class.
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
+  /// Initialize a newly created visitor.
+  const GeneralizingAstVisitor();
+
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
 
@@ -606,6 +609,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 ///
 /// Clients may extend this class.
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
+  /// Initialize a newly created visitor.
+  const RecursiveAstVisitor();
+
   @override
   R visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);
@@ -1341,6 +1347,9 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 ///
 /// Clients may extend this class.
 class SimpleAstVisitor<R> implements AstVisitor<R> {
+  /// Initialize a newly created visitor.
+  const SimpleAstVisitor();
+
   @override
   R visitAdjacentStrings(AdjacentStrings node) => null;
 
@@ -1719,6 +1728,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 ///
 /// Clients may extend this class.
 class ThrowingAstVisitor<R> implements AstVisitor<R> {
+  /// Initialize a newly created visitor.
+  const ThrowingAstVisitor();
+
   @override
   R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
 
@@ -3097,6 +3109,9 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 ///
 /// Clients may extend this class.
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
+  /// Initialize a newly created visitor.
+  const UnifyingAstVisitor();
+
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
 

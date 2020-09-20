@@ -1,0 +1,6 @@
+import 'duplicate_import_lib1.dart';
+import 'duplicate_import_lib2.dart';
+export 'duplicate_import_lib1.dart';
+export 'duplicate_import_lib2.dart';
+
+main() {}

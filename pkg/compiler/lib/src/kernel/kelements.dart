@@ -17,8 +17,10 @@ class KLibrary extends IndexedLibrary {
   final String name;
   @override
   final Uri canonicalUri;
+  @override
+  final bool isNonNullableByDefault;
 
-  KLibrary(this.name, this.canonicalUri);
+  KLibrary(this.name, this.canonicalUri, this.isNonNullableByDefault);
 
   @override
   String toString() => '${kElementPrefix}library($name)';
@@ -281,7 +283,7 @@ class KLocalFunction implements Local {
 
 class KLocalTypeVariable implements TypeVariableEntity {
   @override
-  final Entity typeDeclaration;
+  final KLocalFunction typeDeclaration;
   @override
   final String name;
   @override

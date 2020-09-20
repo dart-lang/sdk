@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object? = dynamic> extends core::Object {
+  field dynamic bar;
+  field dynamic baz;
+  synthetic constructor •() → self::Foo<self::Foo::T%>
+    ;
+  method qux() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

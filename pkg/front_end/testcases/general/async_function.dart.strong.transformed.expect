@@ -62,10 +62,10 @@ static method asyncString2() → asy::Future<core::String*>* /* originally async
   return :async_completer.{asy::Completer::future};
 }
 static method syncStarString() → core::Iterable<core::String*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::String*>*) →* core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
     core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
-    return (core::_SyncIterator<core::String*>* :iterator) → core::bool* yielding {
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = "foo";
@@ -86,10 +86,10 @@ static method syncStarString() → core::Iterable<core::String*>* /* originally 
   return new core::_SyncIterable::•<core::String*>(:sync_op_gen);
 }
 static method syncStarString2() → core::Iterable<core::String*>* /* originally sync* */ {
-  function :sync_op_gen() → (core::_SyncIterator<core::String*>*) →* core::bool* {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
     core::int* :await_jump_var = 0;
     dynamic :await_ctx_var;
-    return (core::_SyncIterator<core::String*>* :iterator) → core::bool* yielding {
+    return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = "foo";

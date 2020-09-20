@@ -14,14 +14,22 @@ import "native_testing.dart";
 // getters too if they have a property that has the same name.
 @Native("A")
 class A {
-  int bar;
-  int g;
-  int s;
-  int end;
-  int gend;
-  int send;
-  int gettersCalled;
-  int settersCalled;
+  void set bar(int unused) native;
+  int get bar native;
+  void set g(int unused) native;
+  int get g native;
+  void set s(int unused) native;
+  int get s native;
+  void set end(int unused) native;
+  int get end native;
+  void set gend(int unused) native;
+  int get gend native;
+  void set send(int unused) native;
+  int get send native;
+  void set gettersCalled(int unused) native;
+  int get gettersCalled native;
+  void set settersCalled(int unused) native;
+  int get settersCalled native;
 }
 
 void setup() {

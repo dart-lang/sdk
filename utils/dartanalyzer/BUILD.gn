@@ -38,15 +38,20 @@ sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             ],
                             "list lines")
 
-prebuilt_dart_action("generate_summary_strong") {
+dart_action("generate_summary_strong") {
+  deps = [
+    "../../sdk:copy_libraries",
+    "../../sdk:write_version_file",
+  ]
   script = "../../pkg/analyzer/tool/summary/build_sdk_summaries.dart"
   packages = "../../.packages"
   inputs = sdk_lib_files + analyzer_files
   output = "$root_gen_dir/strong.sum"
   outputs = [ output ]
+  vm_args = [ "-Dsdk_hash=$sdk_hash" ]
   args = [
     "build",
     rebase_path(output),
-    rebase_path("../../sdk"),
+    rebase_path("$root_out_dir/dart-sdk"),
   ]
 }

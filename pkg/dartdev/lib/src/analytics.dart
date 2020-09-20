@@ -26,38 +26,45 @@ const String analyticsDisabledNoticeMessage = '''
   ║ `dart --enable-analytics`                                                  ║
   ╚════════════════════════════════════════════════════════════════════════════╝
 ''';
-const String _unknownCommand = '<unknown>';
 const String _appName = 'dartdev';
 const String _dartDirectoryName = '.dart';
 const String _settingsFileName = 'dartdev.json';
 const String _trackingId = 'UA-26406144-37';
+const String _readmeFileName = 'README.txt';
+const String _readmeFileContents = '''
+The present directory contains user-level settings for the
+Dart programming language (https://dart.dev).
+''';
 
 const String eventCategory = 'dartdev';
 const String exitCodeParam = 'exitCode';
-const String flagsParam = 'flags';
 
-Analytics instance;
+Analytics _instance;
+
+Analytics get analyticsInstance => _instance;
 
 /// Create and return an [Analytics] instance, this value is cached and returned
 /// on subsequent calls.
 Analytics createAnalyticsInstance(bool disableAnalytics) {
-  if (instance != null) {
-    return instance;
+  if (_instance != null) {
+    return _instance;
   }
 
   // Dartdev tests pass a hidden 'disable-dartdev-analytics' flag which is
-  // handled here
+  // handled here.
+  // Also, stdout.hasTerminal is checked, if there is no terminal we infer that
+  // a machine is running dartdev so we return analytics shouldn't be set.
   if (disableAnalytics) {
-    instance = DisabledAnalytics(_trackingId, _appName);
-    return instance;
+    _instance = DisabledAnalytics(_trackingId, _appName);
+    return _instance;
   }
 
   var settingsDir = getDartStorageDirectory();
   if (settingsDir == null) {
     // Some systems don't support user home directories; for those, fail
     // gracefully by returning a disabled analytics object.
-    instance = DisabledAnalytics(_trackingId, _appName);
-    return instance;
+    _instance = DisabledAnalytics(_trackingId, _appName);
+    return _instance;
   }
 
   if (!settingsDir.existsSync()) {
@@ -66,47 +73,21 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
     } catch (e) {
       // If we can't create the directory for the analytics settings, fail
       // gracefully by returning a disabled analytics object.
-      instance = DisabledAnalytics(_trackingId, _appName);
-      return instance;
+      _instance = DisabledAnalytics(_trackingId, _appName);
+      return _instance;
     }
+  }
+
+  var readmeFile =
+      File('${settingsDir.absolute.path}${path.separator}$_readmeFileName');
+  if (!readmeFile.existsSync()) {
+    readmeFile.createSync();
+    readmeFile.writeAsStringSync(_readmeFileContents);
   }
 
   var settingsFile = File(path.join(settingsDir.path, _settingsFileName));
-  instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
-  return instance;
-}
-
-/// Return the first member from [args] that occurs in [allCommands], otherwise
-/// '<unknown>' is returned.
-///
-/// 'help' is special cased to have 'dart analyze help', 'dart help analyze',
-/// and 'dart analyze --help' all be recorded as a call to 'help' instead of
-/// 'help' and 'analyze'.
-String getCommandStr(List<String> args, List<String> allCommands) {
-  if (args.contains('help') || args.contains('-h') || args.contains('--help')) {
-    return 'help';
-  }
-  return args.firstWhere((arg) => allCommands.contains(arg),
-      orElse: () => _unknownCommand);
-}
-
-/// Given some set of arguments and parameters, this returns a proper subset
-/// of the arguments that start with '-', joined by a space character.
-String getFlags(List<String> args) {
-  if (args == null || args.isEmpty) {
-    return '';
-  }
-  var argSubset = <String>[];
-  for (var arg in args) {
-    if (arg.startsWith('-')) {
-      if (arg.contains('=')) {
-        argSubset.add(arg.substring(0, arg.indexOf('=') + 1));
-      } else {
-        argSubset.add(arg);
-      }
-    }
-  }
-  return argSubset.join(' ');
+  _instance = DartdevAnalytics(_trackingId, settingsFile, _appName);
+  return _instance;
 }
 
 /// The directory used to store the analytics settings file.
@@ -124,6 +105,10 @@ Directory getDartStorageDirectory() {
   return Directory(path.join(homeDir.path, _dartDirectoryName));
 }
 
+/// The method used by dartdev to determine if this machine is a bot such as a
+/// CI machine.
+bool isBot() => telemetry.isRunningOnBot();
+
 class DartdevAnalytics extends AnalyticsImpl {
   DartdevAnalytics(String trackingId, File settingsFile, String appName)
       : super(
@@ -136,12 +121,21 @@ class DartdevAnalytics extends AnalyticsImpl {
 
   @override
   bool get enabled {
-    if (telemetry.isRunningOnBot()) {
+    // Don't enable if the user hasn't been shown the disclosure or if this
+    // machine is bot.
+    if (!disclosureShownOnTerminal || isBot()) {
       return false;
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
     return (properties['enabled'] as bool) ?? false;
+  }
+
+  bool get disclosureShownOnTerminal =>
+      (properties['disclosureShown'] as bool) ?? false;
+
+  set disclosureShownOnTerminal(bool value) {
+    properties['disclosureShown'] = value;
   }
 }
 

@@ -24,118 +24,90 @@ class C extends B {
   test() {
     super?.field = 1;
     //   ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //   ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     super?.field += 1;
     //   ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //   ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     super?.field ??= 1;
     //   ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //   ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+    //     ^
+    // [cfe] Operand of null-aware operation '??=' has type 'int' which excludes null.
     //               ^
     // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
     super?.field;
     //   ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //   ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     1 * super?.field;
     //  ^^^^^^^^^^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    //       ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     //       ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     -super?.field;
-    //    ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//   ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     ~super?.field;
-    //    ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+//   ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
     //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     !super?.field;
 //   ^^^^^^^^^^^^
-// [analyzer] STATIC_TYPE_WARNING.NON_BOOL_NEGATION_EXPRESSION
-//        ^^
-// [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-// [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
+// [analyzer] COMPILE_TIME_ERROR.NON_BOOL_NEGATION_EXPRESSION
 //        ^^
 // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+// [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
 //          ^
 // [cfe] A value of type 'int' can't be assigned to a variable of type 'bool'.
     --super?.field;
     //     ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     ++super?.field;
     //     ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     super?.method();
     //   ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //   ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     1 * super?.method();
     //       ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //       ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     -super?.method();
     //    ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     ~super?.method();
     //    ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     !super?.method();
     //    ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //    ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     --super?.method();
     //     ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     //       ^
     // [cfe] Can't assign to this.
     //              ^
     // [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
     ++super?.method();
     //     ^^
-    // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
-    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
-    //     ^^
     // [analyzer] SYNTACTIC_ERROR.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+    // [cfe] The operator '?.' cannot be used with 'super' because 'super' cannot be null.
     //       ^
     // [cfe] Can't assign to this.
     //              ^

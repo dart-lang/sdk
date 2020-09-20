@@ -29,9 +29,13 @@ List<String> fruits = const <String>['apples', 'bananas', 'pears'];
   void test_default_asVariableName() {
     testRecovery('''
 const default = const Object();
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [
+      ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+    ], '''
 const default = const Object();
-''', expectedErrorsInValidCode: [ParserErrorCode.MISSING_IDENTIFIER]);
+''', expectedErrorsInValidCode: [
+      ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+    ]);
   }
 
   void test_expressionInPlaceOfTypeName() {
@@ -82,12 +86,16 @@ f() {}
 g() {
   f(with: 3);
 }
-''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+''', [
+      ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+    ], '''
 f() {}
 g() {
   f(with: 3);
 }
-''', expectedErrorsInValidCode: [ParserErrorCode.MISSING_IDENTIFIER]);
+''', expectedErrorsInValidCode: [
+      ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
+    ]);
   }
 
   @failingTest

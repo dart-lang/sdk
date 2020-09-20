@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddLate extends CorrectionProducer {
@@ -14,7 +14,7 @@ class AddLate extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_LATE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (!libraryElement.isNonNullableByDefault) {
       return;
     }
@@ -44,8 +44,8 @@ class AddLate extends CorrectionProducer {
     }
   }
 
-  void _insertAt(DartChangeBuilder builder, int offset) async {
-    await builder.addFileEdit(file, (builder) {
+  void _insertAt(ChangeBuilder builder, int offset) async {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(offset, 'late ');
     });
   }

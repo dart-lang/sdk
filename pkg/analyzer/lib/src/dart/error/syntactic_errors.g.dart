@@ -114,6 +114,13 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _SETTER_CONSTRUCTOR,
   _MEMBER_WITH_CLASS_NAME,
   _EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER,
+  _ABSTRACT_STATIC_FIELD,
+  _ABSTRACT_LATE_FIELD,
+  _EXTERNAL_LATE_FIELD,
+  _ABSTRACT_EXTERNAL_FIELD,
+  _ANNOTATION_ON_TYPE_ARGUMENT,
+  _BINARY_OPERATOR_WRITTEN_OUT,
+  _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
@@ -122,9 +129,31 @@ const ParserErrorCode _ABSTRACT_CLASS_MEMBER = ParserErrorCode(
     correction:
         "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
 
+const ParserErrorCode _ABSTRACT_EXTERNAL_FIELD = ParserErrorCode(
+    'ABSTRACT_EXTERNAL_FIELD',
+    r"Fields can't be declared both 'abstract' and 'external'.",
+    correction: "Try removing the 'abstract' or 'external' keyword.");
+
+const ParserErrorCode _ABSTRACT_LATE_FIELD = ParserErrorCode(
+    'ABSTRACT_LATE_FIELD', r"Abstract fields cannot be late.",
+    correction: "Try removing the 'abstract' or 'late' keyword.");
+
+const ParserErrorCode _ABSTRACT_STATIC_FIELD = ParserErrorCode(
+    'ABSTRACT_STATIC_FIELD', r"Static fields can't be declared 'abstract'.",
+    correction: "Try removing the 'abstract' or 'static' keyword.");
+
+const ParserErrorCode _ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
+    'ANNOTATION_ON_TYPE_ARGUMENT',
+    r"Type arguments can't have annotations because they aren't declarations.");
+
 const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(
     'ANNOTATION_WITH_TYPE_ARGUMENTS',
     r"An annotation (metadata) can't use type arguments.");
+
+const ParserErrorCode _BINARY_OPERATOR_WRITTEN_OUT = ParserErrorCode(
+    'BINARY_OPERATOR_WRITTEN_OUT',
+    r"Binary operator '#string' is written as '#string2' instead of the written out word.",
+    correction: "Try replacing '#string' with '#string2'.");
 
 const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = ParserErrorCode(
     'BREAK_OUTSIDE_OF_LOOP',
@@ -241,6 +270,11 @@ const ParserErrorCode _EXPECTED_BODY = ParserErrorCode(
 const ParserErrorCode _EXPECTED_ELSE_OR_COMMA =
     ParserErrorCode('EXPECTED_ELSE_OR_COMMA', r"Expected 'else' or comma.");
 
+const ParserErrorCode _EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD = ParserErrorCode(
+    'EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD',
+    r"'#lexeme' can't be used as an identifier because it's a keyword.",
+    correction: "Try renaming this to be an identifier that isn't a keyword.");
+
 const ParserErrorCode _EXPECTED_INSTEAD =
     ParserErrorCode('EXPECTED_INSTEAD', r"Expected '#string' instead of this.");
 
@@ -304,6 +338,10 @@ const ParserErrorCode _EXTERNAL_FIELD = ParserErrorCode(
     'EXTERNAL_FIELD', r"Fields can't be declared to be 'external'.",
     correction:
         "Try removing the keyword 'external', or replacing the field by an external getter and/or setter.");
+
+const ParserErrorCode _EXTERNAL_LATE_FIELD = ParserErrorCode(
+    'EXTERNAL_LATE_FIELD', r"External fields cannot be late.",
+    correction: "Try removing the 'external' or 'late' keyword.");
 
 const ParserErrorCode _EXTERNAL_METHOD_WITH_BODY = ParserErrorCode(
     'EXTERNAL_METHOD_WITH_BODY',

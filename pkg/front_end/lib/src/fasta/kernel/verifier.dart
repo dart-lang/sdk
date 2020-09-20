@@ -240,7 +240,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitField(Field node) {
     enterTreeNode(node);
-    fileUri = checkLocation(node, node.name.name, node.fileUri);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
     super.visitField(node);
     exitTreeNode(node);
   }
@@ -248,7 +248,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
   @override
   void visitProcedure(Procedure node) {
     enterTreeNode(node);
-    fileUri = checkLocation(node, node.name.name, node.fileUri);
+    fileUri = checkLocation(node, node.name.text, node.fileUri);
     super.visitProcedure(node);
     exitTreeNode(node);
   }

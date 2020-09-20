@@ -25,7 +25,7 @@ class DartUnitHighlightsComputer {
 
   void _addCommentRanges() {
     var token = _unit.beginToken;
-    while (token != null && token.type != TokenType.EOF) {
+    while (token != null) {
       Token commentToken = token.precedingComments;
       while (commentToken != null) {
         HighlightRegionType highlightType;
@@ -43,6 +43,11 @@ class DartUnitHighlightsComputer {
           _addRegion_token(commentToken, highlightType);
         }
         commentToken = commentToken.next;
+      }
+      if (token.type == TokenType.EOF) {
+        // Only exit the loop *after* processing the EOF token as it may
+        // have preceeding comments.
+        break;
       }
       token = token.next;
     }
@@ -474,6 +479,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    computer._addRegion_token(
+        node.abstractKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+        node.externalKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
     super.visitFieldDeclaration(node);
   }
@@ -749,6 +758,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitThisExpression(ThisExpression node) {
     computer._addRegion_token(node.thisKeyword, HighlightRegionType.KEYWORD);
     super.visitThisExpression(node);
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    computer._addRegion_token(
+        node.externalKeyword, HighlightRegionType.BUILT_IN);
+    super.visitTopLevelVariableDeclaration(node);
   }
 
   @override

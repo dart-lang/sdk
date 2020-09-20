@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -73,7 +73,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// [removeViaComments]).
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       LineInfo Function(String) getLineInfo,
-      {bool permissive: false,
+      {bool permissive = false,
       NullabilityMigrationInstrumentation instrumentation,
       bool removeViaComments = false,
       bool warnOnWeakCode = true})
@@ -209,7 +209,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   static Location _computeLocation(
       LineInfo lineInfo, SourceEdit edit, Source source) {
     final locationInfo = lineInfo.getLocation(edit.offset);
-    var location = new Location(
+    var location = Location(
       source.fullName,
       edit.offset,
       edit.length,

@@ -23,7 +23,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 part 'crypto.dart';
-part 'embedder_config.dart';
 part 'http_date.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
@@ -869,7 +868,8 @@ abstract class HttpSession implements Map {
 }
 
 /**
- * A MIME/IANA media type used as the value of the [contentTypeHeader] header.
+ * A MIME/IANA media type used as the value of the
+ * [HttpHeaders.contentTypeHeader] header.
  *
  * A [ContentType] is immutable.
  */
@@ -2015,6 +2015,34 @@ abstract class HttpClientRequest implements IOSink {
   ///
   /// Returns `null` if the socket is not available.
   HttpConnectionInfo? get connectionInfo;
+
+  /// Aborts the client connection.
+  ///
+  /// If the connection has not yet completed, the request is aborted and the
+  /// [done] future (also returned by [close]) is completed with the provided
+  /// [exception] and [stackTrace].
+  /// If [exception] is omitted, it defaults to an [HttpException], and if
+  /// [stackTrace] is omitted, it defaults to [StackTrace.empty].
+  ///
+  /// If the [done] future has already completed, aborting has no effect.
+  ///
+  /// Using the [IOSink] methods (e.g., [write] and [add]) has no effect after
+  /// the request has been aborted
+  ///
+  /// ```dart
+  /// HttpClientRequst request = ...
+  /// request.write();
+  /// Timer(Duration(seconds: 1), () {
+  ///   request.abort();
+  /// });
+  /// request.close().then((response) {
+  ///   // If response comes back before abort, this callback will be called.
+  /// }, onError: (e) {
+  ///   // If abort() called before response is available, onError will fire.
+  /// });
+  /// ```
+  @Since("2.10")
+  void abort([Object? exception, StackTrace? stackTrace]);
 }
 
 /**

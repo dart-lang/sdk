@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:developer';
 import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE_A = 20;
-const int LINE_B = 26;
+const int LINE_A = 19;
+const int LINE_B = 25;
 
 foo() {}
 

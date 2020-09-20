@@ -5,7 +5,7 @@ abstract class I {
 }
 
 class C {
-  dynamic operator []=(int index, dynamic value) {}
+  operator []=(int index, dynamic value) {}
 }
 
 class D extends C implements I {

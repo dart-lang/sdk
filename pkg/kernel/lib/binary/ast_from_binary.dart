@@ -5,6 +5,7 @@ library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
 import 'dart:developer';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
@@ -28,8 +29,19 @@ class InvalidKernelVersionError {
   InvalidKernelVersionError(this.version);
 
   String toString() {
-    return 'Unexpected Kernel version ${version} '
+    return 'Unexpected Kernel Format Version ${version} '
         '(expected ${Tag.BinaryFormatVersion}).';
+  }
+}
+
+class InvalidKernelSdkVersionError {
+  final String version;
+
+  InvalidKernelSdkVersionError(this.version);
+
+  String toString() {
+    return 'Unexpected Kernel SDK Version ${version} '
+        '(expected ${expectedSdkHash}).';
   }
 }
 
@@ -484,6 +496,13 @@ class BinaryBuilder {
     if (_bytes.length == 0) throw new StateError("Empty input given.");
   }
 
+  void _readAndVerifySdkHash() {
+    final sdkHash = ascii.decode(readBytes(sdkHashLength));
+    if (!isValidSdkHash(sdkHash)) {
+      throw InvalidKernelSdkVersionError(sdkHash);
+    }
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -511,6 +530,9 @@ class BinaryBuilder {
       if (version != Tag.BinaryFormatVersion) {
         throw InvalidKernelVersionError(version);
       }
+
+      _readAndVerifySdkHash();
+
       _byteOffset = offset;
       List<int> componentFileSizes = _indexComponents();
       if (componentFileSizes.length > 1) {
@@ -694,6 +716,8 @@ class BinaryBuilder {
       throw InvalidKernelVersionError(formatVersion);
     }
 
+    _readAndVerifySdkHash();
+
     // Read component index from the end of this ComponentFiles serialized data.
     _ComponentIndex index = _readComponentIndex(componentFileSize);
 
@@ -717,6 +741,8 @@ class BinaryBuilder {
     if (formatVersion != Tag.BinaryFormatVersion) {
       throw InvalidKernelVersionError(formatVersion);
     }
+
+    _readAndVerifySdkHash();
 
     List<String> problemsAsJson = readListOfStrings();
     if (problemsAsJson != null) {
@@ -901,6 +927,12 @@ class BinaryBuilder {
       throw 'Expected a member reference to be valid but was `null`.';
     }
     return name?.getReference();
+  }
+
+  Reference readInstanceMemberReference({bool allowNull: false}) {
+    var reference = readMemberReference(allowNull: allowNull);
+    readMemberReference(allowNull: true); // Skip origin
+    return reference;
   }
 
   Reference getMemberReferenceFromInt(int index, {bool allowNull: false}) {
@@ -1292,7 +1324,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'field');
+      debugPath.add(node.name?.text ?? 'field');
       return true;
     }());
     var type = readDartType();
@@ -1332,7 +1364,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'constructor');
+      debugPath.add(node.name?.text ?? 'constructor');
       return true;
     }());
     var function = readFunctionNode();
@@ -1376,7 +1408,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'procedure');
+      debugPath.add(node.name?.text ?? 'procedure');
       return true;
     }());
     int functionNodeSize = endOffset - _byteOffset;
@@ -1388,6 +1420,7 @@ class BinaryBuilder {
         readMemberReference(allowNull: true);
     var forwardingStubInterfaceTargetReference =
         readMemberReference(allowNull: true);
+    var memberSignatureTargetReference = readMemberReference(allowNull: true);
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     assert(((_) => true)(debugPath.removeLast()));
@@ -1406,10 +1439,14 @@ class BinaryBuilder {
         forwardingStubSuperTargetReference;
     node.forwardingStubInterfaceTargetReference =
         forwardingStubInterfaceTargetReference;
+    node.memberSignatureOriginReference = memberSignatureTargetReference;
 
     assert((node.forwardingStubSuperTargetReference != null) ||
         !(node.isForwardingStub && node.function.body != null));
-    _byteOffset = endOffset;
+    assert(
+        !(node.isMemberSignature &&
+            node.memberSignatureOriginReference == null),
+        "No member signature origin for member signature $node.");
     return node;
   }
 
@@ -1432,7 +1469,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
-      debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+      debugPath.add(node.name?.text ?? 'redirecting-factory-constructor');
       return true;
     }());
     var targetReference = readMemberReference();
@@ -1663,35 +1700,35 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.PropertyGet:
         int offset = readOffset();
-        return new PropertyGet.byReference(
-            readExpression(), readName(), readMemberReference(allowNull: true))
+        return new PropertyGet.byReference(readExpression(), readName(),
+            readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.PropertySet:
         int offset = readOffset();
         return new PropertySet.byReference(readExpression(), readName(),
-            readExpression(), readMemberReference(allowNull: true))
+            readExpression(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
         return new SuperPropertyGet.byReference(
-            readName(), readMemberReference(allowNull: true))
+            readName(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.SuperPropertySet:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperPropertySet.byReference(
-            readName(), readExpression(), readMemberReference(allowNull: true))
+        return new SuperPropertySet.byReference(readName(), readExpression(),
+            readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectPropertyGet:
         int offset = readOffset();
         return new DirectPropertyGet.byReference(
-            readExpression(), readMemberReference())
+            readExpression(), readInstanceMemberReference())
           ..fileOffset = offset;
       case Tag.DirectPropertySet:
         int offset = readOffset();
         return new DirectPropertySet.byReference(
-            readExpression(), readMemberReference(), readExpression())
+            readExpression(), readInstanceMemberReference(), readExpression())
           ..fileOffset = offset;
       case Tag.StaticGet:
         int offset = readOffset();
@@ -1705,18 +1742,18 @@ class BinaryBuilder {
       case Tag.MethodInvocation:
         int offset = readOffset();
         return new MethodInvocation.byReference(readExpression(), readName(),
-            readArguments(), readMemberReference(allowNull: true))
+            readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.SuperMethodInvocation:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
-        return new SuperMethodInvocation.byReference(
-            readName(), readArguments(), readMemberReference(allowNull: true))
+        return new SuperMethodInvocation.byReference(readName(),
+            readArguments(), readInstanceMemberReference(allowNull: true))
           ..fileOffset = offset;
       case Tag.DirectMethodInvocation:
         int offset = readOffset();
         return new DirectMethodInvocation.byReference(
-            readExpression(), readMemberReference(), readArguments())
+            readExpression(), readInstanceMemberReference(), readArguments())
           ..fileOffset = offset;
       case Tag.StaticInvocation:
         int offset = readOffset();

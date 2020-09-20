@@ -80,7 +80,7 @@ void checkStaticTypes(C c) {
   Future<B2> v1 = c.f_inferred_A();
   Future<int> v2 = c.f_inferred_A();
   //               ^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                 ^
   // [cfe] A value of type 'Future<A>' can't be assigned to a variable of type 'Future<int>'.
 }

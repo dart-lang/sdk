@@ -158,62 +158,91 @@ static ObjectPtr ValidateMessageObject(Zone* zone,
   Class& klass = Class::Handle(zone);
   Closure& closure = Closure::Handle(zone);
 
-  MallocGrowableArray<ObjectPtr> working_set;
-  std::unique_ptr<WeakTable> visited(new WeakTable());
+  bool error_found = false;
+  Function& erroneous_closure_function = Function::Handle(zone);
+  Class& erroneous_nativewrapper_class = Class::Handle(zone);
+  const char* error_message = nullptr;
 
-  NoSafepointScope no_safepoint;
-  SendMessageValidator visitor(isolate->group(), visited.get(), &working_set);
+  {
+    NoSafepointScope no_safepoint;
+    // working_set contains only elements that have not been visited yet that
+    // need to be processed.
+    // So before adding elements to working_set ensure to check visited flag,
+    // set visited flag at the same time as the element is added.
+    MallocGrowableArray<ObjectPtr> working_set;
+    std::unique_ptr<WeakTable> visited(new WeakTable());
 
-  visited->SetValueExclusive(obj.raw(), 1);
-  working_set.Add(obj.raw());
+    SendMessageValidator visitor(isolate->group(), visited.get(), &working_set);
 
-  while (!working_set.is_empty()) {
-    ObjectPtr raw = working_set.RemoveLast();
+    visited->SetValueExclusive(obj.raw(), 1);
+    working_set.Add(obj.raw());
 
-    if (visited->GetValueExclusive(raw) > 0) {
-      continue;
-    }
-    visited->SetValueExclusive(raw, 1);
+    while (!working_set.is_empty() && !error_found) {
+      ObjectPtr raw = working_set.RemoveLast();
 
-    const intptr_t cid = raw->GetClassId();
-    switch (cid) {
-      // List below matches the one in raw_object_snapshot.cc
+      const intptr_t cid = raw->GetClassId();
+      switch (cid) {
+        // List below matches the one in raw_object_snapshot.cc
 #define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
   case k##type##Cid:                                                           \
-    return Exceptions::CreateUnhandledException(                               \
-        zone, Exceptions::kArgumentValue,                                      \
-        "Illegal argument in isolate message : (object is a " #type ")");
+    error_message =                                                            \
+        "Illegal argument in isolate message : (object is a " #type ")";       \
+    error_found = true;                                                        \
+    break;
 
-      MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
-      MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
-      MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
-      MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
-      MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
-      MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
-      MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
+        MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+        MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+        MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+        MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+        MESSAGE_SNAPSHOT_ILLEGAL(RegExp);
+        MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
+        MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
-      case kClosureCid: {
-        closure = Closure::RawCast(raw);
-        FunctionPtr func = closure.function();
-        // We only allow closure of top level methods or static functions in a
-        // class to be sent in isolate messages.
-        if (!Function::IsImplicitStaticClosureFunction(func)) {
-          return Exceptions::CreateUnhandledException(
-              zone, Exceptions::kArgumentValue, "Closures are not allowed");
-        }
-        break;
-      }
-      default:
-        if (cid >= kNumPredefinedCids) {
-          klass = class_table->At(cid);
-          if (klass.num_native_fields() != 0) {
-            return Exceptions::CreateUnhandledException(
-                zone, Exceptions::kArgumentValue,
-                "Objects that extend NativeWrapper are not allowed");
+        case kClosureCid: {
+          closure = Closure::RawCast(raw);
+          FunctionPtr func = closure.function();
+          // We only allow closure of top level methods or static functions in a
+          // class to be sent in isolate messages.
+          if (!Function::IsImplicitStaticClosureFunction(func)) {
+            // All other closures are errors.
+            erroneous_closure_function = func;
+            error_found = true;
+            break;
           }
+          break;
         }
+        default:
+          if (cid >= kNumPredefinedCids) {
+            klass = class_table->At(cid);
+            if (klass.num_native_fields() != 0) {
+              erroneous_nativewrapper_class = klass.raw();
+              error_found = true;
+              break;
+            }
+          }
+      }
+      raw->ptr()->VisitPointers(&visitor);
     }
-    raw->ptr()->VisitPointers(&visitor);
+  }
+  if (error_found) {
+    const char* exception_message;
+    if (error_message != nullptr) {
+      exception_message = error_message;
+    } else if (!erroneous_closure_function.IsNull()) {
+      exception_message = OS::SCreate(zone,
+                                      "Illegal argument in isolate message"
+                                      " : (object is a closure - %s)",
+                                      erroneous_closure_function.ToCString());
+    } else {
+      ASSERT(!erroneous_nativewrapper_class.IsNull());
+      exception_message =
+          OS::SCreate(zone,
+                      "Illegal argument in isolate message"
+                      " : (object extends NativeWrapper - %s)",
+                      erroneous_nativewrapper_class.ToCString());
+    }
+    return Exceptions::CreateUnhandledException(
+        zone, Exceptions::kArgumentValue, exception_message);
   }
   isolate->set_forward_table_new(nullptr);
   return obj.raw();
@@ -502,16 +531,6 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   GET_NATIVE_ARGUMENT(String, packageConfig, arguments->NativeArgAt(10));
   GET_NATIVE_ARGUMENT(String, debugName, arguments->NativeArgAt(11));
 
-  if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(
-        0,
-        String::Handle(String::New(
-            "Isolate.spawnUri is not supported when using AOT compilation")));
-    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-    UNREACHABLE();
-  }
-
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
   Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
@@ -615,7 +634,6 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
 }
 
 static void ExternalTypedDataFinalizer(void* isolate_callback_data,
-                                       Dart_WeakPersistentHandle handle,
                                        void* peer) {
   free(peer);
 }
@@ -725,7 +743,8 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
                              thread->heap()->SpaceForExternal(length)));
   FinalizablePersistentHandle::New(thread->isolate(), typed_data,
                                    /* peer= */ data,
-                                   &ExternalTypedDataFinalizer, length);
+                                   &ExternalTypedDataFinalizer, length,
+                                   /*auto_delete=*/true);
   return typed_data.raw();
 }
 

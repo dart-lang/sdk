@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A stress test for the analysis server.
-import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -129,7 +128,6 @@ class Driver {
       server.printStatistics();
     }
     exit(0);
-    return null;
   }
 
   /// Create and return a parser that can be used to parse the command-line

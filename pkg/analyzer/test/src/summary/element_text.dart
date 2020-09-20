@@ -965,10 +965,13 @@ class _ElementWriter {
 
       writeIf(e.isSynthetic, 'synthetic ');
       writeIf(e.isStatic, 'static ');
+      writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
       writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
+      writeIf(e is FieldElementImpl && e.isExternal, 'external ');
     } else {
       writeDocumentation(e);
       writeMetadata(e, '', '\n');
+      writeIf(e is TopLevelVariableElementImpl && e.isExternal, 'external ');
     }
 
     writeIf(e.isLate, 'late ');
@@ -1026,7 +1029,7 @@ class _ElementWriter {
     TopLevelInferenceError inferenceError;
     if (e is MethodElementImpl) {
       inferenceError = e.typeInferenceError;
-    } else if (e is NonParameterVariableElementImpl) {
+    } else if (e is PropertyInducingElementImpl) {
       inferenceError = e.typeInferenceError;
     }
 

@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ConvertToNamedArguments extends CorrectionProducer {
@@ -15,7 +15,7 @@ class ConvertToNamedArguments extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var argumentList = node;
     if (argumentList is ArgumentList) {
       // Prepare parameters.
@@ -80,7 +80,7 @@ class ConvertToNamedArguments extends CorrectionProducer {
         return;
       }
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         for (var argument in argumentToParameter.keys) {
           var parameter = argumentToParameter[argument];
           builder.addSimpleInsertion(argument.offset, '${parameter.name}: ');

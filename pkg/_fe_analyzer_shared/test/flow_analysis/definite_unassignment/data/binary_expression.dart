@@ -8,7 +8,7 @@ ifNull_left() {
   v;
 }
 
-ifNull_right(int a) {
+ifNull_right(int? a) {
   late int v;
   a ?? (v = 0);
   v;

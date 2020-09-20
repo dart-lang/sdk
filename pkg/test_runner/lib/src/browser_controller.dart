@@ -815,11 +815,8 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  BrowserTestRunner(
-      TestConfiguration configuration, String localIp, this.maxNumBrowsers)
-      : configuration = configuration,
-        localIp = localIp,
-        testingServer = BrowserTestingServer(configuration, localIp,
+  BrowserTestRunner(this.configuration, this.localIp, this.maxNumBrowsers)
+      : testingServer = BrowserTestingServer(configuration, localIp,
             Browser.requiresFocus(configuration.runtime.name)) {
     testingServer.testRunner = this;
   }
@@ -1108,7 +1105,7 @@ class BrowserTestRunner {
   }
 
   void printDoubleReportingTests() {
-    if (doubleReportingOutputs.length == 0) return;
+    if (doubleReportingOutputs.isEmpty) return;
     // TODO(ricow): die on double reporting.
     // Currently we just report this here, we could have a callback to the
     // encapsulating environment.

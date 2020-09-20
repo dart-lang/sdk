@@ -3,6 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/general_nnbd_opt_out/function_type_default_value.dart:7:19: Error: Expected an identifier, but got ':'.
+// Try inserting an identifier before ':'.
 // void Function({obj: Object}) x;
 //                   ^
 //

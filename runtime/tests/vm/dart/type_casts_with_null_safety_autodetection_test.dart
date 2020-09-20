@@ -20,7 +20,7 @@ runTest(String script, String output, String temp) async {
   File.fromUri(Platform.script.resolve(script)).copySync(scriptInTemp);
 
   // Do not add Platform.executableArguments into arguments to avoid passing
-  // --null-safety / --no-null-safety arguments.
+  // --sound-null-safety / --no-sound-null-safety arguments.
   final result = await runBinary("RUN $script", Platform.executable, [
     '--enable-experiment=non-nullable',
     '--deterministic',

@@ -180,6 +180,9 @@ class CompilationCommand extends ProcessCommand {
     if (displayName == 'precompiler' || displayName == 'app_jit') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
+    } else if (displayName == 'dart2js') {
+      return Dart2jsCompilerCommandOutput(
+          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
     } else if (displayName == 'dartdevc') {
       return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
           time, compilationSkipped, pid);
@@ -340,24 +343,21 @@ class FastaCompilationCommand extends CompilationCommand {
 }
 
 class VMKernelCompilationCommand extends CompilationCommand {
-  final List<String> batchArgs;
-
   VMKernelCompilationCommand(
       String outputFile,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      this.batchArgs,
       {bool alwaysCompile,
       int index = 0})
-      : super('vm_compile_to_kernel $batchArgs', outputFile,
-            bootstrapDependencies, executable, arguments, environmentOverrides,
+      : super('vm_compile_to_kernel', outputFile, bootstrapDependencies,
+            executable, arguments, environmentOverrides,
             alwaysCompile: alwaysCompile, index: index);
 
   VMKernelCompilationCommand indexedCopy(int index) =>
       VMKernelCompilationCommand(outputFile, _bootstrapDependencies, executable,
-          arguments, environmentOverrides, batchArgs,
+          arguments, environmentOverrides,
           alwaysCompile: _alwaysCompile, index: index);
 
   VMKernelCompilationCommandOutput createOutput(
@@ -372,11 +372,6 @@ class VMKernelCompilationCommand extends CompilationCommand {
           this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
 
   int get maxNumRetries => 1;
-
-  @override
-  List<String> get batchArguments {
-    return batchArgs;
-  }
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==
@@ -507,11 +502,10 @@ class VMBatchCommand extends ProcessCommand implements VMCommand {
   final String dartFile;
   final bool checked;
 
-  VMBatchCommand(String executable, String dartFile, List<String> arguments,
+  VMBatchCommand(String executable, this.dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
       {this.checked = true, int index = 0})
-      : dartFile = dartFile,
-        super('vm-batch', executable, arguments, environmentOverrides, null,
+      : super('vm-batch', executable, arguments, environmentOverrides, null,
             index);
 
   VMBatchCommand indexedCopy(int index) =>

@@ -130,6 +130,58 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
         exists: true);
   }
 
+  void test_resolveAbsolute_file_bin_to_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+      '/workspace/bazel-bin/'
+    ]);
+    _assertResolve('file:///workspace/bazel-bin/my/foo/test/foo1.dart',
+        '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
+  void test_resolveAbsolute_file_genfiles_to_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/test/foo1.dart'
+    ]);
+    _assertResolve('file:///workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        '/workspace/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
+  void test_resolveAbsolute_file_not_in_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/other/my/foo/test/foo1.dart'
+    ]);
+    _assertNoResolve('file:///other/my/foo/test/foo1.dart');
+  }
+
+  void test_resolveAbsolute_file_readonly_to_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/READONLY/workspace/',
+      '/workspace/my/foo/test/foo1.dart'
+    ]);
+    _assertResolve('file:///READONLY/workspace/my/foo/test/foo1.dart',
+        '/workspace/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
+  void test_resolveAbsolute_file_workspace_to_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/my/foo/test/foo1.dart'
+    ]);
+    _assertResolve('file:///workspace/my/foo/test/foo1.dart',
+        '/workspace/bazel-genfiles/my/foo/test/foo1.dart',
+        restore: false);
+  }
+
   void test_resolveAbsolute_genfiles() {
     _addResources([
       '/workspace/WORKSPACE',
@@ -151,6 +203,26 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     _assertResolve('package:my.foo/foo1.dart',
         '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
         exists: true);
+  }
+
+  void test_resolveAbsolute_null_doubleDot() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    var uri = Uri.parse('package:foo..bar/baz.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_null_doubleSlash() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    var uri = Uri.parse('package:foo//bar/baz.dart');
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNull);
   }
 
   void test_resolveAbsolute_null_noSlash() {
@@ -465,6 +537,11 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
     resolver = BazelPackageUriResolver(workspace);
   }
 
+  void _assertNoResolve(String uriStr) {
+    var uri = Uri.parse(uriStr);
+    expect(resolver.resolveAbsolute(uri), isNull);
+  }
+
   void _assertResolve(String uriStr, String posixPath,
       {bool exists = true, bool restore = true}) {
     Uri uri = Uri.parse(uriStr);
@@ -637,6 +714,13 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
     expect(package, isNotNull);
     expect(package.root, convertPath('/ws/some/code/testing'));
     expect(package.workspace, equals(workspace));
+  }
+
+  void test_packagesAvailableTo() {
+    _setUpPackage();
+    var packageMap =
+        package.packagesAvailableTo(convertPath('/ws/some/code/lib/code.dart'));
+    expect(packageMap, isEmpty);
   }
 
   /// Create new files and directories from [paths].

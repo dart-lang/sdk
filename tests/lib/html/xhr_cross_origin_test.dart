@@ -17,7 +17,7 @@ import "dart:convert";
 // TODO(efortuna): If we need to use this function frequently, make a
 // url_analyzer library that is part of test.dart that these tests can import.
 int get crossOriginPort {
-  var searchUrl = window.location.search;
+  var searchUrl = window.location.search!;
   var crossOriginStr = 'crossOriginPort=';
   var index = searchUrl.indexOf(crossOriginStr);
   var nextArg = searchUrl.indexOf('&', index);

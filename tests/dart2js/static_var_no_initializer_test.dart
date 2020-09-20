@@ -4,8 +4,8 @@
 
 import "package:expect/expect.dart";
 
-int one;
-int x;
+int? one;
+int? x;
 
 void testOne() {
   Expect.equals(1, one);
@@ -16,7 +16,7 @@ void testX(var expected) {
 }
 
 void increaseX() {
-  x = x + 1;
+  x = x! + 1;
 }
 
 void main() {
@@ -26,7 +26,7 @@ void main() {
   testOne();
   Expect.equals(5, x);
   testX(5);
-  x = x + 1;
+  x = x! + 1;
   Expect.equals(6, x);
   testX(6);
   increaseX();

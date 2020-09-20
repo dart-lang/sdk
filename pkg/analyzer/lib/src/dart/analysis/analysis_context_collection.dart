@@ -5,9 +5,12 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/context_builder.dart';
+import 'package:cli_util/cli_util.dart';
 import 'package:meta/meta.dart';
 
 /// An implementation of [AnalysisContextCollection].
@@ -20,14 +23,19 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final List<AnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.
-  AnalysisContextCollectionImpl(
-      {bool enableIndex = false,
-      @required List<String> includedPaths,
-      List<String> excludedPaths,
-      ResourceProvider resourceProvider,
-      String sdkPath})
-      : resourceProvider =
+  AnalysisContextCollectionImpl({
+    ByteStore byteStore,
+    Map<String, String> declaredVariables,
+    bool enableIndex = false,
+    @required List<String> includedPaths,
+    List<String> excludedPaths,
+    ResourceProvider resourceProvider,
+    bool retainDataForTesting = false,
+    String sdkPath,
+  }) : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
+    sdkPath ??= getSdkPath();
+
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
     if (sdkPath != null) {
       _throwIfNotAbsoluteNormalizedPath(sdkPath);
@@ -45,8 +53,11 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         resourceProvider: this.resourceProvider,
       );
       var context = contextBuilder.createContext(
+        byteStore: byteStore,
         contextRoot: root,
+        declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         enableIndex: enableIndex,
+        retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
       );
       contexts.add(context);

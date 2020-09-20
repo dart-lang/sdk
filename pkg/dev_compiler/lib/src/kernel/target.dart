@@ -34,6 +34,9 @@ class DevCompilerTarget extends Target {
   @override
   bool get supportsLateFields => false;
 
+  @override
+  bool get useStaticFieldLowering => false;
+
   // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
   //  calls encoded with an explicit property get or disallows getter calls.
   @override
@@ -178,7 +181,7 @@ class DevCompilerTarget extends Target {
       var ctor = coreTypes.index
           .getClass('dart:core', '_Invocation')
           .constructors
-          .firstWhere((c) => c.name.name == name);
+          .firstWhere((c) => c.name.text == name);
       return ConstructorInvocation(ctor, Arguments(positional));
     }
 
@@ -186,10 +189,8 @@ class DevCompilerTarget extends Target {
       return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
     }
     if (name.startsWith('set:')) {
-      return createInvocation('setter', [
-        SymbolLiteral(name.substring(4) + '='),
-        arguments.positional.single
-      ]);
+      return createInvocation('setter',
+          [SymbolLiteral(name.substring(4)), arguments.positional.single]);
     }
     var ctorArgs = <Expression>[
       SymbolLiteral(name),

@@ -136,18 +136,19 @@ DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 2) {
+DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
 #if defined(PRODUCT)
   SendNull(port);
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, enabled, arguments->NativeArgAt(1));
+  GET_NATIVE_ARGUMENT(Bool, silence_output, arguments->NativeArgAt(2));
   ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {
-    ServiceIsolate::ControlWebServer(port, enabled.value());
+    ServiceIsolate::ControlWebServer(port, enabled.value(), silence_output);
   }
   return Object::null();
 #endif

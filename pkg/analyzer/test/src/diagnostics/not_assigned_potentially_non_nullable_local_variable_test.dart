@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,13 +18,7 @@ main() {
 
 @reflectiveTest
 class NotInitializedPotentiallyNonNullableLocalVariableTest
-    extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
+    extends PubPackageResolutionTest with WithNullSafetyMixin {
   test_assignment_leftExpression() async {
     await assertErrorsInCode(r'''
 void f() {
@@ -93,6 +84,8 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 28, 2),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
     ]);
   }
@@ -105,6 +98,8 @@ void f() {
 }
 ''', [
       _notAssignedError(22, 1),
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 28, 2),
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
       _notAssignedError(28, 1),
     ]);
@@ -127,7 +122,11 @@ void f() {
   (v = 0) ?? 0;
   v;
 }
-''', [error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1)]);
+''', [
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 33, 7),
+    ]);
   }
 
   test_binaryExpression_ifNull_right() async {
@@ -139,6 +138,8 @@ void f(int a) {
 }
 ''', [
       error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 32, 7),
+      // See https://github.com/dart-lang/sdk/issues/43263.
+      error(HintCode.DEAD_CODE, 32, 13),
       _notAssignedError(43, 1),
     ]);
   }
@@ -1038,7 +1039,6 @@ void f(int e) {
       break;
     case 2:
       continue L;
-      break;
     default:
       v = 0;
   }

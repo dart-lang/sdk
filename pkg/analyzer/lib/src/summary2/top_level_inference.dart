@@ -5,12 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -196,31 +195,6 @@ class _ConstructorInferenceNode extends _InferenceNode {
   }
 }
 
-class _FunctionElementForLink_Initializer
-    implements FunctionElementImpl, ElementImplWithFunctionType {
-  final _VariableInferenceNode _node;
-
-  @override
-  Element enclosingElement;
-
-  _FunctionElementForLink_Initializer(this._node);
-
-  @override
-  DartType get returnType =>
-      ElementTypeProvider.current.getExecutableReturnType(this);
-
-  @override
-  DartType get returnTypeInternal {
-    if (!_node.isEvaluated) {
-      _node._walker.walk(_node);
-    }
-    return LazyAst.getType(_node._node);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
   final Set<Element> _set = Set.identity();
 
@@ -355,10 +329,24 @@ class _InitializerInference {
       var inferenceNode =
           _VariableInferenceNode(_walker, _unitElement, _scope, node);
       _walker._nodes[element] = inferenceNode;
-      (element as PropertyInducingElementImpl).initializer =
-          _FunctionElementForLink_Initializer(inferenceNode);
+      (element as PropertyInducingElementImpl).typeInference =
+          _PropertyInducingElementTypeInference(inferenceNode);
     } else {
       LazyAst.setType(node, DynamicTypeImpl.instance);
+    }
+  }
+}
+
+class _PropertyInducingElementTypeInference
+    implements PropertyInducingElementTypeInference {
+  final _VariableInferenceNode _node;
+
+  _PropertyInducingElementTypeInference(this._node);
+
+  @override
+  void perform() {
+    if (!_node.isEvaluated) {
+      _node._walker.walk(_node);
     }
   }
 }
@@ -461,7 +449,7 @@ class _VariableInferenceNode extends _InferenceNode {
     }
 
     if (_typeSystem.isNonNullableByDefault) {
-      return nonNullifyType(_typeSystem, type);
+      return _typeSystem.nonNullifyLegacy(type);
     } else {
       if (type.isBottom) {
         return DynamicTypeImpl.instance;

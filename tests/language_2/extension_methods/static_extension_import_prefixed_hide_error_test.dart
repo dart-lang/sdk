@@ -12,7 +12,7 @@ void main() {
   Object o = i;
   i.onInt;
   //^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
   // [cfe] The getter 'onInt' isn't defined for the class 'int'.
   i.onObject;
   o.onObject;

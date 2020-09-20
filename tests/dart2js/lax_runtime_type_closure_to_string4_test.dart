@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2jsOptions=--strong --omit-implicit-checks --lax-runtime-type-to-string
+// dart2jsOptions=--omit-implicit-checks --lax-runtime-type-to-string
 
 import 'package:expect/expect.dart';
 
 class Class1 {
   Class1();
 
-  T method<T>() => null;
+  T method<T>() => throw 'unreachable';
 }
 
 class Class2<T> {
@@ -17,7 +17,7 @@ class Class2<T> {
 }
 
 main() {
-  Class1 cls1 = new Class1();
+  Class1 cls1 = Class1();
   Expect.equals("<T1>() => T1", cls1.method.runtimeType.toString());
-  new Class2<int>();
+  Class2<int>();
 }

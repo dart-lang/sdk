@@ -115,7 +115,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
     this.sourceFactory,
     this.resourceProvider, {
     Workspace workspace,
-  }) : this._workspace = workspace;
+  }) : _workspace = workspace;
 
   @override
   AnalysisOptionsImpl get analysisOptions {
@@ -140,13 +140,12 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
 class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   @override
-  _MicroAnalysisContextImpl analysisContext;
-
-  @override
   final DeclaredVariables declaredVariables;
 
+  final SourceFactory sourceFactory;
+
   @override
-  SourceFactory sourceFactory;
+  _MicroAnalysisContextImpl analysisContext;
 
   _MicroAnalysisSessionImpl(
     this.declaredVariables,

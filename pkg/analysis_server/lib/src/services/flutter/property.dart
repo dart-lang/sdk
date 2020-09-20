@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -105,7 +106,7 @@ class PropertyDescription {
       return parent._edgeInsetsProperty.changeValue(this, value);
     }
 
-    var changeBuilder = DartChangeBuilder(resolvedUnit.session);
+    var builder = ChangeBuilder(session: resolvedUnit.session);
 
     ClassElement enumClassElement;
     var enumValue = value.enumValue;
@@ -117,7 +118,7 @@ class PropertyDescription {
       );
     }
 
-    await changeBuilder.addFileEdit(resolvedUnit.path, (builder) {
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) {
       _changeCode(builder, (builder) {
         if (value.expression != null) {
           builder.write(value.expression);
@@ -133,11 +134,11 @@ class PropertyDescription {
       _formatEnclosingFunctionBody(builder);
     });
 
-    return changeBuilder.sourceChange;
+    return builder.sourceChange;
   }
 
   Future<protocol.SourceChange> removeValue() async {
-    var changeBuilder = DartChangeBuilder(resolvedUnit.session);
+    var builder = ChangeBuilder(session: resolvedUnit.session);
 
     if (argumentExpression != null) {
       int endOffset;
@@ -151,14 +152,14 @@ class PropertyDescription {
       }
 
       var beginOffset = argumentExpression.offset;
-      await changeBuilder.addFileEdit(resolvedUnit.path, (builder) {
+      await builder.addDartFileEdit(resolvedUnit.path, (builder) {
         builder.addDeletion(
           SourceRange(beginOffset, endOffset - beginOffset),
         );
       });
     }
 
-    return changeBuilder.sourceChange;
+    return builder.sourceChange;
   }
 
   void replaceChild(String name, PropertyDescription newChild) {
@@ -526,9 +527,9 @@ class _EdgeInsetsProperty {
       return property.removeValue();
     }
 
-    var changeBuilder = DartChangeBuilder(property.resolvedUnit.session);
+    var builder = ChangeBuilder(session: property.resolvedUnit.session);
 
-    await changeBuilder.addFileEdit(property.resolvedUnit.path, (builder) {
+    await builder.addDartFileEdit(property.resolvedUnit.path, (builder) {
       property._changeCode(builder, (builder) {
         if (leftCode == rightCode && topCode == bottomCode) {
           builder.writeReference(classEdgeInsets);
@@ -592,7 +593,7 @@ class _EdgeInsetsProperty {
       property._formatEnclosingFunctionBody(builder);
     });
 
-    return changeBuilder.sourceChange;
+    return builder.sourceChange;
   }
 
   PropertyDescription _addNestedProperty({

@@ -6,7 +6,7 @@ import "dart:async";
 
 static method id<T extends core::Object* = dynamic>(self::id::T* x) → self::id::T*
   ;
-static method test() → dynamic
+static method test() → dynamic async 
   ;
 static method main() → dynamic
   ;

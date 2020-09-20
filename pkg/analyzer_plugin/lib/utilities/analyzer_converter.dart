@@ -186,12 +186,13 @@ class AnalyzerConverter {
       plugin.AnalysisErrorType(type.name);
 
   /// Create a location based on an the given [element].
-  plugin.Location locationFromElement(analyzer.Element element) {
+  plugin.Location locationFromElement(analyzer.Element element,
+      {int offset, int length}) {
     if (element == null || element.source == null) {
       return null;
     }
-    var offset = element.nameOffset;
-    var length = element.nameLength;
+    offset ??= element.nameOffset;
+    length ??= element.nameLength;
     if (element is analyzer.CompilationUnitElement ||
         (element is analyzer.LibraryElement && offset < 0)) {
       offset = 0;

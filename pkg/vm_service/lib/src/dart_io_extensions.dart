@@ -4,7 +4,7 @@
 
 // TODO(bkonyi): autogenerate from service_extensions.md
 
-import 'dart:async';
+import 'dart:collection';
 
 import 'package:meta/meta.dart';
 
@@ -56,6 +56,42 @@ extension DartIOExtension on VmService {
         'enable': enable,
       });
 
+  /// The `getOpenFiles` RPC is used to retrieve the list of files currently
+  /// opened files by `dart:io` from a given isolate.
+  Future<OpenFileList> getOpenFiles(String isolateId) => _callHelper(
+        'ext.dart.io.getOpenFiles',
+        isolateId,
+      );
+
+  /// The `getOpenFileById` RPC is used to retrieve information about files
+  /// currently opened by `dart:io` from a given isolate.
+  Future<OpenFile> getOpenFileById(String isolateId, int id) => _callHelper(
+        'ext.dart.io.getOpenFileById',
+        isolateId,
+        args: {
+          'id': id,
+        },
+      );
+
+  /// The `getSpawnedProcesses` RPC is used to retrieve the list of processed opened
+  /// by `dart:io` from a given isolate
+  Future<SpawnedProcessList> getSpawnedProcesses(String isolateId) =>
+      _callHelper(
+        'ext.dart.io.getSpawnedProcesses',
+        isolateId,
+      );
+
+  /// The `getSpawnedProcessById` RPC is used to retrieve information about a process
+  /// spawned by `dart:io` from a given isolate.
+  Future<SpawnedProcess> getSpawnedProcessById(String isolateId, int id) =>
+      _callHelper(
+        'ext.dart.io.getSpawnedProcessById',
+        isolateId,
+        args: {
+          'id': id,
+        },
+      );
+
   Future<T> _callHelper<T>(String method, String isolateId,
       {Map args = const {}}) {
     if (!_factoriesRegistered) {
@@ -72,9 +108,15 @@ extension DartIOExtension on VmService {
   }
 
   static void _registerFactories() {
-    addTypeFactory('SocketStatistic', SocketStatistic.parse);
-    addTypeFactory('SocketProfile', SocketProfile.parse);
+    addTypeFactory('OpenFile', OpenFile.parse);
+    addTypeFactory('OpenFileList', OpenFileList.parse);
+    addTypeFactory('@OpenFile', OpenFileRef.parse);
     addTypeFactory('HttpTimelineLoggingState', HttpTimelineLoggingState.parse);
+    addTypeFactory('SpawnedProcess', SpawnedProcess.parse);
+    addTypeFactory('SpawnedProcessList', SpawnedProcessList.parse);
+    addTypeFactory('@SpawnedProcess', SpawnedProcessRef.parse);
+    addTypeFactory('SocketProfile', SocketProfile.parse);
+    addTypeFactory('SocketStatistic', SocketStatistic.parse);
     _factoriesRegistered = true;
   }
 }
@@ -163,4 +205,207 @@ class HttpTimelineLoggingState extends Response {
 
   /// Whether or not HttpClient.enableTimelineLogging is set to true for a given isolate.
   final bool enabled;
+}
+
+/// A [SpawnedProcessRef] contains identifying information about a spawned process.
+class SpawnedProcessRef {
+  static SpawnedProcessRef parse(Map json) =>
+      json == null ? null : SpawnedProcessRef._fromJson(json);
+
+  SpawnedProcessRef({
+    @required this.id,
+    @required this.name,
+  });
+
+  SpawnedProcessRef._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        id = json['id'],
+        name = json['name'];
+
+  static const String type = 'SpawnedProcessRef';
+
+  /// The unique ID associated with this process.
+  final int id;
+
+  /// The name of the executable.
+  final String name;
+}
+
+/// A [SpawnedProcess] contains startup information of a spawned process.
+class SpawnedProcess extends Response implements SpawnedProcessRef {
+  static SpawnedProcess parse(Map json) =>
+      json == null ? null : SpawnedProcess._fromJson(json);
+
+  SpawnedProcess({
+    @required this.id,
+    @required this.name,
+    @required this.pid,
+    @required this.startedAt,
+    @required List<String> arguments,
+    @required this.workingDirectory,
+  }) : _arguments = arguments;
+
+  SpawnedProcess._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        id = json['id'],
+        name = json['name'],
+        pid = json['pid'],
+        startedAt = json['startedAt'],
+        _arguments = List<String>.from(
+            createServiceObject(json['arguments'], const ['String']) as List ??
+                []),
+        workingDirectory = json['workingDirectory'] {
+    type = json['type'];
+  }
+
+  /// The unique ID associated with this process.
+  final int id;
+
+  /// The name of the executable.
+  final String name;
+
+  /// The process ID associated with the process.
+  final int pid;
+
+  /// The time the process was started in milliseconds since epoch.
+  final int startedAt;
+
+  /// The list of arguments provided to the process at launch.
+  List<String> get arguments => UnmodifiableListView(_arguments);
+  final List<String> _arguments;
+
+  /// The working directory of the process at launch.
+  final String workingDirectory;
+}
+
+class SpawnedProcessList extends Response {
+  static SpawnedProcessList parse(Map json) =>
+      json == null ? null : SpawnedProcessList._fromJson(json);
+
+  SpawnedProcessList({@required List<SpawnedProcessRef> processes})
+      : _processes = processes;
+
+  SpawnedProcessList._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        _processes = List<SpawnedProcessRef>.from(
+            createServiceObject(json['processes'], const ['SpawnedProcessRef'])
+                    as List ??
+                []) {
+    type = json['type'];
+  }
+
+  /// A list of processes spawned through dart:io on a given isolate.
+  List<SpawnedProcessRef> get processes => UnmodifiableListView(_processes);
+  final List<SpawnedProcessRef> _processes;
+}
+
+/// A [OpenFileRef] contains identifying information about a currently opened file.
+class OpenFileRef {
+  static OpenFileRef parse(Map json) =>
+      json == null ? null : OpenFileRef._fromJson(json);
+
+  OpenFileRef({
+    @required this.id,
+    @required this.name,
+  });
+
+  OpenFileRef._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        id = json['id'],
+        name = json['name'];
+
+  static const String type = 'OpenFileRef';
+
+  /// The unique ID associated with this file.
+  final int id;
+
+  /// The path of the file.
+  final String name;
+}
+
+/// A [File] contains information about reads and writes to a currently opened file.
+class OpenFile extends Response implements OpenFileRef {
+  static OpenFile parse(Map json) =>
+      json == null ? null : OpenFile._fromJson(json);
+
+  OpenFile({
+    @required this.id,
+    @required this.name,
+    @required this.readBytes,
+    @required this.writeBytes,
+    @required this.readCount,
+    @required this.writeCount,
+    @required this.lastReadTime,
+    @required this.lastWriteTime,
+  });
+
+  OpenFile._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        id = json['id'],
+        name = json['name'],
+        readBytes = json['readBytes'],
+        writeBytes = json['writeBytes'],
+        readCount = json['readCount'],
+        writeCount = json['writeCount'],
+        lastReadTime =
+            DateTime.fromMillisecondsSinceEpoch(json['lastReadTime']),
+        lastWriteTime =
+            DateTime.fromMillisecondsSinceEpoch(json['lastWriteTime']) {
+    type = json['type'];
+  }
+
+  /// The unique ID associated with this file.
+  final int id;
+
+  /// The path of the file.
+  final String name;
+
+  /// The total number of bytes read from this file.
+  final int readBytes;
+
+  /// The total number of bytes written to this file.
+  final int writeBytes;
+
+  /// The number of reads made from this file.
+  final int readCount;
+
+  /// The number of writes made to this file.
+  final int writeCount;
+
+  /// The time at which this file was last read by this process.
+  final DateTime lastReadTime;
+
+  /// The time at which this file was last written to by this process.
+  final DateTime lastWriteTime;
+}
+
+class OpenFileList extends Response {
+  static OpenFileList parse(Map json) =>
+      json == null ? null : OpenFileList._fromJson(json);
+
+  OpenFileList({@required List<OpenFileRef> files}) : _files = files;
+
+  OpenFileList._fromJson(Map<String, dynamic> json)
+      :
+        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+        // call super._fromJson.
+        _files = List<OpenFileRef>.from(
+            createServiceObject(json['files'], const ['OpenFileRef']) as List ??
+                []) {
+    type = json['type'];
+  }
+
+  /// A list of all files opened through dart:io on a given isolate.
+  List<OpenFileRef> get files => UnmodifiableListView(_files);
+  final List<OpenFileRef> _files;
 }

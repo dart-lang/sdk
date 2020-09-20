@@ -113,4 +113,27 @@ class PubWorkspacePackage extends WorkspacePackage {
     // is in the package as well.
     return workspace.provider.pathContext.isWithin(root, filePath);
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) {
+    // TODO(brianwilkerson) Consider differentiating based on whether the
+    //  [libraryPath] is inside the `lib` directory.
+    return workspace.packageMap;
+  }
+
+  @override
+
+  /// A Pub package's public API consists of libraries found in the top-level
+  /// "lib" directory, and any subdirectories, excluding the "src" directory
+  /// just inside the top-level "lib" directory.
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (!workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      return false;
+    }
+    var libSrcFolder = workspace.provider.pathContext.join(root, 'lib', 'src');
+    return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+  }
 }

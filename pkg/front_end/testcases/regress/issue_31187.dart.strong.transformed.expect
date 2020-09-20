@@ -3,6 +3,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/regress/issue_31187.dart:6:16: Error: Expected an identifier, but got '1'.
+// Try inserting an identifier before '1'.
 //   return null?.1;
 //                ^
 //
@@ -10,6 +11,7 @@ import self as self;
 
 static method bad() → dynamic {
   return invalid-expression "pkg/front_end/testcases/regress/issue_31187.dart:6:16: Error: Expected an identifier, but got '1'.
+Try inserting an identifier before '1'.
   return null?.1;
                ^";
 }

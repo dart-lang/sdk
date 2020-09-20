@@ -54,7 +54,7 @@ void SecureSocketUtils::ThrowIOException(int status,
   {
     TextBuffer error_string(SSL_ERROR_MESSAGE_BUFFER_SIZE);
     SecureSocketUtils::FetchErrorString(ssl, &error_string);
-    OSError os_error_struct(status, error_string.buf(), OSError::kBoringSSL);
+    OSError os_error_struct(status, error_string.buffer(), OSError::kBoringSSL);
     Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
     exception =
         DartUtils::NewDartIOException(exception_type, message, os_error);

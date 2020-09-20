@@ -1,0 +1,121 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:13:18: Error: The parameter 'b' of the method 'B.+' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'A.+'.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   A operator +(B b) => b;
+//                  ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:6:14: Context: This is the overridden method ('+').
+//   A operator +(A a) => a;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:14:14: Error: The return type of the method 'B.unary-' is 'A', which does not match the return type, 'B', of the overridden method, 'A.unary-'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a subtype of 'B'.
+//   A operator -() => this;
+//              ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:7:14: Context: This is the overridden method ('unary-').
+//   B operator -() => new B();
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:15:19: Error: The parameter 'b' of the method 'B.[]' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'A.[]'.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   B operator [](B b) => b;
+//                   ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:8:14: Context: This is the overridden method ('[]').
+//   B operator [](A a) => new B();
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:16:23: Error: The parameter 'b' of the method 'B.[]=' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'A.[]='.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void operator []=(B b, A a) {}
+//                       ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:9:17: Context: This is the overridden method ('[]=').
+//   void operator []=(A a1, A a2) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:20:14: Error: The return type of the method 'C.[]' is 'A', which does not match the return type, 'B', of the overridden method, 'A.[]'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a subtype of 'B'.
+//   A operator [](B b) => b;
+//              ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:8:14: Context: This is the overridden method ('[]').
+//   B operator [](A a) => new B();
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:20:19: Error: The parameter 'b' of the method 'C.[]' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'A.[]'.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   A operator [](B b) => b;
+//                   ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:8:14: Context: This is the overridden method ('[]').
+//   B operator [](A a) => new B();
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator_override.dart:21:28: Error: The parameter 'b' of the method 'C.[]=' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'A.[]='.
+//  - 'B' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/invalid_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void operator []=(A a, B b) {}
+//                            ^
+// pkg/front_end/testcases/general/invalid_operator_override.dart:9:17: Context: This is the overridden method ('[]=').
+//   void operator []=(A a1, A a2) {}
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  operator +(self::A* a) → self::A*
+    ;
+  operator unary-() → self::B*
+    ;
+  operator [](self::A* a) → self::B*
+    ;
+  operator []=(self::A* a1, self::A* a2) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+  operator +(self::B* b) → self::A*
+    ;
+  operator unary-() → self::A*
+    ;
+  operator [](self::B* b) → self::B*
+    ;
+  operator []=(self::B* b, self::A* a) → void
+    ;
+}
+class C extends self::A {
+  synthetic constructor •() → self::C*
+    ;
+  operator [](self::B* b) → self::A*
+    ;
+  operator []=(self::A* a, self::B* b) → void
+    ;
+}
+static method main() → dynamic
+  ;

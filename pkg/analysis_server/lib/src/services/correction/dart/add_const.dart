@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddConst extends CorrectionProducer {
@@ -13,13 +13,13 @@ class AddConst extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_CONST;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
       node = node.parent;
     }
     if (node is ConstructorDeclaration) {
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         final offset = (node as ConstructorDeclaration)
             .firstTokenAfterCommentAndMetadata
             .offset;
@@ -35,7 +35,7 @@ class AddConst extends CorrectionProducer {
     }
     if (node is InstanceCreationExpression) {
       if ((node as InstanceCreationExpression).keyword == null) {
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder.addSimpleInsertion(node.offset, 'const ');
         });
       }

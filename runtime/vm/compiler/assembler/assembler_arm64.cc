@@ -1132,7 +1132,6 @@ void Assembler::StoreInternalPointer(Register object,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   LsrImmediate(result, tags, target::ObjectLayout::kClassIdTagPos, kWord);
 }
 
@@ -1486,7 +1485,7 @@ void Assembler::TransitionNativeToGenerated(Register state,
   StoreToOffset(state, THR, target::Thread::exit_through_ffi_offset());
 }
 
-void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_size, bool is_leaf) {
   Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
@@ -1511,19 +1510,30 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
     Push(reg);
   }
 
-  ReserveAlignedFrameSpace(frame_size);
+  if (!is_leaf) {  // Leaf calling sequence aligns the stack itself.
+    ReserveAlignedFrameSpace(frame_size);
+  } else {
+    PushPair(kCallLeafRuntimeCalleeSaveScratch1,
+             kCallLeafRuntimeCalleeSaveScratch2);
+  }
 }
 
-void Assembler::LeaveCallRuntimeFrame() {
+void Assembler::LeaveCallRuntimeFrame(bool is_leaf) {
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
+  const intptr_t fixed_frame_words_without_pc_and_fp =
+      target::frame_layout.dart_fixed_frame_size - 2;
   const intptr_t kPushedRegistersSize =
-      kDartVolatileCpuRegCount * target::kWordSize +
-      kDartVolatileFpuRegCount * target::kWordSize +
-      (target::frame_layout.dart_fixed_frame_size - 2) *
-          target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
+      kDartVolatileFpuRegCount * sizeof(double) +
+      (kDartVolatileCpuRegCount + (is_leaf ? 2 : 0) +
+       fixed_frame_words_without_pc_and_fp) *
+          target::kWordSize;
   AddImmediate(SP, FP, -kPushedRegistersSize);
+  if (is_leaf) {
+    PopPair(kCallLeafRuntimeCalleeSaveScratch1,
+            kCallLeafRuntimeCalleeSaveScratch2);
+  }
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
     const Register reg = static_cast<Register>(i);
     Pop(reg);
@@ -1546,6 +1556,37 @@ void Assembler::LeaveCallRuntimeFrame() {
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);
+}
+
+void Assembler::CallRuntimeScope::Call(intptr_t argument_count) {
+  assembler_->CallRuntime(entry_, argument_count);
+}
+
+Assembler::CallRuntimeScope::~CallRuntimeScope() {
+  if (preserve_registers_) {
+    assembler_->LeaveCallRuntimeFrame(entry_.is_leaf());
+    if (restore_code_reg_) {
+      assembler_->Pop(CODE_REG);
+    }
+  }
+}
+
+Assembler::CallRuntimeScope::CallRuntimeScope(Assembler* assembler,
+                                              const RuntimeEntry& entry,
+                                              intptr_t frame_size,
+                                              bool preserve_registers,
+                                              const Address* caller)
+    : assembler_(assembler),
+      entry_(entry),
+      preserve_registers_(preserve_registers),
+      restore_code_reg_(caller != nullptr) {
+  if (preserve_registers_) {
+    if (caller != nullptr) {
+      assembler_->Push(CODE_REG);
+      assembler_->ldr(CODE_REG, *caller);
+    }
+    assembler_->EnterCallRuntimeFrame(frame_size, entry.is_leaf());
+  }
 }
 
 void Assembler::EnterStubFrame() {

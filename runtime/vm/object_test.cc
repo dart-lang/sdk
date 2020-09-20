@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <limits>
+
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
@@ -149,6 +151,88 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
+}
+
+ISOLATE_UNIT_TEST_CASE(SixtyThousandDartClasses) {
+  auto zone = thread->zone();
+  auto isolate = thread->isolate();
+  auto class_table = isolate->class_table();
+
+  const intptr_t start_cid = class_table->NumCids();
+  const intptr_t num_classes = std::numeric_limits<uint16_t>::max() - start_cid;
+
+  const Script& script = Script::Handle(zone);
+  String& name = String::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Field& field = Field::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Instance& instance = Instance::Handle(zone);
+  Instance& instance2 = Instance::Handle(zone);
+
+  const auto& instances =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+
+  // Create many top-level classes - they should not consume 16-bit range.
+  for (intptr_t i = 0; i < (1 << 16); ++i) {
+    cls = CreateDummyClass(Symbols::TopLevel(), script);
+    cls.Finalize();
+    EXPECT(cls.id() > std::numeric_limits<uint16_t>::max());
+  }
+
+  // Create many concrete classes - they should occupy the entire 16-bit space.
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    name = Symbols::New(thread, OS::SCreate(zone, "MyClass%" Pd "", i));
+    cls = CreateDummyClass(name, script);
+    EXPECT_EQ(start_cid + i, cls.id());
+
+    const intptr_t num_fields = (i % 10);
+    fields = Array::New(num_fields);
+    for (intptr_t f = 0; f < num_fields; ++f) {
+      name =
+          Symbols::New(thread, OS::SCreate(zone, "myField_%" Pd "_%" Pd, i, f));
+      field = Field::New(name, false, false, false, true, false, cls,
+                         Object::dynamic_type(), TokenPosition::kMinSource,
+                         TokenPosition::kMinSource);
+      fields.SetAt(f, field);
+    }
+
+    cls.set_interfaces(Array::empty_array());
+    cls.SetFunctions(Array::empty_array());
+    cls.SetFields(fields);
+    cls.Finalize();
+
+    instance = Instance::New(cls);
+    for (intptr_t f = 0; f < num_fields; ++f) {
+      field ^= fields.At(f);
+      name = Symbols::New(thread,
+                          OS::SCreate(zone, "myFieldValue_%" Pd "_%" Pd, i, f));
+      instance.SetField(field, name);
+    }
+    instances.Add(instance);
+  }
+  EXPECT_EQ((1 << 16) - 1, class_table->NumCids());
+
+  // Ensure GC runs and can recognize all those new instances.
+  isolate->heap()->CollectAllGarbage();
+
+  // Ensure the instances are what we expect.
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    instance ^= instances.At(i);
+    cls = instance.clazz();
+    fields = cls.fields();
+
+    name = cls.Name();
+    EXPECT(strstr(name.ToCString(), OS::SCreate(zone, "MyClass%" Pd "", i)) !=
+           0);
+    EXPECT_EQ((i % 10), fields.Length());
+
+    for (intptr_t f = 0; f < fields.Length(); ++f) {
+      field ^= fields.At(f);
+      instance2 ^= instance.GetField(field);
+      EXPECT(strstr(instance2.ToCString(),
+                    OS::SCreate(zone, "myFieldValue_%" Pd "_%" Pd, i, f)) != 0);
+    }
+  }
 }
 
 ISOLATE_UNIT_TEST_CASE(TypeArguments) {
@@ -1254,7 +1338,7 @@ ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
   int32_t clef_utf32[] = {0x1D11E};
   EXPECT(clef.Equals(clef_utf32, 1));
-  intptr_t hash32 = String::Hash(clef_utf32, 1);
+  intptr_t hash32 = String::Hash(String::FromUTF32(clef_utf32, 1));
   EXPECT_EQ(hash32, clef.Hash());
   EXPECT_EQ(hash32, String::HashConcat(
                         String::Handle(String::FromUTF16(clef_utf16, 1)),
@@ -1733,7 +1817,8 @@ ISOLATE_UNIT_TEST_CASE(Symbol) {
   uint16_t char16[] = {'E', 'l', 'f'};
   String& elf1 = String::Handle(Symbols::FromUTF16(thread, char16, 3));
   int32_t char32[] = {'E', 'l', 'f'};
-  String& elf2 = String::Handle(Symbols::FromUTF32(thread, char32, 3));
+  String& elf2 = String::Handle(
+      Symbols::New(thread, String::Handle(String::FromUTF32(char32, 3))));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
   EXPECT_EQ(elf1.raw(), Symbols::New(thread, "Elf"));
@@ -1748,13 +1833,14 @@ ISOLATE_UNIT_TEST_CASE(SymbolUnicode) {
   EXPECT_EQ(monkey.raw(), Symbols::New(thread, monkey_utf8));
 
   int32_t kMonkeyFace = 0x1f435;
-  String& monkey2 = String::Handle(Symbols::FromCharCode(thread, kMonkeyFace));
+  String& monkey2 = String::Handle(
+      Symbols::New(thread, String::Handle(String::FromUTF32(&kMonkeyFace, 1))));
   EXPECT_EQ(monkey.raw(), monkey2.raw());
 
   // Unicode cat face with tears of joy.
   int32_t kCatFaceWithTearsOfJoy = 0x1f639;
-  String& cat =
-      String::Handle(Symbols::FromCharCode(thread, kCatFaceWithTearsOfJoy));
+  String& cat = String::Handle(Symbols::New(
+      thread, String::Handle(String::FromUTF32(&kCatFaceWithTearsOfJoy, 1))));
 
   uint16_t cat_utf16[] = {0xd83d, 0xde39};
   String& cat2 = String::Handle(Symbols::FromUTF16(thread, cat_utf16, 2));
@@ -3124,6 +3210,12 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   bare_name = OneByteString::New("foo.named");
   EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
 
+  // Named double-private constructor match where the caller knows the private
+  // key.  Yes, this also happens.
+  mangled_name = OneByteString::New("foo@12345.named@12345");
+  bare_name = OneByteString::New("foo@12345.named");
+  EXPECT(String::EqualsIgnoringPrivateKey(mangled_name, bare_name));
+
   // Named double-private constructor mismatch.
   mangled_name = OneByteString::New("foo@12345.name@12345");
   bare_name = OneByteString::New("foo.named");
@@ -3625,6 +3717,8 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
 }
 
 static FunctionPtr GetFunction(const Class& cls, const char* name) {
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  EXPECT(error == Error::null());
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
@@ -3632,6 +3726,8 @@ static FunctionPtr GetFunction(const Class& cls, const char* name) {
 }
 
 static FunctionPtr GetStaticFunction(const Class& cls, const char* name) {
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  EXPECT(error == Error::null());
   const Function& result = Function::Handle(
       cls.LookupStaticFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
@@ -4325,7 +4421,7 @@ TEST_CASE(InstanceEquality) {
   // Test that Instance::OperatorEquals can call a user-defined operator==.
   const char* kScript =
       "class A {\n"
-      "  bool operator==(A other) { return true; }\n"
+      "  bool operator==(covariant A other) { return true; }\n"
       "}\n"
       "main() {\n"
       "  A a = new A();\n"

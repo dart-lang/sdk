@@ -2,23 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
-    defineReflectiveTests(FinalNotInitializedWithNnbdTest);
+    defineReflectiveTests(FinalNotInitializedWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends DriverResolutionTest {
+class FinalNotInitializedTest extends PubPackageResolutionTest {
   test_class_instanceField_final_factoryConstructor_only() async {
     await assertNoErrorsInCode('''
 class A {
@@ -33,7 +31,7 @@ class A {
 extension E on String {
   static final F;
 }''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 39, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 39, 1),
     ]);
   }
 
@@ -42,7 +40,7 @@ extension E on String {
 class A {
   final F;
 }''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
     ]);
   }
 
@@ -51,7 +49,7 @@ class A {
 class A {
   static final F;
 }''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 25, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 25, 1),
     ]);
   }
 
@@ -59,7 +57,7 @@ class A {
     await assertErrorsInCode('''
 final F;
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 6, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 6, 1),
     ]);
   }
 
@@ -69,7 +67,7 @@ f() {
   final int x;
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 18, 1),
     ]);
   }
 
@@ -79,17 +77,47 @@ mixin M {
   final int x;
 }
 ''', [
-      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 22, 1),
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
     ]);
   }
 }
 
 @reflectiveTest
-class FinalNotInitializedWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
+  test_field_abstract() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+}
+''');
+  }
+
+  test_field_abstract_with_constructor() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  abstract final int x;
+  A();
+}
+''');
+  }
+
+  test_field_external() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+}
+''');
+  }
+
+  test_field_external_with_constructor() async {
+    await assertNoErrorsInCode('''
+class A {
+  external final int x;
+  A();
+}
+''');
+  }
 
   test_field_noConstructor_initializer() async {
     await assertNoErrorsInCode('''
@@ -105,6 +133,16 @@ class C {
   late final f;
 }
 ''');
+  }
+
+  test_field_ofClass() async {
+    await assertErrorsInCode('''
+abstract class A {
+  final int x;
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 31, 1),
+    ]);
   }
 
   test_field_unnamedConstructor_constructorInitializer() async {
@@ -161,5 +199,19 @@ f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
     ]);
+  }
+
+  test_static_field_external() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static final int x;
+}
+''');
+  }
+
+  test_variable_external() async {
+    await assertNoErrorsInCode('''
+external final int x;
+''');
   }
 }

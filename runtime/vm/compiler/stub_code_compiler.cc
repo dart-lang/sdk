@@ -197,6 +197,13 @@ void StubCodeCompiler::GenerateAllocateUnhandledExceptionStub(
                                  Code::Handle(Code::null()));
 }
 
+#define TYPED_DATA_ALLOCATION_STUB(clazz)                                      \
+  void StubCodeCompiler::GenerateAllocate##clazz##Stub(Assembler* assembler) { \
+    GenerateAllocateTypedDataArrayStub(assembler, kTypedData##clazz##Cid);     \
+  }
+CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATION_STUB)
+#undef TYPED_DATA_ALLOCATION_STUB
+
 }  // namespace compiler
 
 }  // namespace dart

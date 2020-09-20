@@ -17,16 +17,36 @@ dependencies:
   kernel: any
 
   # Unpublished packages that can be used via path dependency
+  _fe_analyzer_shared:
+    path: ../_fe_analyzer_shared
+  _js_interop_checks:
+    path: ../_js_interop_checks
   js_ast:
     path: ../js_ast
   js_runtime:
     path: ../../sdk/lib/_internal/js_runtime
-  sdk_library_metadata:
-    path: ../../sdk/lib/_internal/sdk_library_metadata
 
 dev_dependencies:
   # Published packages - repo version ensured via dependency_overrides
   args: any
+  http: any
+  js: any
+  package_config: any
+  path: any
+  source_maps: any
+  # Unpublished packages that can be used via path dependency
+  async_helper:
+    path: ../async_helper
+  dart2js_tools:
+    path: ../dart2js_tools
+  expect:
+    path: ../expect
+  modular_test:
+    path: ../modular_test
+  sourcemap_testing:
+    path: ../sourcemap_testing
+  testing:
+    path: ../testing
 
 dependency_overrides:
   # Packages with source in the SDK

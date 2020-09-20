@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +15,8 @@ main() {
 }
 
 @reflectiveTest
-class NonNativeFunctionTypeArgumentToPointerTest extends DriverResolutionTest {
+class NonNativeFunctionTypeArgumentToPointerTest
+    extends PubPackageResolutionTest {
   test_asFunction_1() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -28,7 +29,7 @@ class C {
 ''', [
       // This changed from a method to a extension method, uses Dart semantics
       // instead of manual check now.
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 98, 10),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 98, 10),
     ]);
   }
 

@@ -5,8 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,9 +15,9 @@ main() {
 }
 
 @reflectiveTest
-class UndefinedHiddenNameTest extends DriverResolutionTest {
+class UndefinedHiddenNameTest extends PubPackageResolutionTest {
   test_export() async {
-    newFile('/test/lib/lib1.dart');
+    newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode(r'''
 export 'lib1.dart' hide a;
 ''', [
@@ -27,7 +26,7 @@ export 'lib1.dart' hide a;
   }
 
   test_import() async {
-    newFile('/test/lib/lib1.dart');
+    newFile('$testPackageLibPath/lib1.dart');
     await assertErrorsInCode(r'''
 import 'lib1.dart' hide a;
 ''', [

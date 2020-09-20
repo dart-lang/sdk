@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class PrivateCollisionInMixinApplicationTest extends DriverResolutionTest {
+class PrivateCollisionInMixinApplicationTest extends PubPackageResolutionTest {
   test_class_interfaceAndMixin_same() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -31,7 +31,7 @@ class D extends C with A {}
   }
 
   test_class_mixinAndMixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -51,7 +51,7 @@ class C extends Object with A, B {}
   }
 
   test_class_mixinAndMixin_indirect() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -72,7 +72,7 @@ class D extends C with B {}
   }
 
   test_class_staticAndInstanceElement() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static void _foo() {}
 }
@@ -90,7 +90,7 @@ class C extends Object with A, B {}
   }
 
   test_class_staticElements() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static void _foo() {}
 }
@@ -108,7 +108,7 @@ class C extends Object with A, B {}
   }
 
   test_class_superclassAndMixin_getter2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   int get _foo => 0;
 }
@@ -128,7 +128,7 @@ class C extends A with B {}
   }
 
   test_class_superclassAndMixin_method2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -142,22 +142,6 @@ class B {
 import 'a.dart';
 
 class C extends A with B {}
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
-    ]);
-  }
-
-  test_class_superclassAndMixin_same() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  void _foo() {}
-}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-class C extends A with A {}
 ''', [
       error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 41, 1),
     ]);
@@ -181,7 +165,7 @@ class C extends Object with A, B {}
   }
 
   test_class_superclassAndMixin_setter2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   set _foo(int _) {}
 }
@@ -201,7 +185,7 @@ class C extends A with B {}
   }
 
   test_classTypeAlias_mixinAndMixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -221,7 +205,7 @@ class C = Object with A, B;
   }
 
   test_classTypeAlias_mixinAndMixin_indirect() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -242,7 +226,7 @@ class D = C with B;
   }
 
   test_classTypeAlias_superclassAndMixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   void _foo() {}
 }
@@ -256,26 +240,6 @@ class B {
 import 'a.dart';
 
 class C = A with B;
-''', [
-      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
-    ]);
-  }
-
-  test_classTypeAlias_superclassAndMixin_same() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  void _foo() {}
-}
-
-class B {
-  void _foo() {}
-}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-class C = A with A;
 ''', [
       error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
     ]);

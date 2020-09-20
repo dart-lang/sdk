@@ -17,15 +17,18 @@ const String ANDROID_REQUIRED = 'android:required';
 
 const String APPLICATION_TAG = 'application';
 
+/// The Android resizeableActivity attribute.
+// The parser does not maintain camelcase for attributes. Uses
+// 'resizeableactivity' instead of 'resizeableActivity'
 const String ATTRIBUTE_RESIZEABLE_ACTIVITY = 'android:resizeableactivity';
 
+/// The Android screenOrientation attribute.
+// The parser does not maintain camelcase for attributes. Uses
+// 'screenorientation' instead of 'screenOrientation'.
 const String ATTRIBUTE_SCREEN_ORIENTATION = 'android:screenorientation';
 
-// The parser does not maintain camelcase for attributes
-// Use 'resizeableactivity' instead of 'resizeableActivity'
 const String HARDWARE_FEATURE_CAMERA = 'android.hardware.camera';
 
-// Use 'screenorientation' instead of 'screenOrientation'
 const String HARDWARE_FEATURE_CAMERA_AUTOFOCUS =
     'android.hardware.camera.autofocus';
 

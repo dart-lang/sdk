@@ -2,24 +2,45 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest_language24);
     defineReflectiveTests(ConstSetElementTypeImplementsEqualsTest);
-    defineReflectiveTests(
-        ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest);
   });
 }
 
 @reflectiveTest
-class ConstSetElementTypeImplementsEqualsTest extends DriverResolutionTest {
+class ConstSetElementTypeImplementsEqualsTest extends PubPackageResolutionTest
+    with ConstSetElementTypeImplementsEqualsTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class ConstSetElementTypeImplementsEqualsTest_language24
+    extends PubPackageResolutionTest
+    with ConstSetElementTypeImplementsEqualsTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin ConstSetElementTypeImplementsEqualsTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_constField() async {
     await assertErrorsInCode(r'''
 class A {
@@ -125,7 +146,7 @@ main() {
   const {...[A()]};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(
                     CompileTimeErrorCode
@@ -150,7 +171,7 @@ main() {
   const {...{A()}};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(
                     CompileTimeErrorCode
@@ -185,14 +206,4 @@ main() {
           9),
     ]);
   }
-}
-
-@reflectiveTest
-class ConstSetElementTypeImplementsEqualsWithUIAsCodeAndConstantsTest
-    extends ConstSetElementTypeImplementsEqualsTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
 }

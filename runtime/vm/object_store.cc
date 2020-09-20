@@ -103,7 +103,7 @@ ErrorPtr IsolateObjectStore::PreallocateObjects() {
 
 ObjectStore::ObjectStore() {
 #define INIT_FIELD(Type, name) name##_ = Type::null();
-  OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
+  OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD, INIT_FIELD, INIT_FIELD)
 #undef INIT_FIELD
 
   for (ObjectPtr* current = from(); current <= to(); current++) {
@@ -136,7 +136,8 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
 #define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
   value = name##_;                                                             \
   fields.AddProperty(#name "_", value);
-    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD);
+    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD,
+                            PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD);
 #undef PRINT_OBJECT_STORE_FIELD
   }
 }
@@ -190,6 +191,8 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
   const Class& cls = Class::Handle(object_class());
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
   const Function& result = Function::Handle(cls.LookupDynamicFunction(mangled));
   ASSERT(!result.IsNull());
   return result.raw();
@@ -331,6 +334,64 @@ void ObjectStore::InitKnownObjects() {
       Function::CreateDynamicInvocationForwarderName(Symbols::Star());
   Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
 #endif
+}
+
+void ObjectStore::LazyInitCoreTypes() {
+  if (list_class_ == Type::null()) {
+    ASSERT(non_nullable_list_rare_type_ == Type::null());
+    ASSERT(non_nullable_map_rare_type_ == Type::null());
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    Class& cls = Class::Handle(zone, core_lib.LookupClass(Symbols::List()));
+    ASSERT(!cls.IsNull());
+    set_list_class(cls);
+    Type& type = Type::Handle(zone);
+    type ^= cls.RareType();
+    set_non_nullable_list_rare_type(type);
+    cls = core_lib.LookupClass(Symbols::Map());
+    ASSERT(!cls.IsNull());
+    type ^= cls.RareType();
+    set_non_nullable_map_rare_type(type);
+  }
+}
+
+void ObjectStore::LazyInitFutureTypes() {
+  if (non_nullable_future_rare_type_ == Type::null()) {
+    ASSERT(non_nullable_future_never_type_ == Type::null() &&
+           nullable_future_null_type_ == Type::null());
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    Class& cls = Class::Handle(zone, future_class());
+    if (cls.IsNull()) {
+      const Library& async_lib = Library::Handle(zone, async_library());
+      ASSERT(!async_lib.IsNull());
+      cls = async_lib.LookupClass(Symbols::Future());
+      ASSERT(!cls.IsNull());
+    }
+    TypeArguments& type_args = TypeArguments::Handle(zone);
+    Type& type = Type::Handle(zone);
+    type = never_type();
+    ASSERT(!type.IsNull());
+    type_args = TypeArguments::New(1);
+    type_args.SetTypeAt(0, type);
+    type = Type::New(cls, type_args, TokenPosition::kNoSource,
+                     Nullability::kNonNullable);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+    set_non_nullable_future_never_type(type);
+    type = null_type();
+    ASSERT(!type.IsNull());
+    type_args = TypeArguments::New(1);
+    type_args.SetTypeAt(0, type);
+    type = Type::New(cls, type_args, TokenPosition::kNoSource,
+                     Nullability::kNullable);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+    set_nullable_future_null_type(type);
+    type ^= cls.RareType();
+    set_non_nullable_future_rare_type(type);
+  }
 }
 
 }  // namespace dart

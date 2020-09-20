@@ -65,7 +65,8 @@ class CpuProfileVirtualTreeElement extends CustomElement implements Renderable {
     return e;
   }
 
-  CpuProfileVirtualTreeElement.created() : super.created('cpu-profile-virtual-tree');
+  CpuProfileVirtualTreeElement.created()
+      : super.created('cpu-profile-virtual-tree');
 
   @override
   attached() {

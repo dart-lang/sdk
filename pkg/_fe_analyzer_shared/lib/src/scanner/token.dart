@@ -51,7 +51,6 @@ class BeginToken extends SimpleToken {
         type == TokenType.OPEN_CURLY_BRACKET ||
         type == TokenType.OPEN_PAREN ||
         type == TokenType.OPEN_SQUARE_BRACKET ||
-        type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
         type == TokenType.STRING_INTERPOLATION_EXPRESSION);
   }
 
@@ -805,6 +804,32 @@ class SyntheticToken extends SimpleToken {
   Token copy() => new SyntheticToken(type, offset);
 }
 
+/// A token used to replace another token in the stream, while still keeping the
+/// old token around (in [replacedToken]). Automatically sets the offset and
+/// precedingComments from the data available on [replacedToken].
+class ReplacementToken extends SyntheticToken {
+  /// The token that this token replaces. This will normally be the token
+  /// representing what the user actually wrote.
+  final Token replacedToken;
+
+  ReplacementToken(TokenType type, this.replacedToken)
+      : super(type, replacedToken.offset) {
+    precedingComments = replacedToken.precedingComments;
+  }
+
+  @override
+  Token beforeSynthetic;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  int get length => 0;
+
+  @override
+  Token copy() => new ReplacementToken(type, replacedToken);
+}
+
 /**
  * A token that was scanned from the input. Each token knows which tokens
  * precede and follow it, acting as a link in a doubly linked list of tokens.
@@ -1506,12 +1531,6 @@ class TokenType {
       'PERIOD_PERIOD_PERIOD_QUESTION',
       NO_PRECEDENCE,
       PERIOD_PERIOD_PERIOD_QUESTION_TOKEN);
-
-  static const TokenType QUESTION_PERIOD_OPEN_SQUARE_BRACKET = const TokenType(
-      '?.[',
-      'QUESTION_PERIOD_OPEN_SQUARE_BRACKET',
-      SELECTOR_PRECEDENCE,
-      QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN);
 
   static const TokenType QUESTION_PERIOD_PERIOD = const TokenType(
       '?..',

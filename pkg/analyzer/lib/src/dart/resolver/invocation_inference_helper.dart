@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -44,8 +45,7 @@ class InvocationInferenceHelper {
   /// type that is being invoked.
   DartType computeInvokeReturnType(DartType type) {
     if (type is FunctionType) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/41065
-      return type.returnType ?? DynamicTypeImpl.instance;
+      return type.returnType;
     } else {
       return DynamicTypeImpl.instance;
     }
@@ -216,7 +216,7 @@ class InvocationInferenceHelper {
       expression.staticType = DynamicTypeImpl.instance;
     } else {
       expression.staticType = type;
-      if (identical(type, NeverTypeImpl.instance)) {
+      if (_typeSystem.isBottom(type)) {
         _flowAnalysis?.flow?.handleExit();
       }
     }
@@ -265,7 +265,11 @@ class InvocationInferenceHelper {
     node.typeArgumentTypes = _typeArgumentTypes;
     node.staticInvokeType = _invokeType;
 
-    var returnType = computeInvokeReturnType(_invokeType);
+    var returnType = _typeSystem.refineNumericInvocationType(
+        node.realTarget?.staticType,
+        node.methodName.staticElement,
+        [for (var argument in node.argumentList.arguments) argument.staticType],
+        computeInvokeReturnType(_invokeType));
     recordStaticType(node, returnType);
   }
 
@@ -406,7 +410,7 @@ class InvocationInferenceHelper {
     List<DartType> typeArguments;
     if (typeArgumentList.arguments.length != typeParameters.length) {
       _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
         typeArgumentList,
         [
           rawType,

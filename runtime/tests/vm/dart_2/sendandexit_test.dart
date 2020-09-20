@@ -25,83 +25,93 @@ spawnWorker(worker, data) async {
 }
 
 verifyCantSendAnonymousClosure() async {
-  final result = await spawnWorker(doNothingWorker, () {});
-  Expect.equals(
-      "Invalid argument(s): Illegal argument in isolate message :"
-      " (object is a closure - Function '<anonymous closure>': static.)",
-      result.toString());
+  final receivePort = ReceivePort();
+  Expect.throws(
+      () => sendAndExit(receivePort.sendPort, () {}),
+      (e) =>
+          e.toString() ==
+          'Invalid argument: "Illegal argument in isolate message : '
+              '(object is a closure - Function \'<anonymous closure>\': static.)"');
+  receivePort.close();
 }
 
 class NativeWrapperClass extends NativeFieldWrapperClass1 {}
 
 verifyCantSendNative() async {
-  final result = await spawnWorker(doNothingWorker, NativeWrapperClass());
-  Expect.isTrue(result.toString().startsWith("Invalid argument(s): "
-      "Illegal argument in isolate message : "
-      "(object extends NativeWrapper"));
-}
-
-verifyCantSendRegexp() async {
-  var receivePort = ReceivePort();
-  final result = await spawnWorker(doNothingWorker, receivePort);
-  Expect.equals(
-      "Invalid argument(s): Illegal argument in isolate message : "
-      "(object is a ReceivePort)",
-      result.toString());
+  final receivePort = ReceivePort();
+  Expect.throws(
+      () => sendAndExit(receivePort.sendPort, NativeWrapperClass()),
+      (e) => e.toString().startsWith('Invalid argument: '
+          '"Illegal argument in isolate message : '
+          '(object extends NativeWrapper'));
   receivePort.close();
 }
 
-class Message {
-  SendPort sendPort;
-  Function closure;
+verifyCantSendReceivePort() async {
+  final receivePort = ReceivePort();
+  Expect.throws(
+      () => sendAndExit(receivePort.sendPort, receivePort),
+      // closure is encountered first before we reach ReceivePort instance
+      (e) => e.toString().startsWith(
+          'Invalid argument: "Illegal argument in isolate message : '
+          '(object is a closure - Function \''));
+  receivePort.close();
+}
 
-  Message(this.sendPort, this.closure);
+verifyCantSendRegexp() async {
+  final receivePort = ReceivePort();
+  final regexp = RegExp("");
+  Expect.throws(
+      () => sendAndExit(receivePort.sendPort, regexp),
+      (e) =>
+          e.toString() ==
+          'Invalid argument: '
+              '"Illegal argument in isolate message : (object is a RegExp)"');
+  receivePort.close();
 }
 
 add(a, b) => a + b;
 
-worker(Message message) async {
-  final port = new ReceivePort();
-  final inbox = new StreamIterator<dynamic>(port);
-  message.sendPort.send(message.closure(2, 3));
-  port.close();
+worker(SendPort sendPort) async {
+  sendAndExit(sendPort, add);
 }
 
 verifyCanSendStaticMethod() async {
   final port = ReceivePort();
   final inbox = StreamIterator<dynamic>(port);
-  final isolate = await Isolate.spawn(worker, Message(port.sendPort, add));
+  final isolate = await Isolate.spawn(worker, port.sendPort);
 
   await inbox.moveNext();
-  Expect.equals(inbox.current, 5);
+  Expect.equals(5, (inbox.current)(2, 3));
   port.close();
 }
 
 verifyExitMessageIsPostedLast() async {
   final port = ReceivePort();
   final inbox = new StreamIterator<dynamic>(port);
-  final isolate = await Isolate.spawn(worker, Message(port.sendPort, add),
-      onExit: port.sendPort);
+  final isolate =
+      await Isolate.spawn(worker, port.sendPort, onExit: port.sendPort);
 
   final receivedData = Completer<dynamic>();
   final isolateExited = Completer<bool>();
   port.listen((dynamic resultData) {
     if (receivedData.isCompleted) {
       Expect.equals(
-          resultData, null); // exit message comes after data is receivedData
+          null, resultData); // exit message comes after data is receivedData
       isolateExited.complete(true);
     } else {
       receivedData.complete(resultData);
     }
   });
-  Expect.equals(await isolateExited.future, true);
-  Expect.equals(await receivedData.future, 5);
+  Expect.equals(true, await isolateExited.future);
+  Expect.equals(5, (await receivedData.future)(2, 3));
   port.close();
 }
 
 main() async {
   await verifyCantSendAnonymousClosure();
   await verifyCantSendNative();
+  await verifyCantSendReceivePort();
   await verifyCantSendRegexp();
   await verifyCanSendStaticMethod();
   await verifyExitMessageIsPostedLast();

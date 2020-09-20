@@ -161,6 +161,7 @@ class DocumentationGenerator {
     _writeHeader(sink);
     _writeGlossary(sink);
     _writeDiagnostics(sink);
+    _writeForwards(sink);
   }
 
   /// Extract documentation from all of the files containing the definitions of
@@ -382,6 +383,17 @@ that might work in unexpected ways.
     }
   }
 
+  /// Write the forwarding documentation for all of the diagnostics that have
+  /// been renamed.
+  void _writeForwards(StringSink sink) {
+    sink.write('''
+
+### undefined_super_method
+
+See [undefined_super_member](#undefined-super-member).
+''');
+  }
+
   /// Write the glossary.
   void _writeGlossary(StringSink sink) {
     sink.write('''
@@ -389,6 +401,9 @@ that might work in unexpected ways.
 ## Glossary
 
 This page uses the following terms.
+
+[constant context]: #constant-context
+[potentially non-nullable]: #potentially-non-nullable
 
 ### Constant context
 

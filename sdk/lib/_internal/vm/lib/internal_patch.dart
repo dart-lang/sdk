@@ -32,7 +32,7 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
     native "Internal_makeFixedListUnmodifiable";
 
 @patch
-Object extractTypeArguments<T>(T instance, Function extract)
+Object? extractTypeArguments<T>(T instance, Function extract)
     native "Internal_extractTypeArguments";
 
 /// The returned string is a [_OneByteString] with uninitialized content.

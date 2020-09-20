@@ -83,7 +83,8 @@ abstract class TypeBuilder {
     // `buildAsCheck` in `SsaBuilder.visitAs` should also be followed by a
     // similar operation on `registry`; otherwise, this one might not be needed.
     builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
-    if (other is HAsCheck && other.isRedundant(builder.closedWorld)) {
+    if (other is HAsCheck &&
+        other.isRedundant(builder.closedWorld, builder.options)) {
       return original;
     }
     return other;
@@ -129,12 +130,20 @@ abstract class TypeBuilder {
     CheckPolicy parameterCheckPolicy = builder.closedWorld.annotationsData
         .getParameterCheckPolicy(memberContext);
 
-    /// Dart semantics check against null outside the method definition,
-    /// however dart2js moves the null check to the callee for performance
-    /// reasons. As a result the body cannot trust or check that the type is not
-    /// nullable.
-    if (builder.options.useNullSafety && memberContext.name == '==') {
-      type = _closedWorld.dartTypes.nullableType(type);
+    if (memberContext.name == '==') {
+      // Dart semantics for `a == b` check `a` and `b` against `null` outside
+      // the method invocation. For code size reasons, dart2js implements the
+      // null check on `a` by implementing `JSNull.==`, and the null check on
+      // `b` by injecting the check into `==` methods, before any type checks.
+      //
+      // There are a small number of runtime library methods that do not have
+      // the check injected. For these we need to widen the argument type to
+      // avoid generating code that rejects `null`. In practice these are always
+      // widened to TOP.
+      if (_closedWorld.commonElements
+          .operatorEqHandlesNullArgument(memberContext)) {
+        type = _closedWorld.dartTypes.nullableType(type);
+      }
     }
     if (parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);

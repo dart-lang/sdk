@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,29 +14,27 @@ main() {
 }
 
 @reflectiveTest
-class SuperInRedirectingConstructorTest extends DriverResolutionTest {
+class SuperInRedirectingConstructorTest extends PubPackageResolutionTest {
   test_redirectionSuper() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {
-  B() : this.name(), super();
-  B.name() {}
+class A {
+  A() : this.name(), super();
+  A.name() {}
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 42, 7),
+      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 31, 7),
     ]);
   }
 
   test_superRedirection() async {
     await assertErrorsInCode(r'''
-class A {}
-class B {
-  B() : super(), this.name();
-  B.name() {}
+class A {
+  A() : super(), this.name();
+  A.name() {}
 }
 ''', [
-      error(StrongModeCode.INVALID_SUPER_INVOCATION, 29, 7),
-      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 29, 7),
+      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 18, 7),
+      error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7),
     ]);
   }
 }

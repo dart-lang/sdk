@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -17,7 +17,7 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     final declaration = node.parent;
     if (!(declaration is VariableDeclaration && declaration.name == node)) {
       return;
@@ -53,7 +53,7 @@ class RemoveUnusedLocalVariable extends CorrectionProducer {
       sourceRanges.add(sourceRange);
     }
 
-    await builder.addFileEdit(file, (builder) {
+    await builder.addDartFileEdit(file, (builder) {
       for (var sourceRange in sourceRanges) {
         builder.addDeletion(sourceRange);
       }

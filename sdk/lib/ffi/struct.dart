@@ -29,7 +29,7 @@ abstract class Struct extends NativeType {
   Struct._fromPointer(this._addressOf);
 }
 
-/// Extension on [Struct] specialized for it's subtypes.
+/// Extension on [Struct] specialized for its subtypes.
 extension StructAddressOf<T extends Struct> on T {
   /// Returns the address backing the reference.
   Pointer<T> get addressOf => _addressOf as Pointer<T>;

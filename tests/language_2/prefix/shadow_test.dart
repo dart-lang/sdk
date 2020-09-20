@@ -11,6 +11,8 @@ import "../library10.dart" as lib10;
 class P<T> {
   test() {
     new T.Library10(10);
+    //  ^
+    // [analyzer] COMPILE_TIME_ERROR.PREFIX_SHADOWED_BY_LOCAL_DECLARATION
     //    ^
     // [cfe] Method not found: 'T.Library10'.
   }
@@ -25,7 +27,7 @@ main() {
     var result = 0;
     result = lib10.Library10.static_fld;
     //             ^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
     // [cfe] The getter 'Library10' isn't defined for the class 'int'.
     Expect.equals(4, result);
   }

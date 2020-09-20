@@ -5,6 +5,6 @@ class Class<E> {
 }
 
 expect(expected, actual) {}
-int returnNonNullable(int value) {}
 int? returnNullable(int? value) {}
+int returnNonNullable(int value) {}
 main() {}

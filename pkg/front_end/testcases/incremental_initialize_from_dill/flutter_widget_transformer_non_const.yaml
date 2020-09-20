@@ -1,0 +1,76 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+type: newworld
+target: DDC
+trackWidgetCreation: true
+worlds:
+  - entry: main.dart
+    experiments: non-nullable
+    sources:
+      main.dart: |
+        import 'foo.dart';
+      foo.dart:
+        import 'package:flutter/src/widgets/framework.dart';
+        import 'package:flutter/src/widgets/widget_inspector.dart';
+
+        class Foo extends Widget {
+          final String name;
+
+          Foo({required this.name});
+        }
+      flutter/lib/src/widgets/framework.dart: |
+        abstract class Bar {
+          const Bar();
+        }
+        abstract class Widget extends Bar {
+          const Widget();
+        }
+      flutter/lib/src/widgets/widget_inspector.dart: |
+        abstract class _HasCreationLocation {
+          _Location get _location;
+        }
+        /// A tuple with file, line, and column number, for displaying human-readable
+        /// file locations.
+        class _Location {
+          const _Location({
+            required this.file,
+            required this.line,
+            required this.column,
+            required this.name,
+            required this.parameterLocations,
+          });
+          /// File path of the location.
+          final String file;
+          /// 1-based line number.
+          final int line;
+          /// 1-based column number.
+          final int column;
+          /// Optional name of the parameter or function at this location.
+          final String name;
+          /// Optional locations of the parameters of the member at this location.
+          final List<_Location> parameterLocations;
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../flutter",
+              "packageUri": "lib/"
+            }
+          ]
+        }
+    expectedLibraryCount: 4
+  - entry: main.dart
+    worldType: updated
+    invalidate:
+      - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        import 'foo.dart';
+        Foo foo = new Foo(name: 'foo');
+    expectedLibraryCount: 4

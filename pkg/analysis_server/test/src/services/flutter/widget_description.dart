@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,7 +14,6 @@ import '../../../abstract_single_unit.dart';
 
 @reflectiveTest
 class WidgetDescriptionBase extends AbstractSingleUnitTest {
-  final flutter = Flutter.mobile;
   final descriptions = WidgetDescriptions();
 
   void assertExpectedChange(SetPropertyValueResult result, String expected) {

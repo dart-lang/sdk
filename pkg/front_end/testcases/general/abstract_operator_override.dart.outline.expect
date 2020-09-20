@@ -1,0 +1,123 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/abstract_operator_override.dart:12:7: Error: The implementation of '+' in the non-abstract class 'B' does not conform to its interface.
+// class B extends A {
+//       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:6:18: Context: The parameter 'b' of the method 'A.+' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'B.+'.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   A operator +(B b) => new A();
+//                  ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:13:14: Context: This is the overridden method ('+').
+//   A operator +(A a);
+//              ^
+//
+// pkg/front_end/testcases/general/abstract_operator_override.dart:12:7: Error: The implementation of 'unary-' in the non-abstract class 'B' does not conform to its interface.
+// class B extends A {
+//       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:7:14: Context: The return type of the method 'A.unary-' is 'A', which does not match the return type, 'B', of the overridden method, 'B.unary-'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+// Change to a subtype of 'B'.
+//   A operator -() => new A();
+//              ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:14:14: Context: This is the overridden method ('unary-').
+//   B operator -();
+//              ^
+//
+// pkg/front_end/testcases/general/abstract_operator_override.dart:12:7: Error: The implementation of '[]' in the non-abstract class 'B' does not conform to its interface.
+// class B extends A {
+//       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:8:19: Context: The parameter 'b' of the method 'A.[]' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'B.[]'.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   A operator [](B b) => new A();
+//                   ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:15:14: Context: This is the overridden method ('[]').
+//   A operator [](A a);
+//              ^
+//
+// pkg/front_end/testcases/general/abstract_operator_override.dart:12:7: Error: The implementation of '[]=' in the non-abstract class 'B' does not conform to its interface.
+// class B extends A {
+//       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:9:23: Context: The parameter 'b1' of the method 'A.[]=' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'B.[]='.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void operator []=(B b1, B b2) {}
+//                       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:16:17: Context: This is the overridden method ('[]=').
+//   void operator []=(A a, B b);
+//                 ^
+//
+// pkg/front_end/testcases/general/abstract_operator_override.dart:19:7: Error: The implementation of '[]' in the non-abstract class 'C' does not conform to its interface.
+// class C extends A {
+//       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:8:14: Context: The return type of the method 'A.[]' is 'A', which does not match the return type, 'B', of the overridden method, 'C.[]'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+// Change to a subtype of 'B'.
+//   A operator [](B b) => new A();
+//              ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:20:14: Context: This is the overridden method ('[]').
+//   B operator [](B b);
+//              ^
+//
+// pkg/front_end/testcases/general/abstract_operator_override.dart:19:7: Error: The implementation of '[]=' in the non-abstract class 'C' does not conform to its interface.
+// class C extends A {
+//       ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:9:29: Context: The parameter 'b2' of the method 'A.[]=' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.[]='.
+//  - 'B' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/abstract_operator_override.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void operator []=(B b1, B b2) {}
+//                             ^
+// pkg/front_end/testcases/general/abstract_operator_override.dart:21:17: Context: This is the overridden method ('[]=').
+//   void operator []=(B b, A a);
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  operator +(self::B* b) → self::A*
+    ;
+  operator unary-() → self::A*
+    ;
+  operator [](self::B* b) → self::A*
+    ;
+  operator []=(self::B* b1, self::B* b2) → void
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+  abstract operator +(self::A* a) → self::A*;
+  abstract operator unary-() → self::B*;
+  abstract operator [](self::A* a) → self::A*;
+  abstract operator []=(self::A* a, self::B* b) → void;
+}
+class C extends self::A {
+  synthetic constructor •() → self::C*
+    ;
+  abstract operator [](self::B* b) → self::B*;
+  abstract operator []=(self::B* b, self::A* a) → void;
+}
+static method main() → dynamic
+  ;

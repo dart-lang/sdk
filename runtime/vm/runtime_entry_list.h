@@ -9,6 +9,7 @@ namespace dart {
 
 #define RUNTIME_ENTRY_LIST(V)                                                  \
   V(AllocateArray)                                                             \
+  V(AllocateTypedData)                                                         \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
   V(AllocateSubtypeTestCache)                                                  \
@@ -16,6 +17,7 @@ namespace dart {
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
   V(GetFieldForDispatch)                                                       \
+  V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(FixCallersTargetMonomorphic)                                               \
@@ -57,7 +59,8 @@ namespace dart {
   V(LateInitializationError)                                                   \
   V(CompileFunction)                                                           \
   V(CompileInterpretedFunction)                                                \
-  V(SwitchableCallMiss)
+  V(SwitchableCallMiss)                                                        \
+  V(NotLoaded)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

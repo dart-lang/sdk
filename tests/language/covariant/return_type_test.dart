@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 void main() {
   List<int> l = [1, 2, 3].where((x) => x.isEven).map((x) => x + 1);
   //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //                                             ^
   // [cfe] A value of type 'Iterable<int>' can't be assigned to a variable of type 'List<int>'.
 
@@ -21,7 +21,7 @@ void main() {
     C<Object> c = C<Object>(1);
     List<bool Function(Object)> myList = c.f();
     //                                   ^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                                     ^
     // [cfe] A value of type 'Iterable<bool Function(Object)>' can't be assigned to a variable of type 'List<bool Function(Object)>'.
   }
@@ -30,7 +30,7 @@ void main() {
     C<Object> c = C<int>(1);
     List<bool Function(Object)> myList = c.f();
     //                                   ^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                                     ^
     // [cfe] A value of type 'Iterable<bool Function(Object)>' can't be assigned to a variable of type 'List<bool Function(Object)>'.
   }
@@ -50,7 +50,7 @@ void main() {
     C<Iterable<Object>> c = D<Object>([1]);
     List<bool Function(Iterable<Object>)> myList = c.f();
     //                                             ^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+    // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
     //                                               ^
     // [cfe] A value of type 'Iterable<bool Function(Iterable<Object>)>' can't be assigned to a variable of type 'List<bool Function(Iterable<Object>)>'.
   }

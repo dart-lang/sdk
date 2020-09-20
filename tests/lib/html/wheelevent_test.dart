@@ -44,7 +44,7 @@ Future testWheelEventWithDeltaZ() async {
       expect(e.deltaX, 0);
       expect(e.deltaY, 0);
       expect(e.screen.x, 0);
-      expect(e.deltaZ.toDouble(), 1.0);
+      expect(e.deltaZ!.toDouble(), 1.0);
       done.complete();
     } catch (e) {
       done.completeError(e);

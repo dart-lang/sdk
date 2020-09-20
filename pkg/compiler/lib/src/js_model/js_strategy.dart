@@ -569,6 +569,8 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   bool isJsIndexableIterator(
       ir.ForInStatement node, AbstractValueDomain abstractValueDomain) {
     AbstractValue mask = typeOfIterator(node);
+    // TODO(sra): Investigate why mask is sometimes null.
+    if (mask == null) return false;
     return abstractValueDomain.isJsIndexableAndIterable(mask).isDefinitelyTrue;
   }
 

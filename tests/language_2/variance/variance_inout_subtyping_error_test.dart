@@ -108,23 +108,23 @@ main() {
   List<Invariant<Middle>> listMiddle = [new Invariant<Middle>()];
   iterableLower = listMiddle;
   //              ^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'List<Invariant<Middle>>' can't be assigned to a variable of type 'Iterable<Invariant<Lower>>'.
 
   Iterable<Invariant<Middle>> iterableMiddle = [new Invariant<Middle>()];
   List<Invariant<Lower>> listLower = [new Invariant<Lower>()];
   iterableMiddle = listLower;
   //               ^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'List<Invariant<Lower>>' can't be assigned to a variable of type 'Iterable<Invariant<Middle>>'.
 
   testCall<Lower>(listMiddle);
   //              ^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'List<Invariant<Middle>>' can't be assigned to the parameter type 'Iterable<Invariant<Lower>>'.
 
   testCall<Middle>(listLower);
   //               ^^^^^^^^^
-  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'List<Invariant<Lower>>' can't be assigned to the parameter type 'Iterable<Invariant<Middle>>'.
 }

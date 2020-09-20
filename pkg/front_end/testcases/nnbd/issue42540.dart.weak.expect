@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method getNull() → dynamic
+  return null;
+static method fn() → asy::Future<core::Object> async {
+  core::Object o = await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} core::Object;
+  return await self::getNull() as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::Object>;
+}
+static method main() → dynamic {}

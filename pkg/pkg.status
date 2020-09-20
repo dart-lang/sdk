@@ -62,6 +62,7 @@ compiler/test/sourcemaps/source_mapping_test: Slow, Pass
 compiler/test/sourcemaps/stacktrace_test: Slow, Pass
 dartdev/test/commands/analyze_test: Slow, Pass
 dartdev/test/commands/help_test: Slow, Pass
+dartdev/test/smoke/*: Slow, Pass
 dev_compiler/test/modular/*: Slow, Pass
 dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
@@ -84,8 +85,9 @@ front_end/test/fasta/strong4_test: Pass, ExtraSlow
 front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
 front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
+front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
+front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/test/minimal_incremental_kernel_generator_test: Slow, Pass
-front_end/test/whole_program_test: Slow, Pass
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
 kernel/test/closures_test: Slow, Pass
@@ -134,6 +136,7 @@ compiler/test/deferred/load_mapping_test: Slow, Pass
 compiler/test/end_to_end/dart2js_batch_test: Slow, Pass
 compiler/test/end_to_end/exit_code_test: Slow, Pass
 compiler/test/end_to_end/in_user_code_test: Slow, Pass
+vm_snapshot_analysis/test/precompiler_trace_test: SkipSlow
 
 [ $runtime == dart_precompiled ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.
@@ -182,7 +185,6 @@ front_end/test/fasta/bootstrap_test: Skip # Issue 31902
 front_end/test/fasta/strong_test: Pass, Slow, Timeout
 front_end/test/fasta/text_serialization_test: Pass, Slow, Timeout
 front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
-front_end/test/whole_program_test: Skip # Issue 31902
 
 [ $browser ]
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
@@ -283,9 +285,6 @@ analyzer/test/src/task/strong/front_end_inference_test: Slow, Pass
 # devices.
 [ $runtime == vm && ($arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv6) ]
 *: Skip
-
-[ $arch != x64 || $compiler != none || $mode != release || $runtime != vm ]
-front_end/test/whole_program_test: SkipByDesign
 
 [ $mode == debug || $runtime != vm || $system == android ]
 vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir

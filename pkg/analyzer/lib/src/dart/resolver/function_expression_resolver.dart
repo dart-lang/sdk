@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_demotion.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -111,7 +111,7 @@ class FunctionExpressionResolver {
           inferredType = _migrationResolutionHooks.modifyInferredParameterType(
               p, inferredType);
         } else {
-          inferredType = nonNullifyType(_typeSystem, inferredType);
+          inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         }
         if (!inferredType.isDynamic) {
           p.type = inferredType;

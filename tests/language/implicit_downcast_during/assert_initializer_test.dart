@@ -5,11 +5,11 @@
 class C {
   C.oneArg(Object x) : assert(x);
   //                          ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_EXPRESSION
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
   C.twoArgs(Object x, Object y) : assert(x, y);
   //                                     ^
-  // [analyzer] STATIC_TYPE_WARNING.NON_BOOL_EXPRESSION
+  // [analyzer] COMPILE_TIME_ERROR.NON_BOOL_EXPRESSION
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'bool'.
 }
 

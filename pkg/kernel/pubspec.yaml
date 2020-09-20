@@ -8,10 +8,11 @@ publish_to: none
 environment:
   sdk: '>=2.2.2 <3.0.0'
 dependencies:
-  args: '>=0.13.4 <2.0.0'
   meta: ^1.0.0
 dev_dependencies:
-  expect: any
-  front_end: any
+  args: '>=0.13.4 <2.0.0'
+  expect:
+    path: ../expect
+  front_end:
+    path: ../front_end
   test: any
-  testing: any

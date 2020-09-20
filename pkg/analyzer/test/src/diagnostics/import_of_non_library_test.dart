@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class ImportOfNonLibraryTest extends DriverResolutionTest {
-  test_part() async {
-    newFile("/test/lib/lib1.dart", content: '''
+class ImportOfNonLibraryTest extends PubPackageResolutionTest {
+  test_deferred() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
 part of lib;
 class A {}
 ''');
@@ -24,6 +24,20 @@ class A {}
 library lib;
 import 'lib1.dart' deferred as p;
 var a = new p.A();
+''', [
+      error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
+    ]);
+  }
+
+  test_part() async {
+    newFile('$testPackageLibPath/part.dart', content: r'''
+part of lib;
+class A{}
+''');
+    await assertErrorsInCode(r'''
+library lib;
+import 'part.dart';
+A a;
 ''', [
       error(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, 20, 11),
     ]);

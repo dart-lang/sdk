@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:args/args.dart';
 
 const experimentFlagName = 'enable-experiment';
 
@@ -15,11 +14,3 @@ List<ExperimentalFeature> get experimentalFeatures {
   features.sort((a, b) => a.enableString.compareTo(b.enableString));
   return features;
 }
-
-/// Return whether any Dart experiments were specified by the user.
-bool wereExperimentsSpecified(ArgResults argResults) =>
-    argResults.wasParsed(experimentFlagName);
-
-/// Return the list of Dart experiment flags specified by the user.
-List<String> specifiedExperiments(ArgResults argResults) =>
-    argResults[experimentFlagName];

@@ -1,0 +1,21 @@
+abstract class B extends A {
+  void foo([a]);
+}
+
+abstract class E extends A implements I {}
+
+abstract class I {
+  void foo([a]);
+}
+
+class A {
+  void foo() {}
+}
+
+class C extends B {}
+
+class D extends A implements I {}
+
+class F extends E {}
+
+main() {}

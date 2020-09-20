@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,7 +21,7 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     //
     // Ensure that the selection is inside an invocation of Map.fromIterable.
     //
@@ -155,8 +155,8 @@ class ConvertMapFromIterableToForLiteral extends CorrectionProducer {
     //
     // Construct the edit.
     //
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(creation), (builder) {
         builder.write('{ for (var ');
         builder.write(loopVariableName);
         builder.write(' in ');

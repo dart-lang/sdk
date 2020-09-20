@@ -10,8 +10,8 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -113,6 +113,11 @@ class InstantiatedClass {
       return true;
     }
     return false;
+  }
+
+  InstantiatedClass mapArguments(DartType Function(DartType) f) {
+    var mappedArguments = arguments.map(f).toList();
+    return InstantiatedClass(element, mappedArguments);
   }
 
   @override
@@ -232,6 +237,20 @@ class InterfaceLeastUpperBoundHelper {
     return result.withNullability(nullability);
   }
 
+  /// Return all of the superinterfaces of the given [type].
+  @visibleForTesting
+  Set<InstantiatedClass> computeSuperinterfaceSet(InstantiatedClass type) {
+    var result = <InstantiatedClass>{};
+    _addSuperinterfaces(result, type);
+    if (typeSystem.isNonNullableByDefault) {
+      return result;
+    } else {
+      return result.map((e) {
+        return e.mapArguments(typeSystem.toLegacyType);
+      }).toSet();
+    }
+  }
+
   /// Compute the least upper bound of types [i] and [j], both of which are
   /// known to be interface types.
   ///
@@ -263,15 +282,6 @@ class InterfaceLeastUpperBoundHelper {
       0,
       <ClassElement>{},
     );
-  }
-
-  /// Return all of the superinterfaces of the given [type].
-  @visibleForTesting
-  static Set<InstantiatedClass> computeSuperinterfaceSet(
-      InstantiatedClass type) {
-    var result = <InstantiatedClass>{};
-    _addSuperinterfaces(result, type);
-    return result;
   }
 
   /// Add all of the superinterfaces of the given [type] to the given [set].
@@ -428,8 +438,6 @@ class LeastUpperBoundHelper {
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
-
-  InterfaceType get _objectType => _typeSystem.typeProvider.objectType;
 
   /// Compute the least upper bound of two types.
   ///
@@ -798,9 +806,16 @@ class LeastUpperBoundHelper {
     return _typeSystem.getGreatestLowerBound(a.type, b.type);
   }
 
+  /// TODO(scheglov) Use greatest closure.
+  /// See https://github.com/dart-lang/language/pull/1195
   DartType _typeParameterResolveToObjectBounds(DartType type) {
     var element = type.element;
-    type = type.resolveToBound(_objectType);
-    return Substitution.fromMap({element: _objectType}).substituteType(type);
+
+    var objectType = _typeSystem.isNonNullableByDefault
+        ? _typeSystem.objectQuestion
+        : _typeSystem.objectStar;
+
+    type = type.resolveToBound(objectType);
+    return Substitution.fromMap({element: objectType}).substituteType(type);
   }
 }

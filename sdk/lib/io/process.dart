@@ -261,12 +261,6 @@ class ProcessStartMode {
  *         });
  *       });
  *     }
- *
- * ## Other resources
- *
- * [Dart by Example](https://www.dartlang.org/dart-by-example/#dart-io-and-command-line-apps)
- * provides additional task-oriented code samples that show how to use
- * various API from the [dart:io] library.
  */
 abstract class Process {
   /**

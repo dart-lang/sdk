@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -49,6 +47,7 @@ class M2<E> {}
 class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
 ''');
     var hover = await prepareHover('B<T>');
+    expect(hover.containingClassDescription, null);
     expect(
         hover.elementDescription,
         'class B<T> extends A<T> with M1, M2<int> '
@@ -63,6 +62,7 @@ class A {}
 abstract class B extends A {}
 ''');
     var hover = await prepareHover('B extends');
+    expect(hover.containingClassDescription, null);
     expect(hover.elementDescription, 'abstract class B extends A');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
@@ -313,6 +313,7 @@ main() {
 enum MyEnum {AAA, BBB, CCC}
 ''');
     var hover = await prepareHover('MyEnum');
+    expect(hover.containingClassDescription, null);
     expect(hover.elementDescription, 'enum MyEnum');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
@@ -325,6 +326,7 @@ class A {}
 extension E on A {}
 ''');
     var hover = await prepareHover('E');
+    expect(hover.containingClassDescription, null);
     expect(hover.elementDescription, 'extension E on A');
     expect(hover.dartdoc, 'Comment');
     expect(hover.staticType, isNull);

@@ -73,7 +73,6 @@ abstract class Page {
   void visit(Uri uri, Map internalArguments) {
     this.internalArguments.clear();
     this.internalArguments.addAll(internalArguments);
-    Analytics.reportPageView(uri);
     _visit(uri);
   }
 

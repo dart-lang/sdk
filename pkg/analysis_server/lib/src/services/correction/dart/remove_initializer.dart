@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -14,11 +14,11 @@ class RemoveInitializer extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.REMOVE_INITIALIZER;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
     if (parameter != null) {
       // Handle formal parameters with default values.
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(
             range.endEnd(parameter.identifier, parameter.defaultValue));
       });
@@ -26,7 +26,7 @@ class RemoveInitializer extends CorrectionProducer {
       // Handle variable declarations with default values.
       var variable = node.thisOrAncestorOfType<VariableDeclaration>();
       if (variable != null) {
-        await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+        await builder.addDartFileEdit(file, (builder) {
           builder
               .addDeletion(range.endEnd(variable.name, variable.initializer));
         });

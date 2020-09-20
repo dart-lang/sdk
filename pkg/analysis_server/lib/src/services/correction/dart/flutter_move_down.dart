@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterMoveDown extends CorrectionProducer {
@@ -15,7 +15,7 @@ class FlutterMoveDown extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.FLUTTER_MOVE_DOWN;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var widget = flutter.identifyWidgetExpression(node);
     if (widget == null) {
       return;
@@ -26,7 +26,7 @@ class FlutterMoveDown extends CorrectionProducer {
       List<CollectionElement> parentElements = parentList.elements;
       var index = parentElements.indexOf(widget);
       if (index != parentElements.length - 1) {
-        await builder.addFileEdit(file, (fileBuilder) {
+        await builder.addDartFileEdit(file, (fileBuilder) {
           var nextWidget = parentElements[index + 1];
           var nextRange = range.node(nextWidget);
           var nextText = utils.getRangeText(nextRange);

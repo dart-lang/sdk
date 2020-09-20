@@ -154,9 +154,8 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitNeverType(NeverType node) {
-    // TODO(askesc): Consider throwing internal error if NeverType appears in
-    //  diagnostics.
     result.add("Never");
+    addNullability(node.declaredNullability);
   }
 
   void visitDynamicType(DynamicType node) {
@@ -370,7 +369,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
           classNode.enclosingLibrary.fileUri));
       result.add(".");
     }
-    result.add(procedure.name.name);
+    result.add(procedure.name.text);
   }
 
   void visitPartialInstantiationConstant(PartialInstantiationConstant node) {

@@ -1,9 +1,48 @@
 # Changelog
 
+## 0.5.5
+- Add `deps-display-depth` (`-d`) flag for `summary` command to make the display
+depth of outputted dependency trees configurable.
+- Rename `deps-collapse-depth` (formerly `-d`) flag for `summary` command to
+`deps-start-depth` (now `-s`).
+- Add `generateCallGraphWithDominators` method that generates a `CallGraph`
+object from precompiler trace.
+
+## 0.5.4
+- Fix bug causing name clash for Type class.
+
+## 0.5.3
+- Add `compareProgramInfo` that takes in two program info objects and outputs
+a `Map` object containing the diff data.
+
+## 0.5.2
+- Add support for package paths that look like `package:foo.bar.baz/src/foobar.dart`
+- Move `commands` back to lib.
+
+## 0.5.0+1
+- Fix broken package by moving non-executable file out of bin/ directory.
+
+## 0.5.0
+- Remove `dart:io` dependency from package `lib`, and move `commands` to `bin`.
+- Replace `loadProgramInfo` util method with `loadProgramInfoFromJson`, which
+expects an `Object` parameter instead of a `File` parameter.
+- `buildComparisonTreemap` now expects two `Object` parameters for `oldJson` and
+`newJson` instead of two `File` parameters.
+- `compare` command now prints difference breakdown by node type when this
+information is available.
+
 ## 0.4.0
 
 - Add `buildComparisonTreemap` for constructing treemap representing the diff
 between two size profiles.
+- Implemented support for extracting call graph information from the AOT
+compiler trace (`--trace-precompiler-to` flag), see `precompiler_trace.dart`.
+- New command `explain dynamic-calls` which estimates the impact of different
+dynamic calls on the resulting AOT snapshot size using information from the
+size dump (e.g. V8 snapshot profile) and AOT compiler trace.
+- `summary` command can now use information from the AOT compiler trace to
+group packages/libraries together with their dependencies to given more precise
+estimate of how much a specific package/library brings into the snapshot.
 
 ## 0.3.0
 

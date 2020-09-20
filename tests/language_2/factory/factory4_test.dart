@@ -5,7 +5,7 @@
 abstract class Link<T> {
   factory Link.create() = LinkFactory.create;
   //                      ^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
   // [cfe] The constructor function type 'LinkFactory<dynamic> Function()' isn't a subtype of 'Link<T> Function()'.
 }
 

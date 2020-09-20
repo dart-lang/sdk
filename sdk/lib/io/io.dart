@@ -5,9 +5,12 @@
 /**
  * File, socket, HTTP, and other I/O support for non-web applications.
  *
- * **Important:** Browser-based applications can't use this library.
- * Only servers, command-line scripts, and Flutter mobile apps can import
- * and use dart:io.
+ * **Important:** Browser-based apps can't use this library.
+ * Only the following can import and use the dart:io library:
+ *   - Servers
+ *   - Command-line scripts
+ *   - Flutter mobile apps
+ *   - Flutter desktop apps
  *
  * This library allows you to work with files, directories,
  * sockets, processes, HTTP servers and clients, and more.
@@ -21,7 +24,7 @@
  *     import 'dart:io';
  *
  * For an introduction to I/O in Dart, see the [dart:io library
- * tour](https://www.dartlang.org/dart-vm/io-library-tour).
+ * tour](https://dart.dev/guides/libraries/library-tour#dartio).
  *
  * ## File, Directory, and Link
  *
@@ -197,9 +200,10 @@ import 'dart:math';
 import 'dart:typed_data';
 
 export 'dart:_http';
+@Deprecated("Import BytesBuilder from dart:typed_data instead")
+export 'dart:_internal' show BytesBuilder;
 export 'dart:_internal' show HttpStatus;
 
-part 'bytes_builder.dart';
 part 'common.dart';
 part 'data_transformer.dart';
 part 'directory.dart';
@@ -214,6 +218,7 @@ part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
 part 'namespace_impl.dart';
+part 'network_policy.dart';
 part 'network_profiling.dart';
 part 'overrides.dart';
 part 'platform.dart';

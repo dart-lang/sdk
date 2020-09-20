@@ -2,17 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
+import 'analytics.dart';
+import 'events.dart';
+import 'experiments.dart';
+import 'sdk.dart';
 import 'utils.dart';
 
 Logger log;
-bool isVerbose = false;
+bool isDiagnostics = false;
 
 abstract class DartdevCommand<int> extends Command {
   final String _name;
@@ -31,18 +37,93 @@ abstract class DartdevCommand<int> extends Command {
   @override
   String get description => _description;
 
+  ArgParser _argParser;
+
+  @override
+  ArgParser get argParser => _argParser ??= createArgParser();
+
+  /// This method should not be overridden by subclasses, instead classes should
+  /// override [runImpl] and [createUsageEvent]. If analytics is enabled by this
+  /// command and the user, a [sendScreenView] is called to analytics, and then
+  /// after the command is run, an event is sent to analytics.
+  ///
+  /// If analytics is not enabled by this command or the user, then [runImpl] is
+  /// called and the exitCode value is returned.
+  @override
+  FutureOr<int> run() async {
+    var path = usagePath;
+    if (path != null &&
+        analyticsInstance != null &&
+        analyticsInstance.enabled) {
+      // Send the screen view to analytics
+      // ignore: unawaited_futures
+      analyticsInstance.sendScreenView(path);
+
+      // Run this command
+      var exitCode = await runImpl();
+
+      // Send the event to analytics
+      // ignore: unawaited_futures
+      createUsageEvent(exitCode)?.send(analyticsInstance);
+
+      // Finally return the exit code
+      return exitCode;
+    } else {
+      // Analytics is not enabled, run the command and return the exit code
+      return runImpl();
+    }
+  }
+
+  UsageEvent createUsageEvent(int exitCode);
+
+  FutureOr<int> runImpl();
+
+  /// The command name path to send to Google Analytics. Return null to disable
+  /// tracking of the command.
+  String get usagePath {
+    if (parent is DartdevCommand) {
+      final commandParent = parent as DartdevCommand;
+      final parentPath = commandParent.usagePath;
+      // Don't report for parents that return null for usagePath.
+      return parentPath == null ? null : '$parentPath/$name';
+    } else {
+      return name;
+    }
+  }
+
+  /// Create the ArgParser instance for this command.
+  ///
+  /// Subclasses can override this in order to create a customized ArgParser.
+  ArgParser createArgParser() =>
+      ArgParser(usageLineLength: dartdevUsageLineLength);
+
   Project get project => _project ??= Project();
+
+  /// Return whether commands should emit verbose output.
+  bool get verbose => globalResults['verbose'];
+
+  /// Return whether the tool should emit diagnostic output.
+  bool get diagnosticsEnabled => globalResults['diagnostics'];
+
+  /// Return whether any Dart experiments were specified by the user.
+  bool get wereExperimentsSpecified =>
+      globalResults?.wasParsed(experimentFlagName) ?? false;
+
+  /// Return the list of Dart experiment flags specified by the user.
+  List<String> get specifiedExperiments => globalResults[experimentFlagName];
 }
 
-/// A utility method to start the given executable as a process, optionally
-/// providing a current working directory.
-Future<Process> startProcess(
-  String executable,
+/// A utility method to start a Dart VM instance with the given arguments and an
+/// optional current working directory.
+///
+/// [arguments] should contain the snapshot path.
+Future<Process> startDartProcess(
+  Sdk sdk,
   List<String> arguments, {
   String cwd,
 }) {
-  log.trace('$executable ${arguments.join(' ')}');
-  return Process.start(executable, arguments, workingDirectory: cwd);
+  log.trace('${sdk.dart} ${arguments.join(' ')}');
+  return Process.start(sdk.dart, arguments, workingDirectory: cwd);
 }
 
 void routeToStdout(
@@ -50,7 +131,7 @@ void routeToStdout(
   bool logToTrace = false,
   void Function(String str) listener,
 }) {
-  if (isVerbose) {
+  if (isDiagnostics) {
     _streamLineTransform(process.stdout, (String line) {
       logToTrace ? log.trace(line.trimRight()) : log.stdout(line.trimRight());
       if (listener != null) listener(line);
@@ -91,6 +172,9 @@ class Project {
   Project() : dir = Directory.current;
 
   Project.fromDirectory(this.dir);
+
+  bool get hasPubspecFile =>
+      FileSystemEntity.isFileSync(path.join(dir.path, 'pubspec.yaml'));
 
   bool get hasPackageConfigFile => packageConfig != null;
 

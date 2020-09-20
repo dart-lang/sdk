@@ -7,8 +7,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/correct_override.dart';
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
 
@@ -305,6 +305,14 @@ class InheritanceManager3 {
   List<ExecutableElement> getOverridden2(ClassElement element, Name name) {
     var interface = getInterface(element);
     return interface._overridden[name];
+  }
+
+  /// Remove interfaces for classes defined in specified libraries.
+  void removeOfLibraries(Set<String> uriStrSet) {
+    _interfaces.removeWhere((element, _) {
+      var uriStr = '${element.librarySource.uri}';
+      return uriStrSet.contains(uriStr);
+    });
   }
 
   void _addCandidates({
@@ -890,7 +898,7 @@ class Name {
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
   @override
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is Name &&
         name == other.name &&
         libraryUri == other.libraryUri;

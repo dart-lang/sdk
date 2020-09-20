@@ -22,6 +22,7 @@ import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:meta/meta.dart';
 
 const jsonEncoder = JsonEncoder.withIndent('    ');
 
@@ -29,14 +30,14 @@ class AnalyzerStatusParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       AnalyzerStatusParams.canParse, AnalyzerStatusParams.fromJson);
 
-  AnalyzerStatusParams(this.isAnalyzing) {
+  AnalyzerStatusParams({@required this.isAnalyzing}) {
     if (isAnalyzing == null) {
       throw 'isAnalyzing is required but was not provided';
     }
   }
   static AnalyzerStatusParams fromJson(Map<String, dynamic> json) {
     final isAnalyzing = json['isAnalyzing'];
-    return AnalyzerStatusParams(isAnalyzing);
+    return AnalyzerStatusParams(isAnalyzing: isAnalyzing);
   }
 
   final bool isAnalyzing;
@@ -98,7 +99,7 @@ class ClosingLabel implements ToJsonable {
   static const jsonHandler =
       LspJsonHandler(ClosingLabel.canParse, ClosingLabel.fromJson);
 
-  ClosingLabel(this.range, this.label) {
+  ClosingLabel({@required this.range, @required this.label}) {
     if (range == null) {
       throw 'range is required but was not provided';
     }
@@ -109,7 +110,7 @@ class ClosingLabel implements ToJsonable {
   static ClosingLabel fromJson(Map<String, dynamic> json) {
     final range = json['range'] != null ? Range.fromJson(json['range']) : null;
     final label = json['label'];
-    return ClosingLabel(range, label);
+    return ClosingLabel(range: range, label: label);
   }
 
   final String label;
@@ -190,8 +191,13 @@ class CompletionItemResolutionInfo implements ToJsonable {
       CompletionItemResolutionInfo.canParse,
       CompletionItemResolutionInfo.fromJson);
 
-  CompletionItemResolutionInfo(this.file, this.offset, this.libId,
-      this.displayUri, this.rOffset, this.rLength) {
+  CompletionItemResolutionInfo(
+      {@required this.file,
+      @required this.offset,
+      @required this.libId,
+      @required this.displayUri,
+      @required this.rOffset,
+      @required this.rLength}) {
     if (file == null) {
       throw 'file is required but was not provided';
     }
@@ -219,7 +225,12 @@ class CompletionItemResolutionInfo implements ToJsonable {
     final rOffset = json['rOffset'];
     final rLength = json['rLength'];
     return CompletionItemResolutionInfo(
-        file, offset, libId, displayUri, rOffset, rLength);
+        file: file,
+        offset: offset,
+        libId: libId,
+        displayUri: displayUri,
+        rOffset: rOffset,
+        rLength: rLength);
   }
 
   final String displayUri;
@@ -389,14 +400,14 @@ class DartDiagnosticServer implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       DartDiagnosticServer.canParse, DartDiagnosticServer.fromJson);
 
-  DartDiagnosticServer(this.port) {
+  DartDiagnosticServer({@required this.port}) {
     if (port == null) {
       throw 'port is required but was not provided';
     }
   }
   static DartDiagnosticServer fromJson(Map<String, dynamic> json) {
     final port = json['port'];
-    return DartDiagnosticServer(port);
+    return DartDiagnosticServer(port: port);
   }
 
   final num port;
@@ -456,8 +467,13 @@ class DartDiagnosticServer implements ToJsonable {
 class Element implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Element.canParse, Element.fromJson);
 
-  Element(this.range, this.name, this.kind, this.parameters,
-      this.typeParameters, this.returnType) {
+  Element(
+      {this.range,
+      @required this.name,
+      @required this.kind,
+      this.parameters,
+      this.typeParameters,
+      this.returnType}) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -472,7 +488,13 @@ class Element implements ToJsonable {
     final parameters = json['parameters'];
     final typeParameters = json['typeParameters'];
     final returnType = json['returnType'];
-    return Element(range, name, kind, parameters, typeParameters, returnType);
+    return Element(
+        range: range,
+        name: name,
+        kind: kind,
+        parameters: parameters,
+        typeParameters: typeParameters,
+        returnType: returnType);
   }
 
   final String kind;
@@ -616,15 +638,15 @@ class FlutterOutline implements ToJsonable {
       LspJsonHandler(FlutterOutline.canParse, FlutterOutline.fromJson);
 
   FlutterOutline(
-      this.kind,
+      {@required this.kind,
       this.label,
       this.className,
       this.variableName,
       this.attributes,
       this.dartElement,
-      this.range,
-      this.codeRange,
-      this.children) {
+      @required this.range,
+      @required this.codeRange,
+      this.children}) {
     if (kind == null) {
       throw 'kind is required but was not provided';
     }
@@ -655,8 +677,16 @@ class FlutterOutline implements ToJsonable {
         ?.map((item) => item != null ? FlutterOutline.fromJson(item) : null)
         ?.cast<FlutterOutline>()
         ?.toList();
-    return FlutterOutline(kind, label, className, variableName, attributes,
-        dartElement, range, codeRange, children);
+    return FlutterOutline(
+        kind: kind,
+        label: label,
+        className: className,
+        variableName: variableName,
+        attributes: attributes,
+        dartElement: dartElement,
+        range: range,
+        codeRange: codeRange,
+        children: children);
   }
 
   final List<FlutterOutlineAttribute> attributes;
@@ -862,7 +892,8 @@ class FlutterOutlineAttribute implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       FlutterOutlineAttribute.canParse, FlutterOutlineAttribute.fromJson);
 
-  FlutterOutlineAttribute(this.name, this.label, this.valueRange) {
+  FlutterOutlineAttribute(
+      {@required this.name, @required this.label, this.valueRange}) {
     if (name == null) {
       throw 'name is required but was not provided';
     }
@@ -875,7 +906,8 @@ class FlutterOutlineAttribute implements ToJsonable {
     final label = json['label'];
     final valueRange =
         json['valueRange'] != null ? Range.fromJson(json['valueRange']) : null;
-    return FlutterOutlineAttribute(name, label, valueRange);
+    return FlutterOutlineAttribute(
+        name: name, label: label, valueRange: valueRange);
   }
 
   final String label;
@@ -973,7 +1005,11 @@ class FlutterOutlineAttribute implements ToJsonable {
 class Outline implements ToJsonable {
   static const jsonHandler = LspJsonHandler(Outline.canParse, Outline.fromJson);
 
-  Outline(this.element, this.range, this.codeRange, this.children) {
+  Outline(
+      {@required this.element,
+      @required this.range,
+      @required this.codeRange,
+      this.children}) {
     if (element == null) {
       throw 'element is required but was not provided';
     }
@@ -994,7 +1030,11 @@ class Outline implements ToJsonable {
         ?.map((item) => item != null ? Outline.fromJson(item) : null)
         ?.cast<Outline>()
         ?.toList();
-    return Outline(element, range, codeRange, children);
+    return Outline(
+        element: element,
+        range: range,
+        codeRange: codeRange,
+        children: children);
   }
 
   final List<Outline> children;
@@ -1118,7 +1158,7 @@ class PublishClosingLabelsParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PublishClosingLabelsParams.canParse, PublishClosingLabelsParams.fromJson);
 
-  PublishClosingLabelsParams(this.uri, this.labels) {
+  PublishClosingLabelsParams({@required this.uri, @required this.labels}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -1132,7 +1172,7 @@ class PublishClosingLabelsParams implements ToJsonable {
         ?.map((item) => item != null ? ClosingLabel.fromJson(item) : null)
         ?.cast<ClosingLabel>()
         ?.toList();
-    return PublishClosingLabelsParams(uri, labels);
+    return PublishClosingLabelsParams(uri: uri, labels: labels);
   }
 
   final List<ClosingLabel> labels;
@@ -1219,7 +1259,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
       PublishFlutterOutlineParams.canParse,
       PublishFlutterOutlineParams.fromJson);
 
-  PublishFlutterOutlineParams(this.uri, this.outline) {
+  PublishFlutterOutlineParams({@required this.uri, @required this.outline}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -1232,7 +1272,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
     final outline = json['outline'] != null
         ? FlutterOutline.fromJson(json['outline'])
         : null;
-    return PublishFlutterOutlineParams(uri, outline);
+    return PublishFlutterOutlineParams(uri: uri, outline: outline);
   }
 
   final FlutterOutline outline;
@@ -1314,7 +1354,7 @@ class PublishOutlineParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
       PublishOutlineParams.canParse, PublishOutlineParams.fromJson);
 
-  PublishOutlineParams(this.uri, this.outline) {
+  PublishOutlineParams({@required this.uri, @required this.outline}) {
     if (uri == null) {
       throw 'uri is required but was not provided';
     }
@@ -1326,7 +1366,7 @@ class PublishOutlineParams implements ToJsonable {
     final uri = json['uri'];
     final outline =
         json['outline'] != null ? Outline.fromJson(json['outline']) : null;
-    return PublishOutlineParams(uri, outline);
+    return PublishOutlineParams(uri: uri, outline: outline);
   }
 
   final Outline outline;

@@ -1,5 +1,8 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method main() → dynamic
+  ;
+static method test<X extends core::Null? = core::Null?, Y extends Never? = Never?, Z extends Never = Never>() → dynamic
   ;

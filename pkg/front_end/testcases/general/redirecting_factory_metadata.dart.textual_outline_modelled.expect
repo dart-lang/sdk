@@ -1,7 +1,7 @@
 class Foo {
+  Foo.named(p);
   @forFactoryItself
   factory Foo(@forParameter @anotherForParameter p) = Foo.named;
-  Foo.named(p);
 }
 
 const anotherForParameter = 3;

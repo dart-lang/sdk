@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstructorResolutionTest extends DriverResolutionTest {
+class ConstructorResolutionTest extends PubPackageResolutionTest {
   test_factory_redirect_generic_instantiated() async {
     await assertNoErrorsInCode(r'''
 class A<T> implements B<T> {
@@ -42,6 +42,28 @@ B<int> b;
       {'T': 'int'},
     );
     assertType(B_int_redirect.returnType, 'A<int>');
+  }
+
+  test_formalParameterScope_type() async {
+    await assertNoErrorsInCode('''
+class a {}
+
+class B {
+  B(a a) {
+    a;
+  }
+}
+''');
+
+    assertElement(
+      findNode.simple('a a'),
+      findElement.class_('a'),
+    );
+
+    assertElement(
+      findNode.simple('a;'),
+      findElement.parameter('a'),
+    );
   }
 
   test_initializer_field_functionExpression_blockBody() async {

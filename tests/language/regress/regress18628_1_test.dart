@@ -13,7 +13,7 @@ class C<T> {
   // line just doesn't make sense without this line.
   T t = int;
   //    ^^^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'Type' can't be assigned to a variable of type 'T'.
 }
 

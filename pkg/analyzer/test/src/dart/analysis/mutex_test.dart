@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/src/dart/analysis/mutex.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,7 +21,7 @@ class MutexTest {
       Future(() async {
         await mutex.acquire();
         try {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future<void>.delayed(Duration(milliseconds: 10));
           values.add(1);
         } finally {
           mutex.release();
@@ -50,7 +48,7 @@ class MutexTest {
     await Future.wait([
       Future(() async {
         await mutex.guard(() async {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future<void>.delayed(Duration(milliseconds: 10));
           values.add(1);
         });
       }),

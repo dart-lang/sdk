@@ -11,6 +11,6 @@ void main() {
   A a = new B();
   b = a;
   //  ^
-  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
 }

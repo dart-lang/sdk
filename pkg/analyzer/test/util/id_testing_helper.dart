@@ -129,7 +129,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   MemberAnnotations<IdValue> memberAnnotations =
       testData.expectedMaps[config.marker];
   var resourceProvider = MemoryResourceProvider();
-  var testUris = [];
+  var testUris = <Uri>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var testUri = _toTestUri(entry.key);
     testUris.add(testUri);
@@ -347,5 +347,5 @@ class TestConfig {
   final FeatureSet featureSet;
 
   TestConfig(this.marker, this.name, {FeatureSet featureSet})
-      : featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
+      : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }

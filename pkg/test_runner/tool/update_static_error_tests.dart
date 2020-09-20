@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as p;
 
 import 'package:test_runner/src/command_output.dart';
 import 'package:test_runner/src/path.dart';
@@ -18,7 +19,13 @@ import 'package:test_runner/src/update_errors.dart';
 const _usage =
     "Usage: dart update_static_error_tests.dart [flags...] <path glob>";
 
+final _dartPath = _findBinary("dart", "exe");
+final _analyzerPath = _findBinary("dartanalyzer", "bat");
+final _dart2jsPath = _findBinary("dart2js", "bat");
+
 Future<void> main(List<String> args) async {
+  var sources = ErrorSource.all.map((e) => e.marker).toList();
+
   var parser = ArgParser();
 
   parser.addFlag("help", abbr: "h");
@@ -28,41 +35,32 @@ Future<void> main(List<String> args) async {
       help: "Print result but do not overwrite any files.",
       negatable: false);
 
-  parser.addSeparator("Strip expectations out of the tests:");
-  parser.addFlag("remove",
+  parser.addSeparator("What operations to perform:");
+  parser.addFlag("remove-all",
       abbr: "r",
       help: "Remove all existing error expectations.",
       negatable: false);
-  parser.addFlag("remove-analyzer",
-      help: "Remove existing analyzer error expectations.", negatable: false);
-  parser.addFlag("remove-cfe",
-      help: "Remove existing CFE error expectations.", negatable: false);
-
-  parser.addSeparator(
-      "Insert expectations in the tests based on current front end output:");
-  parser.addFlag("insert",
+  parser.addMultiOption("remove",
+      help: "Remove error expectations for given front ends.",
+      allowed: sources);
+  parser.addFlag("insert-all",
       abbr: "i",
-      help: "Insert analyzer and CFE error expectations.",
+      help: "Insert error expectations for all front ends.",
       negatable: false);
-  parser.addFlag("insert-analyzer",
-      help: "Insert analyzer error expectations.", negatable: false);
-  parser.addFlag("insert-cfe",
-      help: "Insert CFE error expectations.", negatable: false);
-
-  parser.addSeparator("Update combines remove and insert:");
-  parser.addFlag("update",
+  parser.addMultiOption("insert",
+      help: "Insert error expectations from given front ends.",
+      allowed: sources);
+  parser.addFlag("update-all",
       abbr: "u",
-      help: "Replace analyzer and CFE error expectations.",
+      help: "Replace error expectations for all front ends.",
       negatable: false);
-  parser.addFlag("update-analyzer",
-      help: "Replace analyzer error expectations.", negatable: false);
-  parser.addFlag("update-cfe",
-      help: "Replace CFE error expectations.", negatable: false);
+  parser.addMultiOption("update",
+      help: "Update error expectations for given front ends.",
+      allowed: sources);
 
   parser.addSeparator("Other flags:");
-  parser.addFlag("nnbd",
-      help: "Analyze with the 'non-nullable' experiment enabled.",
-      negatable: false);
+  parser.addFlag("null-safety",
+      help: "Enable the 'non-nullable' experiment.", negatable: false);
 
   var results = parser.parse(args);
 
@@ -76,29 +74,38 @@ Future<void> main(List<String> args) async {
   }
 
   var dryRun = results["dry-run"] as bool;
-  var removeAnalyzer = results["remove-analyzer"] as bool ||
-      results["remove"] as bool ||
-      results["update-analyzer"] as bool ||
-      results["update"] as bool;
+  var nullSafety = results["null-safety"] as bool;
 
-  var removeCfe = results["remove-cfe"] as bool ||
-      results["remove"] as bool ||
-      results["update-cfe"] as bool ||
-      results["update"] as bool;
+  var removeSources = <ErrorSource>{};
+  var insertSources = <ErrorSource>{};
 
-  var insertAnalyzer = results["insert-analyzer"] as bool ||
-      results["insert"] as bool ||
-      results["update-analyzer"] as bool ||
-      results["update"] as bool;
+  for (var source in results["remove"] as List<String>) {
+    removeSources.add(ErrorSource.find(source));
+  }
 
-  var insertCfe = results["insert-cfe"] as bool ||
-      results["insert"] as bool ||
-      results["update-cfe"] as bool ||
-      results["update"] as bool;
+  for (var source in results["insert"] as List<String>) {
+    insertSources.add(ErrorSource.find(source));
+  }
 
-  var nnbd = results["nnbd"] as bool;
+  for (var source in results["update"] as List<String>) {
+    removeSources.add(ErrorSource.find(source));
+    insertSources.add(ErrorSource.find(source));
+  }
 
-  if (!removeAnalyzer && !removeCfe && !insertAnalyzer && !insertCfe) {
+  if (results["remove-all"] as bool) {
+    removeSources.addAll(ErrorSource.all);
+  }
+
+  if (results["insert-all"] as bool) {
+    insertSources.addAll(ErrorSource.all);
+  }
+
+  if (results["update-all"] as bool) {
+    removeSources.addAll(ErrorSource.all);
+    insertSources.addAll(ErrorSource.all);
+  }
+
+  if (removeSources.isEmpty && insertSources.isEmpty) {
     _usageError(
         parser, "Must provide at least one flag for an operation to perform.");
   }
@@ -109,11 +116,13 @@ Future<void> main(List<String> args) async {
   }
 
   var result = results.rest.single;
+
   // Allow tests to be specified without the extension for compatibility with
   // the regular test runner syntax.
   if (!result.endsWith(".dart")) {
     result += ".dart";
   }
+
   // Allow tests to be specified either relative to the "tests" directory
   // or relative to the current directory.
   var root = result.startsWith("tests") ? "." : "tests";
@@ -124,17 +133,15 @@ Future<void> main(List<String> args) async {
     if (entry is File) {
       await _processFile(entry,
           dryRun: dryRun,
-          removeAnalyzer: removeAnalyzer,
-          removeCfe: removeCfe,
-          insertAnalyzer: insertAnalyzer,
-          insertCfe: insertCfe,
-          nnbd: nnbd);
+          remove: removeSources,
+          insert: insertSources,
+          nullSafety: nullSafety);
     }
   }
 }
 
 void _usageError(ArgParser parser, String message) {
-  stderr.writeln("Usage error: $message");
+  stderr.writeln(message);
   stderr.writeln();
   stderr.writeln(_usage);
   stderr.writeln(parser.usage);
@@ -143,17 +150,15 @@ void _usageError(ArgParser parser, String message) {
 
 Future<void> _processFile(File file,
     {bool dryRun,
-    bool removeAnalyzer,
-    bool removeCfe,
-    bool insertAnalyzer,
-    bool insertCfe,
-    bool nnbd}) async {
+    Set<ErrorSource> remove,
+    Set<ErrorSource> insert,
+    bool nullSafety}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.absolute.path, source);
 
   var experiments = [
-    if (nnbd) "non-nullable",
+    if (nullSafety) "non-nullable",
     if (testFile.experiments.isNotEmpty) ...testFile.experiments
   ];
 
@@ -163,7 +168,7 @@ Future<void> _processFile(File file,
   ];
 
   var errors = <StaticError>[];
-  if (insertAnalyzer) {
+  if (insert.contains(ErrorSource.analyzer)) {
     stdout.write("\r${file.path} (Running analyzer...)");
     var fileErrors = await runAnalyzer(file.absolute.path, options);
     if (fileErrors == null) {
@@ -173,11 +178,26 @@ Future<void> _processFile(File file,
     }
   }
 
-  if (insertCfe) {
+  // If we're inserting web errors, we also need to gather the CFE errors to
+  // tell which web errors are web-specific.
+  List<StaticError> cfeErrors;
+  if (insert.contains(ErrorSource.cfe) || insert.contains(ErrorSource.web)) {
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    var fileErrors = await runCfe(file.absolute.path, options);
+    cfeErrors = await runCfe(file.absolute.path, options);
+    if (cfeErrors == null) {
+      print("Error: failed to update ${file.path}");
+    } else if (insert.contains(ErrorSource.cfe)) {
+      errors.addAll(cfeErrors);
+    }
+  }
+
+  if (insert.contains(ErrorSource.web)) {
+    // Clear the previous line.
+    stdout.write("\r${file.path}                      ");
+    stdout.write("\r${file.path} (Running dart2js...)");
+    var fileErrors = await runDart2js(file.absolute.path, options, cfeErrors);
     if (fileErrors == null) {
       print("Error: failed to update ${file.path}");
     } else {
@@ -187,8 +207,7 @@ Future<void> _processFile(File file,
 
   errors = StaticError.simplify(errors);
 
-  var result = updateErrorExpectations(source, errors,
-      removeAnalyzer: removeAnalyzer, removeCfe: removeCfe);
+  var result = updateErrorExpectations(source, errors, remove: remove);
 
   stdout.writeln("\r${file.path} (Updated with ${errors.length} errors)");
 
@@ -204,15 +223,11 @@ Future<List<StaticError>> runAnalyzer(String path, List<String> options) async {
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
-  var result = await Process.run(
-      Platform.isWindows
-          ? "sdk\\bin\\dartanalyzer.bat"
-          : "sdk/bin/dartanalyzer",
-      [
-        ...options,
-        "--format=machine",
-        path,
-      ]);
+  var result = await Process.run(_analyzerPath, [
+    ...options,
+    "--format=machine",
+    path,
+  ]);
 
   // Analyzer returns 3 when it detects errors, 2 when it detects
   // warnings and --fatal-warnings is enabled, 1 when it detects
@@ -233,8 +248,7 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
-  var result = await Process.run(
-      Platform.isWindows ? "sdk\\bin\\dart.bat" : "sdk/bin/dart", [
+  var result = await Process.run(_dartPath, [
     "pkg/front_end/tool/_fasta/compile.dart",
     ...options,
     "--verify",
@@ -254,6 +268,68 @@ Future<List<StaticError>> runCfe(String path, List<String> options) async {
     return null;
   }
   var errors = <StaticError>[];
-  FastaCommandOutput.parseErrors(result.stdout as String, errors);
+  var warnings = <StaticError>[];
+  FastaCommandOutput.parseErrors(result.stdout as String, errors, warnings);
+  return [...errors, ...warnings];
+}
+
+/// Invoke dart2js on [path] and gather all static errors it reports.
+Future<List<StaticError>> runDart2js(
+    String path, List<String> options, List<StaticError> cfeErrors) async {
+  var result = await Process.run(_dart2jsPath, [
+    ...options,
+    "-o",
+    "dev:null", // Output is only created for file URIs.
+    path,
+  ]);
+
+  var errors = <StaticError>[];
+  Dart2jsCompilerCommandOutput.parseErrors(result.stdout as String, errors);
+
+  // We only want the web-specific errors from dart2js, so filter out any errors
+  // that are also reported by the CFE.
+  errors.removeWhere((dart2jsError) {
+    return cfeErrors.any((cfeError) {
+      return dart2jsError.line == cfeError.line &&
+          dart2jsError.column == cfeError.column &&
+          dart2jsError.length == cfeError.length &&
+          dart2jsError.errorFor(ErrorSource.web) ==
+              cfeError.errorFor(ErrorSource.cfe);
+    });
+  });
+
   return errors;
+}
+
+/// Find the most recently-built [binary] in any of the build directories.
+String _findBinary(String name, String windowsExtension) {
+  String binary = Platform.isWindows ? "$name.$windowsExtension" : name;
+
+  String newestPath;
+  DateTime newestTime;
+
+  var buildDirectory = Directory(Platform.isMacOS ? "xcodebuild" : "out");
+  if (buildDirectory.existsSync()) {
+    for (var config in buildDirectory.listSync()) {
+      var path = p.join(config.path, "dart-sdk", "bin", binary);
+      var file = File(path);
+      if (!file.existsSync()) continue;
+      var modified = file.lastModifiedSync();
+
+      if (newestTime == null || modified.isAfter(newestTime)) {
+        newestPath = path;
+        newestTime = modified;
+      }
+    }
+  }
+
+  if (newestPath == null) {
+    // Clear the current line since we're in the middle of a progress line.
+    print("");
+    print("Could not find a built SDK with a $binary to run.");
+    print("Make sure to build the Dart SDK before running this tool.");
+    exit(1);
+  }
+
+  return newestPath;
 }

@@ -34,14 +34,8 @@ import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        AnalysisEngine,
-        AnalysisOptions,
-        AnalysisOptionsImpl,
-        PerformanceStatistics;
+    show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -91,7 +85,7 @@ typedef WorkToWaitAfterComputingResult = Future<void> Function(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 104;
+  static const int DATA_VERSION = 111;
 
   /// The length of the list returned by [_computeDeclaredVariablesSignature].
   static const int _declaredVariablesSignatureLength = 4;
@@ -488,10 +482,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
   void configure({
+    api.AnalysisContext analysisContext,
     AnalysisOptions analysisOptions,
     Packages packages,
     SourceFactory sourceFactory,
   }) {
+    if (analysisContext != null) {
+      this.analysisContext = analysisContext;
+    }
     if (analysisOptions != null) {
       _analysisOptions = analysisOptions;
     }
@@ -589,7 +587,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// The [path] must be absolute and normalized.
   FileResult getFileSync(String path) {
     _throwIfNotAbsolutePath(path);
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fileTracker.getFile(path);
     return FileResultImpl(
         _currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
@@ -821,7 +819,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Future<SourceKind> getSourceKind(String path) async {
     _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fileTracker.verifyApiSignature(path);
+      FileState file = _fileTracker.getFile(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;
@@ -909,7 +907,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// resolved unit).
   ParsedUnitResult parseFileSync(String path) {
     _throwIfNotAbsolutePath(path);
-    FileState file = _fileTracker.verifyApiSignature(path);
+    FileState file = _fileTracker.getFile(path);
     RecordingErrorListener listener = RecordingErrorListener();
     CompilationUnit unit = file.parse(listener);
     return ParsedUnitResultImpl(currentSession, file.path, file.uri,
@@ -1255,9 +1253,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      List<int> bytes = DriverPerformance.cache.makeCurrentWhile(() {
-        return _byteStore.get(key);
-      });
+      List<int> bytes = _byteStore.get(key);
       if (bytes != null) {
         return _getAnalysisResultFromBytes(file, signature, bytes);
       }
@@ -1286,7 +1282,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.elementFactory,
             libraryContext.analysisSession.inheritanceManager,
             library,
-            _resourceProvider,
             testingData: testingData);
         Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
@@ -1363,7 +1358,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.elementFactory,
           libraryContext.analysisSession.inheritanceManager,
           library,
-          _resourceProvider,
           testingData: testingData);
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
@@ -1453,6 +1447,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
+      resourceProvider: _resourceProvider,
       packages: _packages,
       packageDefaultFeatureSet: _analysisOptions.contextFeatures,
       nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
@@ -1465,6 +1460,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _resourceProvider,
       name,
       sourceFactory,
+      analysisContext?.workspace,
       analysisOptions,
       declaredVariables,
       _saltForUnlinked,
@@ -1631,7 +1627,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         null);
   }
 
-  void _reportException(String path, exception, StackTrace stackTrace) {
+  void _reportException(String path, Object exception, StackTrace stackTrace) {
     String contextKey;
     if (exception is _ExceptionState) {
       var state = exception as _ExceptionState;
@@ -1639,12 +1635,20 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       stackTrace = state.stackTrace;
       contextKey = state.contextKey;
     }
+
     CaughtException caught = CaughtException(exception, stackTrace);
-    String fileContent = _fsState.getFileForPath(path).content;
+
+    var fileContentMap = <String, String>{};
+    var libraryFile = _fsState.getFileForPath(path);
+    for (var file in libraryFile.libraryFiles) {
+      fileContentMap[file.path] = file.content;
+    }
+
     _exceptionController.add(
       ExceptionResult(
         filePath: path,
-        fileContent: fileContent,
+        fileContentMap: fileContentMap,
+        fileContent: libraryFile.content,
         exception: caught,
         contextKey: contextKey,
       ),
@@ -1665,8 +1669,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         .toBuffer();
   }
 
-  String _storeExceptionContext(
-      String path, FileState libraryFile, exception, StackTrace stackTrace) {
+  String _storeExceptionContext(String path, FileState libraryFile,
+      Object exception, StackTrace stackTrace) {
     if (allowedNumberOfContextsToWrite <= 0) {
       return null;
     } else {
@@ -2028,13 +2032,6 @@ class AnalysisResult extends ResolvedUnitResultImpl {
             errors);
 }
 
-class DriverPerformance {
-  static final PerformanceTag driver =
-      PerformanceStatistics.analyzer.createChild('driver');
-
-  static final PerformanceTag cache = driver.createChild('cache');
-}
-
 /// An object that watches for the creation and removal of analysis drivers.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2119,33 +2116,25 @@ class ErrorEncoding {
   /// Return the lint code with the given [errorName], or `null` if there is no
   /// lint registered with that name.
   static ErrorCode _lintCodeByUniqueName(String errorName) {
-    const String lintPrefix = 'LintCode.';
-    if (errorName.startsWith(lintPrefix)) {
-      String lintName = errorName.substring(lintPrefix.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    const String lintPrefixOld = '_LintCode.';
-    if (errorName.startsWith(lintPrefixOld)) {
-      String lintName = errorName.substring(lintPrefixOld.length);
-      return linter.Registry.ruleRegistry.getRule(lintName)?.lintCode;
-    }
-
-    return null;
+    return linter.Registry.ruleRegistry.codeForUniqueName(errorName);
   }
 }
 
 /// Exception that happened during analysis.
 class ExceptionResult {
-  /// The path of the file being analyzed when the [exception] happened.
+  /// The path of the library being analyzed when the [exception] happened.
   ///
   /// Absolute and normalized.
   final String filePath;
 
+  /// The content of the library and its parts.
+  final Map<String, String> fileContentMap;
+
   /// The path of the file being analyzed when the [exception] happened.
+  @Deprecated('Use fileContentMap instead')
   final String fileContent;
 
-  /// The exception during analysis of the file with the [path].
+  /// The exception during analysis of the file with the [filePath].
   final CaughtException exception;
 
   /// If the exception happened during a file analysis, and the context in which
@@ -2156,6 +2145,7 @@ class ExceptionResult {
 
   ExceptionResult({
     @required this.filePath,
+    @required this.fileContentMap,
     @required this.fileContent,
     @required this.exception,
     @required this.contextKey,
@@ -2262,7 +2252,7 @@ class _DiscoverAvailableFilesTask {
 
 /// Information about an exception and its context.
 class _ExceptionState {
-  final exception;
+  final Object exception;
   final StackTrace stackTrace;
 
   /// The key under which the context of the exception was stored, or `null`

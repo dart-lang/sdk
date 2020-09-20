@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 
@@ -77,13 +77,7 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   }
 
   ConstantEvaluationEngine _getEvaluationEngine(_ConstantNode node) {
-    var library = node.constant.library;
-    return ConstantEvaluationEngine(
-      library.typeProvider,
-      declaredVariables,
-      typeSystem: library.typeSystem,
-      experimentStatus: experimentStatus,
-    );
+    return ConstantEvaluationEngine(declaredVariables);
   }
 
   _ConstantNode _getNode(ConstantEvaluationTarget constant) {

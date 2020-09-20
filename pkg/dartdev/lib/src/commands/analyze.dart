@@ -5,18 +5,26 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
+import '../events.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import 'analyze_impl.dart';
 
-// TODO: Support enable-experiment for 'dart analyze'.
-
 class AnalyzeCommand extends DartdevCommand<int> {
-  AnalyzeCommand({bool verbose = false})
-      : super('analyze', "Analyze the project's Dart code.") {
+  static const String cmdName = 'analyze';
+
+  /// The maximum length of any of the existing severity labels.
+  static const int _severityWidth = 7;
+
+  /// The number of spaces needed to indent follow-on lines (the body) under the
+  /// message. The width left for the severity label plus the separator width.
+  static const int _bodyIndentWidth = _severityWidth + 3;
+
+  AnalyzeCommand() : super(cmdName, "Analyze the project's Dart code.") {
     argParser
       ..addFlag('fatal-infos',
           help: 'Treat info level issues as fatal.', negatable: false)
@@ -28,7 +36,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
   String get invocation => '${super.invocation} [<directory>]';
 
   @override
-  FutureOr<int> run() async {
+  FutureOr<int> runImpl() async {
     if (argResults.rest.length > 1) {
       usageException('Only one directory is expected.');
     }
@@ -74,7 +82,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
     });
 
     await analysisCompleter.future;
-
+    await server.dispose();
     progress.finish(showTiming: true);
 
     errors.sort();
@@ -92,7 +100,7 @@ class AnalyzeCommand extends DartdevCommand<int> {
         // error • Message ... at path.dart:line:col • (code)
 
         var filePath = path.relative(error.file, from: dir.path);
-        var severity = error.severity.toLowerCase().padLeft(7);
+        var severity = error.severity.toLowerCase().padLeft(_severityWidth);
         if (error.isError) {
           severity = log.ansi.error(severity);
         }
@@ -103,6 +111,20 @@ class AnalyzeCommand extends DartdevCommand<int> {
           'at $filePath:${error.startLine}:${error.startColumn} $bullet '
           '(${error.code})',
         );
+
+        if (verbose) {
+          var padding = ' ' * _bodyIndentWidth;
+          for (var message in error.contextMessages) {
+            log.stdout('$padding${message.message} '
+                'at ${message.filePath}:${message.line}:${message.column}');
+          }
+          if (error.correction != null) {
+            log.stdout('$padding${error.correction}');
+          }
+          if (error.url != null) {
+            log.stdout('$padding${error.url}');
+          }
+        }
 
         hasErrors |= error.isError;
         hasWarnings |= error.isWarning;
@@ -135,4 +157,19 @@ class AnalyzeCommand extends DartdevCommand<int> {
       return 0;
     }
   }
+
+  @override
+  UsageEvent createUsageEvent(int exitCode) => AnalyzeUsageEvent(
+        usagePath,
+        exitCode: exitCode,
+        args: argResults.arguments,
+      );
+}
+
+/// The [UsageEvent] for the analyze command.
+class AnalyzeUsageEvent extends UsageEvent {
+  AnalyzeUsageEvent(String usagePath,
+      {String label, @required int exitCode, @required List<String> args})
+      : super(AnalyzeCommand.cmdName, usagePath,
+            label: label, args: args, exitCode: exitCode);
 }

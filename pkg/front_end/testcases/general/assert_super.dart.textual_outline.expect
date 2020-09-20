@@ -1,0 +1,9 @@
+class Super {
+  bool get property => true;
+}
+
+class Class extends Super {
+  Class() : assert(property);
+}
+
+main() {}

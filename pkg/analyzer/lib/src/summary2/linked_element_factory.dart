@@ -150,14 +150,8 @@ class LinkedElementFactory {
   /// We have linked the bundle, and need to disconnect its libraries, so
   /// that the client can re-add the bundle, this time read from bytes.
   void removeBundle(LinkedBundleContext context) {
-    // TODO(scheglov) Use removeLibraries()
-    for (var uriStr in context.libraryMap.keys) {
-      libraryMap.remove(uriStr);
-      rootReference.removeChild(uriStr);
-    }
-
-    var classHierarchy = analysisSession.classHierarchy;
-    classHierarchy.removeOfLibraries(context.libraryMap.keys);
+    var uriStrList = context.libraryMap.keys.toList();
+    removeLibraries(uriStrList);
   }
 
   /// Remove libraries with the specified URIs from the reference tree, and
@@ -168,8 +162,9 @@ class LinkedElementFactory {
       rootReference.removeChild(uriStr);
     }
 
-    var classHierarchy = analysisSession.classHierarchy;
-    classHierarchy.removeOfLibraries(uriStrList);
+    var uriStrSet = uriStrList.toSet();
+    analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
+    analysisSession.inheritanceManager.removeOfLibraries(uriStrSet);
   }
 
   /// Set optional informative data for the unit.

@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
+import '../common/metrics.dart';
 import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
@@ -52,6 +53,7 @@ abstract class CodegenPhase {
 class SsaCodeGeneratorTask extends CompilerTask {
   final CompilerOptions _options;
   final SourceInformationStrategy sourceInformationStrategy;
+  final _CodegenMetrics _metrics = _CodegenMetrics();
 
   SsaCodeGeneratorTask(
       Measurer measurer, this._options, this.sourceInformationStrategy)
@@ -59,6 +61,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   @override
   String get name => 'SSA code generator';
+
+  @override
+  Metrics get metrics => _metrics;
 
   js.Fun buildJavaScriptFunction(bool needsAsyncRewrite, FunctionEntity element,
       List<js.Parameter> parameters, js.Block body) {
@@ -115,6 +120,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
+          _metrics,
           emitter,
           codegen.rtiSubstitutions,
           codegen.rtiRecipeEncoder,
@@ -143,6 +149,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       SsaCodeGenerator codeGenerator = SsaCodeGenerator(
           this,
           _options,
+          _metrics,
           emitter,
           codegen.rtiSubstitutions,
           codegen.rtiRecipeEncoder,
@@ -156,6 +163,34 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codeGenerator.parameters, codeGenerator.body);
     });
   }
+}
+
+class _CodegenMetrics extends MetricsBase {
+  int countHIf = 0;
+  int countHIfConstant = 0;
+  final countHInterceptor = CountMetric('count.HInterceptor');
+  final countHInterceptorGet = CountMetric('count.HInterceptor.getInterceptor');
+  final countHInterceptorOneshot = CountMetric('count.HInterceptor.oneShot');
+  final countHInterceptorConditionalConstant =
+      CountMetric('count.HInterceptor.conditionalConstant');
+
+  _CodegenMetrics();
+
+  @override
+  String get namespace => 'codegen';
+
+  @override
+  Iterable<Metric> get primary => [];
+
+  @override
+  Iterable<Metric> get secondary => [
+        CountMetric('count.HIf')..add(countHIf),
+        CountMetric('count.HIf.constant')..add(countHIfConstant),
+        countHInterceptor,
+        countHInterceptorGet,
+        countHInterceptorConditionalConstant,
+        countHInterceptorOneshot
+      ];
 }
 
 class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
@@ -186,6 +221,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
   final CodegenRegistry _registry;
+  final _CodegenMetrics _metrics;
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
@@ -232,6 +268,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   SsaCodeGenerator(
       this._codegenTask,
       this._options,
+      this._metrics,
       this._emitter,
       this._rtiSubstitutions,
       this._rtiRecipeEncoder,
@@ -1791,9 +1828,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIf(HIf node) {
+    _metrics.countHIf++;
+    HInstruction condition = node.inputs[0];
+    if (condition.isConstant()) _metrics.countHIfConstant++;
+
     if (tryControlFlowOperation(node)) return;
 
-    HInstruction condition = node.inputs[0];
     HIfBlockInformation info = node.blockInformation.body;
 
     if (condition.isConstant()) {
@@ -1827,7 +1867,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   void visitInterceptor(HInterceptor node) {
+    _metrics.countHInterceptor.add();
     if (node.isConditionalConstantInterceptor) {
+      _metrics.countHInterceptorConditionalConstant.add();
       assert(node.inputs.length == 2);
       use(node.receiver);
       js.Expression receiverExpression = pop();
@@ -1835,6 +1877,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression constant = pop();
       push(js.js('# && #', [receiverExpression, constant]));
     } else {
+      _metrics.countHInterceptorGet.add();
       assert(node.inputs.length == 1);
       _registry.registerSpecializedGetInterceptor(node.interceptedClasses);
       js.Name name = _namer.nameForGetInterceptor(node.interceptedClasses);
@@ -1922,6 +1965,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   void visitOneShotInterceptor(HOneShotInterceptor node) {
+    _metrics.countHInterceptor.add();
+    _metrics.countHInterceptorOneshot.add();
     List<js.Expression> arguments = visitArguments(node.inputs);
     js.Expression isolate =
         _namer.readGlobalObjectForLibrary(_commonElements.interceptorsLibrary);
@@ -2172,8 +2217,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (superElement.isField) {
+      // TODO(sra): We can lower these in the simplifier.
       js.Name fieldName = _namer.instanceFieldPropertyName(superElement);
-      use(node.inputs[0]);
+      use(node.getDartReceiver(_closedWorld));
       js.PropertyAccess access = new js.PropertyAccess(pop(), fieldName)
           .withSourceInformation(node.sourceInformation);
       if (node.isSetter) {
@@ -3031,7 +3077,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                 !dartType.baseType.isObject &&
                 dartType.baseType is! NeverType));
         InterfaceType type = dartType.withoutNullability;
-        _registry.registerTypeUse(TypeUse.instanceConstructor(type));
+        _registry.registerTypeUse(TypeUse.constructorReference(type));
         test = handleNegative(js.js('# instanceof #',
             [value, _emitter.constructorAccess(type.element)]));
     }

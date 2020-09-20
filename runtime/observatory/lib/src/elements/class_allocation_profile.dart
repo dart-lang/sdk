@@ -49,7 +49,8 @@ class ClassAllocationProfileElement extends CustomElement
     return e;
   }
 
-  ClassAllocationProfileElement.created() : super.created('class-allocation-profile');
+  ClassAllocationProfileElement.created()
+      : super.created('class-allocation-profile');
 
   @override
   void attached() {

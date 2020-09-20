@@ -218,7 +218,7 @@ abstract class SnapshotObject {
   int get internalSize;
 
   /// The sum of all external allocations associated with this object.
-  /// See Dart_NewWeakPersistentHandle.
+  /// See Dart_NewFinalizableHandle and Dart_NewWeakPersistentHandle.
   int get externalSize;
 
   /// The [shallowSize] of this object, plus the retainedSize of all its

@@ -15,7 +15,7 @@ library test;
 //
 import self as self;
 
-import "dart:_foreign_helper";
+import "dart:_foreign_helper" show JS;
 
 static method test() → dynamic
   ;

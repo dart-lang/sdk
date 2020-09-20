@@ -106,6 +106,8 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_causal_async_stacks = false;
+    FLAG_lazy_async_stacks = true;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for gen_snapshot.
@@ -500,8 +502,6 @@ void CompileParsedFunctionHelper::CheckIfBackgroundCompilerIsBeingStopped(
 }
 
 // Return null if bailed out.
-// If optimized_result_code is not NULL then it is caller's responsibility
-// to install code.
 CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
@@ -657,7 +657,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //      those writes are observed atomically.
         //
         thread()->isolate_group()->RunWithStoppedMutators(
-            install_code_fun, install_code_fun, /*use_force_growth=*/true);
+            install_code_fun, /*use_force_growth=*/true);
       }
       if (!result->IsNull()) {
         // Must be called outside of safepoint.

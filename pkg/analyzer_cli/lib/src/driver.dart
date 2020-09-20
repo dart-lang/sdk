@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/dart/analysis/context_locator.dart' as api;
+import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -14,6 +15,8 @@ import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'
+    as api;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
@@ -24,14 +27,11 @@ import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart'
-    show PerformanceTag;
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -65,9 +65,6 @@ bool containsLintRuleEntry(YamlMap options) {
 }
 
 class Driver with HasContextMixin implements CommandLineStarter {
-  static final PerformanceTag _analyzeAllTag =
-      PerformanceTag('Driver._analyzeAll');
-
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
   @override
@@ -99,9 +96,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   PathFilter pathFilter;
 
   /// Create a new Driver instance.
-  ///
-  /// [isTesting] is true if we're running in a test environment.
-  Driver({bool isTesting = false});
+  Driver({@Deprecated('This parameter has no effect') bool isTesting = false});
 
   /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
@@ -123,7 +118,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     linter.registerLintRules();
 
     // Parse commandline options.
-    var options = CommandLineOptions.parse(args);
+    var options = CommandLineOptions.parse(resourceProvider, args);
 
     // Do analysis.
     if (options.buildMode) {
@@ -137,7 +132,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
       batchRunner.runAsBatch(args, (List<String> args) async {
         // TODO(brianwilkerson) Determine whether this await is necessary.
         await null;
-        var options = CommandLineOptions.parse(args);
+        var options = CommandLineOptions.parse(resourceProvider, args);
         return await _analyzeAll(options);
       });
     } else {
@@ -181,12 +176,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
   Future<ErrorSeverity> _analyzeAll(CommandLineOptions options) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _analyzeAllTag.makeCurrent();
-    try {
-      return await _analyzeAllImpl(options);
-    } finally {
-      previous.makeCurrent();
-    }
+
+    return await _analyzeAllImpl(options);
   }
 
   /// Perform analysis according to the given [options].
@@ -389,23 +380,19 @@ class Driver with HasContextMixin implements CommandLineStarter {
       CommandLineOptions options, SendPort sendPort) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    var previous = _analyzeAllTag.makeCurrent();
-    try {
-      if (options.buildModePersistentWorker) {
-        var workerLoop = sendPort == null
-            ? AnalyzerWorkerLoop.std(resourceProvider,
-                dartSdkPath: options.dartSdkPath)
-            : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
-                dartSdkPath: options.dartSdkPath);
-        await workerLoop.run();
-        return ErrorSeverity.NONE;
-      } else {
-        return await BuildMode(resourceProvider, options, stats,
-                ContextCache(resourceProvider, options, verbosePrint))
-            .analyze();
-      }
-    } finally {
-      previous.makeCurrent();
+
+    if (options.buildModePersistentWorker) {
+      var workerLoop = sendPort == null
+          ? AnalyzerWorkerLoop.std(resourceProvider,
+              dartSdkPath: options.dartSdkPath)
+          : AnalyzerWorkerLoop.sendPort(resourceProvider, sendPort,
+              dartSdkPath: options.dartSdkPath);
+      await workerLoop.run();
+      return ErrorSeverity.NONE;
+    } else {
+      return await BuildMode(resourceProvider, options, stats,
+              ContextCache(resourceProvider, options, verbosePrint))
+          .analyze();
     }
   }
 
@@ -438,7 +425,11 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
     // Setup embedding.
     if (includeSdkResolver) {
-      var embedderSdk = EmbedderSdk(resourceProvider, embedderMap);
+      var embedderSdk = EmbedderSdk(
+        resourceProvider,
+        embedderMap,
+        languageVersion: sdk.languageVersion,
+      );
       if (embedderSdk.libraryMap.size() == 0) {
         // The embedder uri resolver has no mappings. Use the default Dart SDK
         // uri resolver.
@@ -446,7 +437,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
       } else {
         // The embedder uri resolver has mappings, use it instead of the default
         // Dart SDK uri resolver.
-        embedderSdk.analysisOptions = analysisOptions;
         resolvers.add(DartUriResolver(embedderSdk));
       }
     }
@@ -552,7 +542,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         useSummaries ? options.buildSummaryInputs : <String>[]);
 
     // Once options and embedders are processed, setup the SDK.
-    _setupSdk(options, useSummaries, analysisOptions);
+    _setupSdk(options, analysisOptions);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
@@ -574,6 +564,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
         packages: packageInfo.packages);
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
+    _setAnalysisDriverAnalysisContext(source);
     scheduler.start();
   }
 
@@ -627,23 +618,37 @@ class Driver with HasContextMixin implements CommandLineStarter {
     return analyzer.analyze(formatter);
   }
 
-  void _setupSdk(CommandLineOptions options, bool useSummaries,
-      AnalysisOptions analysisOptions) {
+  void _setAnalysisDriverAnalysisContext(String rootPath) {
+    var apiContextRoots = api.ContextLocator(
+      resourceProvider: resourceProvider,
+    ).locateRoots(
+      includedPaths: [rootPath],
+      excludedPaths: [],
+    );
+
+    if (apiContextRoots.isEmpty) {
+      return;
+    }
+
+    analysisDriver.configure(
+      analysisContext: api.DriverBasedAnalysisContext(
+        resourceProvider,
+        apiContextRoots.first,
+        analysisDriver,
+      ),
+    );
+  }
+
+  void _setupSdk(CommandLineOptions options, AnalysisOptions analysisOptions) {
     if (sdk == null) {
       if (options.dartSdkSummaryPath != null) {
         sdk = SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
       } else {
         var dartSdkPath = options.dartSdkPath;
-        var dartSdk = FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(dartSdkPath));
-        dartSdk.useSummary = useSummaries &&
-            options.sourceFiles.every((String sourcePath) {
-              sourcePath = path.absolute(sourcePath);
-              sourcePath = path.normalize(sourcePath);
-              return !path.isWithin(dartSdkPath, sourcePath);
-            });
-        dartSdk.analysisOptions = analysisOptions;
-        sdk = dartSdk;
+        sdk = FolderBasedDartSdk(
+          resourceProvider,
+          resourceProvider.getFolder(dartSdkPath),
+        );
       }
     }
   }
@@ -679,7 +684,6 @@ class Driver with HasContextMixin implements CommandLineStarter {
             previous.showPackageWarningsPrefix &&
         newOptions.showSdkWarnings == previous.showSdkWarnings &&
         newOptions.lints == previous.lints &&
-        newOptions.strongMode == previous.strongMode &&
         _equalLists(
             newOptions.buildSummaryInputs, previous.buildSummaryInputs) &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&

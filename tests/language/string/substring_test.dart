@@ -9,11 +9,11 @@ main() {
   try {
     print("abcdef".substring(1.5, 3.5));
     //                       ^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
     // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
     //                            ^^^
-    // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
+    // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+    // [cfe] The argument type 'double' can't be assigned to the parameter type 'int?'.
     Expect.fail("Should have thrown an exception");
   } on TypeError catch (e) {
     // OK.

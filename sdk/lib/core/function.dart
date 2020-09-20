@@ -7,8 +7,8 @@ part of dart.core;
 /**
  * The base class for all function types.
  *
- * A function value, or an instance of a class with a "call" method, is a
- * subtype of a function type, and as such, a subtype of [Function].
+ * The run-time type of a function object is subtype of a function type,
+ * and as such, a subtype of [Function].
  */
 abstract class Function {
   /**

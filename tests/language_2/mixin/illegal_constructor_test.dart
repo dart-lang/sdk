@@ -102,7 +102,7 @@ main() {
   // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   new C0.named();
   //     ^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Method not found: 'C0.named'.
   new D0(1,2,3);
   //    ^^^^^^^
@@ -110,6 +110,6 @@ main() {
   // [cfe] Too many positional arguments: 0 allowed, but 3 found.
   new D0.named();
   //     ^^^^^
-  // [analyzer] STATIC_WARNING.NEW_WITH_UNDEFINED_CONSTRUCTOR
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Method not found: 'D0.named'.
 }

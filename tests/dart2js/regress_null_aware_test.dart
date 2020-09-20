@@ -5,17 +5,11 @@
 // Regression test for failure on CFE null-aware encoding.
 
 class Class {
-  Map<String, Set<String>> map;
+  Map<String, Set<String>>? map;
 
-  List<String> method(String node, Set<String> set) =>
-      set.add(node)
-          ? [
-              node,
-              ...?map[node]
-                  ?.expand((node) => method(node, set))
-                  ?.toList()
-            ]
-          : [];
+  List<String> method(String node, Set<String> set) => set.add(node)
+      ? [node, ...?map![node]?.expand((node) => method(node, set))?.toList()]
+      : [];
 }
 
 main(args) {

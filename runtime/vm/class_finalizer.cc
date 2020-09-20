@@ -59,8 +59,8 @@ static void RemoveCHAOptimizedCode(
   }
 }
 
-void AddSuperType(const AbstractType& type,
-                  GrowableArray<intptr_t>* finalized_super_classes) {
+static void AddSuperType(const AbstractType& type,
+                         GrowableArray<intptr_t>* finalized_super_classes) {
   ASSERT(type.HasTypeClass());
   ASSERT(!type.IsDynamicType());
   if (type.IsObjectType()) {
@@ -213,12 +213,6 @@ bool ClassFinalizer::ProcessPendingClasses() {
       }
     }
 
-    if (FLAG_print_classes) {
-      for (intptr_t i = 0; i < class_array.Length(); i++) {
-        cls ^= class_array.At(i);
-        PrintClassInformation(cls);
-      }
-    }
     // Clear pending classes array.
     class_array = GrowableObjectArray::New();
     object_store->set_pending_classes(class_array);
@@ -632,22 +626,26 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           if (super_type_arg.IsBeingFinalized()) {
             // The super_type_arg was instantiated from a type being finalized.
             // We need to finish finalizing its type arguments.
-            ASSERT(super_type_arg.IsTypeRef());
-            AbstractType& ref_super_type_arg =
-                AbstractType::Handle(TypeRef::Cast(super_type_arg).type());
-            if (FLAG_trace_type_finalization) {
-              THR_Print("Instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+            AbstractType& unfinalized_type = AbstractType::Handle();
+            if (super_type_arg.IsTypeRef()) {
+              unfinalized_type = TypeRef::Cast(super_type_arg).type();
+            } else {
+              ASSERT(super_type_arg.IsType());
+              unfinalized_type = super_type_arg.raw();
             }
-            CheckRecursiveType(cls, ref_super_type_arg, pending_types);
-            pending_types->Add(ref_super_type_arg);
+            if (FLAG_trace_type_finalization) {
+              THR_Print("Instantiated unfinalized '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
+            }
+            CheckRecursiveType(cls, unfinalized_type, pending_types);
+            pending_types->Add(unfinalized_type);
             const Class& super_cls =
-                Class::Handle(ref_super_type_arg.type_class());
+                Class::Handle(unfinalized_type.type_class());
             const TypeArguments& super_args =
-                TypeArguments::Handle(ref_super_type_arg.arguments());
+                TypeArguments::Handle(unfinalized_type.arguments());
             // Mark as finalized before finalizing to avoid cycles.
-            ref_super_type_arg.SetIsFinalized();
+            unfinalized_type.SetIsFinalized();
             // Although the instantiator is different between cls and super_cls,
             // we still need to pass the current instantiation trail as to avoid
             // divergence. Finalizing the type arguments of super_cls may indeed
@@ -658,9 +656,9 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
                 super_cls.NumTypeArguments() - super_cls.NumTypeParameters(),
                 pending_types, trail);
             if (FLAG_trace_type_finalization) {
-              THR_Print("Finalized instantiated TypeRef '%s': '%s'\n",
-                        String::Handle(super_type_arg.Name()).ToCString(),
-                        ref_super_type_arg.ToCString());
+              THR_Print("Finalized instantiated '%s': '%s'\n",
+                        String::Handle(unfinalized_type.Name()).ToCString(),
+                        unfinalized_type.ToCString());
             }
           }
         }
@@ -1151,14 +1149,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  if (cls.is_patch()) {
-    // The fields and functions of a patch class are copied to the
-    // patched class after parsing. There is nothing to finalize.
-    ASSERT(Array::Handle(cls.functions()).Length() == 0);
-    ASSERT(Array::Handle(cls.fields()).Length() == 0);
-    cls.set_is_finalized();
-    return;
-  }
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
@@ -1169,34 +1159,73 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
+  if (FLAG_print_classes) {
+    PrintClassInformation(cls);
+  }
   FinalizeMemberTypes(cls);
-  // Run additional checks after all types are finalized.
-  if (FLAG_use_cha_deopt) {
-    GrowableArray<intptr_t> cids;
-    CollectFinalizedSuperClasses(cls, &cids);
-    CollectImmediateSuperInterfaces(cls, &cids);
-    RemoveCHAOptimizedCode(cls, cids);
-  }
-
-  if (FLAG_use_cha_deopt) {
-    Zone* zone = thread->zone();
-    ClassTable* class_table = thread->isolate()->class_table();
-    auto& interface_class = Class::Handle(zone);
-
-    // We scan every interface this [cls] implements and invalidate all CHA code
-    // which depends on knowing the implementors of that interface.
-    GrowableArray<intptr_t> cids;
-    InterfaceFinder finder(zone, class_table, &cids);
-    finder.FindAllInterfaces(cls);
-    for (intptr_t j = 0; j < cids.length(); ++j) {
-      interface_class = class_table->At(cids[j]);
-      interface_class.DisableCHAImplementorUsers();
-    }
-  }
 
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
   }
+
+  // The rest of finalization for non-top-level class has to be done with
+  // stopped mutators. It will be done by AllocateFinalizeClass. before new
+  // instance of a class is created in GetAllocationStubForClass.
+  if (cls.IsTopLevel()) {
+    cls.set_is_allocate_finalized();
+  }
+}
+
+ErrorPtr ClassFinalizer::AllocateFinalizeClass(const Class& cls) {
+  ASSERT(cls.is_finalized());
+  if (cls.is_allocate_finalized()) {
+    return Error::null();
+  }
+
+  Thread* thread = Thread::Current();
+  HANDLESCOPE(thread);
+
+  if (FLAG_trace_class_finalization) {
+    THR_Print("Allocate finalize %s\n", cls.ToCString());
+  }
+
+#if defined(SUPPORT_TIMELINE)
+  TimelineBeginEndScope tbes(thread, Timeline::GetCompilerStream(),
+                             "AllocateFinalizeClass");
+  if (tbes.enabled()) {
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "class", cls.ToCString());
+  }
+#endif  // defined(SUPPORT_TIMELINE)
+
+  // Run additional checks after all types are finalized.
+  if (FLAG_use_cha_deopt && !cls.IsTopLevel()) {
+    {
+      GrowableArray<intptr_t> cids;
+      CollectFinalizedSuperClasses(cls, &cids);
+      CollectImmediateSuperInterfaces(cls, &cids);
+      RemoveCHAOptimizedCode(cls, cids);
+    }
+
+    Zone* zone = thread->zone();
+    ClassTable* class_table = thread->isolate()->class_table();
+    auto& interface_class = Class::Handle(zone);
+
+    // We scan every interface this [cls] implements and invalidate all CHA
+    // code which depends on knowing the implementors of that interface.
+    {
+      GrowableArray<intptr_t> cids;
+      InterfaceFinder finder(zone, class_table, &cids);
+      finder.FindAllInterfaces(cls);
+      for (intptr_t j = 0; j < cids.length(); ++j) {
+        interface_class = class_table->At(cids[j]);
+        interface_class.DisableCHAImplementorUsers();
+      }
+    }
+  }
+
+  cls.set_is_allocate_finalized();
+  return Error::null();
 }
 
 ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
@@ -1426,7 +1455,7 @@ void ClassFinalizer::SortClasses() {
       continue;
     }
     cls = table->At(cid);
-    if (cls.is_patch() || !cls.is_declaration_loaded()) {
+    if (!cls.is_declaration_loaded()) {
       continue;
     }
     if (cls.SuperClass() == I->object_store()->object_class()) {
@@ -1490,7 +1519,12 @@ class CidRewriteVisitor : public ObjectVisitor {
   void VisitObject(ObjectPtr obj) {
     if (obj->IsClass()) {
       ClassPtr cls = Class::RawCast(obj);
-      cls->ptr()->id_ = Map(cls->ptr()->id_);
+      const classid_t old_cid = cls->ptr()->id_;
+      if (ClassTable::IsTopLevelCid(old_cid)) {
+        // We don't remap cids of top level classes.
+        return;
+      }
+      cls->ptr()->id_ = Map(old_cid);
     } else if (obj->IsField()) {
       FieldPtr field = Field::RawCast(obj);
       field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);

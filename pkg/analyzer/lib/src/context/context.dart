@@ -5,10 +5,10 @@
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:meta/meta.dart';
 
 /// An [AnalysisContext] in which analysis can be performed.
@@ -40,24 +40,12 @@ class AnalysisContextImpl implements AnalysisContext {
     throw StateError('Cannot be changed.');
   }
 
-  @Deprecated('Use LibraryElement.typeProvider')
-  @override
-  TypeProvider get typeProvider {
-    return _synchronousSession.typeProvider;
-  }
-
   TypeProviderImpl get typeProviderLegacy {
     return _synchronousSession.typeProviderLegacy;
   }
 
   TypeProviderImpl get typeProviderNonNullableByDefault {
     return _synchronousSession.typeProviderNonNullableByDefault;
-  }
-
-  @Deprecated('Use LibraryElement.typeSystem')
-  @override
-  TypeSystemImpl get typeSystem {
-    return _synchronousSession.typeSystem;
   }
 
   TypeSystemImpl get typeSystemLegacy {
@@ -81,13 +69,4 @@ class AnalysisContextImpl implements AnalysisContext {
       nonNullableByDefault: nonNullableByDefault,
     );
   }
-}
-
-/// An [AnalysisContext] that only contains sources for a Dart SDK.
-class SdkAnalysisContext extends AnalysisContextImpl {
-  /// Initialize a newly created SDK analysis context with the given [options].
-  /// Analysis options cannot be changed afterwards.  If the given [options] are
-  /// `null`, then default options are used.
-  SdkAnalysisContext(AnalysisOptions options, SourceFactory sourceFactory)
-      : super(SynchronousSession(options, DeclaredVariables()), sourceFactory);
 }

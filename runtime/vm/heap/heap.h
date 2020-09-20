@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include "include/dart_tools_api.h"
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/flags.h"
@@ -45,6 +47,7 @@ class Heap {
 #endif
     kCanonicalHashes,
     kObjectIds,
+    kLoadingUnits,
     kNumWeakSelectors
   };
 
@@ -60,7 +63,7 @@ class Heap {
     kOldSpace,     // Old space limit crossed.
     kFinalize,     // Concurrent marking finished.
     kFull,         // Heap::CollectAllGarbage
-    kExternal,     // Dart_NewWeakPersistentHandle
+    kExternal,     // Dart_NewFinalizableHandle Dart_NewWeakPersistentHandle
     kIdle,         // Dart_NotifyIdle
     kLowMemory,    // Dart_NotifyLowMemory
     kDebugging,    // service request, etc.
@@ -120,6 +123,7 @@ class Heap {
   ObjectPtr FindNewObject(FindObjectVisitor* visitor);
   ObjectPtr FindObject(FindObjectVisitor* visitor);
 
+  void HintFreed(intptr_t size);
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
 
@@ -233,6 +237,15 @@ class Heap {
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   void ResetObjectIdTable();
+
+  void SetLoadingUnit(ObjectPtr raw_obj, intptr_t object_id) {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    SetWeakEntry(raw_obj, kLoadingUnits, object_id);
+  }
+  intptr_t GetLoadingUnit(ObjectPtr raw_obj) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    return GetWeakEntry(raw_obj, kLoadingUnits);
+  }
 
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const;
@@ -372,12 +385,6 @@ class Heap {
   void PrintStats();
   void PrintStatsToTimeline(TimelineEventScope* event, GCReason reason);
 
-  // Updates gc in progress flags.
-  bool BeginNewSpaceGC(Thread* thread);
-  void EndNewSpaceGC();
-  bool BeginOldSpaceGC(Thread* thread);
-  void EndOldSpaceGC();
-
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
   // Trigger major GC if 'gc_on_nth_allocation_' is set.
@@ -401,11 +408,8 @@ class Heap {
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;
 
-  // GC on the heap is in progress.
-  Monitor gc_in_progress_monitor_;
-  bool gc_new_space_in_progress_;
-  bool gc_old_space_in_progress_;
   bool last_gc_was_old_space_;
+  bool assume_scavenge_will_fail_;
 
   static const intptr_t kNoForcedGarbageCollection = -1;
 
@@ -427,6 +431,7 @@ class Heap {
   friend class ProgramVisitor;        // VisitObjectsImagePages
   friend class Serializer;            // VisitObjectsImagePages
   friend class HeapTestHelper;
+  friend class MetricsTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class JoinVariableDeclaration extends CorrectionProducer {
@@ -16,7 +16,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is AssignmentExpression &&
@@ -35,7 +35,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
   /// Join the declaration when the variable is on the left-hand side of an
   /// assignment.
   Future<void> _joinOnAssignment(
-      DartChangeBuilder builder, AssignmentExpression assignExpression) async {
+      ChangeBuilder builder, AssignmentExpression assignExpression) async {
     // Check that assignment is not a compound assignment.
     if (assignExpression.operator.type != TokenType.EQ) {
       return;
@@ -83,7 +83,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
           range.endStart(declNode, assignExpression.operator), ' ');
     });
@@ -92,7 +92,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
   /// Join the declaration when the variable is on the left-hand side of an
   /// assignment.
   Future<void> _joinOnDeclaration(
-      DartChangeBuilder builder, VariableDeclarationList declList) async {
+      ChangeBuilder builder, VariableDeclarationList declList) async {
     // prepare enclosing VariableDeclarationList
     var decl = declList.variables[0];
     // already initialized
@@ -134,7 +134,7 @@ class JoinVariableDeclaration extends CorrectionProducer {
       return;
     }
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(
           range.endStart(decl.name, assignExpression.operator), ' ');
     });

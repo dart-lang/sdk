@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol_server.dart'
     show newLocation_fromElement, newLocation_fromMatch;
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -141,8 +139,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _findFlutterStateClass() {
-    var flutter = Flutter.of(resolvedUnit);
-    if (flutter.isStatefulWidgetDeclaration(element)) {
+    if (Flutter.instance.isStatefulWidgetDeclaration(element)) {
       var oldStateName = oldName + 'State';
       _flutterWidgetState = element.library.getType(oldStateName) ??
           element.library.getType('_' + oldStateName);

@@ -10,6 +10,7 @@
 #include <cstdlib>
 
 #include "platform/atomic.h"
+#include "platform/signal_blocker.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -23,15 +24,24 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_timeline);
 
-TimelineEventSystraceRecorder::TimelineEventSystraceRecorder()
-    : TimelineEventPlatformRecorder(), systrace_fd_(-1) {
-  const char* kSystracePath = "/sys/kernel/debug/tracing/trace_marker";
-  systrace_fd_ = open(kSystracePath, O_WRONLY);
-  if ((systrace_fd_ < 0) && FLAG_trace_timeline) {
-    OS::PrintErr("TimelineEventSystraceRecorder: Could not open `%s`\n",
-                 kSystracePath);
+static int OpenTraceFD() {
+  const char* kSystraceDebugPath = "/sys/kernel/debug/tracing/trace_marker";
+  const char* kSystracePath = "/sys/kernel/tracing/trace_marker";
+
+  int fd = TEMP_FAILURE_RETRY(::open(kSystracePath, O_WRONLY));
+  if (fd < 0) {
+    fd = TEMP_FAILURE_RETRY(::open(kSystraceDebugPath, O_WRONLY));
   }
+
+  if (fd < 0 && FLAG_trace_timeline) {
+    OS::PrintErr("TimelineEventSystraceRecorder: Could not open `%s` or `%s`\n",
+                 kSystraceDebugPath, kSystracePath);
+  }
+  return fd;
 }
+
+TimelineEventSystraceRecorder::TimelineEventSystraceRecorder()
+    : TimelineEventPlatformRecorder(), systrace_fd_(OpenTraceFD()) {}
 
 TimelineEventSystraceRecorder::~TimelineEventSystraceRecorder() {
   if (systrace_fd_ >= 0) {

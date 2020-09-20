@@ -681,7 +681,8 @@ class Namer extends ModularNamer {
       String invocationName = operatorNameToIdentifier(function.name);
       // TODO(sra): If the generator is for a closure's 'call' method, we don't
       // need to incorporate the enclosing class.
-      String className = method.enclosingClass.name.replaceAll('&', '_');
+      String className =
+          method.enclosingClass.name.replaceAll(_nonIdentifierRE, '_');
       return '${invocationName}\$body\$${className}';
     });
   }

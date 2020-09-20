@@ -38,6 +38,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
   const Class& class_a =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!class_a.IsNull());
+  EXPECT(class_a.EnsureIsFinalized(thread) == Error::null());
 
   const Class& class_b =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
@@ -46,10 +47,12 @@ TEST_CASE(ClassHierarchyAnalysis) {
   const Class& class_c =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "C"))));
   EXPECT(!class_c.IsNull());
+  EXPECT(class_c.EnsureIsFinalized(thread) == Error::null());
 
   const Class& class_d =
       Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "D"))));
   EXPECT(!class_d.IsNull());
+  EXPECT(class_d.EnsureIsFinalized(thread) == Error::null());
 
   const String& function_foo_name = String::Handle(String::New("foo"));
   const String& function_bar_name = String::Handle(String::New("bar"));
@@ -74,7 +77,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
       Function::Handle(class_d.LookupDynamicFunction(function_bar_name));
   EXPECT(!class_d_bar.IsNull());
 
-  CHA cha(Thread::Current());
+  CHA cha(thread);
 
   EXPECT(cha.HasSubclasses(kInstanceCid));
   EXPECT(!cha.HasSubclasses(kSmiCid));

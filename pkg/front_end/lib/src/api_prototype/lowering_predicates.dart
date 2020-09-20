@@ -28,8 +28,8 @@ import '../fasta/kernel/late_lowering.dart';
 bool isLateLoweredField(Field node) {
   return node.isInternalImplementation &&
       node.name != null &&
-      node.name.name.startsWith(lateFieldPrefix) &&
-      !node.name.name.endsWith(lateIsSetSuffix);
+      node.name.text.startsWith(lateFieldPrefix) &&
+      !node.name.text.endsWith(lateIsSetSuffix);
 }
 
 /// Returns `true` if [node] is the field holding the marker for whether a
@@ -55,8 +55,8 @@ bool isLateLoweredField(Field node) {
 bool isLateLoweredIsSetField(Field node) {
   return node.isInternalImplementation &&
       node.name != null &&
-      node.name.name.startsWith(lateFieldPrefix) &&
-      node.name.name.endsWith(lateIsSetSuffix);
+      node.name.text.startsWith(lateFieldPrefix) &&
+      node.name.text.endsWith(lateIsSetSuffix);
 }
 
 /// Returns `true` if [node] is the getter for reading the value of a lowered
@@ -84,11 +84,11 @@ bool isLateLoweredFieldGetter(Procedure node) {
     if (parent is Class) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     } else if (parent is Library) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     }
   }
   return false;
@@ -119,11 +119,11 @@ bool isLateLoweredFieldSetter(Procedure node) {
     if (parent is Class) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     } else if (parent is Library) {
       return parent.fields.any((Field field) =>
           isLateLoweredField(field) &&
-          field.name.name.endsWith(node.name.name));
+          field.name.text.endsWith(node.name.text));
     }
   }
   return false;

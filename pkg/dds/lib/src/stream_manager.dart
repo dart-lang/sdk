@@ -28,7 +28,7 @@ class _StreamManager {
           continue;
         }
         if (isBinaryData) {
-          listener.ws.sink.add(data);
+          listener.connection.sink.add(data);
         } else {
           listener.sendNotification('streamNotify', data);
         }
@@ -36,14 +36,8 @@ class _StreamManager {
     }
   }
 
-  void sendServiceRegisteredEvent(
-    _DartDevelopmentServiceClient client,
-    String service,
-    String alias,
-  ) {
-    final namespace = dds._getNamespace(client);
-    streamNotify(
-      kServiceStream,
+  static Map<String, dynamic> _buildStreamRegisteredEvent(
+          String namespace, String service, String alias) =>
       {
         'streamId': kServiceStream,
         'event': {
@@ -53,8 +47,18 @@ class _StreamManager {
           'service': service,
           'method': namespace + '.' + service,
           'alias': alias,
-        },
-      },
+        }
+      };
+
+  void sendServiceRegisteredEvent(
+    _DartDevelopmentServiceClient client,
+    String service,
+    String alias,
+  ) {
+    final namespace = dds._getNamespace(client);
+    streamNotify(
+      kServiceStream,
+      _buildStreamRegisteredEvent(namespace, service, alias),
       excludedClient: client,
     );
   }
@@ -117,12 +121,15 @@ class _StreamManager {
   ) async {
     assert(stream != null && stream.isNotEmpty);
     if (!streamListeners.containsKey(stream)) {
-      // This will return an RPC exception if the stream doesn't exist. This
-      // will throw and the exception will be forwarded to the client.
-      final result = await dds._vmServiceClient.sendRequest('streamListen', {
-        'streamId': stream,
-      });
-      assert(result['type'] == 'Success');
+      if ((stream == kDebugStream && client == null) ||
+          stream != kDebugStream) {
+        // This will return an RPC exception if the stream doesn't exist. This
+        // will throw and the exception will be forwarded to the client.
+        final result = await dds._vmServiceClient.sendRequest('streamListen', {
+          'streamId': stream,
+        });
+        assert(result['type'] == 'Success');
+      }
       streamListeners[stream] = <_DartDevelopmentServiceClient>[];
     }
     if (streamListeners[stream].contains(client)) {
@@ -132,6 +139,25 @@ class _StreamManager {
       streamListeners[stream].add(client);
       if (stream == kLoggingStream) {
         dds.loggingRepository.sendHistoricalLogs(client);
+      } else if (stream == kServiceStream) {
+        // Send all previously registered service extensions when a client
+        // subscribes to the Service stream.
+        for (final c in dds.clientManager.clients) {
+          if (c == client) {
+            continue;
+          }
+          final namespace = dds._getNamespace(c);
+          for (final service in c.services.keys) {
+            client.sendNotification(
+              'streamNotify',
+              _buildStreamRegisteredEvent(
+                namespace,
+                service,
+                c.services[service],
+              ),
+            );
+          }
+        }
       }
     }
   }
@@ -142,17 +168,23 @@ class _StreamManager {
   /// send a `streamCancel` request for `stream` to the VM service.
   Future<void> streamCancel(
     _DartDevelopmentServiceClient client,
-    String stream,
-  ) async {
+    String stream, {
+    bool cancelCoreStream = false,
+  }) async {
     assert(stream != null && stream.isNotEmpty);
     final listeners = streamListeners[stream];
-    if (listeners == null || !listeners.contains(client)) {
+    if (client != null && (listeners == null || !listeners.contains(client))) {
       throw kStreamNotSubscribedException;
     }
     listeners.remove(client);
     // Don't cancel streams DDS needs to function.
-    if (listeners.isEmpty && !ddsCoreStreams.contains(stream)) {
+    if (listeners.isEmpty &&
+        (!ddsCoreStreams.contains(stream) || cancelCoreStream)) {
       streamListeners.remove(stream);
+      // Ensure the VM service hasn't shutdown.
+      if (dds._vmServiceClient.isClosed) {
+        return;
+      }
       final result = await dds._vmServiceClient.sendRequest('streamCancel', {
         'streamId': stream,
       });
@@ -167,8 +199,11 @@ class _StreamManager {
     for (final streamId in streamListeners.keys.toList()) {
       streamCancel(client, streamId).catchError(
         (_) => null,
-        // Ignore 'stream not subscribed' errors.
-        test: (e) => e is json_rpc.RpcException,
+        // Ignore 'stream not subscribed' errors and StateErrors which arise
+        // when DDS is shutting down.
+        test: (e) =>
+            (e is json_rpc.RpcException) ||
+            (dds._shuttingDown && e is StateError),
       );
     }
     // Notify other service clients of service extensions that are being

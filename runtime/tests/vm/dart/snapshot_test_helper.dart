@@ -48,6 +48,7 @@ final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String buildDir = p.dirname(Platform.executable);
 final String platformDill = p.join(buildDir, "vm_platform_strong.dill");
 final String genSnapshot = p.join(buildDir, "gen_snapshot${executableSuffix}");
+final String dart = p.join(buildDir, "dart${executableSuffix}");
 final String dartPrecompiledRuntime =
     p.join(buildDir, "dart_precompiled_runtime${executableSuffix}");
 final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");
@@ -62,12 +63,21 @@ Future<Result> runDart(String prefix, List<String> arguments) {
 }
 
 Future<Result> runGenKernel(String prefix, List<String> arguments) {
-  final augmentedArguments = <String>[]
-    ..add(genKernel)
-    ..add("--platform")
-    ..add(platformDill)
-    ..addAll(arguments);
-  return runBinary(prefix, checkedInDartVM, augmentedArguments);
+  final augmentedArguments = <String>[
+    "--platform",
+    platformDill,
+    ...Platform.executableArguments.where((arg) =>
+        arg.startsWith('--enable-experiment=') ||
+        arg == '--sound-null-safety' ||
+        arg == '--no-sound-null-safety'),
+    ...arguments,
+  ];
+  return runGenKernelWithoutStandardOptions(prefix, augmentedArguments);
+}
+
+Future<Result> runGenKernelWithoutStandardOptions(
+    String prefix, List<String> arguments) {
+  return runBinary(prefix, checkedInDartVM, [genKernel, ...arguments]);
 }
 
 Future<Result> runGenSnapshot(String prefix, List<String> arguments) {

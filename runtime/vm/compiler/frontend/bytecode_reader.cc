@@ -7,6 +7,7 @@
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
+#include "vm/class_id.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/aot/precompiler.h"  // For Obfuscator
 #include "vm/compiler/assembler/disassembler_kbc.h"
@@ -199,25 +200,18 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   const bool has_local_variables = (flags & Code::kHasLocalVariablesFlag) != 0;
   const bool has_nullable_fields = (flags & Code::kHasNullableFieldsFlag) != 0;
   const bool has_closures = (flags & Code::kHasClosuresFlag) != 0;
-  const bool has_parameters_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
+  const bool has_parameter_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
   const bool has_forwarding_stub_target =
       (flags & Code::kHasForwardingStubTargetFlag) != 0;
   const bool has_default_function_type_args =
       (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
 
-  if (has_parameters_flags) {
-    intptr_t num_params = reader_.ReadUInt();
-    ASSERT(num_params ==
-           function.NumParameters() - function.NumImplicitParameters());
-    for (intptr_t i = function.NumImplicitParameters();
-         i < function.NumParameters(); ++i) {
-      const intptr_t flags = reader_.ReadUInt();
-      if ((flags & Parameter::kIsRequiredFlag) != 0) {
-        function.SetIsRequiredAt(i);
-      }
+  if (has_parameter_flags) {
+    intptr_t num_flags = reader_.ReadUInt();
+    for (intptr_t i = 0; i < num_flags; ++i) {
+      reader_.ReadUInt();
     }
   }
-  function.TruncateUnusedParameterFlags();
   if (has_forwarding_stub_target) {
     reader_.ReadUInt();
   }
@@ -352,22 +346,19 @@ ArrayPtr BytecodeReaderHelper::CreateForwarderChecks(const Function& function) {
     AlternativeReadingScope alt(&reader_, function.bytecode_offset());
 
     const intptr_t flags = reader_.ReadUInt();
-    const bool has_parameters_flags =
+    const bool has_parameter_flags =
         (flags & Code::kHasParameterFlagsFlag) != 0;
     const bool has_forwarding_stub_target =
         (flags & Code::kHasForwardingStubTargetFlag) != 0;
     const bool has_default_function_type_args =
         (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
 
-    if (has_parameters_flags) {
-      intptr_t num_params = reader_.ReadUInt();
-      ASSERT(num_params ==
-             function.NumParameters() - function.NumImplicitParameters());
-      for (intptr_t i = 0; i < num_params; ++i) {
+    if (has_parameter_flags) {
+      intptr_t num_flags = reader_.ReadUInt();
+      for (intptr_t i = 0; i < num_flags; ++i) {
         reader_.ReadUInt();
       }
     }
-
     if (has_forwarding_stub_target) {
       reader_.ReadUInt();
     }
@@ -579,17 +570,13 @@ TypePtr BytecodeReaderHelper::ReadFunctionSignature(
   func.set_num_fixed_parameters(num_required_params);
   func.SetNumOptionalParameters(num_params - num_required_params,
                                 !has_optional_named_params);
-  const Array& parameter_types =
-      Array::Handle(Z, Array::New(num_params, Heap::kOld));
-  func.set_parameter_types(parameter_types);
-  const Array& parameter_names = Array::Handle(
-      Z, Array::New(Function::NameArrayLengthIncludingFlags(num_params),
-                    Heap::kOld));
-  func.set_parameter_names(parameter_names);
+  func.set_parameter_types(
+      Array::Handle(Z, Array::New(num_params, Heap::kOld)));
+  func.CreateNameArrayIncludingFlags(Heap::kOld);
 
   intptr_t i = 0;
-  parameter_types.SetAt(i, AbstractType::dynamic_type());
-  parameter_names.SetAt(i, Symbols::ClosureParameter());
+  func.SetParameterTypeAt(i, AbstractType::dynamic_type());
+  func.SetParameterNameAt(i, Symbols::ClosureParameter());
   ++i;
 
   AbstractType& type = AbstractType::Handle(Z);
@@ -601,15 +588,16 @@ TypePtr BytecodeReaderHelper::ReadFunctionSignature(
     } else {
       name = Symbols::NotNamed().raw();
     }
-    parameter_names.SetAt(i, name);
+    func.SetParameterNameAt(i, name);
     type ^= ReadObject();
-    parameter_types.SetAt(i, type);
+    func.SetParameterTypeAt(i, type);
   }
   if (has_parameter_flags) {
     intptr_t num_flags = reader_.ReadUInt();
     for (intptr_t i = 0; i < num_flags; ++i) {
       intptr_t flag = reader_.ReadUInt();
       if ((flag & Parameter::kIsRequiredFlag) != 0) {
+        RELEASE_ASSERT(kImplicitClosureParam + i >= num_required_params);
         func.SetIsRequiredAt(kImplicitClosureParam + i);
       }
     }
@@ -1103,6 +1091,10 @@ TypedDataPtr BytecodeReaderHelper::NativeEntry(const Function& function,
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
     case MethodRecognizer::kFfiAbi:
+#define TYPED_DATA_FACTORY(clazz)                                              \
+  case MethodRecognizer::kTypedData_##clazz##_factory:
+      CLASS_LIST_TYPED_DATA(TYPED_DATA_FACTORY)
+#undef TYPED_DATA_FACTORY
       break;
     case MethodRecognizer::kAsyncStackTraceHelper:
       // If causal async stacks are disabled the interpreter.cc will handle this
@@ -1450,7 +1442,10 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             cls.raw() == scoped_function_class_.raw()) {
           return scoped_function_.raw();
         }
-        FunctionPtr function = cls.LookupFunction(name);
+        FunctionPtr function = Function::null();
+        if (cls.EnsureIsFinalized(thread_) == Error::null()) {
+          function = cls.LookupFunction(name);
+        }
         if (function == Function::null()) {
           // When requesting a getter, also return method extractors.
           if (Field::IsGetterName(name)) {
@@ -2244,6 +2239,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   const int kHasCustomScriptFlag = 1 << 22;
   const int kHasAttributesFlag = 1 << 23;
   const int kIsExtensionMemberFlag = 1 << 24;
+  const int kHasParameterFlagsFlag = 1 << 25;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2256,7 +2252,6 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   Object& script_class = Object::Handle(Z);
   Function& function = Function::Handle(Z);
   Array& parameter_types = Array::Handle(Z);
-  Array& parameter_names = Array::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
 
   name = cls.ScrubbedName();
@@ -2366,10 +2361,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     parameter_types = Array::New(num_params, Heap::kOld);
     function.set_parameter_types(parameter_types);
-
-    parameter_names = Array::New(
-        Function::NameArrayLengthIncludingFlags(num_params), Heap::kOld);
-    function.set_parameter_names(parameter_names);
+    function.CreateNameArrayIncludingFlags(Heap::kOld);
 
     intptr_t param_index = 0;
     if (!is_static) {
@@ -2393,10 +2385,24 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     for (; param_index < num_params; ++param_index) {
       name ^= ReadObject();
-      parameter_names.SetAt(param_index, name);
+      function.SetParameterNameAt(param_index, name);
       type ^= ReadObject();
-      parameter_types.SetAt(param_index, type);
+      function.SetParameterTypeAt(param_index, type);
     }
+
+    if ((flags & kHasParameterFlagsFlag) != 0) {
+      const intptr_t length = reader_.ReadUInt();
+      const intptr_t offset = function.NumImplicitParameters();
+      for (intptr_t i = 0; i < length; i++) {
+        const intptr_t param_flags = reader_.ReadUInt();
+        if ((param_flags & Parameter::kIsRequiredFlag) != 0) {
+          RELEASE_ASSERT(function.HasOptionalNamedParameters());
+          RELEASE_ASSERT(i + offset >= function.num_fixed_parameters());
+          function.SetIsRequiredAt(i + offset);
+        }
+      }
+    }
+    function.TruncateUnusedParameterFlags();
 
     type ^= ReadObject();
     function.set_result_type(type);
@@ -3057,7 +3063,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
   AlternativeReadingScope alt(&reader_, target.bytecode_offset());
 
   const intptr_t flags = reader_.ReadUInt();
-  const bool has_parameters_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
+  const bool has_parameter_flags = (flags & Code::kHasParameterFlagsFlag) != 0;
   const bool has_forwarding_stub_target =
       (flags & Code::kHasForwardingStubTargetFlag) != 0;
   const bool has_default_function_type_args =
@@ -3069,7 +3075,7 @@ void BytecodeReaderHelper::ParseForwarderFunction(
   const bool body_has_generic_covariant_impl_type_checks =
       proc_attrs.has_non_this_uses || proc_attrs.has_tearoff_uses;
 
-  if (has_parameters_flags) {
+  if (has_parameter_flags) {
     const intptr_t num_params = reader_.ReadUInt();
     const intptr_t num_implicit_params = function.NumImplicitParameters();
     for (intptr_t i = 0; i < num_params; ++i) {
@@ -3078,11 +3084,6 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       bool is_covariant = (flags & Parameter::kIsCovariantFlag) != 0;
       bool is_generic_covariant_impl =
           (flags & Parameter::kIsGenericCovariantImplFlag) != 0;
-      bool is_required = (flags & Parameter::kIsRequiredFlag) != 0;
-
-      if (is_required) {
-        function.SetIsRequiredAt(num_implicit_params + i);
-      }
 
       LocalVariable* variable =
           parsed_function->ParameterVariable(num_implicit_params + i);

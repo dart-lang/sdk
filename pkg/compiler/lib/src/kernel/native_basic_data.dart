@@ -47,15 +47,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     return annotationName;
   }
 
-  void checkFunctionParameters(FunctionEntity function) {
-    if (function.parameterStructure.namedParameters.isNotEmpty) {
-      elementMap.reporter.reportErrorMessage(
-          function,
-          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
-          {'method': function.name});
-    }
-  }
-
   @override
   void extractJsInteropAnnotations(LibraryEntity library) {
     DiagnosticReporter reporter = elementMap.reporter;
@@ -90,7 +81,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                 function, MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER);*/
           } else {
             _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName);
-            checkFunctionParameters(function);
             // TODO(johnniwinther): It is unclear whether library can be
             // implicitly js-interop. For now we allow it.
             isJsLibrary = true;
@@ -144,8 +134,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
                   MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
                   {'cls': cls.name, 'member': member.name});
             }
-
-            checkFunctionParameters(function);
           }
         });
         elementEnvironment.forEachConstructor(cls,
@@ -163,27 +151,12 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             _nativeBasicDataBuilder.markAsJsInteropMember(
                 constructor, memberName);
           }
-
-          if (constructor.isFactoryConstructor && isAnonymous) {
-            if (constructor.parameterStructure.positionalParameters > 0) {
-              reporter.reportErrorMessage(
-                  constructor,
-                  MessageKind
-                      .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                  {'cls': cls.name});
-            }
-          } else {
-            checkFunctionParameters(constructor);
-          }
         });
       } else {
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(member));
-          if (memberName != null) {
-            reporter.reportErrorMessage(
-                member, MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
-          } else if (member is FunctionEntity) {
+          if (memberName == null && member is FunctionEntity) {
             if (member.isExternal &&
                 !commonElements.isExternalAllowed(member)) {
               reporter.reportErrorMessage(
@@ -195,10 +168,7 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             (ConstructorEntity constructor) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(constructor));
-          if (memberName != null) {
-            reporter.reportErrorMessage(constructor,
-                MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
-          } else {
+          if (memberName == null) {
             if (constructor.isExternal &&
                 !commonElements.isExternalAllowed(constructor)) {
               reporter.reportErrorMessage(

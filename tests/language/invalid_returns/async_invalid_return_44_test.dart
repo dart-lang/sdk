@@ -15,14 +15,14 @@ FutureOr<String> test1() async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'FutureOr<int>' can't be returned from an async function with return type 'FutureOr<String>'.
 }
 
 FutureOr<String> Function() test2 = () async {
   return v;
   //     ^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  // [cfe] A value of type 'FutureOr<int>' can't be returned from an async function with return type 'Future<String>'.
 };
 
 void main() {

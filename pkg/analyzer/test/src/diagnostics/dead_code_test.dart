@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/constant/potentially_constant_test.dart';
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +15,13 @@ main() {
 }
 
 @reflectiveTest
-class DeadCodeTest extends DriverResolutionTest with PackageMixin {
+class DeadCodeTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
   test_afterForEachWithBreakLabel() async {
     await assertNoErrorsInCode(r'''
 f(List<Object> values) {
@@ -166,7 +170,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_prefixedIdentifier2() async {
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class A {
   static const bool DEBUG = false;
 }''');
@@ -178,7 +182,7 @@ f() {
   }
 
   test_deadBlock_if_debugConst_propertyAccessor() async {
-    newFile('/test/lib/lib2.dart', content: r'''
+    newFile('$testPackageLibPath/lib2.dart', content: r'''
 class A {
   static const bool DEBUG = false;
 }''');
@@ -313,61 +317,6 @@ f() {
 ''', [
       error(HintCode.UNUSED_CATCH_CLAUSE, 59, 1),
       error(HintCode.UNUSED_CATCH_CLAUSE, 77, 1),
-    ]);
-  }
-
-  test_deadFinalBreakInCase() async {
-    await assertNoErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      print(1);
-    } finally {
-      return;
-    }
-    break;
-  default:
-    break;
-  }
-}''');
-  }
-
-  test_deadFinalReturnInCase() async {
-    await assertErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      print(1);
-    } finally {
-      return;
-    }
-    return;
-  default:
-    break;
-  }
-}''', [
-      error(HintCode.DEAD_CODE, 103, 7),
-    ]);
-  }
-
-  test_deadFinalStatementInCase() async {
-    await assertErrorsInCode(r'''
-f() {
-  switch (true) {
-  case true:
-    try {
-      print(1);
-    } finally {
-      return;
-    }
-    throw 'msg';
-  default:
-    break;
-  }
-}''', [
-      error(HintCode.DEAD_CODE, 103, 12),
     ]);
   }
 
@@ -508,7 +457,6 @@ main() {
   }
 
   test_statementAfterAlwaysThrowsFunction() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -528,7 +476,6 @@ f() {
 
   @failingTest
   test_statementAfterAlwaysThrowsGetter() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -548,7 +495,6 @@ f() {
   }
 
   test_statementAfterAlwaysThrowsMethod() async {
-    addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -805,10 +751,115 @@ f() {
       error(HintCode.DEAD_CODE, 41, 9),
     ]);
   }
+
+  test_switchCase_final_break() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 96, 6),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      try {} finally {
+        return;
+      }
+      break;
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_continue() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 140, 9),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  for (var i = 0; i < 2; i++) {
+    switch (a) {
+      case 0:
+        try {} finally {
+          return;
+        }
+        continue;
+    }
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_rethrow() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 142, 8),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  try {
+    // empty
+  } on int {
+    switch (a) {
+      case 0:
+        try {} finally {
+          return;
+        }
+        rethrow;
+    }
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_return() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 96, 7),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      try {} finally {
+        return;
+      }
+      return;
+  }
+}
+''', expectedErrors);
+  }
+
+  test_switchCase_final_throw() async {
+    var expectedErrors = expectedErrorsByNullability(nullable: [
+      error(HintCode.DEAD_CODE, 96, 8),
+    ], legacy: []);
+    await assertErrorsInCode(r'''
+void f(int a) {
+  switch (a) {
+    case 0:
+      try {} finally {
+        return;
+      }
+      throw 0;
+  }
+}
+''', expectedErrors);
+  }
 }
 
 @reflectiveTest
 class DeadCodeWithNullSafetyTest extends DeadCodeTest with WithNullSafetyMixin {
+  test_assert_dead_message() async {
+    // We don't warn if an assert statement is live but its message is dead,
+    // because this results in nuisance warnings for desirable assertions (e.g.
+    // a `!= null` assertion that is redundant with strong checking but still
+    // useful with weak checking).
+    await assertErrorsInCode('''
+void f(Object waldo) {
+  assert(waldo != null, "Where's Waldo?");
+}
+''', [
+      error(HintCode.UNNECESSARY_NULL_COMPARISON_TRUE, 38, 7),
+    ]);
+  }
+
   test_flowEnd_tryStatement_body() async {
     await assertErrorsInCode(r'''
 Never foo() => throw 0;

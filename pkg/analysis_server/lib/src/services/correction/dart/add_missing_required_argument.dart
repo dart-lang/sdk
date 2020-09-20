@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddMissingRequiredArgument extends CorrectionProducer {
@@ -22,12 +22,12 @@ class AddMissingRequiredArgument extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     InstanceCreationExpression creation;
     Element targetElement;
     ArgumentList argumentList;
 
-    if (node is SimpleIdentifier) {
+    if (node is SimpleIdentifier || node is ConstructorName) {
       var invocation = node.parent;
       if (invocation is MethodInvocation) {
         targetElement = invocation.methodName.staticElement;
@@ -43,7 +43,7 @@ class AddMissingRequiredArgument extends CorrectionProducer {
     }
 
     if (targetElement is ExecutableElement) {
-      // Format: "Missing required argument 'foo"
+      // Format: "Missing required argument 'foo'."
       var messageParts = diagnostic.problemMessage.message.split("'");
       if (messageParts.length < 2) {
         return;
@@ -78,16 +78,18 @@ class AddMissingRequiredArgument extends CorrectionProducer {
           }
         }
       }
+      var defaultValue = getDefaultStringParameterValue(missingParameter,
+          withNullability: libraryElement.isNonNullableByDefault &&
+              missingParameter.library.isNonNullableByDefault);
 
-      await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addInsertion(offset, (DartEditBuilder builder) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(offset, (builder) {
           if (arguments.isNotEmpty && !insertBetweenParams) {
             builder.write(', ');
           }
 
           builder.write('$_missingParameterName: ');
 
-          var defaultValue = getDefaultStringParameterValue(missingParameter);
           // Use defaultValue.cursorPosition if it's not null.
           if (defaultValue?.cursorPosition != null) {
             builder.write(

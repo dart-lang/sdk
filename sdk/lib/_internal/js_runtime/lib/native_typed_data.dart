@@ -11,6 +11,7 @@ import 'dart:_internal' show FixedLengthListMixin hide Symbol;
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
     show
+        checkNum,
         Creates,
         JavaScriptIndexingBehavior,
         JSName,
@@ -1351,22 +1352,26 @@ class NativeFloat32x4 implements Float32x4 {
 
   /// Copy [this] and replace the [x] lane.
   Float32x4 withX(double newX) {
-    return NativeFloat32x4._truncated(_truncate(newX), y, z, w);
+    double _newX = _truncate(checkNum(newX));
+    return NativeFloat32x4._truncated(_newX, y, z, w);
   }
 
   /// Copy [this] and replace the [y] lane.
   Float32x4 withY(double newY) {
-    return NativeFloat32x4._truncated(x, _truncate(newY), z, w);
+    double _newY = _truncate(checkNum(newY));
+    return NativeFloat32x4._truncated(x, _newY, z, w);
   }
 
   /// Copy [this] and replace the [z] lane.
   Float32x4 withZ(double newZ) {
-    return NativeFloat32x4._truncated(x, y, _truncate(newZ), w);
+    double _newZ = _truncate(checkNum(newZ));
+    return NativeFloat32x4._truncated(x, y, _newZ, w);
   }
 
   /// Copy [this] and replace the [w] lane.
   Float32x4 withW(double newW) {
-    return NativeFloat32x4._truncated(x, y, z, _truncate(newW));
+    double _newW = _truncate(checkNum(newW));
+    return NativeFloat32x4._truncated(x, y, z, _newW);
   }
 
   /// Returns the lane-wise minimum value in [this] or [other].
@@ -1573,25 +1578,25 @@ class NativeInt32x4 implements Int32x4 {
 
   /// Returns a new [Int32x4] copied from [this] with a new x value.
   Int32x4 withX(int x) {
-    int _x = _truncate(x);
+    int _x = _truncate(checkNum(x));
     return NativeInt32x4._truncated(_x, y, z, w);
   }
 
   /// Returns a new [Int32x4] copied from [this] with a new y value.
   Int32x4 withY(int y) {
-    int _y = _truncate(y);
+    int _y = _truncate(checkNum(y));
     return NativeInt32x4._truncated(x, _y, z, w);
   }
 
   /// Returns a new [Int32x4] copied from [this] with a new z value.
   Int32x4 withZ(int z) {
-    int _z = _truncate(z);
+    int _z = _truncate(checkNum(z));
     return NativeInt32x4._truncated(x, y, _z, w);
   }
 
   /// Returns a new [Int32x4] copied from [this] with a new w value.
   Int32x4 withW(int w) {
-    int _w = _truncate(w);
+    int _w = _truncate(checkNum(w));
     return NativeInt32x4._truncated(x, y, z, _w);
   }
 

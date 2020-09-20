@@ -226,14 +226,37 @@ class _InternetAddress implements InternetAddress {
       return _InternetAddress(
           InternetAddressType.unix, address, null, rawAddress);
     } else {
-      var in_addr = _parse(address);
-      if (in_addr == null) {
-        throw ArgumentError("Invalid internet address $address");
+      int index = address.indexOf('%');
+      String originalAddress = address;
+      String? scopeID;
+      if (index > 0) {
+        scopeID = address.substring(index, address.length);
+        address = address.substring(0, index);
       }
-      InternetAddressType type = in_addr.length == _IPv4AddrLength
+      var inAddr = _parse(address);
+      if (inAddr == null) {
+        throw ArgumentError('Invalid internet address $address');
+      }
+      InternetAddressType type = inAddr.length == _IPv4AddrLength
           ? InternetAddressType.IPv4
           : InternetAddressType.IPv6;
-      return _InternetAddress(type, address, null, in_addr);
+      if (scopeID != null && scopeID.length > 0) {
+        if (type != InternetAddressType.IPv6) {
+          throw ArgumentError.value(
+              address, 'address', 'IPv4 addresses cannot have a scope ID');
+        }
+
+        final scopeID = _parseScopedLinkLocalAddress(originalAddress);
+
+        if (scopeID is int) {
+          return _InternetAddress(
+              InternetAddressType.IPv6, originalAddress, null, inAddr, scopeID);
+        } else {
+          throw ArgumentError.value(
+              address, 'address', 'Invalid IPv6 address with scope ID');
+        }
+      }
+      return _InternetAddress(type, originalAddress, null, inAddr, 0);
     }
   }
 
@@ -262,12 +285,11 @@ class _InternetAddress implements InternetAddress {
 
   static _InternetAddress? tryParse(String address) {
     checkNotNullable(address, "address");
-    var addressBytes = _parse(address);
-    if (addressBytes == null) return null;
-    var type = addressBytes.length == _IPv4AddrLength
-        ? InternetAddressType.IPv4
-        : InternetAddressType.IPv6;
-    return _InternetAddress(type, address, null, addressBytes);
+    try {
+      return _InternetAddress.fromString(address);
+    } on ArgumentError catch (_) {
+      return null;
+    }
   }
 
   factory _InternetAddress.fixed(int id) {
@@ -297,7 +319,8 @@ class _InternetAddress implements InternetAddress {
 
   // Create a clone of this _InternetAddress replacing the host.
   _InternetAddress _cloneWithNewHost(String host) {
-    return _InternetAddress(type, address, host, Uint8List.fromList(_in_addr));
+    return _InternetAddress(
+        type, address, host, Uint8List.fromList(_in_addr), _scope_id);
   }
 
   bool operator ==(other) {
@@ -330,7 +353,8 @@ class _InternetAddress implements InternetAddress {
 
   static String _rawAddrToString(Uint8List address)
       native "InternetAddress_RawAddrToString";
-
+  static dynamic /* int | OSError */ _parseScopedLinkLocalAddress(
+      String address) native "InternetAddress_ParseScopedLinkLocalAddress";
   static Uint8List? _parse(String address) native "InternetAddress_Parse";
 }
 
@@ -462,9 +486,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool sendWriteEvents = false;
   bool writeEventIssued = false;
   bool writeAvailable = false;
-
-  static bool connectedResourceHandler = false;
-  _SocketResourceInfo? resourceInfo;
 
   // The owner object is the object that the Socket is being used by, e.g.
   // a HttpServer, a WebSocket connection, a process pipe, etc.
@@ -634,7 +655,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           var duration =
               address.isLoopback ? _retryDurationLoopback : _retryDuration;
           var timer = new Timer(duration, connectNext);
-          setupResourceInfo(socket);
 
           connecting[socket] = timer;
           // Setup handlers for receiving the first write event which
@@ -751,13 +771,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           osError: result, address: address, port: port);
     }
     if (port != 0) socket.localPort = port;
-    setupResourceInfo(socket);
     socket.connectToEventHandler();
     return socket;
-  }
-
-  static void setupResourceInfo(_NativeSocket socket) {
-    socket.resourceInfo = new _SocketResourceInfo(socket);
   }
 
   static Future<_NativeSocket> bindDatagram(
@@ -775,7 +790,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           osError: result, address: address, port: port);
     }
     if (port != 0) socket.localPort = port;
-    setupResourceInfo(socket);
     return socket;
   }
 
@@ -844,19 +858,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           list = builder.toBytes();
         }
       }
-      final resourceInformation = resourceInfo;
-      assert(resourceInformation != null ||
-          isPipe ||
-          isInternal ||
-          isInternalSignal);
-      if (list != null) {
-        if (resourceInformation != null) {
-          resourceInformation.totalRead += list.length;
-        }
-      }
-      if (resourceInformation != null) {
-        resourceInformation.didRead();
-      }
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(
             nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
@@ -872,16 +873,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (isClosing || isClosed) return null;
     try {
       Datagram? result = nativeRecvFrom();
-      if (result != null) {
-        final resourceInformation = resourceInfo;
-        if (resourceInformation != null) {
-          resourceInformation.totalRead += result.data.length;
-        }
-      }
-      final resourceInformation = resourceInfo;
-      if (resourceInformation != null) {
-        resourceInformation.didRead();
-      }
       if (!const bool.fromEnvironment("dart.vm.product")) {
         _SocketProfile.collectStatistic(nativeGetSocketId(),
             _SocketProfileType.readBytes, result?.data.length);
@@ -931,14 +922,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       }
       // Negate the result, as stated above.
       if (result < 0) result = -result;
-      final resourceInformation = resourceInfo;
-      assert(resourceInformation != null ||
-          isPipe ||
-          isInternal ||
-          isInternalSignal);
-      if (resourceInformation != null) {
-        resourceInformation.addWrite(result);
-      }
       return result;
     } catch (e) {
       StackTrace st = StackTrace.current;
@@ -962,14 +945,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       }
       int result = nativeSendTo(bufferAndStart.buffer, bufferAndStart.start,
           bytes, (address as _InternetAddress)._in_addr, port);
-      final resourceInformation = resourceInfo;
-      assert(resourceInformation != null ||
-          isPipe ||
-          isInternal ||
-          isInternalSignal);
-      if (resourceInformation != null) {
-        resourceInformation.addWrite(result);
-      }
       return result;
     } catch (e) {
       StackTrace st = StackTrace.current;
@@ -988,16 +963,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     var socket = new _NativeSocket.normal(address);
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
-    setupResourceInfo(socket);
-    final resourceInformation = resourceInfo;
-    assert(resourceInformation != null ||
-        isPipe ||
-        isInternal ||
-        isInternalSignal);
-    if (resourceInformation != null) {
-      // We track this as read one byte.
-      resourceInformation.addRead(1);
-    }
     return socket;
   }
 
@@ -1125,14 +1090,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         if (i == destroyedEvent) {
           assert(isClosing);
           assert(!isClosed);
-          final resourceInformation = resourceInfo;
-          assert(resourceInformation != null ||
-              isPipe ||
-              isInternal ||
-              isInternalSignal);
-          if (resourceInformation != null) {
-            _SocketResourceInfo.SocketClosed(resourceInformation);
-          }
           isClosed = true;
           closeCompleter.complete();
           disconnectFromEventHandler();
@@ -1250,14 +1207,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     assert(!isClosed);
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
-    }
-    if (!connectedResourceHandler) {
-      registerExtension(
-          'ext.dart.io.getOpenSockets', _SocketResourceInfo.getOpenSockets);
-      registerExtension('ext.dart.io.getSocketByID',
-          _SocketResourceInfo.getSocketInfoMapByID);
-
-      connectedResourceHandler = true;
     }
   }
 

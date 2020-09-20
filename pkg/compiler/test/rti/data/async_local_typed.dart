@@ -13,7 +13,7 @@ main() async {
   // `dynamic Function(dynamic, Class<int>)`, is not a potential subtype and
   // therefore doesn't need its signature.
 
-  /*spec.needsSignature*/
+  /*needsSignature*/
   local(object, Class<int> stacktrace) => null;
 
   return local;

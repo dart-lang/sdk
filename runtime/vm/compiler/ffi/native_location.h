@@ -16,7 +16,7 @@
 
 namespace dart {
 
-class BufferFormatter;
+class BaseTextBuffer;
 
 namespace compiler {
 
@@ -94,7 +94,7 @@ class NativeLocation : public ZoneAllocated {
     UNREACHABLE();
   }
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
   const char* ToCString() const;
 
   const NativeRegistersLocation& AsRegisters() const;
@@ -169,7 +169,7 @@ class NativeRegistersLocation : public NativeLocation {
 
   virtual NativeRegistersLocation& Split(intptr_t index, Zone* zone) const;
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
 
   virtual bool Equals(const NativeLocation& other) const;
 
@@ -254,7 +254,7 @@ class NativeFpuRegistersLocation : public NativeLocation {
   bool IsLowestBits() const;
 #endif  // defined(TARGET_ARCH_ARM)
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
 
   virtual bool Equals(const NativeLocation& other) const;
 
@@ -303,7 +303,7 @@ class NativeStackLocation : public NativeLocation {
 
   virtual NativeStackLocation& Split(intptr_t index, Zone* zone) const;
 
-  virtual void PrintTo(BufferFormatter* f) const;
+  virtual void PrintTo(BaseTextBuffer* f) const;
 
   virtual bool Equals(const NativeLocation& other) const;
 

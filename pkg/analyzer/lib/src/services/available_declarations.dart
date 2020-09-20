@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
@@ -169,6 +170,12 @@ class DeclarationsContext {
   /// The set of features that are globally enabled for this context.
   FeatureSet get featureSet {
     return _analysisContext.analysisOptions.contextFeatures;
+  }
+
+  AnalysisDriver get _analysisDriver {
+    var session = _analysisContext.currentSession as AnalysisSessionImpl;
+    // ignore: deprecated_member_use_from_same_package
+    return session.getDriver();
   }
 
   /// Return libraries that are available to the file with the given [path].
@@ -434,11 +441,7 @@ class DeclarationsContext {
   }
 
   void _scheduleKnownFiles() {
-    var session = _analysisContext.currentSession as AnalysisSessionImpl;
-    // ignore: deprecated_member_use_from_same_package
-    var analysisDriver = session.getDriver();
-
-    for (var path in analysisDriver.knownFiles) {
+    for (var path in _analysisDriver.knownFiles) {
       if (_knownPathSet.add(path)) {
         if (!path.contains(r'/lib/src/') && !path.contains(r'\lib\src\')) {
           _knownPathList.add(path);
@@ -449,8 +452,7 @@ class DeclarationsContext {
   }
 
   void _scheduleSdkLibraries() {
-    // ignore: deprecated_member_use_from_same_package
-    var sdk = _analysisContext.currentSession.sourceFactory.dartSdk;
+    var sdk = _analysisDriver.sourceFactory.dartSdk;
     for (var uriStr in sdk.uris) {
       if (!uriStr.startsWith('dart:_')) {
         var uri = Uri.parse(uriStr);
@@ -702,15 +704,26 @@ class DeclarationsTracker {
 
   _File _getFileByUri(DeclarationsContext context, Uri uri) {
     var file = _uriToFile[uri];
-    if (file == null) {
-      var path = context._resolveUri(uri);
-      if (path != null) {
-        file = _File(this, path, uri);
-        _pathToFile[path] = file;
-        _uriToFile[uri] = file;
-        file.refresh(context);
-      }
+    if (file != null) {
+      return file;
     }
+
+    var path = context._resolveUri(uri);
+    if (path == null) {
+      return null;
+    }
+
+    path = _resolveLinks(path);
+    file = _pathToFile[path];
+    if (file != null) {
+      return file;
+    }
+
+    file = _File(this, path, uri);
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+
+    file.refresh(context);
     return file;
   }
 
@@ -788,6 +801,13 @@ class DeclarationsTracker {
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
     );
+  }
+
+  /// Return the [path] with resolved file system links.
+  String _resolveLinks(String path) {
+    var resource = _resourceProvider.getFile(path);
+    resource = resource.resolveSymbolicLinksSync();
+    return resource.path;
   }
 }
 
@@ -1325,16 +1345,13 @@ class _File {
       List<String> parameterNames,
       List<String> parameterTypes,
       Declaration parent,
-      List<String> relevanceTags,
+      @required List<String> relevanceTags,
       int requiredParameterCount,
       String returnType,
       String typeParameters,
     }) {
       if (Identifier.isPrivateName(name.name)) {
         return null;
-      }
-      if (isConst) {
-        relevanceTags = [...?relevanceTags, 'isConst'];
       }
 
       var locationOffset = name.offset;
@@ -1392,6 +1409,7 @@ class _File {
           if (classMember is ConstructorDeclaration) {
             var parameters = classMember.parameters;
             var defaultArguments = _computeDefaultArguments(parameters);
+            var isConst = classMember.constKeyword != null;
 
             var constructorName = classMember.name;
             constructorName ??= SimpleIdentifierImpl(
@@ -1402,6 +1420,7 @@ class _File {
               ),
             );
 
+            // TODO(brianwilkerson) Should we be passing in `isConst`?
             addDeclaration(
               defaultArgumentListString: defaultArguments?.text,
               defaultArgumentListTextRanges: defaultArguments?.ranges,
@@ -1412,12 +1431,18 @@ class _File {
               parameterNames: _getFormalParameterNames(parameters),
               parameterTypes: _getFormalParameterTypes(parameters),
               parent: parent,
+              relevanceTags: [
+                'ElementKind.CONSTRUCTOR',
+                if (isConst) 'ElementKind.CONSTRUCTOR+const'
+              ],
               requiredParameterCount:
                   _getFormalParameterRequiredCount(parameters),
               returnType: classMember.returnType.name,
             );
             hasConstructor = true;
           } else if (classMember is FieldDeclaration) {
+            // TODO(brianwilkerson) Why are we creating declarations for
+            //  instance members?
             var isStatic = classMember.isStatic;
             var isConst = classMember.fields.isConst;
             var isFinal = classMember.fields.isFinal;
@@ -1431,7 +1456,11 @@ class _File {
                 kind: DeclarationKind.FIELD,
                 name: field.name,
                 parent: parent,
-                relevanceTags: RelevanceTags._forExpression(field.initializer),
+                relevanceTags: [
+                  'ElementKind.FIELD',
+                  if (isConst) 'ElementKind.FIELD+const',
+                  ...?RelevanceTags._forExpression(field.initializer)
+                ],
                 returnType: _getTypeAnnotationString(classMember.fields.type),
               );
             }
@@ -1445,6 +1474,7 @@ class _File {
                 kind: DeclarationKind.GETTER,
                 name: classMember.name,
                 parent: parent,
+                relevanceTags: ['ElementKind.FIELD'],
                 returnType: _getTypeAnnotationString(classMember.returnType),
               );
             } else if (classMember.isSetter) {
@@ -1457,6 +1487,7 @@ class _File {
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
+                relevanceTags: ['ElementKind.FIELD'],
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
               );
@@ -1473,6 +1504,7 @@ class _File {
                 parameterNames: _getFormalParameterNames(parameters),
                 parameterTypes: _getFormalParameterTypes(parameters),
                 parent: parent,
+                relevanceTags: ['ElementKind.METHOD'],
                 requiredParameterCount:
                     _getFormalParameterRequiredCount(parameters),
                 returnType: _getTypeAnnotationString(classMember.returnType),
@@ -1489,6 +1521,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS,
           name: node.name,
+          relevanceTags: ['ElementKind.CLASS'],
         );
         if (classDeclaration == null) continue;
 
@@ -1519,7 +1552,7 @@ class _File {
             parameterNames: [],
             parameterTypes: [],
             parent: classDeclaration,
-            relevanceTags: null,
+            relevanceTags: ['ElementKind.CONSTRUCTOR'],
             requiredParameterCount: 0,
             returnType: node.name.name,
             typeParameters: null,
@@ -1530,12 +1563,14 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.CLASS_TYPE_ALIAS,
           name: node.name,
+          relevanceTags: ['ElementKind.CLASS'],
         );
       } else if (node is EnumDeclaration) {
         var enumDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.ENUM,
           name: node.name,
+          relevanceTags: ['ElementKind.ENUM'],
         );
         if (enumDeclaration == null) continue;
 
@@ -1547,6 +1582,10 @@ class _File {
             kind: DeclarationKind.ENUM_CONSTANT,
             name: constant.name,
             parent: enumDeclaration,
+            relevanceTags: [
+              'ElementKind.ENUM_CONSTANT',
+              'ElementKind.ENUM_CONSTANT+const'
+            ],
           );
         }
       } else if (node is ExtensionDeclaration) {
@@ -1555,8 +1594,11 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.EXTENSION,
             name: node.name,
+            relevanceTags: ['ElementKind.EXTENSION'],
           );
         }
+        // TODO(brianwilkerson) Should we be creating declarations for the
+        //  static members of the extension?
       } else if (node is FunctionDeclaration) {
         var functionExpression = node.functionExpression;
         var parameters = functionExpression.parameters;
@@ -1565,6 +1607,7 @@ class _File {
             isDeprecated: isDeprecated,
             kind: DeclarationKind.GETTER,
             name: node.name,
+            relevanceTags: ['ElementKind.FUNCTION'],
             returnType: _getTypeAnnotationString(node.returnType),
           );
         } else if (node.isSetter) {
@@ -1575,6 +1618,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
+            relevanceTags: ['ElementKind.FUNCTION'],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
           );
@@ -1589,6 +1633,7 @@ class _File {
             parameters: parameters.toSource(),
             parameterNames: _getFormalParameterNames(parameters),
             parameterTypes: _getFormalParameterTypes(parameters),
+            relevanceTags: ['ElementKind.FUNCTION'],
             requiredParameterCount:
                 _getFormalParameterRequiredCount(parameters),
             returnType: _getTypeAnnotationString(node.returnType),
@@ -1607,6 +1652,7 @@ class _File {
           parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
+          relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
           requiredParameterCount: _getFormalParameterRequiredCount(parameters),
           returnType: _getTypeAnnotationString(functionType.returnType),
           typeParameters: functionType.typeParameters?.toSource(),
@@ -1620,6 +1666,7 @@ class _File {
           parameters: parameters.toSource(),
           parameterNames: _getFormalParameterNames(parameters),
           parameterTypes: _getFormalParameterTypes(parameters),
+          relevanceTags: ['ElementKind.FUNCTION_TYPE_ALIAS'],
           requiredParameterCount: _getFormalParameterRequiredCount(parameters),
           returnType: _getTypeAnnotationString(node.returnType),
           typeParameters: node.typeParameters?.toSource(),
@@ -1629,6 +1676,7 @@ class _File {
           isDeprecated: isDeprecated,
           kind: DeclarationKind.MIXIN,
           name: node.name,
+          relevanceTags: ['ElementKind.MIXIN'],
         );
         if (mixinDeclaration == null) continue;
         addClassMembers(mixinDeclaration, node.members);
@@ -1643,7 +1691,11 @@ class _File {
             isFinal: isFinal,
             kind: DeclarationKind.VARIABLE,
             name: variable.name,
-            relevanceTags: RelevanceTags._forExpression(variable.initializer),
+            relevanceTags: [
+              'ElementKind.TOP_LEVEL_VARIABLE',
+              if (isConst) 'ElementKind.TOP_LEVEL_VARIABLE+const',
+              ...?RelevanceTags._forExpression(variable.initializer)
+            ],
             returnType: _getTypeAnnotationString(node.variables.type),
           );
         }
@@ -1653,8 +1705,11 @@ class _File {
 
   void _computeRelevanceTags(List<Declaration> declarations) {
     for (var declaration in declarations) {
-      declaration._relevanceTags ??=
-          RelevanceTags._forDeclaration(uriStr, declaration);
+      var tags = RelevanceTags._forDeclaration(uriStr, declaration);
+      if (tags != null) {
+        declaration._relevanceTags ??= [];
+        declaration._relevanceTags.addAll(tags);
+      }
       _computeRelevanceTags(declaration.children);
     }
   }

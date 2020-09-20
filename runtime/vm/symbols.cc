@@ -44,10 +44,6 @@ StringPtr StringFrom(const uint16_t* data, intptr_t len, Heap::Space space) {
   return String::FromUTF16(data, len, space);
 }
 
-StringPtr StringFrom(const int32_t* data, intptr_t len, Heap::Space space) {
-  return String::FromUTF32(data, len, space);
-}
-
 template <typename CharType>
 class CharArray {
  public:
@@ -76,7 +72,6 @@ class CharArray {
 };
 typedef CharArray<uint8_t> Latin1Array;
 typedef CharArray<uint16_t> UTF16Array;
-typedef CharArray<int32_t> UTF32Array;
 
 class StringSlice {
  public:
@@ -481,12 +476,6 @@ StringPtr Symbols::FromUTF16(Thread* thread,
   return NewSymbol(thread, UTF16Array(utf16_array, len));
 }
 
-StringPtr Symbols::FromUTF32(Thread* thread,
-                             const int32_t* utf32_array,
-                             intptr_t len) {
-  return NewSymbol(thread, UTF32Array(utf32_array, len));
-}
-
 StringPtr Symbols::FromConcat(Thread* thread,
                               const String& str1,
                               const String& str2) {
@@ -586,7 +575,7 @@ StringPtr Symbols::FromConcatAll(
   }
 }
 
-// StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
+// StringType can be StringSlice, ConcatString, or {Latin1,UTF16}Array.
 template <typename StringType>
 StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
@@ -782,9 +771,9 @@ StringPtr Symbols::NewFormattedV(Thread* thread,
   return Symbols::New(thread, buffer);
 }
 
-StringPtr Symbols::FromCharCode(Thread* thread, int32_t char_code) {
+StringPtr Symbols::FromCharCode(Thread* thread, uint16_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
-    return FromUTF32(thread, &char_code, 1);
+    return FromUTF16(thread, &char_code, 1);
   }
   return predefined_[char_code];
 }

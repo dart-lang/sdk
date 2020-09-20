@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart';
 
@@ -15,7 +15,7 @@ class ConvertPartOfToUri extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.CONVERT_PART_OF_TO_URI;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var directive = node.thisOrAncestorOfType<PartOfDirective>();
     if (directive == null || directive.libraryName == null) {
       return;
@@ -25,7 +25,7 @@ class ConvertPartOfToUri extends CorrectionProducer {
     var relativePath = relative(libraryPath, from: dirname(partPath));
     var uri = Uri.file(relativePath).toString();
     var replacementRange = range.node(directive.libraryName);
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(replacementRange, "'$uri'");
     });
   }

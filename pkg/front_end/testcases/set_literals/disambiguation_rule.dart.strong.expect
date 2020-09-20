@@ -49,8 +49,8 @@ import "dart:core" as core;
 import "dart:collection" as col;
 import "dart:async" as asy;
 
-import "dart:async";
-import "dart:collection";
+import "dart:async" show FutureOr;
+import "dart:collection" show LinkedHashMap, LinkedHashSet;
 
 static method main() → dynamic async {
   core::Map<core::int*, core::bool*>* m = <core::int*, core::bool*>{};

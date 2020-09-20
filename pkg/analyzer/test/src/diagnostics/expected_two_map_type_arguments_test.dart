@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ExpectedTwoMapTypeArgumentsTest extends DriverResolutionTest {
+class ExpectedTwoMapTypeArgumentsTest extends PubPackageResolutionTest {
   test_three_type_arguments_ambiguous() async {
     // TODO(brianwilkerson) We probably need a new error code for "expected
     //  either one or two type arguments" to handle the ambiguous case.
@@ -22,7 +22,7 @@ class ExpectedTwoMapTypeArgumentsTest extends DriverResolutionTest {
 main() {
   <int, int, int>{};
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
 
@@ -31,7 +31,7 @@ main() {
 main() {
   <int, int, int>{1: 2};
 }''', [
-      error(StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
+      error(CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS, 11, 15),
     ]);
   }
 

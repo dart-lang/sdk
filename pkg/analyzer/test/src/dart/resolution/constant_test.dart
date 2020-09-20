@@ -2,31 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantResolutionTest);
-    defineReflectiveTests(ConstantResolutionWithNnbdTest);
+    defineReflectiveTests(ConstantResolutionWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class ConstantResolutionTest extends DriverResolutionTest {
+class ConstantResolutionTest extends PubPackageResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   const A({int p});
 }
@@ -43,7 +40,7 @@ const a = const A();
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
     expect(p.isConstantEvaluated, isTrue);
-    expect(p.constantValue.isNull, isTrue);
+    expect(p.computeConstantValue().isNull, isTrue);
   }
 
   test_constFactoryRedirection_super() async {
@@ -67,7 +64,7 @@ main() {}
 ''');
 
     var node = findNode.annotation('@I');
-    var value = node.elementAnnotation.constantValue;
+    var value = node.elementAnnotation.computeConstantValue();
     expect(value.getField('(super)').getField('f').toIntValue(), 42);
   }
 
@@ -108,7 +105,7 @@ class A<T, U> {
   }
 
   test_functionType_element_typeArguments() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 typedef F<T> = T Function(int);
 const a = C<F<double>>();
 
@@ -141,7 +138,7 @@ const v = a;
   }
 
   test_imported_prefixedIdentifier_staticField_class() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = C.f;
 
 class C {
@@ -158,7 +155,7 @@ import 'a.dart';
   }
 
   test_imported_prefixedIdentifier_staticField_extension() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = E.f;
 
 extension E on int {
@@ -175,7 +172,7 @@ import 'a.dart';
   }
 
   test_imported_prefixedIdentifier_staticField_mixin() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = M.f;
 
 class C {}
@@ -194,7 +191,7 @@ import 'a.dart';
   }
 
   test_imported_super_defaultFieldFormalParameter() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'test.dart';
 
 class A {
@@ -215,7 +212,7 @@ class B extends A {
 }
 ''');
 
-    result = await resolveFile(convertPath('/test/lib/a.dart'));
+    result = await resolveFile(convertPath('$testPackageLibPath/a.dart'));
     assertErrorsInResolvedUnit(result, []);
 
     var bElement = FindElement(result.unit).field('b') as ConstVariableElement;
@@ -235,19 +232,72 @@ extension E on int {
     var a = findElement.topVar('a') as ConstVariableElement;
     expect(a.computeConstantValue().toIntValue(), 42);
   }
+
+  /// See https://github.com/dart-lang/sdk/issues/43462
+  test_useLanguageVersionOfEnclosingLibrary() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class Wrapper {
+  final int value;
+  const Wrapper(Object value) : value = value as int;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.4
+import 'a.dart';
+
+void f() {
+  const Wrapper(0);
+}
+''');
+  }
 }
 
 @reflectiveTest
-class ConstantResolutionWithNnbdTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    )
-    ..implicitCasts = false;
+class ConstantResolutionWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
+  test_constructor_nullSafe_fromLegacy_super() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  const A(List<Object> a);
+}
 
-  @override
-  bool get typeToStringWithNullability => true;
+class B extends A {
+  const B(List<Object> a) : super(a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+const a = <dynamic>[];
+const b = B(a);
+''');
+
+    var b = findElement.topVar('b');
+    assertType(b.computeConstantValue().type, 'B*');
+  }
+
+  test_constructor_nullSafe_fromLegacy_this() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class A {
+  const A(List<Object> a) : this(a);
+  const A.second(List<Object> a);
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.8
+import 'a.dart';
+
+const a = <dynamic>[];
+const b = A(a);
+''');
+
+    var b = findElement.topVar('b');
+    assertType(b.computeConstantValue().type, 'A*');
+  }
 
   test_context_eliminateTypeVariables() async {
     await assertNoErrorsInCode(r'''
@@ -271,7 +321,7 @@ class A<T, U> {
   }
 
   test_field_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 class A {
   static const foo = 42;
 }
@@ -289,7 +339,7 @@ const bar = A.foo;
   }
 
   test_fromEnvironment_optOut_fromOptIn() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.5
 
 const cBool = const bool.fromEnvironment('foo', defaultValue: false);
@@ -315,7 +365,7 @@ const vString = cString;
   }
 
   test_topLevelVariable_optIn_fromOptOut() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const foo = 42;
 ''');
 
@@ -332,11 +382,11 @@ const bar = foo;
   }
 
   test_topLevelVariable_optOut2() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 const a = 42;
 ''');
 
-    newFile('/test/lib/b.dart', content: r'''
+    newFile('$testPackageLibPath/b.dart', content: r'''
 import 'a.dart';
 
 const b = a;
@@ -355,7 +405,7 @@ const c = b;
   }
 
   test_topLevelVariable_optOut3() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 const a = int.fromEnvironment('a', defaultValue: 42);
 ''');

@@ -141,7 +141,7 @@ class JSNumber extends Interceptor implements int, double {
   double toDouble() => this;
 
   @notNull
-  String toStringAsFixed(@notNull int fractionDigits) {
+  String toStringAsFixed(@nullCheck int fractionDigits) {
     if (fractionDigits < 0 || fractionDigits > 20) {
       throw RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }

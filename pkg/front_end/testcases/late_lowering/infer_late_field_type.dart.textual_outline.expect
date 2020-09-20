@@ -5,4 +5,4 @@ class B implements A {
   late ;
   var field;
 }
-main() { }
+main() {}

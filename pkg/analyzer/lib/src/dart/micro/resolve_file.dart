@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -103,12 +103,12 @@ class FileResolver {
     @required Workspace workspace,
     CiderByteStore byteStore,
     Duration libraryContextResetTimeout = const Duration(seconds: 60),
-  })  : this.logger = logger,
-        this.sourceFactory = sourceFactory,
-        this.resourceProvider = resourceProvider,
-        this.getFileDigest = getFileDigest,
-        this.prefetchFiles = prefetchFiles,
-        this.workspace = workspace {
+  })  : logger = logger,
+        sourceFactory = sourceFactory,
+        resourceProvider = resourceProvider,
+        getFileDigest = getFileDigest,
+        prefetchFiles = prefetchFiles,
+        workspace = workspace {
     byteStore ??= CiderMemoryByteStore();
     this.byteStore = byteStore;
     _libraryContextReset = _LibraryContextReset(
@@ -116,8 +116,6 @@ class FileResolver {
       resetTimeout: libraryContextResetTimeout,
     );
   }
-
-  FeatureSet get defaultFeatureSet => FeatureSet.fromEnableFlags([]);
 
   /// Update the resolver to reflect the fact that the file with the given
   /// [path] was changed. We need to make sure that when this file, of any file
@@ -185,7 +183,7 @@ class FileResolver {
 
           bytes = CiderUnitErrorsBuilder(
             signature: errorsSignature,
-            errors: errors.map((ErrorEncoding.encode)).toList(),
+            errors: errors.map(ErrorEncoding.encode).toList(),
           ).toBuffer();
           byteStore.put(errorsKey, errorsSignature, bytes);
         }
@@ -218,23 +216,46 @@ class FileResolver {
     @required OperationPerformanceImpl performance,
   }) {
     return performance.run('fileContext', (performance) {
-      var analysisOptions = _getAnalysisOptions(path);
-      _createContext(path, analysisOptions);
+      var analysisOptions = performance.run('analysisOptions', (performance) {
+        return _getAnalysisOptions(
+          path: path,
+          performance: performance,
+        );
+      });
 
-      var file = fsState.getFileForPath(path);
+      performance.run('createContext', (_) {
+        _createContext(path, analysisOptions);
+      });
+
+      var file = performance.run('fileForPath', (performance) {
+        return fsState.getFileForPath(
+          path: path,
+          performance: performance,
+        );
+      });
+
       return FileContext(analysisOptions, file);
     });
   }
 
-  String getLibraryLinkedSignature(String path) {
+  String getLibraryLinkedSignature({
+    @required String path,
+    @required OperationPerformanceImpl performance,
+  }) {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var file = fsState.getFileForPath(path);
+    var file = fsState.getFileForPath(
+      path: path,
+      performance: performance,
+    );
+
     return file.libraryCycle.signatureStr;
   }
 
+  /// The [completionLine] and [completionColumn] are zero based.
   ResolvedUnitResult resolve({
-    int completionOffset,
+    int completionLine,
+    int completionColumn,
     @required String path,
     OperationPerformanceImpl performance,
   }) {
@@ -251,14 +272,23 @@ class FileResolver {
         var file = fileContext.file;
         var libraryFile = file.partOfLibrary ?? file;
 
+        int completionOffset;
+        if (completionLine != null && completionColumn != null) {
+          var lineOffset = file.lineInfo.getOffsetOfLine(completionLine);
+          completionOffset = lineOffset + completionColumn;
+        }
+
         performance.run('libraryContext', (performance) {
-          libraryContext.load2(libraryFile);
+          libraryContext.load2(
+            targetLibrary: libraryFile,
+            performance: performance,
+          );
         });
 
         testView?.addResolvedFile(path);
 
+        var content = _getFileContent(path);
         var errorListener = RecordingErrorListener();
-        var content = resourceProvider.getFile(path).readAsStringSync();
         var unit = file.parse(errorListener, content);
 
         Map<FileState, UnitAnalysisResult> results;
@@ -274,15 +304,17 @@ class FileResolver {
             contextObjects.inheritanceManager,
             libraryFile,
             resourceProvider,
-            (String path) => resourceProvider.getFile(path).readAsStringSync(),
+            (file) => file.getContentWithSameDigest(),
           );
 
           results = performance.run('analyze', (performance) {
-            return libraryAnalyzer.analyzeSync(
-              completionPath: completionOffset != null ? path : null,
-              completionOffset: completionOffset,
-              performance: performance,
-            );
+            return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+              return libraryAnalyzer.analyzeSync(
+                completionPath: completionOffset != null ? path : null,
+                completionOffset: completionOffset,
+                performance: performance,
+              );
+            });
           });
         });
         UnitAnalysisResult fileResult = results[file];
@@ -300,19 +332,6 @@ class FileResolver {
         );
       });
     });
-  }
-
-  @deprecated
-  ResolvedUnitResult resolve2({
-    int completionOffset,
-    @required String path,
-    OperationPerformanceImpl performance,
-  }) {
-    return resolve(
-      completionOffset: completionOffset,
-      path: path,
-      performance: performance,
-    );
   }
 
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are
@@ -340,16 +359,17 @@ class FileResolver {
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
         sourceFactory: sourceFactory,
+        resourceProvider: resourceProvider,
         packages: Packages.empty,
         packageDefaultFeatureSet: analysisOptions.contextFeatures,
         nonPackageDefaultFeatureSet: analysisOptions.nonPackageFeatureSet,
       );
 
       fsState = FileSystemState(
-        logger,
         resourceProvider,
         byteStore,
         sourceFactory,
+        workspace,
         analysisOptions,
         Uint32List(0),
         // linkedSalt
@@ -402,48 +422,74 @@ class FileResolver {
   /// default options, if the file exists.
   ///
   /// Otherwise, return the default options.
-  AnalysisOptionsImpl _getAnalysisOptions(String path) {
+  AnalysisOptionsImpl _getAnalysisOptions({
+    @required String path,
+    @required OperationPerformanceImpl performance,
+  }) {
     YamlMap optionMap;
-    var folder = resourceProvider.getFile(path).parent;
-    var optionsFile = _findOptionsFile(folder);
-    if (optionsFile != null) {
-      try {
-        var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-        optionMap = optionsProvider.getOptionsFromFile(optionsFile);
-      } catch (e) {
-        // ignored
-      }
-    } else {
-      Source source;
-      if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-        var separator = resourceProvider.pathContext.separator;
-        if (path
-            .contains('${separator}third_party${separator}dart$separator')) {
-          source = sourceFactory
-              .forUri(WorkspaceWithDefaultAnalysisOptions.thirdPartyUri);
-        } else {
-          source =
-              sourceFactory.forUri(WorkspaceWithDefaultAnalysisOptions.uri);
-        }
-      }
 
-      if (source != null && source.exists()) {
+    var optionsFile = performance.run('findOptionsFile', (_) {
+      var folder = resourceProvider.getFile(path).parent;
+      return _findOptionsFile(folder);
+    });
+
+    if (optionsFile != null) {
+      performance.run('getOptionsFromFile', (_) {
         try {
           var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-          optionMap = optionsProvider.getOptionsFromSource(source);
+          optionMap = optionsProvider.getOptionsFromFile(optionsFile);
         } catch (e) {
           // ignored
         }
+      });
+    } else {
+      var source = performance.run('defaultOptions', (_) {
+        if (workspace is WorkspaceWithDefaultAnalysisOptions) {
+          var separator = resourceProvider.pathContext.separator;
+          if (path
+              .contains('${separator}third_party${separator}dart$separator')) {
+            return sourceFactory.forUri(
+              WorkspaceWithDefaultAnalysisOptions.thirdPartyUri,
+            );
+          } else {
+            return sourceFactory.forUri(
+              WorkspaceWithDefaultAnalysisOptions.uri,
+            );
+          }
+        }
+        return null;
+      });
+
+      if (source != null && source.exists()) {
+        performance.run('getOptionsFromFile', (_) {
+          try {
+            var optionsProvider = AnalysisOptionsProvider(sourceFactory);
+            optionMap = optionsProvider.getOptionsFromSource(source);
+          } catch (e) {
+            // ignored
+          }
+        });
       }
     }
 
     var options = AnalysisOptionsImpl();
 
     if (optionMap != null) {
-      applyToAnalysisOptions(options, optionMap);
+      performance.run('applyToAnalysisOptions', (_) {
+        applyToAnalysisOptions(options, optionMap);
+      });
     }
 
     return options;
+  }
+
+  /// Return the file content, the empty string if any exception.
+  String _getFileContent(String path) {
+    try {
+      return resourceProvider.getFile(path).readAsStringSync();
+    } catch (_) {
+      return '';
+    }
   }
 
   void _throwIfNotAbsoluteNormalizedPath(String path) {
@@ -509,23 +555,21 @@ class _LibraryContext {
   }
 
   /// Load data required to access elements of the given [targetLibrary].
-  void load2(FileState targetLibrary) {
+  void load2({
+    @required FileState targetLibrary,
+    @required OperationPerformanceImpl performance,
+  }) {
     var inputBundles = <LinkedNodeBundle>[];
 
-    var numCycles = 0;
-    var librariesTotal = 0;
-    var librariesLoaded = 0;
     var librariesLinked = 0;
     var librariesLinkedTimer = Stopwatch();
     var inputsTimer = Stopwatch();
-    var bytesGet = 0;
-    var bytesPut = 0;
 
     void loadBundle(LibraryCycle cycle) {
       if (!loadedBundles.add(cycle)) return;
 
-      numCycles++;
-      librariesTotal += cycle.libraries.length;
+      performance.getDataInt('cycleCount').increment();
+      performance.getDataInt('libraryCount').add(cycle.libraries.length);
 
       cycle.directDependencies.forEach(loadBundle);
 
@@ -545,10 +589,11 @@ class _LibraryContext {
           var partIndex = -1;
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
-            var content = '';
-            try {
-              content = resourceProvider.getFile(file.path).readAsStringSync();
-            } catch (_) {}
+
+            var content = file.getContentWithSameDigest();
+            performance.getDataInt('parseCount').increment();
+            performance.getDataInt('parseLength').add(content.length);
+
             var unit = file.parse(
               AnalysisErrorListener.NULL_LISTENER,
               content,
@@ -582,13 +627,12 @@ class _LibraryContext {
         bytes = serializeBundle(cycle.signature, linkResult).toBuffer();
 
         byteStore.put(key, cycle.signature, bytes);
-        bytesPut += bytes.length;
+        performance.getDataInt('bytesPut').add(bytes.length);
 
         librariesLinkedTimer.stop();
       } else {
-        // TODO(scheglov) Take / clear parsed units in files.
-        bytesGet += bytes.length;
-        librariesLoaded += cycle.libraries.length;
+        performance.getDataInt('bytesGet').add(bytes.length);
+        performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
       }
 
       // We are about to load dart:core, but if we have just linked it, the
@@ -620,13 +664,9 @@ class _LibraryContext {
       var libraryCycle = targetLibrary.libraryCycle;
       loadBundle(libraryCycle);
       logger.writeln(
-        '[numCycles: $numCycles]'
-        '[librariesTotal: $librariesTotal]'
-        '[librariesLoaded: $librariesLoaded]'
         '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
         '[librariesLinked: $librariesLinked]'
-        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]'
-        '[bytesGet: $bytesGet][bytesPut: $bytesPut]',
+        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]',
       );
     });
 

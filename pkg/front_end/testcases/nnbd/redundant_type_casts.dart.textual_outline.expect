@@ -1,0 +1,6 @@
+class A<T> {
+  T? _current;
+  T get current => _current as T;
+}
+
+main() {}

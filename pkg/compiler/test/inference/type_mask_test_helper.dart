@@ -11,12 +11,12 @@ import 'package:compiler/src/world.dart' show JClosedWorld;
 
 export 'package:compiler/src/inferrer/types.dart';
 
-TypeMask simplify(TypeMask mask, JClosedWorld closedWorld) {
+TypeMask simplify(TypeMask mask, CommonMasks commonMasks) {
   if (mask is ForwardingTypeMask) {
-    return simplify(mask.forwardTo, closedWorld);
+    return simplify(mask.forwardTo, commonMasks);
   } else if (mask is UnionTypeMask) {
     return UnionTypeMask.flatten(
-        mask.disjointMasks, mask.isNullable, closedWorld);
+        mask.disjointMasks, mask.isNullable, commonMasks);
   } else {
     return mask;
   }

@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -287,13 +286,16 @@ class Variables {
   DartType toFinalType(DecoratedType decoratedType) {
     var type = decoratedType.type;
     if (type.isVoid || type.isDynamic) return type;
-    if (type.isBottom || type.isDartCoreNull) {
+    if (type is NeverType) {
       if (decoratedType.node.isNullable) {
         return (_typeProvider.nullType as TypeImpl)
             .withNullability(NullabilitySuffix.none);
       } else {
         return NeverTypeImpl.instance;
       }
+    } else if (type.isDartCoreNull) {
+      return (_typeProvider.nullType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
     }
     var nullabilitySuffix = decoratedType.node.isNullable
         ? NullabilitySuffix.question

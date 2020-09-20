@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,7 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -79,6 +77,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get stringType => typeProvider.stringType;
 
+  String get testFilePath => '/test/lib/test.dart';
+
   TypeProvider get typeProvider => result.typeProvider;
 
   TypeSystemImpl get typeSystem => result.typeSystem;
@@ -89,14 +89,25 @@ mixin ResolutionTest implements ResourceProviderMixin {
   VoidType get voidType => VoidTypeImpl.instance;
 
   void addTestFile(String content) {
-    newFile('/test/lib/test.dart', content: content);
+    newFile(testFilePath, content: content);
   }
 
   void assertAssignment(
     AssignmentExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
     @required Object operatorElement,
     @required String type,
   }) {
+    assertCompoundAssignment(
+      node,
+      readElement: readElement,
+      readType: readType,
+      writeElement: writeElement,
+      writeType: writeType,
+    );
     assertElement(node.staticElement, operatorElement);
     assertType(node, type);
   }
@@ -134,6 +145,28 @@ mixin ResolutionTest implements ResourceProviderMixin {
       SimpleIdentifier identifier, ClassElement expectedElement) {
     assertElement(identifier, expectedElement);
     assertTypeNull(identifier);
+  }
+
+  void assertCompoundAssignment(
+    CompoundAssignmentExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
+  }) {
+    assertElement(node.readElement, readElement);
+    if (readType == null) {
+      expect(node.readType, isNull);
+    } else {
+      assertType(node.readType, readType);
+    }
+
+    assertElement(node.writeElement, writeElement);
+    if (writeType == null) {
+      expect(node.writeType, isNull);
+    } else {
+      assertType(node.writeType, writeType);
+    }
   }
 
   void assertConstructorElement(
@@ -206,9 +239,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  void assertElementNull(Expression node) {
-    Element actual = getNodeElement(node);
-    expect(actual, isNull);
+  void assertElementNull(Object nodeOrElement) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    expect(element, isNull);
   }
 
   void assertElementString(Element element, String expected) {
@@ -257,6 +296,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return result;
   }
 
+  Future<void> assertErrorsInFile2(
+    String path,
+    List<ExpectedError> expectedErrors,
+  ) async {
+    path = convertPath(path);
+
+    var result = await resolveFile(path);
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
   void assertErrorsInList(
     List<AnalysisError> errors,
     List<ExpectedError> expectedErrors,
@@ -273,6 +322,21 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInList(result.errors, expectedErrors);
   }
 
+  void assertErrorsInResult(List<ExpectedError> expectedErrors) {
+    assertErrorsInResolvedUnit(result, expectedErrors);
+  }
+
+  void assertExtensionOverride(
+    ExtensionOverride node, {
+    @required Object element,
+    @required String extendedType,
+    @required List<String> typeArgumentTypes,
+  }) {
+    assertElement(node, element);
+    assertType(node.extendedType, extendedType);
+    assertElementTypeStrings(node.typeArgumentTypes, typeArgumentTypes);
+  }
+
   void assertFunctionExpressionInvocation(
     FunctionExpressionInvocation node, {
     @required ExecutableElement element,
@@ -284,6 +348,17 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTypeArgumentTypes(node, typeArgumentTypes);
     assertInvokeType(node, invokeType);
     assertType(node, type);
+  }
+
+  /// We have a contract with the Angular team that FunctionType(s) from
+  /// typedefs carry the element of the typedef, and the type arguments.
+  void assertFunctionTypeTypedef(
+    FunctionType type, {
+    @required FunctionTypeAliasElement element,
+    @required List<String> typeArguments,
+  }) {
+    assertElement2(type.element, declaration: element.function);
+    assertElementTypeStrings(type.typeArguments, typeArguments);
   }
 
   void assertHasTestErrors() {
@@ -306,7 +381,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
-  void assertImportPrefix(SimpleIdentifier identifier, PrefixElement element) {
+  /// In valid code [element] must be a [PrefixElement], but for invalid code
+  /// like `int.double v;` we want to resolve `int` somehow. Still not type.
+  void assertImportPrefix(SimpleIdentifier identifier, Element element) {
     assertElement(identifier, element);
     assertTypeNull(identifier);
   }
@@ -427,7 +504,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertMethodInvocation(
     MethodInvocation invocation,
-    Element expectedElement,
+    Object expectedElement,
     String expectedInvokeType, {
     String expectedMethodNameType,
     String expectedNameType,
@@ -438,7 +515,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     // TODO(scheglov) Check for Member.
     var element = invocation.methodName.staticElement;
-    expect(element?.declaration, same(expectedElement));
+    if (expectedElement is Element) {
+      expect(element?.declaration, same(expectedElement));
+    } else {
+      expect(element, expectedElement);
+    }
 
     // TODO(scheglov) Should we enforce this?
 //    if (expectedNameType == null) {
@@ -496,6 +577,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResolvedUnit(result, const []);
   }
 
+  void assertNoErrorsInResult() {
+    assertErrorsInResult(const []);
+  }
+
   void assertParameterElement(
     Expression expression,
     ParameterElement expected,
@@ -510,9 +595,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertPostfixExpression(
     PostfixExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
     @required Object element,
     @required String type,
   }) {
+    assertCompoundAssignment(
+      node,
+      readElement: readElement,
+      readType: readType,
+      writeElement: writeElement,
+      writeType: writeType,
+    );
     assertElement(node.staticElement, element);
     assertType(node, type);
   }
@@ -528,9 +624,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertPrefixExpression(
     PrefixExpression node, {
+    @required Object readElement,
+    @required String readType,
+    @required Object writeElement,
+    @required String writeType,
     @required Object element,
     @required String type,
   }) {
+    assertCompoundAssignment(
+      node,
+      readElement: readElement,
+      readType: readType,
+      writeElement: writeElement,
+      writeType: writeType,
+    );
     assertElement(node.staticElement, element);
     assertType(node, type);
   }
@@ -555,11 +662,30 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertSimpleIdentifier(
     SimpleIdentifier node, {
-    @required Object element,
+    @required Object readElement,
+    @required Object writeElement,
     @required String type,
   }) {
-    assertElement(node.staticElement, element);
-    assertType(node, type);
+    var isRead = node.inGetterContext();
+    var isWrite = node.inSetterContext();
+    if (isRead && isWrite) {
+      // TODO(scheglov) enable this
+//      assertElement(node.auxiliaryElements?.staticElement, readElement);
+      assertElement(node.staticElement, writeElement);
+    } else if (isRead) {
+      assertElement(node.staticElement, readElement);
+    } else {
+      expect(isWrite, isTrue);
+      assertElement(node.staticElement, writeElement);
+    }
+
+    if (isRead) {
+      assertType(node, type);
+    } else {
+      // TODO(scheglov) enforce this
+//      expect(type, isNull);
+//      assertTypeNull(node);
+    }
   }
 
   void assertSubstitution(
@@ -639,7 +765,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeName(
       TypeName node, Element expectedElement, String expectedType,
-      {PrefixElement expectedPrefix}) {
+      {Element expectedPrefix}) {
     assertType(node, expectedType);
 
     if (expectedPrefix == null) {
@@ -745,19 +871,37 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ExpectedContextMessage message(String filePath, int offset, int length) =>
       ExpectedContextMessage(convertPath(filePath), offset, length);
 
-  Future<ResolvedUnitResult> resolveFile(String path);
-
-  /// Put the [code] into the test file, and resolve it.
-  Future<void> resolveTestCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
+  Matcher multiplyDefinedElementMatcher(List<Element> elements) {
+    return _MultiplyDefinedElementMatcher(elements);
   }
 
-  Future<void> resolveTestFile() async {
-    var path = convertPath('/test/lib/test.dart');
+  Future<ResolvedUnitResult> resolveFile(String path);
+
+  /// Resolve the file with the [path] into [result].
+  Future<void> resolveFile2(String path) async {
+    path = convertPath(path);
+
     result = await resolveFile(path);
+    expect(result.state, ResultState.VALID);
+
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
+  }
+
+  /// Create a new file with the [path] and [content], resolve it into [result].
+  Future<void> resolveFileCode(String path, String content) {
+    newFile(path, content: content);
+    return resolveFile2(path);
+  }
+
+  /// Put the [code] into the test file, and resolve it.
+  Future<void> resolveTestCode(String code) {
+    addTestFile(code);
+    return resolveTestFile();
+  }
+
+  Future<void> resolveTestFile() {
+    return resolveFile2(testFilePath);
   }
 
   /// Choose the type display string, depending on whether the [result] is
@@ -786,11 +930,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
-  _ElementMatcher _elementMatcher(Object elementOrMatcher) {
+  Matcher _elementMatcher(Object elementOrMatcher) {
     if (elementOrMatcher is Element) {
       return _ElementMatcher(this, declaration: elementOrMatcher);
     } else {
-      return elementOrMatcher;
+      return wrapMatcher(elementOrMatcher);
     }
   }
 
@@ -839,6 +983,27 @@ class _ElementMatcher extends Matcher {
       } else {
         return !isLegacy && substitution.isEmpty;
       }
+    }
+    return false;
+  }
+}
+
+class _MultiplyDefinedElementMatcher extends Matcher {
+  final Iterable<Element> elements;
+
+  _MultiplyDefinedElementMatcher(this.elements);
+
+  @override
+  Description describe(Description description) {
+    return description.add('elements: $elements\n');
+  }
+
+  @override
+  bool matches(element, Map matchState) {
+    if (element is MultiplyDefinedElementImpl) {
+      var actualSet = element.conflictingElements.toSet();
+      actualSet.removeAll(elements);
+      return actualSet.isEmpty;
     }
     return false;
   }

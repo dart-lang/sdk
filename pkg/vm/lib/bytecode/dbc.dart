@@ -106,6 +106,7 @@ enum Opcode {
   // Prologue and stack management.
   kEntry,
   kEntry_Wide,
+  // TODO(alexmarkov): cleanup now unused EntryFixed instruction.
   kEntryFixed,
   kEntryFixed_Wide,
   kEntryOptional,

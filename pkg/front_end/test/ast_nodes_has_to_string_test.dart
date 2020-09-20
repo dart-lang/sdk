@@ -51,7 +51,7 @@ main(List<String> args) async {
               .getInterfaceMembers(c)
               .where((Member m) =>
                   !m.isAbstract &&
-                  m.name.name == "toString" &&
+                  m.name.text == "toString" &&
                   m.enclosingLibrary.importUri.scheme != "dart")
               .toList();
           if (toStringList.length > 1) throw "What?";
@@ -153,7 +153,7 @@ main(List<String> args) async {
             .getInterfaceMembers(c)
             .where((Member m) =>
                 !m.isAbstract &&
-                m.name.name == "toString" &&
+                m.name.text == "toString" &&
                 m.enclosingLibrary.importUri.scheme != "dart")
             .toList();
         Member toString = toStringList.single;

@@ -12,7 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -274,8 +274,8 @@ class _ImportAbsoluteLibrary extends CorrectionProducer {
   FixKind get fixKind => _fixKind;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
       _uriText = builder.importLibrary(_library);
     });
   }
@@ -307,12 +307,12 @@ class _ImportLibraryPrefix extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var libraryElement = _importElement.importedLibrary;
     var prefix = _importElement.prefix;
     _libraryName = libraryElement.displayName;
     _prefixName = prefix.displayName;
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.startLength(node, 0), '$_prefixName.');
     });
   }
@@ -336,12 +336,12 @@ class _ImportLibraryShow extends CorrectionProducer {
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_SHOW;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     var newShowCode = 'show ${_showNames.join(', ')}';
     var offset = _showCombinator.offset;
     var length = _showCombinator.end - offset;
     var libraryFile = resolvedResult.libraryElement.source.fullName;
-    await builder.addFileEdit(libraryFile, (DartFileEditBuilder builder) {
+    await builder.addDartFileEdit(libraryFile, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), newShowCode);
     });
   }
@@ -363,8 +363,8 @@ class _ImportRelativeLibrary extends CorrectionProducer {
   FixKind get fixKind => _fixKind;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
       if (builder is DartFileEditBuilderImpl) {
         builder.importLibraryWithRelativeUri(_relativeURI);
       }

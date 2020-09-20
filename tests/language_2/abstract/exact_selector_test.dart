@@ -18,7 +18,7 @@ returnFoo() {
   (() => 42)();
   return new Foo();
   //         ^^^
-  // [analyzer] STATIC_WARNING.INSTANTIATE_ABSTRACT_CLASS
+  // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
   // [cfe] The class 'Foo' is abstract and can't be instantiated.
 }
 

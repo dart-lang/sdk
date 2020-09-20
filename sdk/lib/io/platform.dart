@@ -58,12 +58,6 @@ part of dart.io;
  *         print('is not a Mac');
  *       }
  *     }
- *
- * ## Other resources
- *
- * [Dart by Example](https://www.dartlang.org/dart-by-example/#dart-io-and-command-line-apps)
- * provides additional task-oriented code samples that show how to use
- * various API from the [dart:io] library.
  */
 class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;

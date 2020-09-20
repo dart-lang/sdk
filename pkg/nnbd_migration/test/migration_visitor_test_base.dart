@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -210,7 +210,7 @@ mixin EdgeTester {
       Object guards = isEmpty,
       Object codeReference}) {
     var edges = getEdges(source, destination);
-    if (edges.length == 0) {
+    if (edges.isEmpty) {
       fail('Expected edge $source -> $destination, found none');
     } else if (edges.length != 1) {
       fail('Found multiple edges $source -> $destination');

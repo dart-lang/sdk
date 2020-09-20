@@ -5,11 +5,13 @@
 // Test errors thrown by WasmMemory.
 
 import "package:expect/expect.dart";
-import "dart:wasm";
+import "package:wasm/wasm.dart";
 import "dart:typed_data";
 
 void main() {
-  Expect.throwsArgumentError(() => WasmMemory(1000000000));
-  var mem = WasmMemory(1000);
-  Expect.throwsArgumentError(() => mem.grow(1000000000));
+  Expect.throws(() => WasmMemory(1000000000));
+  var mem = WasmMemory(100);
+  Expect.throws(() => mem.grow(1000000000));
+  mem = WasmMemory(100, 200);
+  Expect.throws(() => mem.grow(300));
 }

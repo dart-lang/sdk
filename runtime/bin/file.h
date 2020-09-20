@@ -184,21 +184,23 @@ class File : public ReferenceCounted<File> {
   // Calls the platform-specific functions to close the file.
   void Close();
 
-  // Returns the weak persistent handle for the File's Dart wrapper.
-  Dart_WeakPersistentHandle WeakHandle() const { return weak_handle_; }
-
-  // Set the weak persistent handle for the File's Dart wrapper.
-  void SetWeakHandle(Dart_WeakPersistentHandle handle) {
-    ASSERT(weak_handle_ == NULL);
-    weak_handle_ = handle;
+  // Returns the finalizable handle for the File's Dart wrapper.
+  Dart_FinalizableHandle FinalizableHandle() const {
+    return finalizable_handle_;
   }
 
-  // Deletes the weak persistent handle for the File's Dart wrapper. Call
+  // Set the finalizable handle for the File's Dart wrapper.
+  void SetFinalizableHandle(Dart_FinalizableHandle handle) {
+    ASSERT(finalizable_handle_ == NULL);
+    finalizable_handle_ = handle;
+  }
+
+  // Deletes the finalizable handle for the File's Dart wrapper. Call
   // when the file is explicitly closed and the finalizer is no longer
   // needed.
-  void DeleteWeakHandle(Dart_Isolate isolate) {
-    Dart_DeleteWeakPersistentHandle(weak_handle_);
-    weak_handle_ = NULL;
+  void DeleteFinalizableHandle(Dart_Isolate isolate, Dart_Handle strong_ref) {
+    Dart_DeleteFinalizableHandle(finalizable_handle_, strong_ref);
+    finalizable_handle_ = NULL;
   }
 
   // Open the file with the given path. The file is always opened for
@@ -319,7 +321,7 @@ class File : public ReferenceCounted<File> {
 
  private:
   explicit File(FileHandle* handle)
-      : ReferenceCounted(), handle_(handle), weak_handle_(NULL) {}
+      : ReferenceCounted(), handle_(handle), finalizable_handle_(NULL) {}
 
   ~File();
 
@@ -330,10 +332,10 @@ class File : public ReferenceCounted<File> {
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
 
-  // We retain the weak handle because we can do cleanup eagerly when Dart code
-  // calls closeSync(). In that case, we delete the weak handle so that the
-  // finalizer doesn't run.
-  Dart_WeakPersistentHandle weak_handle_;
+  // We retain the finalizable handle because we can do cleanup eagerly when
+  // Dart code calls closeSync(). In that case, we delete the finalizable
+  // handle so that the finalizer doesn't run.
+  Dart_FinalizableHandle finalizable_handle_;
 
   friend class ReferenceCounted<File>;
   DISALLOW_COPY_AND_ASSIGN(File);

@@ -9,6 +9,8 @@ class Flags {
   static const String nnbdWeakMode = "--nnbd-weak";
 
   static const String forceLateLowering = "--force-late-lowering";
+  static const String forceStaticFieldLowering =
+      "--force-static-field-lowering";
   static const String forceNoExplicitGetterCalls =
       "--force-no-explicit-getter-calls";
 
@@ -27,6 +29,7 @@ class Flags {
   static const String help = "--help";
   static const String librariesJson = "--libraries-json";
   static const String noDefines = "--no-defines";
+  static const String noDeps = "--no-deps";
   static const String output = "--output";
   static const String packages = "--packages";
   static const String platform = "--platform";

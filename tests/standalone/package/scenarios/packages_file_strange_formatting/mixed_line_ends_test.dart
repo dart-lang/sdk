@@ -4,6 +4,10 @@
 
 // Packages=mixed_line_ends.packages
 
+// This test verifies handling of legacy .packages file and cannot be run in
+// null safety (strong) mode as strong mode needs new package_config.json.
+// Requirements=nnbd-weak
+
 library mixed_line_ends_test;
 
 import 'package:foo/foo.dart' as foo;

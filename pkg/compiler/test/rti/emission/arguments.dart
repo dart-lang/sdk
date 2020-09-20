@@ -4,10 +4,10 @@
 
 // @dart = 2.7
 
-/*class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*class: A:checkedTypeArgument,typeArgument*/
 class A {}
 
-/*class: B:checks=[],typeArgument*/
+/*class: B:typeArgument*/
 class B {}
 
 /*class: C:checkedInstance,checks=[],instance*/

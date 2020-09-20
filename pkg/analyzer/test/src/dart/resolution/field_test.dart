@@ -4,8 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../constant/potentially_constant_test.dart';
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class FieldTest extends DriverResolutionTest {
+class FieldTest extends PubPackageResolutionTest {
   test_type_inferred_int() async {
     await resolveTestCode('''
 class A {
@@ -60,9 +59,10 @@ class A {
 }
 
 @reflectiveTest
-class FieldWithNullSafetyTest extends FieldTest with WithNullSafetyMixin {
+class FieldWithNullSafetyTest extends PubPackageResolutionTest
+    with WithNullSafetyMixin {
   test_type_inferred_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 var a = 0;
 ''');

@@ -21,64 +21,64 @@ extension Extension on Class2 {
 
 main() {
   Class1? c1;
-  c1?.[0];
-  c1?.[0] = 1;
-  c1?.[0] = 1 + c1[0];
-  c1?.[0] += 1;
-  c1?.[0] += 1 + c1[0];
+  c1?[0];
+  c1?[0] = 1;
+  c1?[0] = 1 + c1[0];
+  c1?[0] += 1;
+  c1?[0] += 1 + c1[0];
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  ++c1?.[0];
-  c1?.[0]++;
-  c1?.[0] ??= 1;
-  c1?.[0] ??= 1 + c1[1];
+  ++c1?[0];
+  c1?[0]++;
+  c1?[0] ??= 1;
+  c1?[0] ??= 1 + c1[1];
 
   Class2? c2;
-  c2?.[0];
-  c2?.[0] = 1;
-  c2?.[0] = 1 + c2[0];
-  c2?.[0] += 1;
-  c2?.[0] += 1 + c2[0];
+  c2?[0];
+  c2?[0] = 1;
+  c2?[0] = 1 + c2[0];
+  c2?[0] += 1;
+  c2?[0] += 1 + c2[0];
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  ++c2?.[0];
-  c2?.[0]++;
-  c2?.[0] ??= 1;
-  c2?.[0] ??= 1 + c2[1];
+  ++c2?[0];
+  c2?[0]++;
+  c2?[0] ??= 1;
+  c2?[0] ??= 1 + c2[1];
 
-  Extension(c2)?.[0];
-  Extension(c2)?.[0] = 1;
-  Extension(c2)?.[0] = 1 + Extension(c2)[0];
-  Extension(c2)?.[0] += 1;
-  Extension(c2)?.[0] += 1 + Extension(c2)[0];
+  Extension(c2)?[0];
+  Extension(c2)?[0] = 1;
+  Extension(c2)?[0] = 1 + Extension(c2)[0];
+  Extension(c2)?[0] += 1;
+  Extension(c2)?[0] += 1 + Extension(c2)[0];
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  ++Extension(c2)?.[0];
-  Extension(c2)?.[0]++;
-  Extension(c2)?.[0] ??= 1;
-  Extension(c2)?.[0] ??= 1 + Extension(c2)[1];
+  ++Extension(c2)?[0];
+  Extension(c2)?[0]++;
+  Extension(c2)?[0] ??= 1;
+  Extension(c2)?[0] ??= 1 + Extension(c2)[1];
 
-  c1?.field?.[0];
-  c1?.field?.[0] = 1;
-  c1?.field?.[0] = 1 + c1[0];
-  c1?.field?.[0] += 1;
-  c1?.field?.[0] += 1 + c1[0];
+  c1?.field?[0];
+  c1?.field?[0] = 1;
+  c1?.field?[0] = 1 + c1[0];
+  c1?.field?[0] += 1;
+  c1?.field?[0] += 1 + c1[0];
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  ++c1?.field?.[0];
-  c1?.field?.[0]++;
-  c1?.field?.[0] ??= 1;
-  c1?.field?.[0] ??= 1 + c1[1];
+  ++c1?.field?[0];
+  c1?.field?[0]++;
+  c1?.field?[0] ??= 1;
+  c1?.field?[0] ??= 1 + c1[1];
 
-  Extension(c1?.field)?.[0];
-  Extension(c1?.field)?.[0] = 1;
-  Extension(c1?.field)?.[0] = 1 + Extension(c2)?.[0]!;
-  Extension(c1?.field)?.[0] += 1;
-  Extension(c1?.field)?.[0] += 1 + Extension(c2)?.[0]!;
+  Extension(c1?.field)?[0];
+  Extension(c1?.field)?[0] = 1;
+  Extension(c1?.field)?[0] = 1 + Extension(c2)?[0]!;
+  Extension(c1?.field)?[0] += 1;
+  Extension(c1?.field)?[0] += 1 + Extension(c2)?[0]!;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  ++Extension(c1?.field)?.[0];
-  Extension(c1?.field)?.[0]++;
-  Extension(c1?.field)?.[0] ??= 1;
-  Extension(c1?.field)?.[0] ??= 1 + Extension(c2)?.[1]!;
+  ++Extension(c1?.field)?[0];
+  Extension(c1?.field)?[0]++;
+  Extension(c1?.field)?[0] ??= 1;
+  Extension(c1?.field)?[0] ??= 1 + Extension(c2)?[1]!;
 }

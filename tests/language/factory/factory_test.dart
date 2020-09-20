@@ -36,10 +36,10 @@ class FactoryTest {
 abstract class Link<T> {
   factory Link.create() = LinkFactory<T>.create;
   //                      ^^^^^^^^^^^^^^
-  // [analyzer] STATIC_TYPE_WARNING.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
   // [cfe] Expected 0 type arguments.
   //                      ^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] STATIC_WARNING.REDIRECT_TO_INVALID_RETURN_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_INVALID_RETURN_TYPE
 }
 
 class LinkFactory {

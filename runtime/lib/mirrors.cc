@@ -64,10 +64,12 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   args.SetAt(6, argument_names);
 
   const Library& libcore = Library::Handle(Library::CoreLibrary());
-  const Class& NoSuchMethodError =
+  const Class& cls =
       Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
-  const Function& throwNew = Function::Handle(
-      NoSuchMethodError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(throwNew, args));
   ASSERT(result.IsError());
@@ -1419,7 +1421,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, explicit_args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
-  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  const Error& error =
+      Error::Handle(zone, klass.EnsureIsAllocateFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -1520,6 +1523,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
                       InvocationMirror::kMethod);
     UNREACHABLE();
   }
+#if defined(DEBUG)
+  // Make sure the receiver is the null value, so that DoArgumentTypesMatch does
+  // not attempt to retrieve the instantiator type arguments from the receiver.
+  explicit_argument = args.At(args_descriptor.FirstArgIndex());
+  ASSERT(explicit_argument.IsNull());
+#endif
   const Object& type_error =
       Object::Handle(redirected_constructor.DoArgumentTypesMatch(
           args, args_descriptor, type_arguments));

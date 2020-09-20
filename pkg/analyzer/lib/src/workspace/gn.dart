@@ -233,4 +233,21 @@ class GnWorkspacePackage extends WorkspacePackage {
     // learning exactly which package [filePath] is contained in.
     return workspace.findPackageFor(filePath).root == root;
   }
+
+  @override
+  Map<String, List<Folder>> packagesAvailableTo(String libraryPath) =>
+      workspace.packageMap;
+
+  @override
+  bool sourceIsInPublicApi(Source source) {
+    var filePath = filePathFromSource(source);
+    if (filePath == null) return false;
+    var libFolder = workspace.provider.pathContext.join(root, 'lib');
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      var libSrcFolder =
+          workspace.provider.pathContext.join(root, 'lib', 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
+    }
+    return false;
+  }
 }

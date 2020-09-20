@@ -6,7 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrapGeneric extends CorrectionProducer {
@@ -14,7 +14,7 @@ class FlutterWrapGeneric extends CorrectionProducer {
   AssistKind get assistKind => DartAssistKind.FLUTTER_WRAP_GENERIC;
 
   @override
-  Future<void> compute(DartChangeBuilder builder) async {
+  Future<void> compute(ChangeBuilder builder) async {
     if (node is! ListLiteral) {
       return;
     }
@@ -32,8 +32,8 @@ class FlutterWrapGeneric extends CorrectionProducer {
     var indentArg = '$indentOld${utils.getIndent(1)}';
     var indentList = '$indentOld${utils.getIndent(2)}';
 
-    await builder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(node), (DartEditBuilder builder) {
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addReplacement(range.node(node), (builder) {
         builder.write('[');
         builder.write(eol);
         builder.write(indentArg);

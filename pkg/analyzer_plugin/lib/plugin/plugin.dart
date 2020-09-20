@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -172,14 +170,6 @@ abstract class ServerPlugin {
     }
     return result;
   }
-
-  /// Return the result of analyzing the file with the given [path].
-  ///
-  /// Throw a [RequestFailure] is the file cannot be analyzed or if the driver
-  /// associated with the file is not an [AnalysisDriver].
-  @deprecated
-  Future<ResolveResult> getResolveResult(String path) =>
-      getResolvedUnitResult(path);
 
   /// Handle an 'analysis.getNavigation' request.
   ///
@@ -412,7 +402,7 @@ abstract class ServerPlugin {
         FileByteStore(byteStorePath,
             tempNameSuffix: DateTime.now().millisecondsSinceEpoch.toString()),
         64 * M);
-    _sdkManager = DartSdkManager(sdkPath, true);
+    _sdkManager = DartSdkManager(sdkPath);
     return PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
         contactInfo: contactInfo);

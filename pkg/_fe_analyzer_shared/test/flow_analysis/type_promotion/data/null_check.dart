@@ -18,9 +18,9 @@ promotesNullableType(int? x) {
   }
 }
 
-promotesNullType(Null x) {
+doesNotPromoteNullType(Null x) {
   if (x != null) {
-    /*Never*/ x;
+    x;
   } else {
     x;
   }

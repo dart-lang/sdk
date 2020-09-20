@@ -3,11 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,10 +14,16 @@ main() {
 }
 
 @reflectiveTest
-class StrictRawTypeTest extends DriverResolutionTest with PackageMixin {
+class StrictRawTypeTest extends PubPackageResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..strictRawTypes = true;
+  void setUp() {
+    super.setUp();
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        strictRawTypes: true,
+      ),
+    );
+  }
 
   test_asExpression() async {
     await assertNoErrorsInCode(r'''
@@ -32,7 +36,7 @@ void f(dynamic x) {
   }
 
   test_functionParts_optionalTypeArg() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
@@ -140,7 +144,7 @@ List a;
   }
 
   test_topLevelField_optionalTypeArg() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
@@ -186,7 +190,7 @@ F1 func;
   }
 
   test_typedef_modern_optionalTypeArgs() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
@@ -210,7 +214,7 @@ F3 f3;
   }
 
   test_TypeOnClassDeclaration_optionalTypeArgs() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
@@ -247,7 +251,7 @@ extension E on List {}
   }
 
   test_typeOnExtendedType_optionalTypeArgs() async {
-    addMetaPackage();
+    writeTestPackageConfigWithMeta();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs

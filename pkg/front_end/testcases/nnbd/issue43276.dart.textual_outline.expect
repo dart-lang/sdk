@@ -1,0 +1,9 @@
+class C {
+  C.gen({int i});
+  factory C.fact({int i}) {}
+  factory C.redirect({int i}) = C.gen;
+}
+
+class D {}
+
+main() {}

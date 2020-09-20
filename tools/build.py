@@ -4,15 +4,17 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import argparse
 import io
 import json
 import multiprocessing
-import optparse
 import os
 import subprocess
 import sys
 import time
 import utils
+
+import gn as gn_py
 
 HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
@@ -26,128 +28,36 @@ usage: %%prog [options] [targets]
 This script invokes ninja to build Dart.
 """
 
-
 def BuildOptions():
-    result = optparse.OptionParser(usage=usage)
-    result.add_option(
-        "-a",
-        "--arch",
-        help='Target architectures (comma-separated).',
-        metavar='[all,' + ','.join(AVAILABLE_ARCHS) + ']',
-        default=utils.GuessArchitecture())
-    result.add_option(
-        "-b",
-        "--bytecode",
-        help='Build with the kernel bytecode interpreter. DEPRECATED.',
-        default=False,
-        action='store_true')
-    result.add_option(
-        "-j", type=int, help='Ninja -j option for Goma builds.', default=1000)
-    result.add_option(
-        "-l", type=int, help='Ninja -l option for Goma builds.', default=64)
-    result.add_option(
-        "-m",
-        "--mode",
-        help='Build variants (comma-separated).',
-        metavar='[all,debug,release,product]',
-        default='debug')
-    result.add_option(
-        "--no-start-goma",
-        help="Don't try to start goma",
-        default=False,
-        action='store_true')
-    result.add_option(
-        "--os",
-        help='Target OSs (comma-separated).',
-        metavar='[all,host,android,fuchsia]',
-        default='host')
-    result.add_option(
-        "--sanitizer",
-        type=str,
-        help='Build variants (comma-separated).',
-        metavar='[all,none,asan,lsan,msan,tsan,ubsan]',
-        default='none')
-    result.add_option(
-        "-v",
-        "--verbose",
-        help='Verbose output.',
-        default=False,
-        action="store_true")
-    return result
+    parser = argparse.ArgumentParser(
+        description='Runs GN (if ncecessary) followed by ninja',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    config_group = parser.add_argument_group('Configuration Related Arguments')
+    gn_py.AddCommonConfigurationArgs(config_group)
 
-def ProcessOsOption(os_name):
-    if os_name == 'host':
-        return HOST_OS
-    return os_name
+    gn_group = parser.add_argument_group('GN Related Arguments')
+    gn_py.AddCommonGnOptionArgs(gn_group)
 
+    other_group = parser.add_argument_group('Other Arguments')
+    gn_py.AddOtherArgs(other_group)
 
-def ProcessOptions(options, args):
-    if options.arch == 'all':
-        options.arch = 'ia32,x64,simarm,simarm64'
-    if options.mode == 'all':
-        options.mode = 'debug,release,product'
-    if options.os == 'all':
-        options.os = 'host,android,fuchsia'
-    if options.sanitizer == 'all':
-        options.sanitizer = 'none,asan,lsan,msan,tsan,ubsan'
-    options.mode = options.mode.split(',')
-    options.arch = options.arch.split(',')
-    options.os = options.os.split(',')
-    options.sanitizer = options.sanitizer.split(',')
-    for mode in options.mode:
-        if not mode in ['debug', 'release', 'product']:
-            print("Unknown mode %s" % mode)
-            return False
-    for i, arch in enumerate(options.arch):
-        if not arch in AVAILABLE_ARCHS:
-            # Normalise to lower case form to make it less case-picky.
-            arch_lower = arch.lower()
-            if arch_lower in AVAILABLE_ARCHS:
-                options.arch[i] = arch_lower
-                continue
-            print("Unknown arch %s" % arch)
-            return False
-    options.os = [ProcessOsOption(os_name) for os_name in options.os]
-    for os_name in options.os:
-        if not os_name in [
-                'android', 'freebsd', 'linux', 'macos', 'win32', 'fuchsia'
-        ]:
-            print("Unknown os %s" % os_name)
-            return False
-        if os_name == 'android':
-            if not HOST_OS in ['linux', 'macos']:
-                print("Cross-compilation to %s is not supported on host os %s."
-                      % (os_name, HOST_OS))
-                return False
-            if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64'
-            ]:
-                print(
-                    "Cross-compilation to %s is not supported for architecture %s."
-                    % (os_name, arch))
-                return False
-            # We have not yet tweaked the v8 dart build to work with the Android
-            # NDK/SDK, so don't try to build it.
-            if not args:
-                print(
-                    "For android builds you must specify a target, such as 'runtime'."
-                )
-                return False
-        elif os_name == 'fuchsia':
-            if HOST_OS != 'linux':
-                print("Cross-compilation to %s is not supported on host os %s."
-                      % (os_name, HOST_OS))
-                return False
-            if arch != 'x64':
-                print(
-                    "Cross-compilation to %s is not supported for architecture %s."
-                    % (os_name, arch))
-                return False
-        elif os_name != HOST_OS:
-            print("Unsupported target os %s" % os_name)
-            return False
-    return True
+    other_group.add_argument("-j",
+                             type=int,
+                             help='Ninja -j option for Goma builds.',
+                             default=1000)
+    other_group.add_argument("-l",
+                             type=int,
+                             help='Ninja -l option for Goma builds.',
+                             default=64)
+    other_group.add_argument("--no-start-goma",
+                             help="Don't try to start goma",
+                             default=False,
+                             action='store_true')
+
+    parser.add_argument('build_targets', nargs='*')
+
+    return parser
 
 
 def NotifyBuildDone(build_config, success, start):
@@ -205,49 +115,6 @@ def NotifyBuildDone(build_config, success, start):
         # Ignore return code, if this command fails, it doesn't matter.
         os.system(command)
 
-
-def GenerateBuildfilesIfNeeded():
-    if os.path.exists(utils.GetBuildDir(HOST_OS)):
-        return True
-    command = [
-        'python',
-        os.path.join(DART_ROOT, 'tools', 'generate_buildfiles.py')
-    ]
-    print("Running " + ' '.join(command))
-    process = subprocess.Popen(command)
-    process.wait()
-    if process.returncode != 0:
-        print("Tried to generate missing buildfiles, but failed. "
-              "Try running manually:\n\t$ " + ' '.join(command))
-        return False
-    return True
-
-
-def RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer):
-    if os.path.isfile(os.path.join(out_dir, 'args.gn')):
-        return
-    gn_os = 'host' if target_os == HOST_OS else target_os
-    gn_command = [
-        'python',
-        os.path.join(DART_ROOT, 'tools', 'gn.py'),
-        '--sanitizer',
-        sanitizer,
-        '-m',
-        mode,
-        '-a',
-        arch,
-        '--os',
-        gn_os,
-        '-v',
-    ]
-
-    process = subprocess.Popen(gn_command)
-    process.wait()
-    if process.returncode != 0:
-        print("Tried to run GN, but it failed. Try running it manually: \n\t$ "
-              + ' '.join(gn_command))
-
-
 def UseGoma(out_dir):
     args_gn = os.path.join(out_dir, 'args.gn')
     return 'use_goma = true' in open(args_gn, 'r').read()
@@ -296,9 +163,6 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_goma = False
-    # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
-    # gn.py manually.
-    RunGNIfNeeded(out_dir, target_os, mode, arch, sanitizer)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
@@ -362,17 +226,14 @@ def Main():
     starttime = time.time()
     # Parse the options.
     parser = BuildOptions()
-    (options, args) = parser.parse_args()
-    if not ProcessOptions(options, args):
-        parser.print_help()
-        return 1
-    # Determine which targets to build. By default we build the "all" target.
-    if len(args) == 0:
-        targets = ['all']
-    else:
-        targets = args
+    options = parser.parse_args()
 
-    if not GenerateBuildfilesIfNeeded():
+    targets = options.build_targets
+    if len(targets) == 0:
+        targets = ['all']
+
+    if not gn_py.ProcessOptions(options):
+        parser.print_help()
         return 1
 
     # If binaries are built with sanitizers we should use those flags.
@@ -380,6 +241,9 @@ def Main():
     # effect.
     env = dict(os.environ)
     env.update(SanitizerEnvironmentVariables())
+
+    # Always run GN before building.
+    gn_py.RunGnOnConfiguredConfigurations(options)
 
     # Build all targets for each requested configuration.
     configs = []

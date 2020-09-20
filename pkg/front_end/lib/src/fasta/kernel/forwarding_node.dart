@@ -11,9 +11,12 @@ import "package:kernel/ast.dart"
         Expression,
         Field,
         FunctionNode,
+        FunctionType,
         Member,
         Name,
         NamedExpression,
+        NamedType,
+        Nullability,
         Procedure,
         ProcedureKind,
         ReturnStatement,
@@ -83,6 +86,203 @@ class ForwardingNode {
   /// forwarding stubs if necessary.
   Member finalize() => _computeCovarianceFixes();
 
+  /// Creates a getter member signature for [interfaceMember] with the given
+  /// [type].
+  Member _createGetterMemberSignature(Member interfaceMember, DartType type) {
+    Procedure referenceFrom;
+    if (classBuilder.referencesFromIndexed != null) {
+      referenceFrom = classBuilder.referencesFromIndexed
+          .lookupProcedureNotSetter(name.text);
+    }
+    return new Procedure(name, kind, new FunctionNode(null, returnType: type),
+        isAbstract: true,
+        isMemberSignature: true,
+        fileUri: enclosingClass.fileUri,
+        memberSignatureOrigin: interfaceMember,
+        reference: referenceFrom?.reference)
+      ..startFileOffset = enclosingClass.fileOffset
+      ..fileOffset = enclosingClass.fileOffset
+      ..parent = enclosingClass;
+  }
+
+  /// Creates a setter member signature for [interfaceMember] with the given
+  /// [type]. The flags of parameter is set according to [isCovariant] and
+  /// [isGenericCovariantImpl] and the [parameterName] is used, if provided.
+  Member _createSetterMemberSignature(Member interfaceMember, DartType type,
+      {bool isCovariant, bool isGenericCovariantImpl, String parameterName}) {
+    assert(isCovariant != null);
+    assert(isGenericCovariantImpl != null);
+    Procedure referenceFrom;
+    if (classBuilder.referencesFromIndexed != null) {
+      referenceFrom =
+          classBuilder.referencesFromIndexed.lookupProcedureSetter(name.text);
+    }
+    return new Procedure(
+        name,
+        kind,
+        new FunctionNode(null,
+            returnType: const VoidType(),
+            positionalParameters: [
+              new VariableDeclaration(parameterName ?? '_',
+                  type: type, isCovariant: isCovariant)
+                ..isGenericCovariantImpl = isGenericCovariantImpl
+            ]),
+        isAbstract: true,
+        isMemberSignature: true,
+        fileUri: enclosingClass.fileUri,
+        memberSignatureOrigin: interfaceMember,
+        reference: referenceFrom?.reference)
+      ..startFileOffset = enclosingClass.fileOffset
+      ..fileOffset = enclosingClass.fileOffset
+      ..parent = enclosingClass;
+  }
+
+  /// Creates a legacy member signature for the field [interfaceMember] if the
+  /// type of [interfaceMember] contains non-legacy nullabilities.
+  Member _createLegacyMemberSignatureForField(Field interfaceMember) {
+    DartType type = interfaceMember.type;
+    if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
+      Substitution substitution =
+          _substitutionFor(null, interfaceMember, enclosingClass);
+      type = substitution.substituteType(type);
+    }
+    DartType legacyType = rawLegacyErasure(hierarchy.coreTypes, type);
+    if (legacyType == null) {
+      return interfaceMember;
+    } else {
+      // We base the decision to add a member signature on whether the legacy
+      // erasure of the declared type is different from the declared type, i.e.
+      // whether the declared type contained non-legacy nullabilities.
+      //
+      // This is slightly different from checking whether the legacy erasure of
+      // the inherited type is different from the
+      if (kind == ProcedureKind.Getter) {
+        return _createGetterMemberSignature(interfaceMember, legacyType);
+      } else {
+        assert(kind == ProcedureKind.Setter);
+        return _createSetterMemberSignature(interfaceMember, legacyType,
+            isCovariant: interfaceMember.isCovariant,
+            isGenericCovariantImpl: interfaceMember.isGenericCovariantImpl);
+      }
+    }
+  }
+
+  /// Creates a legacy member signature for procedure [interfaceMember] if the
+  /// type of [interfaceMember] contains non-legacy nullabilities.
+  Member _createLegacyMemberSignatureForProcedure(Procedure interfaceMember) {
+    if (interfaceMember.kind == ProcedureKind.Getter) {
+      DartType type = interfaceMember.getterType;
+      if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
+        Substitution substitution =
+            _substitutionFor(null, interfaceMember, enclosingClass);
+        type = substitution.substituteType(type);
+      }
+      DartType legacyType = rawLegacyErasure(hierarchy.coreTypes, type);
+      if (legacyType == null) {
+        return interfaceMember;
+      } else {
+        return _createGetterMemberSignature(interfaceMember, legacyType);
+      }
+    } else if (interfaceMember.kind == ProcedureKind.Setter) {
+      DartType type = interfaceMember.setterType;
+      if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
+        Substitution substitution =
+            _substitutionFor(null, interfaceMember, enclosingClass);
+        type = substitution.substituteType(type);
+      }
+      DartType legacyType = rawLegacyErasure(hierarchy.coreTypes, type);
+      if (legacyType == null) {
+        return interfaceMember;
+      } else {
+        VariableDeclaration parameter =
+            interfaceMember.function.positionalParameters.first;
+        return _createSetterMemberSignature(interfaceMember, legacyType,
+            isCovariant: parameter.isCovariant,
+            isGenericCovariantImpl: parameter.isGenericCovariantImpl,
+            parameterName: parameter.name);
+      }
+    } else {
+      FunctionNode function = interfaceMember.function;
+      FunctionType type = function.computeFunctionType(Nullability.legacy);
+      if (interfaceMember.enclosingClass.typeParameters.isNotEmpty) {
+        Substitution substitution =
+            _substitutionFor(null, interfaceMember, enclosingClass);
+        type = substitution.substituteType(type);
+      }
+      FunctionType legacyType = rawLegacyErasure(hierarchy.coreTypes, type);
+      if (legacyType == null) {
+        return interfaceMember;
+      }
+      Procedure referenceFrom;
+      if (classBuilder.referencesFromIndexed != null) {
+        referenceFrom = classBuilder.referencesFromIndexed
+            .lookupProcedureNotSetter(name.text);
+      }
+      List<VariableDeclaration> positionalParameters = [];
+      for (int i = 0; i < function.positionalParameters.length; i++) {
+        VariableDeclaration parameter = function.positionalParameters[i];
+        DartType parameterType = legacyType.positionalParameters[i];
+        if (i == 0 && interfaceMember == hierarchy.coreTypes.objectEquals) {
+          // In legacy code we special case `Object.==` to infer `dynamic`
+          // instead `Object!`.
+          parameterType = const DynamicType();
+        }
+        positionalParameters.add(new VariableDeclaration(parameter.name,
+            type: parameterType, isCovariant: parameter.isCovariant)
+          ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
+      }
+      List<VariableDeclaration> namedParameters = [];
+      int namedParameterCount = function.namedParameters.length;
+      if (namedParameterCount == 1) {
+        NamedType namedType = legacyType.namedParameters.first;
+        VariableDeclaration parameter = function.namedParameters.first;
+        namedParameters.add(new VariableDeclaration(parameter.name,
+            type: namedType.type, isCovariant: parameter.isCovariant)
+          ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
+      } else if (namedParameterCount > 1) {
+        Map<String, DartType> namedTypes = {};
+        for (NamedType namedType in legacyType.namedParameters) {
+          namedTypes[namedType.name] = namedType.type;
+        }
+        for (int i = 0; i < namedParameterCount; i++) {
+          VariableDeclaration parameter = function.namedParameters[i];
+          DartType parameterType = namedTypes[parameter.name];
+          namedParameters.add(new VariableDeclaration(parameter.name,
+              type: parameterType, isCovariant: parameter.isCovariant)
+            ..isGenericCovariantImpl = parameter.isGenericCovariantImpl);
+        }
+      }
+      return new Procedure(
+          name,
+          kind,
+          new FunctionNode(null,
+              typeParameters: legacyType.typeParameters,
+              returnType: legacyType.returnType,
+              positionalParameters: positionalParameters,
+              namedParameters: namedParameters,
+              requiredParameterCount: function.requiredParameterCount),
+          isAbstract: true,
+          isMemberSignature: true,
+          fileUri: enclosingClass.fileUri,
+          memberSignatureOrigin: interfaceMember,
+          reference: referenceFrom?.reference)
+        ..startFileOffset = enclosingClass.fileOffset
+        ..fileOffset = enclosingClass.fileOffset
+        ..parent = enclosingClass;
+    }
+  }
+
+  /// Creates a legacy member signature for [interfaceMember] if the type of
+  /// [interfaceMember] contains non-legacy nullabilities.
+  Member _createLegacyMemberSignature(Member interfaceMember) {
+    if (interfaceMember is Field) {
+      return _createLegacyMemberSignatureForField(interfaceMember);
+    } else {
+      assert(interfaceMember is Procedure);
+      return _createLegacyMemberSignatureForProcedure(interfaceMember);
+    }
+  }
+
   /// Tag the parameters of [interfaceMember] that need type checks
   ///
   /// Parameters can need type checks for calls coming from statically typed
@@ -95,6 +295,18 @@ class ForwardingNode {
   /// stub is introduced as a place to put the checks.
   Member _computeCovarianceFixes() {
     Member interfaceMember = combinedMemberSignatureResult.getMember(hierarchy);
+    if (_candidates.length == 1) {
+      // Covariance can only come from [interfaceMember] so we never need a
+      // forwarding stub.
+      if (interfaceMember.isNonNullableByDefault &&
+          !classBuilder.library.isNonNullableByDefault) {
+        // Create a member signature with the legacy erasure type.
+        return _createLegacyMemberSignature(interfaceMember);
+      } else {
+        // Nothing to do.
+        return interfaceMember;
+      }
+    }
 
     List<TypeParameter> interfaceMemberTypeParameters =
         interfaceMember.function?.typeParameters ?? [];
@@ -153,6 +365,8 @@ class ForwardingNode {
         Procedure procedure = stub;
         if (forMemberSignature) {
           procedure.isMemberSignature = true;
+          procedure.memberSignatureOrigin =
+              interfaceMember.memberSignatureOrigin ?? interfaceMember;
         } else {
           procedure.isForwardingStub = true;
         }
@@ -161,7 +375,9 @@ class ForwardingNode {
       if (interfaceMember.enclosingClass == enclosingClass) return;
       stub = _createForwardingStub(
           stubTypeParameters, substitution, interfaceMember,
-          forMemberSignature: forMemberSignature);
+          memberSignatureTarget: forMemberSignature
+              ? interfaceMember.memberSignatureOrigin ?? interfaceMember
+              : null);
     }
 
     bool isImplCreated = false;
@@ -409,6 +625,39 @@ class ForwardingNode {
       createStubIfNeeded(forMemberSignature: true);
       stub.function.returnType = type;
     }
+    assert(
+        !(stub is Procedure &&
+            (stub as Procedure).isMemberSignature &&
+            stub.memberSignatureOrigin == null),
+        "No member signature origin for member signature $stub.");
+    if (stub != interfaceMember && stub is Procedure) {
+      Procedure procedure = stub;
+      if (procedure.isForwardingStub || procedure.isForwardingSemiStub) {
+        procedure.isMemberSignature = false;
+        procedure.memberSignatureOrigin = null;
+      } else {
+        procedure.forwardingStubInterfaceTarget = null;
+        procedure.forwardingStubSuperTarget = null;
+      }
+      assert(
+          !(procedure.isMemberSignature && procedure.isForwardingStub),
+          "Procedure is both member signature and forwarding stub: "
+          "$procedure.");
+      assert(
+          !(procedure.isMemberSignature && procedure.isForwardingSemiStub),
+          "Procedure is both member signature and forwarding semi stub: "
+          "$procedure.");
+      assert(
+          !(procedure.forwardingStubInterfaceTarget is Procedure &&
+              (procedure.forwardingStubInterfaceTarget as Procedure)
+                  .isMemberSignature),
+          "Forwarding stub interface target is member signature: $procedure.");
+      assert(
+          !(procedure.forwardingStubSuperTarget is Procedure &&
+              (procedure.forwardingStubSuperTarget as Procedure)
+                  .isMemberSignature),
+          "Forwarding stub super target is member signature: $procedure.");
+    }
     return stub;
   }
 
@@ -429,6 +678,8 @@ class ForwardingNode {
     if (superTarget is Procedure && superTarget.isForwardingStub) {
       Procedure superProcedure = superTarget;
       superTarget = superProcedure.forwardingStubSuperTarget;
+    } else {
+      superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
@@ -477,7 +728,7 @@ class ForwardingNode {
   /// Creates a forwarding stub based on the given [target].
   Procedure _createForwardingStub(List<TypeParameter> typeParameters,
       Substitution substitution, Member target,
-      {bool forMemberSignature: false}) {
+      {Member memberSignatureTarget}) {
     VariableDeclaration copyParameter(VariableDeclaration parameter) {
       return new VariableDeclaration(parameter.name,
           type: substitution.substituteType(parameter.type),
@@ -519,25 +770,26 @@ class ForwardingNode {
     if (target is Procedure && target.isForwardingStub) {
       finalTarget = target.forwardingStubInterfaceTarget;
     } else {
-      finalTarget = target;
+      finalTarget = target.memberSignatureOrigin ?? target;
     }
     Procedure referenceFrom;
     if (classBuilder.referencesFromIndexed != null) {
       if (kind == ProcedureKind.Setter) {
         referenceFrom =
-            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.name);
+            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.text);
       } else {
         referenceFrom = classBuilder.referencesFromIndexed
-            .lookupProcedureNotSetter(name.name);
+            .lookupProcedureNotSetter(name.text);
       }
     }
     return new Procedure(name, kind, function,
         isAbstract: true,
-        isForwardingStub: !forMemberSignature,
-        isMemberSignature: forMemberSignature,
+        isForwardingStub: memberSignatureTarget == null,
+        isMemberSignature: memberSignatureTarget != null,
         fileUri: enclosingClass.fileUri,
         forwardingStubInterfaceTarget: finalTarget,
-        reference: referenceFrom?.reference)
+        reference: referenceFrom?.reference,
+        memberSignatureOrigin: memberSignatureTarget)
       ..startFileOffset = enclosingClass.fileOffset
       ..fileOffset = enclosingClass.fileOffset
       ..parent = enclosingClass

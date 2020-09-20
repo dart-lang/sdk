@@ -52,9 +52,12 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
   ASSERT(call_->deopt_id() != DeoptId::kNone);
   const intptr_t outer_deopt_id = call_->deopt_id();
   // Scale the edge weights by the call count for the inlined function.
-  double scale_factor =
-      static_cast<double>(call_->CallCount()) /
-      static_cast<double>(caller_graph_->graph_entry()->entry_count());
+  double scale_factor = 1.0;
+  if (caller_graph_->graph_entry()->entry_count() != 0) {
+    scale_factor =
+        static_cast<double>(call_->CallCount()) /
+        static_cast<double>(caller_graph_->graph_entry()->entry_count());
+  }
   for (BlockIterator block_it = callee_graph->postorder_iterator();
        !block_it.Done(); block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();

@@ -18,31 +18,64 @@
 
 namespace dart {
 
-class BufferFormatter;
+class BaseTextBuffer;
 class ConstantInstr;
 class Definition;
 class PairLocation;
 class Value;
 
+// All unboxed integer representations.
+// Format: (representation name, is unsigned, value type)
+#define FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                \
+  M(UnboxedInt32, false, int32_t)                                              \
+  M(UnboxedUint32, true, uint32_t)                                             \
+  M(UnboxedInt64, false, int64_t)
+
+// All unboxed representations.
+// Format: (representation name, is unsigned, value type)
+#define FOR_EACH_UNBOXED_REPRESENTATION_KIND(M)                                \
+  M(UnboxedDouble, false, double_t)                                            \
+  M(UnboxedFloat, false, float_t)                                              \
+  FOR_EACH_INTEGER_REPRESENTATION_KIND(M)                                      \
+  M(UnboxedFloat32x4, false, simd128_value_t)                                  \
+  M(UnboxedInt32x4, false, simd128_value_t)                                    \
+  M(UnboxedFloat64x2, false, simd128_value_t)
+
+// All representations that represent a single boxed or unboxed value.
+// (Note that packed SIMD values are considered a single value here.)
+// Format: (representation name, is unsigned, value type)
+#define FOR_EACH_SIMPLE_REPRESENTATION_KIND(M)                                 \
+  M(Tagged, false, compiler::target::word)                                     \
+  M(Untagged, false, compiler::target::word)                                   \
+  FOR_EACH_UNBOXED_REPRESENTATION_KIND(M)
+
+// All representations, including sentinel and multi-value representations.
+// Format: (representation name, _, _)  (only the name is guaranteed to exist)
+// Ordered so that NoRepresentation is first (and thus 0 in the enum).
 #define FOR_EACH_REPRESENTATION_KIND(M)                                        \
-  M(NoRepresentation)                                                          \
-  M(Tagged)                                                                    \
-  M(Untagged)                                                                  \
-  M(UnboxedDouble)                                                             \
-  M(UnboxedFloat)                                                              \
-  M(UnboxedInt32)                                                              \
-  M(UnboxedUint32)                                                             \
-  M(UnboxedInt64)                                                              \
-  M(UnboxedFloat32x4)                                                          \
-  M(UnboxedInt32x4)                                                            \
-  M(UnboxedFloat64x2)                                                          \
-  M(PairOfTagged)
+  M(NoRepresentation, _, _)                                                    \
+  FOR_EACH_SIMPLE_REPRESENTATION_KIND(M)                                       \
+  M(PairOfTagged, _, _)
 
 enum Representation {
-#define DECLARE_REPRESENTATION(name) k##name,
+#define DECLARE_REPRESENTATION(name, __, ___) k##name,
   FOR_EACH_REPRESENTATION_KIND(DECLARE_REPRESENTATION)
 #undef DECLARE_REPRESENTATION
       kNumRepresentations
+};
+
+struct RepresentationUtils : AllStatic {
+  // Whether the representation is for a type of unboxed integer.
+  static bool IsUnboxedInteger(Representation rep);
+
+  // Whether the representation is for a type of unboxed value.
+  static bool IsUnboxed(Representation rep);
+
+  // The size of values described by this representation.
+  static size_t ValueSize(Representation rep);
+
+  // Whether the values described by this representation are unsigned integers.
+  static bool IsUnsigned(Representation rep);
 };
 
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
@@ -351,7 +384,7 @@ class Location : public ValueObject {
   intptr_t ToStackSlotOffset() const;
 
   const char* Name() const;
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
   void Print() const;
   const char* ToCString() const;
 
@@ -723,7 +756,7 @@ class LocationSummary : public ZoneAllocated {
     return contains_call_ == kCallOnSharedSlowPath;
   }
 
-  void PrintTo(BufferFormatter* f) const;
+  void PrintTo(BaseTextBuffer* f) const;
 
   static LocationSummary* Make(Zone* zone,
                                intptr_t input_count,

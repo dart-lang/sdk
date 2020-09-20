@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,9 +14,9 @@ main() {
 }
 
 @reflectiveTest
-class DeferredImportOfExtensionTest extends DriverResolutionTest {
+class DeferredImportOfExtensionTest extends PubPackageResolutionTest {
   test_deferredImport_withExtensions() {
-    newFile('/test/lib/foo.dart', content: '''
+    newFile('$testPackageLibPath/foo.dart', content: '''
 extension E on C {}
 class C {}
 ''');
@@ -32,7 +32,7 @@ void f() {
   }
 
   test_deferredImport_withHiddenExtensions() {
-    newFile('/test/lib/foo.dart', content: '''
+    newFile('$testPackageLibPath/foo.dart', content: '''
 extension E on C {}
 class C {}
 ''');
@@ -46,7 +46,7 @@ void f() {
   }
 
   test_deferredImport_withoutExtensions() {
-    newFile('/test/lib/foo.dart', content: '''
+    newFile('$testPackageLibPath/foo.dart', content: '''
 class C {}
 ''');
     assertNoErrorsInCode('''
@@ -59,7 +59,7 @@ void f() {
   }
 
   test_deferredImport_withShownNonExtensions() {
-    newFile('/test/lib/foo.dart', content: '''
+    newFile('$testPackageLibPath/foo.dart', content: '''
 extension E on C {}
 class C {}
 ''');

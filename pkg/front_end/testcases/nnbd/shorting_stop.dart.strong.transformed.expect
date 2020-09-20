@@ -54,7 +54,7 @@ static method main() → dynamic {
 }
 static method test(self::Class? c) → dynamic {
   let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{core::int?} null : #t1{self::Class}.{self::Class::next}.{self::Class::field};
-  self::throwsInStrong(() → core::int? => let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:18:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  self::throwsInStrong(() → core::num => let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:18:33: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => c?.field + 2); // error
                                 ^" in (let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{core::int?} null : #t3{self::Class}.{self::Class::field}).{core::num::+}(2));
   let final self::Class? #t4 = c in #t4.{core::Object::==}(null) ?{core::int?} null : let final core::int #t5 = #t4.{self::Class::field}.{core::num::+}(1) in let final void #t6 = #t4.{self::Class::field} = #t5 in #t5;
@@ -68,7 +68,7 @@ Try accessing using ?. instead.
   throwsInStrong(() => -c?.field); // error
                        ^" in (let final self::Class? #t11 = c in #t11.{core::Object::==}(null) ?{core::int?} null : #t11{self::Class}.{self::Class::field}).{core::int::unary-}());
   let final self::Class? #t12 = c in #t12.{core::Object::==}(null) ?{core::bool?} null : #t12{self::Class}.{self::Class::next}.{self::Class::[]}(0).{core::int::isEven};
-  self::throwsInStrong(() → core::int? => let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:25:35: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
+  self::throwsInStrong(() → core::num => let final<BottomType> #t13 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:25:35: Error: Operator '+' cannot be called on 'int?' because it is potentially null.
   throwsInStrong(() => c?.next[0] + 2); // error
                                   ^" in (let final self::Class? #t14 = c in #t14.{core::Object::==}(null) ?{core::int?} null : #t14{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::num::+}(2));
   let final self::Class? #t15 = c in #t15.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t16 = #t15{self::Class}.{self::Class::next} in let final core::int #t17 = 0 in let final core::int #t18 = #t16.{self::Class::[]}(#t17).{core::num::+}(1) in let final void #t19 = #t16.{self::Class::[]=}(#t17, #t18) in #t18;

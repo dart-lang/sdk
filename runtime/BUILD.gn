@@ -221,15 +221,13 @@ library_for_all_configs("libdart") {
     ":generate_version_cc_file",
     "third_party/double-conversion/src:libdouble_conversion",
   ]
-  if (dart_enable_wasm) {
-    extra_deps += [ "//third_party/wasmer" ]
-    defines = [ "DART_ENABLE_WASM" ]
-  }
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       extra_deps += [
+        "$fuchsia_sdk_root/build/config:runtime_library_group",
         "$fuchsia_sdk_root/pkg/fdio",
         "$fuchsia_sdk_root/pkg/trace-engine",
+        "//build/fuchsia/config/clang:c++-runtime-deps",
       ]
     } else if (using_fuchsia_sdk) {
       extra_deps += [
@@ -286,10 +284,7 @@ action("generate_version_cc_file") {
   if (!dart_version_git_info) {
     args += [ "--no_git_hash" ]
   }
-  if (dart_custom_version_for_pub != "") {
-    args += [
-      "--custom_for_pub",
-      dart_custom_version_for_pub,
-    ]
+  if (!verify_sdk_hash) {
+    args += [ "--no_sdk_hash" ]
   }
 }

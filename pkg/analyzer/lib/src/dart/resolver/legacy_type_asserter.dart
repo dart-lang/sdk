@@ -40,6 +40,15 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _assertLegacyElement(node.readElement);
+    _assertLegacyElement(node.writeElement);
+    _assertLegacyType(node.readType);
+    _assertLegacyType(node.writeType);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
   void visitClassMember(ClassMember node) {
     final element = node.declaredElement;
     if (element is ExecutableElement) {
@@ -105,6 +114,14 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
     super.visitVariableDeclaration(node);
   }
 
+  void _assertLegacyElement(Element element) {
+    if (element is ExecutableElement) {
+      _assertLegacyType(element.type);
+    } else if (element is VariableElement) {
+      _assertLegacyType(element.type);
+    }
+  }
+
   void _assertLegacyType(DartType type) {
     if (type == null) {
       return;
@@ -114,7 +131,7 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    if (type.isBottom && type.isDartCoreNull) {
+    if (type is NeverType && type.isDartCoreNull) {
       // Never?, which is ok.
       //
       // Note: we could allow Null? and Null, but we really should be able to

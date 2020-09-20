@@ -29,7 +29,7 @@ var v;int main() async => 0;
 import 'dart:async';
 var v;Future<int> main() async => 0;
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 
@@ -53,7 +53,7 @@ import 'dart:async';
 Future<List<int>> main() async {
 }
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 
@@ -69,7 +69,7 @@ import 'dart:async';
 Future<List<int>> main() async {
 }
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 
@@ -84,7 +84,7 @@ import 'dart:async' as al;
 al.Future<int> main() async {
 }
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 
@@ -97,7 +97,7 @@ int main() async => 0;
 import 'dart:async';
 Future<int> main() async => 0;
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 
@@ -111,7 +111,7 @@ import 'dart:async';
 
 Future<int> main() async => 0;
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 
@@ -128,7 +128,7 @@ import 'dart:async';
 Future<int> main() async {
 }
 ''', errorFilter: (error) {
-      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
   }
 

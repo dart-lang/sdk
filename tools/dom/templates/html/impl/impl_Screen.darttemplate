@@ -6,6 +6,6 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  Rectangle get available => new Rectangle(_availLeft, _availTop, _availWidth,
-      _availHeight);
+  Rectangle get available => new Rectangle(_availLeft$NULLASSERT,
+	_availTop$NULLASSERT, _availWidth$NULLASSERT, _availHeight$NULLASSERT);
 $!MEMBERS}

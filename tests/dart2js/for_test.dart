@@ -46,7 +46,7 @@ void for5() {
   var i;
   var sum = 0;
   for (i = 0; i < 5; i++) {
-    sum += i;
+    sum += i as int;
   }
   Expect.equals(5, i);
   Expect.equals(10, sum);

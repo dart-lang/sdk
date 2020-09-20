@@ -83,7 +83,35 @@ void testValidateCookieWithDoubleQuotes() {
       () => Cookie.fromSetCookieValue('key="x""; HttpOnly'));
 }
 
+void testValidatePath() {
+  Cookie cookie = Cookie.fromSetCookieValue(" cname = cval; path= / ");
+  Expect.equals('/', cookie.path);
+  cookie.path = null;
+  Expect.throws<FormatException>(() {
+    cookie.path = "something; ";
+  }, (e) => e.toString().contains('Invalid character'));
+
+  StringBuffer buffer = StringBuffer();
+  buffer.writeCharCode(0x1f);
+  Expect.throws<FormatException>(() {
+    cookie.path = buffer.toString();
+  }, (e) => e.toString().contains('Invalid character'));
+
+  buffer.clear();
+  buffer.writeCharCode(0x7f);
+  Expect.throws<FormatException>(() {
+    cookie.path = buffer.toString();
+  }, (e) => e.toString().contains('Invalid character'));
+
+  buffer.clear();
+  buffer.writeCharCode(0x00);
+  Expect.throws<FormatException>(() {
+    cookie.path = buffer.toString();
+  }, (e) => e.toString().contains('Invalid character'));
+}
+
 void main() {
   testCookies();
   testValidateCookieWithDoubleQuotes();
+  testValidatePath();
 }

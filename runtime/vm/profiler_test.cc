@@ -1203,13 +1203,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     EXPECT_EQ(1, profile.sample_count());
     ProfileStackWalker walker(&profile);
 
-    EXPECT_STREQ("TypedData_Float32Array_new", walker.VMTagName());
+    EXPECT_STREQ("DRT_AllocateTypedData", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] new Float32List", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Bytecode] foo", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
+      EXPECT_STREQ("[Stub] AllocateFloat32Array", walker.CurrentName());
+      EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] new Float32List", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());

@@ -11,17 +11,26 @@ analyzer:
     omit_local_variable_types: ignore
     # There are currently 3360 violations in lib/.
     prefer_single_quotes: ignore
-    # Ignoring "style" lint rules from pedantic for now. There are pre-existing
-    # violations that need to be cleaned up. Each one can be cleaned up and
-    # enabled according to the value provided.
-    # TODO(srawlins): At the time of writing, 500 violations in lib/. The fix
-    # is mechanical, via `dartfmt --fix-doc-comments`.
-    slash_for_doc_comments: ignore
-    # There are currently 2000 violations in lib/.
-    unnecessary_this: ignore
+
+    # "strict-inference" is enabled, but "unused" parameters named '_' are
+    # still reported.  Re-evaluate after
+    # https://github.com/dart-lang/language/pull/599 and a functional fix land.
+    inference_failure_on_untyped_parameter: ignore
+    # There are about 10k violations in test/ due to missing return types on
+    # test methods. It would be nice to mark this code as
+    # "ignored for test/**/*.dart".
+    inference_failure_on_function_return_type: ignore
+
+  language:
+    strict-inference: true
 
 linter:
   rules:
     - avoid_unused_constructor_parameters
     - empty_statements
+    - iterable_contains_unrelated_type
+    - list_remove_unrelated_type
+    - prefer_typing_uninitialized_variables
     - unnecessary_brace_in_string_interps
+    - unnecessary_overrides
+    - unnecessary_parenthesis

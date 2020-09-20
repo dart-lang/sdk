@@ -46,6 +46,31 @@ class AbstractBool {
 
   static AbstractBool maybeOrFalse(bool value) => value ? Maybe : False;
 
+  static AbstractBool strengthen(AbstractBool a, AbstractBool b) {
+    //TODO(coam): Assert arguments a and b are consistent
+    return a.isDefinitelyTrue ? True : (a.isDefinitelyFalse ? False : b);
+  }
+
+  AbstractBool operator &(AbstractBool other) {
+    if (isDefinitelyTrue) return other;
+    if (other.isDefinitelyTrue) return this;
+    if (isDefinitelyFalse || other.isDefinitelyFalse) return False;
+    return Maybe;
+  }
+
+  AbstractBool operator |(AbstractBool other) {
+    if (isDefinitelyFalse) return other;
+    if (other.isDefinitelyFalse) return this;
+    if (isDefinitelyTrue || other.isDefinitelyTrue) return True;
+    return Maybe;
+  }
+
+  AbstractBool operator ~() {
+    if (isDefinitelyTrue) return AbstractBool.False;
+    if (isDefinitelyFalse) return AbstractBool.True;
+    return AbstractBool.Maybe;
+  }
+
   @override
   String toString() =>
       'AbstractBool.${_value == null ? 'Maybe' : (_value ? 'True' : 'False')}';
@@ -135,6 +160,11 @@ abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents a non-null fixed size JavaScript array
   /// at runtime.
   AbstractValue get fixedListType;
+
+  /// The [AbstractValue] that represents the union of [growableListType] and
+  /// [fixedListType], i.e. JavaScript arrays that may have their elements
+  /// assigned.
+  AbstractValue get mutableArrayType;
 
   /// The [AbstractValue] that represents a non-null 31-bit unsigned integer at
   /// runtime.
@@ -388,6 +418,11 @@ abstract class AbstractValueDomain {
   /// Returns an [AbstractBool] that describes whether [value] a JavaScript
   /// primitive, possible `null`.
   AbstractBool isPrimitiveOrNull(covariant AbstractValue value);
+
+  /// Return an [AbstractBool] that describes whether [value] is a JavaScript
+  /// 'truthy' value at runtime. This is effectively symbolically evaluating the
+  /// abstract value as a JavaScript condition.
+  AbstractBool isTruthy(covariant AbstractValue value);
 
   /// Returns [AbstractValue] for the runtime values contained in either [a] or
   /// [b].

@@ -167,11 +167,15 @@ class MethodNode extends CallableNode {
   }
 }
 
+bool _isProperty(Entity entity) =>
+    entity is MemberEntity && (entity.isField || entity.isGetter);
+
 class CallablePropertyNode extends CallableNode {
   final MemberEntity property;
   final DartType type;
 
-  CallablePropertyNode(this.property, this.type);
+  CallablePropertyNode(this.property, this.type)
+      : assert(_isProperty(property));
 
   @override
   Entity get entity => property;
@@ -181,8 +185,6 @@ class CallablePropertyNode extends CallableNode {
 
   @override
   bool selectorApplies(Selector selector, BuiltWorld world) {
-    if (world.annotationsData.getParameterCheckPolicy(property).isTrusted)
-      return false;
     if (property.memberName != selector.memberName) return false;
     if (type is FunctionType &&
         !selector.callStructure
@@ -305,6 +307,8 @@ class TypeVariableTests {
     Iterable<RtiNode> dependencies;
     if (entity is ClassEntity) {
       dependencies = _classes[entity]?.dependencies;
+    } else if (_isProperty(entity)) {
+      dependencies = _callableProperties[entity]?.dependencies;
     } else {
       dependencies = _methods[entity]?.dependencies;
     }
@@ -1031,6 +1035,8 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
         });
       } else if (entity is FunctionEntity) {
         methodsNeedingTypeArguments.add(entity);
+      } else if (_isProperty(entity)) {
+        // Do nothing. We just need to visit the dependencies.
       } else {
         localFunctionsNeedingTypeArguments.add(entity);
       }
@@ -1139,6 +1145,9 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     localFunctionsUsingTypeVariableLiterals
         .forEach(potentiallyNeedTypeArguments);
 
+    typeVariableTests._callableProperties.keys
+        .forEach(potentiallyNeedTypeArguments);
+
     if (closedWorld.isMemberUsed(
         closedWorld.commonElements.invocationTypeArgumentGetter)) {
       // If `Invocation.typeArguments` is live, mark all user-defined
@@ -1192,18 +1201,23 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       type = type.withoutNullability;
       if (type is InterfaceType) {
         return [type.element];
-      } else if (type is DynamicType) {
-        return [commonElements.objectClass];
+      } else if (type is NeverType ||
+          type is DynamicType ||
+          type is VoidType ||
+          type is AnyType ||
+          type is ErasedType) {
+        // No classes implied.
+        return const [];
       } else if (type is FunctionType) {
         // TODO(johnniwinther): Include only potential function type subtypes.
         return [commonElements.functionClass];
-      } else if (type is VoidType) {
-        // No classes implied.
       } else if (type is FunctionTypeVariable) {
         return impliedClasses(type.bound);
       } else if (type is FutureOrType) {
-        return [commonElements.futureClass]
-          ..addAll(impliedClasses(type.typeArgument));
+        return [
+          commonElements.futureClass,
+          ...impliedClasses(type.typeArgument),
+        ];
       } else if (type is TypeVariableType) {
         // TODO(johnniwinther): Can we do better?
         return impliedClasses(
@@ -1317,7 +1331,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
     typeVariableTests
         .forEachAppliedSelector((Selector selector, Set<Entity> targets) {
       for (Entity target in targets) {
-        if (target is MemberEntity && (target.isField || target.isGetter) ||
+        if (_isProperty(target) ||
             methodsNeedingTypeArguments.contains(target) ||
             localFunctionsNeedingTypeArguments.contains(target)) {
           selectorsNeedingTypeArguments.add(selector);

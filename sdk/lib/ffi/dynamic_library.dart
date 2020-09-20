@@ -20,6 +20,10 @@ class DynamicLibrary {
   /// Loads a dynamic library file with local visibility.
   ///
   /// Throws an [ArgumentError] if loading the dynamic library fails.
+  ///
+  /// Calling this function multiple times, even in different isolates, returns
+  /// objects which are equal but not identical. The underlying library is only
+  /// loaded once into the DartVM by the OS.
   external factory DynamicLibrary.open(String name);
 
   /// Looks up a symbol in the [DynamicLibrary] and returns its address in

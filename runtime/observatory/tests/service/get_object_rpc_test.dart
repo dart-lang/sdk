@@ -726,9 +726,9 @@ var tests = <IsolateTest>[
     expect(result['library']['type'], equals('@Library'));
     expect(result['source'], startsWith('// Copyright (c)'));
     expect(result['tokenPosTable'].length, isPositive);
-    expect(result['tokenPosTable'][0], new isInstanceOf<List>());
+    expect(result['tokenPosTable'][0], isA<List>());
     expect(result['tokenPosTable'][0].length, isPositive);
-    expect(result['tokenPosTable'][0][0], new isInstanceOf<int>());
+    expect(result['tokenPosTable'][0][0], isA<int>());
   },
 
   // invalid script.
@@ -974,17 +974,15 @@ var tests = <IsolateTest>[
     expect(result['name'], endsWith('_DummyClass.dummyFunction'));
     expect(result['_vmName'], endsWith('dummyFunction'));
     expect(result['kind'], equals('Dart'));
-    expect(result['_optimized'], new isInstanceOf<bool>());
+    expect(result['_optimized'], isA<bool>());
     expect(result['function']['type'], equals('@Function'));
-    expect(result['_startAddress'], new isInstanceOf<String>());
-    expect(result['_endAddress'], new isInstanceOf<String>());
+    expect(result['_startAddress'], isA<String>());
+    expect(result['_endAddress'], isA<String>());
     expect(result['_objectPool'], isNotNull);
     expect(result['_disassembly'], isNotNull);
     expect(result['_descriptors'], isNotNull);
-    expect(
-        result['_inlinedFunctions'], anyOf([isNull, new isInstanceOf<List>()]));
-    expect(
-        result['_inlinedIntervals'], anyOf([isNull, new isInstanceOf<List>()]));
+    expect(result['_inlinedFunctions'], anyOf([isNull, isA<List>()]));
+    expect(result['_inlinedIntervals'], anyOf([isNull, isA<List>()]));
   },
 
   // invalid code.

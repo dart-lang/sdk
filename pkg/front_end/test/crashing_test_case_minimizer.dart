@@ -20,6 +20,9 @@ import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
@@ -56,6 +59,7 @@ String targetString = "VM";
 String expectedCrashLine;
 bool byteDelete = false;
 bool askAboutRedirectCrashTarget = false;
+int stackTraceMatches = 1;
 Set<String> askedAboutRedirect = {};
 
 main(List<String> arguments) async {
@@ -85,6 +89,9 @@ main(List<String> arguments) async {
         byteDelete = true;
       } else if (arg == "--ask-redirect-target") {
         askAboutRedirectCrashTarget = true;
+      } else if (arg.startsWith("--stack-matches=")) {
+        String stackMatches = arg.substring("--stack-matches=".length);
+        stackTraceMatches = int.parse(stackMatches);
       } else {
         throw "Unknown option $arg";
       }
@@ -487,16 +494,22 @@ Future<bool> crashesOnCompile(Component initialComponent) async {
     // Find line with #0 in it.
     String eWithSt = "$e\n\n$st";
     List<String> lines = eWithSt.split("\n");
-    String foundLine;
+    String foundLine = "";
+    int lookFor = 0;
     for (String line in lines) {
-      if (line.startsWith("#0")) {
-        foundLine = line;
-        break;
+      if (line.startsWith("#$lookFor")) {
+        foundLine += line;
+        lookFor++;
+        if (lookFor >= stackTraceMatches) {
+          break;
+        } else {
+          foundLine += "\n";
+        }
       }
     }
     if (foundLine == null) throw "Unexpected crash without stacktrace: $e";
     if (expectedCrashLine == null) {
-      print("Got $foundLine");
+      print("Got '$foundLine'");
       expectedCrashLine = foundLine;
       return true;
     } else if (foundLine == expectedCrashLine) {
@@ -535,6 +548,10 @@ Future<Component> getInitialComponent() async {
 
 CompilerContext setupCompilerContext() {
   CompilerOptions options = getOptions();
+
+  if (nnbd) {
+    options.experimentalFlags = {ExperimentalFlag.nonNullable: true};
+  }
 
   TargetFlags targetFlags = new TargetFlags(
       enableNullSafety: nnbd, trackWidgetCreation: widgetTransformation);

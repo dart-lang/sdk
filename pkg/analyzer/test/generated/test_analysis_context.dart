@@ -9,8 +9,8 @@ import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
@@ -68,10 +68,6 @@ class TestAnalysisContext implements AnalysisContext {
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 
-  @Deprecated('Use LibraryElement.typeProvider')
-  @override
-  TypeProvider get typeProvider => typeProviderLegacy;
-
   TypeProvider get typeProviderLegacy {
     return _typeProviderLegacy;
   }
@@ -79,10 +75,6 @@ class TestAnalysisContext implements AnalysisContext {
   TypeProvider get typeProviderNonNullableByDefault {
     return _typeProviderNonNullableByDefault;
   }
-
-  @Deprecated('Use LibraryElement.typeSystem')
-  @override
-  TypeSystemImpl get typeSystem => typeSystemLegacy;
 
   TypeSystemImpl get typeSystemLegacy {
     return _typeSystemLegacy;

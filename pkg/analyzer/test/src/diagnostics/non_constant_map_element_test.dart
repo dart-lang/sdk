@@ -2,25 +2,48 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapElementTest);
-    defineReflectiveTests(NonConstantMapElementWithConstantTest);
+    defineReflectiveTests(NonConstantMapElementTest_language24);
     defineReflectiveTests(NonConstantMapKeyTest);
+    defineReflectiveTests(NonConstantMapKeyTest_language24);
     defineReflectiveTests(NonConstantMapValueTest);
+    defineReflectiveTests(NonConstantMapValueTest_language24);
   });
 }
 
 @reflectiveTest
-class NonConstantMapElementTest extends DriverResolutionTest {
+class NonConstantMapElementTest extends PubPackageResolutionTest
+    with NonConstantMapElementTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class NonConstantMapElementTest_language24 extends PubPackageResolutionTest
+    with NonConstantMapElementTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin NonConstantMapElementTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_forElement_cannotBeConst() async {
     await assertErrorsInCode('''
 void main() {
@@ -39,7 +62,7 @@ void main() {
   const {1: null, if (true) for (final x in const []) null: null};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 42, 36),
                 error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
@@ -66,7 +89,7 @@ void main() {
   const {1: null, if (true) null: null};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 32, 20),
@@ -80,7 +103,7 @@ void main() {
   const {1: null, if (true) if (true) null: null};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 32, 30),
@@ -95,7 +118,7 @@ void main() {
   const {1: null, if (notConst) null: null};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 60, 8),
               ]
@@ -112,7 +135,7 @@ void main() {
   const {1: null, if (isTrue) null: null else null: null};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 38),
@@ -126,7 +149,7 @@ void main() {
   const {1: null, ...{null: null}};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 32, 15),
@@ -141,7 +164,7 @@ void main() {
   const {1: null, ...notConst};
 }
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 56, 8),
               ]
@@ -152,23 +175,39 @@ void main() {
 }
 
 @reflectiveTest
-class NonConstantMapElementWithConstantTest extends NonConstantMapElementTest {
+class NonConstantMapKeyTest extends PubPackageResolutionTest
+    with NonConstantMapKeyTestCases {
   @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.constant_update_2018],
-    );
+  bool get _constant_update_2018 => true;
 }
 
 @reflectiveTest
-class NonConstantMapKeyTest extends DriverResolutionTest {
+class NonConstantMapKeyTest_language24 extends PubPackageResolutionTest
+    with NonConstantMapKeyTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+@reflectiveTest
+mixin NonConstantMapKeyTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_ifElement_thenElseFalse_finalElse() async {
     await assertErrorsInCode(
         '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 67, 1),
               ]
@@ -183,7 +222,7 @@ var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
@@ -198,7 +237,7 @@ var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 67, 1),
               ]
@@ -213,7 +252,7 @@ var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
@@ -228,7 +267,7 @@ var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
 const dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -241,7 +280,7 @@ var v = const <int, int>{if (1 < 0) a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
@@ -256,7 +295,7 @@ var v = const <int, int>{if (1 < 0) a: 0};
 const dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -269,7 +308,7 @@ var v = const <int, int>{if (1 > 0) a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
@@ -296,14 +335,38 @@ var v = <int, int>{a: 0};
 }
 
 @reflectiveTest
-class NonConstantMapValueTest extends DriverResolutionTest {
+class NonConstantMapValueTest extends PubPackageResolutionTest
+    with NonConstantMapValueTestCases {
+  @override
+  bool get _constant_update_2018 => true;
+}
+
+@reflectiveTest
+class NonConstantMapValueTest_language24 extends PubPackageResolutionTest
+    with NonConstantMapValueTestCases {
+  @override
+  bool get _constant_update_2018 => false;
+
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(
+      PackageConfigFileBuilder(),
+      languageVersion: '2.4',
+    );
+  }
+}
+
+mixin NonConstantMapValueTestCases on PubPackageResolutionTest {
+  bool get _constant_update_2018;
+
   test_const_ifElement_thenElseFalse_finalElse() async {
     await assertErrorsInCode(
         '''
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 70, 1),
               ]
@@ -318,7 +381,7 @@ var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
@@ -333,7 +396,7 @@ var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 70, 1),
               ]
@@ -348,7 +411,7 @@ var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
@@ -363,7 +426,7 @@ var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
 const dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -376,7 +439,7 @@ var v = const <int, int>{if (1 < 0) 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
@@ -391,7 +454,7 @@ var v = const <int, int>{if (1 < 0) 0: a};
 const dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? []
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -404,7 +467,7 @@ var v = const <int, int>{if (1 > 0) 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a};
 ''',
-        analysisOptions.experimentStatus.constant_update_2018
+        _constant_update_2018
             ? [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]

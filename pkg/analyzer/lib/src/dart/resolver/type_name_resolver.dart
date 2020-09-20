@@ -5,16 +5,17 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
 /// Helper for resolving types.
 ///
@@ -23,7 +24,6 @@ class TypeNameResolver {
   final TypeSystemImpl typeSystem;
   final DartType dynamicType;
   final bool isNonNullableByDefault;
-  final LibraryElement definingLibrary;
   final ErrorReporter errorReporter;
 
   Scope nameScope;
@@ -51,7 +51,7 @@ class TypeNameResolver {
   ConstructorName rewriteResult;
 
   TypeNameResolver(this.typeSystem, TypeProvider typeProvider,
-      this.isNonNullableByDefault, this.definingLibrary, this.errorReporter)
+      this.isNonNullableByDefault, this.errorReporter)
       : dynamicType = typeProvider.dynamicType;
 
   NullabilitySuffix get _noneOrStarSuffix {
@@ -68,43 +68,51 @@ class TypeNameResolver {
     rewriteResult = null;
 
     var typeIdentifier = node.name;
-
-    if (typeIdentifier is SimpleIdentifier && typeIdentifier.name == 'void') {
-      node.type = VoidTypeImpl.instance;
-      return;
-    }
-
-    var element = nameScope.lookup(typeIdentifier, definingLibrary);
-
-    if (element is MultiplyDefinedElement) {
-      _setElement(typeIdentifier, element);
-      node.type = dynamicType;
-      return;
-    }
-
-    if (element != null) {
-      _setElement(typeIdentifier, element);
-      node.type = _instantiateElement(node, element);
-      return;
-    }
-
-    if (_rewriteToConstructorName(node)) {
-      return;
-    }
-
-    // Full `prefix.Name` cannot be resolved, try to resolve 'prefix' alone.
     if (typeIdentifier is PrefixedIdentifier) {
-      var prefixIdentifier = typeIdentifier.prefix;
-      var prefixElement = nameScope.lookup(prefixIdentifier, definingLibrary);
-      prefixIdentifier.staticElement = prefixElement;
-    }
+      var prefix = typeIdentifier.prefix;
+      var prefixName = prefix.name;
+      var prefixElement = nameScope.lookup2(prefixName).getter;
+      prefix.staticElement = prefixElement;
 
-    node.type = dynamicType;
-    if (nameScope.shouldIgnoreUndefined(typeIdentifier)) {
-      return;
-    }
+      if (prefixElement == null) {
+        _resolveToElement(node, null);
+        return;
+      }
 
-    _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
+      if (prefixElement is ClassElement) {
+        _rewriteToConstructorName(node, typeIdentifier);
+        return;
+      }
+
+      if (prefixElement is PrefixElement) {
+        var nameNode = typeIdentifier.identifier;
+        var name = nameNode.name;
+
+        var element = prefixElement.scope.lookup2(name).getter;
+        nameNode.staticElement = element;
+        _resolveToElement(node, element);
+        return;
+      }
+
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+        prefix,
+        [prefix.name],
+      );
+      node.type = dynamicType;
+    } else {
+      var nameNode = typeIdentifier as SimpleIdentifier;
+      var name = nameNode.name;
+
+      if (name == 'void') {
+        node.type = VoidTypeImpl.instance;
+        return;
+      }
+
+      var element = nameScope.lookup2(name).getter;
+      nameNode.staticElement = element;
+      _resolveToElement(node, element);
+    }
   }
 
   /// Return type arguments, exactly [parameterCount].
@@ -114,7 +122,7 @@ class TypeNameResolver {
 
     if (argumentCount != parameterCount) {
       errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         node,
         [node.name.name, parameterCount, argumentCount],
       );
@@ -293,61 +301,68 @@ class TypeNameResolver {
     }
   }
 
-  /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
-  /// will be a [PrefixElement]. But we checked and found that `foo.bar` is
-  /// not in the scope, so try to see if it is `Class.constructor`.
-  ///
-  /// Return `true` if the node was rewritten as `Class.constructor`.
-  bool _rewriteToConstructorName(TypeName node) {
-    var typeIdentifier = node.name;
-    var constructorName = node.parent;
-    if (typeIdentifier is PrefixedIdentifier &&
-        constructorName is ConstructorName &&
-        constructorName.name == null) {
-      var classIdentifier = typeIdentifier.prefix;
-      var classElement = nameScope.lookup(classIdentifier, definingLibrary);
-      if (classElement is ClassElement) {
-        var constructorIdentifier = typeIdentifier.identifier;
-
-        var typeArguments = node.typeArguments;
-        if (typeArguments != null) {
-          errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-            typeArguments,
-            [classIdentifier.name, constructorIdentifier.name],
-          );
-          var instanceCreation = constructorName.parent;
-          if (instanceCreation is InstanceCreationExpressionImpl) {
-            instanceCreation.typeArguments = typeArguments;
-          }
-        }
-
-        node.name = classIdentifier;
-        node.typeArguments = null;
-
-        constructorName.period = typeIdentifier.period;
-        constructorName.name = constructorIdentifier;
-
-        rewriteResult = constructorName;
-        return true;
+  void _resolveToElement(TypeName node, Element element) {
+    if (element == null) {
+      node.type = dynamicType;
+      if (!nameScope.shouldIgnoreUndefined(node.name)) {
+        _ErrorHelper(errorReporter).reportNullOrNonTypeElement(node, null);
       }
+      return;
     }
 
-    return false;
+    if (element is MultiplyDefinedElement) {
+      node.type = dynamicType;
+      return;
+    }
+
+    node.type = _instantiateElement(node, element);
   }
 
-  /// Records the new Element for a TypeName's Identifier.
-  ///
-  /// A null may be passed in to indicate that the element can't be resolved.
-  /// (During a re-run of a task, it's important to clear any previous value
-  /// of the element.)
-  void _setElement(Identifier typeName, Element element) {
-    if (typeName is SimpleIdentifier) {
-      typeName.staticElement = element;
-    } else if (typeName is PrefixedIdentifier) {
-      typeName.identifier.staticElement = element;
-      SimpleIdentifier prefix = typeName.prefix;
-      prefix.staticElement = nameScope.lookup(prefix, definingLibrary);
+  /// We parse `foo.bar` as `prefix.Name` with the expectation that `prefix`
+  /// will be a [PrefixElement]. But when we resolved the `prefix` it turned
+  /// out to be a [ClassElement], so it is probably a `Class.constructor`.
+  void _rewriteToConstructorName(
+    TypeName node,
+    PrefixedIdentifier typeIdentifier,
+  ) {
+    var constructorName = node.parent;
+    if (constructorName is ConstructorName && constructorName.name == null) {
+      var classIdentifier = typeIdentifier.prefix;
+      var constructorIdentifier = typeIdentifier.identifier;
+
+      var typeArguments = node.typeArguments;
+      if (typeArguments != null) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          typeArguments,
+          [classIdentifier.name, constructorIdentifier.name],
+        );
+        var instanceCreation = constructorName.parent;
+        if (instanceCreation is InstanceCreationExpressionImpl) {
+          instanceCreation.typeArguments = typeArguments;
+        }
+      }
+
+      node.name = classIdentifier;
+      node.typeArguments = null;
+
+      constructorName.period = typeIdentifier.period;
+      constructorName.name = constructorIdentifier;
+
+      rewriteResult = constructorName;
+      return;
+    }
+
+    if (_isInstanceCreation(node)) {
+      node.type = dynamicType;
+      _ErrorHelper(errorReporter).reportNewWithNonType(node);
+    } else {
+      node.type = dynamicType;
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NOT_A_TYPE,
+        typeIdentifier,
+        [typeIdentifier.name],
+      );
     }
   }
 
@@ -373,7 +388,7 @@ class _ErrorHelper {
         errorReporter.reportErrorForNode(
           instanceCreation.isConst
               ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
-              : StaticWarningCode.NEW_WITH_NON_TYPE,
+              : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
           errorNode,
           [identifier.name],
         );
@@ -389,7 +404,7 @@ class _ErrorHelper {
 
     if (errorNode.name == 'boolean') {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+        CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
         errorNode,
       );
       return;
@@ -397,7 +412,7 @@ class _ErrorHelper {
 
     if (_isTypeInCatchClause(node)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+        CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
         identifier,
         [identifier.name],
       );
@@ -406,7 +421,7 @@ class _ErrorHelper {
 
     if (_isTypeInAsExpression(node)) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.CAST_TO_NON_TYPE,
+        CompileTimeErrorCode.CAST_TO_NON_TYPE,
         identifier,
         [identifier.name],
       );
@@ -416,13 +431,13 @@ class _ErrorHelper {
     if (_isTypeInIsExpression(node)) {
       if (element != null) {
         errorReporter.reportErrorForNode(
-          StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
+          CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
           identifier,
           [identifier.name],
         );
       } else {
         errorReporter.reportErrorForNode(
-          StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
           identifier,
           [identifier.name],
         );
@@ -441,7 +456,7 @@ class _ErrorHelper {
 
     if (_isTypeInTypeArgumentList(node)) {
       errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
         identifier,
         [identifier.name],
       );
@@ -476,7 +491,7 @@ class _ErrorHelper {
 
     if (element != null) {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.NOT_A_TYPE,
+        CompileTimeErrorCode.NOT_A_TYPE,
         identifier,
         [identifier.name],
       );
@@ -485,7 +500,7 @@ class _ErrorHelper {
 
     if (identifier is SimpleIdentifier && identifier.name == 'await') {
       errorReporter.reportErrorForNode(
-        StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         node,
       );
       return;

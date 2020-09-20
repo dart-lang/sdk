@@ -93,9 +93,7 @@ part of dart.core;
  *
  * Also see:
  *
- * * [Dart Cookbook](https://www.dartlang.org/docs/cookbook/#strings)
- *   for String examples and recipes.
- * * [Dart Up and Running](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#strings-and-regular-expressions)
+ * * [Strings and regular expressions](https://dart.dev/guides/libraries/library-tour#strings-and-regular-expressions)
  */
 @pragma('vm:entry-point')
 abstract class String implements Comparable<String>, Pattern {

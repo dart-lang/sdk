@@ -68,6 +68,9 @@ class Dart2jsTarget extends Target {
   @override
   bool get supportsLateFields => false;
 
+  @override
+  bool get useStaticFieldLowering => false;
+
   // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
   //  calls encoded with an explicit property get or disallows getter calls.
   @override
@@ -182,6 +185,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',
@@ -203,6 +207,7 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
+    'dart:_js_annotations',
     'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_names',

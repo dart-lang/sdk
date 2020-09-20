@@ -9,6 +9,10 @@ abstract class OperationPerformance {
   /// The child operations, might be empty.
   List<OperationPerformance> get children;
 
+  /// The data attachments, for non-timing data, e.g. how many files were read,
+  /// or how many bytes were processed.
+  List<OperationPerformanceData> get data;
+
   /// The duration of this operation, including its children.
   Duration get elapsed;
 
@@ -27,6 +31,42 @@ abstract class OperationPerformance {
   });
 }
 
+/// The data attachment for a [OperationPerformance].
+abstract class OperationPerformanceData<T> {
+  String get name;
+
+  T get value;
+}
+
+abstract class OperationPerformanceDataImpl<T>
+    implements OperationPerformanceData<T> {
+  @override
+  final String name;
+
+  OperationPerformanceDataImpl(this.name);
+
+  @override
+  String toString() {
+    return '$name: $value';
+  }
+}
+
+class OperationPerformanceDataImpl_int
+    extends OperationPerformanceDataImpl<int> {
+  @override
+  int value = 0;
+
+  OperationPerformanceDataImpl_int(String name) : super(name);
+
+  void add(int item) {
+    value += item;
+  }
+
+  void increment() {
+    value++;
+  }
+}
+
 class OperationPerformanceImpl implements OperationPerformance {
   @override
   final String name;
@@ -34,11 +74,18 @@ class OperationPerformanceImpl implements OperationPerformance {
   final Stopwatch _timer = Stopwatch();
   final List<OperationPerformance> _children = [];
 
+  final Map<String, OperationPerformanceData<Object>> _data = {};
+
   OperationPerformanceImpl(this.name);
 
   @override
   List<OperationPerformance> get children {
     return _children;
+  }
+
+  @override
+  List<OperationPerformanceData<Object>> get data {
+    return _data.values.toList();
   }
 
   @override
@@ -66,13 +113,24 @@ class OperationPerformanceImpl implements OperationPerformance {
     );
   }
 
-  /// Run the [operation] as a new child.
+  OperationPerformanceDataImpl_int getDataInt(String name) {
+    return _data.putIfAbsent(
+      name,
+      () => OperationPerformanceDataImpl_int(name),
+    );
+  }
+
+  /// Run the [operation] as a child with the given [name].
+  ///
+  /// If there is no such child, a new one is created, with a new timer.
+  ///
+  /// If there is already a child with that name, its timer will resume and
+  /// then stop. So, it will accumulate time across all runs.
   T run<T>(
     String name,
     T Function(OperationPerformanceImpl) operation,
   ) {
-    var child = OperationPerformanceImpl(name);
-    _children.add(child);
+    OperationPerformanceImpl child = _existingOrNewChild(name);
     child._timer.start();
 
     try {
@@ -82,13 +140,17 @@ class OperationPerformanceImpl implements OperationPerformance {
     }
   }
 
-  /// Run the [operation] as a new child.
+  /// Run the [operation] as a child with the given [name].
+  ///
+  /// If there is no such child, a new one is created, with a new timer.
+  ///
+  /// If there is already a child with that name, its timer will resume and
+  /// then stop. So, it will accumulate time across all runs.
   Future<T> runAsync<T>(
     String name,
     Future<T> Function(OperationPerformanceImpl) operation,
   ) async {
-    var child = OperationPerformanceImpl(name);
-    _children.add(child);
+    var child = _existingOrNewChild(name);
     child._timer.start();
 
     try {
@@ -104,12 +166,30 @@ class OperationPerformanceImpl implements OperationPerformance {
   }
 
   @override
-  void write({StringBuffer buffer, String indent = ''}) {
-    buffer.writeln('$indent${toString()}');
+  void write({@required StringBuffer buffer, String indent = ''}) {
+    buffer.write('$indent${toString()}');
+
+    if (_data.isNotEmpty) {
+      var sortedNames = _data.keys.toList()..sort();
+      var sortedData = sortedNames.map((name) => _data[name]);
+      var dataStr = sortedData.map((e) => '$e').join(', ');
+      buffer.write('($dataStr)');
+    }
+
+    buffer.writeln();
 
     var childIndent = '$indent  ';
     for (var child in children) {
       child.write(buffer: buffer, indent: childIndent);
     }
+  }
+
+  OperationPerformanceImpl _existingOrNewChild(String name) {
+    var child = getChild(name);
+    if (child == null) {
+      child = OperationPerformanceImpl(name);
+      _children.add(child);
+    }
+    return child;
   }
 }

@@ -107,6 +107,29 @@ class _GrowableList<T> extends ListBase<T> {
     return new _GrowableList<T>._withData(data);
   }
 
+  // Specialization of List.filled constructor for growable == true.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  factory _GrowableList.filled(int length, T fill) {
+    final result = _GrowableList<T>(length);
+    if (fill != null) {
+      for (int i = 0; i < result.length; i++) {
+        result[i] = fill;
+      }
+    }
+    return result;
+  }
+
+  // Specialization of List.generate constructor for growable == true.
+  // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
+  @pragma("vm:prefer-inline")
+  factory _GrowableList.generate(int length, T generator(int index)) {
+    final result = _GrowableList<T>(length);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = generator(i);
+    }
+    return result;
+  }
+
   @pragma("vm:exact-result-type",
       <dynamic>[_GrowableList, "result-type-uses-passed-type-arguments"])
   factory _GrowableList._withData(_List data) native "GrowableList_allocate";

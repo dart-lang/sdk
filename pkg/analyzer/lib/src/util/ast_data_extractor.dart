@@ -84,6 +84,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
       var memberName = element.name;
       var className = element.enclosingElement.name;
       return MemberId.internal(memberName, className: className);
+    } else if (element.enclosingElement is ExtensionElement) {
+      var memberName = element.name;
+      var extensionName = element.enclosingElement.name;
+      if (element is PropertyAccessorElement) {
+        memberName = '${element.isGetter ? 'get' : 'set'}#$memberName';
+      }
+      return MemberId.internal('$extensionName|$memberName');
     }
     throw UnimplementedError(
         'TODO(paulberry): $element (${element.runtimeType})');

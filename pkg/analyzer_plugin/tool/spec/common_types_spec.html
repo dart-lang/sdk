@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.1.0</version>
+<version>1.2.0</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -1102,27 +1102,39 @@
       <field name="offset">
         <ref>int</ref>
         <p>
-          The offset of the region to which the user can navigate.
+          The offset of the name of the target to which the user can navigate.
         </p>
       </field>
       <field name="length">
         <ref>int</ref>
         <p>
-          The length of the region to which the user can navigate.
+          The length of the name of the target to which the user can navigate.
         </p>
       </field>
       <field name="startLine">
         <ref>int</ref>
         <p>
           The one-based index of the line containing the first character of the
-          region.
+          name of the target.
         </p>
       </field>
       <field name="startColumn">
         <ref>int</ref>
         <p>
           The one-based index of the column containing the first character of
-          the region.
+          the name of the target.
+        </p>
+      </field>
+      <field name="codeOffset" optional="true">
+        <ref>int</ref>
+        <p>
+          The offset of the target code to which the user can navigate.
+        </p>
+      </field>
+      <field name="codeLength" optional="true">
+        <ref>int</ref>
+        <p>
+          The length of the target code to which the user can navigate.
         </p>
       </field>
     </object>

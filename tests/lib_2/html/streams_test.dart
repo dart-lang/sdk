@@ -189,7 +189,7 @@ main() {
   });
 
   test('reduce', () {
-    stream.reduce((a, b) => null).then((_) {});
+    stream.reduce((a, b) => a).then((_) {});
   });
 
   test('fold', () {

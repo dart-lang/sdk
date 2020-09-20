@@ -129,6 +129,8 @@ class TranslationHelper {
                      intptr_t len,
                      Heap::Space space);
 
+  const String& DartString(const GrowableHandlePtrArray<const String>& pieces);
+
   const String& DartSymbolPlain(const char* content) const;
   String& DartSymbolPlain(StringIndex string_index) const;
   const String& DartSymbolObfuscate(const char* content) const;
@@ -523,6 +525,7 @@ class ProcedureHelper {
     kAnnotations,
     kForwardingStubSuperTarget,
     kForwardingStubInterfaceTarget,
+    kMemberSignatureTarget,
     kFunction,
     kEnd,
   };
@@ -1029,6 +1032,20 @@ class ObfuscationProhibitionsMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(ObfuscationProhibitionsMetadataHelper);
 };
 
+class LoadingUnitsMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.loading-units.metadata"; }
+
+  explicit LoadingUnitsMetadataHelper(KernelReaderHelper* helper);
+
+  void ReadLoadingUnits() { ReadMetadata(0); }
+
+ private:
+  void ReadMetadata(intptr_t node_offset);
+
+  DISALLOW_COPY_AND_ASSIGN(LoadingUnitsMetadataHelper);
+};
+
 struct CallSiteAttributesMetadata {
   const AbstractType* receiver_type = nullptr;
 };
@@ -1186,6 +1203,7 @@ class KernelReaderHelper {
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
   NameIndex ReadCanonicalNameReference();
+  NameIndex ReadInterfaceMemberNameReference();
   StringIndex ReadNameAsStringIndex();
   const String& ReadNameAsMethodName();
   const String& ReadNameAsGetterName();
@@ -1195,6 +1213,7 @@ class KernelReaderHelper {
   void SkipStringReference();
   void SkipConstantReference();
   void SkipCanonicalNameReference();
+  void SkipInterfaceMemberNameReference();
   void SkipDartType();
   void SkipOptionalDartType();
   void SkipInterfaceType(bool simple);
@@ -1267,6 +1286,7 @@ class KernelReaderHelper {
   friend class UnboxingInfoMetadataHelper;
   friend class VariableDeclarationHelper;
   friend class ObfuscationProhibitionsMetadataHelper;
+  friend class LoadingUnitsMetadataHelper;
   friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
  private:
@@ -1454,6 +1474,9 @@ class TypeTranslator {
  private:
   void SetupUnboxingInfoMetadata(const Function& function,
                                  intptr_t library_kernel_offset);
+  void SetupUnboxingInfoMetadataForFieldAccessors(
+      const Function& field_accessor,
+      intptr_t library_kernel_offset);
 
   void BuildTypeInternal();
   void BuildInterfaceType(bool simple);

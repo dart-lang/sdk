@@ -33,7 +33,7 @@ static Dart_NativeFunction NoopNativeLookup(Dart_Handle name,
                                             bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != nullptr);
   *auto_setup_scope = false;
-  return reinterpret_cast<Dart_NativeFunction>(&NoopNative);
+  return NoopNative;
 }
 
 // Flatten all non-captured LocalVariables from the given scope and its children
@@ -732,7 +732,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StaticCallInstr* list_factory = nullptr;
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
   UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
@@ -742,7 +742,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
           {kMatchAndMoveUnboxedConstant, &double_one},
           {kMatchAndMoveStoreIndexed, &first_store},
           {kMatchAndMoveStoreIndexed, &second_store},
@@ -752,8 +752,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
       },
       /*insert_before=*/kMoveGlob));
 
-  EXPECT(first_store->array()->definition() == list_factory);
-  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(first_store->array()->definition() == alloc_typed_data);
+  EXPECT(second_store->array()->definition() == alloc_typed_data);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
@@ -855,7 +855,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   auto entry = flow_graph->graph_entry()->normal_entry();
   EXPECT(entry != nullptr);
 
-  StaticCallInstr* list_factory = nullptr;
+  AllocateTypedDataInstr* alloc_typed_data = nullptr;
   UnboxedConstantInstr* double_one = nullptr;
   StoreIndexedInstr* first_store = nullptr;
   StoreIndexedInstr* second_store = nullptr;
@@ -865,7 +865,7 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
   ILMatcher cursor(flow_graph, entry);
   RELEASE_ASSERT(cursor.TryMatch(
       {
-          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveAllocateTypedData, &alloc_typed_data},
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchTrue,
           kMatchAndMoveBranchFalse,
@@ -880,8 +880,8 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
       },
       /*insert_before=*/kMoveGlob));
 
-  EXPECT(first_store->array()->definition() == list_factory);
-  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(first_store->array()->definition() == alloc_typed_data);
+  EXPECT(second_store->array()->definition() == alloc_typed_data);
   EXPECT(boxed_result->value()->definition() != double_one);
   EXPECT(boxed_result->value()->definition() == final_load);
 }
@@ -1113,5 +1113,106 @@ ISOLATE_UNIT_TEST_CASE(LoadOptimizer_RedundantInitializerCallInLoop) {
   EXPECT(!load_field_in_loop1->calls_initializer());
   EXPECT(load_field_in_loop2->calls_initializer());
 }
+
+#if !defined(TARGET_ARCH_IA32)
+
+ISOLATE_UNIT_TEST_CASE(DelayAllocations_DelayAcrossCalls) {
+  const char* kScript = R"(
+    class A {
+      dynamic x, y;
+      A(this.x, this.y);
+    }
+
+    int count = 0;
+
+    @pragma("vm:never-inline")
+    dynamic foo(int i) => count++ < 2 ? i : '$i';
+
+    @pragma("vm:never-inline")
+    dynamic use(v) {}
+
+    void test() {
+      A a = new A(foo(1), foo(2));
+      use(a);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  // Get fields to kDynamicCid guard
+  Invoke(root_library, "test");
+  Invoke(root_library, "test");
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  StaticCallInstr* call1;
+  StaticCallInstr* call2;
+  AllocateObjectInstr* allocate;
+  StoreInstanceFieldInstr* store1;
+  StoreInstanceFieldInstr* store2;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call1},
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call2},
+      kMoveGlob,
+      {kMatchAndMoveAllocateObject, &allocate},
+      {kMatchAndMoveStoreInstanceField, &store1},
+      {kMatchAndMoveStoreInstanceField, &store2},
+  }));
+
+  EXPECT(strcmp(call1->function().UserVisibleNameCString(), "foo") == 0);
+  EXPECT(strcmp(call2->function().UserVisibleNameCString(), "foo") == 0);
+  EXPECT(store1->instance()->definition() == allocate);
+  EXPECT(!store1->ShouldEmitStoreBarrier());
+  EXPECT(store2->instance()->definition() == allocate);
+  EXPECT(!store2->ShouldEmitStoreBarrier());
+}
+
+ISOLATE_UNIT_TEST_CASE(DelayAllocations_DontDelayIntoLoop) {
+  const char* kScript = R"(
+    void test() {
+      Object o = new Object();
+      for (int i = 0; i < 10; i++) {
+        use(o);
+      }
+    }
+
+    @pragma('vm:never-inline')
+    void use(Object o) {
+      print(o.hashCode);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "test"));
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  AllocateObjectInstr* allocate;
+  StaticCallInstr* call;
+
+  ILMatcher cursor(flow_graph, entry, true, ParallelMovesHandling::kSkip);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveAllocateObject, &allocate},
+      kMoveGlob,
+      kMatchAndMoveBranchTrue,
+      kMoveGlob,
+      {kMatchAndMoveStaticCall, &call},
+  }));
+
+  EXPECT(strcmp(call->function().UserVisibleNameCString(), "use") == 0);
+  EXPECT(call->Receiver()->definition() == allocate);
+}
+
+#endif  // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart

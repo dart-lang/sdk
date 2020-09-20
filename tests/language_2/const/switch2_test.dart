@@ -8,7 +8,7 @@ int main() {
   var a = [1, 2, 3][2];
   switch (a) {
   //      ^
-  // [analyzer] STATIC_WARNING.SWITCH_EXPRESSION_NOT_ASSIGNABLE
+  // [analyzer] COMPILE_TIME_ERROR.SWITCH_EXPRESSION_NOT_ASSIGNABLE
     case 0.0:
     //   ^
     // [cfe] Type 'int' of the switch expression isn't assignable to the type 'double' of this case expression.

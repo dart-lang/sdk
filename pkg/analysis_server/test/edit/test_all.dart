@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assists_test.dart' as assists;
+import 'bulk_fixes_test.dart' as bulk_fixes;
 import 'fixes_test.dart' as fixes;
 import 'format_test.dart' as format;
 import 'organize_directives_test.dart' as organize_directives;
@@ -17,6 +18,7 @@ import 'token_details_test.dart' as token_details;
 void main() {
   defineReflectiveSuite(() {
     assists.main();
+    bulk_fixes.main();
     fixes.main();
     format.main();
     organize_directives.main();

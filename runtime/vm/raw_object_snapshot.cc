@@ -399,8 +399,8 @@ void ClosureLayout::WriteTo(SnapshotWriter* writer,
   // Check if closure is serializable, throw an exception otherwise.
   FunctionPtr func = writer->IsSerializableClosure(ClosurePtr(this));
   if (func != Function::null()) {
-    writer->WriteStaticImplicitClosure(object_id, func,
-                                       writer->GetObjectTags(this));
+    writer->WriteStaticImplicitClosure(
+        object_id, func, writer->GetObjectTags(this), delayed_type_arguments_);
     return;
   }
 
@@ -575,6 +575,7 @@ MESSAGE_SNAPSHOT_UNREACHABLE(SignatureData);
 MESSAGE_SNAPSHOT_UNREACHABLE(SingleTargetCache);
 MESSAGE_SNAPSHOT_UNREACHABLE(String);
 MESSAGE_SNAPSHOT_UNREACHABLE(SubtypeTestCache);
+MESSAGE_SNAPSHOT_UNREACHABLE(LoadingUnit);
 MESSAGE_SNAPSHOT_UNREACHABLE(TypedDataBase);
 MESSAGE_SNAPSHOT_UNREACHABLE(UnlinkedCall);
 MESSAGE_SNAPSHOT_UNREACHABLE(MonomorphicSmiableCall);

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' as math;
@@ -95,6 +94,11 @@ const String SKIP_OLD_RELEVANCE = 'skip-old-relevance';
 /// A flag that causes additional output to be produced.
 const String VERBOSE = 'verbose';
 
+/// A [Counter] to track the performance of the new relevance to the old
+/// relevance.
+Counter oldVsNewComparison =
+    Counter('use old vs new relevance rank comparison');
+
 /// Create a parser that can be used to parse the command-line arguments.
 ArgParser createArgParser() {
   return ArgParser()
@@ -175,6 +179,7 @@ enum CompletionGroup {
   staticMember,
   typeReference,
   localReference,
+  paramReference,
   topLevel
 }
 
@@ -222,6 +227,9 @@ class CompletionMetrics {
   MeanReciprocalRankComputer localRefMrrComputer =
       MeanReciprocalRankComputer('local reference completions');
 
+  MeanReciprocalRankComputer paramRefMrrComputer =
+      MeanReciprocalRankComputer('param reference completions');
+
   MeanReciprocalRankComputer topLevelMrrComputer =
       MeanReciprocalRankComputer('non-type member completions');
 
@@ -260,6 +268,10 @@ class CompletionMetrics {
   List<CompletionResult> localRefWorstResults = [];
 
   /// A list of the top [maxWorstResults] completion results with the highest
+  /// (worst) ranks for completing to parameter references.
+  List<CompletionResult> paramRefWorstResults = [];
+
+  /// A list of the top [maxWorstResults] completion results with the highest
   /// (worst) ranks for completing to top-level declarations.
   List<CompletionResult> topLevelWorstResults = [];
 
@@ -278,6 +290,10 @@ class CompletionMetrics {
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for local references.
   List<CompletionResult> localRefSlowestResults = [];
+
+  /// A list of the top [maxSlowestResults] completion results that took the
+  /// longest top compute for parameter references.
+  List<CompletionResult> paramRefSlowestResults = [];
 
   /// A list of the top [maxSlowestResults] completion results that took the
   /// longest top compute for top-level declarations.
@@ -328,7 +344,9 @@ class CompletionMetrics {
       case CompletionGroup.localReference:
         localRefMrrComputer.addRank(rank);
         break;
-
+      case CompletionGroup.paramReference:
+        paramRefMrrComputer.addRank(rank);
+        break;
       case CompletionGroup.topLevel:
         topLevelMrrComputer.addRank(rank);
         break;
@@ -355,6 +373,8 @@ class CompletionMetrics {
           return typeRefSlowestResults;
         case CompletionGroup.localReference:
           return localRefSlowestResults;
+        case CompletionGroup.paramReference:
+          return paramRefSlowestResults;
         case CompletionGroup.topLevel:
           return topLevelSlowestResults;
       }
@@ -389,6 +409,8 @@ class CompletionMetrics {
           return typeRefWorstResults;
         case CompletionGroup.localReference:
           return localRefWorstResults;
+        case CompletionGroup.paramReference:
+          return paramRefWorstResults;
         case CompletionGroup.topLevel:
           return topLevelWorstResults;
       }
@@ -459,6 +481,12 @@ class CompletionMetricsComputer {
       printMetrics(metricsOldMode);
     }
     printMetrics(metricsNewMode);
+
+    print('');
+    print('====================');
+    oldVsNewComparison.printCounterValues();
+    print('====================');
+
     if (verbose) {
       printWorstResults(metricsNewMode);
       printSlowestResults(metricsNewMode);
@@ -467,7 +495,7 @@ class CompletionMetricsComputer {
     return resultCode;
   }
 
-  bool forEachExpectedCompletion(
+  int forEachExpectedCompletion(
       CompletionRequestImpl request,
       MetricsSuggestionListener listener,
       ExpectedCompletion expectedCompletion,
@@ -478,14 +506,14 @@ class CompletionMetricsComputer {
       bool doPrintMissedCompletions) {
     assert(suggestions != null);
 
-    var successfulCompletion;
+    var rank;
 
     var place = placementInSuggestionList(suggestions, expectedCompletion);
 
     metrics.mrrComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
-      successfulCompletion = true;
+      rank = place.rank;
 
       metrics.completionCounter.count('successful');
 
@@ -500,7 +528,7 @@ class CompletionMetricsComputer {
       metrics.insertionLengthTheoretical
           .addValue(expectedCompletion.completion.length - charsBeforeTop);
     } else {
-      successfulCompletion = false;
+      rank = -1;
 
       metrics.completionCounter.count('unsuccessful');
 
@@ -526,7 +554,7 @@ class CompletionMetricsComputer {
         print('');
       }
     }
-    return successfulCompletion;
+    return rank;
   }
 
   void printMetrics(CompletionMetrics metrics) {
@@ -561,6 +589,9 @@ class CompletionMetricsComputer {
     print('');
 
     metrics.localRefMrrComputer.printMean();
+    print('');
+
+    metrics.paramRefMrrComputer.printMean();
     print('');
 
     metrics.topLevelMrrComputer.printMean();
@@ -639,6 +670,8 @@ class CompletionMetricsComputer {
     _printSlowestResults('Static members', metrics.staticMemberSlowestResults);
     _printSlowestResults('Type references', metrics.typeRefSlowestResults);
     _printSlowestResults('Local references', metrics.localRefSlowestResults);
+    _printSlowestResults(
+        'Parameter references', metrics.paramRefSlowestResults);
     _printSlowestResults('Top level', metrics.topLevelSlowestResults);
   }
 
@@ -650,6 +683,7 @@ class CompletionMetricsComputer {
     _printWorstResults('Static members', metrics.staticMemberWorstResults);
     _printWorstResults('Type references', metrics.topLevelWorstResults);
     _printWorstResults('Local references', metrics.localRefWorstResults);
+    _printWorstResults('Parameter references', metrics.paramRefWorstResults);
     _printWorstResults('Top level', metrics.topLevelWorstResults);
   }
 
@@ -686,11 +720,7 @@ class CompletionMetricsComputer {
       suggestions = await DartCompletionManager(
         dartdocDirectiveInfo: DartdocDirectiveInfo(),
         listener: listener,
-      ).computeSuggestions(
-        performance,
-        request,
-        enableUriContributor: true,
-      );
+      ).computeSuggestions(performance, request);
     } else {
       // available suggestions == true
       var includedElementKinds = <protocol.ElementKind>{};
@@ -704,11 +734,7 @@ class CompletionMetricsComputer {
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTagList,
         listener: listener,
-      ).computeSuggestions(
-        performance,
-        request,
-        enableUriContributor: true,
-      );
+      ).computeSuggestions(performance, request);
 
       computeIncludedSetList(declarationsTracker, request.result,
           includedSuggestionSetList, includedElementNames);
@@ -840,7 +866,7 @@ class CompletionMetricsComputer {
             // and results are collected with varying settings for
             // comparison:
 
-            Future<bool> handleExpectedCompletion(
+            Future<int> handleExpectedCompletion(
                 {MetricsSuggestionListener listener,
                 @required CompletionMetrics metrics,
                 @required bool printMissedCompletions,
@@ -886,9 +912,9 @@ class CompletionMetricsComputer {
 
             // First we compute the completions useNewRelevance set to
             // false:
-            var oldRelevanceSucceeded = false;
+            var oldRank;
             if (!skipOldRelevance) {
-              oldRelevanceSucceeded = await handleExpectedCompletion(
+              oldRank = await handleExpectedCompletion(
                   metrics: metricsOldMode,
                   printMissedCompletions: false,
                   useNewRelevance: false);
@@ -896,23 +922,29 @@ class CompletionMetricsComputer {
 
             // And again here with useNewRelevance set to true:
             var listener = MetricsSuggestionListener();
-            var newRelevanceSucceeded = await handleExpectedCompletion(
+            var newRank = await handleExpectedCompletion(
                 listener: listener,
                 metrics: metricsNewMode,
                 printMissedCompletions: verbose,
                 useNewRelevance: true);
 
-            if (!skipOldRelevance &&
-                verbose &&
-                oldRelevanceSucceeded != newRelevanceSucceeded) {
-              if (newRelevanceSucceeded) {
+            if (!skipOldRelevance && newRank != -1 && oldRank != -1) {
+              if (newRank <= oldRank) {
+                oldVsNewComparison.count('new relevance');
+              } else {
+                oldVsNewComparison.count('old relevance');
+              }
+            }
+
+            if (!skipOldRelevance && verbose) {
+              if (newRank > 0 && oldRank < 0) {
                 print('    ===========');
                 print(
                     '    The `useNewRelevance = true` generated a completion that `useNewRelevance = false` did not:');
                 print('    $expectedCompletion');
                 print('    ===========');
                 print('');
-              } else {
+              } else if (newRank < 0 && oldRank > 0) {
                 print('    ===========');
                 print(
                     '    The `useNewRelevance = false` generated a completion that `useNewRelevance = true` did not:');
@@ -1090,6 +1122,8 @@ class CompletionResult {
         return CompletionGroup.typeReference;
       } else if (expectedCompletion.elementKind == ElementKind.LOCAL_VARIABLE) {
         return CompletionGroup.localReference;
+      } else if (expectedCompletion.elementKind == ElementKind.PARAMETER) {
+        return CompletionGroup.paramReference;
       }
     }
     return CompletionGroup.topLevel;

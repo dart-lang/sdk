@@ -64,10 +64,10 @@ static method test() → dynamic {
     return :async_completer.{asy::Completer::future};
   }
   function f4() → core::Iterable<core::int*>* /* originally sync* */ {
-    function :sync_op_gen() → (core::_SyncIterator<core::int*>*) →* core::bool* {
+    function :sync_op_gen() → (core::_SyncIterator<dynamic>*) →* core::bool* {
       core::int* :await_jump_var = 0;
       dynamic :await_ctx_var;
-      return (core::_SyncIterator<core::int*>* :iterator) → core::bool* yielding {
+      return (core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
         {
           {
             :iterator.{core::_SyncIterator::_current} = 42;

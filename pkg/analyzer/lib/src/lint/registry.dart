@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 
@@ -13,7 +14,10 @@ class Registry with IterableMixin<LintRule> {
   static final Registry ruleRegistry = Registry();
 
   /// A table mapping rule names to rules.
-  final Map<String, LintRule> _ruleMap = <String, LintRule>{};
+  final Map<String, LintRule> _ruleMap = {};
+
+  /// A table mapping unique names to lint codes.
+  final Map<String, LintCode> _codeMap = {};
 
   @override
   Iterator<LintRule> get iterator => _ruleMap.values.iterator;
@@ -23,6 +27,9 @@ class Registry with IterableMixin<LintRule> {
 
   /// Return the lint rule with the given [name].
   LintRule operator [](String name) => _ruleMap[name];
+
+  /// Return the lint code that has the given [uniqueName].
+  LintCode codeForUniqueName(String uniqueName) => _codeMap[uniqueName];
 
   /// Return a list of the lint rules explicitly enabled by the given [config].
   ///
@@ -41,5 +48,8 @@ class Registry with IterableMixin<LintRule> {
   /// Add the given lint [rule] to this registry.
   void register(LintRule rule) {
     _ruleMap[rule.name] = rule;
+    for (var lintCode in rule.lintCodes) {
+      _codeMap[lintCode.uniqueName] = lintCode;
+    }
   }
 }

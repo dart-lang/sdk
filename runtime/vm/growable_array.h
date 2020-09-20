@@ -66,6 +66,8 @@ class BaseGrowableHandlePtrArray : public B {
 
   intptr_t length() const { return array_.length(); }
 
+  void Clear() { array_.Clear(); }
+
   const GrowableArray<T*>& growable_array() const { return array_; }
 
  private:

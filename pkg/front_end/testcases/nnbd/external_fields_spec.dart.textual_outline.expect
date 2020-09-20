@@ -1,0 +1,11 @@
+external int s1;
+external final fx;
+
+class A {
+  external int i1;
+  external covariant var cx;
+  external static int s1;
+  external static final fx;
+}
+
+main() {}

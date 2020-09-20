@@ -26,6 +26,8 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
@@ -63,7 +65,8 @@ import 'package:kernel/kernel.dart'
         Name,
         Procedure,
         Supertype,
-        TreeNode;
+        TreeNode,
+        Version;
 
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
@@ -112,6 +115,7 @@ class Context extends ChainContext {
   @override
   Future<void> cleanUp(TestDescription description, Result result) async {
     await cleanupHelper?.outDir?.delete(recursive: true);
+    cleanupHelper?.outDir = null;
   }
 
   TestData cleanupHelper;
@@ -328,6 +332,14 @@ class NewWorldTest {
   Component component2;
   Component component3;
 
+  String doStringReplacements(String input) {
+    Version enableNonNullableVersion =
+        experimentEnabledVersion[ExperimentalFlag.nonNullable];
+    String output = input.replaceAll("%NNBD_VERSION_MARKER%",
+        "${enableNonNullableVersion.major}.${enableNonNullableVersion.minor}");
+    return output;
+  }
+
   Future<Null> newWorldTest(
       TestData data,
       Context context,
@@ -458,6 +470,9 @@ class NewWorldTest {
         if (filename == ".packages") {
           packagesUri = uri;
         }
+        if (world["enableStringReplacement"] == true) {
+          data = doStringReplacements(data);
+        }
         fs.entityForUri(uri).writeAsStringSync(data);
       }
       if (world["dotPackagesFile"] != null) {
@@ -469,6 +484,9 @@ class NewWorldTest {
         options.fileSystem = fs;
         options.sdkRoot = null;
         options.sdkSummary = sdkSummaryUri;
+        if (world["badSdk"] == true) {
+          options.sdkSummary = sdkSummaryUri.resolve("nonexisting.dill");
+        }
         options.omitPlatform = omitPlatform != false;
         if (world["experiments"] != null) {
           Map<ExperimentalFlag, bool> experimentalFlags =
@@ -478,6 +496,16 @@ class NewWorldTest {
                       throw "Error on parsing experiments flags: $e");
           options.experimentalFlags = experimentalFlags;
         }
+        if (world["nnbdMode"] != null) {
+          String nnbdMode = world["nnbdMode"];
+          switch (nnbdMode) {
+            case "strong":
+              options.nnbdMode = NnbdMode.Strong;
+              break;
+            default:
+              throw "Not supported nnbd mode: $nnbdMode";
+          }
+        }
       }
       if (packagesUri != null) {
         options.packagesFileUri = packagesUri;
@@ -486,8 +514,12 @@ class NewWorldTest {
       final Set<String> formattedErrors = Set<String>();
       bool gotWarning = false;
       final Set<String> formattedWarnings = Set<String>();
+      final Set<String> seenDiagnosticCodes = Set<String>();
 
       options.onDiagnostic = (DiagnosticMessage message) {
+        String code = getMessageCodeObject(message)?.name;
+        if (code != null) seenDiagnosticCodes.add(code);
+
         String stringId = message.ansiFormatted.join("\n");
         if (message is FormattedMessage) {
           stringId = message.toJsonString();
@@ -581,6 +613,27 @@ class NewWorldTest {
       }
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      if (world["expectInitializationError"] != null) {
+        Set<String> seenInitializationError = seenDiagnosticCodes.intersection({
+          "InitializeFromDillNotSelfContainedNoDump",
+          "InitializeFromDillNotSelfContained",
+          "InitializeFromDillUnknownProblem",
+          "InitializeFromDillUnknownProblemNoDump",
+        });
+        if (world["expectInitializationError"] == true) {
+          if (seenInitializationError.isEmpty) {
+            throw "Expected to see an initialization error but didn't.";
+          }
+        } else if (world["expectInitializationError"] == false) {
+          if (seenInitializationError.isNotEmpty) {
+            throw "Expected not to see an initialization error but did: "
+                "$seenInitializationError.";
+          }
+        } else {
+          throw "Unsupported value for 'expectInitializationError': "
+              "${world["expectInitializationError"]}";
+        }
+      }
       util.throwOnEmptyMixinBodies(component);
       await util.throwOnInsufficientUriToSource(component,
           fileSystem: gotError ? null : fs);
@@ -960,7 +1013,7 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
       if (info.lazyDeclaredGettersAndCalls != null) {
         sb.writeln("    - lazyDeclaredGettersAndCalls:");
         for (Member member in info.lazyDeclaredGettersAndCalls) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
 
         // Expect these to be the same as in the class.
@@ -969,7 +1022,7 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           if (f.isStatic) continue;
           if (!f.hasImplicitGetter) continue;
           if (!members.remove(f)) {
-            throw "Didn't find ${f.name.name} in lazyDeclaredGettersAndCalls "
+            throw "Didn't find ${f.name.text} in lazyDeclaredGettersAndCalls "
                 "for ${c.name} in ${library.importUri}";
           }
         }
@@ -977,19 +1030,19 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           if (p.isStatic) continue;
           if (p.isSetter) continue;
           if (!members.remove(p)) {
-            throw "Didn't find ${p.name.name} in lazyDeclaredGettersAndCalls "
+            throw "Didn't find ${p.name.text} in lazyDeclaredGettersAndCalls "
                 "for ${c.name} in ${library.importUri}";
           }
         }
         if (members.isNotEmpty) {
-          throw "Still have ${members.map((m) => m.name.name)} left "
+          throw "Still have ${members.map((m) => m.name.text)} left "
               "for ${c.name} in ${library.importUri}";
         }
       }
       if (info.lazyDeclaredSetters != null) {
         sb.writeln("    - lazyDeclaredSetters:");
         for (Member member in info.lazyDeclaredSetters) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
 
         // Expect these to be the same as in the class.
@@ -1009,32 +1062,32 @@ void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
           }
         }
         if (members.isNotEmpty) {
-          throw "Still have ${members.map((m) => m.name.name)} left "
+          throw "Still have ${members.map((m) => m.name.text)} left "
               "for ${c.name} in ${library.importUri}";
         }
       }
       if (info.lazyImplementedGettersAndCalls != null) {
         sb.writeln("    - lazyImplementedGettersAndCalls:");
         for (Member member in info.lazyImplementedGettersAndCalls) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
       if (info.lazyImplementedSetters != null) {
         sb.writeln("    - lazyImplementedSetters:");
         for (Member member in info.lazyImplementedSetters) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
       if (info.lazyInterfaceGettersAndCalls != null) {
         sb.writeln("    - lazyInterfaceGettersAndCalls:");
         for (Member member in info.lazyInterfaceGettersAndCalls) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
       if (info.lazyInterfaceSetters != null) {
         sb.writeln("    - lazyInterfaceSetters:");
         for (Member member in info.lazyInterfaceSetters) {
-          sb.writeln("      - ${member.name.name}");
+          sb.writeln("      - ${member.name.text}");
         }
       }
     }
@@ -1239,10 +1292,10 @@ Map<String, Set<String>> buildMapOfContent(Component component) {
       libContent.add("Class ${c.name}");
     }
     for (Procedure p in lib.procedures) {
-      libContent.add("Procedure ${p.name.name}");
+      libContent.add("Procedure ${p.name.text}");
     }
     for (Field f in lib.fields) {
-      libContent.add("Field ${f.name.name}");
+      libContent.add("Field ${f.name.text}");
     }
   }
   return actualContent;
@@ -1594,12 +1647,17 @@ class TestIncrementalCompiler extends IncrementalCompiler {
     }
     return result;
   }
+
+  void recordTemporaryFileForTesting(Uri uri) {
+    File f = new File.fromUri(uri);
+    if (f.existsSync()) f.deleteSync();
+  }
 }
 
 void doSimulateTransformer(Component c) {
   for (Library lib in c.libraries) {
     if (lib.fields
-        .where((f) => f.name.name == "unique_SimulateTransformer")
+        .where((f) => f.name.text == "unique_SimulateTransformer")
         .toList()
         .isNotEmpty) continue;
     Name fieldName = new Name("unique_SimulateTransformer");
@@ -1611,7 +1669,7 @@ void doSimulateTransformer(Component c) {
     lib.addMember(field);
     for (Class c in lib.classes) {
       if (c.fields
-          .where((f) => f.name.name == "unique_SimulateTransformer")
+          .where((f) => f.name.text == "unique_SimulateTransformer")
           .toList()
           .isNotEmpty) continue;
       fieldName = new Name("unique_SimulateTransformer");

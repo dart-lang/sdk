@@ -2,24 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidReferenceToThisTest);
-    defineReflectiveTests(InvalidReferenceToThisTest_NNBD);
+    defineReflectiveTests(InvalidReferenceToThisWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest extends DriverResolutionTest {
-  test_constructor_valid() async {
+class InvalidReferenceToThisTest extends PubPackageResolutionTest {
+  test_class_constructor() async {
     await assertErrorsInCode(r'''
 class A {
   A() {
@@ -31,7 +28,7 @@ class A {
     ]);
   }
 
-  test_factoryConstructor() async {
+  test_class_factoryConstructor() async {
     await assertErrorsInCode(r'''
 class A {
   factory A() { return this; }
@@ -41,19 +38,17 @@ class A {
     ]);
   }
 
-  test_instanceMethod_valid() async {
-    await assertErrorsInCode(r'''
+  test_class_instanceMethod() async {
+    await assertNoErrorsInCode(r'''
 class A {
-  m() {
-    var v = this;
+  void foo() {
+    this;
   }
 }
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-    ]);
+''');
   }
 
-  test_instanceVariableInitializer_inConstructor() async {
+  test_class_instanceVariableInitializer_inConstructor() async {
     await assertErrorsInCode(r'''
 class A {
   var f;
@@ -64,7 +59,7 @@ class A {
     ]);
   }
 
-  test_instanceVariableInitializer_inDeclaration() async {
+  test_class_instanceVariableInitializer_inDeclaration() async {
     await assertErrorsInCode(r'''
 class A {
   var f = this;
@@ -74,7 +69,7 @@ class A {
     ]);
   }
 
-  test_staticMethod() async {
+  test_class_staticMethod() async {
     await assertErrorsInCode(r'''
 class A {
   static m() { return this; }
@@ -84,7 +79,7 @@ class A {
     ]);
   }
 
-  test_staticVariableInitializer() async {
+  test_class_staticVariableInitializer() async {
     await assertErrorsInCode(r'''
 class A {
   static A f = this;
@@ -94,7 +89,7 @@ class A {
     ]);
   }
 
-  test_superInitializer() async {
+  test_class_superInitializer() async {
     await assertErrorsInCode(r'''
 class A {
   A(var x) {}
@@ -115,35 +110,18 @@ f() { return this; }
     ]);
   }
 
-  test_variableInitializer() async {
+  test_topLevelVariable() async {
     await assertErrorsInCode('''
 int x = this;
 ''', [
       error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4),
     ]);
   }
-
-  test_variableInitializer_inMethod_notLate() async {
-    await assertErrorsInCode(r'''
-class A {
-  f() {
-    var r = this;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-    ]);
-  }
 }
 
 @reflectiveTest
-class InvalidReferenceToThisTest_NNBD extends InvalidReferenceToThisTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.fromEnableFlags(
-      [EnableString.non_nullable],
-    );
-
+class InvalidReferenceToThisWithNullSafetyTest
+    extends InvalidReferenceToThisTest with WithNullSafetyMixin {
   test_instanceVariableInitializer_inDeclaration_late() async {
     await assertNoErrorsInCode(r'''
 class A {

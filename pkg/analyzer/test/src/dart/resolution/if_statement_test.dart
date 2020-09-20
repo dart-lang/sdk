@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,7 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class IfStatementResolutionTest extends DriverResolutionTest {
+class IfStatementResolutionTest extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
 main(bool Function() b) {

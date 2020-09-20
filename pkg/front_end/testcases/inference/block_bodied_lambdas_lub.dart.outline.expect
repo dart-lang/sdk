@@ -1,7 +1,7 @@
 library test;
 import self as self;
 
-import "dart:math";
+import "dart:math" show Random;
 
 static method test2() → dynamic
   ;

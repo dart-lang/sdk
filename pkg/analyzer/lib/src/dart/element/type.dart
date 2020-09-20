@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -17,9 +17,9 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
@@ -45,7 +45,7 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
 }
 
 /// The [Type] representing the type `dynamic`.
-class DynamicTypeImpl extends TypeImpl {
+class DynamicTypeImpl extends TypeImpl implements DynamicType {
   /// The unique instance of this class.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
@@ -69,31 +69,21 @@ class DynamicTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitDynamicType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitDynamicType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeDynamicType();
-  }
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return NeverTypeImpl.instance;
-    } else {
-      return this;
-    }
-  }
-
-  @override
-  @deprecated
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      if (parameterTypes[i] == this) {
-        return argumentTypes[i];
-      }
-    }
-    return this;
   }
 
   @override
@@ -144,10 +134,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         typeArguments = typeArguments ?? const <DartType>[],
         nullabilitySuffix = nullabilitySuffix,
         super(element);
-
-  @deprecated
-  @override
-  List<TypeParameterElement> get boundTypeParameters => typeFormals;
 
   @override
   FunctionTypedElement get element {
@@ -232,9 +218,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  List<TypeParameterElement> get typeParameters => const [] /*TODO(paulberry)*/;
-
-  @override
   bool operator ==(Object other) {
     if (identical(other, this)) {
       return true;
@@ -269,6 +252,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitFunctionType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitFunctionType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFunctionType(this);
   }
@@ -300,54 +296,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    var returnType = (this.returnType as TypeImpl)
-        .replaceTopAndBottom(typeProvider, isCovariant: isCovariant);
-    ParameterElement transformParameter(ParameterElement p) {
-      TypeImpl type = p.type;
-      var newType = type.replaceTopAndBottom(
-        typeProvider,
-        isCovariant: !isCovariant,
-      );
-      return p.copyWith(type: newType);
-    }
-
-    var parameters = _transformOrShare(this.parameters, transformParameter);
-    if (identical(returnType, this.returnType) &&
-        identical(parameters, this.parameters)) {
-      return this;
-    }
-    return FunctionTypeImpl(
-      typeFormals: typeFormals,
-      parameters: parameters,
-      returnType: returnType,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @override
-  @deprecated
-  FunctionType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    if (argumentTypes.length != parameterTypes.length) {
-      throw ArgumentError("argumentTypes.length (${argumentTypes.length}) != "
-          "parameterTypes.length (${parameterTypes.length})");
-    }
-
-    var substitution = Substitution.fromPairs(
-      parameterTypes.map<TypeParameterElement>((t) => t.element).toList(),
-      argumentTypes,
-    );
-    return substitution.substituteType(this);
-  }
-
-  @override
-  @deprecated
-  FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
-      substitute2(argumentTypes, typeArguments);
-
-  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return FunctionTypeImpl(
@@ -361,7 +309,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   void _forEachParameterType(
-      ParameterKind kind, Function(String name, DartType type) callback) {
+      ParameterKind kind, void Function(String name, DartType type) callback) {
     for (var parameter in parameters) {
       // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {
@@ -706,6 +654,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  List<InterfaceType> get allSupertypes {
+    var substitution = Substitution.fromInterfaceType(this);
+    return element.allSupertypes
+        .map((t) => substitution.substituteType(t) as InterfaceType)
+        .toList();
+  }
+
+  @override
   List<ConstructorElement> get constructors {
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
@@ -807,10 +763,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return element.name == "Symbol" && element.library.isDartCore;
   }
 
-  @Deprecated('Use isDartCoreObject')
-  @override
-  bool get isObject => element.supertype == null && !element.isMixin;
-
   @override
   List<MethodElement> get methods {
     if (_methods == null) {
@@ -850,9 +802,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return _instantiateSuperTypes(constraints);
   }
 
-  @override
-  List<TypeParameterElement> get typeParameters => element.typeParameters;
-
   InheritanceManager3 get _inheritanceManager =>
       (element.library.session as AnalysisSessionImpl).inheritanceManager;
 
@@ -874,24 +823,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitInterfaceType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitInterfaceType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeInterfaceType(this);
   }
 
-  /// Return either this type or a supertype of this type that is defined by the
-  /// [targetElement], or `null` if such a type does not exist. If this type
-  /// inherits from the target element along multiple paths, then the returned
-  /// type is arbitrary.
-  ///
-  /// For example, given the following definitions
-  /// ```
-  /// class A<E> {}
-  /// class B<E> implements A<E> {}
-  /// class C implements A<String> {}
-  /// ```
-  /// Asking the type `B<int>` for the type associated with `A` will return the
-  /// type `A<int>`. Asking the type `C` for the type associated with `A` will
-  /// return the type `A<String>`.
+  @override
   InterfaceType asInstanceOf(ClassElement targetElement) {
     if (element == targetElement) {
       return this;
@@ -918,11 +867,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement getSetter(String setterName) =>
       PropertyAccessorMember.from(element.getSetter(setterName), this);
-
-  @override
-  @deprecated
-  InterfaceTypeImpl instantiate(List<DartType> argumentTypes) =>
-      substitute2(argumentTypes, typeArguments);
 
   @override
   ConstructorElement lookUpConstructor(
@@ -1361,62 +1305,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    // First check if this is actually an instance of Bottom
-    if (this.isDartCoreNull) {
-      if (isCovariant) {
-        return this;
-      } else {
-        return typeProvider.objectType;
-      }
-    }
-
-    // Otherwise, recurse over type arguments.
-    var typeArguments = _transformOrShare(
-        this.typeArguments,
-        (t) => (t as TypeImpl)
-            .replaceTopAndBottom(typeProvider, isCovariant: isCovariant));
-    if (identical(typeArguments, this.typeArguments)) {
-      return this;
-    } else {
-      return InterfaceTypeImpl(
-        element: element,
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    }
-  }
-
-  @override
-  @deprecated
-  InterfaceTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    if (argumentTypes.length != parameterTypes.length) {
-      throw ArgumentError(
-          "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
-    }
-    if (argumentTypes.isEmpty || typeArguments.isEmpty) {
-      return this;
-    }
-
-    List<DartType> newTypeArguments =
-        TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
-
-    return InterfaceTypeImpl(
-      element: element,
-      typeArguments: newTypeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @deprecated
-  @override
-  InterfaceTypeImpl substitute4(List<DartType> argumentTypes) =>
-      instantiate(argumentTypes);
-
-  @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+  InterfaceTypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
 
     return InterfaceTypeImpl(
@@ -1629,7 +1518,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 }
 
 /// The type `Never` represents the uninhabited bottom type.
-class NeverTypeImpl extends TypeImpl {
+class NeverTypeImpl extends TypeImpl implements NeverType {
   /// The unique instance of this class, nullable.
   ///
   /// This behaves equivalently to the `Null` type, but we distinguish it for
@@ -1663,7 +1552,7 @@ class NeverTypeImpl extends TypeImpl {
   int get hashCode => 0;
 
   @override
-  bool get isBottom => true;
+  bool get isBottom => nullabilitySuffix != NullabilitySuffix.question;
 
   @override
   bool get isDartCoreNull {
@@ -1679,33 +1568,22 @@ class NeverTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitNeverType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitNeverType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeNeverType(this);
   }
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return this;
-    } else {
-      // In theory this should never happen, since we only need to do this
-      // replacement when checking super-boundedness of explicitly-specified
-      // types, or types produced by mixin inference or instantiate-to-bounds,
-      // and bottom can't occur in any of those cases.
-      assert(false,
-          'Attempted to check super-boundedness of a type including "bottom"');
-      // But just in case it does, return `dynamic` since that's similar to what
-      // we do with Null.
-      return typeProvider.objectType;
-    }
-  }
-
-  @override
-  @deprecated
-  NeverTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
-      this;
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
@@ -1794,10 +1672,6 @@ abstract class TypeImpl implements DartType {
   @override
   bool get isDynamic => false;
 
-  @Deprecated('Use isDartCoreObject')
-  @override
-  bool get isObject => false;
-
   @override
   bool get isVoid => false;
 
@@ -1808,9 +1682,12 @@ abstract class TypeImpl implements DartType {
   void appendTo(ElementDisplayStringBuilder builder);
 
   @override
+  InterfaceType asInstanceOf(ClassElement element) => null;
+
+  @override
   String getDisplayString({
     bool skipAllDynamicArguments = false,
-    bool withNullability = false,
+    @required bool withNullability,
   }) {
     var builder = ElementDisplayStringBuilder(
       skipAllDynamicArguments: skipAllDynamicArguments,
@@ -1820,27 +1697,12 @@ abstract class TypeImpl implements DartType {
     return builder.toString();
   }
 
-  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
-  /// `Null` and all contravariant occurrences of `Null` with `Object`.
-  ///
-  /// The boolean `isCovariant` indicates whether this type is in covariant or
-  /// contravariant position.
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true});
-
   @override
   DartType resolveToBound(DartType objectType) => this;
 
-  /// Return the type resulting from substituting the given [argumentTypes] for
-  /// the given [parameterTypes] in this type.
-  @override
-  @deprecated
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
-
   @override
   String toString() {
-    return getDisplayString(withNullability: false);
+    return getDisplayString(withNullability: true);
   }
 
   /// Return the same type, but with the given [nullabilitySuffix].
@@ -1877,23 +1739,6 @@ abstract class TypeImpl implements DartType {
     }
     return true;
   }
-
-  /// Return a list containing the results of using the given [argumentTypes]
-  /// and [parameterTypes] to perform a substitution on all of the given
-  /// [types].
-  @deprecated
-  static List<DartType> substitute(List<DartType> types,
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = types.length;
-    if (length == 0) {
-      return types;
-    }
-    List<DartType> newTypes = List<DartType>(length);
-    for (int i = 0; i < length; i++) {
-      newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
-    }
-    return newTypes;
-  }
 }
 
 /// A concrete implementation of a [TypeParameterType].
@@ -1928,6 +1773,25 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   int get hashCode => element.hashCode;
 
+  @override
+  bool get isBottom {
+    // In principle we ought to be able to do `return bound.isBottom;`, but that
+    // goes into an infinite loop with illegal code in which type parameter
+    // bounds form a loop.  So we have to be more careful.
+    Set<TypeParameterElement> seenTypes = {};
+    TypeParameterType type = this;
+    while (seenTypes.add(type.element)) {
+      var bound = type.bound;
+      if (bound is TypeParameterType) {
+        type = bound;
+      } else {
+        return bound.isBottom;
+      }
+    }
+    // Infinite loop.
+    return false;
+  }
+
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String get name => element.name;
@@ -1951,14 +1815,26 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitTypeParameterType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitTypeParameterType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeParameterType(this);
   }
 
   @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    return this;
+  InterfaceType asInstanceOf(ClassElement element) {
+    return bound?.asInstanceOf(element);
   }
 
   @override
@@ -1987,55 +1863,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  @deprecated
-  DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
-    int length = parameterTypes.length;
-    for (int i = 0; i < length; i++) {
-      var parameterType = parameterTypes[i];
-      if (parameterType is TypeParameterTypeImpl && parameterType == this) {
-        TypeImpl argumentType = argumentTypes[i];
-
-        // TODO(scheglov) It should not happen, but sometimes arguments are
-        //  null.
-        if (argumentType == null) {
-          return argumentType;
-        }
-
-        // TODO(scheglov) Proposed substitution rules for nullability.
-        NullabilitySuffix resultNullability;
-        NullabilitySuffix parameterNullability =
-            parameterType.nullabilitySuffix;
-        NullabilitySuffix argumentNullability = argumentType.nullabilitySuffix;
-        if (parameterNullability == NullabilitySuffix.none) {
-          if (argumentNullability == NullabilitySuffix.question ||
-              nullabilitySuffix == NullabilitySuffix.question) {
-            resultNullability = NullabilitySuffix.question;
-          } else if (argumentNullability == NullabilitySuffix.star ||
-              nullabilitySuffix == NullabilitySuffix.star) {
-            resultNullability = NullabilitySuffix.star;
-          } else {
-            resultNullability = NullabilitySuffix.none;
-          }
-        } else if (parameterNullability == NullabilitySuffix.star) {
-          if (argumentNullability == NullabilitySuffix.question ||
-              nullabilitySuffix == NullabilitySuffix.question) {
-            resultNullability = NullabilitySuffix.question;
-          } else {
-            resultNullability = argumentNullability;
-          }
-        } else {
-          // We should never be substituting for `T?`.
-          throw StateError('Tried to substitute for T?');
-        }
-
-        return argumentType.withNullability(resultNullability);
-      }
-    }
-    return this;
-  }
-
-  @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return TypeParameterTypeImpl(
@@ -2044,30 +1871,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       promotedBound: promotedBound,
     );
   }
-
-  /// Return a list containing the type parameter types defined by the given
-  /// array of type parameter elements ([typeParameters]).
-  @deprecated
-  static List<TypeParameterType> getTypes(
-      List<TypeParameterElement> typeParameters) {
-    int count = typeParameters.length;
-    if (count == 0) {
-      return const <TypeParameterType>[];
-    }
-    List<TypeParameterType> types = List<TypeParameterType>(count);
-    for (int i = 0; i < count; i++) {
-      types[i] = typeParameters[i].type;
-    }
-    return types;
-  }
-}
-
-/// The type `void`.
-abstract class VoidType implements DartType {
-  @override
-  @deprecated
-  VoidType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
 
 /// A concrete implementation of a [VoidType].
@@ -2095,25 +1898,22 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool operator ==(Object object) => identical(object, this);
 
   @override
+  R accept<R>(TypeVisitor<R> visitor) {
+    return visitor.visitVoidType(this);
+  }
+
+  @override
+  R acceptWithArgument<R, A>(
+    TypeVisitorWithArgument<R, A> visitor,
+    A argument,
+  ) {
+    return visitor.visitVoidType(this, argument);
+  }
+
+  @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeVoidType();
   }
-
-  @override
-  DartType replaceTopAndBottom(TypeProvider typeProvider,
-      {bool isCovariant = true}) {
-    if (isCovariant) {
-      return typeProvider.nullType;
-    } else {
-      return this;
-    }
-  }
-
-  @override
-  @deprecated
-  VoidTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
-      this;
 
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {

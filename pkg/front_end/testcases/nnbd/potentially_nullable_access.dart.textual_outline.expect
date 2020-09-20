@@ -7,7 +7,7 @@ class Class {
   void Function() get functionTypeGetter => () {};
 }
 extension Extension ;
-on Class (){ }
+on Class (){}
 Function? get nullableFunction => () {};
 void Function()? get nullableFunctionType => () {};
 int? get nullableInt => 0;
@@ -48,5 +48,5 @@ var topLevelExtensionFunctionTypeExplicitCall = nullableClass.call();
 var topLevelExtensionFunctionTypeTearOff = nullableClass.call;
 var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
 var topLevelExtensionFunctionTypeGetter = nullableClass.extensionFunctionTypeGetter();
-test() { }
-main() { }
+test() {}
+main() {}

@@ -10,7 +10,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 /// is associated with each reason.
 abstract class FixReasonTarget {
   /// Fix reason target representing the full type, rather than a part of it.
-  static const FixReasonTarget root = const _FixReasonTarget_Root();
+  static const FixReasonTarget root = _FixReasonTarget_Root();
 
   const FixReasonTarget._();
 

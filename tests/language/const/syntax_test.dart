@@ -9,14 +9,12 @@ main() {
   const f1;
   //    ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
-  //      ^
-  // [cfe] The const variable ';' must be initialized.
+  // [cfe] The const variable 'f1' must be initialized.
   const int f2 = 87;
   const int f3;
   //        ^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
-  //          ^
-  // [cfe] The const variable ';' must be initialized.
+  // [cfe] The const variable 'f3' must be initialized.
   Expect.equals(42, f0);
   Expect.equals(87, f2);
 
@@ -59,10 +57,13 @@ const F1;
 // [cfe] The const variable 'F1' must be initialized.
 const int F2 = 87;
 const int F3;
-//        ^
-// [cfe] The const variable 'F3' must be initialized.
 //        ^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_NOT_INITIALIZED
+// [cfe] Field 'F3' should be initialized because its type 'int' doesn't allow null.
+//        ^
+// [cfe] The const variable 'F3' must be initialized.
+//          ^
+// [cfe] A value of type 'Null' can't be assigned to a variable of type 'int'.
 
 class Point {
   final x, y;
@@ -95,15 +96,11 @@ const A2 = A3 + 1;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
 // [cfe] Can't infer the type of 'A2': circularity found during type inference.
-//         ^^
-// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 //            ^
 // [cfe] Constant evaluation error:
 const A3 = A2 + 1;
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.RECURSIVE_COMPILE_TIME_CONSTANT
-//         ^^
-// [analyzer] COMPILE_TIME_ERROR.TOP_LEVEL_CYCLE
 
 class C0 {
   static const X = const C1();
@@ -115,9 +112,9 @@ class C1 {
   const C1()
       : x = C0.X
       //^
-      // [analyzer] STATIC_WARNING.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+      // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
       //  ^
-      // [cfe] 'x' is a final instance variable that has already been initialized.
+      // [cfe] 'x' is a final instance variable that was initialized at the declaration.
       //  ^
       // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
   ;
@@ -132,7 +129,7 @@ const B3 = B0 + B1;
 //         ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_TYPE_NUM
 //              ^^
-// [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [cfe] A value of type 'String' can't be assigned to a variable of type 'num'.
 
 // Check identical.

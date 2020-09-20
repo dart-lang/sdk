@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'driver_resolution.dart';
+import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class InstanceMemberInferenceClassTest extends DriverResolutionTest {
+class InstanceMemberInferenceClassTest extends PubPackageResolutionTest {
   test_field_covariant_fromField() async {
     await resolveTestCode('''
 class A {
@@ -386,6 +384,20 @@ class C implements A, B {
 ''');
     var foo = findElement.getter('foo', of: 'C');
     _assertGetterTypeDynamic(foo);
+  }
+
+  test_invalid_field_overrides_method() async {
+    await resolveTestCode('''
+abstract class A {
+  List<T> foo<T>() {}
+}
+
+class B implements A {
+  var foo = <String, int>{};
+}
+''');
+    var foo = findElement.field('foo', of: 'B');
+    _assertFieldType(foo, 'Map<String, int>');
   }
 
   test_invalid_inheritanceCycle() async {
@@ -916,17 +928,9 @@ class C implements A, B {
 
 @reflectiveTest
 class InstanceMemberInferenceClassWithNullSafetyTest
-    extends InstanceMemberInferenceClassTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  @override
-  bool get typeToStringWithNullability => true;
-
+    extends InstanceMemberInferenceClassTest with WithNullSafetyMixin {
   test_field_multiple_gettersSetters_final_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -948,7 +952,7 @@ class X implements A, B {
   }
 
   test_field_multiple_gettersSetters_notFinal_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -970,7 +974,7 @@ class X implements A, B {
   }
 
   test_field_single_getter_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -988,7 +992,7 @@ abstract class B implements A {
   }
 
   test_field_single_setter_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   set foo(int _);
@@ -1006,7 +1010,7 @@ abstract class B implements A {
   }
 
   test_getter_single_getter_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -1024,7 +1028,7 @@ abstract class B implements A {
   }
 
   test_getter_single_setter_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   set foo(int _);
@@ -1060,7 +1064,7 @@ class C implements A, B {
   }
 
   test_method_parameter_required_single_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 class A {
   void foo(int p) {}
@@ -1096,7 +1100,7 @@ class C implements A, B {
   }
 
   test_method_return_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   int foo();
@@ -1114,7 +1118,7 @@ abstract class B implements A {
   }
 
   test_setter_single_getter_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   int get foo;
@@ -1132,7 +1136,7 @@ abstract class B implements A {
   }
 
   test_setter_single_setter_nonNullify() async {
-    newFile('/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.7
 abstract class A {
   set foo(int _);

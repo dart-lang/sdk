@@ -5,13 +5,13 @@
 import "package:expect/expect.dart";
 
 class A {
-  int foo;
+  int? foo;
 
-  static int invocations;
+  static int? invocations;
 
   static bar() {
     Expect.equals(0, invocations);
-    invocations++;
+    invocations = invocations! + 1;
     return 2;
   }
 }

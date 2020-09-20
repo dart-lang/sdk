@@ -101,11 +101,18 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   bool hasBodyBeenBuilt = false;
 
+  // TODO(johnniwinther): [parent] is not trust-worthy for determining
+  //  properties since it is changed after the creation of the builder. For now
+  //  we require it has an argument here. A follow-up should clean up the
+  //  misuse of parent.
+  final bool isTopLevel;
+
   SourceFieldBuilder(
       this.metadata,
       this.type,
       this.name,
       this.modifiers,
+      this.isTopLevel,
       SourceLibraryBuilder libraryBuilder,
       int charOffset,
       int charEndOffset,
@@ -115,16 +122,14 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       Procedure setterReferenceFrom)
       : super(libraryBuilder, charOffset) {
     Uri fileUri = libraryBuilder?.fileUri;
-    if (isExternal) {
-      _fieldEncoding = new ExternalFieldEncoding(
-          fileUri,
-          charOffset,
-          charEndOffset,
-          getterReferenceFrom,
-          setterReferenceFrom,
-          isFinal,
-          isCovariant,
-          library.isNonNullableByDefault);
+    if (isAbstract || isExternal) {
+      _fieldEncoding = new AbstractOrExternalFieldEncoding(fileUri, charOffset,
+          charEndOffset, getterReferenceFrom, setterReferenceFrom,
+          isAbstract: isAbstract,
+          isExternal: isExternal,
+          isFinal: isFinal,
+          isCovariant: isCovariant,
+          isNonNullableByDefault: library.isNonNullableByDefault);
     } else if (isLate &&
         !libraryBuilder.loader.target.backendTarget.supportsLateFields) {
       if (hasInitializer) {
@@ -175,6 +180,34 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               setterReferenceFrom,
               isCovariant);
         }
+      }
+    } else if (libraryBuilder.isNonNullableByDefault &&
+        libraryBuilder.loader.target.backendTarget.useStaticFieldLowering &&
+        (isStatic || isTopLevel) &&
+        !isConst &&
+        hasInitializer) {
+      if (isFinal) {
+        _fieldEncoding = new LateFinalFieldWithInitializerEncoding(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            reference,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
+      } else {
+        _fieldEncoding = new LateFieldWithInitializerEncoding(
+            name,
+            fileUri,
+            charOffset,
+            charEndOffset,
+            reference,
+            lateIsSetReferenceFrom,
+            getterReferenceFrom,
+            setterReferenceFrom,
+            isCovariant);
       }
     } else {
       assert(lateIsSetReferenceFrom == null);
@@ -401,11 +434,16 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
 
   DartType get builtType => fieldType;
 
-  @override
-  List<ClassMember> get localMembers => _fieldEncoding.getLocalMembers(this);
+  List<ClassMember> _localMembers;
+  List<ClassMember> _localSetters;
 
   @override
-  List<ClassMember> get localSetters => _fieldEncoding.getLocalSetters(this);
+  List<ClassMember> get localMembers =>
+      _localMembers ??= _fieldEncoding.getLocalMembers(this);
+
+  @override
+  List<ClassMember> get localSetters =>
+      _localSetters ??= _fieldEncoding.getLocalSetters(this);
 
   static String createFieldName(FieldNameType type, String name,
       {bool isInstanceMember,
@@ -1321,19 +1359,25 @@ class _SynthesizedFieldClassMember implements ClassMember {
       '_ClassMember($fieldBuilder,$_member,forSetter=${forSetter})';
 }
 
-class ExternalFieldEncoding implements FieldEncoding {
+class AbstractOrExternalFieldEncoding implements FieldEncoding {
+  final bool isAbstract;
+  final bool isExternal;
+
   Procedure _getter;
   Procedure _setter;
 
-  ExternalFieldEncoding(
-      Uri fileUri,
-      int charOffset,
-      int charEndOffset,
-      Procedure getterReference,
-      Procedure setterReference,
+  AbstractOrExternalFieldEncoding(Uri fileUri, int charOffset,
+      int charEndOffset, Procedure getterReference, Procedure setterReference,
+      {this.isAbstract,
+      this.isExternal,
       bool isFinal,
       bool isCovariant,
-      bool isNonNullableByDefault) {
+      bool isNonNullableByDefault})
+      : assert(isAbstract != null),
+        assert(isExternal != null),
+        assert(isFinal != null),
+        assert(isCovariant != null),
+        assert(isNonNullableByDefault != null) {
     _getter = new Procedure(null, ProcedureKind.Getter, new FunctionNode(null),
         fileUri: fileUri, reference: getterReference?.reference)
       ..fileOffset = charOffset
@@ -1406,7 +1450,8 @@ class ExternalFieldEncoding implements FieldEncoding {
     _getter
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember
-      ..isExternal = true;
+      ..isAbstract = isAbstract && !isExternal
+      ..isExternal = isExternal;
     // TODO(johnniwinther): How can the name already have been computed?
     _getter.name ??= new Name(getterName, libraryBuilder.library);
 
@@ -1423,7 +1468,8 @@ class ExternalFieldEncoding implements FieldEncoding {
       _setter
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember
-        ..isExternal = true;
+        ..isAbstract = isAbstract && !isExternal
+        ..isExternal = isExternal;
       // TODO(johnniwinther): How can the name already have been computed?
       _setter?.name ??= new Name(setterName, libraryBuilder.library);
     }

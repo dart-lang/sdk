@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -16,6 +13,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
 import 'test_strategies.dart';
@@ -1682,6 +1680,30 @@ class C<T, U extends D> {
 class D {
 }
 ''');
+  }
+
+  test_class_type_parameters_cycle_1of1() async {
+    var library = await checkLibrary('class C<T extends T> {}');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class C<T extends dynamic> {
+}
+''',
+        withTypes: true);
+  }
+
+  test_class_type_parameters_cycle_2of3() async {
+    var library = await checkLibrary(r'''
+class C<T extends V, U, V extends T> {}
+''');
+    checkElementText(
+        library,
+        r'''
+notSimplyBounded class C<T extends dynamic, U, V extends dynamic> {
+}
+''',
+        withTypes: true);
   }
 
   test_class_type_parameters_f_bound_complex() async {
@@ -6037,6 +6059,20 @@ extension E on int {
 ''');
   }
 
+  test_field_abstract() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+abstract class C {
+  abstract int i;
+}
+''');
+    checkElementText(library, '''
+abstract class C {
+  abstract int i;
+}
+''');
+  }
+
   test_field_covariant() async {
     var library = await checkLibrary('''
 class C {
@@ -6063,6 +6099,20 @@ class C {
    * Docs
    */
   dynamic x;
+}
+''');
+  }
+
+  test_field_external() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+abstract class C {
+  external int i;
+}
+''');
+    checkElementText(library, '''
+abstract class C {
+  external int i;
 }
 ''');
   }
@@ -6935,6 +6985,15 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_dartCore_implicit() async {
+    var library = await checkLibrary('''
+import 'dart:math';
+''');
+    expect(library.imports, hasLength(2));
+    expect(library.imports[0].uri, 'dart:math');
+    expect(library.imports[1].uri, 'dart:core');
   }
 
   test_import_deferred() async {
@@ -9339,6 +9398,118 @@ mixin M on Object {
 ''');
   }
 
+  test_mixin_inference_legacy() async {
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+}
+class B extends A<int*>* with M<int*>* {
+  synthetic B();
+}
+mixin M<U> on A<U*>* {
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_mixin_inference_nullSafety() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary(r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+}
+class B extends A<int> with M<int> {
+  synthetic B();
+}
+mixin M<U> on A<U> {
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_mixin_inference_nullSafety2() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/a.dart', r'''
+class A<T> {}
+
+mixin B<T> on A<T> {}
+mixin C<T> on A<T> {}
+''');
+    var library = await checkLibrary(r'''
+// @dart=2.8
+import 'a.dart';
+
+class D extends A<int> with B<int>, C {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class D extends A<int*>* with B<int*>*, C<int*>* {
+  synthetic D();
+}
+''',
+        annotateNullability: true);
+  }
+
+  test_mixin_inference_nullSafety_mixed_inOrder() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/a.dart', r'''
+class A<T> {}
+mixin M<U> on A<U> {}
+''');
+    var library = await checkLibrary(r'''
+// @dart = 2.8
+import 'a.dart';
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class B extends A<int*>* with M<int*>* {
+  synthetic B();
+}
+''',
+        annotateNullability: true);
+  }
+
+  @FailingTest(reason: 'Out-of-order inference is not specified yet')
+  test_mixin_inference_nullSafety_mixed_outOfOrder() async {
+    featureSet = enableNnbd;
+    addLibrarySource('/a.dart', r'''
+// @dart = 2.8
+class A<T> {}
+mixin M<U> on A<U> {}
+''');
+    var library = await checkLibrary(r'''
+import 'a.dart';
+
+class B extends A<int> with M {}
+''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+class B extends A<int> with M<int> {
+  synthetic B();
+}
+''',
+        annotateNullability: true);
+  }
+
   test_mixin_method_namedAsConstraint() async {
     var library = await checkLibrary(r'''
 class A {}
@@ -10112,6 +10283,16 @@ bool f() {}
 ''');
   }
 
+  test_top_level_variable_external() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+external int i;
+''');
+    checkElementText(library, '''
+external int i;
+''');
+  }
+
   test_type_arguments_explicit_dynamic_dynamic() async {
     var library = await checkLibrary('Map<dynamic, dynamic> m;');
     checkElementText(library, r'''
@@ -10151,6 +10332,20 @@ Map<dynamic, dynamic> m;
     var library = await checkLibrary('dynamic d;');
     checkElementText(library, r'''
 dynamic d;
+''');
+  }
+
+  test_type_inference_assignmentExpression_references_onTopLevelVariable() async {
+    var library = await checkLibrary('''
+var a = () {
+  b += 0;
+  return 0;
+};
+var b = 0;
+''');
+    checkElementText(library, '''
+int Function() a;
+int b;
 ''');
   }
 
@@ -10395,42 +10590,6 @@ Null* d;
 Never d;
 ''',
         annotateNullability: true);
-  }
-
-  @deprecated
-  test_type_param_generic_function_type_nullability_legacy() async {
-    featureSet = disableNnbd;
-    var library = await checkLibrary('''
-T f<T>(T t) {}
-var g = f;
-''');
-    checkElementText(library, '''
-T Function<T>(T) g;
-T f<T>(T t) {}
-''');
-    var g = library.definingCompilationUnit.topLevelVariables[0];
-    var t = (g.type as FunctionType).typeFormals[0];
-    // TypeParameterElement.type has a nullability suffix of `star` regardless
-    // of whether it appears in a migrated library.
-    expect(t.type.nullabilitySuffix, NullabilitySuffix.star);
-  }
-
-  @deprecated
-  test_type_param_generic_function_type_nullability_migrated() async {
-    featureSet = enableNnbd;
-    var library = await checkLibrary('''
-T f<T>(T t) {}
-var g = f;
-''');
-    checkElementText(library, '''
-T Function<T>(T) g;
-T f<T>(T t) {}
-''');
-    var g = library.definingCompilationUnit.topLevelVariables[0];
-    var t = (g.type as FunctionType).typeFormals[0];
-    // TypeParameterElement.type has a nullability suffix of `star` regardless
-    // of whether it appears in a migrated library.
-    expect(t.type.nullabilitySuffix, NullabilitySuffix.star);
   }
 
   test_type_param_ref_nullability_none() async {
@@ -11669,15 +11828,15 @@ const A<int> a;
     InstanceCreationExpression
       argumentList: ArgumentList
       constructorName: ConstructorName
+        staticElement: ConstructorMember
+          base: self::@class::A::@constructor::•
+          substitution: {T: int}
         type: TypeName
           name: SimpleIdentifier
             staticElement: self::@class::A
             staticType: null
             token: A
           type: A<int>
-      staticElement: ConstructorMember
-        base: self::@class::A::@constructor::•
-        substitution: {T: int}
       staticType: A<int>
 ''',
         withFullyResolvedAst: true);

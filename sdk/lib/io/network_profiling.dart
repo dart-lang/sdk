@@ -4,8 +4,9 @@
 
 part of dart.io;
 
+// TODO(bkonyi): refactor into io_resource_info.dart
 const int _versionMajor = 1;
-const int _versionMinor = 1;
+const int _versionMinor = 2;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';

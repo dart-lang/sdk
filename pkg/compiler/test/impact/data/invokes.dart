@@ -588,7 +588,13 @@ var topLevelField;
 /*member: testTopLevelField:static=[topLevelField]*/
 testTopLevelField() => topLevelField;
 
-/*member: topLevelFieldLazy:static=[throwCyclicInit(1),topLevelFunction1(1)],type=[inst:JSNull]*/
+/*member: topLevelFieldLazy:
+ static=[
+  throwCyclicInit(1),
+  throwLateInitializationError(1),
+  topLevelFunction1(1)],
+ type=[inst:JSNull]
+*/
 var topLevelFieldLazy = topLevelFunction1(null);
 
 /*member: testTopLevelFieldLazy:static=[topLevelFieldLazy]*/
@@ -599,7 +605,13 @@ const topLevelFieldConst = null;
 /*member: testTopLevelFieldConst:type=[inst:JSNull]*/
 testTopLevelFieldConst() => topLevelFieldConst;
 
-/*member: topLevelFieldFinal:static=[throwCyclicInit(1),topLevelFunction1(1)],type=[inst:JSNull]*/
+/*member: topLevelFieldFinal:
+ static=[
+  throwCyclicInit(1),
+  throwLateInitializationError(1),
+  topLevelFunction1(1)],
+ type=[inst:JSNull]
+*/
 final topLevelFieldFinal = topLevelFunction1(null);
 
 /*member: testTopLevelFieldFinal:static=[topLevelFieldFinal]*/

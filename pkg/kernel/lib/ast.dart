@@ -1471,7 +1471,7 @@ class Extension extends NamedNode implements FileUriNode {
       {this.name,
       List<TypeParameter> typeParameters,
       this.onType,
-      List<Reference> members,
+      List<ExtensionMemberDescriptor> members,
       this.fileUri,
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -1690,6 +1690,10 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   bool get containsSuperCalls {
     return transformerFlags & TransformerFlag.superCalls != 0;
   }
+
+  /// If this member is a member signature, [memberSignatureOrigin] is one of
+  /// the non-member signature members from which it was created.
+  Member get memberSignatureOrigin => null;
 }
 
 /// A field declaration.
@@ -2197,6 +2201,7 @@ class Procedure extends Member {
 
   Reference forwardingStubSuperTargetReference;
   Reference forwardingStubInterfaceTargetReference;
+  Reference memberSignatureOriginReference;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
@@ -2211,7 +2216,8 @@ class Procedure extends Member {
       Uri fileUri,
       Reference reference,
       Member forwardingStubSuperTarget,
-      Member forwardingStubInterfaceTarget})
+      Member forwardingStubInterfaceTarget,
+      Member memberSignatureOrigin})
       : this._byReferenceRenamed(name, kind, function,
             isAbstract: isAbstract,
             isStatic: isStatic,
@@ -2227,7 +2233,9 @@ class Procedure extends Member {
             forwardingStubSuperTargetReference:
                 getMemberReference(forwardingStubSuperTarget),
             forwardingStubInterfaceTargetReference:
-                getMemberReference(forwardingStubInterfaceTarget));
+                getMemberReference(forwardingStubInterfaceTarget),
+            memberSignatureOriginReference:
+                getMemberReference(memberSignatureOrigin));
 
   Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
@@ -2242,7 +2250,8 @@ class Procedure extends Member {
       Uri fileUri,
       Reference reference,
       this.forwardingStubSuperTargetReference,
-      this.forwardingStubInterfaceTargetReference})
+      this.forwardingStubInterfaceTargetReference,
+      this.memberSignatureOriginReference})
       : super(name, fileUri, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
@@ -2254,6 +2263,13 @@ class Procedure extends Member {
     this.isMemberSignature = isMemberSignature;
     this.isExtensionMember = isExtensionMember;
     this.transformerFlags = transformerFlags;
+    assert(!(isMemberSignature && memberSignatureOriginReference == null),
+        "No member signature origin for member signature $this.");
+    assert(
+        !(memberSignatureOrigin is Procedure &&
+            (memberSignatureOrigin as Procedure).isMemberSignature),
+        "Member signature origin cannot be a member signature "
+        "$memberSignatureOrigin for $this.");
   }
 
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
@@ -2395,6 +2411,13 @@ class Procedure extends Member {
 
   void set forwardingStubInterfaceTarget(Member target) {
     forwardingStubInterfaceTargetReference = getMemberReference(target);
+  }
+
+  @override
+  Member get memberSignatureOrigin => memberSignatureOriginReference?.asMember;
+
+  void set memberSignatureOrigin(Member target) {
+    memberSignatureOriginReference = getMemberReference(target);
   }
 
   R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
@@ -3021,6 +3044,9 @@ abstract class Expression extends TreeNode {
     if (type == context.typeEnvironment.nullType) {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nullable);
+    } else if (type is NeverType) {
+      return context.typeEnvironment.coreTypes
+          .bottomInterfaceType(superclass, type.nullability);
     }
     if (type is InterfaceType) {
       List<DartType> upcastTypeArguments = context.typeEnvironment
@@ -3033,8 +3059,32 @@ abstract class Expression extends TreeNode {
       return context.typeEnvironment.coreTypes
           .bottomInterfaceType(superclass, context.nonNullable);
     }
-    context.typeEnvironment
-        .typeError(this, '$type is not a subtype of $superclass');
+
+    // The static type of this expression is not a subtype of [superclass]. The
+    // means that the static type of this expression is not the same as when
+    // the parent [PropertyGet] or [MethodInvocation] was created.
+    //
+    // For instance when cloning generic mixin methods, the substitution can
+    // render some of the code paths as dead code:
+    //
+    //     mixin M<T> {
+    //       int method(T t) => t is String ? t.length : 0;
+    //     }
+    //     class C with M<int> {}
+    //
+    // The mixin transformation will clone the `M.method` method into the
+    // unnamed mixin application for `Object&M<int>` as this:
+    //
+    //     int method(int t) => t is String ? t.length : 0;
+    //
+    // Now `t.length`, which was originally an access to `String.length` on a
+    // receiver of type `T & String`, is an access to `String.length` on `int`.
+    // When computing the static type of `t.length` we will try to compute the
+    // type of `int` as an instance of `String`, and we do not find it to be
+    // an instance of `String`.
+    //
+    // To resolve this case we compute the type of `t.length` to be the type
+    // as if accessed on an unknown subtype `String`.
     return context.typeEnvironment.coreTypes
         .rawType(superclass, context.nonNullable);
   }
@@ -3202,7 +3252,7 @@ class PropertyGet extends Expression {
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
-    String nameString = name.name;
+    String nameString = name.text;
     if (nameString == 'hashCode') {
       return context.typeEnvironment.coreTypes.intRawType(context.nonNullable);
     } else if (nameString == 'runtimeType') {
@@ -3480,8 +3530,8 @@ class DirectMethodInvocation extends InvocationExpression {
       v.visitDirectMethodInvocation(this, arg);
 
   DartType getStaticType(StaticTypeContext context) {
-    if (context.typeEnvironment.isOverloadedArithmeticOperator(target)) {
-      return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+    if (context.typeEnvironment.isSpecialCasedBinaryOperator(target)) {
+      return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
           receiver.getStaticType(context),
           arguments.positional[0].getStaticType(context));
     }
@@ -3740,13 +3790,16 @@ class Arguments extends TreeNode {
 
   factory Arguments.forwarded(FunctionNode function, Library library) {
     return new Arguments(
-        function.positionalParameters.map((p) => new VariableGet(p)).toList(),
+        function.positionalParameters
+            .map<Expression>((p) => new VariableGet(p))
+            .toList(),
         named: function.namedParameters
             .map((p) => new NamedExpression(p.name, new VariableGet(p)))
             .toList(),
         types: function.typeParameters
-            .map((p) => new TypeParameterType.withDefaultNullabilityForLibrary(
-                p, library))
+            .map<DartType>((p) =>
+                new TypeParameterType.withDefaultNullabilityForLibrary(
+                    p, library))
             .toList());
   }
 
@@ -3883,8 +3936,8 @@ class MethodInvocation extends InvocationExpression {
     if (interfaceTarget != null) {
       if (interfaceTarget is Procedure &&
           context.typeEnvironment
-              .isOverloadedArithmeticOperator(interfaceTarget)) {
-        return context.typeEnvironment.getTypeOfOverloadedArithmetic(
+              .isSpecialCasedBinaryOperator(interfaceTarget)) {
+        return context.typeEnvironment.getTypeOfSpecialCasedBinaryOperator(
             receiver.getStaticType(context),
             arguments.positional[0].getStaticType(context));
       }
@@ -3929,7 +3982,7 @@ class MethodInvocation extends InvocationExpression {
       }
       return const DynamicType();
     }
-    if (name.name == 'call') {
+    if (name.text == 'call') {
       var receiverType = receiver.getStaticType(context);
       if (receiverType is FunctionType) {
         if (receiverType.typeParameters.length != arguments.types.length) {
@@ -3940,7 +3993,7 @@ class MethodInvocation extends InvocationExpression {
             .substituteType(receiverType.returnType);
       }
     }
-    if (name.name == '==') {
+    if (name.text == '==') {
       // We use this special case to simplify generation of '==' checks.
       return context.typeEnvironment.coreTypes.boolRawType(context.nonNullable);
     }
@@ -4193,9 +4246,9 @@ class ConstructorInvocation extends InvocationExpression {
     }
     printer.writeClassName(target.enclosingClass.reference);
     printer.writeTypeArguments(arguments.types);
-    if (target.name.name.isNotEmpty) {
+    if (target.name.text.isNotEmpty) {
       printer.write('.');
-      printer.write(target.name.name);
+      printer.write(target.name.text);
     }
     printer.writeArguments(arguments, includeTypeArguments: false);
   }
@@ -5483,7 +5536,7 @@ class AwaitExpression extends Expression {
   }
 
   DartType getStaticType(StaticTypeContext context) {
-    return context.typeEnvironment.unfutureType(operand.getStaticType(context));
+    return context.typeEnvironment.flatten(operand.getStaticType(context));
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitAwaitExpression(this);
@@ -7035,29 +7088,33 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// library name for private names; uniqueness is not guaranteed.
 abstract class Name extends Node {
   final int hashCode;
-  final String name;
+  final String text;
   Reference get libraryName;
   Library get library;
   bool get isPrivate;
 
-  Name._internal(this.hashCode, this.name);
+  Name._internal(this.hashCode, this.text);
 
-  factory Name(String name, [Library library]) =>
-      new Name.byReference(name, library?.reference);
+  factory Name(String text, [Library library]) =>
+      new Name.byReference(text, library?.reference);
 
-  factory Name.byReference(String name, Reference libraryName) {
+  factory Name.byReference(String text, Reference libraryName) {
     /// Use separate subclasses for the public and private case to save memory
     /// for public names.
-    if (name.startsWith('_')) {
+    if (text.startsWith('_')) {
       assert(libraryName != null);
-      return new _PrivateName(name, libraryName);
+      return new _PrivateName(text, libraryName);
     } else {
-      return new _PublicName(name);
+      return new _PublicName(text);
     }
   }
 
+  // TODO(johnniwinther): Remove this when dependent code has been updated to
+  // use [text].
+  String get name => text;
+
   bool operator ==(other) {
-    return other is Name && name == other.name && library == other.library;
+    return other is Name && text == other.text && library == other.library;
   }
 
   R accept<R>(Visitor<R> v) => v.visitName(this);
@@ -7082,13 +7139,13 @@ class _PrivateName extends Name {
   final Reference libraryName;
   bool get isPrivate => true;
 
-  _PrivateName(String name, Reference libraryName)
+  _PrivateName(String text, Reference libraryName)
       : this.libraryName = libraryName,
-        super._internal(_computeHashCode(name, libraryName), name);
+        super._internal(_computeHashCode(text, libraryName), text);
 
   String toString() => toStringInternal();
 
-  String toStringInternal() => library != null ? '$library::$name' : name;
+  String toStringInternal() => library != null ? '$library::$text' : text;
 
   Library get library => libraryName.asLibrary;
 
@@ -7105,7 +7162,7 @@ class _PublicName extends Name {
   Library get library => null;
   bool get isPrivate => false;
 
-  _PublicName(String name) : super._internal(name.hashCode, name);
+  _PublicName(String text) : super._internal(text.hashCode, text);
 
   String toString() => toStringInternal();
 }
@@ -8042,12 +8099,88 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, this.declaredNullability,
-      [this.promotedBound]);
+  TypeParameterType.internal(
+      this.parameter, this.declaredNullability, this.promotedBound) {
+    assert(
+        promotedBound == null ||
+            (declaredNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (declaredNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+            (declaredNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.legacy) ||
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nullable) ||
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.undetermined)
+            // These are observed in real situations:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // replicated in nnbd_mixed/type_parameter_nullability
+            (declaredNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+            // These are only observed in tests and might be artifacts of the
+            // tests rather than real situations:
+            //
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (declaredNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (declaredNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (declaredNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.legacy),
+        "Unexpected nullabilities for $parameter & $promotedBound: "
+        "declaredNullability = $declaredNullability, "
+        "promoted bound nullability = ${promotedBound.nullability}.");
+  }
+
+  TypeParameterType(TypeParameter parameter, Nullability declaredNullability,
+      [DartType promotedBound])
+      : this.internal(parameter, declaredNullability, promotedBound);
 
   /// Creates an intersection type between a type parameter and [promotedBound].
-  TypeParameterType.intersection(
-      this.parameter, this.declaredNullability, this.promotedBound);
+  TypeParameterType.intersection(TypeParameter parameter,
+      Nullability declaredNullability, DartType promotedBound)
+      : this.internal(parameter, declaredNullability, promotedBound);
 
   /// Creates a type-parameter type to be used in alpha-renaming.
   ///
@@ -8169,12 +8302,13 @@ class TypeParameterType extends DartType {
   /// null, it is an equivalent of setting the overall nullability.
   @override
   TypeParameterType withDeclaredNullability(Nullability declaredNullability) {
+    if (declaredNullability == this.declaredNullability) {
+      return this;
+    }
     // TODO(dmitryas): Consider removing the assert.
     assert(promotedBound == null,
         "Can't change the nullability attribute of an intersection type.");
-    return declaredNullability == this.declaredNullability
-        ? this
-        : new TypeParameterType(parameter, declaredNullability, promotedBound);
+    return new TypeParameterType(parameter, declaredNullability, promotedBound);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.
@@ -8246,16 +8380,80 @@ class TypeParameterType extends DartType {
     //
     // | LHS \ RHS |  !  |  ?  |  *  |  %  |
     // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  | N/A | N/A |  !  |
-    // |     ?     | N/A | N/A | N/A | N/A |
-    // |     *     | N/A | N/A |  *  | N/A |
-    // |     %     |  !  |  %  | N/A |  %  |
+    // |     !     |  !  |  +  | N/A |  !  |
+    // |     ?     | (!) | (?) | N/A | (%) |
+    // |     *     | (*) |  +  |  *  | N/A |
+    // |     %     |  !  |  %  |  +  |  %  |
     //
     // In the table, LHS corresponds to lhsNullability in the code below; RHS
     // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
     // nonNullable, nullable, legacy, and undetermined values of the Nullability
     // enum.
-    //
+
+    assert(
+        (lhsNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+            (lhsNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.legacy) ||
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.nullable) ||
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.undetermined)
+            // Apparently these happens as well:
+            ||
+            // pkg/front_end/test/id_tests/type_promotion_test
+            (lhsNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // nnbd/issue42089
+            (lhsNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.nullable) ||
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/test/dill_round_trip_test
+            // pkg/front_end/test/compile_dart2js_with_no_sdk_test
+            // pkg/front_end/test/fasta/types/large_app_benchmark_test
+            // pkg/front_end/test/incremental_dart2js_test
+            // pkg/front_end/test/read_dill_from_binary_md_test
+            // pkg/front_end/test/static_types/static_type_test
+            // pkg/front_end/test/split_dill_test
+            // pkg/front_end/tool/incremental_perf_test
+            // pkg/vm/test/kernel_front_end_test
+            // general/promoted_null_aware_access
+            // inference/constructors_infer_from_arguments_factory
+            // inference/infer_types_on_loop_indices_for_each_loop
+            // inference/infer_types_on_loop_indices_for_each_loop_async
+            (lhsNullability == Nullability.legacy &&
+                promotedBound.nullability == Nullability.nonNullable) ||
+            // pkg/front_end/test/fasta/incremental_hello_test
+            // pkg/front_end/test/explicit_creation_test
+            // pkg/front_end/tool/fasta_perf_test
+            // pkg/front_end/test/fasta/incremental_hello_test
+            (lhsNullability == Nullability.nullable &&
+                promotedBound.nullability == Nullability.undetermined) ||
+
+            // This is created but never observed.
+            // (lhsNullability == Nullability.legacy &&
+            //     promotedBound.nullability == Nullability.nullable) ||
+
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.undetermined &&
+                promotedBound.nullability == Nullability.legacy) ||
+            // pkg/front_end/test/fasta/types/kernel_type_parser_test
+            // pkg/front_end/test/fasta/types/fasta_types_test
+            (lhsNullability == Nullability.nonNullable &&
+                promotedBound.nullability == Nullability.nullable),
+        "Unexpected nullabilities for: LHS nullability = $lhsNullability, "
+        "RHS nullability = ${promotedBound.nullability}.");
+
     // Whenever there's N/A in the table, it means that the corresponding
     // combination of the LHS and RHS nullability is not possible when compiling
     // from Dart source files, so we can define it to be whatever is faster and
@@ -8267,9 +8465,29 @@ class TypeParameterType extends DartType {
     // | LHS \ RHS |  !  |  ?  |  *  |  %  |
     // |-----------|-----|-----|-----|-----|
     // |     !     |  !  |  !  |  !  |  !  |
-    // |     ?     |  !  |  *  |  *  |  %  |
-    // |     *     |  !  |  *  |  *  |  %  |
+    // |     ?     | (!) | (?) |  *  | (%) |
+    // |     *     | (*) |  *  |  *  |  %  |
     // |     %     |  !  |  %  |  %  |  %  |
+
+    if (lhsNullability == Nullability.nullable &&
+        promotedBound.nullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        promotedBound.nullability == Nullability.nullable) {
+      return Nullability.nullable;
+    }
+
+    if (lhsNullability == Nullability.legacy &&
+        promotedBound.nullability == Nullability.nonNullable) {
+      return Nullability.legacy;
+    }
+
+    if (lhsNullability == Nullability.nullable &&
+        promotedBound.nullability == Nullability.undetermined) {
+      return Nullability.undetermined;
+    }
 
     // Intersection with a non-nullable type always yields a non-nullable type,
     // as it's the most restrictive kind of types.
@@ -8310,22 +8528,17 @@ class TypeParameterType extends DartType {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeTypeParameterName(parameter);
-    printer.write(nullabilityToString(declaredNullability));
     if (promotedBound != null) {
+      printer.write('(');
+      printer.writeTypeParameterName(parameter);
+      printer.write(nullabilityToString(declaredNullability));
       printer.write(" & ");
-      printer.write(promotedBound.toStringInternal());
-      printer.write(" /* '");
+      printer.writeType(promotedBound);
+      printer.write(')');
+      printer.write(nullabilityToString(nullability));
+    } else {
+      printer.writeTypeParameterName(parameter);
       printer.write(nullabilityToString(declaredNullability));
-      printer.write("' & '");
-      if (promotedBound is InvalidType) {
-        printer.write(nullabilityToString(Nullability.undetermined));
-      } else {
-        printer.write(nullabilityToString(promotedBound.nullability));
-      }
-      printer.write("' = '");
-      printer.write(nullabilityToString(declaredNullability));
-      printer.write("' */");
     }
   }
 }
@@ -9896,6 +10109,9 @@ class Version extends Object {
     if (minor >= other.minor) return true;
     return false;
   }
+
+  /// Returns this language version as a 'major.minor' text.
+  String toText() => '${major}.${minor}';
 
   @override
   int get hashCode {

@@ -8,7 +8,7 @@
 
 library generic_methods_dynamic_test;
 
-/*spec.class: A:checkedInstance,checks=[],typeArgument*/
+/*spec.class: A:checkedInstance,typeArgument*/
 class A {}
 
 /*spec.class: B:checks=[],instance*/

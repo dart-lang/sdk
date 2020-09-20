@@ -5,7 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/driver_resolution.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class ConflictingStaticAndInstanceClassTest extends DriverResolutionTest {
+class ConflictingStaticAndInstanceClassTest extends PubPackageResolutionTest {
   test_inClass_getter_getter() async {
     await assertErrorsInCode(r'''
 class C {
@@ -450,7 +450,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class ConflictingStaticAndInstanceEnumTest extends DriverResolutionTest {
+class ConflictingStaticAndInstanceEnumTest extends PubPackageResolutionTest {
   test_hashCode() async {
     await assertErrorsInCode(r'''
 enum E {
@@ -503,7 +503,7 @@ enum E {
 }
 
 @reflectiveTest
-class ConflictingStaticAndInstanceMixinTest extends DriverResolutionTest {
+class ConflictingStaticAndInstanceMixinTest extends PubPackageResolutionTest {
   test_inConstraint_getter_getter() async {
     await assertErrorsInCode(r'''
 class A {

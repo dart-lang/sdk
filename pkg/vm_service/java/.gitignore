@@ -5,7 +5,6 @@ src/org/dartlang/vm/service/consumer/AddBreakpointAtEntryConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/AddBreakpointWithScriptUriConsumer.java
 src/org/dartlang/vm/service/consumer/ClearCpuSamplesConsumer.java
-src/org/dartlang/vm/service/consumer/ClientNameConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateInFrameConsumer.java
 src/org/dartlang/vm/service/consumer/FlagListConsumer.java
@@ -26,6 +25,7 @@ src/org/dartlang/vm/service/consumer/GetStackConsumer.java
 src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/KillConsumer.java
 src/org/dartlang/vm/service/consumer/PauseConsumer.java
+src/org/dartlang/vm/service/consumer/ProcessMemoryUsageConsumer.java
 src/org/dartlang/vm/service/consumer/ProtocolListConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadSourcesConsumer.java
 src/org/dartlang/vm/service/consumer/RemoveBreakpointConsumer.java
@@ -49,7 +49,6 @@ src/org/dartlang/vm/service/element/ClassHeapStats.java
 src/org/dartlang/vm/service/element/ClassList.java
 src/org/dartlang/vm/service/element/ClassObj.java
 src/org/dartlang/vm/service/element/ClassRef.java
-src/org/dartlang/vm/service/element/ClientName.java
 src/org/dartlang/vm/service/element/Code.java
 src/org/dartlang/vm/service/element/CodeKind.java
 src/org/dartlang/vm/service/element/CodeRef.java
@@ -95,6 +94,8 @@ src/org/dartlang/vm/service/element/Null.java
 src/org/dartlang/vm/service/element/NullRef.java
 src/org/dartlang/vm/service/element/Obj.java
 src/org/dartlang/vm/service/element/ObjRef.java
+src/org/dartlang/vm/service/element/ProcessMemoryItem.java
+src/org/dartlang/vm/service/element/ProcessMemoryUsage.java
 src/org/dartlang/vm/service/element/ProfileFunction.java
 src/org/dartlang/vm/service/element/Protocol.java
 src/org/dartlang/vm/service/element/ProtocolList.java

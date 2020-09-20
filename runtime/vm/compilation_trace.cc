@@ -895,8 +895,10 @@ ObjectPtr TypeFeedbackLoader::LoadFunction() {
         // ensure no arity mismatch crashes.
         target_name_ = call_site_.target_name();
         args_desc_ = call_site_.arguments_descriptor();
-        target_ = Resolver::ResolveDynamicForReceiverClass(
-            cls_, target_name_, ArgumentsDescriptor(args_desc_));
+        if (cls_.EnsureIsFinalized(thread_) == Error::null()) {
+          target_ = Resolver::ResolveDynamicForReceiverClass(
+              cls_, target_name_, ArgumentsDescriptor(args_desc_));
+        }
         if (!target_.IsNull()) {
           if (num_checked_arguments == 1) {
             call_site_.AddReceiverCheck(cids[0], target_, entry_usage);

@@ -53,6 +53,19 @@ class C {
 ''');
   }
 
+  Future<void> test_first_required_second_optionalInvalid() async {
+    await resolveTestUnit('''
+class C {
+  C(int a, int b = 1,);
+}
+''');
+    await assertHasFix('''
+class C {
+  C(int b = 1,);
+}
+''', errorFilter: (e) => e.offset == 14);
+  }
+
   Future<void> test_first_requiredPositional_second_optionalNamed() async {
     await resolveTestUnit('''
 class C {

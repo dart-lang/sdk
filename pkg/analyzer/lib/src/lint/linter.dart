@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
@@ -17,13 +18,13 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
+import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -31,8 +32,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisErrorInfoImpl,
         AnalysisOptions,
         AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart'
-    show ConstantVerifier, ScopedVisitor;
+import 'package:analyzer/src/generated/resolver.dart' show ScopedVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
@@ -49,7 +49,7 @@ import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 
-typedef Printer = Function(String msg);
+typedef Printer = void Function(String msg);
 
 /// Describes a String in valid camel case format.
 @deprecated // Never intended for public use.
@@ -212,7 +212,7 @@ class Hyperlink {
 
   String get html => '<a href="$href">${_emph(label)}</a>';
 
-  String _emph(msg) => bold ? '<strong>$msg</strong>' : msg;
+  String _emph(String msg) => bold ? '<strong>$msg</strong>' : msg;
 }
 
 /// The result of attempting to evaluate an expression.
@@ -267,6 +267,9 @@ abstract class LinterContext {
 
   /// Return the result of evaluating the given expression.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
+
+  /// Return `true` if the [feature] is enabled in the library being linted.
+  bool isEnabled(Feature feature);
 
   /// Resolve the name `id` or `id=` (if [setter] is `true`) an the location
   /// of the [node], according to the "16.35 Lexical Lookup" of the language
@@ -355,11 +358,8 @@ class LinterContextImpl implements LinterContext {
     );
 
     var visitor = ConstantVisitor(
-      ConstantEvaluationEngine(
-        typeProvider,
-        declaredVariables,
-        typeSystem: typeSystem,
-      ),
+      ConstantEvaluationEngine(declaredVariables),
+      libraryElement,
       errorReporter,
     );
 
@@ -368,10 +368,12 @@ class LinterContextImpl implements LinterContext {
   }
 
   @override
+  bool isEnabled(Feature feature) =>
+      currentUnit.unit.declaredElement.library.featureSet.isEnabled(feature);
+
+  @override
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node) {
-    var idEq = '$id=';
-
     Scope scope;
     for (var context = node; context != null; context = context.parent) {
       scope = ScopedVisitor.getNodeNameScope(context);
@@ -381,18 +383,9 @@ class LinterContextImpl implements LinterContext {
     }
 
     if (scope != null) {
-      Element idElement;
-      Element idEqElement;
-
-      void lookupScopeAndEnclosing() {
-        while (scope != null && idElement == null && idEqElement == null) {
-          idElement = scope.localLookup(id);
-          idEqElement = scope.localLookup(idEq);
-          scope = scope.enclosingScope;
-        }
-      }
-
-      lookupScopeAndEnclosing();
+      var lookupResult = scope.lookup2(id);
+      var idElement = lookupResult.getter;
+      var idEqElement = lookupResult.setter;
 
       var requestedElement = setter ? idEqElement : idElement;
       var differentElement = setter ? idElement : idEqElement;
@@ -682,7 +675,7 @@ class Maturity implements Comparable<Maturity> {
   const Maturity._(this.name, {this.ordinal});
 
   @override
-  int compareTo(Maturity other) => this.ordinal - other.ordinal;
+  int compareTo(Maturity other) => ordinal - other.ordinal;
 }
 
 /// [LintRule]s that implement this interface want to process only some types

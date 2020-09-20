@@ -6,8 +6,8 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:pub_semver/pub_semver.dart';
 
 /// A Dart SDK installed in a specified location.
 abstract class DartSdk {
@@ -31,8 +31,11 @@ abstract class DartSdk {
   /// if the file cannot be read, e.g. does not exist.
   String get allowedExperimentsJson;
 
-  /// Return the analysis context used for all of the sources in this [DartSdk].
-  AnalysisContext get context;
+  /// Return the language version of this SDK, or throws an exception.
+  ///
+  /// The language version has only major/minor components, the patch number
+  /// is always zero, because the patch number does not change the language.
+  Version get languageVersion;
 
   /// Return a list containing all of the libraries defined in this SDK.
   List<SdkLibrary> get sdkLibraries;
@@ -65,16 +68,12 @@ class DartSdkManager {
   /// The absolute path to the directory containing the default SDK.
   final String defaultSdkDirectory;
 
-  /// A flag indicating whether it is acceptable to use summaries when they are
-  /// available.
-  final bool canUseSummaries;
-
   /// A table mapping (an encoding of) analysis options and SDK locations to the
   /// DartSdk from that location that has been configured with those options.
   Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /// Initialize a newly created manager.
-  DartSdkManager(this.defaultSdkDirectory, this.canUseSummaries);
+  DartSdkManager(this.defaultSdkDirectory, [@deprecated bool canUseSummaries]);
 
   /// Return any SDK that has been created, or `null` if no SDKs have been
   /// created.
@@ -334,7 +333,7 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /// Set whether the library is documented.
   set documented(bool documented) {
-    this._documented = documented;
+    _documented = documented;
   }
 
   @override

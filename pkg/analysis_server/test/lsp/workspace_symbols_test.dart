@@ -91,10 +91,10 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
 
     // Create a request that doesn't supply the query param.
     final request = RequestMessage(
-      Either2<num, String>.t1(1),
-      Method.workspace_symbol,
-      <String, dynamic>{},
-      jsonRpcVersion,
+      id: Either2<num, String>.t1(1),
+      method: Method.workspace_symbol,
+      params: <String, dynamic>{},
+      jsonrpc: jsonRpcVersion,
     );
 
     final response = await sendRequestToServer(request);

@@ -30,12 +30,18 @@ import 'package:package_config/package_config.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
+import 'testing_utils.dart' show checkEnvironment, getGitFiles;
+
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context();
+  const Set<String> knownEnvironmentKeys = {"onlyInGit"};
+  checkEnvironment(environment, knownEnvironmentKeys);
+
+  bool onlyInGit = environment["onlyInGit"] != "false";
+  return new Context(onlyInGit: onlyInGit);
 }
 
 class LintTestDescription extends TestDescription {
@@ -70,6 +76,9 @@ class LintTestCache {
 }
 
 class Context extends ChainContext {
+  final bool onlyInGit;
+  Context({this.onlyInGit});
+
   final List<Step> steps = const <Step>[
     const LintStep(),
   ];
@@ -82,6 +91,11 @@ class Context extends ChainContext {
   }
 
   Stream<LintTestDescription> list(Chain suite) async* {
+    Set<Uri> gitFiles;
+    if (onlyInGit) {
+      gitFiles = await getGitFiles(suite.uri);
+    }
+
     Directory testRoot = new Directory.fromUri(suite.uri);
     if (await testRoot.exists()) {
       Stream<FileSystemEntity> files =
@@ -91,6 +105,7 @@ class Context extends ChainContext {
         String path = entity.uri.path;
         if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
         if (suite.pattern.any((RegExp r) => path.contains(r))) {
+          if (onlyInGit && !gitFiles.contains(entity.uri)) continue;
           Uri root = suite.uri;
           String baseName = "${entity.uri}".substring("$root".length);
           baseName = baseName.substring(0, baseName.length - ".dart".length);
@@ -233,6 +248,7 @@ class ExplicitTypeLintListener extends LintListener {
   }
 
   void endClassFields(
+      Token abstractToken,
       Token externalToken,
       Token staticToken,
       Token covariantToken,

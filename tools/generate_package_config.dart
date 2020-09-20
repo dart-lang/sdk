@@ -26,17 +26,28 @@ void main(List<String> args) {
   ];
 
   var cfePackageDirs = [
-    packageDirectory('pkg/front_end/testcases/agnostic/'),
-    packageDirectory('pkg/front_end/testcases/general_nnbd_opt_out/'),
-    packageDirectory('pkg/front_end/testcases/late_lowering/'),
-    packageDirectory('pkg/front_end/testcases/nnbd/'),
-    packageDirectory('pkg/front_end/testcases/nnbd_mixed/'),
-    packageDirectory('pkg/front_end/testcases/nonfunction_type_aliases/'),
+    packageDirectory('pkg/front_end/testcases/'),
+  ];
+
+  var feAnalyzerSharedPackageDirs = [
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/assigned_variables/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/definite_assignment/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/definite_unassignment/'),
+    packageDirectory('pkg/_fe_analyzer_shared/test/flow_analysis/nullability/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/reachability/'),
+    packageDirectory(
+        'pkg/_fe_analyzer_shared/test/flow_analysis/type_promotion/'),
+    packageDirectory('pkg/_fe_analyzer_shared/test/inheritance/'),
   ];
 
   var packages = [
     ...makePackageConfigs(packageDirs),
-    ...makeCfePackageConfigs(cfePackageDirs)
+    ...makeCfePackageConfigs(cfePackageDirs),
+    ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs)
   ];
   packages.sort((a, b) => a["name"].compareTo(b["name"]));
 
@@ -99,6 +110,21 @@ Iterable<Map<String, String>> makeCfePackageConfigs(
   for (var packageDir in packageDirs) {
     yield {
       'name': 'front_end_${p.basename(packageDir)}',
+      'rootUri': p
+          .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
+          .toString(),
+      'packageUri': '.nonexisting/',
+    };
+  }
+}
+
+/// Generates package configurations for the special pseudo-packages used by
+/// the _fe_analyzer_shared id tests.
+Iterable<Map<String, String>> makeFeAnalyzerSharedPackageConfigs(
+    List<String> packageDirs) sync* {
+  for (var packageDir in packageDirs) {
+    yield {
+      'name': '_fe_analyzer_shared_${p.basename(packageDir)}',
       'rootUri': p
           .toUri(p.relative(packageDir, from: p.dirname(configFilePath)))
           .toString(),

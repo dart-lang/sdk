@@ -51,8 +51,12 @@ void main() {
     rerunMigrationButton.onClick.listen((event) async {
       try {
         document.body.classes..add('rerunning');
-        await doPost('/rerun-migration');
-        window.location.reload();
+        var response = await doPost('/rerun-migration');
+        if (response['success'] as bool) {
+          window.location.reload();
+        } else {
+          handleRerunFailure(response['errors'] as List<Object>);
+        }
       } catch (e, st) {
         handleError('Failed to rerun migration', e, st);
       } finally {
@@ -168,7 +172,7 @@ Future<T> doGet<T>(String path,
       ..open('GET', pathWithQueryParameters(path, queryParameters), async: true)
       ..setRequestHeader('Content-Type', 'application/json; charset=UTF-8'));
 
-/// Perform a GET request on the path, return the json decoded response.
+/// Perform a POST request on the path, return the JSON-decoded response.
 Future<Map<String, Object>> doPost(String path, [Object body]) => doRequest(
     HttpRequest()
       ..open('POST', pathWithQueryParameters(path, {}), async: true)
@@ -183,7 +187,7 @@ Future<Map<String, Object>> doPost(String path, [Object body]) => doRequest(
 /// that case, though, because it may be an error response from the server with
 /// useful debugging information (stack trace etc).
 Future<T> doRequest<T>(HttpRequest xhr, [Object body]) async {
-  var completer = new Completer<HttpRequest>();
+  var completer = Completer<HttpRequest>();
   xhr.onLoad.listen((e) {
     completer.complete(xhr);
   });
@@ -288,6 +292,22 @@ void handleAddHintLinkClick(MouseEvent event) async {
   }
 }
 
+void handleRerunFailure(List<Object> errors) {
+  final popupPane = document.querySelector('.popup-pane');
+  popupPane.querySelector('h2').innerText = 'Failed to rerun from sources';
+  popupPane.querySelector('p').innerText =
+      'Sources contain static analysis errors:';
+  popupPane.querySelector('pre').innerText = errors.cast<Map>().map((error) {
+    return '${error['severity']} - ${error['message']} '
+        'at ${error['location']} - (${error['code']})';
+  }).join('\n');
+  popupPane.querySelector('a.bottom').style.display = 'none';
+  popupPane.style.display = 'initial';
+
+  // TODO(srawlins): I think we should lock down the entire web UI, except for
+  //  the "Rerun from source" button.
+}
+
 void handleError(String header, Object exception, Object stackTrace) {
   String subheader;
   if (exception is Map<String, Object> &&
@@ -303,11 +323,16 @@ void handleError(String header, Object exception, Object stackTrace) {
   popupPane.querySelector('h2').innerText = header;
   popupPane.querySelector('p').innerText = subheader;
   popupPane.querySelector('pre').innerText = stackTrace.toString();
-  (popupPane.querySelector('a.bottom') as AnchorElement).href =
-      getGitHubErrorUri(header, subheader, stackTrace).toString();
+  var bottom = popupPane.querySelector('a.bottom') as AnchorElement;
+  bottom
+    ..href = getGitHubErrorUri(header, subheader, stackTrace).toString()
+    ..style.display = 'initial';
   popupPane..style.display = 'initial';
   logError('$header: $exception', stackTrace);
 }
+
+String _stripQuery(String path) =>
+    path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
 
 void handleNavLinkClick(
   MouseEvent event,
@@ -318,10 +343,7 @@ void handleNavLinkClick(
   event.preventDefault();
 
   var location = target.getAttribute('href');
-  var path = location;
-  if (path.contains('?')) {
-    path = path.substring(0, path.indexOf('?'));
-  }
+  var path = _stripQuery(location);
 
   var offset = getOffset(location);
   var lineNumber = getLine(location);
@@ -383,8 +405,7 @@ void loadFile(
         queryParameters: {'inline': 'true'});
     writeCodeAndRegions(path, FileDetails.fromJson(response), clearEditDetails);
     maybeScrollToAndHighlight(offset, line);
-    var filePathPart =
-        path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+    var filePathPart = _stripQuery(path);
     updatePage(filePathPart, offset);
     if (callback != null) {
       callback();
@@ -575,7 +596,14 @@ void populateProposedEdits(
         var line = edit.line;
         anchor.dataset['line'] = '$line';
         anchor.append(Text('line $line'));
+        anchor.setAttribute(
+            'href',
+            pathWithQueryParameters(window.location.pathname, {
+              'line': '$line',
+              'offset': '$offset',
+            }));
         anchor.onClick.listen((MouseEvent event) {
+          event.preventDefault();
           navigate(window.location.pathname, offset, line, true, callback: () {
             pushState(window.location.pathname, offset, line);
           });
@@ -688,7 +716,7 @@ void writeNavigationSubtree(
       li.append(a);
       a.classes.add('nav-link');
       a.dataset['name'] = entity.path;
-      a.setAttribute('href', entity.href);
+      a.setAttribute('href', pathWithQueryParameters(entity.href, {}));
       a.append(Text(entity.name));
       a.onClick.listen((MouseEvent event) => handleNavLinkClick(event, true));
       var editCount = entity.editCount;
@@ -704,7 +732,7 @@ void writeNavigationSubtree(
   }
 }
 
-AnchorElement _aElementForLink(TargetLink link, String parentDirectory) {
+AnchorElement _aElementForLink(TargetLink link) {
   var targetLine = link.line;
   AnchorElement a = AnchorElement();
   a.append(Text('${link.path}:$targetLine'));
@@ -755,7 +783,7 @@ void _populateEditTraces(
       var link = entry.link;
       if (link != null) {
         li.append(Text(' ('));
-        li.append(_aElementForLink(link, parentDirectory));
+        li.append(_aElementForLink(link));
         li.append(Text(')'));
       }
       li.append(Text(': '));
@@ -770,10 +798,11 @@ void _populateEditTraces(
               try {
                 await doPost(pathWithQueryParameters('/apply-hint', {}),
                     hintAction.toJson());
-                loadFile(link.path, null, link.line, false);
+                var path = _stripQuery(link.href);
+                loadFile(path, null, link.line, false);
                 document.body.classes.add('needs-rerun');
               } catch (e, st) {
-                handleError("Could not apply hint", e, st);
+                handleError('Could not apply hint', e, st);
               }
             })
             ..appendText(hintAction.kind.description));

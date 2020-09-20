@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.36
+# Dart VM Service Protocol 3.39
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.36_ of the Dart VM Service Protocol. This
+This document describes of _version 3.39_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -39,7 +39,6 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
-  - [getClientName](#getclientname)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -65,9 +64,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [registerService](#registerService)
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
-  - [requirePermissionToResume](#requirepermissiontoresume)
   - [resume](#resume)
-  - [setClientName](#setclientname)
   - [setExceptionPauseMode](#setexceptionpausemode)
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
@@ -139,6 +136,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [UresolvedSourceLocation](#unresolvedsourcelocation)
   - [Version](#version)
   - [VM](#vm)
+  - [WebSocketTarget](#websockettarget)
 - [Revision History](#revision-history)
 
 ## RPCs, Requests, and Responses
@@ -422,6 +420,8 @@ When DDS connects to the VM service, the VM service enters single client
 mode and will no longer accept incoming web socket connections, instead forwarding
 the web socket connection request to DDS. If DDS disconnects from the VM service,
 the VM service will once again start accepting incoming web socket connections.
+
+The VM service forwards the web socket connection by issuing a redirect 
 
 ### Protocol Extensions
 
@@ -738,21 +738,6 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [ClassList](#classlist).
-
-### getClientName
-
-_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
-
-```
-ClientName getClientName()
-```
-
-The _getClientName_ RPC is used to retrieve the name associated with the currently
-connected VM service client. If no name was previously set through the
-[setClientName](#setclientname) RPC, a default name will be returned.
-
-See [ClientName](#clientname).
 
 ### getCpuSamples
 
@@ -1245,44 +1230,6 @@ offset.
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
-### requirePermissionToResume
-
-_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
-
-```
-Success requirePermissionToResume(bool onPauseStart [optional],
-                                  bool onPauseReload[optional],
-                                  bool onPauseExit [optional])
-```
-
-The _requirePermissionToResume_ RPC is used to change the pause/resume behavior
-of isolates by providing a way for the VM service to wait for approval to resume
-from some set of clients. This is useful for clients which want to perform some
-operation on an isolate after a pause without it being resumed by another client.
-
-If the _onPauseStart_ parameter is `true`, isolates will not resume after pausing
-on start until the client sends a `resume` request and all other clients which
-need to provide resume approval for this pause type have done so.
-
-If the _onPauseReload_ parameter is `true`, isolates will not resume after pausing
-after a reload until the client sends a `resume` request and all other clients
-which need to provide resume approval for this pause type have done so.
-
-If the _onPauseExit_ parameter is `true`, isolates will not resume after pausing
-on exit until the client sends a `resume` request and all other clients which
-need to provide resume approval for this pause type have done so.
-
-**Important Notes:**
-
-- All clients with the same client name share resume permissions. Only a
-  single client of a given name is required to provide resume approval.
-- When a client requiring approval disconnects from the service, a paused
-  isolate may resume if all other clients requiring resume approval have
-  already given approval. In the case that no other client requires resume
-  approval for the current pause event, the isolate will be resumed if at
-  least one other client has attempted to [resume](#resume) the isolate.
-
 ### resume
 
 ```
@@ -1316,22 +1263,6 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Success](#success), [StepOption](#StepOption).
-
-### setClientName
-
-_**Note**: This method is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
-
-```
-Success setClientName(string name)
-```
-
-The _setClientName_ RPC is used to set a name to be associated with the currently
-connected VM service client. If the _name_ parameter is a non-empty string, _name_
-will become the new name associated with the client. If _name_ is an empty string,
-the client's name will be reset to its default name.
-
-See [Success](#success).
 
 ### setExceptionPauseMode
 
@@ -1767,20 +1698,6 @@ class ClassList extends Response {
   @Class[] classes;
 }
 ```
-
-### ClientName
-
-_**Note**: This class is deprecated and will be removed in v4.0 of the protocol.
-An equivalent can be found in the Dart Development Service (DDS) protocol._
-
-```
-class ClientName extends Response {
-  // The name of the currently connected VM service client.
-  string name;
-}
-```
-
-See [getClientName](#getclientname) and [setClientName](#setclientname).
 
 ### Code
 
@@ -2843,6 +2760,10 @@ class @Isolate extends Response {
 
   // A name identifying this isolate. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
 }
 ```
 
@@ -2859,6 +2780,10 @@ class Isolate extends Response {
 
   // A name identifying this isolate. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate is likely running user code.
+  bool isSystemIsolate;
 
   // The time that the VM started in milliseconds since the epoch.
   //
@@ -2917,6 +2842,10 @@ class @IsolateGroup extends Response {
 
   // A name identifying this isolate group. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate group was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;  
 }
 ```
 
@@ -2933,6 +2862,10 @@ class IsolateGroup extends Response {
 
   // A name identifying this isolate. Not guaranteed to be unique.
   string name;
+
+  // Specifies whether the isolate group was spawned by the VM or embedder for
+  // internal use. If `false`, this isolate group is likely running user code.
+  bool isSystemIsolateGroup;  
 
   // A list of all isolates in this isolate group.
   @Isolate[] isolates;
@@ -3098,10 +3031,11 @@ class MapAssociation {
 class MemoryUsage extends Response {
   // The amount of non-Dart memory that is retained by Dart objects. For
   // example, memory associated with Dart objects through APIs such as
-  // Dart_NewWeakPersistentHandle and Dart_NewExternalTypedData.  This usage is
-  // only as accurate as the values supplied to these APIs from the VM embedder or
-  // native extensions. This external memory applies GC pressure, but is separate
-  // from heapUsage and heapCapacity.
+  // Dart_NewFinalizableHandle, Dart_NewWeakPersistentHandle and
+  // Dart_NewExternalTypedData.  This usage is only as accurate as the values
+  // supplied to these APIs from the VM embedder or native extensions. This
+  // external memory applies GC pressure, but is separate from heapUsage and
+  // heapCapacity.
   int externalUsage;
 
   // The total capacity of the heap in bytes. This is the amount of memory used
@@ -3846,6 +3780,12 @@ class VM extends Response {
 
   // A list of isolate groups running in the VM.
   @IsolateGroup[] isolateGroups;
+
+  // A list of system isolates running in the VM.
+  @Isolate[] systemIsolates;
+
+  // A list of isolate groups which contain system isolates running in the VM.
+  @IsolateGroup[] systemIsolateGroups;
 }
 ```
 
@@ -3886,12 +3826,14 @@ version | comments
 3.28 | TODO(aam): document changes from 3.28
 3.29 | Add `getClientName`, `setClientName`, `requireResumeApproval`
 3.30 | Updated return types of RPCs which require an `isolateId` to allow for `Sentinel` results if the target isolate has shutdown.
-3.31 | Added single client mode, which allows for the Dart Development Service (DDS) to become the sole client of
-the VM service.
+3.31 | Added single client mode, which allows for the Dart Development Service (DDS) to become the sole client of the VM service.
 3.32 | Added `getClassList` RPC and `ClassList` object.
 3.33 | Added deprecation notice for `getClientName`, `setClientName`, `requireResumeApproval`, and `ClientName`. These RPCs are moving to the DDS protocol and will be removed in v4.0 of the VM service protocol.
 3.34 | Added `TimelineStreamSubscriptionsUpdate` event which is sent when `setVMTimelineFlags` is invoked.
 3.35 | Added `getSupportedProtocols` RPC and `ProtocolList`, `Protocol` objects.
 3.36 | Added `getProcessMemoryUsage` RPC and `ProcessMemoryUsage` and `ProcessMemoryItem` objects.
+3.37 | Added `getWebSocketTarget` RPC and `WebSocketTarget` object.
+3.38 | Added `isSystemIsolate` property to `@Isolate` and `Isolate`, `isSystemIsolateGroup` property to `@IsolateGroup` and `IsolateGroup`, and properties `systemIsolates` and `systemIsolateGroups` to `VM`.
+3.39 | Removed the following deprecated RPCs and objects: `getClientName`, `getWebSocketTarget`, `setClientName`, `requireResumeApproval`, `ClientName`, and `WebSocketTarget`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

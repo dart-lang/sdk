@@ -1122,15 +1122,22 @@ class _MultiStreamController<T> extends _AsyncStreamController<T>
   _MultiStreamController() : super(null, null, null, null);
 
   void addSync(T data) {
-    _subscription._add(data);
+    if (!_mayAddEvent) throw _badEventState();
+    if (hasListener) _subscription._add(data);
   }
 
   void addErrorSync(Object error, [StackTrace? stackTrace]) {
-    _subscription._addError(error, stackTrace ?? StackTrace.empty);
+    if (!_mayAddEvent) throw _badEventState();
+    if (hasListener) {
+      _subscription._addError(error, stackTrace ?? StackTrace.empty);
+    }
   }
 
   void closeSync() {
-    _subscription._close();
+    if (isClosed) return;
+    if (!_mayAddEvent) throw _badEventState();
+    _state |= _StreamController._STATE_CLOSED;
+    if (hasListener) _subscription._close();
   }
 
   Stream<T> get stream {

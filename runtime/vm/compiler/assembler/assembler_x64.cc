@@ -2133,7 +2133,6 @@ void Assembler::EmitGenericShift(bool wide,
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   movl(result, tags);
   shrl(result, Immediate(target::ObjectLayout::kClassIdTagPos));
 }
@@ -2152,7 +2151,6 @@ void Assembler::ExtractInstanceSizeFromTags(Register result, Register tags) {
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
       target::ObjectLayout::kClassIdTagPos / kBitsPerByte;
@@ -2183,7 +2181,6 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   ASSERT(kSmiTagShift == 1);
   ASSERT(target::ObjectLayout::kClassIdTagPos == 16);
   ASSERT(target::ObjectLayout::kClassIdTagSize == 16);
-  ASSERT(sizeof(classid_t) == sizeof(uint16_t));
   const intptr_t class_id_offset =
       target::Object::tags_offset() +
       target::ObjectLayout::kClassIdTagPos / kBitsPerByte;

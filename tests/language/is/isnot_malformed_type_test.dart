@@ -8,7 +8,7 @@ f(obj) {
   // 'Baz' is not loaded, throws a type error on test.
   return (obj is! Baz);
   //              ^^^
-  // [analyzer] STATIC_WARNING.TYPE_TEST_WITH_UNDEFINED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_TEST_WITH_UNDEFINED_NAME
   // [cfe] 'Baz' isn't a type.
 }
 
