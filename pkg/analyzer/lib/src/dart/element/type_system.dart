@@ -116,6 +116,25 @@ class TypeSystemImpl implements TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
+  /// Returns [type] in which all promoted type variables have been replaced
+  /// with their unpromoted equivalents, and, if non-nullable by default,
+  /// replaces all legacy types with their non-nullable equivalents.
+  DartType demoteType(DartType type) {
+    if (isNonNullableByDefault) {
+      var visitor = const DemotionNonNullificationVisitor(
+        demoteTypeVariables: true,
+        nonNullifyTypes: true,
+      );
+      return type.accept(visitor) ?? type;
+    } else {
+      var visitor = const DemotionNonNullificationVisitor(
+        demoteTypeVariables: true,
+        nonNullifyTypes: false,
+      );
+      return type.accept(visitor) ?? type;
+    }
+  }
+
   /// Eliminates type variables from the context [type], replacing them with
   /// `Null` or `Object` as appropriate.
   ///
@@ -1184,9 +1203,10 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Replace legacy types in [type] with non-nullable types.
   DartType nonNullifyLegacy(DartType type) {
-    if (isNonNullableByDefault && type != null) {
+    if (isNonNullableByDefault) {
       var visitor = const DemotionNonNullificationVisitor(
         demoteTypeVariables: false,
+        nonNullifyTypes: true,
       );
       return type.accept(visitor) ?? type;
     }
