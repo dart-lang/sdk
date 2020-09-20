@@ -22,12 +22,6 @@
 [#41100]: https://github.com/dart-lang/sdk/issues/41100
 [WHATWG encoding standard]: https://encoding.spec.whatwg.org/#utf-8-decoder
 
-#### `dart:core`
-
-*   [#42564][]: Solved inconsistency in Uri.https and Uri.http constructors'
-    queryParams type.
-
-
 #### `dart:io`
 
 *   [#42006][]: The signature of `exit` has been changed to return the
