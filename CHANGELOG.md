@@ -18,6 +18,11 @@
 *   Class `BytesBuilder` is moved from `dart:io` to `dart:typed_data`.
     It's temporarily being exported from `dart:io` as well.
 
+### `dart:uri`
+
+*   [#42564]: Solved inconsistency in `Uri.https` and `Uri.http` constructors'
+    `queryParams` type.
+
 ### Dart VM
 
 *   **Breaking Change** [#42982][]: `dart_api_dl.cc` is renamed to
