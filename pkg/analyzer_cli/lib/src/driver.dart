@@ -51,11 +51,9 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-@visibleForTesting
 StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-@visibleForTesting
 StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
