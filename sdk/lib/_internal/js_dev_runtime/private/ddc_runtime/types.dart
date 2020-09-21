@@ -369,7 +369,7 @@ class NullableType extends DartType {
   NullableType(@notNull this.type);
 
   @override
-  String get name => '$type?';
+  String get name => _jsInstanceOf(type, FunctionType) ? '($type)?' : '$type?';
 
   @override
   String toString() => name;
