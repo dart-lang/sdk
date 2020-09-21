@@ -549,27 +549,17 @@ pre.loadLibrary''');
 }
 
 void _testIfNullPropertySet() {
-  VariableDeclaration variable =
-      new VariableDeclarationImpl.forValue(new IntLiteral(0));
   testExpression(
       new IfNullPropertySet(
-          variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo')),
-          new PropertySet(
-              new VariableGet(variable), new Name('foo'), new IntLiteral(1)),
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
           forEffect: false),
-      '''
-let final dynamic #0 = 0 in if-null #0.foo ?? #0.foo = 1''');
+      '0.foo ??= 1');
 
   testExpression(
       new IfNullPropertySet(
-          variable,
-          new PropertyGet(new VariableGet(variable), new Name('foo')),
-          new PropertySet(
-              new VariableGet(variable), new Name('foo'), new IntLiteral(1)),
+          new IntLiteral(0), new Name('foo'), new IntLiteral(1),
           forEffect: true),
-      '''
-let final dynamic #0 = 0 in if-null #0.foo ?? #0.foo = 1''');
+      '0.foo ??= 1');
 }
 
 void _testIfNullSet() {

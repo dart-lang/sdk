@@ -503,21 +503,8 @@ class PropertyAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    VariableDeclaration variable =
-        _helper.forest.createVariableDeclarationForValue(receiver);
-    PropertyGet read = _forest.createPropertyGet(
-        fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset,
-            forNullGuardedAccess: true),
-        name);
-    PropertySet write = _helper.forest.createPropertySet(
-        fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset,
-            forNullGuardedAccess: true),
-        name,
-        value,
-        forEffect: voidContext);
-    return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
+    return new IfNullPropertySet(receiver, name, value,
+        forEffect: voidContext, readOffset: fileOffset, writeOffset: fileOffset)
       ..fileOffset = offset;
   }
 
@@ -2037,15 +2024,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
             ..fileOffset = offset)
         ..fileOffset = fileOffset;
     } else {
-      VariableDeclaration variable =
-          _helper.forest.createVariableDeclarationForValue(receiver);
-      Expression read =
-          _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
-      Expression write = _createWrite(fileOffset,
-          _helper.createVariableGet(variable, receiver.fileOffset), value,
-          forEffect: voidContext, readOnlyReceiver: true);
-      return new IfNullPropertySet(variable, read, write,
-          forEffect: voidContext)
+      return new IfNullPropertySet(receiver, targetName, value,
+          forEffect: voidContext,
+          readOffset: fileOffset,
+          writeOffset: fileOffset)
         ..fileOffset = offset;
     }
   }

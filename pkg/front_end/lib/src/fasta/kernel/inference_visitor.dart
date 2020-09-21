@@ -2680,20 +2680,57 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitIfNullPropertySet(
       IfNullPropertySet node, DartType typeContext) {
-    Link<NullAwareGuard> nullAwareGuards =
-        inferrer.inferSyntheticVariableNullAware(node.variable);
-    ExpressionInferenceResult readResult = inferrer.inferExpression(
-        node.read, const UnknownType(), true,
-        isVoidAllowed: true);
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        node.receiver, const UnknownType(), true,
+        isVoidAllowed: false);
+
+    Link<NullAwareGuard> nullAwareGuards;
+    Expression receiver;
+    DartType receiverType;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuards = receiverResult.nullAwareGuards;
+      receiver = receiverResult.nullAwareAction;
+      receiverType = receiverResult.nullAwareActionType;
+    } else {
+      receiver = receiverResult.expression;
+      receiverType = receiverResult.inferredType;
+    }
+
+    VariableDeclaration receiverVariable =
+        createVariable(receiver, receiverType);
+    inferrer.instrumentation?.record(
+        inferrer.uriForInstrumentation,
+        receiverVariable.fileOffset,
+        'type',
+        new InstrumentationValueForType(receiverType));
+    Expression readReceiver = createVariableGet(receiverVariable);
+    Expression writeReceiver = createVariableGet(receiverVariable);
+
+    ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
+        readReceiver, receiverType, node.propertyName, const UnknownType(),
+        isThisReceiver: node.receiver is ThisExpression);
+
     reportNonNullableInNullAwareWarningIfNeeded(
-        readResult.inferredType, "??=", node.read.fileOffset);
+        readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, node.propertyName, receiver.fileOffset,
+        setter: true, instrumented: true, includeExtensionMethods: true);
+    DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
+
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read, readType);
-    ExpressionInferenceResult writeResult = inferrer
-        .inferExpression(node.write, typeContext, true, isVoidAllowed: true);
+    ExpressionInferenceResult rhsResult = inferrer
+        .inferExpression(node.rhs, writeContext, true, isVoidAllowed: true);
     inferrer.flowAnalysis.ifNullExpression_end();
+
+    Expression rhs = inferrer.ensureAssignableResult(writeContext, rhsResult);
+
+    DartType writeType = rhsResult.inferredType;
+    Expression write = _computePropertySet(node.writeOffset, writeReceiver,
+        receiverType, node.propertyName, writeTarget, rhs,
+        forEffect: node.forEffect, valueType: writeType);
 
     Member equalsMember = inferrer
         .findInterfaceMember(readType, equalsName, node.fileOffset)
@@ -2701,8 +2738,8 @@ class InferenceVisitor
 
     DartType nonNullableReadType = inferrer.computeNonNullable(readType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(nonNullableReadType, writeResult.inferredType,
-            inferrer.library.library);
+        .getStandardUpperBound(
+            nonNullableReadType, writeType, inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -2712,14 +2749,11 @@ class InferenceVisitor
       //
       MethodInvocation equalsNull =
           createEqualsNull(node.fileOffset, read, equalsMember);
-      ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull,
-          writeResult.expression,
-          new NullLiteral()..fileOffset = node.fileOffset,
-          inferredType)
+      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
+          write, new NullLiteral()..fileOffset = node.fileOffset, inferredType)
         ..fileOffset = node.fileOffset;
       replacement =
-          new Let(node.variable, conditional..fileOffset = node.fileOffset)
+          new Let(receiverVariable, conditional..fileOffset = node.fileOffset)
             ..fileOffset = node.fileOffset;
     } else {
       // Encode `o.a ??= b` as:
@@ -2735,10 +2769,11 @@ class InferenceVisitor
         variableGet.promotedType = nonNullableReadType;
       }
       ConditionalExpression conditional = new ConditionalExpression(
-          equalsNull, writeResult.expression, variableGet, inferredType)
+          equalsNull, write, variableGet, inferredType)
         ..fileOffset = node.fileOffset;
-      replacement = new Let(node.variable, createLet(readVariable, conditional))
-        ..fileOffset = node.fileOffset;
+      replacement =
+          new Let(receiverVariable, createLet(readVariable, conditional))
+            ..fileOffset = node.fileOffset;
     }
 
     return inferrer.createNullAwareExpressionInferenceResult(

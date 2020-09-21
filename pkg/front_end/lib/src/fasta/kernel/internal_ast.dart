@@ -1595,23 +1595,29 @@ class LoadLibraryTearOff extends InternalExpression {
 ///     let v1 = o in v1.a == null ? v1.a = b : null
 ///
 class IfNullPropertySet extends InternalExpression {
-  /// The synthetic variable whose initializer hold the receiver.
-  VariableDeclaration variable;
+  /// The receiver used for the read/write operations.
+  Expression receiver;
 
-  /// The expression that reads the property from [variable].
-  Expression read;
+  /// Name of the property.
+  Name propertyName;
 
-  /// The expression that writes the value to the property on [variable].
-  Expression write;
+  /// The right-hand side of the binary operation.
+  Expression rhs;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullPropertySet(this.variable, this.read, this.write, {this.forEffect})
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  IfNullPropertySet(this.receiver, this.propertyName, this.rhs,
+      {this.forEffect, this.readOffset, this.writeOffset})
       : assert(forEffect != null) {
-    variable?.parent = this;
-    read?.parent = this;
-    write?.parent = this;
+    receiver?.parent = this;
+    rhs?.parent = this;
   }
 
   @override
@@ -1625,24 +1631,19 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   void visitChildren(Visitor<dynamic> v) {
-    variable?.accept(v);
-    read?.accept(v);
-    write?.accept(v);
+    receiver?.accept(v);
+    rhs?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    if (variable != null) {
-      variable = variable.accept<TreeNode>(v);
-      variable?.parent = this;
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
     }
-    if (read != null) {
-      read = read.accept<TreeNode>(v);
-      read?.parent = this;
-    }
-    if (write != null) {
-      write = write.accept<TreeNode>(v);
-      write?.parent = this;
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
     }
   }
 
@@ -1653,12 +1654,11 @@ class IfNullPropertySet extends InternalExpression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write('let ');
-    printer.writeVariableDeclaration(variable);
-    printer.write(' in if-null ');
-    printer.writeExpression(read);
-    printer.write(' ?? ');
-    printer.writeExpression(write);
+    printer.writeExpression(receiver);
+    printer.write('.');
+    printer.writeName(propertyName);
+    printer.write(' ??= ');
+    printer.writeExpression(rhs);
   }
 }
 
