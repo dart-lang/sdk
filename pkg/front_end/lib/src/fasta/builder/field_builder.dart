@@ -10,6 +10,8 @@ import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 
+import '../../base/nnbd_mode.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
@@ -122,6 +124,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       Procedure setterReferenceFrom)
       : super(libraryBuilder, charOffset) {
     Uri fileUri = libraryBuilder?.fileUri;
+    // If in mixed mode, late lowerings cannot use `null` as a sentinel on
+    // non-nullable fields since they can be assigned from legacy code.
+    bool forceUseIsSetField = libraryBuilder.loader.nnbdMode != NnbdMode.Strong;
     if (isAbstract || isExternal) {
       _fieldEncoding = new AbstractOrExternalFieldEncoding(fileUri, charOffset,
           charEndOffset, getterReferenceFrom, setterReferenceFrom,
@@ -143,7 +148,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetReferenceFrom,
               getterReferenceFrom,
               setterReferenceFrom,
-              isCovariant);
+              isCovariant,
+              forceUseIsSetField);
         } else {
           _fieldEncoding = new LateFieldWithInitializerEncoding(
               name,
@@ -154,7 +160,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetReferenceFrom,
               getterReferenceFrom,
               setterReferenceFrom,
-              isCovariant);
+              isCovariant,
+              forceUseIsSetField);
         }
       } else {
         if (isFinal) {
@@ -167,7 +174,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetReferenceFrom,
               getterReferenceFrom,
               setterReferenceFrom,
-              isCovariant);
+              isCovariant,
+              forceUseIsSetField);
         } else {
           _fieldEncoding = new LateFieldWithoutInitializerEncoding(
               name,
@@ -178,7 +186,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
               lateIsSetReferenceFrom,
               getterReferenceFrom,
               setterReferenceFrom,
-              isCovariant);
+              isCovariant,
+              forceUseIsSetField);
         }
       }
     } else if (libraryBuilder.isNonNullableByDefault &&
@@ -196,7 +205,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             lateIsSetReferenceFrom,
             getterReferenceFrom,
             setterReferenceFrom,
-            isCovariant);
+            isCovariant,
+            forceUseIsSetField);
       } else {
         _fieldEncoding = new LateFieldWithInitializerEncoding(
             name,
@@ -207,7 +217,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
             lateIsSetReferenceFrom,
             getterReferenceFrom,
             setterReferenceFrom,
-            isCovariant);
+            isCovariant,
+            forceUseIsSetField);
       }
     } else {
       assert(lateIsSetReferenceFrom == null);
@@ -714,11 +725,21 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   Procedure _lateGetter;
   Procedure _lateSetter;
 
+  // If `true`, an isSet field is used even when the type of the field is
+  // not potentially nullable.
+  //
+  // This is used to force use isSet fields in mixed mode encoding since
+  // we cannot trust non-nullable fields to be initialized with non-null values.
+  bool _forceUseIsSetField;
+
   // If `true`, the is-set field was register before the type was known to be
   // nullable or non-nullable. In this case we do not try to remove it from
   // the generated AST to avoid inconsistency between the class hierarchy used
   // during and after inference.
-  bool _forceIncludeIsSetField = false;
+  //
+  // This is also used to force use isSet fields in mixed mode encoding since
+  // we cannot trust non-nullable fields to be initialized with non-null values.
+  bool _forceIncludeIsSetField;
 
   AbstractLateFieldEncoding(
       this.name,
@@ -729,8 +750,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
       Procedure setterReferenceFrom,
-      bool isCovariant)
-      : fileOffset = charOffset {
+      bool isCovariant,
+      bool forceUseIsSetField)
+      : fileOffset = charOffset,
+        _forceUseIsSetField = forceUseIsSetField,
+        _forceIncludeIsSetField = forceUseIsSetField {
     _field =
         new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
           ..fileOffset = charOffset
@@ -1048,7 +1072,8 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
         createVariableWrite: (Expression value) =>
             _createFieldSet(_field, value),
         createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value));
+            _createFieldSet(_lateIsSetField, value),
+        useIsSetField: _forceUseIsSetField || type.isPotentiallyNullable);
   }
 }
 
@@ -1060,7 +1085,8 @@ mixin LateWithoutInitializer on AbstractLateFieldEncoding {
     return late_lowering.createGetterBodyWithoutInitializer(
         coreTypes, fileOffset, name, type, 'Field',
         createVariableRead: _createFieldRead,
-        createIsSetRead: () => _createFieldGet(_lateIsSetField));
+        createIsSetRead: () => _createFieldGet(_lateIsSetField),
+        useIsSetField: _forceUseIsSetField || type.isPotentiallyNullable);
   }
 }
 
@@ -1075,7 +1101,8 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
       Procedure setterReferenceFrom,
-      bool isCovariant)
+      bool isCovariant,
+      bool forceUseIsSetField)
       : super(
             name,
             fileUri,
@@ -1085,7 +1112,8 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             lateIsSetReferenceFrom,
             getterReferenceFrom,
             setterReferenceFrom,
-            isCovariant);
+            isCovariant,
+            forceUseIsSetField);
 }
 
 class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
@@ -1099,7 +1127,8 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
       Procedure setterReferenceFrom,
-      bool isCovariant)
+      bool isCovariant,
+      bool forceUseIsSetField)
       : super(
             name,
             fileUri,
@@ -1109,7 +1138,8 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             lateIsSetReferenceFrom,
             getterReferenceFrom,
             setterReferenceFrom,
-            isCovariant);
+            isCovariant,
+            forceUseIsSetField);
 
   @override
   Statement _createGetterBody(
@@ -1122,7 +1152,8 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
             _createFieldSet(_field, value),
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value));
+            _createFieldSet(_lateIsSetField, value),
+        useIsSetField: _forceUseIsSetField || type.isPotentiallyNullable);
   }
 }
 
@@ -1137,7 +1168,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
       Procedure setterReferenceFrom,
-      bool isCovariant)
+      bool isCovariant,
+      bool forceUseIsSetField)
       : super(
             name,
             fileUri,
@@ -1147,7 +1179,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             lateIsSetReferenceFrom,
             getterReferenceFrom,
             setterReferenceFrom,
-            isCovariant);
+            isCovariant,
+            forceUseIsSetField);
 
   @override
   Statement _createSetterBody(
@@ -1161,7 +1194,8 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
             _createFieldSet(_field, value),
         createIsSetRead: () => _createFieldGet(_lateIsSetField),
         createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value));
+            _createFieldSet(_lateIsSetField, value),
+        useIsSetField: _forceUseIsSetField || type.isPotentiallyNullable);
   }
 }
 
@@ -1175,7 +1209,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
       Field lateIsSetReferenceFrom,
       Procedure getterReferenceFrom,
       Procedure setterReferenceFrom,
-      bool isCovariant)
+      bool isCovariant,
+      bool forceUseIsSetField)
       : super(
             name,
             fileUri,
@@ -1185,7 +1220,8 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
             lateIsSetReferenceFrom,
             getterReferenceFrom,
             setterReferenceFrom,
-            isCovariant);
+            isCovariant,
+            forceUseIsSetField);
   @override
   Statement _createGetterBody(
       CoreTypes coreTypes, String name, Expression initializer) {

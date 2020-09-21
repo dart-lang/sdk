@@ -1,4 +1,23 @@
-## 2.10.0
+## 2.11.0
+
+### Core libraries
+
+### Dart VM
+
+### Dart2JS
+
+### Tools
+
+#### Linter
+
+Updated the Linter to `0.1.119`, which includes:
+
+* Fixed `close_sinks` to handle `this`-prefixed property accesses.
+* New lint: `unnecessary_null_checks`.
+* Fixed `unawaited_futures` to handle `Future` subtypes.
+* New lint: `avoid_type_to_string`.
+
+## 2.10.0 - 2020-09-28
 
 ### Core libraries
 
@@ -8,7 +27,7 @@
     to cancel outgoing HTTP requests and stop following IO operations.
 *   A validation check is added to `path` of class `Cookie`. Having characters
     ranging from 0x00 to 0x1f and 0x3b (";") will lead to a `FormatException`.
-*   The `HttpClient` and `HttpServer` clasess now have a 1 MiB limit for the
+*   The `HttpClient` and `HttpServer` classes now have a 1 MiB limit for the
     total size of the HTTP headers when parsing a request or response, instead
     of the former 8 KiB limit for each header name and value. This limit cannot
     be configured at this time.
@@ -54,12 +73,8 @@
 
 #### Linter
 
-Updated the Linter to `0.1.119`, which includes:
+Updated the Linter to `0.1.118`, which includes:
 
-* Fixed `close_sinks` to handle `this`-prefixed property accesses.
-* New lint: `unnecessary_null_checks`.
-* Fixed `unawaited_futures` to handle `Future` subtypes.
-* New lint: `avoid_type_to_string`.
 * New lint: `unnecessary_nullable_for_final_variable_declarations`.
 * Fixed NPE in `prefer_asserts_in_initializer_lists`.
 * Fixed range error in `unnecessary_string_escapes`.

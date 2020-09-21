@@ -26,8 +26,10 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     {Expression createVariableRead({bool needsPromotion}),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value)}) {
-  if (type.isPotentiallyNullable) {
+    Expression createIsSetWrite(Expression value),
+    bool useIsSetField}) {
+  assert(useIsSetField != null);
+  if (useIsSetField) {
     // Generate:
     //
     //    if (!_#isSet#field) {
@@ -213,7 +215,9 @@ Statement createGetterWithInitializerWithRecheck(
 Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     int fileOffset, String name, DartType type, String variableKindName,
     {Expression createVariableRead({bool needsPromotion}),
-    Expression createIsSetRead()}) {
+    Expression createIsSetRead(),
+    bool useIsSetField}) {
+  assert(useIsSetField != null);
   Expression exception = new Throw(new ConstructorInvocation(
       coreTypes.lateInitializationErrorConstructor,
       new Arguments(<Expression>[
@@ -224,7 +228,7 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset)
     ..fileOffset = fileOffset;
-  if (type.isPotentiallyNullable) {
+  if (useIsSetField) {
     // Generate:
     //
     //    return _#isSet#field ? _#field : throw '...';
@@ -272,7 +276,9 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
     VariableDeclaration parameter, DartType type,
     {bool shouldReturnValue,
     Expression createVariableWrite(Expression value),
-    Expression createIsSetWrite(Expression value)}) {
+    Expression createIsSetWrite(Expression value),
+    bool useIsSetField}) {
+  assert(useIsSetField != null);
   Statement createReturn(Expression value) {
     if (shouldReturnValue) {
       return new ReturnStatement(value)..fileOffset = fileOffset;
@@ -285,7 +291,7 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
       createVariableWrite(new VariableGet(parameter)..fileOffset = fileOffset)
         ..fileOffset = fileOffset);
 
-  if (type.isPotentiallyNullable) {
+  if (useIsSetField) {
     // Generate:
     //
     //    _#isSet#field = true;
@@ -321,7 +327,9 @@ Statement createSetterBodyFinal(
     Expression createVariableRead(),
     Expression createVariableWrite(Expression value),
     Expression createIsSetRead(),
-    Expression createIsSetWrite(Expression value)}) {
+    Expression createIsSetWrite(Expression value),
+    bool useIsSetField}) {
+  assert(useIsSetField != null);
   Expression exception = new Throw(new ConstructorInvocation(
       coreTypes.lateInitializationErrorConstructor,
       new Arguments(<Expression>[
@@ -341,7 +349,7 @@ Statement createSetterBodyFinal(
     }
   }
 
-  if (type.isPotentiallyNullable) {
+  if (useIsSetField) {
     // Generate:
     //
     //    if (_#isSet#field) {

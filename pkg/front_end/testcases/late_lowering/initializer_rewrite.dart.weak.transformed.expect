@@ -6,11 +6,13 @@ import "dart:_internal" as _in;
 class Class extends core::Object {
   static field core::int nonNullableStaticFieldReads = 0;
   static field core::int? _#nonNullableStaticField = null;
+  static field core::bool _#nonNullableStaticField#isSet = false;
   static field core::int nullableStaticFieldReads = 0;
   static field core::int? _#nullableStaticField = null;
   static field core::bool _#nullableStaticField#isSet = false;
   field core::int nonNullableInstanceFieldReads = 0;
   field core::int? _#Class#nonNullableInstanceField = null;
+  field core::bool _#Class#nonNullableInstanceField#isSet = false;
   field core::int nullableInstanceFieldReads = 0;
   field core::int? _#Class#nullableInstanceField = null;
   field core::bool _#Class#nullableInstanceField#isSet = false;
@@ -44,6 +46,7 @@ class Class extends core::Object {
 }
 static field core::int nonNullableTopLevelFieldReads = 0;
 static field core::int? _#nonNullableTopLevelField = null;
+static field core::bool _#nonNullableTopLevelField#isSet = false;
 static field core::int nullableTopLevelFieldReads = 0;
 static field core::int? _#nullableTopLevelField = null;
 static field core::bool _#nullableTopLevelField#isSet = false;

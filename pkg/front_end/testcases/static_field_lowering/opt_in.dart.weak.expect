@@ -9,26 +9,39 @@ class Class extends core::Object {
   field core::int nonNullableInstanceFieldWithInitializer = self::init<core::int>(55);
   field core::int? nullableInstanceFieldWithInitializer = self::init<core::int?>(17);
   static field core::int? _#nonNullableStaticFieldWithInitializer1 = null;
+  static field core::bool _#nonNullableStaticFieldWithInitializer1#isSet = false;
   static field core::int? _#nullableStaticFieldWithInitializer1 = null;
   static field core::bool _#nullableStaticFieldWithInitializer1#isSet = false;
   static field core::int? _#nonNullableStaticFieldWithInitializer2 = null;
+  static field core::bool _#nonNullableStaticFieldWithInitializer2#isSet = false;
   static field core::int? _#nullableStaticFieldWithInitializer2 = null;
   static field core::bool _#nullableStaticFieldWithInitializer2#isSet = false;
   static field core::int? _#nonNullableStaticFinalFieldWithInitializer1 = null;
+  static field core::bool _#nonNullableStaticFinalFieldWithInitializer1#isSet = false;
   static field core::int? _#nullableStaticFinalFieldWithInitializer1 = null;
   static field core::bool _#nullableStaticFinalFieldWithInitializer1#isSet = false;
   static field core::int? _#nonNullableStaticFinalFieldWithInitializer2Init = null;
+  static field core::bool _#nonNullableStaticFinalFieldWithInitializer2Init#isSet = false;
   static field core::int? _#nonNullableStaticFinalFieldWithInitializer2 = null;
+  static field core::bool _#nonNullableStaticFinalFieldWithInitializer2#isSet = false;
   static field core::int? _#nullableStaticFinalFieldWithInitializer2Init = null;
+  static field core::bool _#nullableStaticFinalFieldWithInitializer2Init#isSet = false;
   static field core::int? _#nullableStaticFinalFieldWithInitializer2 = null;
   static field core::bool _#nullableStaticFinalFieldWithInitializer2#isSet = false;
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-  static get nonNullableStaticFieldWithInitializer1() → core::int
-    return let final core::int? #t1 = self::Class::_#nonNullableStaticFieldWithInitializer1 in #t1.==(null) ?{core::int} self::Class::_#nonNullableStaticFieldWithInitializer1 = self::init<core::int>(55) : #t1{core::int};
-  static set nonNullableStaticFieldWithInitializer1(core::int #t2) → void
+  static get nonNullableStaticFieldWithInitializer1() → core::int {
+    if(!self::Class::_#nonNullableStaticFieldWithInitializer1#isSet) {
+      self::Class::_#nonNullableStaticFieldWithInitializer1 = self::init<core::int>(55);
+      self::Class::_#nonNullableStaticFieldWithInitializer1#isSet = true;
+    }
+    return let final core::int? #t1 = self::Class::_#nonNullableStaticFieldWithInitializer1 in #t1{core::int};
+  }
+  static set nonNullableStaticFieldWithInitializer1(core::int #t2) → void {
+    self::Class::_#nonNullableStaticFieldWithInitializer1#isSet = true;
     self::Class::_#nonNullableStaticFieldWithInitializer1 = #t2;
+  }
   static get nullableStaticFieldWithInitializer1() → core::int? {
     if(!self::Class::_#nullableStaticFieldWithInitializer1#isSet) {
       self::Class::_#nullableStaticFieldWithInitializer1 = self::init<core::int?>(17);
@@ -40,10 +53,17 @@ class Class extends core::Object {
     self::Class::_#nullableStaticFieldWithInitializer1#isSet = true;
     self::Class::_#nullableStaticFieldWithInitializer1 = #t3;
   }
-  static get nonNullableStaticFieldWithInitializer2() → core::int
-    return let final core::int? #t4 = self::Class::_#nonNullableStaticFieldWithInitializer2 in #t4.==(null) ?{core::int} self::Class::_#nonNullableStaticFieldWithInitializer2 = self::init<core::int>(55) : #t4{core::int};
-  static set nonNullableStaticFieldWithInitializer2(core::int #t5) → void
+  static get nonNullableStaticFieldWithInitializer2() → core::int {
+    if(!self::Class::_#nonNullableStaticFieldWithInitializer2#isSet) {
+      self::Class::_#nonNullableStaticFieldWithInitializer2 = self::init<core::int>(55);
+      self::Class::_#nonNullableStaticFieldWithInitializer2#isSet = true;
+    }
+    return let final core::int? #t4 = self::Class::_#nonNullableStaticFieldWithInitializer2 in #t4{core::int};
+  }
+  static set nonNullableStaticFieldWithInitializer2(core::int #t5) → void {
+    self::Class::_#nonNullableStaticFieldWithInitializer2#isSet = true;
     self::Class::_#nonNullableStaticFieldWithInitializer2 = #t5;
+  }
   static get nullableStaticFieldWithInitializer2() → core::int? {
     if(!self::Class::_#nullableStaticFieldWithInitializer2#isSet) {
       self::Class::_#nullableStaticFieldWithInitializer2 = self::init<core::int?>(17);
@@ -67,16 +87,30 @@ class Class extends core::Object {
     }
     return self::Class::_#nullableStaticFinalFieldWithInitializer1;
   }
-  static get nonNullableStaticFinalFieldWithInitializer2Init() → core::int
-    return let final core::int? #t10 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init in #t10.==(null) ?{core::int} self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = 0 : #t10{core::int};
-  static set nonNullableStaticFinalFieldWithInitializer2Init(core::int #t11) → void
+  static get nonNullableStaticFinalFieldWithInitializer2Init() → core::int {
+    if(!self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init#isSet) {
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = 0;
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init#isSet = true;
+    }
+    return let final core::int? #t10 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init in #t10{core::int};
+  }
+  static set nonNullableStaticFinalFieldWithInitializer2Init(core::int #t11) → void {
+    self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init#isSet = true;
     self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = #t11;
+  }
   static get nonNullableStaticFinalFieldWithInitializer2() → core::int
     return let final core::int? #t12 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2 in #t12.==(null) ?{core::int} let final core::int #t13 = (let final core::int #t14 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init in let final core::int #t15 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init = #t14.{core::num::+}(1) in #t14).{core::num::==}(0) ?{core::int} self::Class::nonNullableStaticFinalFieldWithInitializer2.{core::num::+}(1) : 87 in self::Class::_#nonNullableStaticFinalFieldWithInitializer2.==(null) ?{core::int} self::Class::_#nonNullableStaticFinalFieldWithInitializer2 = #t13 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticFinalFieldWithInitializer2' has been assigned during initialization.") : #t12{core::int};
-  static get nullableStaticFinalFieldWithInitializer2Init() → core::int
-    return let final core::int? #t16 = self::Class::_#nullableStaticFinalFieldWithInitializer2Init in #t16.==(null) ?{core::int} self::Class::_#nullableStaticFinalFieldWithInitializer2Init = 0 : #t16{core::int};
-  static set nullableStaticFinalFieldWithInitializer2Init(core::int #t17) → void
+  static get nullableStaticFinalFieldWithInitializer2Init() → core::int {
+    if(!self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet) {
+      self::Class::_#nullableStaticFinalFieldWithInitializer2Init = 0;
+      self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet = true;
+    }
+    return let final core::int? #t16 = self::Class::_#nullableStaticFinalFieldWithInitializer2Init in #t16{core::int};
+  }
+  static set nullableStaticFinalFieldWithInitializer2Init(core::int #t17) → void {
+    self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet = true;
     self::Class::_#nullableStaticFinalFieldWithInitializer2Init = #t17;
+  }
   static get nullableStaticFinalFieldWithInitializer2() → core::int? {
     if(!self::Class::_#nullableStaticFinalFieldWithInitializer2#isSet) {
       final core::int? #t18 = (let final core::int #t19 = self::Class::nullableStaticFinalFieldWithInitializer2Init in let final core::int #t20 = self::Class::nullableStaticFinalFieldWithInitializer2Init = #t19.{core::num::+}(1) in #t19).{core::num::==}(0) ?{core::int} self::Class::nullableStaticFinalFieldWithInitializer2!.{core::num::+}(1) : 32;
@@ -92,27 +126,40 @@ static field dynamic lastInit;
 static const field core::int constTopLevelField = #C2;
 static field core::int? topLevelFieldWithoutInitializer;
 static field core::int? _#nonNullableTopLevelFieldWithInitializer1 = null;
+static field core::bool _#nonNullableTopLevelFieldWithInitializer1#isSet = false;
 static field core::int? _#nullableTopLevelFieldWithInitializer = null;
 static field core::bool _#nullableTopLevelFieldWithInitializer#isSet = false;
 static field core::int? _#nonNullableTopLevelFieldWithInitializer2 = null;
+static field core::bool _#nonNullableTopLevelFieldWithInitializer2#isSet = false;
 static field core::int? _#nullableTopLevelFieldWithInitializer2 = null;
 static field core::bool _#nullableTopLevelFieldWithInitializer2#isSet = false;
 static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer1 = null;
+static field core::bool _#nonNullableFinalTopLevelFieldWithInitializer1#isSet = false;
 static field core::int? _#nullableFinalTopLevelFieldWithInitializer1 = null;
 static field core::bool _#nullableFinalTopLevelFieldWithInitializer1#isSet = false;
 static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer2Init = null;
+static field core::bool _#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet = false;
 static field core::int? _#nonNullableFinalTopLevelFieldWithInitializer2 = null;
+static field core::bool _#nonNullableFinalTopLevelFieldWithInitializer2#isSet = false;
 static field core::int? _#nullableFinalTopLevelFieldWithInitializer2Init = null;
+static field core::bool _#nullableFinalTopLevelFieldWithInitializer2Init#isSet = false;
 static field core::int? _#nullableFinalTopLevelFieldWithInitializer2 = null;
 static field core::bool _#nullableFinalTopLevelFieldWithInitializer2#isSet = false;
 static method init<T extends core::Object? = dynamic>(self::init::T% value) → self::init::T% {
   self::lastInit = value;
   return value;
 }
-static get nonNullableTopLevelFieldWithInitializer1() → core::int
-  return let final core::int? #t21 = self::_#nonNullableTopLevelFieldWithInitializer1 in #t21.==(null) ?{core::int} self::_#nonNullableTopLevelFieldWithInitializer1 = self::init<core::int>(42) : #t21{core::int};
-static set nonNullableTopLevelFieldWithInitializer1(core::int #t22) → void
+static get nonNullableTopLevelFieldWithInitializer1() → core::int {
+  if(!self::_#nonNullableTopLevelFieldWithInitializer1#isSet) {
+    self::_#nonNullableTopLevelFieldWithInitializer1 = self::init<core::int>(42);
+    self::_#nonNullableTopLevelFieldWithInitializer1#isSet = true;
+  }
+  return let final core::int? #t21 = self::_#nonNullableTopLevelFieldWithInitializer1 in #t21{core::int};
+}
+static set nonNullableTopLevelFieldWithInitializer1(core::int #t22) → void {
+  self::_#nonNullableTopLevelFieldWithInitializer1#isSet = true;
   self::_#nonNullableTopLevelFieldWithInitializer1 = #t22;
+}
 static get nullableTopLevelFieldWithInitializer() → core::int? {
   if(!self::_#nullableTopLevelFieldWithInitializer#isSet) {
     self::_#nullableTopLevelFieldWithInitializer = self::init<core::int?>(123);
@@ -124,10 +171,17 @@ static set nullableTopLevelFieldWithInitializer(core::int? #t23) → void {
   self::_#nullableTopLevelFieldWithInitializer#isSet = true;
   self::_#nullableTopLevelFieldWithInitializer = #t23;
 }
-static get nonNullableTopLevelFieldWithInitializer2() → core::int
-  return let final core::int? #t24 = self::_#nonNullableTopLevelFieldWithInitializer2 in #t24.==(null) ?{core::int} self::_#nonNullableTopLevelFieldWithInitializer2 = self::init<core::int>(42) : #t24{core::int};
-static set nonNullableTopLevelFieldWithInitializer2(core::int #t25) → void
+static get nonNullableTopLevelFieldWithInitializer2() → core::int {
+  if(!self::_#nonNullableTopLevelFieldWithInitializer2#isSet) {
+    self::_#nonNullableTopLevelFieldWithInitializer2 = self::init<core::int>(42);
+    self::_#nonNullableTopLevelFieldWithInitializer2#isSet = true;
+  }
+  return let final core::int? #t24 = self::_#nonNullableTopLevelFieldWithInitializer2 in #t24{core::int};
+}
+static set nonNullableTopLevelFieldWithInitializer2(core::int #t25) → void {
+  self::_#nonNullableTopLevelFieldWithInitializer2#isSet = true;
   self::_#nonNullableTopLevelFieldWithInitializer2 = #t25;
+}
 static get nullableTopLevelFieldWithInitializer2() → core::int? {
   if(!self::_#nullableTopLevelFieldWithInitializer2#isSet) {
     self::_#nullableTopLevelFieldWithInitializer2 = self::init<core::int?>(123);
@@ -151,16 +205,30 @@ static get nullableFinalTopLevelFieldWithInitializer1() → core::int? {
   }
   return self::_#nullableFinalTopLevelFieldWithInitializer1;
 }
-static get nonNullableFinalTopLevelFieldWithInitializer2Init() → core::int
-  return let final core::int? #t30 = self::_#nonNullableFinalTopLevelFieldWithInitializer2Init in #t30.==(null) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = 0 : #t30{core::int};
-static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int #t31) → void
+static get nonNullableFinalTopLevelFieldWithInitializer2Init() → core::int {
+  if(!self::_#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet) {
+    self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = 0;
+    self::_#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
+  }
+  return let final core::int? #t30 = self::_#nonNullableFinalTopLevelFieldWithInitializer2Init in #t30{core::int};
+}
+static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int #t31) → void {
+  self::_#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
   self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = #t31;
+}
 static get nonNullableFinalTopLevelFieldWithInitializer2() → core::int
   return let final core::int? #t32 = self::_#nonNullableFinalTopLevelFieldWithInitializer2 in #t32.==(null) ?{core::int} let final core::int #t33 = (let final core::int #t34 = self::nonNullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t35 = self::nonNullableFinalTopLevelFieldWithInitializer2Init = #t34.{core::num::+}(1) in #t34).{core::num::==}(0) ?{core::int} self::nonNullableFinalTopLevelFieldWithInitializer2.{core::num::+}(1) : 87 in self::_#nonNullableFinalTopLevelFieldWithInitializer2.==(null) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer2 = #t33 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableFinalTopLevelFieldWithInitializer2' has been assigned during initialization.") : #t32{core::int};
-static get nullableFinalTopLevelFieldWithInitializer2Init() → core::int
-  return let final core::int? #t36 = self::_#nullableFinalTopLevelFieldWithInitializer2Init in #t36.==(null) ?{core::int} self::_#nullableFinalTopLevelFieldWithInitializer2Init = 0 : #t36{core::int};
-static set nullableFinalTopLevelFieldWithInitializer2Init(core::int #t37) → void
+static get nullableFinalTopLevelFieldWithInitializer2Init() → core::int {
+  if(!self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet) {
+    self::_#nullableFinalTopLevelFieldWithInitializer2Init = 0;
+    self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
+  }
+  return let final core::int? #t36 = self::_#nullableFinalTopLevelFieldWithInitializer2Init in #t36{core::int};
+}
+static set nullableFinalTopLevelFieldWithInitializer2Init(core::int #t37) → void {
+  self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
   self::_#nullableFinalTopLevelFieldWithInitializer2Init = #t37;
+}
 static get nullableFinalTopLevelFieldWithInitializer2() → core::int? {
   if(!self::_#nullableFinalTopLevelFieldWithInitializer2#isSet) {
     final core::int? #t38 = (let final core::int #t39 = self::nullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t40 = self::nullableFinalTopLevelFieldWithInitializer2Init = #t39.{core::num::+}(1) in #t39).{core::num::==}(0) ?{core::int} self::nullableFinalTopLevelFieldWithInitializer2!.{core::num::+}(1) : 32;
