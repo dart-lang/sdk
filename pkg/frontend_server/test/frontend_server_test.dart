@@ -882,7 +882,7 @@ true
 
           file.writeAsStringSync("import 'lib.dart'; main() => foo();\n");
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
 
@@ -952,7 +952,7 @@ true
           var file2 = File('${tempDir.path}/bar.dart')..createSync();
           file2.writeAsStringSync("main() {}\n");
           inputStreamController.add('recompile ${file2.path} abc\n'
-                  '${file2.path}\n'
+                  '${file2.uri}\n'
                   'abc\n'
               .codeUnits);
         } else {
@@ -1059,7 +1059,7 @@ class FizzWidget extends StatefulWidget {}
 class BarState extends State<FizzWidget> {}
 """);
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
         } else if (count == 1) {
@@ -1092,7 +1092,7 @@ class FizzWidget extends StatefulWidget {
 class BarState extends State<FizzWidget> {}
 """);
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
         } else if (count == 2) {
@@ -1126,7 +1126,7 @@ class BarState extends State<FizzWidget> {
 }
 """);
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
         } else if (count == 3) {
@@ -1162,7 +1162,7 @@ class BarState extends State<FizzWidget> {
 }
 """);
           inputStreamController.add('recompile ${file.path} abc\n'
-                  '${file.path}\n'
+                  '${file.uri}\n'
                   'abc\n'
               .codeUnits);
         } else if (count == 4) {
@@ -1257,7 +1257,7 @@ class BarState extends State<FizzWidget> {
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.path}\n'
+                    '${fileB.uri}\n'
                     'abc\n'
                 .codeUnits);
             break;
@@ -1363,7 +1363,7 @@ class BarState extends State<FizzWidget> {
             inputStreamController.add('reset\n'.codeUnits);
 
             inputStreamController.add('recompile ${fileB.path} abc\n'
-                    '${fileB.path}\n'
+                    '${fileB.uri}\n'
                     'abc\n'
                 .codeUnits);
             break;

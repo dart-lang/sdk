@@ -20,7 +20,7 @@ class AddTypeParameter extends Change<_Data> {
 
   /// The name of the type that the type parameter extends, or `null` if the
   /// type parameter doesn't have a bound.
-  final String extendedType;
+  final CodeTemplate extendedType;
 
   /// The code template used to compute the value of the type argument.
   final CodeTemplate argumentValue;
@@ -31,7 +31,7 @@ class AddTypeParameter extends Change<_Data> {
       {@required this.index,
       @required this.name,
       @required this.argumentValue,
-      this.extendedType})
+      @required this.extendedType})
       : assert(index >= 0),
         assert(name != null),
         assert(argumentValue != null);
@@ -78,11 +78,18 @@ class AddTypeParameter extends Change<_Data> {
           typeArguments, argument, parent.argumentList.offset);
     } else if (parent is MethodDeclaration) {
       // invalid_override
+      String bound;
+      if (extendedType != null) {
+        bound = extendedType.generate(node, fix.utils);
+        if (bound == null) {
+          return null;
+        }
+      }
       var typeParameters = parent.typeParameters;
       if (_isInvalidIndex(typeParameters?.typeParameters)) {
         return null;
       }
-      return _TypeParameterData(typeParameters, parent.name.end);
+      return _TypeParameterData(typeParameters, bound, parent.name.end);
     } else if (node is TypeArgumentList && parent is ExtensionOverride) {
       // wrong_number_of_type_arguments_extension
       var argument = argumentValue.generate(node, fix.utils);
@@ -119,10 +126,8 @@ class AddTypeParameter extends Change<_Data> {
 
   void _applyToTypeParameters(
       DartFileEditBuilder builder, _TypeParameterData data) {
-    // TODO(brianwilkerson) Define a `bound` to use in the declaration of the
-    //  parameter.
     var argumentValue =
-        extendedType == null ? name : '$name extends $extendedType';
+        data.bound == null ? name : '$name extends ${data.bound}';
     var typeParameters = data.typeParameters;
     if (typeParameters == null) {
       // Adding the first type argument.
@@ -172,10 +177,14 @@ class _TypeParameterData extends _Data {
   /// or `null` if the first type parameter is being added.
   final TypeParameterList typeParameters;
 
+  /// The bound of the type parameter being added, or `null` if there is no
+  /// bound.
+  final String bound;
+
   /// The offset at which the type parameter list should be inserted if
   /// [typeParameters] is `null`.
   final int newListOffset;
 
   /// Initialize newly created data.
-  _TypeParameterData(this.typeParameters, this.newListOffset);
+  _TypeParameterData(this.typeParameters, this.bound, this.newListOffset);
 }

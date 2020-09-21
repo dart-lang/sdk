@@ -464,9 +464,10 @@ abstract class _AddTypeParameterChange extends DataDrivenFixProcessorTest {
               components: components ?? ['C', 'm']),
           changes: [
             AddTypeParameter(
-                extendedType: extendedType,
                 index: index,
                 name: 'T',
+                extendedType:
+                    extendedType == null ? null : codeTemplate(extendedType),
                 argumentValue: codeTemplate('String')),
           ]);
 }
