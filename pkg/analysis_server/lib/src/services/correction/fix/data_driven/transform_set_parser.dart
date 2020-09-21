@@ -82,6 +82,7 @@ class TransformSetParser {
   static const String _addParameterKind = 'addParameter';
   static const String _addTypeParameterKind = 'addTypeParameter';
   static const String _argumentKind = 'argument';
+  static const String _importKind = 'import';
   static const String _removeParameterKind = 'removeParameter';
   static const String _renameKind = 'rename';
 
@@ -128,7 +129,7 @@ class TransformSetParser {
   /// Convert the given [template] into a list of components. Variable
   /// references in the template are looked up in the map of [extractors].
   List<TemplateComponent> _extractTemplateComponents(String template,
-      Map<String, ValueExtractor> extractors, int templateOffset) {
+      Map<String, ValueGenerator> extractors, int templateOffset) {
     var components = <TemplateComponent>[];
     var textStart = 0;
     var variableStart = template.indexOf(_openComponent);
@@ -334,7 +335,7 @@ class TransformSetParser {
   /// Translate the [node] into a value extractor. Return the resulting
   /// extractor, or `null` if the [node] does not represent a valid value
   /// extractor.
-  ValueExtractor _translateArgumentExtractor(YamlMap node) {
+  ValueGenerator _translateArgumentExtractor(YamlMap node) {
     var indexNode = node.valueAt(_indexKey);
     if (indexNode != null) {
       _reportUnsupportedKeys(node, const {_indexKey, _kindKey});
@@ -344,7 +345,7 @@ class TransformSetParser {
         // The error has already been reported.
         return null;
       }
-      return ArgumentExtractor(PositionalParameterReference(index));
+      return ArgumentExpression(PositionalParameterReference(index));
     }
     var nameNode = node.valueAt(_nameKey);
     if (nameNode != null) {
@@ -355,7 +356,7 @@ class TransformSetParser {
         // The error has already been reported.
         return null;
       }
-      return ArgumentExtractor(NamedParameterReference(name));
+      return ArgumentExpression(NamedParameterReference(name));
     }
     // TODO(brianwilkerson) Report the missing YAML.
     return null;
@@ -519,6 +520,28 @@ class TransformSetParser {
     }
   }
 
+  /// Translate the [node] into a value extractor. Return the resulting
+  /// extractor, or `null` if the [node] does not represent a valid value
+  /// extractor.
+  ValueGenerator _translateImportValue(YamlMap node) {
+    _reportUnsupportedKeys(node, const {_kindKey, _nameKey, _urisKey});
+    var uris = _translateList(node.valueAt(_urisKey),
+        ErrorContext(key: _urisKey, parentNode: node), _translateString);
+    var name = _translateString(
+        node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
+    if (uris == null || name == null) {
+      // The error has already been reported.
+      return null;
+    }
+    if (uris.isEmpty) {
+      // TODO(brianwilkerson) Report an empty list unless it's only empty
+      //  because the elements generated errors. This probably needs to be done
+      //  in [_translateList].
+      return null;
+    }
+    return ImportedName(uris, name);
+  }
+
   /// Translate the [node] into an integer. Return the resulting integer, or
   /// `null` if the [node] does not represent a valid integer. If the [node] is
   /// not valid, use the [context] to report the error.
@@ -636,10 +659,10 @@ class TransformSetParser {
   /// resulting list, or `null` if the [node] does not represent a valid
   /// variables map. If the [node] is not valid, use the [context] to report the
   /// error.
-  Map<String, ValueExtractor> _translateTemplateVariables(
+  Map<String, ValueGenerator> _translateTemplateVariables(
       YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
-      var extractors = <String, ValueExtractor>{};
+      var extractors = <String, ValueGenerator>{};
       for (var entry in node.nodes.entries) {
         var name = _translateKey(entry.key);
         if (name != null) {
@@ -733,12 +756,14 @@ class TransformSetParser {
   /// extractor, or `null` if the [node] does not represent a valid value
   /// extractor. If the [node] is not valid, use the [context] to report the
   /// error.
-  ValueExtractor _translateValueExtractor(YamlNode node, ErrorContext context) {
+  ValueGenerator _translateValueExtractor(YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
       var kind = _translateString(node.valueAt(_kindKey),
           ErrorContext(key: _kindKey, parentNode: node));
       if (kind == _argumentKind) {
         return _translateArgumentExtractor(node);
+      } else if (kind == _importKind) {
+        return _translateImportValue(node);
       }
       // TODO(brianwilkerson) Report the invalid extractor kind.
       return null;

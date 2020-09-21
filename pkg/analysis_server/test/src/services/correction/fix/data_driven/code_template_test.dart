@@ -83,5 +83,5 @@ void g(int x, int y) {}
   TemplateText _text(String text) => TemplateText(text);
 
   TemplateVariable _variable(int index) =>
-      TemplateVariable(ArgumentExtractor(PositionalParameterReference(index)));
+      TemplateVariable(ArgumentExpression(PositionalParameterReference(index)));
 }
