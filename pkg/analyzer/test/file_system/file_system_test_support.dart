@@ -269,6 +269,8 @@ mixin FileTestMixin implements FileSystemTestSupport {
 
   test_resolveSymbolicLinksSync_links_existing();
 
+  test_resolveSymbolicLinksSync_links_notExisting();
+
   test_resolveSymbolicLinksSync_noLinks_existing() {
     File file = getFile(exists: true);
 

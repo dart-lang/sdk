@@ -264,10 +264,24 @@ class MemoryFileTest extends BaseTest with FileTestMixin {
   }
 
   @override
+  test_resolveSymbolicLinksSync_links_notExisting() {
+    var a = provider.convertPath('/test/lib/a.dart');
+    var b = provider.convertPath('/test/lib/b.dart');
+
+    provider.newLink(b, a);
+
+    expect(() {
+      provider.getFile(b).resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
+  }
+
+  @override
   test_resolveSymbolicLinksSync_noLinks_notExisting() {
     File file = getFile(exists: false);
 
-    expect(file.resolveSymbolicLinksSync(), file);
+    expect(() {
+      file.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   @override

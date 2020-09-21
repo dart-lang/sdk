@@ -201,6 +201,20 @@ class C {}
     expect(library.uriStr, 'package:test/test.dart');
   }
 
+  test_getLibrary_export_notExisting() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+export 'b.dart';
+class A {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+
+    var id = uriToLibrary['package:test/a.dart'].id;
+    var library = tracker.getLibrary(id);
+    expect(library.id, id);
+  }
+
   test_getLibrary_exportViaRecursiveLink() async {
     resourceProvider.newLink(
       convertPath('/home/test/lib/foo'),

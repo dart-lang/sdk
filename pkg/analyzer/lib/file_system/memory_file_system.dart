@@ -474,7 +474,13 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   File resolveSymbolicLinksSync() {
     var canonicalPath = provider._resolveLinks(path);
-    return provider.getFile(canonicalPath);
+    var result = provider.getFile(canonicalPath);
+
+    if (!result.exists) {
+      throw FileSystemException(path, 'File "$path" does not exist.');
+    }
+
+    return result;
   }
 
   @override

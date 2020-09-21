@@ -10,6 +10,8 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'file_system_test_support.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileTest);
@@ -333,13 +335,26 @@ class FileTest extends OverlayTestSupport {
   }
 
   void test_resolveSymbolicLinksSync_noLinks_notExisting_withoutOverlay() {
-    _resolveSymbolicLinksSync_noLinks(
-        _file(exists: false, path: '/temp/a/b/test.txt'));
+    var file = _file(
+      exists: false,
+      path: '/temp/a/b/test.txt',
+    );
+
+    expect(() {
+      file.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   void test_resolveSymbolicLinksSync_noLinks_notExisting_withOverlay() {
-    _resolveSymbolicLinksSync_noLinks(
-        _file(exists: false, path: '/temp/a/b/test.txt', withOverlay: true));
+    var file = _file(
+      exists: false,
+      path: '/temp/a/b/test.txt',
+      withOverlay: true,
+    );
+
+    expect(() {
+      file.resolveSymbolicLinksSync();
+    }, throwsA(isFileSystemException));
   }
 
   test_shortName() {
