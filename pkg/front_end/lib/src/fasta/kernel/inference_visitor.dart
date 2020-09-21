@@ -15,6 +15,7 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
+import '../../base/nnbd_mode.dart';
 import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unhandled;
@@ -5634,7 +5635,11 @@ class InferenceVisitor
       result.add(node);
 
       VariableDeclaration isSetVariable;
-      if (node.type.isPotentiallyNullable) {
+      if (node.type.isPotentiallyNullable ||
+          // We cannot trust that non-nullable locals are not initialized to
+          // `null` in mixed mode, so we use an `isSet` variable here.
+          (inferrer.isNonNullableByDefault &&
+              inferrer.nnbdMode != NnbdMode.Strong)) {
         isSetVariable = new VariableDeclaration(
             '${late_lowering.lateLocalPrefix}'
             '${node.name}'
@@ -5676,7 +5681,8 @@ class InferenceVisitor
                       node.type,
                       'Local',
                       createVariableRead: createVariableRead,
-                      createIsSetRead: createIsSetRead)
+                      createIsSetRead: createIsSetRead,
+                      useIsSetField: isSetVariable != null)
                   : late_lowering.createGetterWithInitializer(
                       inferrer.coreTypes,
                       fileOffset,
@@ -5686,7 +5692,8 @@ class InferenceVisitor
                       createVariableRead: createVariableRead,
                       createVariableWrite: createVariableWrite,
                       createIsSetRead: createIsSetRead,
-                      createIsSetWrite: createIsSetWrite),
+                      createIsSetWrite: createIsSetWrite,
+                      useIsSetField: isSetVariable != null),
               returnType: node.type))
         ..fileOffset = fileOffset;
       getVariable.type =
@@ -5720,12 +5727,14 @@ class InferenceVisitor
                             createVariableRead: createVariableRead,
                             createVariableWrite: createVariableWrite,
                             createIsSetRead: createIsSetRead,
-                            createIsSetWrite: createIsSetWrite)
+                            createIsSetWrite: createIsSetWrite,
+                            useIsSetField: isSetVariable != null)
                         : late_lowering.createSetterBody(inferrer.coreTypes,
                             fileOffset, node.name, setterParameter, node.type,
                             shouldReturnValue: true,
                             createVariableWrite: createVariableWrite,
-                            createIsSetWrite: createIsSetWrite)
+                            createIsSetWrite: createIsSetWrite,
+                            useIsSetField: isSetVariable != null)
                       ..fileOffset = fileOffset,
                     positionalParameters: <VariableDeclaration>[
                       setterParameter

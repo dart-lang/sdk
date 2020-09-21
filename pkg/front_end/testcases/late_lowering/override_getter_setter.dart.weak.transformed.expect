@@ -5,18 +5,21 @@ import "dart:_internal" as _in;
 
 class A extends core::Object {
   field core::int? _#A#x = null;
+  field core::bool _#A#x#isSet = false;
   field core::int? _#A#y = null;
   field core::bool _#A#y#isSet = false;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
   get x() → core::int
-    return let final core::int? #t1 = this.{self::A::_#A#x} in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t1{core::int};
+    return this.{self::A::_#A#x#isSet} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#x} in #t1{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.");
   set x(core::int #t2) → void
-    if(this.{self::A::_#A#x}.==(null))
-      this.{self::A::_#A#x} = #t2;
-    else
+    if(this.{self::A::_#A#x#isSet})
       throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
+    else {
+      this.{self::A::_#A#x#isSet} = true;
+      this.{self::A::_#A#x} = #t2;
+    }
   get y() → core::int?
     return this.{self::A::_#A#y#isSet} ?{core::int?} this.{self::A::_#A#y} : throw new _in::LateInitializationErrorImpl::•("Field 'y' has not been initialized.");
   set y(core::int? #t3) → void
@@ -38,6 +41,7 @@ class B extends self::A {
 }
 class C extends self::A {
   field core::int? _#C#x = null;
+  field core::bool _#C#x#isSet = false;
   field core::int? _#C#y = null;
   field core::bool _#C#y#isSet = false;
   synthetic constructor •() → self::C
