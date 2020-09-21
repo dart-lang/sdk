@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/rename.d
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/utilities/extensions/yaml.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:meta/meta.dart';
@@ -127,9 +127,9 @@ class TransformSetParser {
   }
 
   /// Convert the given [template] into a list of components. Variable
-  /// references in the template are looked up in the map of [extractors].
+  /// references in the template are looked up in the map of [generators].
   List<TemplateComponent> _extractTemplateComponents(String template,
-      Map<String, ValueGenerator> extractors, int templateOffset) {
+      Map<String, ValueGenerator> generators, int templateOffset) {
     var components = <TemplateComponent>[];
     var textStart = 0;
     var variableStart = template.indexOf(_openComponent);
@@ -148,7 +148,7 @@ class TransformSetParser {
         return null;
       } else {
         var name = template.substring(variableStart + 2, endIndex).trim();
-        var extractor = extractors[name];
+        var extractor = generators[name];
         if (extractor == null) {
           errorReporter.reportErrorForOffset(
               TransformSetErrorCode.undefinedVariable,
@@ -662,18 +662,18 @@ class TransformSetParser {
   Map<String, ValueGenerator> _translateTemplateVariables(
       YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
-      var extractors = <String, ValueGenerator>{};
+      var generators = <String, ValueGenerator>{};
       for (var entry in node.nodes.entries) {
         var name = _translateKey(entry.key);
         if (name != null) {
           var value = _translateValueExtractor(
               entry.value, ErrorContext(key: name, parentNode: node));
           if (value != null) {
-            extractors[name] = value;
+            generators[name] = value;
           }
         }
       }
-      return extractors;
+      return generators;
     } else if (node == null) {
       return const {};
     } else {

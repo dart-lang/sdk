@@ -8,7 +8,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/modify_p
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -60,7 +60,7 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExpression;
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -132,7 +132,7 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExpression;
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -174,7 +174,7 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExpression;
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -219,12 +219,12 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(4));
     var extractorA =
-        (components[0] as TemplateVariable).extractor as ArgumentExpression;
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameterA = extractorA.parameter as PositionalParameterReference;
     expect(parameterA.index, 1);
     expect((components[1] as TemplateText).text, '(');
     var extractorB =
-        (components[2] as TemplateVariable).extractor as ArgumentExpression;
+        (components[2] as TemplateVariable).generator as ArgumentExpression;
     var parameterB = extractorB.parameter as PositionalParameterReference;
     expect(parameterB.index, 2);
     expect((components[3] as TemplateText).text, ')');
@@ -262,7 +262,7 @@ transforms:
     expect(change.name, 'T');
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
-    var value = (components[0] as TemplateVariable).extractor as ImportedName;
+    var value = (components[0] as TemplateVariable).generator as ImportedName;
     expect(value.uris, ['dart:core']);
     expect(value.name, 'String');
   }
@@ -301,7 +301,7 @@ transforms:
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExpression;
+        (components[0] as TemplateVariable).generator as ArgumentExpression;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -344,7 +344,7 @@ transforms:
 
     var argumentComponents = change.argumentValue.components;
     expect(argumentComponents, hasLength(1));
-    var value = (argumentComponents[0] as TemplateVariable).extractor
+    var value = (argumentComponents[0] as TemplateVariable).generator
         as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
