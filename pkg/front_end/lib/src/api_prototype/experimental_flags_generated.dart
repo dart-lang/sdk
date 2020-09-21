@@ -25,7 +25,7 @@ enum ExperimentalFlag {
 
 const Version enableAlternativeInvalidationStrategyVersion =
     const Version(2, 11);
-const Version enableConstantUpdate2018Version = const Version(2, 4);
+const Version enableConstantUpdate2018Version = const Version(2, 0);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
 const Version enableNonNullableVersion = const Version(2, 11);
@@ -94,7 +94,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
 
 const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
   ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 11),
-  ExperimentalFlag.constantUpdate2018: const Version(2, 4),
+  ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.nonNullable: const Version(2, 11),
@@ -108,7 +108,7 @@ const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
 
 const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
   ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 11),
-  ExperimentalFlag.constantUpdate2018: const Version(2, 4),
+  ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
   ExperimentalFlag.nonNullable: const Version(2, 10),

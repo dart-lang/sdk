@@ -10,36 +10,14 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(EqualElementsInConstSetTest);
-    defineReflectiveTests(EqualElementsInConstSetTest_language24);
   });
 }
 
 @reflectiveTest
 class EqualElementsInConstSetTest extends PubPackageResolutionTest
-    with EqualElementsInConstSetTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class EqualElementsInConstSetTest_language24 extends PubPackageResolutionTest
-    with EqualElementsInConstSetTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with EqualElementsInConstSetTestCases {}
 
 mixin EqualElementsInConstSetTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   test_const_entry() async {
     await assertErrorsInCode('''
 var c = const {1, 2, 1};
@@ -50,85 +28,45 @@ var c = const {1, 2, 1};
   }
 
   test_const_ifElement_thenElseFalse() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 var c = const {1, if (1 < 0) 2 else 1};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
-                    contextMessages: [
-                      message('$testPackageLibPath/test.dart', 15, 1)
-                    ]),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 36, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+    ]);
   }
 
   test_const_ifElement_thenElseFalse_onlyElse() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var c = const {if (0 < 1) 1 else 1};
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 15, 19),
-              ]);
+''');
   }
 
   test_const_ifElement_thenElseTrue() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var c = const {1, if (0 < 1) 2 else 1};
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 19),
-              ]);
+''');
   }
 
   test_const_ifElement_thenElseTrue_onlyThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var c = const {if (0 < 1) 1 else 1};
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 15, 19),
-              ]);
+''');
   }
 
   test_const_ifElement_thenFalse() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var c = const {2, if (1 < 0) 2};
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 var c = const {1, if (0 < 1) 1};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
-                    contextMessages: [
-                      message('$testPackageLibPath/test.dart', 15, 1)
-                    ]),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 12),
-              ]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 29, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+    ]);
   }
 
   test_const_instanceCreation_equalTypeArgs() async {
@@ -156,32 +94,18 @@ var c = const {const A<int>(), const A<num>()};
   }
 
   test_const_spread__noDuplicate() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 var c = const {1, ...{2}};
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),
-              ]);
+''');
   }
 
   test_const_spread_hasDuplicate() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 var c = const {1, ...{1}};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
-                    contextMessages: [
-                      message('$testPackageLibPath/test.dart', 15, 1)
-                    ]),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 18, 6),
-              ]);
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 21, 3,
+          contextMessages: [message('$testPackageLibPath/test.dart', 15, 1)]),
+    ]);
   }
 
   test_nonConst_entry() async {

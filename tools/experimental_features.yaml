@@ -126,7 +126,7 @@ features:
 
   constant-update-2018:
     help: "Enhanced constant expressions"
-    enabledIn: '2.4.1'
+    enabledIn: '2.0.0'
     expired: true
 
   control-flow-collections:
