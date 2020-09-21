@@ -60,7 +60,7 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+        (components[0] as TemplateVariable).extractor as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -132,7 +132,7 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+        (components[0] as TemplateVariable).extractor as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -174,7 +174,7 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+        (components[0] as TemplateVariable).extractor as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 1);
   }
@@ -219,15 +219,52 @@ transforms:
     var components = modification.argumentValue.components;
     expect(components, hasLength(4));
     var extractorA =
-        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+        (components[0] as TemplateVariable).extractor as ArgumentExpression;
     var parameterA = extractorA.parameter as PositionalParameterReference;
     expect(parameterA.index, 1);
     expect((components[1] as TemplateText).text, '(');
     var extractorB =
-        (components[2] as TemplateVariable).extractor as ArgumentExtractor;
+        (components[2] as TemplateVariable).extractor as ArgumentExpression;
     var parameterB = extractorB.parameter as PositionalParameterReference;
     expect(parameterB.index, 2);
     expect((components[3] as TemplateText).text, ')');
+  }
+
+  void test_addTypeParameter_fromImportedName() {
+    parse('''
+version: 1
+transforms:
+- date: 2020-09-03
+  element:
+    uris:
+      - 'test.dart'
+    class: 'A'
+  title: 'Add'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'T'
+      argumentValue:
+        expression: '{% t %}'
+        variables:
+          t:
+            kind: 'import'
+            uris: ['dart:core']
+            name: 'String'
+''');
+    var transforms = result.transformsFor('A', ['test.dart']);
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Add');
+    expect(transform.changes, hasLength(1));
+    var change = transform.changes[0] as AddTypeParameter;
+    expect(change.index, 0);
+    expect(change.name, 'T');
+    var components = change.argumentValue.components;
+    expect(components, hasLength(1));
+    var value = (components[0] as TemplateVariable).extractor as ImportedName;
+    expect(value.uris, ['dart:core']);
+    expect(value.name, 'String');
   }
 
   void test_addTypeParameter_fromNamedArgument() {
@@ -264,7 +301,7 @@ transforms:
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
     var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+        (components[0] as TemplateVariable).extractor as ArgumentExpression;
     var parameter = value.parameter as NamedParameterReference;
     expect(parameter.name, 'p');
   }
@@ -308,7 +345,7 @@ transforms:
     var argumentComponents = change.argumentValue.components;
     expect(argumentComponents, hasLength(1));
     var value = (argumentComponents[0] as TemplateVariable).extractor
-        as ArgumentExtractor;
+        as ArgumentExpression;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
   }

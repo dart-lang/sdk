@@ -713,7 +713,12 @@ class DeclarationsTracker {
       return null;
     }
 
-    path = _resolveLinks(path);
+    try {
+      path = _resolveLinks(path);
+    } on FileSystemException {
+      // Not existing file, or the link target.
+    }
+
     file = _pathToFile[path];
     if (file != null) {
       return file;

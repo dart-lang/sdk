@@ -19,7 +19,7 @@ class CodeTemplate {
   CodeTemplate(this.kind, this.components);
 
   String generate(AstNode node, CorrectionUtils utils) {
-    var context = _TemplateContext(node, utils);
+    var context = TemplateContext(node, utils);
     var buffer = StringBuffer();
     for (var component in components) {
       component.appendTo(buffer, context);
@@ -39,7 +39,31 @@ abstract class TemplateComponent {
   /// Append the text contributed by this component to the given [sink], using
   /// the [context] to access needed information that isn't already known to
   /// this component.
-  void appendTo(StringSink sink, _TemplateContext context);
+  void appendTo(StringSink sink, TemplateContext context);
+}
+
+/// The context in which a template is being evaluated.
+class TemplateContext {
+  /// The node in the AST that is being transformed.
+  final AstNode node;
+
+  /// The utilities used to help extract the code associated with various nodes.
+  final CorrectionUtils utils;
+
+  /// A table mapping variable names to the values of those variables after they
+  /// have been computed. Used to prevent computing the same value multiple
+  /// times.
+  final Map<ValueGenerator, String> _variableValues = {};
+
+  /// Initialize a newly created variable support.
+  TemplateContext(this.node, this.utils);
+
+  /// Return the value of the variable with the given [name].
+  String valueOf(ValueGenerator extractor) {
+    return _variableValues.putIfAbsent(extractor, () {
+      return extractor.from(this);
+    });
+  }
 }
 
 /// Literal text within a template.
@@ -51,7 +75,7 @@ class TemplateText extends TemplateComponent {
   TemplateText(this.text);
 
   @override
-  void appendTo(StringSink sink, _TemplateContext context) {
+  void appendTo(StringSink sink, TemplateContext context) {
     sink.write(text);
   }
 }
@@ -59,37 +83,13 @@ class TemplateText extends TemplateComponent {
 /// A reference to a variable within a template.
 class TemplateVariable extends TemplateComponent {
   /// The extractor used to compute the value of the variable.
-  final ValueExtractor extractor;
+  final ValueGenerator extractor;
 
   /// Initialize a newly created template variable with the given [name].
   TemplateVariable(this.extractor);
 
   @override
-  void appendTo(StringSink sink, _TemplateContext context) {
+  void appendTo(StringSink sink, TemplateContext context) {
     sink.write(context.valueOf(extractor));
-  }
-}
-
-/// The context in which a template is being evaluated.
-class _TemplateContext {
-  /// The node in the AST that is being transformed.
-  final AstNode node;
-
-  /// The utilities used to help extract the code associated with various nodes.
-  final CorrectionUtils utils;
-
-  /// A table mapping variable names to the values of those variables after they
-  /// have been computed. Used to prevent computing the same value multiple
-  /// times.
-  final Map<ValueExtractor, String> variableValues = {};
-
-  /// Initialize a newly created variable support.
-  _TemplateContext(this.node, this.utils);
-
-  /// Return the value of the variable with the given [name].
-  String valueOf(ValueExtractor extractor) {
-    return variableValues.putIfAbsent(extractor, () {
-      return extractor.from(node, utils);
-    });
   }
 }

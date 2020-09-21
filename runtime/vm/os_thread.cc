@@ -135,6 +135,7 @@ bool OSThread::ThreadInterruptsEnabled() {
 }
 
 static void DeleteThread(void* thread) {
+  MSAN_UNPOISON(&thread, sizeof(thread));
   delete reinterpret_cast<OSThread*>(thread);
 }
 
