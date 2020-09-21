@@ -174,6 +174,9 @@ dart_2/data_uri_import_test/percentencoded: Crash
 dart_2/data_uri_import_test/utf16: Crash
 dart_2/data_uri_import_test/wrongmime: Crash
 
+[ $builder_tag != bytecode_interpreter_nnbd && $builder_tag != bytecode_mixed_nnbd && $builder_tag != vm_nnbd ]
+dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
+
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 dart/extension_names_test: SkipByDesign # No demangling (obfuscated).
 dart/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
@@ -381,9 +384,6 @@ dart_2/entrypoints/*: SkipByDesign # These tests are for compiler optimizations 
 
 [ $builder_tag == bytecode_interpreter_nnbd || $builder_tag == bytecode_mixed_nnbd || $builder_tag == vm_nnbd ]
 dart_2/*: SkipByDesign # Legacy tests are not supposed to run on NNBD bots.
-
-[ $builder_tag != bytecode_interpreter_nnbd || $builder_tag != bytecode_mixed_nnbd || $builder_tag != vm_nnbd ]
-dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 
 [ $builder_tag == crossword || $builder_tag == crossword_ast ]
 dart/bytecode_with_ast_in_aot_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
