@@ -3528,14 +3528,12 @@ static void FinalizableHandlePeerFinalizer(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_FinalizableHandleCallback) {
-  Dart_FinalizableHandle weak_ref = nullptr;
   int peer = 0;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("new string");
     EXPECT_VALID(obj);
-    weak_ref = Dart_NewFinalizableHandle(obj, &peer, 0,
-                                         FinalizableHandlePeerFinalizer);
+    Dart_NewFinalizableHandle(obj, &peer, 0, FinalizableHandlePeerFinalizer);
     EXPECT(peer == 0);
     Dart_ExitScope();
   }
@@ -3676,26 +3674,22 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
   Heap* heap = Isolate::Current()->heap();
   EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
   EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
-  Dart_FinalizableHandle weak1 = nullptr;
   static const intptr_t kWeak1ExternalSize = 1 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("weakly referenced string");
     EXPECT_VALID(obj);
-    weak1 = Dart_NewFinalizableHandle(obj, nullptr, kWeak1ExternalSize,
-                                      NopCallback);
+    Dart_NewFinalizableHandle(obj, nullptr, kWeak1ExternalSize, NopCallback);
     Dart_ExitScope();
   }
   Dart_PersistentHandle strong_ref = nullptr;
-  Dart_FinalizableHandle weak2 = nullptr;
   static const intptr_t kWeak2ExternalSize = 2 * KB;
   {
     Dart_EnterScope();
     Dart_Handle obj = NewString("strongly referenced string");
     EXPECT_VALID(obj);
     strong_ref = Dart_NewPersistentHandle(obj);
-    weak2 = Dart_NewFinalizableHandle(obj, nullptr, kWeak2ExternalSize,
-                                      NopCallback);
+    Dart_NewFinalizableHandle(obj, nullptr, kWeak2ExternalSize, NopCallback);
     EXPECT_VALID(AsHandle(strong_ref));
     Dart_ExitScope();
   }
@@ -3810,7 +3804,6 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   Dart_Handle live = AllocateOldString("live");
   EXPECT_VALID(live);
   Dart_WeakPersistentHandle weak = NULL;
-  Dart_WeakPersistentHandle weak2 = NULL;
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
@@ -3834,8 +3827,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   }
   // Large enough to trigger GC in old space. Not actually allocated.
   const intptr_t kHugeExternalSize = (kWordSize == 4) ? 513 * MB : 1025 * MB;
-  weak2 =
-      Dart_NewWeakPersistentHandle(live, NULL, kHugeExternalSize, NopCallback);
+  Dart_NewWeakPersistentHandle(live, NULL, kHugeExternalSize, NopCallback);
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
@@ -3852,7 +3844,6 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOldspaceGC) {
   Dart_EnterScope();
   Dart_Handle live = AllocateOldString("live");
   EXPECT_VALID(live);
-  Dart_FinalizableHandle weak = NULL;
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
@@ -3863,8 +3854,7 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSizeOldspaceGC) {
     Dart_EnterScope();
     Dart_Handle dead = AllocateOldString("dead");
     EXPECT_VALID(dead);
-    weak = Dart_NewFinalizableHandle(dead, nullptr, kSmallExternalSize,
-                                     NopCallback);
+    Dart_NewFinalizableHandle(dead, nullptr, kSmallExternalSize, NopCallback);
     Dart_ExitScope();
   }
   {

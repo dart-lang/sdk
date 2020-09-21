@@ -4923,8 +4923,8 @@ class Library : public Object {
 
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const {
-    ASSERT(value == -1 ||
-           value >= 0 && value < std::numeric_limits<classid_t>::max());
+    ASSERT((value == -1) ||
+           ((value >= 0) && (value < std::numeric_limits<classid_t>::max())));
     StoreNonPointer(&raw_ptr()->index_, value);
   }
 

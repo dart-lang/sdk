@@ -148,8 +148,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           (parent.num_fixed_parameters() != target.num_fixed_parameters())) {
         needs_expr_temp_ = true;
       }
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case FunctionLayout::kClosureFunction:
     case FunctionLayout::kRegularFunction:
     case FunctionLayout::kGetterFunction:
@@ -442,8 +442,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         FOR_EACH_DYNAMIC_CLOSURE_CALL_VARIABLE(ADD_VAR);
 #undef ADD_VAR
       }
-      FALL_THROUGH;
     }
+      FALL_THROUGH;
     case FunctionLayout::kNoSuchMethodDispatcher: {
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         LocalVariable* variable = MakeVariable(

@@ -487,7 +487,6 @@ int Options::ParseArguments(int argc,
 
   bool implicitly_use_dart_dev = false;
   bool run_script = false;
-  int script_or_cmd_index = -1;
 
   // Get the script name.
   if (i < argc) {
@@ -500,7 +499,6 @@ int Options::ParseArguments(int argc,
 #else
     bool is_potential_file_path = true;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    script_or_cmd_index = i;
     if (Options::disable_dart_dev() ||
         (is_potential_file_path && !enable_vm_service_)) {
       *script_name = Utils::StrDup(argv[i]);
@@ -549,6 +547,9 @@ int Options::ParseArguments(int argc,
   else {  // NOLINT
     return -1;
   }
+  USE(enable_dartdev_analytics);
+  USE(disable_dartdev_analytics);
+
   const char** vm_argv = temp_vm_options.arguments();
   int vm_argc = temp_vm_options.count();
 

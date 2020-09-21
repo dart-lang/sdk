@@ -259,7 +259,7 @@ void ImageWriter::GetTrampolineInfo(intptr_t* count, intptr_t* size) const {
   ASSERT(count != nullptr && size != nullptr);
   *count = 0;
   *size = 0;
-  for (auto const data : instructions_) {
+  for (auto const& data : instructions_) {
     if (data.trampoline_length != 0) {
       *count += 1;
       *size += data.trampoline_length;
