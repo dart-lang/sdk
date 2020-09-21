@@ -59,6 +59,11 @@ class AssignmentExpressionResolver {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
+    if (left is IndexExpression) {
+      _resolve_IndexExpression(node, left);
+      return;
+    }
+
     if (left is PrefixedIdentifier) {
       _resolve_PrefixedIdentifier(node, left);
       return;
@@ -241,13 +246,46 @@ class AssignmentExpressionResolver {
     }
   }
 
+  void _resolve_IndexExpression(
+    AssignmentExpressionImpl node,
+    IndexExpression left,
+  ) {
+    left.target?.accept(_resolver);
+    _resolver.startNullAwareIndexExpression(left);
+
+    var operator = node.operator.type;
+    var hasRead = operator != TokenType.EQ;
+
+    var resolver = PropertyElementResolver(_resolver);
+    var result = resolver.resolveIndexExpression(
+      node: left,
+      hasRead: hasRead,
+      hasWrite: true,
+    );
+
+    var readElement = result.readElement;
+    var writeElement = result.writeElement;
+
+    InferenceContext.setType(left.index, result.indexContextType);
+    left.index.accept(_resolver);
+
+    if (hasRead) {
+      _resolver.setReadElement(left, readElement);
+    }
+    _resolver.setWriteElement(left, writeElement);
+
+    _setBackwardCompatibility(node);
+
+    var right = node.rightHandSide;
+    _resolve3(node, left, operator, right);
+  }
+
   void _resolve_PrefixedIdentifier(
     AssignmentExpressionImpl node,
     PrefixedIdentifier left,
   ) {
     left.prefix?.accept(_resolver);
 
-    var propertyName = left.identifier;
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
 
@@ -266,7 +304,7 @@ class AssignmentExpressionResolver {
     }
     _resolver.setWriteElement(left, writeElement);
 
-    _setBackwardCompatibility(node, propertyName);
+    _setBackwardCompatibility(node);
 
     var right = node.rightHandSide;
     _resolve3(node, left, operator, right);
@@ -278,7 +316,6 @@ class AssignmentExpressionResolver {
   ) {
     left.target?.accept(_resolver);
 
-    var propertyName = left.propertyName;
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
 
@@ -299,7 +336,7 @@ class AssignmentExpressionResolver {
     }
     _resolver.setWriteElement(left, writeElement);
 
-    _setBackwardCompatibility(node, propertyName);
+    _setBackwardCompatibility(node);
 
     var right = node.rightHandSide;
     _resolve3(node, left, operator, right);
@@ -329,7 +366,7 @@ class AssignmentExpressionResolver {
       receiverTypeObject: null,
     );
 
-    _setBackwardCompatibility(node, left);
+    _setBackwardCompatibility(node);
 
     if (operator != TokenType.EQ) {
       // TODO(scheglov) Change this method to work with elements.
@@ -391,32 +428,51 @@ class AssignmentExpressionResolver {
 
   /// TODO(scheglov) This is mostly necessary for backward compatibility.
   /// Although we also use `staticElement` for `getType(left)` below.
-  void _setBackwardCompatibility(
-    AssignmentExpressionImpl node,
-    SimpleIdentifier left,
-  ) {
+  void _setBackwardCompatibility(AssignmentExpressionImpl node) {
     var operator = node.operator.type;
 
-    if (operator != TokenType.EQ) {
+    var left = node.leftHandSide;
+    var hasRead = operator != TokenType.EQ;
+
+    if (left is IndexExpression) {
+      if (hasRead) {
+        left.staticElement = node.writeElement;
+        left.auxiliaryElements = AuxiliaryElements(node.readElement);
+        _resolver.setReadElement(node, node.readElement);
+        _resolver.setWriteElement(node, node.writeElement);
+      } else {
+        left.staticElement = node.writeElement;
+        _resolver.setWriteElement(node, node.writeElement);
+      }
+      _recordStaticType(left, node.writeType);
+      return;
+    }
+
+    SimpleIdentifier leftIdentifier;
+    if (left is PrefixedIdentifier) {
+      leftIdentifier = left.identifier;
+      _recordStaticType(left, node.writeType);
+    } else if (left is PropertyAccess) {
+      leftIdentifier = left.propertyName;
+      _recordStaticType(left, node.writeType);
+    } else if (left is SimpleIdentifier) {
+      leftIdentifier = left;
+    }
+
+    if (hasRead) {
       var readElement = node.readElement;
       if (readElement is PropertyAccessorElement) {
-        left.auxiliaryElements = AuxiliaryElements(readElement);
+        leftIdentifier.auxiliaryElements = AuxiliaryElements(readElement);
       }
     }
 
-    left.staticElement = node.writeElement;
+    leftIdentifier.staticElement = node.writeElement;
     if (node.readElement is VariableElement) {
-      var leftType = _resolver.localVariableTypeProvider.getType(left);
-      _recordStaticType(left, leftType);
+      var leftType =
+          _resolver.localVariableTypeProvider.getType(leftIdentifier);
+      _recordStaticType(leftIdentifier, leftType);
     } else {
-      _recordStaticType(left, node.writeType);
-    }
-
-    var parent = left.parent;
-    if (parent is PrefixedIdentifier && parent.identifier == left) {
-      _recordStaticType(parent, node.writeType);
-    } else if (parent is PropertyAccess && parent.propertyName == left) {
-      _recordStaticType(parent, node.writeType);
+      _recordStaticType(leftIdentifier, node.writeType);
     }
   }
 

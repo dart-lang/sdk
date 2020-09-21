@@ -9,20 +9,15 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 
 /// An object used by instances of [ResolverVisitor] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
@@ -94,9 +89,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @Deprecated('This field is no longer used')
   final bool reportConstEvaluationErrors;
 
-  /// Helper for extension method resolution.
-  final ExtensionMemberResolver _extensionResolver;
-
   /// Helper for resolving properties on types.
   final TypePropertyResolver _typePropertyResolver;
 
@@ -109,7 +101,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
-        _extensionResolver = _resolver.extensionResolver,
         _typePropertyResolver = _resolver.typePropertyResolver {
     _dynamicType = _typeProvider.dynamicType;
     _methodInvocationResolver = MethodInvocationResolver(
@@ -132,8 +123,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
-
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -387,64 +376,30 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    Expression target = node.realTarget;
-    DartType targetType = _getStaticType(target);
+    var hasRead = node.inGetterContext();
+    var hasWrite = node.inSetterContext();
 
-    if (identical(targetType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
-        target,
-      );
-      return;
+    var resolver = PropertyElementResolver(_resolver);
+    var result = resolver.resolveIndexExpression(
+      node: node,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+
+    if (hasRead && hasWrite) {
+      node.staticElement = result.writeElement;
+      node.auxiliaryElements = AuxiliaryElements(result.readElement);
+      _resolver.setReadElement(node, result.readElement);
+      _resolver.setWriteElement(node, result.writeElement);
+    } else if (hasRead) {
+      node.staticElement = result.readElement;
+      _resolver.setReadElement(node, result.readElement);
+    } else if (hasWrite) {
+      node.staticElement = result.writeElement;
+      _resolver.setWriteElement(node, result.writeElement);
     }
 
-    if (node.isNullAware) {
-      if (target is ExtensionOverride) {
-        // https://github.com/dart-lang/language/pull/953
-      } else {
-        targetType = _typeSystem.promoteToNonNull(targetType);
-      }
-    }
-
-    String getterMethodName = TokenType.INDEX.lexeme;
-    String setterMethodName = TokenType.INDEX_EQ.lexeme;
-
-    ResolutionResult result;
-    if (target is ExtensionOverride) {
-      result = _extensionResolver.getOverrideMember(target, getterMethodName);
-    } else {
-      result = _typePropertyResolver.resolve(
-        receiver: target,
-        receiverType: targetType,
-        name: getterMethodName,
-        receiverErrorNode: target,
-        nameErrorEntity: target,
-      );
-    }
-
-    bool isInGetterContext = node.inGetterContext();
-    bool isInSetterContext = node.inSetterContext();
-    if (isInGetterContext && isInSetterContext) {
-      node.staticElement = result.setter;
-      node.auxiliaryElements = AuxiliaryElements(result.getter);
-      _resolver.setReadElement(node, result.getter);
-      _resolver.setWriteElement(node, result.setter);
-    } else if (isInGetterContext) {
-      node.staticElement = result.getter;
-      _resolver.setReadElement(node, result.getter);
-    } else if (isInSetterContext) {
-      node.staticElement = result.setter;
-      _resolver.setWriteElement(node, result.setter);
-    }
-
-    if (isInGetterContext) {
-      _checkForUndefinedIndexOperator(node, target, getterMethodName, result,
-          result.getter, result.needsGetterError, targetType);
-    }
-    if (isInSetterContext) {
-      _checkForUndefinedIndexOperator(node, target, setterMethodName, result,
-          result.setter, result.needsSetterError, targetType);
-    }
+    InferenceContext.setType(node.index, result.indexContextType);
   }
 
   @override
@@ -869,69 +824,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     _resolveAnnotations(node.metadata);
   }
 
-  /// Check that the given index [expression] was resolved, otherwise a
-  /// [CompileTimeErrorCode.UNDEFINED_OPERATOR] is generated. The [target] is
-  /// the target of the expression. The [methodName] is the name of the operator
-  /// associated with the context of using of the given index expression.
-  void _checkForUndefinedIndexOperator(
-      IndexExpression expression,
-      Expression target,
-      String methodName,
-      ResolutionResult result,
-      ExecutableElement element,
-      bool needsError,
-      DartType staticType) {
-    if (result.isAmbiguous) {
-      return;
-    }
-    if (element != null) {
-      return;
-    }
-    if (target is! ExtensionOverride) {
-      if (staticType == null || staticType.isDynamic) {
-        return;
-      }
-    }
-
-    var leftBracket = expression.leftBracket;
-    var rightBracket = expression.rightBracket;
-    var offset = leftBracket.offset;
-    var length = rightBracket.end - offset;
-    if (target is ExtensionOverride) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-        offset,
-        length,
-        [methodName, target.staticElement.name],
-      );
-    } else if (target is SuperExpression) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
-        offset,
-        length,
-        [methodName, staticType],
-      );
-    } else if (staticType.isVoid) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-        offset,
-        length,
-      );
-    } else if (identical(staticType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.reportErrorForNode(
-        HintCode.RECEIVER_OF_TYPE_NEVER,
-        target,
-      );
-    } else if (needsError) {
-      _errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.UNDEFINED_OPERATOR,
-        offset,
-        length,
-        [methodName, staticType],
-      );
-    }
-  }
-
   /// Assuming that the given [identifier] is a prefix for a deferred import,
   /// return the library that is being imported.
   LibraryElement _getImportedLibrary(SimpleIdentifier identifier) {
@@ -939,16 +831,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     List<ImportElement> imports =
         prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
     return imports[0].importedLibrary;
-  }
-
-  /// Return the static type of the given [expression] that is to be used for
-  /// type analysis.
-  DartType _getStaticType(Expression expression, {bool read = false}) {
-    if (expression is NullLiteral) {
-      return _typeProvider.nullType;
-    }
-    DartType type = read ? getReadType(expression) : expression.staticType;
-    return _resolveTypeParameter(type);
   }
 
   InterfaceType _instantiateAnnotationClass(ClassElement element) {
