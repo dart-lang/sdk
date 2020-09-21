@@ -259,6 +259,8 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
+    expect(change.extendedType, null);
+
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
     var value =
@@ -281,6 +283,8 @@ transforms:
     - kind: 'addTypeParameter'
       index: 0
       name: 'T'
+      extends:
+        expression: 'Object'
       argumentValue:
         expression: '{% t %}'
         variables:
@@ -296,10 +300,15 @@ transforms:
     var change = transform.changes[0] as AddTypeParameter;
     expect(change.index, 0);
     expect(change.name, 'T');
-    var components = change.argumentValue.components;
-    expect(components, hasLength(1));
-    var value =
-        (components[0] as TemplateVariable).extractor as ArgumentExtractor;
+
+    var extendsComponents = change.extendedType.components;
+    expect(extendsComponents, hasLength(1));
+    expect((extendsComponents[0] as TemplateText).text, 'Object');
+
+    var argumentComponents = change.argumentValue.components;
+    expect(argumentComponents, hasLength(1));
+    var value = (argumentComponents[0] as TemplateVariable).extractor
+        as ArgumentExtractor;
     var parameter = value.parameter as PositionalParameterReference;
     expect(parameter.index, 2);
   }

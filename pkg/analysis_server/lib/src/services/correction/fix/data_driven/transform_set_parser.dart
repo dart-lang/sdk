@@ -43,6 +43,7 @@ class TransformSetParser {
   static const String _elementKey = 'element';
   static const String _enumKey = 'enum';
   static const String _expressionKey = 'expression';
+  static const String _extendsKey = 'extends';
   static const String _extensionKey = 'extension';
   static const String _fieldKey = 'field';
   static const String _functionKey = 'function';
@@ -310,18 +311,24 @@ class TransformSetParser {
         ErrorContext(key: _indexKey, parentNode: node));
     var name = _translateString(
         node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
-    // TODO(brianwilkerson) In order to support adding multiple type parameters
-    //  we might need to introduce a `TypeParameterModification` change, similar
-    //  to `ParameterModification`. That becomes more likely if we add support
-    //  for removing type parameters.
+    var extendedType = _translateCodeTemplate(node.valueAt(_extendsKey),
+        ErrorContext(key: _extendsKey, parentNode: node),
+        required: false);
     var argumentValue = _translateCodeTemplate(node.valueAt(_argumentValueKey),
         ErrorContext(key: _argumentValueKey, parentNode: node));
     if (index == null || name == null || argumentValue == null) {
       // The error has already been reported.
       return null;
     }
+    // TODO(brianwilkerson) In order to support adding multiple type parameters
+    //  we might need to introduce a `TypeParameterModification` change, similar
+    //  to `ParameterModification`. That becomes more likely if we add support
+    //  for removing type parameters.
     return AddTypeParameter(
-        index: index, name: name, argumentValue: argumentValue);
+        index: index,
+        name: name,
+        extendedType: extendedType,
+        argumentValue: argumentValue);
   }
 
   /// Translate the [node] into a value extractor. Return the resulting
@@ -383,7 +390,8 @@ class TransformSetParser {
   /// Translate the [node] into a code template. Return the resulting template,
   /// or `null` if the [node] does not represent a valid code template. If the
   /// [node] is not valid, use the [context] to report the error.
-  CodeTemplate _translateCodeTemplate(YamlNode node, ErrorContext context) {
+  CodeTemplate _translateCodeTemplate(YamlNode node, ErrorContext context,
+      {bool required = true}) {
     if (node is YamlMap) {
       CodeTemplateKind kind;
       int templateOffset;
@@ -420,7 +428,10 @@ class TransformSetParser {
           _extractTemplateComponents(template, extractors, templateOffset);
       return CodeTemplate(kind, components);
     } else if (node == null) {
-      return _reportMissingKey(context);
+      if (required) {
+        _reportMissingKey(context);
+      }
+      return null;
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
