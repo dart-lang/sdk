@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveDeadCodeTest);
+    defineReflectiveTests(RemoveDeadCodeWithNullSafetyTest);
   });
 }
 
@@ -132,6 +134,51 @@ int main() {
 int main() {
   print(0);
   return 42;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveDeadCodeWithNullSafetyTest extends FixProcessorTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  FixKind get kind => DartFixKind.REMOVE_DEAD_CODE;
+
+  @failingTest
+  Future<void> test_do_returnInBody() async {
+    // https://github.com/dart-lang/sdk/issues/43511
+    await resolveTestUnit('''
+void f(bool c) {
+  do {
+    print(c);
+    return;
+  } while (c);
+}
+''');
+    await assertHasFix('''
+void f(bool c) {
+  print(c);
+}
+''');
+  }
+
+  @failingTest
+  Future<void> test_for_returnInBody() async {
+    // https://github.com/dart-lang/sdk/issues/43511
+    await resolveTestUnit('''
+void f() {
+  for (int i = 0; i < 2; i++) {
+    print(i);
+    return;
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  print(0);
 }
 ''');
   }
