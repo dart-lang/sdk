@@ -618,29 +618,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitPropertyAccess_static_getter() {
-    DartType boolType = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter =
-        ElementFactory.getterElement("b", false, boolType);
-    PropertyAccess node =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
-    node.propertyName.staticElement = getter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitPropertyAccess_static_setter() {
-    DartType boolType = _typeProvider.boolType;
-    FieldElementImpl field =
-        ElementFactory.fieldElement("b", false, false, false, boolType);
-    PropertyAccessorElement setter = field.setter;
-    PropertyAccess node =
-        AstTestFactory.propertyAccess2(AstTestFactory.identifier3("a"), "b");
-    node.propertyName.staticElement = setter;
-    expect(_analyze(node), same(boolType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitSimpleStringLiteral() {
     // "a"
     Expression node = _resolvedString("a");

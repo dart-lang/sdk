@@ -196,6 +196,31 @@ class InvocationInferenceHelper {
     return false;
   }
 
+  /// Given an uninstantiated generic function type, referenced by the
+  /// [identifier] in the tear-off [expression], try to infer the instantiated
+  /// generic function type from the surrounding context.
+  DartType inferTearOff(
+    Expression expression,
+    SimpleIdentifier identifier,
+    DartType tearOffType,
+  ) {
+    var context = InferenceContext.getContext(expression);
+    if (context is FunctionType && tearOffType is FunctionType) {
+      var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
+        context,
+        tearOffType,
+        errorReporter: _resolver.errorReporter,
+        errorNode: expression,
+      );
+      (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
+          typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return tearOffType.instantiate(typeArguments);
+      }
+    }
+    return tearOffType;
+  }
+
   /// Record that the static type of the given node is the given type.
   ///
   /// @param expression the node whose type is to be recorded

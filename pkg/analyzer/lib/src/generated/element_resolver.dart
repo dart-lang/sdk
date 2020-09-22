@@ -375,34 +375,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    var hasRead = node.inGetterContext();
-    var hasWrite = node.inSetterContext();
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolveIndexExpression(
-      node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-
-    if (hasRead && hasWrite) {
-      node.staticElement = result.writeElement;
-      node.auxiliaryElements = AuxiliaryElements(result.readElement);
-      _resolver.setReadElement(node, result.readElement);
-      _resolver.setWriteElement(node, result.writeElement);
-    } else if (hasRead) {
-      node.staticElement = result.readElement;
-      _resolver.setReadElement(node, result.readElement);
-    } else if (hasWrite) {
-      node.staticElement = result.writeElement;
-      _resolver.setWriteElement(node, result.writeElement);
-    }
-
-    InferenceContext.setType(node.index, result.indexContextType);
-  }
-
-  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
     ArgumentList argumentList = node.argumentList;
@@ -556,39 +528,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       } else if (hasRead) {
         identifier.staticElement = result.readElement;
       }
-    }
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    var propertyName = node.propertyName;
-    var hasRead = propertyName.inGetterContext();
-    var hasWrite = propertyName.inSetterContext();
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolvePropertyAccess(
-      node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-
-    if (hasRead) {
-      _resolver.setReadElement(node, result.readElement);
-    }
-
-    if (hasWrite) {
-      _resolver.setWriteElement(node, result.writeElement);
-    }
-
-    if (hasWrite) {
-      propertyName.staticElement = result.writeElement;
-      if (hasRead) {
-        propertyName.auxiliaryElements = AuxiliaryElements(
-          result.readElement,
-        );
-      }
-    } else if (hasRead) {
-      propertyName.staticElement = result.readElement;
     }
   }
 

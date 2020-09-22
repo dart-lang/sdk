@@ -1575,9 +1575,31 @@ class ResolverVisitor extends ScopedVisitor {
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
     startNullAwareIndexExpression(node);
-    node.accept(elementResolver);
+
+    var resolver = PropertyElementResolver(this);
+    var result = resolver.resolveIndexExpression(
+      node: node,
+      hasRead: true,
+      hasWrite: false,
+    );
+
+    var element = result.readElement;
+    node.staticElement = element;
+
+    InferenceContext.setType(node.index, result.indexContextType);
     node.index?.accept(this);
-    node.accept(typeAnalyzer);
+
+    DartType type;
+    if (identical(node.realTarget.staticType, NeverTypeImpl.instance)) {
+      type = NeverTypeImpl.instance;
+    } else if (element is MethodElement) {
+      type = element.returnType;
+    } else {
+      type = DynamicTypeImpl.instance;
+    }
+    inferenceHelper.recordStaticType(node, type);
+
+    nullShortingTermination(node);
   }
 
   @override
@@ -1751,15 +1773,36 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    //
-    // We visit the target, but do not visit the property name because it needs
-    // to be visited in the context of the property access node.
-    //
-    var target = node.target;
-    target?.accept(this);
+    node.target?.accept(this);
     startNullAwarePropertyAccess(node);
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+
+    var resolver = PropertyElementResolver(this);
+    var result = resolver.resolvePropertyAccess(
+      node: node,
+      hasRead: true,
+      hasWrite: false,
+    );
+
+    var element = result.readElement;
+
+    var propertyName = node.propertyName;
+    propertyName.staticElement = element;
+
+    DartType type;
+    if (element is MethodElement) {
+      type = element.type;
+    } else if (element is PropertyAccessorElement && element.isGetter) {
+      type = element.returnType;
+    } else {
+      type = DynamicTypeImpl.instance;
+    }
+
+    type = inferenceHelper.inferTearOff(node, propertyName, type);
+
+    inferenceHelper.recordStaticType(propertyName, type);
+    inferenceHelper.recordStaticType(node, type);
+
+    nullShortingTermination(node);
   }
 
   @override
