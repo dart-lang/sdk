@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
 import 'package:analyzer/src/dart/micro/library_graph.dart';
+import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -307,15 +308,28 @@ class FileResolver {
             (file) => file.getContentWithSameDigest(),
           );
 
-          results = performance.run('analyze', (performance) {
-            return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
-              return libraryAnalyzer.analyzeSync(
-                completionPath: completionOffset != null ? path : null,
-                completionOffset: completionOffset,
-                performance: performance,
-              );
+          try {
+            results = performance.run('analyze', (performance) {
+              return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+                return libraryAnalyzer.analyzeSync(
+                  completionPath: completionOffset != null ? path : null,
+                  completionOffset: completionOffset,
+                  performance: performance,
+                );
+              });
             });
-          });
+          } catch (exception, stackTrace) {
+            var fileContentMap = <String, String>{};
+            for (var file in libraryFile.libraryFiles) {
+              var path = file.path;
+              fileContentMap[path] = _getFileContent(path);
+            }
+            throw CaughtExceptionWithFiles(
+              exception,
+              stackTrace,
+              fileContentMap,
+            );
+          }
         });
         UnitAnalysisResult fileResult = results[file];
 
