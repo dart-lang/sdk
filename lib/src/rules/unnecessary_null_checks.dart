@@ -63,29 +63,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     if (node.operator.type != TokenType.BANG) return;
 
-    var realNode = node
-        .thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
-    var parent = realNode.parent;
-
-    // in variable declaration
-    if (parent is VariableDeclaration) {
-      reportIfNullable(node, parent.declaredElement.type);
-      return;
-    }
-    // as right member of binary operator
-    if (parent is BinaryExpression && parent.rightOperand == realNode) {
-      reportIfNullable(node, parent.staticElement.parameters.first.type);
-      return;
-    }
-    // as parameter of function
-    if (parent is NamedExpression) {
-      realNode = parent;
-      parent = parent.parent;
-    }
-    if (parent is ArgumentList) {
-      reportIfNullable(
-          node, (realNode as Expression).staticParameterElement.type);
-      return;
+    final expectedType = getExpectedType(node);
+    if (expectedType != null && context.typeSystem.isNullable(expectedType)) {
+      rule.reportLintForToken(node.operator);
     }
   }
 
@@ -94,4 +74,38 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportLintForToken(node.operator);
     }
   }
+}
+
+DartType getExpectedType(PostfixExpression node) {
+  var realNode =
+      node.thisOrAncestorMatching((e) => e.parent is! ParenthesizedExpression);
+  var parent = realNode.parent;
+
+  // in return value
+  if (parent is ReturnStatement || parent is ExpressionFunctionBody) {
+    return (parent.thisOrAncestorOfType<FunctionExpression>().staticType
+            as FunctionType)
+        .returnType;
+  }
+  // assignment
+  if (parent is AssignmentExpression) {
+    return parent.leftHandSide.staticType;
+  }
+  // in variable declaration
+  if (parent is VariableDeclaration) {
+    return parent.declaredElement.type;
+  }
+  // as right member of binary operator
+  if (parent is BinaryExpression && parent.rightOperand == realNode) {
+    return parent.staticElement.parameters.first.type;
+  }
+  // as parameter of function
+  if (parent is NamedExpression) {
+    realNode = parent;
+    parent = parent.parent;
+  }
+  if (parent is ArgumentList) {
+    return (realNode as Expression).staticParameterElement.type;
+  }
+  return null;
 }

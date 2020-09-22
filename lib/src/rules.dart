@@ -85,6 +85,7 @@ import 'rules/no_duplicate_case_values.dart';
 import 'rules/no_logic_in_create_state.dart';
 import 'rules/no_runtimeType_toString.dart';
 import 'rules/non_constant_identifier_names.dart';
+import 'rules/null_check_on_nullable_type_parameter.dart';
 import 'rules/null_closures.dart';
 import 'rules/omit_local_variable_types.dart';
 import 'rules/one_member_abstracts.dart';
@@ -267,6 +268,7 @@ void registerLintRules() {
     ..register(NonConstantIdentifierNames())
     ..register(NoLogicInCreateState())
     ..register(NoRuntimeTypeToString())
+    ..register(NullCheckOnNullableTypeParameter())
     ..register(NullClosures())
     ..register(OmitLocalVariableTypes())
     ..register(OneMemberAbstracts())
