@@ -1770,11 +1770,6 @@ abstract class TypeOperations<Variable, Type> {
           List<Type> newPromotedTypes) =>
       false;
 
-  /// Return `true` if the [variable] is a local variable (not a formal
-  /// parameter), and it has no declared type (no explicit type, and not
-  /// initializer).
-  bool isLocalVariableWithoutDeclaredType(Variable variable);
-
   /// Determines whether the given [type] is equivalent to the `Never` type.
   ///
   /// A type is equivalent to `Never` if it:
@@ -1985,11 +1980,6 @@ class VariableModel<Variable, Type> {
           promotedTypes, tested, true, false, writeCaptured);
     }
 
-    if (_isPromotableViaInitialization(typeOperations, variable)) {
-      return new VariableModel<Variable, Type>(
-          [writtenType], tested, true, false, writeCaptured);
-    }
-
     List<Type> newPromotedTypes = _demoteViaAssignment(
       writtenType,
       typeOperations,
@@ -2039,26 +2029,6 @@ class VariableModel<Variable, Type> {
         return promotedTypes.sublist(0, numElementsToKeep);
       }
     }
-  }
-
-  /// We say that a variable `x` is promotable via initialization given
-  /// variable model `VM` if `x` is a local variable (not a formal parameter)
-  /// and:
-  /// * VM = VariableModel(declared, promoted, tested,
-  ///                      assigned, unassigned, captured)
-  /// * and `captured` is false
-  /// * and `promoted` is empty
-  /// * and `x` is declared with no explicit type and no initializer
-  /// * and `assigned` is false and `unassigned` is true
-  bool _isPromotableViaInitialization<Variable>(
-    TypeOperations<Variable, Type> typeOperations,
-    Variable variable,
-  ) {
-    return !writeCaptured &&
-        !assigned &&
-        unassigned &&
-        promotedTypes == null &&
-        typeOperations.isLocalVariableWithoutDeclaredType(variable);
   }
 
   /// Determines whether a variable with the given [promotedTypes] should be

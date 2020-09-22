@@ -59,13 +59,6 @@ class DecoratedTypeOperations
   }
 
   @override
-  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
-    return variable is LocalVariableElement &&
-        variable.hasImplicitType &&
-        !variable.hasInitializer;
-  }
-
-  @override
   bool isNever(DecoratedType type) {
     return false;
   }

@@ -8,7 +8,7 @@
 localVariable() {
   var x;
   x = 1;
-  /*int*/ x;
+  x;
   x = 2.3;
   x;
 }
@@ -35,10 +35,10 @@ localVariable_ifElse_differentTypes(bool a) {
   var x;
   if (a) {
     x = 0;
-    /*int*/ x;
+    x;
   } else {
     x = 1.2;
-    /*double*/ x;
+    x;
   }
   x;
 }
@@ -47,12 +47,12 @@ localVariable_ifElse_sameTypes(bool a) {
   var x;
   if (a) {
     x = 0;
-    /*int*/ x;
+    x;
   } else {
     x = 1;
-    /*int*/ x;
+    x;
   }
-  /*int*/ x;
+  x;
 }
 
 localVariable_notDefinitelyUnassigned(bool a) {
