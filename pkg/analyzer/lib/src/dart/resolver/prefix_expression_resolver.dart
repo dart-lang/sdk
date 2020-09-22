@@ -49,32 +49,34 @@ class PrefixExpressionResolver {
 
   void resolve(PrefixExpressionImpl node) {
     var operator = node.operator.type;
+
     if (operator == TokenType.BANG) {
       _resolveNegation(node);
       return;
     }
 
-    node.operand.accept(_resolver);
-
-    var operand = node.operand;
-    if (operand is SimpleIdentifier) {
-      var element = operand.staticElement;
-      // ElementResolver does not set it.
-      if (element is VariableElement) {
-        _resolver.setReadElement(operand, element);
-        _resolver.setWriteElement(operand, element);
-      }
-    }
-
-    if (node.readElement == null || node.readType == null) {
-      _resolver.setReadElement(operand, null);
-    }
-    if (node.writeElement == null || node.writeType == null) {
-      _resolver.setWriteElement(operand, null);
-    }
-
     if (operator.isIncrementOperator) {
+      var operandResolution = _resolver.resolveForWrite(
+        node: node.operand,
+        hasRead: true,
+      );
+
+      var readElement = operandResolution.readElement;
+      var writeElement = operandResolution.writeElement;
+
+      var operand = node.operand;
+      _resolver.setReadElement(operand, readElement);
+      _resolver.setWriteElement(operand, writeElement);
+
+      _resolver.setAssignmentBackwardCompatibility(
+        assignment: node,
+        left: operand,
+        hasRead: true,
+      );
+
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
+    } else {
+      node.operand.accept(_resolver);
     }
 
     _resolve1(node);

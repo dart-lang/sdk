@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -582,10 +583,110 @@ class ResolverVisitor extends ScopedVisitor {
     _thisType = enclosingClass?.thisType;
   }
 
+  /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
+  /// or implicit [PrefixExpression] or [PostfixExpression].
+  PropertyElementResolverResult resolveForWrite({
+    @required AstNode node,
+    @required bool hasRead,
+  }) {
+    if (node is IndexExpression) {
+      node.target?.accept(this);
+      startNullAwareIndexExpression(node);
+
+      var resolver = PropertyElementResolver(this);
+      var result = resolver.resolveIndexExpression(
+        node: node,
+        hasRead: hasRead,
+        hasWrite: true,
+      );
+
+      InferenceContext.setType(node.index, result.indexContextType);
+      node.index.accept(this);
+
+      return result;
+    } else if (node is PrefixedIdentifier) {
+      node.prefix?.accept(this);
+
+      var resolver = PropertyElementResolver(this);
+      return resolver.resolvePrefixedIdentifier(
+        node: node,
+        hasRead: hasRead,
+        hasWrite: true,
+      );
+    } else if (node is PropertyAccess) {
+      node.target?.accept(this);
+      startNullAwarePropertyAccess(node);
+
+      var resolver = PropertyElementResolver(this);
+      return resolver.resolvePropertyAccess(
+        node: node,
+        hasRead: hasRead,
+        hasWrite: true,
+      );
+    } else if (node is SimpleIdentifier) {
+      var resolver = PropertyElementResolver(this);
+      return resolver.resolveSimpleIdentifier(
+        node: node,
+        hasRead: hasRead,
+        hasWrite: true,
+      );
+    } else {
+      node.accept(this);
+      return PropertyElementResolverResult();
+    }
+  }
+
   /// Visit the given [comment] if it is not `null`.
   void safelyVisitComment(Comment comment) {
     if (comment != null) {
       super.visitComment(comment);
+    }
+  }
+
+  /// TODO(scheglov) This is mostly necessary for backward compatibility.
+  /// Although we also use `staticElement` for `getType(left)` below.
+  void setAssignmentBackwardCompatibility({
+    @required CompoundAssignmentExpression assignment,
+    @required AstNode left,
+    @required bool hasRead,
+  }) {
+    if (left is IndexExpression) {
+      if (hasRead) {
+        left.staticElement = assignment.writeElement;
+        left.auxiliaryElements = AuxiliaryElements(assignment.readElement);
+      } else {
+        left.staticElement = assignment.writeElement;
+      }
+      inferenceHelper.recordStaticType(left, assignment.writeType);
+      return;
+    }
+
+    SimpleIdentifier leftIdentifier;
+    if (left is PrefixedIdentifier) {
+      leftIdentifier = left.identifier;
+      inferenceHelper.recordStaticType(left, assignment.writeType);
+    } else if (left is PropertyAccess) {
+      leftIdentifier = left.propertyName;
+      inferenceHelper.recordStaticType(left, assignment.writeType);
+    } else if (left is SimpleIdentifier) {
+      leftIdentifier = left;
+    } else {
+      return;
+    }
+
+    if (hasRead) {
+      var readElement = assignment.readElement;
+      if (readElement is PropertyAccessorElement) {
+        leftIdentifier.auxiliaryElements = AuxiliaryElements(readElement);
+      }
+    }
+
+    leftIdentifier.staticElement = assignment.writeElement;
+    if (assignment.readElement is VariableElement) {
+      var leftType = localVariableTypeProvider.getType(leftIdentifier);
+      inferenceHelper.recordStaticType(leftIdentifier, leftType);
+    } else {
+      inferenceHelper.recordStaticType(leftIdentifier, assignment.writeType);
     }
   }
 
