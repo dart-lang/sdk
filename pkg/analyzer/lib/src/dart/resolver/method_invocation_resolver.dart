@@ -475,8 +475,6 @@ class MethodInvocationResolver {
 
   void _resolveReceiverNull(
       MethodInvocation node, SimpleIdentifier nameNode, String name) {
-    _resolver.checkReadOfNotAssignedLocalVariable(nameNode);
-
     var element = nameScope.lookup2(name).getter;
     if (element != null) {
       element = _resolver.toLegacyElement(element);
@@ -492,6 +490,7 @@ class MethodInvocationResolver {
         return _setResolution(node, element.type);
       }
       if (element is VariableElement) {
+        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
         var targetType = _localVariableTypeProvider.getType(nameNode);
         return _rewriteAsFunctionExpressionInvocation(node, targetType);
       }

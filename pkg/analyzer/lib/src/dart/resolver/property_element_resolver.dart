@@ -198,6 +198,36 @@ class PropertyElementResolver {
     );
   }
 
+  PropertyElementResolverResult resolveSimpleIdentifier({
+    @required SimpleIdentifier node,
+    @required bool hasRead,
+    @required bool hasWrite,
+  }) {
+    Element readElementRequested;
+    Element readElementRecovery;
+    if (hasRead) {
+      var readLookup = _resolver.lexicalLookup(node: node, setter: false);
+      readElementRequested = readLookup.requested;
+      _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
+    }
+
+    var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
+
+    AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
+      node: node,
+      requested: writeLookup.requested,
+      recovery: writeLookup.recovery,
+      receiverTypeObject: null,
+    );
+
+    return PropertyElementResolverResult(
+      readElementRequested: readElementRequested,
+      readElementRecovery: readElementRecovery,
+      writeElementRequested: writeLookup.requested,
+      writeElementRecovery: writeLookup.recovery,
+    );
+  }
+
   void _checkExtensionOverrideStaticMember(
     SimpleIdentifier propertyName,
     ExecutableElement element,

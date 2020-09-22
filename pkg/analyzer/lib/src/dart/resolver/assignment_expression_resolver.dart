@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -59,40 +58,64 @@ class AssignmentExpressionResolver {
     var left = node.leftHandSide;
     var right = node.rightHandSide;
 
-    if (left is IndexExpression) {
-      _resolve_IndexExpression(node, left);
-      return;
-    }
-
-    if (left is PrefixedIdentifier) {
-      _resolve_PrefixedIdentifier(node, left);
-      return;
-    }
-
-    if (left is PropertyAccess) {
-      _resolve_PropertyAccess(node, left);
-      return;
-    }
-
-    if (left is SimpleIdentifier) {
-      _resolve_SimpleIdentifier(node, left);
-      return;
-    }
-
-    left?.accept(_resolver);
-    left = node.leftHandSide;
-
     var operator = node.operator.type;
-    if (operator != TokenType.EQ) {
-      if (node.readElement == null || node.readType == null) {
-        _resolver.setReadElement(left, null);
+    var hasRead = operator != TokenType.EQ;
+    var isIfNull = operator == TokenType.QUESTION_QUESTION_EQ;
+
+    PropertyElementResolverResult leftResolution;
+    if (left is IndexExpression) {
+      leftResolution = _resolve_IndexExpression(node, left, hasRead);
+    } else if (left is PrefixedIdentifier) {
+      leftResolution = _resolve_PrefixedIdentifier(node, left, hasRead);
+      left = node.leftHandSide;
+    } else if (left is PropertyAccess) {
+      leftResolution = _resolve_PropertyAccess(node, left, hasRead);
+    } else if (left is SimpleIdentifier) {
+      leftResolution = _resolve_SimpleIdentifier(node, left, hasRead);
+    } else {
+      leftResolution = _resolve_NotLValue(node);
+      left = node.leftHandSide;
+    }
+
+    var readElement = leftResolution.readElement;
+    var writeElement = leftResolution.writeElement;
+
+    if (hasRead) {
+      _resolver.setReadElement(left, readElement);
+    }
+    _resolver.setWriteElement(left, writeElement);
+
+    _setBackwardCompatibility(node);
+
+    _resolveOperator(node);
+
+    {
+      var leftType = node.writeType;
+      if (writeElement is VariableElement) {
+        leftType = _resolver.localVariableTypeProvider.getType(left);
+      }
+      _setRhsContext(node, leftType, operator, right);
+    }
+
+    var flow = _flowAnalysis?.flow;
+    if (flow != null && isIfNull) {
+      flow.ifNullExpression_rightBegin(left, node.readType);
+    }
+
+    right.accept(_resolver);
+
+    _resolveTypes(node);
+
+    if (flow != null) {
+      if (writeElement is VariableElement) {
+        flow.write(writeElement, node.staticType);
+      }
+      if (isIfNull) {
+        flow.ifNullExpression_end();
       }
     }
-    if (node.writeElement == null || node.writeType == null) {
-      _resolver.setWriteElement(left, null);
-    }
 
-    _resolve3(node, left, operator, right);
+    _resolver.nullShortingTermination(node);
   }
 
   void _checkForInvalidAssignment(
@@ -161,8 +184,81 @@ class AssignmentExpressionResolver {
     }
   }
 
-  void _resolve1(AssignmentExpressionImpl node) {
-    var leftHandSide = node.leftHandSide;
+  PropertyElementResolverResult _resolve_IndexExpression(
+    AssignmentExpressionImpl node,
+    IndexExpression left,
+    bool hasRead,
+  ) {
+    left.target?.accept(_resolver);
+    _resolver.startNullAwareIndexExpression(left);
+
+    var resolver = PropertyElementResolver(_resolver);
+    var result = resolver.resolveIndexExpression(
+      node: left,
+      hasRead: hasRead,
+      hasWrite: true,
+    );
+
+    InferenceContext.setType(left.index, result.indexContextType);
+    left.index.accept(_resolver);
+
+    return result;
+  }
+
+  PropertyElementResolverResult _resolve_NotLValue(
+    AssignmentExpressionImpl node,
+  ) {
+    node.leftHandSide.accept(_resolver);
+    return PropertyElementResolverResult();
+  }
+
+  PropertyElementResolverResult _resolve_PrefixedIdentifier(
+    AssignmentExpressionImpl node,
+    PrefixedIdentifier left,
+    bool hasRead,
+  ) {
+    left.prefix?.accept(_resolver);
+
+    var resolver = PropertyElementResolver(_resolver);
+    return resolver.resolvePrefixedIdentifier(
+      node: left,
+      hasRead: hasRead,
+      hasWrite: true,
+    );
+  }
+
+  PropertyElementResolverResult _resolve_PropertyAccess(
+    AssignmentExpressionImpl node,
+    PropertyAccess left,
+    bool hasRead,
+  ) {
+    left.target?.accept(_resolver);
+
+    _resolver.startNullAwarePropertyAccess(left);
+
+    var resolver = PropertyElementResolver(_resolver);
+    return resolver.resolvePropertyAccess(
+      node: left,
+      hasRead: hasRead,
+      hasWrite: true,
+    );
+  }
+
+  PropertyElementResolverResult _resolve_SimpleIdentifier(
+    AssignmentExpressionImpl node,
+    SimpleIdentifier left,
+    bool hasRead,
+  ) {
+    var resolver = PropertyElementResolver(_resolver);
+    return resolver.resolveSimpleIdentifier(
+      node: left,
+      hasRead: hasRead,
+      hasWrite: true,
+    );
+  }
+
+  void _resolveOperator(AssignmentExpressionImpl node) {
+    var left = node.leftHandSide;
     var operator = node.operator;
     var operatorType = operator.type;
 
@@ -171,7 +267,7 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    _assignmentShared.checkFinalAlreadyAssigned(leftHandSide);
+    _assignmentShared.checkFinalAlreadyAssigned(left);
 
     // Values of the type void cannot be used.
     // Example: `y += 0`, is not allowed.
@@ -196,10 +292,10 @@ class AssignmentExpressionResolver {
     var methodName = binaryOperatorType.lexeme;
 
     var result = _typePropertyResolver.resolve(
-      receiver: leftHandSide,
+      receiver: left,
       receiverType: leftType,
       name: methodName,
-      receiverErrorNode: leftHandSide,
+      receiverErrorNode: left,
       nameErrorEntity: operator,
     );
     node.staticElement = result.getter;
@@ -210,170 +306,6 @@ class AssignmentExpressionResolver {
         [methodName, leftType],
       );
     }
-  }
-
-  void _resolve3(AssignmentExpressionImpl node, Expression left,
-      TokenType operator, Expression right) {
-    _resolve1(node);
-
-    {
-      var leftType = node.writeType;
-      if (node.writeElement is VariableElement) {
-        leftType = _resolver.localVariableTypeProvider.getType(left);
-      }
-      _setRhsContext(node, leftType, operator, right);
-    }
-
-    var flow = _flowAnalysis?.flow;
-    if (flow != null && operator == TokenType.QUESTION_QUESTION_EQ) {
-      flow.ifNullExpression_rightBegin(left, node.readType);
-    }
-
-    right?.accept(_resolver);
-    right = node.rightHandSide;
-
-    _resolveTypes(node);
-
-    _resolver.nullShortingTermination(node);
-
-    if (flow != null) {
-      if (node.writeElement is VariableElement) {
-        flow.write(node.writeElement, node.staticType);
-      }
-      if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-        flow.ifNullExpression_end();
-      }
-    }
-  }
-
-  void _resolve_IndexExpression(
-    AssignmentExpressionImpl node,
-    IndexExpression left,
-  ) {
-    left.target?.accept(_resolver);
-    _resolver.startNullAwareIndexExpression(left);
-
-    var operator = node.operator.type;
-    var hasRead = operator != TokenType.EQ;
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolveIndexExpression(
-      node: left,
-      hasRead: hasRead,
-      hasWrite: true,
-    );
-
-    var readElement = result.readElement;
-    var writeElement = result.writeElement;
-
-    InferenceContext.setType(left.index, result.indexContextType);
-    left.index.accept(_resolver);
-
-    if (hasRead) {
-      _resolver.setReadElement(left, readElement);
-    }
-    _resolver.setWriteElement(left, writeElement);
-
-    _setBackwardCompatibility(node);
-
-    var right = node.rightHandSide;
-    _resolve3(node, left, operator, right);
-  }
-
-  void _resolve_PrefixedIdentifier(
-    AssignmentExpressionImpl node,
-    PrefixedIdentifier left,
-  ) {
-    left.prefix?.accept(_resolver);
-
-    var operator = node.operator.type;
-    var hasRead = operator != TokenType.EQ;
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolvePrefixedIdentifier(
-      node: left,
-      hasRead: hasRead,
-      hasWrite: true,
-    );
-
-    var readElement = result.readElement;
-    var writeElement = result.writeElement;
-
-    if (hasRead) {
-      _resolver.setReadElement(left, readElement);
-    }
-    _resolver.setWriteElement(left, writeElement);
-
-    _setBackwardCompatibility(node);
-
-    var right = node.rightHandSide;
-    _resolve3(node, left, operator, right);
-  }
-
-  void _resolve_PropertyAccess(
-    AssignmentExpressionImpl node,
-    PropertyAccess left,
-  ) {
-    left.target?.accept(_resolver);
-
-    var operator = node.operator.type;
-    var hasRead = operator != TokenType.EQ;
-
-    _resolver.startNullAwarePropertyAccess(left);
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolvePropertyAccess(
-      node: left,
-      hasRead: hasRead,
-      hasWrite: true,
-    );
-
-    var readElement = result.readElement;
-    var writeElement = result.writeElement;
-
-    if (hasRead) {
-      _resolver.setReadElement(left, readElement);
-    }
-    _resolver.setWriteElement(left, writeElement);
-
-    _setBackwardCompatibility(node);
-
-    var right = node.rightHandSide;
-    _resolve3(node, left, operator, right);
-  }
-
-  void _resolve_SimpleIdentifier(
-    AssignmentExpressionImpl node,
-    SimpleIdentifier left,
-  ) {
-    var right = node.rightHandSide;
-    var operator = node.operator.type;
-
-    if (operator != TokenType.EQ) {
-      var readLookup = _resolver.lexicalLookup(node: left, setter: false);
-      var readElement = readLookup.requested;
-      _resolver.setReadElement(left, readElement);
-    }
-
-    var writeLookup = _resolver.lexicalLookup(node: left, setter: true);
-    var writeElement = writeLookup.requested ?? writeLookup.recovery;
-    _resolver.setWriteElement(left, writeElement);
-
-    AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
-      node: left,
-      requested: writeLookup.requested,
-      recovery: writeLookup.recovery,
-      receiverTypeObject: null,
-    );
-
-    _setBackwardCompatibility(node);
-
-    if (operator != TokenType.EQ) {
-      // TODO(scheglov) Change this method to work with elements.
-      _resolver.checkReadOfNotAssignedLocalVariable(left);
-    }
-
-    _resolve3(node, left, operator, right);
   }
 
   void _resolveTypes(AssignmentExpressionImpl node) {
@@ -457,6 +389,8 @@ class AssignmentExpressionResolver {
       _recordStaticType(left, node.writeType);
     } else if (left is SimpleIdentifier) {
       leftIdentifier = left;
+    } else {
+      return;
     }
 
     if (hasRead) {

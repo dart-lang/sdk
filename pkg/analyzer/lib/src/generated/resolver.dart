@@ -444,7 +444,10 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  void checkReadOfNotAssignedLocalVariable(SimpleIdentifier node) {
+  void checkReadOfNotAssignedLocalVariable(
+    SimpleIdentifier node,
+    Element element,
+  ) {
     if (_flowAnalysis?.flow == null) {
       return;
     }
@@ -453,7 +456,6 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    var element = node.staticElement;
     if (element is VariableElement) {
       var assigned = _flowAnalysis.isDefinitelyAssigned(node, element);
       var unassigned = _flowAnalysis.isDefinitelyUnassigned(node, element);
@@ -1707,7 +1709,7 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    checkReadOfNotAssignedLocalVariable(node);
+    checkReadOfNotAssignedLocalVariable(node, node.staticElement);
 
     super.visitSimpleIdentifier(node);
   }
