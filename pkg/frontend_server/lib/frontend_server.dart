@@ -342,6 +342,7 @@ class FrontendCompiler implements CompilerInterface {
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
+  ProcessedOptions _processedOptions;
   FileSystem _fileSystem;
   Uri _mainSource;
   ArgResults _options;
@@ -516,6 +517,7 @@ class FrontendCompiler implements CompilerInterface {
 
     _compilerOptions = compilerOptions;
     _bytecodeOptions = bytecodeOptions;
+    _processedOptions = ProcessedOptions(options: compilerOptions);
 
     KernelCompilationResults results;
     IncrementalSerializer incrementalSerializer;
@@ -972,14 +974,21 @@ class FrontendCompiler implements CompilerInterface {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
 
+    _processedOptions.ticker.logMs('Compiling expression to JavaScript');
+
     var kernel2jsCompiler = _bundler.compilers[moduleName];
     Component component = _generator.lastKnownGoodComponent;
     component.computeCanonicalNames();
+
+    _processedOptions.ticker.logMs('Computed component');
+
     var evaluator = new ExpressionCompiler(
-        _generator.generator, kernel2jsCompiler, component,
-        verbose: _compilerOptions.verbose,
-        onDiagnostic: _compilerOptions.onDiagnostic,
-        errors: errors);
+      _compilerOptions,
+      errors,
+      _generator.generator,
+      kernel2jsCompiler,
+      component,
+    );
 
     var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
         column, jsModules, jsFrameValues, moduleName, expression);
@@ -989,6 +998,8 @@ class FrontendCompiler implements CompilerInterface {
     // TODO(annagrin): kernelBinaryFilename is too specific
     // rename to _outputFileName?
     await File(_kernelBinaryFilename).writeAsString(result);
+
+    _processedOptions.ticker.logMs('Compiled expression to JavaScript');
 
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
