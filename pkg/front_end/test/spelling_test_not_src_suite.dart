@@ -38,4 +38,8 @@ class SpellContextTest extends SpellContext {
 
   @override
   bool get onlyDenylisted => false;
+
+  @override
+  String get repoRelativeSuitePath =>
+      "pkg/front_end/test/spelling_test_not_src_suite.dart";
 }

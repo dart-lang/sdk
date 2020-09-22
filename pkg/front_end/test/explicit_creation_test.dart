@@ -40,17 +40,9 @@ import 'package:kernel/target/targets.dart';
 import "package:vm/target/vm.dart" show VmTarget;
 
 import 'testing_utils.dart' show getGitFiles;
+import "utils/io_utils.dart";
 
-final Uri repoDir = _computeRepoDir();
-
-Uri _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  String dirPath = (result.stdout as String).trim();
-  return new Directory(dirPath).uri;
-}
+final Uri repoDir = computeRepoDirUri();
 
 Set<Uri> libUris = {};
 
