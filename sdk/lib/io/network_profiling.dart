@@ -6,7 +6,7 @@ part of dart.io;
 
 // TODO(bkonyi): refactor into io_resource_info.dart
 const int _versionMajor = 1;
-const int _versionMinor = 2;
+const int _versionMinor = 3;
 
 const String _tcpSocket = 'tcp';
 const String _udpSocket = 'udp';
@@ -14,10 +14,14 @@ const String _udpSocket = 'udp';
 @pragma('vm:entry-point', !const bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
+  @Deprecated('Use httpEnableTimelineLogging instead')
   static const _kGetHttpEnableTimelineLogging =
       'ext.dart.io.getHttpEnableTimelineLogging';
+  @Deprecated('Use httpEnableTimelineLogging instead')
   static const _kSetHttpEnableTimelineLogging =
       'ext.dart.io.setHttpEnableTimelineLogging';
+  static const _kHttpEnableTimelineLogging =
+      'ext.dart.io.httpEnableTimelineLogging';
   // Socket relative RPCs
   static const _kClearSocketProfileRPC = 'ext.dart.io.clearSocketProfile';
   static const _kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
@@ -33,6 +37,7 @@ abstract class _NetworkProfiling {
   static void _registerServiceExtension() {
     registerExtension(_kGetHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kSetHttpEnableTimelineLogging, _serviceExtensionHandler);
+    registerExtension(_kHttpEnableTimelineLogging, _serviceExtensionHandler);
     registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
     registerExtension(_kStartSocketProfilingRPC, _serviceExtensionHandler);
     registerExtension(_kPauseSocketProfilingRPC, _serviceExtensionHandler);
@@ -50,6 +55,12 @@ abstract class _NetworkProfiling {
           break;
         case _kSetHttpEnableTimelineLogging:
           responseJson = _setHttpEnableTimelineLogging(parameters);
+          break;
+        case _kHttpEnableTimelineLogging:
+          if (parameters.containsKey('enable')) {
+            _setHttpEnableTimelineLogging(parameters);
+          }
+          responseJson = _getHttpEnableTimelineLogging();
           break;
         case _kGetSocketProfileRPC:
           responseJson = _SocketProfile.toJson();
@@ -108,7 +119,7 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   if (enable != 'true' && enable != 'false') {
     throw _invalidArgument(kEnable, enable);
   }
-  HttpClient.enableTimelineLogging = (enable == 'true');
+  HttpClient.enableTimelineLogging = enable == 'true';
   return _success();
 }
 

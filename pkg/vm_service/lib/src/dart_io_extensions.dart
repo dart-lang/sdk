@@ -43,6 +43,7 @@ extension DartIOExtension on VmService {
   ///
   /// Warning: The returned [Future] will not complete if the target isolate is paused
   /// and will only complete when the isolate is resumed.
+  @Deprecated('Use httpEnableTimelineLogging instead.')
   Future<HttpTimelineLoggingState> getHttpEnableTimelineLogging(
           String isolateId) =>
       _callHelper('ext.dart.io.getHttpEnableTimelineLogging', isolateId);
@@ -51,9 +52,16 @@ extension DartIOExtension on VmService {
   ///
   /// Warning: The returned [Future] will not complete if the target isolate is paused
   /// and will only complete when the isolate is resumed.
+  @Deprecated('Use httpEnableTimelineLogging instead.')
   Future<Success> setHttpEnableTimelineLogging(String isolateId, bool enable) =>
       _callHelper('ext.dart.io.setHttpEnableTimelineLogging', isolateId, args: {
         'enable': enable,
+      });
+
+  Future<HttpTimelineLoggingState> httpEnableTimelineLogging(String isolateId,
+          [bool enable]) =>
+      _callHelper('ext.dart.io.httpEnableTimelineLogging', isolateId, args: {
+        if (enable != null) 'enable': enable,
       });
 
   /// The `getOpenFiles` RPC is used to retrieve the list of files currently
