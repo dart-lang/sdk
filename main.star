@@ -847,13 +847,6 @@ dart_vm_extra_builder(
     category = "vm|app-kernel|r64",
 )
 
-# vm|dartkb
-dart_vm_extra_builder(
-    "vm-dartkb-linux-release-simarm64",
-    category = "vm|dartkb|sr",
-)
-dart_vm_extra_builder("vm-dartkb-linux-release-x64", category = "vm|dartkb|r")
-
 #vm|kernel
 dart_vm_extra_builder(
     "vm-canary-linux-debug",
