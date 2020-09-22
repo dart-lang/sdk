@@ -8,7 +8,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '2.11.0';
+const _currentVersion = '2.10.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -68,7 +68,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.constant_update_2018,
     documentation: 'Enhanced constant expressions',
     experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('2.4.1'),
+    releaseVersion: Version.parse('2.0.0'),
   );
 
   static final control_flow_collections = ExperimentalFeature(

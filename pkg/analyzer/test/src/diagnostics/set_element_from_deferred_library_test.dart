@@ -10,37 +10,14 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetElementFromDeferredLibraryTest);
-    defineReflectiveTests(SetElementFromDeferredLibraryTest_language24);
   });
 }
 
 @reflectiveTest
 class SetElementFromDeferredLibraryTest extends PubPackageResolutionTest
-    with SetElementFromDeferredLibraryTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class SetElementFromDeferredLibraryTest_language24
-    extends PubPackageResolutionTest
-    with SetElementFromDeferredLibraryTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with SetElementFromDeferredLibraryTestCases {}
 
 mixin SetElementFromDeferredLibraryTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   @failingTest
   test_const_ifElement_thenTrue_elseDeferred() async {
     // reports wrong error code
@@ -58,20 +35,13 @@ var v = const {if (cond) null else a.c};
   test_const_ifElement_thenTrue_thenDeferred() async {
     newFile(convertPath('$testPackageLibPath/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const {if (cond) a.c};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-                    78, 3),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 68, 13),
-              ]);
+''', [
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 78, 3),
+    ]);
   }
 
   test_const_topLevel_deferred() async {

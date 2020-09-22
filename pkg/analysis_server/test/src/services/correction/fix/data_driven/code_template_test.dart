@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/value_extractor.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';

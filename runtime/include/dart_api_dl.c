@@ -16,7 +16,7 @@ DART_API_ALL_DL_SYMBOLS(DART_API_DL_DEFINITIONS)
 
 #undef DART_API_DL_DEFINITIONS
 
-typedef void (*DartApiEntry_function)();
+typedef void* DartApiEntry_function;
 
 DartApiEntry_function FindFunctionPointer(const DartApiEntry* entries,
                                           const char* name) {

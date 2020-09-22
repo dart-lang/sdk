@@ -10,67 +10,32 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapValueTest);
-    defineReflectiveTests(NonConstantMapValueTest_language24);
   });
 }
 
 @reflectiveTest
 class NonConstantMapValueTest extends PubPackageResolutionTest
-    with NonConstantMapValueTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class NonConstantMapValueTest_language24 extends PubPackageResolutionTest
-    with NonConstantMapValueTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with NonConstantMapValueTestCases {}
 
 mixin NonConstantMapValueTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   test_const_ifTrue_elseFinal() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 18),
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
+    ]);
   }
 
   test_const_ifTrue_thenFinal() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 71, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 17),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 71, 1),
+    ]);
   }
 
   test_const_topLevel() async {

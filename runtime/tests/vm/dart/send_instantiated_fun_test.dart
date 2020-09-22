@@ -16,7 +16,7 @@ class Dog {}
 // Prevent obfuscation.
 @pragma('vm:entry-point')
 List<T> decodeFrom<T>(String s) {
-  return List();
+  return [];
 }
 
 // Prevent obfuscation.

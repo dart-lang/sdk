@@ -3121,6 +3121,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
   __ pushl(AllocateTypedDataArrayABI::kLengthReg);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, ECX, &call_runtime, false));
+  __ movl(EDI, AllocateTypedDataArrayABI::kLengthReg);
   /* Check that length is a positive Smi. */
   /* EDI: requested array length argument. */
   __ testl(EDI, Immediate(kSmiTagMask));

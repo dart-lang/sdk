@@ -664,6 +664,15 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
+  void startNullAwareIndexExpression(IndexExpression node) {
+    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
+        _isNonNullableByDefault) {
+      _flowAnalysis.flow.nullAwareAccess_rightBegin(
+          node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
+      _unfinishedNullShorts.add(node.nullShortingTermination);
+    }
+  }
+
   void startNullAwarePropertyAccess(
     PropertyAccess node,
   ) {
@@ -1462,21 +1471,8 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
-        _isNonNullableByDefault) {
-      _flowAnalysis.flow.nullAwareAccess_rightBegin(
-          node.target, node.realTarget.staticType ?? typeProvider.dynamicType);
-      _unfinishedNullShorts.add(node.nullShortingTermination);
-    }
+    startNullAwareIndexExpression(node);
     node.accept(elementResolver);
-    var method = node.staticElement;
-    if (method != null) {
-      var parameters = method.parameters;
-      if (parameters.isNotEmpty) {
-        var indexParam = parameters[0];
-        InferenceContext.setType(node.index, indexParam.type);
-      }
-    }
     node.index?.accept(this);
     node.accept(typeAnalyzer);
   }

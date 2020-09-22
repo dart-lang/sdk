@@ -1,3 +1,7 @@
+## 1.3.0-nullsafety.3
+
+* Allow 2.10 stable and 2.11.0 dev SDK versions.
+
 ## 1.3.0-nullsafety.2
 
 * Update for the 2.10 dev sdk.

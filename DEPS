@@ -66,7 +66,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_rev": "128c461a97dbdbd9336ba000ba5a5c02e79b8651",
+  "async_rev": "3fedad22c6940650526a86adebbf2872b81c2805",
   "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
@@ -76,7 +76,7 @@ vars = {
   "charcode_rev": "4a685faba42d86ebd9d661eadd1e79d0a1c34c43",
   "chrome_rev" : "19997",
   "cli_util_tag" : "0.2.0",
-  "collection_rev": "583693680fc067e34ca5b72503df25e8b80579f9",
+  "collection_rev": "65d3e58ee5289528ec280d361a67a631d65b3d7f",
   "convert_rev": "c1b01f832835d3d8a06b0b246a361c0eaab35d3c",
   "crypto_rev": "f7c48b334b1386bc5ab0f706fbcd6df8496a87fc",
   "csslib_rev": "681a6603f86bbbe64e8af42d722aef63b028d241",

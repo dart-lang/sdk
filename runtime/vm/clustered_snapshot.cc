@@ -2206,14 +2206,14 @@ class WeakSerializationReferenceSerializationCluster
     s->WriteUnsigned(WrittenCount());
 
     // Set up references for those objects that will be written.
-    for (auto const ref : canonical_wsrs_) {
+    for (auto const& ref : canonical_wsrs_) {
       s->AssignRef(ref);
     }
 
     // In precompiled mode, set the object ID of each non-canonical WSR to
     // its canonical counterpart's object ID. This ensures that any reference to
     // it is serialized as a reference to the canonicalized one.
-    for (auto const ref : objects_) {
+    for (auto const& ref : objects_) {
       ASSERT(IsReachableReference(heap_->GetObjectId(ref)));
       if (ShouldDrop(ref)) {
         // For dropped references, reset their ID to be the unreachable
@@ -2238,7 +2238,7 @@ class WeakSerializationReferenceSerializationCluster
 
   void WriteFill(Serializer* s) {
     ASSERT(s->kind() == Snapshot::kFullAOT);
-    for (auto const ref : canonical_wsrs_) {
+    for (auto const& ref : canonical_wsrs_) {
       AutoTraceObject(ref);
 
       // In precompiled mode, we drop the reference to the target and only

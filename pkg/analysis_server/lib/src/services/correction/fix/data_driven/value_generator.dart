@@ -30,6 +30,19 @@ class ArgumentExpression extends ValueGenerator {
     return null;
   }
 
+  @override
+  bool validate(TemplateContext context) {
+    var argumentList = _getArgumentList(context.node);
+    if (argumentList == null) {
+      return false;
+    }
+    var expression = parameter.argumentFrom(argumentList);
+    if (expression != null) {
+      return false;
+    }
+    return true;
+  }
+
   /// Return the argument list associated with the given [node].
   ArgumentList _getArgumentList(AstNode node) {
     if (node is ArgumentList) {
@@ -38,6 +51,13 @@ class ArgumentExpression extends ValueGenerator {
       return node.argumentList;
     } else if (node is InstanceCreationExpression) {
       return node.argumentList;
+    } else if (node is TypeArgumentList) {
+      var parent = node.parent;
+      if (parent is InvocationExpression) {
+        return parent.argumentList;
+      } else if (parent is ExtensionOverride) {
+        return parent.argumentList;
+      }
     }
     return null;
   }
@@ -59,6 +79,12 @@ class ImportedName extends ValueGenerator {
     // TODO(brianwilkerson) Figure out how to add the import when necessary.
     return name;
   }
+
+  @override
+  bool validate(TemplateContext context) {
+    // TODO(brianwilkerson) Validate that the import can be added.
+    return true;
+  }
 }
 
 /// An object used to generate the value of a template variable.
@@ -66,4 +92,8 @@ abstract class ValueGenerator {
   /// Use the [context] to generate the value of a template variable and return
   /// the generated value.
   String from(TemplateContext context);
+
+  /// Use the [context] to validate that this generator will be able to generate
+  /// a value.
+  bool validate(TemplateContext context);
 }

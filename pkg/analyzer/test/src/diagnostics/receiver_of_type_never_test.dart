@@ -157,7 +157,7 @@ void main(Never x) {
       findNode.index('x[0]'),
       readElement: null,
       writeElement: null,
-      type: 'Never',
+      type: 'dynamic',
     );
 
     assertType(findNode.binary('1 + 2'), 'int');

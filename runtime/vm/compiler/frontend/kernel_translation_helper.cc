@@ -1826,13 +1826,13 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  Thread* T = Thread::Current();
-  Zone* Z = T->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   intptr_t unit_count = helper_->ReadUInt();
-  Array& loading_units = Array::Handle(Z, Array::New(unit_count + 1));
-  LoadingUnit& unit = LoadingUnit::Handle(Z);
-  LoadingUnit& parent = LoadingUnit::Handle(Z);
-  Library& lib = Library::Handle(Z);
+  Array& loading_units = Array::Handle(zone, Array::New(unit_count + 1));
+  LoadingUnit& unit = LoadingUnit::Handle(zone);
+  LoadingUnit& parent = LoadingUnit::Handle(zone);
+  Library& lib = Library::Handle(zone);
 
   for (int i = 0; i < unit_count; i++) {
     intptr_t id = helper_->ReadUInt();
@@ -1849,7 +1849,7 @@ void LoadingUnitsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     for (intptr_t j = 0; j < library_count; j++) {
       const String& uri =
           translation_helper_.DartSymbolPlain(helper_->ReadStringReference());
-      lib = Library::LookupLibrary(T, uri);
+      lib = Library::LookupLibrary(thread, uri);
       if (lib.IsNull()) {
         FATAL1("Missing library: %s\n", uri.ToCString());
       }

@@ -5,11 +5,14 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -26,6 +29,97 @@ class PropertyElementResolver {
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
+
+  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+
+  PropertyElementResolverResult resolveIndexExpression({
+    @required IndexExpression node,
+    @required bool hasRead,
+    @required bool hasWrite,
+  }) {
+    var target = node.realTarget;
+    var targetType = target.staticType;
+    targetType = _resolveTypeParameter(targetType);
+
+    if (target is ExtensionOverride) {
+      var result = _extensionResolver.getOverrideMember(target, '[]');
+
+      // TODO(scheglov) Change ExtensionResolver to set `needsGetterError`.
+      if (hasRead && result.getter == null && !result.isAmbiguous) {
+        _reportUnresolvedIndex(
+          node,
+          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+          ['[]', target.staticElement.name],
+        );
+      }
+
+      if (hasWrite && result.setter == null && !result.isAmbiguous) {
+        _reportUnresolvedIndex(
+          node,
+          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+          ['[]=', target.staticElement.name],
+        );
+      }
+
+      return _toIndexResult(result);
+    }
+
+    if (targetType.isVoid) {
+      // TODO(scheglov) Report directly in TypePropertyResolver?
+      _reportUnresolvedIndex(
+        node,
+        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      );
+      return PropertyElementResolverResult();
+    }
+
+    if (identical(targetType, NeverTypeImpl.instance)) {
+      // TODO(scheglov) Report directly in TypePropertyResolver?
+      _errorReporter.reportErrorForNode(
+        HintCode.RECEIVER_OF_TYPE_NEVER,
+        target,
+      );
+      return PropertyElementResolverResult();
+    }
+
+    if (node.isNullAware) {
+      if (target is ExtensionOverride) {
+        // https://github.com/dart-lang/language/pull/953
+      } else {
+        targetType = _typeSystem.promoteToNonNull(targetType);
+      }
+    }
+
+    var result = _resolver.typePropertyResolver.resolve(
+      receiver: target,
+      receiverType: targetType,
+      name: '[]',
+      receiverErrorNode: target,
+      nameErrorEntity: target,
+    );
+
+    if (hasRead && result.needsGetterError) {
+      _reportUnresolvedIndex(
+        node,
+        target is SuperExpression
+            ? CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR
+            : CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        ['[]', targetType],
+      );
+    }
+
+    if (hasWrite && result.needsSetterError) {
+      _reportUnresolvedIndex(
+        node,
+        target is SuperExpression
+            ? CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR
+            : CompileTimeErrorCode.UNDEFINED_OPERATOR,
+        ['[]=', targetType],
+      );
+    }
+
+    return _toIndexResult(result);
+  }
 
   PropertyElementResolverResult resolvePrefixedIdentifier({
     @required PrefixedIdentifier node,
@@ -130,8 +224,35 @@ class PropertyElementResolver {
     );
   }
 
+  DartType _computeIndexContextType({
+    @required ExecutableElement readElement,
+    @required ExecutableElement writeElement,
+  }) {
+    var method = writeElement ?? readElement;
+    var parameters = method is MethodElement ? method.parameters : null;
+
+    if (parameters != null && parameters.isNotEmpty) {
+      return parameters[0].type;
+    }
+
+    return null;
+  }
+
   bool _isAccessible(ExecutableElement element) {
     return element.isAccessibleIn(_definingLibrary);
+  }
+
+  void _reportUnresolvedIndex(
+    IndexExpression node,
+    ErrorCode errorCode, [
+    List<Object> arguments = const [],
+  ]) {
+    var leftBracket = node.leftBracket;
+    var rightBracket = node.rightBracket;
+    var offset = leftBracket.offset;
+    var length = rightBracket.end - offset;
+
+    _errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
   PropertyElementResolverResult _resolve({
@@ -192,7 +313,7 @@ class PropertyElementResolver {
     }
 
     if (isNullAware) {
-      targetType = _resolver.typeSystem.promoteToNonNull(targetType);
+      targetType = _typeSystem.promoteToNonNull(targetType);
     }
 
     var result = _resolver.typePropertyResolver.resolve(
@@ -310,7 +431,7 @@ class PropertyElementResolver {
       readElement ??= extension.getMethod(memberName);
 
       if (readElement == null) {
-        _resolver.errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
           propertyName,
           [memberName, extension.name],
@@ -326,7 +447,7 @@ class PropertyElementResolver {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        _resolver.errorReporter.reportErrorForNode(
+        _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
           propertyName,
           [memberName, extension.name],
@@ -492,6 +613,20 @@ class PropertyElementResolver {
     }
     return type;
   }
+
+  PropertyElementResolverResult _toIndexResult(ResolutionResult result) {
+    var readElement = result.getter;
+    var writeElement = result.setter;
+
+    return PropertyElementResolverResult(
+      readElementRequested: readElement,
+      writeElementRequested: writeElement,
+      indexContextType: _computeIndexContextType(
+        readElement: readElement,
+        writeElement: writeElement,
+      ),
+    );
+  }
 }
 
 class PropertyElementResolverResult {
@@ -500,11 +635,16 @@ class PropertyElementResolverResult {
   final Element writeElementRequested;
   final Element writeElementRecovery;
 
+  /// If [IndexExpression] is resolved, the context type of the index.
+  /// Might be `null` if `[]` or `[]=` are not resolved or invalid.
+  final DartType indexContextType;
+
   PropertyElementResolverResult({
     this.readElementRequested,
     this.readElementRecovery,
     this.writeElementRequested,
     this.writeElementRecovery,
+    this.indexContextType,
   });
 
   Element get readElement {

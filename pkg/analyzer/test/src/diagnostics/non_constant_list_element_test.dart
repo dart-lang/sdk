@@ -10,36 +10,14 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantListElementTest);
-    defineReflectiveTests(NonConstantListElementTest_language24);
   });
 }
 
 @reflectiveTest
 class NonConstantListElementTest extends PubPackageResolutionTest
-    with NonConstantListElementTestCases {
-  @override
-  bool get _constant_update_2018 => true;
-}
-
-@reflectiveTest
-class NonConstantListElementTest_language24 extends PubPackageResolutionTest
-    with NonConstantListElementTestCases {
-  @override
-  bool get _constant_update_2018 => false;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(
-      PackageConfigFileBuilder(),
-      languageVersion: '2.4',
-    );
-  }
-}
+    with NonConstantListElementTestCases {}
 
 mixin NonConstantListElementTestCases on PubPackageResolutionTest {
-  bool get _constant_update_2018;
-
   test_const_forElement() async {
     await assertErrorsInCode(r'''
 const Set set = {};
@@ -50,119 +28,71 @@ var v = const [for(final x in set) x];
   }
 
   test_const_ifElement_thenElseFalse_finalElse() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [if (1 < 0) 0 else a];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
+    ]);
   }
 
   test_const_ifElement_thenElseFalse_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [if (1 < 0) a else 0];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+    ]);
   }
 
   test_const_ifElement_thenElseTrue_finalElse() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [if (1 > 0) 0 else a];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1),
+    ]);
   }
 
   test_const_ifElement_thenElseTrue_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [if (1 > 0) a else 0];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 19),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+    ]);
   }
 
   test_const_ifElement_thenFalse_constThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 var v = const [if (1 < 0) a];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenFalse_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [if (1 < 0) a];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+    ]);
   }
 
   test_const_ifElement_thenTrue_constThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertNoErrorsInCode('''
 const dynamic a = 0;
 var v = const [if (1 > 0) a];
-''',
-        _constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
-              ]);
+''');
   }
 
   test_const_ifElement_thenTrue_finalThen() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 final dynamic a = 0;
 var v = const [if (1 > 0) a];
-''',
-        _constant_update_2018
-            ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
-              ]
-            : [
-                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 12),
-              ]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
+    ]);
   }
 
   test_const_topVar() async {
