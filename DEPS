@@ -66,7 +66,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.6.0",
-  "async_rev": "128c461a97dbdbd9336ba000ba5a5c02e79b8651",
+  "async_rev": "3fedad22c6940650526a86adebbf2872b81c2805",
   "bazel_worker_rev": "26680d5e249b249c7216ab2fed0ac8ed4ee285c5",
   "benchmark_harness_rev": "ec6b646f5443faa871e126ac1ba248c94ca06257",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
