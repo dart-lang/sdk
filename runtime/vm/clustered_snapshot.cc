@@ -7217,12 +7217,8 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
   // Initialize entries in the VM portion of the BSS segment.
   ASSERT(Snapshot::IncludesCode(kind_));
   Image image(instructions_image_);
-  if (image.bss_offset() != 0) {
-    // The const cast is safe because we're translating from the start of the
-    // instructions (read-only) to the start of the BSS (read-write).
-    uword* const bss_start = const_cast<uword*>(reinterpret_cast<const uword*>(
-        instructions_image_ + image.bss_offset()));
-    BSS::Initialize(thread_, bss_start, /*vm=*/true);
+  if (auto const bss = image.bss()) {
+    BSS::Initialize(thread_, bss, /*vm=*/true);
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -7353,12 +7349,8 @@ void FullSnapshotReader::InitializeBSS() {
   // Initialize entries in the isolate portion of the BSS segment.
   ASSERT(Snapshot::IncludesCode(kind_));
   Image image(instructions_image_);
-  if (image.bss_offset() != 0) {
-    // The const cast is safe because we're translating from the start of the
-    // instructions (read-only) to the start of the BSS (read-write).
-    uword* const bss_start = const_cast<uword*>(reinterpret_cast<const uword*>(
-        instructions_image_ + image.bss_offset()));
-    BSS::Initialize(thread_, bss_start, /*vm=*/false);
+  if (auto const bss = image.bss()) {
+    BSS::Initialize(thread_, bss, /*vm=*/false);
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }

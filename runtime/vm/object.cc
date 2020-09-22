@@ -16051,6 +16051,10 @@ ICDataPtr ICData::Clone(const ICData& from) {
 }
 #endif
 
+const char* ImageHeader::ToCString() const {
+  return "ImageHeader";
+}
+
 const char* WeakSerializationReference::ToCString() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Symbols::OptimizedOut().ToCString();
@@ -24400,8 +24404,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
 static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
                                            uword call_addr,
                                            uword isolate_instructions,
-                                           uword vm_instructions,
-                                           uword isolate_relocated_address) {
+                                           uword vm_instructions) {
   const Image vm_image(reinterpret_cast<const void*>(vm_instructions));
   const Image isolate_image(
       reinterpret_cast<const void*>(isolate_instructions));
@@ -24412,7 +24415,9 @@ static void PrintNonSymbolicStackFrameBody(BaseTextBuffer* buffer,
     // Only print the relocated address of the call when we know the saved
     // debugging information (if any) will have the same relocated address.
     if (isolate_image.compiled_to_elf()) {
-      buffer->Printf(" virt %" Pp "", isolate_relocated_address + offset);
+      const uword relocated_section_start =
+          isolate_image.instructions_relocated_address();
+      buffer->Printf(" virt %" Pp "", relocated_section_start + offset);
     }
     buffer->Printf(" %s+0x%" Px "", symbol_name, offset);
   } else if (vm_image.contains(call_addr)) {
@@ -24484,16 +24489,6 @@ static void PrintSymbolicStackFrame(Zone* zone,
   PrintSymbolicStackFrameBody(buffer, function_name, url, line, column);
 }
 
-// Find the relocated base of the given instructions section.
-uword InstructionsRelocatedAddress(uword instructions_start) {
-  Image image(reinterpret_cast<const uint8_t*>(instructions_start));
-  auto const bss_start =
-      reinterpret_cast<const uword*>(instructions_start + image.bss_offset());
-  auto const index =
-      BSS::RelocationIndex(BSS::Relocation::InstructionsRelocatedAddress);
-  return bss_start[index];
-}
-
 const char* StackTrace::ToCString() const {
   auto const T = Thread::Current();
   auto const zone = T->zone();
@@ -24512,11 +24507,15 @@ const char* StackTrace::ToCString() const {
       T->isolate_group()->source()->snapshot_instructions);
   auto const vm_instructions = reinterpret_cast<uword>(
       Dart::vm_isolate()->group()->source()->snapshot_instructions);
-  auto const vm_relocated_address =
-      InstructionsRelocatedAddress(vm_instructions);
-  auto const isolate_relocated_address =
-      InstructionsRelocatedAddress(isolate_instructions);
   if (FLAG_dwarf_stack_traces_mode) {
+    const Image isolate_instructions_image(
+        reinterpret_cast<const void*>(isolate_instructions));
+    const Image vm_instructions_image(
+        reinterpret_cast<const void*>(vm_instructions));
+    auto const isolate_relocated_address =
+        isolate_instructions_image.instructions_relocated_address();
+    auto const vm_relocated_address =
+        vm_instructions_image.instructions_relocated_address();
     // The Dart standard requires the output of StackTrace.toString to include
     // all pending activations with precise source locations (i.e., to expand
     // inlined frames and provide line and column numbers).
@@ -24530,6 +24529,14 @@ const char* StackTrace::ToCString() const {
     OSThread* thread = OSThread::Current();
     buffer.Printf("pid: %" Pd ", tid: %" Pd ", name %s\n", OS::ProcessId(),
                   OSThread::ThreadIdToIntPtr(thread->id()), thread->name());
+    if (auto const build_id = isolate_instructions_image.build_id()) {
+      const intptr_t length = isolate_instructions_image.build_id_length();
+      buffer.Printf("build_id: '");
+      for (intptr_t i = 0; i < length; i++) {
+        buffer.Printf("%02.2x", build_id[i]);
+      }
+      buffer.Printf("'\n");
+    }
     // Print the dso_base of the VM and isolate_instructions. We print both here
     // as the VM and isolate may be loaded from different snapshot images.
     buffer.Printf("isolate_dso_base: %" Px "",
@@ -24591,8 +24598,7 @@ const char* StackTrace::ToCString() const {
             // prints call addresses instead of return addresses.
             buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
             PrintNonSymbolicStackFrameBody(
-                &buffer, call_addr, isolate_instructions, vm_instructions,
-                isolate_relocated_address);
+                &buffer, call_addr, isolate_instructions, vm_instructions);
             frame_index++;
             continue;
           } else if (function.IsNull()) {
@@ -24601,8 +24607,7 @@ const char* StackTrace::ToCString() const {
             // non-symbolic stack traces.
             PrintSymbolicStackFrameIndex(&buffer, frame_index);
             PrintNonSymbolicStackFrameBody(
-                &buffer, call_addr, isolate_instructions, vm_instructions,
-                isolate_relocated_address);
+                &buffer, call_addr, isolate_instructions, vm_instructions);
             frame_index++;
             continue;
           }

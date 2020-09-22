@@ -684,6 +684,10 @@ void InstructionsSection::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void ImageHeader::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
 void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
                                                bool ref) const {
   JSONObject jsobj(stream);

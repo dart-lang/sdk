@@ -13,6 +13,7 @@
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
+#include "vm/elf.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
@@ -26,65 +27,117 @@ namespace dart {
 // Forward declarations.
 class Code;
 class Dwarf;
-class Elf;
 class Instructions;
 class Object;
 
 class Image : ValueObject {
  public:
-  explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
+  explicit Image(const void* raw_memory)
+      : Image(reinterpret_cast<uword>(raw_memory)) {}
+  explicit Image(const uword raw_memory)
+      : raw_memory_(raw_memory),
+        snapshot_size_(FieldValue(raw_memory, HeaderField::ImageSize)),
+        extra_info_(ExtraInfo(raw_memory_, snapshot_size_)) {
     ASSERT(Utils::IsAligned(raw_memory, kMaxObjectAlignment));
   }
 
+  // Even though an Image is read-only memory, we must return a void* here.
+  // All objects in an Image are pre-marked, though, so the GC will not attempt
+  // to change the returned memory.
   void* object_start() const {
-    return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
-                                   kHeaderSize);
+    return reinterpret_cast<void*>(raw_memory_ + kHeaderSize);
   }
 
-  uword object_size() const {
-    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
-    return snapshot_size - kHeaderSize;
-  }
+  uword object_size() const { return snapshot_size_ - kHeaderSize; }
 
   bool contains(uword address) const {
     uword start = reinterpret_cast<uword>(object_start());
     return address >= start && (address - start < object_size());
   }
 
-  // Returns the offset of the BSS section from this image. Only has meaning for
-  // instructions images.
-  word bss_offset() const {
-    auto const raw_value = *(reinterpret_cast<const word*>(raw_memory_) + 1);
-    return Utils::RoundDown(raw_value, kBssAlignment);
-  }
+  // Returns the address of the BSS section, or nullptr if one is not available.
+  // Only has meaning for instructions images from precompiled snapshots.
+  uword* bss() const;
 
-  // Returns true if the image was compiled directly to ELF. Only has meaning
-  // for instructions images.
-  bool compiled_to_elf() const {
-    auto const raw_value = *(reinterpret_cast<const word*>(raw_memory_) + 1);
-    return (raw_value & 0x1) == 0x1;
-  }
+  // Returns the relocated address of the isolate's instructions, or 0 if
+  // one is not available. Only has meaning for instructions images from
+  // precompiled snapshots.
+  uword instructions_relocated_address() const;
+
+  // Returns the GNU build ID, or nullptr if not available. See
+  // build_id_length() for the length of the returned buffer. Only has meaning
+  // for instructions images from precompiled snapshots.
+  const uint8_t* build_id() const;
+
+  // Returns the length of the GNU build ID returned by build_id(). Only has
+  // meaning for instructions images from precompiled snapshots.
+  intptr_t build_id_length() const;
+
+  // Returns whether this instructions section was compiled to ELF. Only has
+  // meaning for instructions images from precompiled snapshots.
+  bool compiled_to_elf() const;
 
  private:
-  static constexpr intptr_t kHeaderFields = 2;
+  // Word-sized fields in an Image object header.
+  enum class HeaderField : intptr_t {
+    // The size of the image (total of header and payload).
+    ImageSize,
+    // The offset of the ImageHeader object in the image. Note this offset
+    // is from the start of the _image_, _not_ from its payload start, so we
+    // can detect images without ImageHeaders by a 0 value here.
+    ImageHeaderOffset,
+    // If adding more fields, updating kHeaderFields below. (However, more
+    // fields _can't_ be added on 64-bit architectures, see the restrictions
+    // on kHeaderSize below.)
+  };
+
+  // Number of fields described by the HeaderField enum.
+  static constexpr intptr_t kHeaderFields =
+      static_cast<intptr_t>(HeaderField::ImageHeaderOffset) + 1;
+
+  static uword FieldValue(uword raw_memory, HeaderField field) {
+    return reinterpret_cast<const uword*>(
+        raw_memory)[static_cast<intptr_t>(field)];
+  }
+
+  // Constants used to denote special values for the offsets in the Image
+  // object header and the fields of the ImageHeader object.
+  static constexpr intptr_t kNoImageHeader = 0;
+  static constexpr intptr_t kNoBssSection = 0;
+  static constexpr intptr_t kNoRelocatedAddress = 0;
+  static constexpr intptr_t kNoBuildId = 0;
+
+  // The size of the Image object header.
+  //
+  // Note: Image::kHeaderSize is _not_ an architecture-dependent constant,
+  // and so there is no compiler::target::Image::kHeaderSize.
   static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
   // Explicitly double-checking kHeaderSize is never changed. Increasing the
   // Image header size would mean objects would not start at a place expected
   // by parts of the VM (like the GC) that use Image pages as HeapPages.
   static_assert(kHeaderSize == kMaxObjectAlignment,
                 "Image page cannot be used as HeapPage");
+  // Make sure that the number of fields in the Image header fit both on the
+  // host and target architectures.
+  static_assert(kHeaderFields * kWordSize <= kHeaderSize,
+                "Too many fields in Image header for host architecture");
+  static_assert(kHeaderFields * compiler::target::kWordSize <= kHeaderSize,
+                "Too many fields in Image header for target architecture");
 
-  // Determines how many bits we have for encoding any extra information in
-  // the BSS offset.
-  static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
+  // We don't use a handle or the tagged pointer because this object cannot be
+  // moved in memory by the GC.
+  static const ImageHeaderLayout* ExtraInfo(const uword raw_memory,
+                                            const uword size);
 
-  const void* raw_memory_;  // The symbol kInstructionsSnapshot.
+  // Most internal uses would cast this to uword, so just store it as such.
+  const uword raw_memory_;
+  const intptr_t snapshot_size_;
+  const ImageHeaderLayout* const extra_info_;
 
   // For access to private constants.
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
   friend class ImageWriter;
-  friend class Elf;
 
   DISALLOW_COPY_AND_ASSIGN(Image);
 };
@@ -178,12 +231,35 @@ class ImageWriter : public ValueObject {
   explicit ImageWriter(Thread* thread);
   virtual ~ImageWriter() {}
 
+  // Alignment constants used in writing ELF or assembly snapshots.
+
+  // BSS sections contain word-sized data.
+  static constexpr intptr_t kBssAlignment = compiler::target::kWordSize;
+  // ROData sections contain objects wrapped in an Image object.
+  static constexpr intptr_t kRODataAlignment = kMaxObjectAlignment;
+  // Text sections contain objects (even in bare instructions mode) wrapped
+  // in an Image object, and for now we also align them to the same page
+  // size assumed by Elf objects.
+  static_assert(Elf::kPageSize >= kMaxObjectAlignment,
+                "Page alignment must be consistent with max object alignment");
+  static constexpr intptr_t kTextAlignment = Elf::kPageSize;
+
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
     next_text_offset_ = Image::kHeaderSize;
-    if (FLAG_use_bare_instructions && FLAG_precompiled_mode) {
-      next_text_offset_ += compiler::target::InstructionsSection::HeaderSize();
+#if defined(DART_PRECOMPILER)
+    if (FLAG_precompiled_mode) {
+      // We reserve space for the initial ImageHeader object. It is manually
+      // serialized since it involves offsets to other parts of the snapshot.
+      next_text_offset_ += compiler::target::ImageHeader::InstanceSize();
+      if (FLAG_use_bare_instructions) {
+        // For bare instructions mode, we wrap all the instruction payloads
+        // in a single InstructionsSection object.
+        next_text_offset_ +=
+            compiler::target::InstructionsSection::HeaderSize();
+      }
     }
+#endif
     objects_.Clear();
     instructions_.Clear();
   }
@@ -254,8 +330,9 @@ class ImageWriter : public ValueObject {
   static const char* TagObjectTypeAsReadOnly(Zone* zone, const char* type);
 
  protected:
-  void WriteROData(WriteStream* stream);
-  virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
+  virtual void WriteBss(bool vm) = 0;
+  virtual void WriteROData(WriteStream* clustered_stream, bool vm);
+  virtual void WriteText(bool vm) = 0;
 
   void DumpInstructionStats();
   void DumpInstructionsSizes();
@@ -309,6 +386,8 @@ class ImageWriter : public ValueObject {
   V8SnapshotProfileWriter::IdSpace offset_space_ =
       V8SnapshotProfileWriter::kSnapshot;
   V8SnapshotProfileWriter* profile_writer_ = nullptr;
+  const char* const image_type_;
+  const char* const image_header_type_;
   const char* const instructions_section_type_;
   const char* const instructions_type_;
   const char* const trampoline_type_;
@@ -337,14 +416,13 @@ class TraceImageObjectScope {
         stream_(ASSERT_NOTNULL(stream)),
         section_offset_(section_offset),
         start_offset_(stream_->Position() - section_offset),
-        object_(object) {}
+        object_type_(writer->ObjectTypeForProfile(object)) {}
 
   ~TraceImageObjectScope() {
     if (writer_->profile_writer_ == nullptr) return;
     ASSERT(writer_->IsROSpace());
     writer_->profile_writer_->SetObjectTypeAndName(
-        {writer_->offset_space_, start_offset_},
-        writer_->ObjectTypeForProfile(object_), nullptr);
+        {writer_->offset_space_, start_offset_}, object_type_, nullptr);
     writer_->profile_writer_->AttributeBytesTo(
         {writer_->offset_space_, start_offset_},
         stream_->Position() - section_offset_ - start_offset_);
@@ -355,7 +433,7 @@ class TraceImageObjectScope {
   const T* const stream_;
   const intptr_t section_offset_;
   const intptr_t start_offset_;
-  const Object& object_;
+  const char* const object_type_;
 };
 
 class SnapshotTextObjectNamer {
@@ -391,9 +469,11 @@ class AssemblyImageWriter : public ImageWriter {
                       Elf* debug_elf = nullptr);
   void Finalize();
 
-  virtual void WriteText(WriteStream* clustered_stream, bool vm);
-
  private:
+  virtual void WriteBss(bool vm);
+  virtual void WriteROData(WriteStream* clustered_stream, bool vm);
+  virtual void WriteText(bool vm);
+
   void FrameUnwindPrologue();
   void FrameUnwindEpilogue();
   intptr_t WriteByteSequence(uword start, uword end);
@@ -431,13 +511,15 @@ class BlobImageWriter : public ImageWriter {
                   Elf* debug_elf = nullptr,
                   Elf* elf = nullptr);
 
-  virtual void WriteText(WriteStream* clustered_stream, bool vm);
-
   intptr_t InstructionsBlobSize() const {
     return instructions_blob_stream_.bytes_written();
   }
 
  private:
+  virtual void WriteBss(bool vm);
+  virtual void WriteROData(WriteStream* clustered_stream, bool vm);
+  virtual void WriteText(bool vm);
+
   intptr_t WriteByteSequence(uword start, uword end);
 
   WriteStream instructions_blob_stream_;

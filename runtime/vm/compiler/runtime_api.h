@@ -1179,6 +1179,13 @@ class Code : public AllStatic {
   static word NextFieldOffset();
 };
 
+class ImageHeader : public AllStatic {
+ public:
+  static word UnroundedSize();
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class WeakSerializationReference : public AllStatic {
  public:
   static word InstanceSize();

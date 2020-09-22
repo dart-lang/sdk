@@ -306,6 +306,7 @@
   SIZEOF(FutureOr, InstanceSize, FutureOrLayout)                               \
   SIZEOF(GrowableObjectArray, InstanceSize, GrowableObjectArrayLayout)         \
   SIZEOF(ICData, InstanceSize, ICDataLayout)                                   \
+  SIZEOF(ImageHeader, UnroundedSize, ImageHeaderLayout)                        \
   SIZEOF(Instance, InstanceSize, InstanceLayout)                               \
   SIZEOF(Instructions, InstanceSize, InstructionsLayout)                       \
   SIZEOF(Instructions, UnalignedHeaderSize, InstructionsLayout)                \

@@ -1257,7 +1257,9 @@ class Dwarf {
     final note = sections.single as Note;
     if (note.type != constants.buildIdNoteType) return null;
     if (note.name != constants.buildIdNoteName) return null;
-    return note.description.map((i) => i.toRadixString(16)).join();
+    return note.description
+        .map((i) => i.toRadixString(16).padLeft(2, '0'))
+        .join();
   }
 
   /// The call information for the given virtual address. There may be

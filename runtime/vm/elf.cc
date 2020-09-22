@@ -127,7 +127,7 @@ class Section : public ZoneAllocated {
   FOR_EACH_SEGMENT_LINEAR_FIELD(DEFINE_LINEAR_FIELD_METHODS);
 
   // Each section belongs to at most one PT_LOAD segment.
-  const Segment* load_segment = nullptr;
+  Segment* load_segment = nullptr;
 
   virtual intptr_t MemorySize() const = 0;
 
@@ -234,6 +234,9 @@ class Segment : public ZoneAllocated {
     // a memory offset since we use it to determine the segment memory offset.
     ASSERT(initial_section->IsAllocated());
     ASSERT(initial_section->memory_offset_is_set());
+    // Make sure the memory offset chosen for the initial section is consistent
+    // with the alignment for the segment.
+    ASSERT(Utils::IsAligned(initial_section->memory_offset(), Alignment(type)));
     sections_.Add(initial_section);
     if (type == elf::ProgramHeaderType::PT_LOAD) {
       ASSERT(initial_section->load_segment == nullptr);
@@ -245,6 +248,7 @@ class Segment : public ZoneAllocated {
 
   static intptr_t Alignment(elf::ProgramHeaderType segment_type) {
     switch (segment_type) {
+      case elf::ProgramHeaderType::PT_PHDR:
       case elf::ProgramHeaderType::PT_DYNAMIC:
         return compiler::target::kWordSize;
       case elf::ProgramHeaderType::PT_NOTE:
@@ -317,6 +321,30 @@ class Segment : public ZoneAllocated {
     sections_.Add(section);
     section->load_segment = this;
     return true;
+  }
+
+  void Replace(Section* old_section, Section* new_section) {
+    ASSERT(old_section->load_segment == this);
+    // All these must be true for replacement to be safe.
+    ASSERT_EQUAL(static_cast<uint32_t>(old_section->type),
+                 static_cast<uint32_t>(new_section->type));
+    ASSERT_EQUAL(old_section->MemorySize(), new_section->MemorySize());
+    ASSERT_EQUAL(old_section->IsExecutable(), new_section->IsExecutable());
+    ASSERT_EQUAL(old_section->IsWritable(), new_section->IsWritable());
+    ASSERT(old_section->memory_offset_is_set());
+    ASSERT(!new_section->memory_offset_is_set());
+    for (intptr_t i = 0; i < sections_.length(); i++) {
+      auto const section = sections_[i];
+      if (section != old_section) {
+        continue;
+      }
+      new_section->set_memory_offset(old_section->memory_offset());
+      sections_[i] = new_section;
+      new_section->load_segment = this;
+      old_section->load_segment = nullptr;
+      return;
+    }
+    UNREACHABLE();
   }
 
   intptr_t FileOffset() const { return sections_[0]->file_offset(); }
@@ -792,6 +820,7 @@ class NoteSegment : public Segment {
   }
 };
 
+// We assume that the final program table fits in a single page of memory.
 static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
 // Here, both VM and isolate will be compiled into a single snapshot.
@@ -834,9 +863,20 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream, Type type, Dwarf* dwarf)
   auto const start_segment =
       new (zone_) ProgramTableLoadSegment(zone_, kProgramTableSegmentSize);
   segments_.Add(start_segment);
-  // Note that the BSS segment must be the first user-defined segment because
+  // We allocate an initial build ID of all zeroes, since we need the build ID
+  // memory offset during ImageHeader creation (see BlobImageWriter::WriteText).
+  // We replace it with the real build ID during finalization. (We add this
+  // prior to BSS because we make the BuildID section writable also, so they are
+  // placed in the same segment before any non-writable ones, and if we add it
+  // after, then in separate debugging information, it'll go into a separate
+  // segment because the BSS section for debugging info is NOBITS.)
+  build_id_ = GenerateBuildId();
+  AddSection(build_id_, kBuildIdNoteName, kSnapshotBuildIdAsmSymbol);
+  // Note that the BSS segment must be in the first user-defined segment because
   // it cannot be placed in between any two non-writable segments, due to a bug
-  // in Jelly Bean's ELF loader. See also Elf::WriteProgramTable().
+  // in Jelly Bean's ELF loader. (For this reason, the program table segments
+  // generated during finalization are marked as writable.) See also
+  // Elf::WriteProgramTable().
   //
   // We add it in all cases, even to the separate debugging information ELF,
   // to ensure that relocated addresses are consistent between ELF snapshots
@@ -844,8 +884,14 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream, Type type, Dwarf* dwarf)
   AddSection(bss_, ".bss", kSnapshotBssAsmSymbol);
 }
 
-intptr_t Elf::NextMemoryOffset() const {
-  return Utils::RoundUp(LastLoadSegment()->MemoryEnd(), Elf::kPageSize);
+intptr_t Elf::NextMemoryOffset(intptr_t alignment) const {
+  // Without more information, we won't know whether we might create a new
+  // segment or put the section into the current one. Thus, for now, only allow
+  // the offset to be queried ahead of time if it matches the load segment
+  // alignment.
+  auto const type = elf::ProgramHeaderType::PT_LOAD;
+  ASSERT_EQUAL(alignment, Segment::Alignment(type));
+  return Utils::RoundUp(LastLoadSegment()->MemoryEnd(), alignment);
 }
 
 uword Elf::BssStart(bool vm) const {
@@ -870,8 +916,10 @@ intptr_t Elf::AddSection(Section* section,
     // We can't add this section to the last load segment, so create a new one.
     // The new segment starts at the next aligned address.
     auto const type = elf::ProgramHeaderType::PT_LOAD;
+    intptr_t alignment =
+        Utils::Maximum(section->alignment, Segment::Alignment(type));
     auto const start_address =
-        Utils::RoundUp(last_load->MemoryEnd(), Segment::Alignment(type));
+        Utils::RoundUp(last_load->MemoryEnd(), alignment);
     section->set_memory_offset(start_address);
     auto const segment = new (zone_) Segment(zone_, section, type);
     segments_.Add(segment);
@@ -882,13 +930,31 @@ intptr_t Elf::AddSection(Section* section,
   return section->memory_offset();
 }
 
+void Elf::ReplaceSection(Section* old_section, Section* new_section) {
+  ASSERT(section_table_file_size_ < 0);
+  ASSERT(old_section->index_is_set());
+  ASSERT(!new_section->index_is_set());
+  ASSERT_EQUAL(new_section->IsAllocated(), old_section->IsAllocated());
+  new_section->set_name(old_section->name());
+  new_section->set_index(old_section->index());
+  sections_[old_section->index()] = new_section;
+
+  if (!old_section->IsAllocated()) {
+    return;
+  }
+
+  ASSERT(program_table_file_size_ < 0);
+  ASSERT(old_section->load_segment != nullptr);
+  old_section->load_segment->Replace(old_section, new_section);
+}
+
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   // When making a separate debugging info file for assembly, we don't have
   // the binary text segment contents.
   ASSERT(type_ == Type::DebugInfo || bytes != nullptr);
-  auto const image = new (zone_)
-      BitsContainer(type_, /*executable=*/true,
-                    /*writable=*/false, size, bytes, Elf::kPageSize);
+  auto const image = new (zone_) BitsContainer(type_, /*executable=*/true,
+                                               /*writable=*/false, size, bytes,
+                                               ImageWriter::kTextAlignment);
   return AddSection(image, ".text", name);
 }
 
@@ -904,14 +970,14 @@ Section* Elf::CreateBSS(Zone* zone, Type type, intptr_t size) {
     memset(bytes, 0, size);
   }
   return new (zone) BitsContainer(type, /*executable=*/false, /*writable=*/true,
-                                  kBssSize, bytes, Image::kBssAlignment);
+                                  kBssSize, bytes, ImageWriter::kBssAlignment);
 }
 
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   ASSERT(bytes != nullptr);
-  auto const image = new (zone_)
-      BitsContainer(type_, /*executable=*/false,
-                    /*writable=*/false, size, bytes, kMaxObjectAlignment);
+  auto const image = new (zone_) BitsContainer(type_, /*executable=*/false,
+                                               /*writable=*/false, size, bytes,
+                                               ImageWriter::kRODataAlignment);
   return AddSection(image, ".rodata", name);
 }
 
@@ -1189,11 +1255,11 @@ void Elf::Finalize() {
   // without changing how we add the .text and .rodata sections (since we
   // determine memory offsets for those sections when we add them, and the
   // text sections must have the memory offsets to do BSS relocations).
-  if (auto const build_id = GenerateBuildId()) {
-    AddSection(build_id, ".note.gnu.build-id", kSnapshotBuildIdAsmSymbol);
+  if (auto const new_build_id = GenerateBuildId()) {
+    ReplaceSection(build_id_, new_build_id);
 
     // Add a PT_NOTE segment for the build ID.
-    segments_.Add(new (zone_) NoteSegment(zone_, build_id));
+    segments_.Add(new (zone_) NoteSegment(zone_, new_build_id));
   }
 
   // Adding the dynamic symbol table and associated sections.
@@ -1291,6 +1357,13 @@ static uint32_t HashBitsContainer(const BitsContainer* bits) {
   return FinalizeHash(hash, 32);
 }
 
+uword Elf::BuildIdStart(intptr_t* size) {
+  ASSERT(size != nullptr);
+  ASSERT(build_id_ != nullptr);
+  *size = kBuildIdDescriptionLength;
+  return build_id_->memory_offset() + kBuildIdDescriptionOffset;
+}
+
 Section* Elf::GenerateBuildId() {
   uint8_t* notes_buffer = nullptr;
   WriteStream stream(&notes_buffer, ZoneReallocate, kBuildIdSize);
@@ -1319,9 +1392,14 @@ Section* Elf::GenerateBuildId() {
   }
   ASSERT_EQUAL(stream.bytes_written() - description_start,
                kBuildIdDescriptionLength);
+  ASSERT_EQUAL(stream.bytes_written(), kBuildIdSize);
+  // While the build ID section does not need to be writable, it and the
+  // BSS section are allocated segments at the same time. Having the same flags
+  // ensures they will be combined in the same segment and not unnecessarily
+  // aligned into a new page.
   return new (zone_) BitsContainer(
       elf::SectionHeaderType::SHT_NOTE, /*allocate=*/true, /*executable=*/false,
-      /*writable=*/false, stream.bytes_written(), notes_buffer, kNoteAlignment);
+      /*writable=*/true, stream.bytes_written(), notes_buffer, kNoteAlignment);
 }
 
 void Elf::FinalizeProgramTable() {

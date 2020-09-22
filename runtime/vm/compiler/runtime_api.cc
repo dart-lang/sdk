@@ -800,12 +800,20 @@ word ForwardingCorpse::FakeInstance::InstanceSize() {
   return 0;
 }
 
+word ImageHeader::InstanceSize() {
+  return RoundedAllocationSize(UnroundedSize());
+}
+
 word Instance::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Instance::NextFieldOffset());
 }
 
 word Pointer::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Pointer::NextFieldOffset());
+}
+
+word ImageHeader::NextFieldOffset() {
+  return -kWordSize;
 }
 
 word WeakSerializationReference::NextFieldOffset() {
