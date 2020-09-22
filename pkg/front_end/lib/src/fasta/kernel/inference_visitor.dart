@@ -5865,16 +5865,26 @@ class InferenceVisitor
                       node.variable.name.length));
             }
           } else {
-            if (isUnassigned &&
-                declaredOrInferredType.isPotentiallyNonNullable) {
-              return new ExpressionInferenceResult(
-                  resultType,
-                  inferrer.helper.wrapInProblem(
-                      resultExpression,
-                      templateNonNullableNotAssignedError
-                          .withArguments(node.variable.name),
-                      node.fileOffset,
-                      node.variable.name.length));
+            if (isUnassigned) {
+              if (variable.isFinal) {
+                return new ExpressionInferenceResult(
+                    resultType,
+                    inferrer.helper.wrapInProblem(
+                        resultExpression,
+                        templateFinalNotAssignedError
+                            .withArguments(node.variable.name),
+                        node.fileOffset,
+                        node.variable.name.length));
+              } else if (declaredOrInferredType.isPotentiallyNonNullable) {
+                return new ExpressionInferenceResult(
+                    resultType,
+                    inferrer.helper.wrapInProblem(
+                        resultExpression,
+                        templateNonNullableNotAssignedError
+                            .withArguments(node.variable.name),
+                        node.fileOffset,
+                        node.variable.name.length));
+              }
             }
           }
         }

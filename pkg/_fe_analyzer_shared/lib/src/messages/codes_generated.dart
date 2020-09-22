@@ -4013,6 +4013,32 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFinalNotAssignedError = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Final variable '#name' must be assigned before it can be used.""",
+    withArguments: _withArgumentsFinalNotAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFinalNotAssignedError =
+    const Code<Message Function(String name)>(
+        "FinalNotAssignedError", templateFinalNotAssignedError,
+        analyzerCodes: <String>["READ_POTENTIALLY_UNASSIGNED_FINAL"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalNotAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFinalNotAssignedError,
+      message:
+          """Final variable '${name}' must be assigned before it can be used.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeForInLoopExactlyOneVariable =
     messageForInLoopExactlyOneVariable;
 
