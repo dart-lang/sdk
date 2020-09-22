@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'deferred_import.dart' deferred as deferred_import;
 
 Future<void> main() async {

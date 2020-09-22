@@ -35,7 +35,6 @@
 /// specification.
 library dart2js_info.bin.deferred_library_check;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
