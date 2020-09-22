@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2020-08-18T15:38:52.410101",
+  "generated": "2020-09-22T09:07:43.543180",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -184,7 +184,7 @@
       "name": "dart2js_info",
       "rootUri": "../third_party/pkg/dart2js_info",
       "packageUri": "lib/",
-      "languageVersion": "2.0"
+      "languageVersion": "2.3"
     },
     {
       "name": "dart2js_tools",
@@ -207,8 +207,7 @@
     {
       "name": "dart_style",
       "rootUri": "../third_party/pkg_tested/dart_style",
-      "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "packageUri": "lib/"
     },
     {
       "name": "dartdev",
@@ -426,7 +425,7 @@
       "name": "native_stack_traces",
       "rootUri": "../pkg/native_stack_traces",
       "packageUri": "lib/",
-      "languageVersion": "2.8"
+      "languageVersion": "2.10"
     },
     {
       "name": "nnbd_migration",
@@ -484,8 +483,7 @@
     {
       "name": "pub",
       "rootUri": "../third_party/pkg/pub",
-      "packageUri": "lib/",
-      "languageVersion": "2.3"
+      "packageUri": "lib/"
     },
     {
       "name": "pub_semver",

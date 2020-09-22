@@ -187,7 +187,7 @@ void assertStack(List<String> expects, StackTrace stackTrace,
   final decodeTrace = frames.first.startsWith('Warning:');
   if (decodeTrace) {
     Expect.isNotNull(debugInfoFilename);
-    final dwarf = Dwarf.fromFile(debugInfoFilename!);
+    final dwarf = Dwarf.fromFile(debugInfoFilename!)!;
     frames = await Stream.fromIterable(original)
         .transform(DwarfStackTraceDecoder(dwarf))
         .where(_lineRE.hasMatch)

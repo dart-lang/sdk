@@ -112,7 +112,7 @@ main(List<String> args) async {
 
     // Check that translating the DWARF stack trace (without internal frames)
     // matches the symbolic stack trace.
-    final dwarf = Dwarf.fromFile(scriptDwarfDebugInfo);
+    final dwarf = Dwarf.fromFile(scriptDwarfDebugInfo)!;
     assert(dwarf != null);
     final translatedDwarfTrace1 = await Stream.fromIterable(dwarfTrace1)
         .transform(DwarfStackTraceDecoder(dwarf))

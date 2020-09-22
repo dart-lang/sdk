@@ -184,6 +184,9 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   "meta": {
     ExperimentalFlag.nonNullable,
   },
+  "native_stack_traces": {
+    ExperimentalFlag.nonNullable,
+  },
   "path": {
     ExperimentalFlag.nonNullable,
   },
