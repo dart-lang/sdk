@@ -25,6 +25,9 @@ class TransformSetManager {
     var workspace = library.session.analysisContext.workspace;
     var libraryPath = library.source.fullName;
     var package = workspace.findPackageFor(libraryPath);
+    if (package == null) {
+      return transformSets;
+    }
     var packageMap = package.packagesAvailableTo(libraryPath);
     for (var entry in packageMap.entries) {
       var directory = entry.value[0];
