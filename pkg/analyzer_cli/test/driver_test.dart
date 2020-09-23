@@ -27,12 +27,9 @@ void main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(BuildModeSummaryDependenciesTest);
     defineReflectiveTests(ExitCodesTest);
-    defineReflectiveTests(ExitCodesTest_PreviewDart2);
     defineReflectiveTests(LinterTest);
-    defineReflectiveTests(LinterTest_PreviewDart2);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
-    defineReflectiveTests(OptionsTest_PreviewDart2);
   }, name: 'Driver');
 }
 
@@ -93,8 +90,6 @@ class BaseTest {
 
   AnalysisOptions get analysisOptions => driver.analysisDriver.analysisOptions;
 
-  bool get usePreviewDart2 => false;
-
   /// Normalize text with bullets.
   String bulletToDash(StringSink item) => '$item'.replaceAll('•', '-');
 
@@ -127,9 +122,6 @@ class BaseTest {
       ];
     }
     cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
-    if (usePreviewDart2) {
-      cmd.insert(0, '--preview-dart-2');
-    }
 
     await driver.start(cmd);
   }
@@ -772,12 +764,6 @@ class ExitCodesTest extends BaseTest {
     });
   }
 
-  Future<void> test_enableAssertInitializer() async {
-    await drive('data/file_with_assert_initializers.dart',
-        args: ['--enable-assert-initializers']);
-    expect(exitCode, 0);
-  }
-
   Future<void> test_fatalErrors() async {
     await drive('data/file_with_error.dart');
     expect(exitCode, 3);
@@ -833,12 +819,6 @@ class ExitCodesTest extends BaseTest {
     ]);
     expect(exitCode, 0);
   }
-}
-
-@reflectiveTest
-class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
-  @override
-  bool get usePreviewDart2 => true;
 }
 
 @reflectiveTest
@@ -935,12 +915,6 @@ linter:
     await drive('data/no_lints_project/test_file.dart',
         options: 'data/no_lints_project/$optionsFileName');
   }
-}
-
-@reflectiveTest
-class LinterTest_PreviewDart2 extends LinterTest {
-  @override
-  bool get usePreviewDart2 => true;
 }
 
 @reflectiveTest
@@ -1131,12 +1105,6 @@ class OptionsTest extends BaseTest {
         isNot(contains("error - Undefined class 'ExcludedUndefinedClass'")));
     expect(outSink.toString(), contains('1 error found.'));
   }
-}
-
-@reflectiveTest
-class OptionsTest_PreviewDart2 extends OptionsTest {
-  @override
-  bool get usePreviewDart2 => true;
 }
 
 class TestSource implements Source {

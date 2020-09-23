@@ -639,9 +639,6 @@ class AnalysisServerOptions {
   /// ML completion is enabled if this is non-null.
   String completionModelFolder;
 
-  /// Whether to enable parsing via the Fasta parser.
-  bool useFastaParser = true;
-
   /// Return `true` if the new relevance computations should be used when
   /// computing code completion suggestions.
   bool useNewRelevance = true;

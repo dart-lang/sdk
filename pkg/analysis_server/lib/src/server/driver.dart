@@ -110,6 +110,7 @@ class CommandLineParser {
   void addOption(String name,
       {String abbr,
       String help,
+      String valueHelp,
       List<String> allowed,
       Map<String, String> allowedHelp,
       String defaultsTo,
@@ -118,6 +119,7 @@ class CommandLineParser {
     _parser.addOption(name,
         abbr: abbr,
         help: help,
+        valueHelp: valueHelp,
         allowed: allowed,
         allowedHelp: allowedHelp,
         defaultsTo: defaultsTo,
@@ -276,9 +278,6 @@ class Driver implements ServerStarter {
   /// The path to the data cache.
   static const String CACHE_FOLDER = 'cache';
 
-  /// Whether to enable parsing via the Fasta parser.
-  static const String USE_FASTA_PARSER = 'use-fasta-parser';
-
   /// The name of the flag to use the Language Server Protocol (LSP).
   static const String USE_LSP = 'lsp';
 
@@ -341,7 +340,6 @@ class Driver implements ServerStarter {
       analysisServerOptions.enabledExperiments =
           (results[ENABLE_EXPERIMENT_OPTION] as List).cast<String>().toList();
     }
-    analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useNewRelevance = results[USE_NEW_RELEVANCE];
 
     // Read in any per-SDK overrides specified in <sdk>/config/settings.json.
@@ -747,9 +745,15 @@ class Driver implements ServerStarter {
   /// Create and return the parser used to parse the command-line arguments.
   CommandLineParser _createArgParser() {
     var parser = CommandLineParser();
+    parser.addFlag(HELP_OPTION,
+        help: 'print this help message without starting a server',
+        abbr: 'h',
+        defaultsTo: false,
+        negatable: false);
     parser.addOption(CLIENT_ID,
-        help: 'an identifier used to identify the client');
-    parser.addOption(CLIENT_VERSION, help: 'the version of the client');
+        valueHelp: 'name', help: 'an identifier used to identify the client');
+    parser.addOption(CLIENT_VERSION,
+        valueHelp: 'version', help: 'the version of the client');
     parser.addFlag(DARTPAD_OPTION,
         help: 'enable DartPad specific functionality',
         defaultsTo: false,
@@ -774,18 +778,15 @@ class Driver implements ServerStarter {
         help: 'enable sending instrumentation information to a server',
         defaultsTo: false,
         negatable: false);
-    parser.addFlag(HELP_OPTION,
-        help: 'print this help message without starting a server',
-        abbr: 'h',
-        defaultsTo: false,
-        negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
+        valueHelp: 'file path',
         help: 'write instrumentation data to the given file');
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
         help: 'enable sending `print` output to the console',
         defaultsTo: false,
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
+        valueHelp: 'path',
         help: "set a destination for the new analysis driver's log");
     parser.addFlag(ANALYTICS_FLAG,
         help: 'enable or disable sending analytics information to Google',
@@ -795,9 +796,11 @@ class Driver implements ServerStarter {
         help: 'suppress analytics for this session',
         hide: !telemetry.SHOW_ANALYTICS_UI);
     parser.addOption(PORT_OPTION,
+        valueHelp: 'port',
         help: 'the http diagnostic port on which the server provides'
             ' status and performance information');
-    parser.addOption(SDK_OPTION, help: '[path] the path to the sdk');
+    parser.addOption(SDK_OPTION,
+        valueHelp: 'path', help: 'Path to the Dart sdk');
     parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
         help: 'enable version 2 of semantic highlight',
         defaultsTo: false,
@@ -806,6 +809,7 @@ class Driver implements ServerStarter {
         help: 'an option for reading files (some clients normalize eol '
             'characters, which make the file offset and range information '
             'incorrect)',
+        valueHelp: 'mode',
         allowed: ['as-is', 'normalize-eol-always'],
         allowedHelp: {
           'as-is': 'file contents are read as-is',
@@ -814,27 +818,33 @@ class Driver implements ServerStarter {
         },
         defaultsTo: 'as-is');
     parser.addOption(CACHE_FOLDER,
-        help: '[path] path to the location where to cache data');
-    parser.addFlag('preview-dart-2',
-        help: 'Enable the Dart 2.0 preview (deprecated)', hide: true);
-    parser.addFlag(USE_FASTA_PARSER,
-        defaultsTo: true,
-        help: 'Whether to enable parsing via the Fasta parser');
+        valueHelp: 'path', help: 'Path to the location to write cache data');
     parser.addFlag(USE_LSP,
-        defaultsTo: false, help: 'Whether to use the Language Server Protocol');
+        defaultsTo: false,
+        negatable: false,
+        help: 'Whether to use the Language Server Protocol');
     parser.addFlag(ENABLE_COMPLETION_MODEL,
         help: 'Whether or not to turn on ML ranking for code completion');
     parser.addOption(COMPLETION_MODEL_FOLDER,
-        help: '[path] path to the location of a code completion model');
+        valueHelp: 'path',
+        help: 'Path to the location of a code completion model');
     parser.addOption(TRAIN_USING,
+        valueHelp: 'path',
         help: 'Pass in a directory to analyze for purposes of training an '
             'analysis server snapshot.');
+
     //
     // Temporary flags.
     //
     parser.addFlag(USE_NEW_RELEVANCE,
         defaultsTo: true,
         help: 'Use the new relevance computation for code completion.');
+
+    //
+    // Deprecated options - no longer read from.
+    //
+    parser.addFlag('use-fasta-parser', defaultsTo: true, hide: true);
+    parser.addFlag('preview-dart-2', hide: true);
 
     return parser;
   }
