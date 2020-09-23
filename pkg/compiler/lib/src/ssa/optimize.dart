@@ -925,7 +925,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction maybeAddNativeReturnNullCheck(
       HInstruction node, HInstruction replacement, FunctionEntity method) {
-    if (_options.enableNativeReturnNullAssertions) {
+    if (_options.enableNativeNullAssertions) {
       if (method.library.isNonNullableByDefault) {
         FunctionType type =
             _closedWorld.elementEnvironment.getFunctionType(method);
