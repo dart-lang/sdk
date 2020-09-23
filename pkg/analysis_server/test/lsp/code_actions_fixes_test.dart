@@ -195,4 +195,17 @@ ProcessInfo b;
     applyChanges(contents, fixAction.edit.changes);
     expect(contents[mainFilePath], equals(expectedContent));
   }
+
+  Future<void> test_outsideRoot() async {
+    final otherFilePath = '/home/otherProject/foo.dart';
+    final otherFileUri = Uri.file(otherFilePath);
+    await newFile(otherFilePath, content: 'bad code to create error');
+    await initialize(
+      textDocumentCapabilities: withCodeActionKinds(
+          emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
+    );
+
+    final codeActions = await getCodeActions(otherFileUri.toString());
+    expect(codeActions, isEmpty);
+  }
 }

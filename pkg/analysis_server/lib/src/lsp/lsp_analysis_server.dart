@@ -320,6 +320,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     }, socketError);
   }
 
+  /// Returns `true` if the [file] with the given absolute path is included
+  /// in an analysis root and not excluded.
+  bool isAnalyzedFile(String file) {
+    return contextManager.isInAnalysisRoot(file) &&
+        // Dot folders are not analyzed (skipped over in _handleWatchEventImpl)
+        !contextManager.isContainedInDotFolder(file) &&
+        !contextManager.isIgnored(file);
+  }
+
   /// Logs the error on the client using window/logMessage.
   void logErrorToClient(String message) {
     channel.sendNotification(NotificationMessage(
@@ -532,12 +541,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   /// Returns `true` if errors should be reported for [file] with the given
   /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
-    // Errors should not be reported for things that are explicitly skipped
-    // during normal analysis (for example dot folders are skipped over in
-    // _handleWatchEventImpl).
-    return contextManager.isInAnalysisRoot(file) &&
-        !contextManager.isContainedInDotFolder(file) &&
-        !contextManager.isIgnored(file);
+    return isAnalyzedFile(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
