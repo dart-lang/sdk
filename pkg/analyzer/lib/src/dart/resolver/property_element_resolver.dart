@@ -125,6 +125,7 @@ class PropertyElementResolver {
     @required PrefixedIdentifier node,
     @required bool hasRead,
     @required bool hasWrite,
+    bool forAnnotation = false,
   }) {
     var prefix = node.prefix;
     var identifier = node.identifier;
@@ -137,11 +138,13 @@ class PropertyElementResolver {
       var writeElement = _resolver.toLegacyElement(lookupResult.setter);
 
       if (hasRead && readElement == null || hasWrite && writeElement == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-          identifier,
-          [identifier.name, prefixElement.name],
-        );
+        if (!forAnnotation) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+            identifier,
+            [identifier.name, prefixElement.name],
+          );
+        }
       }
 
       return PropertyElementResolverResult(
@@ -211,20 +214,26 @@ class PropertyElementResolver {
       _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
     }
 
-    var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
+    Element writeElementRequested;
+    Element writeElementRecovery;
+    if (hasWrite) {
+      var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
+      writeElementRequested = writeLookup.requested;
+      writeElementRecovery = writeLookup.recovery;
 
-    AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
-      node: node,
-      requested: writeLookup.requested,
-      recovery: writeLookup.recovery,
-      receiverTypeObject: null,
-    );
+      AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
+        node: node,
+        requested: writeElementRequested,
+        recovery: writeElementRecovery,
+        receiverTypeObject: null,
+      );
+    }
 
     return PropertyElementResolverResult(
       readElementRequested: readElementRequested,
       readElementRecovery: readElementRecovery,
-      writeElementRequested: writeLookup.requested,
-      writeElementRecovery: writeLookup.recovery,
+      writeElementRequested: writeElementRequested,
+      writeElementRecovery: writeElementRecovery,
     );
   }
 

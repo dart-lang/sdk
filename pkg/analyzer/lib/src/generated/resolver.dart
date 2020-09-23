@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
@@ -814,22 +815,7 @@ class ResolverVisitor extends ScopedVisitor {
         identical(parent, _enclosingMixinDeclaration)) {
       return;
     }
-    node.name?.accept(this);
-    node.constructorName?.accept(this);
-    Element element = node.element;
-    if (element is ExecutableElement) {
-      InferenceContext.setType(node.arguments, element.type);
-    }
-    node.arguments?.accept(this);
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
-    ElementAnnotationImpl elementAnnotationImpl = node.elementAnnotation;
-    if (elementAnnotationImpl == null) {
-      // Analyzer ignores annotations on "part of" directives.
-      assert(parent is PartOfDirective);
-    } else {
-      elementAnnotationImpl.annotationAst = _createCloner().cloneNode(node);
-    }
+    AnnotationResolver(this).resolve(node);
   }
 
   @override
