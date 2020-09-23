@@ -17810,6 +17810,7 @@ class RequestError implements HasToJson {
 ///   FORMAT_INVALID_FILE
 ///   FORMAT_WITH_ERRORS
 ///   GET_ERRORS_INVALID_FILE
+///   GET_FIXES_INVALID_FILE
 ///   GET_IMPORTED_ELEMENTS_INVALID_FILE
 ///   GET_KYTHE_ENTRIES_INVALID_FILE
 ///   GET_NAVIGATION_INVALID_FILE
@@ -17890,6 +17891,11 @@ class RequestErrorCode implements Enum {
   /// a file currently subject to analysis.
   static const RequestErrorCode GET_ERRORS_INVALID_FILE =
       RequestErrorCode._('GET_ERRORS_INVALID_FILE');
+
+  /// An "edit.getFixes" request specified a FilePath which does not match a
+  /// file currently subject to analysis.
+  static const RequestErrorCode GET_FIXES_INVALID_FILE =
+      RequestErrorCode._('GET_FIXES_INVALID_FILE');
 
   /// An "analysis.getImportedElements" request specified a FilePath that does
   /// not match a file currently subject to analysis.
@@ -18022,6 +18028,7 @@ class RequestErrorCode implements Enum {
     FORMAT_INVALID_FILE,
     FORMAT_WITH_ERRORS,
     GET_ERRORS_INVALID_FILE,
+    GET_FIXES_INVALID_FILE,
     GET_IMPORTED_ELEMENTS_INVALID_FILE,
     GET_KYTHE_ENTRIES_INVALID_FILE,
     GET_NAVIGATION_INVALID_FILE,
@@ -18076,6 +18083,8 @@ class RequestErrorCode implements Enum {
         return FORMAT_WITH_ERRORS;
       case 'GET_ERRORS_INVALID_FILE':
         return GET_ERRORS_INVALID_FILE;
+      case 'GET_FIXES_INVALID_FILE':
+        return GET_FIXES_INVALID_FILE;
       case 'GET_IMPORTED_ELEMENTS_INVALID_FILE':
         return GET_IMPORTED_ELEMENTS_INVALID_FILE;
       case 'GET_KYTHE_ENTRIES_INVALID_FILE':

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.29.0</version>
+  <version>1.29.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2344,6 +2344,13 @@
     <p>
       Return the set of fixes that are available for the errors at
       a given offset in a given file.
+    </p>
+    <p>
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_FIXES_INVALID_FILE</tt> will be generated.
     </p>
     <params>
       <field name="file">
@@ -4999,6 +5006,14 @@
         <code>GET_ERRORS_INVALID_FILE</code>
         <p>
           An "analysis.getErrors" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_FIXES_INVALID_FILE</code>
+        <p>
+          An "edit.getFixes" request specified a FilePath
           which does not match a file currently subject to
           analysis.
         </p>
