@@ -1150,24 +1150,41 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// If a [methodBeingCopied] is provided, then the type parameters of that
   /// method will be duplicated in the copy and will therefore be visible.
   ///
+  /// If [required] it `true`, then the type will be written even if it would
+  /// normally be omitted, such as with `dynamic`.
+  ///
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
-  bool _writeType(DartType type, {ExecutableElement methodBeingCopied}) {
+  bool _writeType(DartType type,
+      {ExecutableElement methodBeingCopied, bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
-    if (type == null || type.isDynamic || type.isBottom) {
+    if (type == null) {
       return false;
     }
-
-    var element = type.element;
-
+    if (type.isDynamic) {
+      if (required) {
+        write('dynamic');
+        return true;
+      }
+      return false;
+    }
+    if (type.isBottom) {
+      var library = dartFileEditBuilder.resolvedUnit.libraryElement;
+      if (library.isNonNullableByDefault) {
+        write('Never');
+        return true;
+      }
+      return false;
+    }
     // The type `void` does not have an element.
     if (type is VoidType) {
       write('void');
       return true;
     }
 
+    var element = type.element;
     // Typedef(s) are represented as GenericFunctionTypeElement(s).
     if (element is GenericFunctionTypeElement &&
         element.typeParameters.isEmpty &&
@@ -1193,9 +1210,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     // Write the simple name.
     var name = element.displayName;
     write(name);
-    if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      write('?');
-    }
 
     // Write type arguments.
     if (type is ParameterizedType) {
@@ -1217,10 +1231,15 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           if (i != 0) {
             write(', ');
           }
-          _writeType(argument, methodBeingCopied: methodBeingCopied);
+          _writeType(argument,
+              required: true, methodBeingCopied: methodBeingCopied);
         }
         write('>');
       }
+    }
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      write('?');
     }
 
     return true;
