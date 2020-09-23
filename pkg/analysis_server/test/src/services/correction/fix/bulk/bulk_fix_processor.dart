@@ -50,8 +50,6 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     verifyNoTestUnitErrors = false;
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
     _createAnalysisOptionsFile();
   }
 

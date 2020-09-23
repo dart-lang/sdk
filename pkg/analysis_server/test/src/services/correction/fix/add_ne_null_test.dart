@@ -20,13 +20,6 @@ class AddNeNullTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_NE_NULL;
 
-  @override
-  void setUp() {
-    super.setUp();
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
-  }
-
   Future<void> test_nonBoolCondition() async {
     await resolveTestUnit('''
 main(String p) {

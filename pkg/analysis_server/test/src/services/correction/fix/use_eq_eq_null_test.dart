@@ -20,13 +20,6 @@ class UseEqEqNullTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.USE_EQ_EQ_NULL;
 
-  @override
-  void setUp() {
-    super.setUp();
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
-  }
-
   Future<void> test_isNull() async {
     await resolveTestUnit('''
 main(p) {

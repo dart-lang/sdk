@@ -20,13 +20,6 @@ class ReplaceBooleanWithBoolTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
-  @override
-  void setUp() {
-    super.setUp();
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
-  }
-
   Future<void> test_all() async {
     await resolveTestUnit('''
 main() {

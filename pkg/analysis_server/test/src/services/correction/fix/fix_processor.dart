@@ -112,6 +112,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   void assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
     var error = await _findErrorToFixOfType(errorCode);
     var fix = await _assertHasFixAllFix(error);
     change = fix.change;
