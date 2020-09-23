@@ -80,7 +80,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         .where((e) => e.operator.type == TokenType.BANG_EQ)
         .map((e) => e.rightOperand is NullLiteral
             ? e.leftOperand
-            : e.leftOperand is NullLiteral ? e.rightOperand : null)
+            : e.leftOperand is NullLiteral
+                ? e.rightOperand
+                : null)
         .where((e) => e != null)
         .where((e) => context.typeSystem.isNullable(e.staticType))
         .whereType<Identifier>()
