@@ -862,7 +862,10 @@ dart_vm_extra_builder(
     "vm-kernel-linux-release-simarm64",
     category = "vm|kernel|a64",
 )
-dart_vm_extra_builder("vm-kernel-linux-release-ia32", category = "vm|kernel|r32")
+nightly_builder(
+    "vm-kernel-linux-release-ia32",
+    category = "vm|kernel|r32",
+)
 dart_ci_sandbox_builder(
     "vm-kernel-linux-release-x64",
     category = "vm|kernel|r",
@@ -872,7 +875,11 @@ dart_vm_extra_builder(
     "vm-kernel-checked-linux-release-x64",
     category = "vm|kernel|rc",
 )
-dart_vm_extra_builder("vm-kernel-linux-debug-ia32", category = "vm|kernel|d32")
+nightly_builder(
+    "vm-kernel-linux-debug-ia32",
+    category = "vm|kernel|d32",
+    channels = ["try"],
+)
 dart_ci_sandbox_builder(
     "vm-kernel-mac-debug-x64",
     category = "vm|kernel|md",
@@ -885,9 +892,10 @@ dart_ci_sandbox_builder(
     on_cq = True,
     experiment_percentage = 5,
 )
-dart_vm_extra_builder(
+nightly_builder(
     "vm-kernel-win-debug-ia32",
     category = "vm|kernel|wd3",
+    channels = ["try"],
     dimensions = windows(),
 )
 dart_ci_sandbox_builder(
@@ -895,7 +903,7 @@ dart_ci_sandbox_builder(
     category = "vm|kernel|wd",
     dimensions = windows(),
 )
-dart_vm_extra_builder(
+nightly_builder(
     "vm-kernel-win-release-ia32",
     category = "vm|kernel|wr3",
     dimensions = windows(),
@@ -995,9 +1003,10 @@ nightly_builder(
 )
 
 # vm|misc
-dart_vm_low_priority_builder(
+nightly_builder(
     "vm-kernel-optcounter-threshold-linux-release-ia32",
     category = "vm|misc|o32",
+    channels = ["try"],
 )
 dart_vm_low_priority_builder(
     "vm-kernel-optcounter-threshold-linux-release-x64",
