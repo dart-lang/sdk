@@ -538,6 +538,65 @@ class C {
     expect(position.offset, equals(20));
   }
 
+  Future<void> test_writeImportedName_hasImport_first() async {
+    // addSource(convertPath('/home/test/lib/foo.dart'), '');
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+import 'foo.dart';
+''');
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('Foo'));
+  }
+
+  Future<void> test_writeImportedName_hasImport_second() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '''
+import 'bar.dart';
+''');
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('Foo'));
+  }
+
+  Future<void> test_writeImportedName_needsImport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    addSource(path, '');
+
+    var builder = newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeImportedName([
+          Uri.parse('package:test/foo.dart'),
+          Uri.parse('package:test/bar.dart')
+        ], 'Foo');
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(2));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace("import 'package:test/foo.dart';\n"));
+    expect(edits[1].replacement, equalsIgnoringWhitespace('Foo'));
+  }
+
   Future<void> test_writeLocalVariableDeclaration_noType_initializer() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = '''

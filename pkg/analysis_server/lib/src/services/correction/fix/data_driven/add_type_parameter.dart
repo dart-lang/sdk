@@ -101,44 +101,67 @@ class AddTypeParameter extends Change<_Data> {
 
   void _applyToTypeArguments(
       DartFileEditBuilder builder, DataDrivenFix fix, _TypeArgumentData data) {
+    var context = TemplateContext(fix.node, fix.utils);
     var typeArguments = data.typeArguments;
-    var argumentValueText = argumentValue.generate(fix.node, fix.utils);
     if (typeArguments == null) {
       // Adding the first type argument.
-      builder.addSimpleInsertion(data.newListOffset, '<$argumentValueText>');
+      builder.addInsertion(data.newListOffset, (builder) {
+        builder.write('<');
+        argumentValue.writeOn(builder, context);
+        builder.write('>');
+      });
     } else {
       if (index == 0) {
         // Inserting the type argument at the beginning of the list.
-        builder.addSimpleInsertion(
-            typeArguments.leftBracket.end, '$argumentValueText, ');
+        builder.addInsertion(typeArguments.leftBracket.end, (builder) {
+          argumentValue.writeOn(builder, context);
+          builder.write(', ');
+        });
       } else {
         // Inserting the type argument after an existing type argument.
         var previous = typeArguments.arguments[index - 1];
-        builder.addSimpleInsertion(previous.end, ', $argumentValueText');
+        builder.addInsertion(previous.end, (builder) {
+          builder.write(', ');
+          argumentValue.writeOn(builder, context);
+        });
       }
     }
   }
 
   void _applyToTypeParameters(
       DartFileEditBuilder builder, DataDrivenFix fix, _TypeParameterData data) {
-    var extendsClause = '';
-    if (extendedType != null) {
-      extendsClause = ' extends ${extendedType.generate(fix.node, fix.utils)}';
+    var context = TemplateContext(fix.node, fix.utils);
+
+    void writeParameter(DartEditBuilder builder) {
+      builder.write(name);
+      if (extendedType != null) {
+        builder.write(' extends ');
+        extendedType.writeOn(builder, context);
+      }
     }
-    var argumentValue = '$name$extendsClause';
+
     var typeParameters = data.typeParameters;
     if (typeParameters == null) {
       // Adding the first type argument.
-      builder.addSimpleInsertion(data.newListOffset, '<$argumentValue>');
+      builder.addInsertion(data.newListOffset, (builder) {
+        builder.write('<');
+        writeParameter(builder);
+        builder.write('>');
+      });
     } else {
       if (index == 0) {
         // Inserting the type argument at the beginning of the list.
-        builder.addSimpleInsertion(
-            typeParameters.leftBracket.end, '$argumentValue, ');
+        builder.addInsertion(typeParameters.leftBracket.end, (builder) {
+          writeParameter(builder);
+          builder.write(', ');
+        });
       } else {
         // Inserting the type argument after an existing type argument.
         var previous = typeParameters.typeParameters[index - 1];
-        builder.addSimpleInsertion(previous.end, ', $argumentValue');
+        builder.addInsertion(previous.end, (builder) {
+          builder.write(', ');
+          writeParameter(builder);
+        });
       }
     }
   }

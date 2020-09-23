@@ -22,12 +22,16 @@ class DataDriven extends MultiCorrectionProducer {
   @override
   Iterable<CorrectionProducer> get producers sync* {
     var name = _name;
-    var importedUris = <String>[];
+    var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
     for (var importElement in library.imports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.
-      importedUris.add(importElement.uri);
+      var uri = importElement.uri;
+      if (uri != null) {
+        // The [uri] is `null` if the literal string is not a valid URI.
+        importedUris.add(Uri.parse(uri));
+      }
     }
     for (var set in _availableTransformSetsForLibrary(library)) {
       for (var transform in set.transformsFor(name, importedUris)) {

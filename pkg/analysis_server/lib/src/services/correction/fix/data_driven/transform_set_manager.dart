@@ -48,8 +48,10 @@ class TransformSetManager {
     try {
       // TODO(brianwilkerson) Consider caching the transform sets.
       var content = file.readAsStringSync();
-      var parser = TransformSetParser(ErrorReporter(
-          AnalysisErrorListener.NULL_LISTENER, file.createSource()));
+      var parser = TransformSetParser(
+          ErrorReporter(
+              AnalysisErrorListener.NULL_LISTENER, file.createSource()),
+          file.parent.parent.shortName);
       return parser.parse(content);
     } on FileSystemException {
       // Fall through to return `null`.

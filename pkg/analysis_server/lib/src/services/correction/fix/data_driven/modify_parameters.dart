@@ -91,12 +91,12 @@ class ModifyParameters extends Change<_Data> {
     /// Write to the [builder] the argument associated with a single
     /// [parameter].
     void writeArgument(DartEditBuilder builder, AddParameter parameter) {
-      var value = parameter.argumentValue.generate(argumentList, fix.utils);
       if (!parameter.isPositional) {
         builder.write(parameter.name);
         builder.write(': ');
       }
-      builder.write(value);
+      parameter.argumentValue
+          .writeOn(builder, TemplateContext(argumentList, fix.utils));
     }
 
     var insertionRanges = argumentsToInsert.contiguousSubRanges.toList();

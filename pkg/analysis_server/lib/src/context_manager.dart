@@ -747,11 +747,12 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeDataFile(AnalysisDriver driver, String path) {
     List<protocol.AnalysisError> convertedErrors;
     try {
+      var file = resourceProvider.getFile(path);
+      var packageName = file.parent.parent.shortName;
       var content = _readFile(path);
       var errorListener = RecordingErrorListener();
-      var errorReporter = ErrorReporter(
-          errorListener, resourceProvider.getFile(path).createSource());
-      var parser = TransformSetParser(errorReporter);
+      var errorReporter = ErrorReporter(errorListener, file.createSource());
+      var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errorListener.errors,

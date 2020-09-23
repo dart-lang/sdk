@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 /// An object used to generate code to be inserted.
 class CodeTemplate {
@@ -18,15 +19,6 @@ class CodeTemplate {
   /// [components].
   CodeTemplate(this.kind, this.components);
 
-  String generate(AstNode node, CorrectionUtils utils) {
-    var context = TemplateContext(node, utils);
-    var buffer = StringBuffer();
-    for (var component in components) {
-      component.appendTo(buffer, context);
-    }
-    return buffer.toString();
-  }
-
   /// Use the [context] to validate that this template will be able to generate
   /// a value.
   bool validate(TemplateContext context) {
@@ -36,6 +28,12 @@ class CodeTemplate {
       }
     }
     return true;
+  }
+
+  void writeOn(DartEditBuilder builder, TemplateContext context) {
+    for (var component in components) {
+      component.writeOn(builder, context);
+    }
   }
 }
 
@@ -47,14 +45,14 @@ enum CodeTemplateKind {
 
 /// An object used to compute some portion of a template.
 abstract class TemplateComponent {
-  /// Append the text contributed by this component to the given [sink], using
-  /// the [context] to access needed information that isn't already known to
-  /// this component.
-  void appendTo(StringSink sink, TemplateContext context);
-
   /// Use the [context] to validate that this component will be able to generate
   /// a value.
   bool validate(TemplateContext context);
+
+  /// Write the text contributed by this component to the given [builder], using
+  /// the [context] to access needed information that isn't already known to
+  /// this component.
+  void writeOn(DartEditBuilder builder, TemplateContext context);
 }
 
 /// The context in which a template is being evaluated.
@@ -65,20 +63,8 @@ class TemplateContext {
   /// The utilities used to help extract the code associated with various nodes.
   final CorrectionUtils utils;
 
-  /// A table mapping variable names to the values of those variables after they
-  /// have been computed. Used to prevent computing the same value multiple
-  /// times.
-  final Map<ValueGenerator, String> _variableValues = {};
-
   /// Initialize a newly created variable support.
   TemplateContext(this.node, this.utils);
-
-  /// Return the value of the variable with the given [name].
-  String valueOf(ValueGenerator generator) {
-    return _variableValues.putIfAbsent(generator, () {
-      return generator.from(this);
-    });
-  }
 }
 
 /// Literal text within a template.
@@ -90,13 +76,13 @@ class TemplateText extends TemplateComponent {
   TemplateText(this.text);
 
   @override
-  void appendTo(StringSink sink, TemplateContext context) {
-    sink.write(text);
+  bool validate(TemplateContext context) {
+    return true;
   }
 
   @override
-  bool validate(TemplateContext context) {
-    return true;
+  void writeOn(DartEditBuilder builder, TemplateContext context) {
+    builder.write(text);
   }
 }
 
@@ -109,12 +95,12 @@ class TemplateVariable extends TemplateComponent {
   TemplateVariable(this.generator);
 
   @override
-  void appendTo(StringSink sink, TemplateContext context) {
-    sink.write(context.valueOf(generator));
+  bool validate(TemplateContext context) {
+    return generator.validate(context);
   }
 
   @override
-  bool validate(TemplateContext context) {
-    return generator.validate(context);
+  void writeOn(DartEditBuilder builder, TemplateContext context) {
+    generator.writeOn(builder, context);
   }
 }
