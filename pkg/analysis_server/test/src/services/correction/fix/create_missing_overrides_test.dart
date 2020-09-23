@@ -197,34 +197,6 @@ class B extends A {
 ''');
   }
 
-  Future<void> test_lineEndings() async {
-    // TODO(dantup): Remove the need for this here, and have all of the tests
-    // test with CRLF when running on Windows.
-    final newlineWithoutCarriageReturn = RegExp(r'(?<!\r)\n');
-    String asCrLf(String input) =>
-        input.replaceAll(newlineWithoutCarriageReturn, '\r\n');
-    await resolveTestUnit(asCrLf('''
-class A {
-  void ma() {}
-}
-
-class B implements A {
-}
-'''));
-    await assertHasFix(asCrLf('''
-class A {
-  void ma() {}
-}
-
-class B implements A {
-  @override
-  void ma() {
-    // TODO: implement ma
-  }
-}
-'''));
-  }
-
   Future<void> test_mergeToField_getterSetter() async {
     await resolveTestUnit('''
 class A {

@@ -23,6 +23,13 @@ class RemoveUnusedParameterTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_unused_constructor_parameters;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_first_optionalNamed_second_optionalNamed() async {
     await resolveTestUnit('''
 class C {

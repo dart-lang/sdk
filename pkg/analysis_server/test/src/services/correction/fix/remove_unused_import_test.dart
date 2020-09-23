@@ -20,6 +20,13 @@ class RemoveUnusedImportTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_IMPORT;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_all_diverseImports() async {
     await resolveTestUnit('''
 import 'dart:math';

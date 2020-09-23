@@ -2923,7 +2923,8 @@ Completer<int> newCompleter() => null;
   }
 
   void _createRefactoringForStartEndComments() {
-    var offset = findEnd('// start') + '\n'.length;
+    final eol = testCode.contains('\r\n') ? '\r\n' : '\r';
+    var offset = findEnd('// start') + eol.length;
     var end = findOffset('// end');
     _createRefactoring(offset, end - offset);
   }

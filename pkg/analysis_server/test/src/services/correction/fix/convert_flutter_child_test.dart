@@ -19,6 +19,13 @@ class ConvertFlutterChildTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_FLUTTER_CHILD;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_hasList() async {
     addFlutterPackage();
     await resolveTestUnit('''

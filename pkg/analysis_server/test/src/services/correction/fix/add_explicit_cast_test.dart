@@ -22,6 +22,13 @@ class AddExplicitCastTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_as() async {
     await resolveTestUnit('''
 f(A a) {
@@ -481,6 +488,13 @@ void foo(int a) {
 class AddExplicitCastWithNullSafetyTest extends AddExplicitCastTest {
   @override
   List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
 
   Future<void> test_assignment_null() async {
     await resolveTestUnit('''
