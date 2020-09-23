@@ -1580,6 +1580,7 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbolObfuscate(helper.name_index_);
+  ASSERT(name.Length() > 0);
   AbstractType& type = BuildAndVisitVariableType();  // read type.
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);

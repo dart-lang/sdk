@@ -1444,8 +1444,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = isNonNullableByDefault;
     if (!isFinal) {
-      VariableDeclaration parameter = new VariableDeclaration(null)
-        ..isCovariant = isCovariant;
+      VariableDeclaration parameter =
+          new VariableDeclaration("#externalFieldValue")
+            ..isCovariant = isCovariant;
       _setter = new Procedure(
           null,
           ProcedureKind.Setter,
