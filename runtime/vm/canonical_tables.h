@@ -2,14 +2,136 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef RUNTIME_VM_TYPE_TABLE_H_
-#define RUNTIME_VM_TYPE_TABLE_H_
+#ifndef RUNTIME_VM_CANONICAL_TABLES_H_
+#define RUNTIME_VM_CANONICAL_TABLES_H_
 
 #include "platform/assert.h"
 #include "vm/hash_table.h"
 #include "vm/object.h"
 
 namespace dart {
+
+template <typename CharType>
+class CharArray {
+ public:
+  CharArray(const CharType* data, intptr_t len) : data_(data), len_(len) {
+    hash_ = String::Hash(data, len);
+  }
+  StringPtr ToSymbol() const {
+    String& result = String::Handle(StringFrom(data_, len_, Heap::kOld));
+    result.SetCanonical();
+    result.SetHash(hash_);
+    return result.raw();
+  }
+  bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
+    return other.Equals(data_, len_);
+  }
+  intptr_t Hash() const { return hash_; }
+
+ private:
+  const CharType* data_;
+  intptr_t len_;
+  intptr_t hash_;
+};
+typedef CharArray<uint8_t> Latin1Array;
+typedef CharArray<uint16_t> UTF16Array;
+typedef CharArray<int32_t> UTF32Array;
+
+class StringSlice {
+ public:
+  StringSlice(const String& str, intptr_t begin_index, intptr_t length)
+      : str_(str), begin_index_(begin_index), len_(length) {
+    hash_ = is_all() ? str.Hash() : String::Hash(str, begin_index, length);
+  }
+  StringPtr ToSymbol() const;
+  bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
+    return other.Equals(str_, begin_index_, len_);
+  }
+  intptr_t Hash() const { return hash_; }
+
+ private:
+  bool is_all() const { return begin_index_ == 0 && len_ == str_.Length(); }
+  const String& str_;
+  intptr_t begin_index_;
+  intptr_t len_;
+  intptr_t hash_;
+};
+
+class ConcatString {
+ public:
+  ConcatString(const String& str1, const String& str2)
+      : str1_(str1), str2_(str2), hash_(String::HashConcat(str1, str2)) {}
+  StringPtr ToSymbol() const;
+  bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
+    return other.EqualsConcat(str1_, str2_);
+  }
+  intptr_t Hash() const { return hash_; }
+
+ private:
+  const String& str1_;
+  const String& str2_;
+  intptr_t hash_;
+};
+
+class SymbolTraits {
+ public:
+  static const char* Name() { return "SymbolTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const String& a_str = String::Cast(a);
+    const String& b_str = String::Cast(b);
+    ASSERT(a_str.HasHash());
+    ASSERT(b_str.HasHash());
+    if (a_str.Hash() != b_str.Hash()) {
+      return false;
+    }
+    intptr_t a_len = a_str.Length();
+    if (a_len != b_str.Length()) {
+      return false;
+    }
+    // Use a comparison which does not consider the state of the canonical bit.
+    return a_str.Equals(b_str, 0, a_len);
+  }
+  template <typename CharType>
+  static bool IsMatch(const CharArray<CharType>& array, const Object& obj) {
+    return array.Equals(String::Cast(obj));
+  }
+  static bool IsMatch(const StringSlice& slice, const Object& obj) {
+    return slice.Equals(String::Cast(obj));
+  }
+  static bool IsMatch(const ConcatString& concat, const Object& obj) {
+    return concat.Equals(String::Cast(obj));
+  }
+  static uword Hash(const Object& key) { return String::Cast(key).Hash(); }
+  template <typename CharType>
+  static uword Hash(const CharArray<CharType>& array) {
+    return array.Hash();
+  }
+  static uword Hash(const StringSlice& slice) { return slice.Hash(); }
+  static uword Hash(const ConcatString& concat) { return concat.Hash(); }
+  template <typename CharType>
+  static ObjectPtr NewKey(const CharArray<CharType>& array) {
+    return array.ToSymbol();
+  }
+  static ObjectPtr NewKey(const StringSlice& slice) { return slice.ToSymbol(); }
+  static ObjectPtr NewKey(const ConcatString& concat) {
+    return concat.ToSymbol();
+  }
+};
+typedef UnorderedHashSet<SymbolTraits> CanonicalStringSet;
 
 class CanonicalTypeKey {
  public:
@@ -134,4 +256,4 @@ typedef UnorderedHashSet<CanonicalTypeArgumentsTraits>
 
 }  // namespace dart
 
-#endif  // RUNTIME_VM_TYPE_TABLE_H_
+#endif  // RUNTIME_VM_CANONICAL_TABLES_H_

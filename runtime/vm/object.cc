@@ -13,6 +13,7 @@
 #include "platform/unicode.h"
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
@@ -57,7 +58,6 @@
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
 

@@ -9,6 +9,7 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/bss_relocs.h"
+#include "vm/canonical_tables.h"
 #include "vm/class_id.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/api/print_filter.h"
@@ -493,6 +494,25 @@ class TypeArgumentsDeserializationCluster : public DeserializationCluster {
             static_cast<AbstractTypePtr>(d->ReadRef());
       }
     }
+  }
+
+  void PostLoadEarly(Deserializer* d, const Array& refs) {
+    if (d->isolate() == Dart::vm_isolate()) {
+      return;
+    }
+    CanonicalTypeArgumentsSet table(
+        d->zone(), d->isolate()->object_store()->canonical_type_arguments());
+    TypeArguments& type_arg = TypeArguments::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      type_arg ^= refs.At(i);
+      if (type_arg.IsCanonical()) {
+        bool present = table.Insert(type_arg);
+        // Two recursive types with different topology (and hashes) may be
+        // equal.
+        ASSERT(!present || type_arg.IsRecursive());
+      }
+    }
+    d->isolate()->object_store()->set_canonical_type_arguments(table.Release());
   }
 };
 
@@ -3608,6 +3628,25 @@ class TypeDeserializationCluster : public DeserializationCluster {
     }
   }
 
+  void PostLoadEarly(Deserializer* d, const Array& refs) {
+    if (d->isolate() == Dart::vm_isolate()) {
+      return;
+    }
+    CanonicalTypeSet table(d->zone(),
+                           d->isolate()->object_store()->canonical_types());
+    Type& type = Type::Handle(d->zone());
+    for (intptr_t i = canonical_start_index_; i < canonical_stop_index_; i++) {
+      type ^= refs.At(i);
+      if (type.IsCanonical()) {
+        bool present = table.Insert(type);
+        // Two recursive types with different topology (and hashes) may be
+        // equal.
+        ASSERT(!present || type.IsRecursive());
+      }
+    }
+    d->isolate()->object_store()->set_canonical_types(table.Release());
+  }
+
   void PostLoad(Deserializer* d, const Array& refs) {
     Type& type = Type::Handle(d->zone());
     Code& stub = Code::Handle(d->zone());
@@ -3838,6 +3877,24 @@ class TypeParameterDeserializationCluster : public DeserializationCluster {
       TypeParameterPtr type = static_cast<TypeParameterPtr>(d->Ref(id));
       ReadTypeParameter(d, type, /* is_canonical = */ false);
     }
+  }
+
+  void PostLoadEarly(Deserializer* d, const Array& refs) {
+    if (d->isolate() == Dart::vm_isolate()) {
+      return;
+    }
+    CanonicalTypeParameterSet table(
+        d->zone(), d->isolate()->object_store()->canonical_type_parameters());
+    TypeParameter& type_param = TypeParameter::Handle(d->zone());
+    for (intptr_t i = canonical_start_index_; i < canonical_stop_index_; i++) {
+      type_param ^= refs.At(i);
+      if (type_param.IsCanonical() && !type_param.IsDeclaration()) {
+        bool present = table.Insert(type_param);
+        ASSERT(!present);
+      }
+    }
+    d->isolate()->object_store()->set_canonical_type_parameters(
+        table.Release());
   }
 
   void PostLoad(Deserializer* d, const Array& refs) {
@@ -4894,6 +4951,23 @@ class OneByteStringDeserializationCluster : public DeserializationCluster {
       String::SetCachedHash(str, hasher.Finalize());
     }
   }
+
+  void PostLoadEarly(Deserializer* d, const Array& refs) {
+    if (d->isolate() == Dart::vm_isolate()) {
+      return;
+    }
+    CanonicalStringSet table(d->zone(),
+                             d->isolate()->object_store()->symbol_table());
+    String& str = String::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      str ^= refs.At(i);
+      if (str.IsCanonical()) {
+        bool present = table.Insert(str);
+        ASSERT(!present);
+      }
+    }
+    d->isolate()->object_store()->set_symbol_table(table.Release());
+  }
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4973,6 +5047,23 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
       }
       String::SetCachedHash(str, hasher.Finalize());
     }
+  }
+
+  void PostLoadEarly(Deserializer* d, const Array& refs) {
+    if (d->isolate() == Dart::vm_isolate()) {
+      return;
+    }
+    CanonicalStringSet table(d->zone(),
+                             d->isolate()->object_store()->symbol_table());
+    String& str = String::Handle(d->zone());
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      str ^= refs.At(i);
+      if (str.IsCanonical()) {
+        bool present = table.Insert(str);
+        ASSERT(!present);
+      }
+    }
+    d->isolate()->object_store()->set_symbol_table(table.Release());
   }
 };
 
@@ -5204,7 +5295,36 @@ class ProgramSerializationRoots : public SerializationRoots {
                             ObjectStore* object_store)
       : num_base_objects_(num_base_objects),
         object_store_(object_store),
-        dispatch_table_entries_(Array::Handle()) {}
+        saved_symbol_table_(Array::Handle()),
+        saved_canonical_types_(Array::Handle()),
+        saved_canonical_type_parameters_(Array::Handle()),
+        saved_canonical_type_arguments_(Array::Handle()),
+        dispatch_table_entries_(Array::Handle()) {
+    saved_symbol_table_ = object_store->symbol_table();
+    object_store->set_symbol_table(
+        Array::Handle(HashTables::New<CanonicalStringSet>(4)));
+
+    saved_canonical_types_ = object_store->canonical_types();
+    object_store->set_canonical_types(
+        Array::Handle(HashTables::New<CanonicalTypeSet>(4)));
+
+    saved_canonical_type_parameters_ =
+        object_store->canonical_type_parameters();
+    object_store->set_canonical_type_parameters(
+        Array::Handle(HashTables::New<CanonicalTypeParameterSet>(4)));
+
+    saved_canonical_type_arguments_ = object_store->canonical_type_arguments();
+    object_store->set_canonical_type_arguments(
+        Array::Handle(HashTables::New<CanonicalTypeArgumentsSet>(4)));
+  }
+  ~ProgramSerializationRoots() {
+    object_store_->set_symbol_table(saved_symbol_table_);
+    object_store_->set_canonical_types(saved_canonical_types_);
+    object_store_->set_canonical_type_parameters(
+        saved_canonical_type_parameters_);
+    object_store_->set_canonical_type_arguments(
+        saved_canonical_type_arguments_);
+  }
 
   void AddBaseObjects(Serializer* s) {
     if (num_base_objects_ == 0) {
@@ -5257,6 +5377,10 @@ class ProgramSerializationRoots : public SerializationRoots {
  private:
   intptr_t num_base_objects_;
   ObjectStore* object_store_;
+  Array& saved_symbol_table_;
+  Array& saved_canonical_types_;
+  Array& saved_canonical_type_parameters_;
+  Array& saved_canonical_type_arguments_;
   Array& dispatch_table_entries_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -6828,6 +6952,14 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     isolate->heap()->Verify();
   }
 #endif
+
+  // TODO(rmacnak): When splitting literals, load clusters requiring
+  // canonicalization first, canonicalize and update the ref array, the load
+  // the remaining clusters to avoid a full heap walk to update references to
+  // the losers of any canonicalization races.
+  for (intptr_t i = 0; i < num_clusters_; i++) {
+    clusters_[i]->PostLoadEarly(this, refs);
+  }
 
   for (intptr_t i = 0; i < num_clusters_; i++) {
     clusters_[i]->PostLoad(this, refs);

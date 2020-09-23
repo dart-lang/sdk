@@ -116,6 +116,7 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
+  virtual void PostLoadEarly(Deserializer* deserializer, const Array& refs) {}
   virtual void PostLoad(Deserializer* deserializer, const Array& refs) {}
 
  protected:

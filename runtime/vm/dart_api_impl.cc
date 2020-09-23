@@ -1970,8 +1970,6 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   }
 #endif  // #if defined(DEBUG)
 
-  Symbols::Compact();
-
   FullSnapshotWriter writer(Snapshot::kFull, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
                             NULL /* vm_image_writer */,
@@ -7021,7 +7019,6 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);
-  Symbols::Compact();
 
   TIMELINE_DURATION(T, Isolate, "WriteCoreJITSnapshot");
   BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
@@ -7097,7 +7094,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   DropRegExpMatchCode(Z);
 
   ProgramVisitor::Dedup(T);
-  Symbols::Compact();
 
   if (FLAG_dump_tables) {
     Symbols::DumpTable(I);
