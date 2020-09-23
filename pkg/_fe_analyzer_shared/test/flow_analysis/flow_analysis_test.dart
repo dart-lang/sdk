@@ -1443,6 +1443,54 @@ main() {
       });
     });
 
+    test('promote promotes to a subtype and sets type of interest', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'num?');
+      h.assignedVariables((vars) {
+        vars.write(x);
+      });
+      h.run((flow) {
+        flow.declare(x, true);
+        expect(flow.promotedType(x), isNull);
+        flow.promote(x, _Type('num'));
+        expect(flow.promotedType(x).type, 'num');
+        // Check that it's a type of interest by promoting and de-promoting.
+        h.if_(h.isType(h.variableRead(x), 'int'), () {
+          expect(flow.promotedType(x).type, 'int');
+          flow.write(x, _Type('num'));
+          expect(flow.promotedType(x).type, 'num');
+        });
+      });
+    });
+
+    test('promote does not promote to a non-subtype', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'num?');
+      h.run((flow) {
+        flow.declare(x, true);
+        expect(flow.promotedType(x), isNull);
+        flow.promote(x, _Type('String'));
+        expect(flow.promotedType(x), isNull);
+      });
+    });
+
+    test('promote does not promote if variable is write-captured', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'num?');
+      var functionNode = _Node();
+      h.assignedVariables(
+          (vars) => vars.function(functionNode, () => vars.write(x)));
+      h.run((flow) {
+        flow.declare(x, true);
+        expect(flow.promotedType(x), isNull);
+        flow.functionExpression_begin(functionNode);
+        flow.write(x, _Type('num'));
+        flow.functionExpression_end();
+        flow.promote(x, _Type('num'));
+        expect(flow.promotedType(x), isNull);
+      });
+    });
+
     test('promotedType handles not-yet-seen variables', () {
       // Note: this is needed for error recovery in the analyzer.
       var h = _Harness();

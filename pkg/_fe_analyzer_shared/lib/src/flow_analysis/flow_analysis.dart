@@ -609,6 +609,11 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression);
 
+  /// Attempt to promote [variable] to [type].  The client may use this to
+  /// ensure that a variable declaration of the form `var x = expr;` promotes
+  /// `x` to type `X&T` in the circumstance where the type of `expr` is `X&T`.
+  void promote(Variable variable, Type type);
+
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
   Type promotedType(Variable variable);
@@ -749,7 +754,12 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
 
   /// Register write of the given [variable] in the current state.
   /// [writtenType] should be the type of the value that was written.
-  void write(Variable variable, Type writtenType);
+  ///
+  /// This should also be used for the implicit write to a non-final variable in
+  /// its initializer, to ensure that the type is promoted to non-nullable if
+  /// necessary; in this case, [viaInitializer] should be `true`.
+  void write(Variable variable, Type writtenType,
+      {bool viaInitializer = false});
 }
 
 /// Alternate implementation of [FlowAnalysis] that prints out inputs and output
@@ -1055,6 +1065,11 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void promote(Variable variable, Type type) {
+    _wrap('promote($variable, $type', () => _wrapped.promote(variable, type));
+  }
+
+  @override
   Type promotedType(Variable variable) {
     return _wrap(
         'promotedType($variable)', () => _wrapped.promotedType(variable),
@@ -1156,9 +1171,12 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
-  void write(Variable variable, Type writtenType) {
-    _wrap('write($variable, $writtenType)',
-        () => _wrapped.write(variable, writtenType));
+  void write(Variable variable, Type writtenType,
+      {bool viaInitializer = false}) {
+    _wrap(
+        'write($variable, $writtenType, viaInitializer: $viaInitializer)',
+        () => _wrapped.write(variable, writtenType,
+            viaInitializer: viaInitializer));
   }
 
   T _wrap<T>(String description, T callback(),
@@ -2873,6 +2891,12 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
+  void promote(Variable variable, Type type) {
+    _current =
+        _current.tryPromoteForTypeCheck(typeOperations, variable, type).ifTrue;
+  }
+
+  @override
   Type promotedType(Variable variable) {
     return _current.infoFor(variable).promotedTypes?.last;
   }
@@ -3025,11 +3049,14 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   }
 
   @override
-  void write(Variable variable, Type writtenType) {
-    assert(
-        _assignedVariables._anywhere._written.contains(variable),
-        "Variable is written to, but was not included in "
-        "_variablesWrittenAnywhere: $variable");
+  void write(Variable variable, Type writtenType,
+      {bool viaInitializer = false}) {
+    if (!viaInitializer) {
+      assert(
+          _assignedVariables._anywhere._written.contains(variable),
+          "Variable is written to, but was not included in "
+          "_variablesWrittenAnywhere: $variable");
+    }
     _current = _current.write(variable, writtenType, typeOperations);
   }
 
