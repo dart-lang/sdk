@@ -865,6 +865,7 @@ dart_vm_extra_builder(
 nightly_builder(
     "vm-kernel-linux-release-ia32",
     category = "vm|kernel|r32",
+    channels = ["try"],
 )
 dart_ci_sandbox_builder(
     "vm-kernel-linux-release-x64",
@@ -906,6 +907,7 @@ dart_ci_sandbox_builder(
 nightly_builder(
     "vm-kernel-win-release-ia32",
     category = "vm|kernel|wr3",
+    channels = ["try"],
     dimensions = windows(),
 )
 dart_ci_sandbox_builder(
