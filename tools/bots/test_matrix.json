@@ -3402,7 +3402,6 @@
           "name": "build dart for simarm_x64",
           "script": "tools/build.py",
           "arguments": [
-            "--bytecode",
             "gen_snapshot"
           ]
         },
@@ -3411,7 +3410,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=simarm",
-            "--bytecode",
             "dart_precompiled_runtime",
             "vm_platform"
           ]
