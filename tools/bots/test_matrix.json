@@ -822,39 +822,6 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-(linux|mac)-(debug|product|release)-x64-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-(linux|mac)-(debug|product|release)-simarm64-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "use-elf": true,
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-linux-(debug|product|release)-simarm-crossword-ast": {
-      "options": {
-        "builder-tag": "crossword_ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "enable-asserts": true
