@@ -1,0 +1,11 @@
+class C {
+  Never n;
+  factory C(Never n) = D;
+}
+
+class D implements C {
+  D(this.n);
+  Never n;
+}
+
+main() {}

@@ -963,9 +963,12 @@ class KernelTarget extends TargetImplementation {
     for (FieldBuilder fieldBuilder in uninitializedFields) {
       if (initializedFields == null ||
           !initializedFields.contains(fieldBuilder)) {
+        bool uninitializedFinalOrNonNullableFieldIsError =
+            cls.enclosingLibrary.isNonNullableByDefault ||
+                (cls.constructors.isNotEmpty || cls.isMixinDeclaration);
         if (!fieldBuilder.isLate) {
           if (fieldBuilder.isFinal &&
-              (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
+              uninitializedFinalOrNonNullableFieldIsError) {
             String uri = '${fieldBuilder.library.importUri}';
             String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
@@ -984,7 +987,7 @@ class KernelTarget extends TargetImplementation {
             }
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable &&
-              (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
+              uninitializedFinalOrNonNullableFieldIsError) {
             SourceLibraryBuilder library = builder.library;
             if (library.isNonNullableByDefault) {
               library.addProblem(
@@ -1035,9 +1038,15 @@ class KernelTarget extends TargetImplementation {
                   templateFieldNonNullableNotInitializedByConstructorError
                       .withArguments(fieldBuilder.name, fieldBuilder.field.type,
                           library.isNonNullableByDefault),
-                  fieldBuilder.charOffset,
-                  fieldBuilder.name.length,
-                  fieldBuilder.fileUri);
+                  constructorBuilder.charOffset,
+                  noLength,
+                  constructorBuilder.fileUri,
+                  context: [
+                    templateMissingImplementationCause
+                        .withArguments(fieldBuilder.name)
+                        .withLocation(fieldBuilder.fileUri,
+                            fieldBuilder.charOffset, fieldBuilder.name.length)
+                  ]);
             }
           }
         }

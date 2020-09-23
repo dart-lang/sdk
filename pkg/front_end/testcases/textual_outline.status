@@ -172,6 +172,7 @@ nnbd/inheritance_from_opt_in: FormatterCrash
 nnbd/issue40805: FormatterCrash
 nnbd/issue41349: FormatterCrash
 nnbd/issue41597: FormatterCrash
+nnbd/issue42967: FormatterCrash
 nnbd/issue43278: FormatterCrash
 nnbd/late: FormatterCrash
 nnbd/later: FormatterCrash
@@ -236,4 +237,3 @@ variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
 variance/mixin_type_parameter_modifier: FormatterCrash
 variance/unconstrained_inference: FormatterCrash
-
