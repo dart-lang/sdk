@@ -1,7 +1,10 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "initializer_rewrite_from_opt_out_lib.dart" as ini;
 import "dart:_internal" as _in;
+
+import "org-dartlang-testcase:///initializer_rewrite_from_opt_out_lib.dart";
 
 class Class extends core::Object {
   static field core::int nonNullableStaticFieldReads = 0;
@@ -21,7 +24,7 @@ class Class extends core::Object {
     ;
   static get nonNullableStaticField() → core::int {
     if(!self::Class::_#nonNullableStaticField#isSet) {
-      final core::int #t1 = (let final core::int #t2 = self::Class::nonNullableStaticFieldReads in let final core::int #t3 = self::Class::nonNullableStaticFieldReads = #t2.{core::num::+}(1) in #t2).{core::num::==}(0) ?{core::int} self::Class::nonNullableStaticField.{core::num::+}(1) : 0;
+      final core::int #t1 = (let final core::int #t2 = self::Class::nonNullableStaticFieldReads in let final core::int #t3 = self::Class::nonNullableStaticFieldReads = #t2.{core::num::+}(1) in #t2).{core::num::==}(0) ?{core::int*} self::Class::nonNullableStaticField : ini::computeInitialValue();
       if(self::Class::_#nonNullableStaticField#isSet)
         throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticField' has been assigned during initialization.");
       self::Class::_#nonNullableStaticField = #t1;
@@ -31,7 +34,7 @@ class Class extends core::Object {
   }
   static get nullableStaticField() → core::int? {
     if(!self::Class::_#nullableStaticField#isSet) {
-      final core::int? #t5 = (let final core::int #t6 = self::Class::nullableStaticFieldReads in let final core::int #t7 = self::Class::nullableStaticFieldReads = #t6.{core::num::+}(1) in #t6).{core::num::==}(0) ?{core::int} self::Class::nullableStaticField.{core::Object::hashCode} : 0;
+      final core::int? #t5 = (let final core::int #t6 = self::Class::nullableStaticFieldReads in let final core::int #t7 = self::Class::nullableStaticFieldReads = #t6.{core::num::+}(1) in #t6).{core::num::==}(0) ?{core::int?} self::Class::nullableStaticField : ini::computeInitialValue();
       if(self::Class::_#nullableStaticField#isSet)
         throw new _in::LateInitializationErrorImpl::•("Field 'nullableStaticField' has been assigned during initialization.");
       self::Class::_#nullableStaticField = #t5;
@@ -41,7 +44,7 @@ class Class extends core::Object {
   }
   get nonNullableInstanceField() → core::int {
     if(!this.{self::Class::_#Class#nonNullableInstanceField#isSet}) {
-      final core::int #t8 = (let final core::int #t9 = this.{self::Class::nonNullableInstanceFieldReads} in let final core::int #t10 = this.{self::Class::nonNullableInstanceFieldReads} = #t9.{core::num::+}(1) in #t9).{core::num::==}(0) ?{core::int} this.{self::Class::nonNullableInstanceField}.{core::num::+}(1) : 0;
+      final core::int #t8 = (let final core::int #t9 = this.{self::Class::nonNullableInstanceFieldReads} in let final core::int #t10 = this.{self::Class::nonNullableInstanceFieldReads} = #t9.{core::num::+}(1) in #t9).{core::num::==}(0) ?{core::int*} this.{self::Class::nonNullableInstanceField} : ini::computeInitialValue();
       if(this.{self::Class::_#Class#nonNullableInstanceField#isSet})
         throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableInstanceField' has been assigned during initialization.");
       this.{self::Class::_#Class#nonNullableInstanceField} = #t8;
@@ -51,7 +54,7 @@ class Class extends core::Object {
   }
   get nullableInstanceField() → core::int? {
     if(!this.{self::Class::_#Class#nullableInstanceField#isSet}) {
-      final core::int? #t12 = (let final core::int #t13 = this.{self::Class::nullableInstanceFieldReads} in let final core::int #t14 = this.{self::Class::nullableInstanceFieldReads} = #t13.{core::num::+}(1) in #t13).{core::num::==}(0) ?{core::int} this.{self::Class::nullableInstanceField}.{core::Object::hashCode} : 0;
+      final core::int? #t12 = (let final core::int #t13 = this.{self::Class::nullableInstanceFieldReads} in let final core::int #t14 = this.{self::Class::nullableInstanceFieldReads} = #t13.{core::num::+}(1) in #t13).{core::num::==}(0) ?{core::int?} this.{self::Class::nullableInstanceField} : ini::computeInitialValue();
       if(this.{self::Class::_#Class#nullableInstanceField#isSet})
         throw new _in::LateInitializationErrorImpl::•("Field 'nullableInstanceField' has been assigned during initialization.");
       this.{self::Class::_#Class#nullableInstanceField} = #t12;
@@ -68,7 +71,7 @@ static field core::int? _#nullableTopLevelField = null;
 static field core::bool _#nullableTopLevelField#isSet = false;
 static get nonNullableTopLevelField() → core::int {
   if(!self::_#nonNullableTopLevelField#isSet) {
-    final core::int #t15 = (let final core::int #t16 = self::nonNullableTopLevelFieldReads in let final core::int #t17 = self::nonNullableTopLevelFieldReads = #t16.{core::num::+}(1) in #t16).{core::num::==}(0) ?{core::int} self::nonNullableTopLevelField.{core::num::+}(1) : 0;
+    final core::int #t15 = (let final core::int #t16 = self::nonNullableTopLevelFieldReads in let final core::int #t17 = self::nonNullableTopLevelFieldReads = #t16.{core::num::+}(1) in #t16).{core::num::==}(0) ?{core::int*} self::nonNullableTopLevelField : ini::computeInitialValue();
     if(self::_#nonNullableTopLevelField#isSet)
       throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableTopLevelField' has been assigned during initialization.");
     self::_#nonNullableTopLevelField = #t15;
@@ -78,7 +81,7 @@ static get nonNullableTopLevelField() → core::int {
 }
 static get nullableTopLevelField() → core::int? {
   if(!self::_#nullableTopLevelField#isSet) {
-    final core::int? #t19 = (let final core::int #t20 = self::nullableTopLevelFieldReads in let final core::int #t21 = self::nullableTopLevelFieldReads = #t20.{core::num::+}(1) in #t20).{core::num::==}(0) ?{core::int} self::nullableTopLevelField.{core::Object::hashCode} : 0;
+    final core::int? #t19 = (let final core::int #t20 = self::nullableTopLevelFieldReads in let final core::int #t21 = self::nullableTopLevelFieldReads = #t20.{core::num::+}(1) in #t20).{core::num::==}(0) ?{core::int?} self::nullableTopLevelField : ini::computeInitialValue();
     if(self::_#nullableTopLevelField#isSet)
       throw new _in::LateInitializationErrorImpl::•("Field 'nullableTopLevelField' has been assigned during initialization.");
     self::_#nullableTopLevelField = #t19;
@@ -105,3 +108,10 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   }
   throw "${message}: ${value}";
 }
+
+library;
+import self as ini;
+import "dart:core" as core;
+
+static method computeInitialValue() → core::int*
+  return null;

@@ -75,8 +75,16 @@ class Class extends core::Object {
     self::Class::_#nullableStaticFieldWithInitializer2#isSet = true;
     self::Class::_#nullableStaticFieldWithInitializer2 = #t6;
   }
-  static get nonNullableStaticFinalFieldWithInitializer1() → core::int
-    return let final core::int? #t7 = self::Class::_#nonNullableStaticFinalFieldWithInitializer1 in #t7.==(null) ?{core::int} let final core::int #t8 = self::init<core::int>(73) in self::Class::_#nonNullableStaticFinalFieldWithInitializer1.==(null) ?{core::int} self::Class::_#nonNullableStaticFinalFieldWithInitializer1 = #t8 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticFinalFieldWithInitializer1' has been assigned during initialization.") : #t7{core::int};
+  static get nonNullableStaticFinalFieldWithInitializer1() → core::int {
+    if(!self::Class::_#nonNullableStaticFinalFieldWithInitializer1#isSet) {
+      final core::int #t7 = self::init<core::int>(73);
+      if(self::Class::_#nonNullableStaticFinalFieldWithInitializer1#isSet)
+        throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticFinalFieldWithInitializer1' has been assigned during initialization.");
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer1 = #t7;
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer1#isSet = true;
+    }
+    return let final core::int? #t8 = self::Class::_#nonNullableStaticFinalFieldWithInitializer1 in #t8{core::int};
+  }
   static get nullableStaticFinalFieldWithInitializer1() → core::int? {
     if(!self::Class::_#nullableStaticFinalFieldWithInitializer1#isSet) {
       final core::int? #t9 = self::init<core::int?>(19);
@@ -98,8 +106,16 @@ class Class extends core::Object {
     self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init#isSet = true;
     self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = #t11;
   }
-  static get nonNullableStaticFinalFieldWithInitializer2() → core::int
-    return let final core::int? #t12 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2 in #t12.==(null) ?{core::int} let final core::int #t13 = (let final core::int #t14 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init in let final core::int #t15 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init = #t14.{core::num::+}(1) in #t14).{core::num::==}(0) ?{core::int} self::Class::nonNullableStaticFinalFieldWithInitializer2.{core::num::+}(1) : 87 in self::Class::_#nonNullableStaticFinalFieldWithInitializer2.==(null) ?{core::int} self::Class::_#nonNullableStaticFinalFieldWithInitializer2 = #t13 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticFinalFieldWithInitializer2' has been assigned during initialization.") : #t12{core::int};
+  static get nonNullableStaticFinalFieldWithInitializer2() → core::int {
+    if(!self::Class::_#nonNullableStaticFinalFieldWithInitializer2#isSet) {
+      final core::int #t12 = (let final core::int #t13 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init in let final core::int #t14 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init = #t13.{core::num::+}(1) in #t13).{core::num::==}(0) ?{core::int} self::Class::nonNullableStaticFinalFieldWithInitializer2.{core::num::+}(1) : 87;
+      if(self::Class::_#nonNullableStaticFinalFieldWithInitializer2#isSet)
+        throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableStaticFinalFieldWithInitializer2' has been assigned during initialization.");
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer2 = #t12;
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer2#isSet = true;
+    }
+    return let final core::int? #t15 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2 in #t15{core::int};
+  }
   static get nullableStaticFinalFieldWithInitializer2Init() → core::int {
     if(!self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet) {
       self::Class::_#nullableStaticFinalFieldWithInitializer2Init = 0;
@@ -193,8 +209,16 @@ static set nullableTopLevelFieldWithInitializer2(core::int? #t26) → void {
   self::_#nullableTopLevelFieldWithInitializer2#isSet = true;
   self::_#nullableTopLevelFieldWithInitializer2 = #t26;
 }
-static get nonNullableFinalTopLevelFieldWithInitializer1() → core::int
-  return let final core::int? #t27 = self::_#nonNullableFinalTopLevelFieldWithInitializer1 in #t27.==(null) ?{core::int} let final core::int #t28 = self::init<core::int>(87) in self::_#nonNullableFinalTopLevelFieldWithInitializer1.==(null) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer1 = #t28 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableFinalTopLevelFieldWithInitializer1' has been assigned during initialization.") : #t27{core::int};
+static get nonNullableFinalTopLevelFieldWithInitializer1() → core::int {
+  if(!self::_#nonNullableFinalTopLevelFieldWithInitializer1#isSet) {
+    final core::int #t27 = self::init<core::int>(87);
+    if(self::_#nonNullableFinalTopLevelFieldWithInitializer1#isSet)
+      throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableFinalTopLevelFieldWithInitializer1' has been assigned during initialization.");
+    self::_#nonNullableFinalTopLevelFieldWithInitializer1 = #t27;
+    self::_#nonNullableFinalTopLevelFieldWithInitializer1#isSet = true;
+  }
+  return let final core::int? #t28 = self::_#nonNullableFinalTopLevelFieldWithInitializer1 in #t28{core::int};
+}
 static get nullableFinalTopLevelFieldWithInitializer1() → core::int? {
   if(!self::_#nullableFinalTopLevelFieldWithInitializer1#isSet) {
     final core::int? #t29 = self::init<core::int?>(32);
@@ -216,8 +240,16 @@ static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int #t31) →
   self::_#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
   self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = #t31;
 }
-static get nonNullableFinalTopLevelFieldWithInitializer2() → core::int
-  return let final core::int? #t32 = self::_#nonNullableFinalTopLevelFieldWithInitializer2 in #t32.==(null) ?{core::int} let final core::int #t33 = (let final core::int #t34 = self::nonNullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t35 = self::nonNullableFinalTopLevelFieldWithInitializer2Init = #t34.{core::num::+}(1) in #t34).{core::num::==}(0) ?{core::int} self::nonNullableFinalTopLevelFieldWithInitializer2.{core::num::+}(1) : 87 in self::_#nonNullableFinalTopLevelFieldWithInitializer2.==(null) ?{core::int} self::_#nonNullableFinalTopLevelFieldWithInitializer2 = #t33 : throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableFinalTopLevelFieldWithInitializer2' has been assigned during initialization.") : #t32{core::int};
+static get nonNullableFinalTopLevelFieldWithInitializer2() → core::int {
+  if(!self::_#nonNullableFinalTopLevelFieldWithInitializer2#isSet) {
+    final core::int #t32 = (let final core::int #t33 = self::nonNullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t34 = self::nonNullableFinalTopLevelFieldWithInitializer2Init = #t33.{core::num::+}(1) in #t33).{core::num::==}(0) ?{core::int} self::nonNullableFinalTopLevelFieldWithInitializer2.{core::num::+}(1) : 87;
+    if(self::_#nonNullableFinalTopLevelFieldWithInitializer2#isSet)
+      throw new _in::LateInitializationErrorImpl::•("Field 'nonNullableFinalTopLevelFieldWithInitializer2' has been assigned during initialization.");
+    self::_#nonNullableFinalTopLevelFieldWithInitializer2 = #t32;
+    self::_#nonNullableFinalTopLevelFieldWithInitializer2#isSet = true;
+  }
+  return let final core::int? #t35 = self::_#nonNullableFinalTopLevelFieldWithInitializer2 in #t35{core::int};
+}
 static get nullableFinalTopLevelFieldWithInitializer2Init() → core::int {
   if(!self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet) {
     self::_#nullableFinalTopLevelFieldWithInitializer2Init = 0;

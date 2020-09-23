@@ -131,6 +131,7 @@ inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_e
 late_lowering/covariant_late_field: FormatterCrash
 late_lowering/infer_late_field_type: FormatterCrash
 late_lowering/initializer_rewrite: FormatterCrash
+late_lowering/initializer_rewrite_from_opt_out: FormatterCrash
 late_lowering/instance_field_with_initializer: FormatterCrash
 late_lowering/instance_field_without_initializer: FormatterCrash
 late_lowering/instance_final_field_without_initializer: FormatterCrash
@@ -157,6 +158,7 @@ late_lowering/late_nullable_field_without_initializer: FormatterCrash
 late_lowering/later: FormatterCrash
 late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
+late_lowering_sentinel/late_fields: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash

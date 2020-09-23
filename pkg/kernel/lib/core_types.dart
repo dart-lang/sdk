@@ -71,6 +71,8 @@ class CoreTypes {
   Procedure _iterableGetIterator;
   Procedure _iteratorMoveNext;
   Procedure _iteratorGetCurrent;
+  Procedure _isSentinelMethod;
+  Procedure _createSentinelMethod;
 
   Class _internalSymbolClass;
 
@@ -495,6 +497,16 @@ class CoreTypes {
   Procedure get boolFromEnvironment {
     return _boolFromEnvironment ??=
         index.getMember('dart:core', 'bool', 'fromEnvironment');
+  }
+
+  Procedure get createSentinelMethod {
+    return _createSentinelMethod ??=
+        index.getTopLevelMember('dart:_internal', 'createSentinel');
+  }
+
+  Procedure get isSentinelMethod {
+    return _isSentinelMethod ??=
+        index.getTopLevelMember('dart:_internal', 'isSentinel');
   }
 
   InterfaceType get objectLegacyRawType {

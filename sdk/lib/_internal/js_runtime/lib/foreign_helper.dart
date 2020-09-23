@@ -277,3 +277,11 @@ String JS_STRING_CONCAT(String a, String b) {
   // This body is unused, only here for type analysis.
   return JS('String', '# + #', a, b);
 }
+
+/// Creates a JavaScript value that can be used as a sentinel for uninitialized
+/// late fields and variables.
+external T createJsSentinel<T>();
+
+/// Returns `true` if [value] is the sentinel JavaScript value created through
+/// [createJsSentinel].
+external bool isJsSentinel(dynamic value);

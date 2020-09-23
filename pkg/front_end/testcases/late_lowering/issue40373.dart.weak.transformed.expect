@@ -23,8 +23,16 @@ class C extends core::Object {
     this.{self::C::_#C#p1#isSet} = true;
     this.{self::C::_#C#p1} = #t2;
   }
-  get p2() → core::num
-    return let final core::num? #t3 = this.{self::C::_#C#p2} in #t3.==(null) ?{core::num} let final core::num #t4 = this.{self::C::pi} in this.{self::C::_#C#p2}.==(null) ?{core::num} this.{self::C::_#C#p2} = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'p2' has been assigned during initialization.") : #t3{core::num};
+  get p2() → core::num {
+    if(!this.{self::C::_#C#p2#isSet}) {
+      final core::num #t3 = this.{self::C::pi};
+      if(this.{self::C::_#C#p2#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'p2' has been assigned during initialization.");
+      this.{self::C::_#C#p2} = #t3;
+      this.{self::C::_#C#p2#isSet} = true;
+    }
+    return let final core::num? #t4 = this.{self::C::_#C#p2} in #t4{core::num};
+  }
 }
 static method main() → dynamic {
   self::expect(3.14, new self::C::•().{self::C::p1});
