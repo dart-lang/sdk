@@ -976,19 +976,21 @@ dart_vm_extra_builder(
 )
 
 # vm|product
-dart_vm_extra_builder(
+nightly_builder(
     "vm-kernel-linux-product-x64",
     category = "vm|product|l",
-    on_cq = True,
+    channels = ["try"],
 )
-dart_ci_sandbox_builder(
+nightly_builder(
     "vm-kernel-mac-product-x64",
     category = "vm|product|m",
+    channels = ["try"],
     dimensions = mac(),
 )
-dart_ci_sandbox_builder(
+nightly_builder(
     "vm-kernel-win-product-x64",
     category = "vm|product|w",
+    channels = ["try"],
     dimensions = windows(),
 )
 
