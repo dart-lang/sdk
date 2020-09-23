@@ -2600,4 +2600,34 @@ main() {
 
     assertType(findNode.cascade('A()'), 'A');
   }
+
+  test_typeArgumentTypes_generic_inferred_leftTop_dynamic() async {
+    await assertNoErrorsInCode('''
+void foo<T extends Object>(T? value) {}
+
+void f(dynamic o) {
+  foo(o);
+}
+''');
+
+    assertTypeArgumentTypes(
+      findNode.methodInvocation('foo(o)'),
+      ['Object'],
+    );
+  }
+
+  test_typeArgumentTypes_generic_inferred_leftTop_void() async {
+    await assertNoErrorsInCode('''
+void foo<T extends Object>(List<T?> value) {}
+
+void f(List<void> o) {
+  foo(o);
+}
+''');
+
+    assertTypeArgumentTypes(
+      findNode.methodInvocation('foo(o)'),
+      ['Object'],
+    );
+  }
 }
