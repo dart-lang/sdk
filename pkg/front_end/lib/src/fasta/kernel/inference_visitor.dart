@@ -5628,6 +5628,7 @@ class InferenceVisitor
         node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult initializerResult;
+    inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (node.initializer != null) {
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
@@ -5647,12 +5648,15 @@ class InferenceVisitor
       node.type = inferredType;
     }
     if (initializerResult != null) {
+      DartType initializerType = initializerResult.inferredType;
+      if (node.isImplicitlyTyped && initializerType is TypeParameterType) {
+        inferrer.flowAnalysis.promote(node, initializerType);
+      }
       Expression initializer = inferrer.ensureAssignableResult(
           node.type, initializerResult,
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       node.initializer = initializer..parent = node;
     }
-    inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (node.isImplicitlyTyped) {

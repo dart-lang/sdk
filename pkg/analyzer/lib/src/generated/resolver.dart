@@ -2008,8 +2008,19 @@ class ResolverVisitor extends ScopedVisitor {
   void visitVariableDeclaration(VariableDeclaration node) {
     _variableDeclarationResolver.resolve(node);
 
+    var declaredElement = node.declaredElement;
     if (node.parent.parent is ForParts) {
-      _define(node.declaredElement);
+      _define(declaredElement);
+    }
+
+    var initializer = node.initializer;
+    var parent = node.parent;
+    TypeAnnotation declaredType = (parent as VariableDeclarationList).type;
+    if (declaredType == null && initializer != null) {
+      var initializerStaticType = initializer.staticType;
+      if (initializerStaticType is TypeParameterType) {
+        _flowAnalysis?.flow?.promote(declaredElement, initializerStaticType);
+      }
     }
   }
 

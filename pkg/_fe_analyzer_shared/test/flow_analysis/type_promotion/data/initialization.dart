@@ -55,6 +55,77 @@ localVariable_ifElse_sameTypes(bool a) {
   x;
 }
 
+localVariable_initialized_promoted_type_var<T>(T t) {
+  if (t is num) {
+    var x = /*T & num*/ t;
+    /*T & num*/ x;
+    // Check that it is a type of interest by promoting and then writing to it
+    if (/*T & num*/ x is int) {
+      /*T & int*/ x;
+      x = /*T & num*/ t;
+      /*T & num*/ x;
+    }
+  }
+}
+
+localVariable_initialized_unpromoted_type_var<T>(T t) {
+  var x = t;
+  x;
+  // Check that `T & Object` is a type of interest, by promoting and then
+  // writing to it
+  if (x is int && t is num) {
+    /*T & int*/ x;
+    x = /*T & num*/ t;
+    /*T & Object*/ x;
+  }
+}
+
+localVariable_initialized_unpromoted_type_var_with_bound<T extends num?>(T t) {
+  var x = t;
+  x;
+  // Check that `T & num` is a type of interest, by promoting and then writing
+  // to it
+  if (x is int && t is double) {
+    /*T & int*/ x;
+    x = /*T & double*/ t;
+    /*T & num*/ x;
+  }
+}
+
+localVariable_initialized_promoted_type_var_typed<T>(T t) {
+  if (t is num) {
+    // TODO(paulberry): This should promote to `T & Object`, because that's the
+    // non-nullable version of T, but it shouldn't promote to `T & num`.
+    T x = /*T & num*/ t;
+    x;
+    // Check that `T & Object` is a type of interest by promoting and then
+    // writing to it
+    if (x is int) {
+      /*T & int*/ x;
+      x = /*T & num*/ t;
+      /*T & Object*/ x;
+    }
+  }
+}
+
+localVariable_initialized_promoted_type_var_final<T>(T t) {
+  if (t is num) {
+    final x = /*T & num*/ t;
+    /*T & num*/ x;
+    // Note: it's not observable whether it's a type of interest because we
+    // can't write to it again.
+  }
+}
+
+localVariable_initialized_promoted_type_var_final_typed<T>(T t) {
+  if (t is num) {
+    final T x = /*T & num*/ t;
+    x;
+    // Note: it's not observable whether it's a type of interest because we
+    // can't write to it again.
+  }
+}
+
 localVariable_notDefinitelyUnassigned(bool a) {
   var x;
   if (a) {
