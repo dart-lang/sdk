@@ -38,6 +38,7 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/postfix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -177,6 +178,7 @@ class ResolverVisitor extends ScopedVisitor {
   FunctionExpressionResolver _functionExpressionResolver;
   ForResolver _forResolver;
   PostfixExpressionResolver _postfixExpressionResolver;
+  PrefixedIdentifierResolver _prefixedIdentifierResolver;
   PrefixExpressionResolver _prefixExpressionResolver;
   VariableDeclarationResolver _variableDeclarationResolver;
   YieldStatementResolver _yieldStatementResolver;
@@ -352,6 +354,7 @@ class ResolverVisitor extends ScopedVisitor {
       resolver: this,
       flowAnalysis: _flowAnalysis,
     );
+    _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
     _prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
@@ -1743,13 +1746,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    //
-    // We visit the prefix, but do not visit the identifier because it needs to
-    // be visited in the context of the prefix.
-    //
-    node.prefix?.accept(this);
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+    _prefixedIdentifierResolver.resolve(node);
   }
 
   @override

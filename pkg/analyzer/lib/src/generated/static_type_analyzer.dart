@@ -293,63 +293,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     recordStaticType(node, _getStaticType(expression));
   }
 
-  /// See [visitSimpleIdentifier].
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefixedIdentifier = node.identifier;
-    Element staticElement = prefixedIdentifier.staticElement;
-
-    if (staticElement is ExtensionElement) {
-      _setExtensionIdentifierType(node);
-      return;
-    }
-
-    if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      recordStaticType(prefixedIdentifier, NeverTypeImpl.instance);
-      recordStaticType(node, NeverTypeImpl.instance);
-      return;
-    }
-
-    DartType staticType = _dynamicType;
-    if (staticElement is ClassElement) {
-      if (_isExpressionIdentifier(node)) {
-        var type = _nonNullable(_typeProvider.typeType);
-        node.staticType = type;
-        node.identifier.staticType = type;
-      }
-      return;
-    } else if (staticElement is DynamicElementImpl) {
-      var type = _nonNullable(_typeProvider.typeType);
-      node.staticType = type;
-      node.identifier.staticType = type;
-      return;
-    } else if (staticElement is FunctionTypeAliasElement) {
-      if (node.parent is TypeName) {
-        // no type
-      } else {
-        var type = _nonNullable(_typeProvider.typeType);
-        node.staticType = type;
-        node.identifier.staticType = type;
-      }
-      return;
-    } else if (staticElement is MethodElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(staticElement);
-    } else if (staticElement is ExecutableElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is VariableElement) {
-      staticType = staticElement.type;
-    }
-
-    staticType =
-        _inferenceHelper.inferTearOff(node, node.identifier, staticType);
-    if (!_inferObjectAccess(node, staticType, prefixedIdentifier)) {
-      recordStaticType(prefixedIdentifier, staticType);
-      recordStaticType(node, staticType);
-    }
-  }
-
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
   /// bottom.</blockquote>
   @override
@@ -653,38 +596,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;
     }
-  }
-
-  /// Given a property access [node] with static type [nodeType],
-  /// and [id] is the property name being accessed, infer a type for the
-  /// access itself and its constituent components if the access is to one of the
-  /// methods or getters of the built in 'Object' type, and if the result type is
-  /// a sealed type. Returns true if inference succeeded.
-  bool _inferObjectAccess(
-      Expression node, DartType nodeType, SimpleIdentifier id) {
-    // If we have an access like `libraryPrefix.hashCode` don't infer it.
-    if (node is PrefixedIdentifier &&
-        node.prefix.staticElement is PrefixElement) {
-      return false;
-    }
-    // Search for Object accesses.
-    String name = id.name;
-    PropertyAccessorElement inferredElement =
-        _typeProvider.objectType.element.getGetter(name);
-    if (inferredElement == null || inferredElement.isStatic) {
-      return false;
-    }
-    inferredElement = _resolver.toLegacyElement(inferredElement);
-    DartType inferredType = inferredElement.returnType;
-    if (nodeType != null &&
-        nodeType.isDynamic &&
-        inferredType is InterfaceType &&
-        _typeProvider.nonSubtypableClasses.contains(inferredType.element)) {
-      recordStaticType(id, inferredType);
-      recordStaticType(node, inferredType);
-      return true;
-    }
-    return false;
   }
 
   /// Return `true` if the given [node] is not a type literal.

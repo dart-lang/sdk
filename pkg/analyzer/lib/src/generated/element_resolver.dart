@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
-import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -407,116 +406,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefix = node.prefix;
-    SimpleIdentifier identifier = node.identifier;
-    //
-    // First, check the "lib.loadLibrary" case
-    //
-    if (identifier.name == FunctionElement.LOAD_LIBRARY_NAME &&
-        _isDeferredPrefix(prefix)) {
-      LibraryElement importedLibrary = _getImportedLibrary(prefix);
-      var element = importedLibrary?.loadLibraryFunction;
-      element = _resolver.toLegacyElement(element);
-      identifier.staticElement = element;
-      return;
-    }
-    //
-    // Check to see whether the prefix is really a prefix.
-    //
-    Element prefixElement = prefix.staticElement;
-    if (prefixElement is PrefixElement) {
-      var lookupResult = prefixElement.scope.lookup2(identifier.name);
-
-      if (identifier.inGetterContext()) {
-        _resolver.setReadElement(
-          node,
-          _resolver.toLegacyElement(lookupResult.getter),
-        );
-      }
-
-      if (identifier.inSetterContext()) {
-        _resolver.setWriteElement(
-          node,
-          _resolver.toLegacyElement(lookupResult.setter),
-        );
-      }
-
-      var element = lookupResult.getter;
-      if (element == null && identifier.inSetterContext()) {
-        element = lookupResult.setter;
-      }
-      element = _resolver.toLegacyElement(element);
-      if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
-        return;
-      }
-      if (element == null) {
-        AstNode parent = node.parent;
-        if (parent is Annotation) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_ANNOTATION,
-              parent,
-              [identifier.name]);
-        } else {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-              identifier,
-              [identifier.name, prefixElement.name]);
-        }
-        return;
-      }
-      Element accessor = element;
-      if (accessor is PropertyAccessorElement && identifier.inSetterContext()) {
-        PropertyInducingElement variable = accessor.variable;
-        if (variable != null) {
-          PropertyAccessorElement setter = variable.setter;
-          if (setter != null) {
-            element = setter;
-          }
-        }
-      }
-      // TODO(brianwilkerson) The prefix needs to be resolved to the element for
-      // the import that defines the prefix, not the prefix's element.
-      identifier.staticElement = element;
-      return;
-    }
-    //
-    // Otherwise, the prefix is really an expression that happens to be a simple
-    // identifier and this is really equivalent to a property access node.
-    //
-    {
-      var hasRead = identifier.inGetterContext();
-      var hasWrite = identifier.inSetterContext();
-
-      var resolver = PropertyElementResolver(_resolver);
-      var result = resolver.resolvePrefixedIdentifier(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
-
-      if (hasRead) {
-        _resolver.setReadElement(node, result.readElement);
-      }
-
-      if (hasWrite) {
-        _resolver.setWriteElement(node, result.writeElement);
-      }
-
-      if (hasWrite) {
-        identifier.staticElement = result.writeElement;
-        if (hasRead) {
-          identifier.auxiliaryElements = AuxiliaryElements(
-            result.readElement,
-          );
-        }
-      } else if (hasRead) {
-        identifier.staticElement = result.readElement;
-      }
-    }
-  }
-
-  @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     ClassElement enclosingClass = _resolver.enclosingClass;
@@ -739,31 +628,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// Assuming that the given [identifier] is a prefix for a deferred import,
-  /// return the library that is being imported.
-  LibraryElement _getImportedLibrary(SimpleIdentifier identifier) {
-    PrefixElement prefixElement = identifier.staticElement as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    return imports[0].importedLibrary;
-  }
-
-  /// Return `true` if the given [expression] is a prefix for a deferred import.
-  bool _isDeferredPrefix(Expression expression) {
-    if (expression is SimpleIdentifier) {
-      Element element = expression.staticElement;
-      if (element is PrefixElement) {
-        List<ImportElement> imports =
-            element.enclosingElement.getImportsWithPrefix(element);
-        if (imports.length != 1) {
-          return false;
-        }
-        return imports[0].isDeferred;
-      }
-    }
-    return false;
   }
 
   /// Return `true` if the given [node] can validly be resolved to a prefix:
