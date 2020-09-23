@@ -48,6 +48,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
+import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
@@ -218,7 +219,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           result is List<dynamic> &&
           result.length == 1 &&
           result.first is Map<String, dynamic>) {
-        clientConfiguration.replace(result.first);
+        final newConfig = result.first;
+        final refreshRoots =
+            clientConfiguration.affectsAnalysisRoots(newConfig);
+
+        clientConfiguration.replace(newConfig);
+
+        if (refreshRoots) {
+          _refreshAnalysisRoots();
+        }
       }
     }
 
@@ -618,9 +627,19 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       ..addAll(_temporaryAnalysisRoots.values)
       ..toList();
 
+    final excludedPaths = clientConfiguration.analysisExcludedFolders
+        .expand((excludePath) => isAbsolute(excludePath)
+            ? [excludePath]
+            // Apply the relative path to each open workspace folder.
+            // TODO(dantup): Consider supporting per-workspace config by
+            // calling workspace/configuration whenever workspace folders change
+            // and caching the config for each one.
+            : _explicitAnalysisRoots.map((root) => join(root, excludePath)))
+        .toList();
+
     declarationsTracker?.discardContexts();
-    notificationManager.setAnalysisRoots(includedPaths.toList(), []);
-    contextManager.setRoots(includedPaths.toList(), []);
+    notificationManager.setAnalysisRoots(includedPaths.toList(), excludedPaths);
+    contextManager.setRoots(includedPaths.toList(), excludedPaths);
     addContextsToDeclarationsTracker();
   }
 
