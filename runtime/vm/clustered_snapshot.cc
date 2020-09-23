@@ -1912,23 +1912,23 @@ class CodeDeserializationCluster : public DeserializationCluster {
     code->ptr()->code_source_map_ = static_cast<CodeSourceMapPtr>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      if (d->kind() == Snapshot::kFullJIT) {
-        code->ptr()->deopt_info_array_ = static_cast<ArrayPtr>(d->ReadRef());
-        code->ptr()->static_calls_target_table_ =
-            static_cast<ArrayPtr>(d->ReadRef());
-      }
+    if (d->kind() == Snapshot::kFullJIT) {
+      code->ptr()->deopt_info_array_ = static_cast<ArrayPtr>(d->ReadRef());
+      code->ptr()->static_calls_target_table_ =
+          static_cast<ArrayPtr>(d->ReadRef());
+    }
 #endif  // !DART_PRECOMPILED_RUNTIME
 
 #if !defined(PRODUCT)
-      code->ptr()->return_address_metadata_ = d->ReadRef();
-      code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
-      code->ptr()->comments_ = FLAG_code_comments
-                                   ? static_cast<ArrayPtr>(d->ReadRef())
-                                   : Array::null();
-      code->ptr()->compile_timestamp_ = 0;
+    code->ptr()->return_address_metadata_ = d->ReadRef();
+    code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
+    code->ptr()->comments_ = FLAG_code_comments
+                                 ? static_cast<ArrayPtr>(d->ReadRef())
+                                 : Array::null();
+    code->ptr()->compile_timestamp_ = 0;
 #endif
 
-      code->ptr()->state_bits_ = d->Read<int32_t>();
+    code->ptr()->state_bits_ = d->Read<int32_t>();
   }
 
   void PostLoad(Deserializer* d, const Array& refs) {
@@ -5550,9 +5550,7 @@ static const int32_t kSectionMarker = 0xABAB;
 
 Serializer::Serializer(Thread* thread,
                        Snapshot::Kind kind,
-                       uint8_t** buffer,
-                       ReAlloc alloc,
-                       intptr_t initial_size,
+                       NonStreamingWriteStream* stream,
                        ImageWriter* image_writer,
                        bool vm,
                        V8SnapshotProfileWriter* profile_writer)
@@ -5560,7 +5558,7 @@ Serializer::Serializer(Thread* thread,
       heap_(thread->isolate()->heap()),
       zone_(thread->zone()),
       kind_(kind),
-      stream_(buffer, alloc, initial_size),
+      stream_(stream),
       image_writer_(image_writer),
       clusters_by_cid_(NULL),
       stack_(),
@@ -5605,8 +5603,8 @@ void Serializer::FlushBytesWrittenToRoot() {
     // All bytes between objects are attributed into root node.
     profile_writer_->AttributeBytesTo(
         V8SnapshotProfileWriter::ArtificialRootId(),
-        stream_.Position() - object_currently_writing_.stream_start_);
-    object_currently_writing_.stream_start_ = stream_.Position();
+        stream_->Position() - object_currently_writing_.stream_start_);
+    object_currently_writing_.stream_start_ = stream_->Position();
   }
 #endif
 }
@@ -5649,7 +5647,7 @@ void Serializer::TraceStartWritingObject(const char* type,
   FlushBytesWrittenToRoot();
   object_currently_writing_.object_ = obj;
   object_currently_writing_.id_ = id;
-  object_currently_writing_.stream_start_ = stream_.Position();
+  object_currently_writing_.stream_start_ = stream_->Position();
   object_currently_writing_.cid_ = cid;
   profile_writer_->SetObjectTypeAndName(
       {V8SnapshotProfileWriter::kSnapshot, id}, type, name);
@@ -5660,9 +5658,9 @@ void Serializer::TraceEndWritingObject() {
     ASSERT(IsAllocatedReference(object_currently_writing_.id_));
     profile_writer_->AttributeBytesTo(
         {V8SnapshotProfileWriter::kSnapshot, object_currently_writing_.id_},
-        stream_.Position() - object_currently_writing_.stream_start_);
+        stream_->Position() - object_currently_writing_.stream_start_);
     object_currently_writing_ = ProfilingObject();
-    object_currently_writing_.stream_start_ = stream_.Position();
+    object_currently_writing_.stream_start_ = stream_->Position();
   }
 }
 
@@ -6211,7 +6209,7 @@ intptr_t Serializer::Serialize(SerializationRoots* roots) {
 #endif
 
   FlushBytesWrittenToRoot();
-  object_currently_writing_.stream_start_ = stream_.Position();
+  object_currently_writing_.stream_start_ = stream_->Position();
 
   PrintSnapshotSizes();
 
@@ -6342,7 +6340,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
   }
   dispatch_table_size_ = bytes_written() - bytes_before;
 
-  object_currently_writing_.stream_start_ = stream_.Position();
+  object_currently_writing_.stream_start_ = stream_->Position();
   // If any bytes were written for the dispatch table, add it to the profile.
   if (dispatch_table_size_ > 0 && profile_writer_ != nullptr) {
     // Grab an unused ref index for a unique object id for the dispatch table.
@@ -6927,8 +6925,8 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
     for (intptr_t i = 0; i < num_clusters_; i++) {
       clusters_[i]->ReadFill(this);
 #if defined(DEBUG)
-    int32_t section_marker = Read<int32_t>();
-    ASSERT(section_marker == kSectionMarker);
+      int32_t section_marker = Read<int32_t>();
+      ASSERT(section_marker == kSectionMarker);
 #endif
     }
 
@@ -6967,17 +6965,16 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
-                                       uint8_t** vm_snapshot_data_buffer,
-                                       uint8_t** isolate_snapshot_data_buffer,
-                                       ReAlloc alloc,
-                                       ImageWriter* vm_image_writer,
-                                       ImageWriter* isolate_image_writer)
+FullSnapshotWriter::FullSnapshotWriter(
+    Snapshot::Kind kind,
+    NonStreamingWriteStream* vm_snapshot_data,
+    NonStreamingWriteStream* isolate_snapshot_data,
+    ImageWriter* vm_image_writer,
+    ImageWriter* isolate_image_writer)
     : thread_(Thread::Current()),
       kind_(kind),
-      vm_snapshot_data_buffer_(vm_snapshot_data_buffer),
-      isolate_snapshot_data_buffer_(isolate_snapshot_data_buffer),
-      alloc_(alloc),
+      vm_snapshot_data_(vm_snapshot_data),
+      isolate_snapshot_data_(isolate_snapshot_data),
       vm_isolate_snapshot_size_(0),
       isolate_snapshot_size_(0),
       vm_image_writer_(vm_image_writer),
@@ -6986,7 +6983,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       clustered_isolate_size_(0),
       mapped_data_size_(0),
       mapped_text_size_(0) {
-  ASSERT(alloc_ != NULL);
   ASSERT(isolate() != NULL);
   ASSERT(heap() != NULL);
   ObjectStore* object_store = isolate()->object_store();
@@ -7009,10 +7005,9 @@ FullSnapshotWriter::~FullSnapshotWriter() {}
 intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   TIMELINE_DURATION(thread(), Isolate, "WriteVMSnapshot");
 
-  ASSERT(vm_snapshot_data_buffer_ != NULL);
-  Serializer serializer(thread(), kind_, vm_snapshot_data_buffer_, alloc_,
-                        kInitialSize, vm_image_writer_, /*vm=*/true,
-                        profile_writer_);
+  ASSERT(vm_snapshot_data_ != nullptr);
+  Serializer serializer(thread(), kind_, vm_snapshot_data_, vm_image_writer_,
+                        /*vm=*/true, profile_writer_);
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(true);
@@ -7041,9 +7036,9 @@ void FullSnapshotWriter::WriteProgramSnapshot(
     GrowableArray<LoadingUnitSerializationData*>* units) {
   TIMELINE_DURATION(thread(), Isolate, "WriteProgramSnapshot");
 
-  Serializer serializer(thread(), kind_, isolate_snapshot_data_buffer_, alloc_,
-                        kInitialSize, isolate_image_writer_, /*vm=*/false,
-                        profile_writer_);
+  ASSERT(isolate_snapshot_data_ != nullptr);
+  Serializer serializer(thread(), kind_, isolate_snapshot_data_,
+                        isolate_image_writer_, /*vm=*/false, profile_writer_);
   serializer.set_loading_units(units);
   serializer.set_current_loading_unit_id(LoadingUnit::kRootId);
   ObjectStore* object_store = isolate()->object_store();
@@ -7086,9 +7081,8 @@ void FullSnapshotWriter::WriteUnitSnapshot(
     uint32_t program_hash) {
   TIMELINE_DURATION(thread(), Isolate, "WriteUnitSnapshot");
 
-  Serializer serializer(thread(), kind_, isolate_snapshot_data_buffer_, alloc_,
-                        kInitialSize, isolate_image_writer_, /*vm=*/false,
-                        profile_writer_);
+  Serializer serializer(thread(), kind_, isolate_snapshot_data_,
+                        isolate_image_writer_, /*vm=*/false, profile_writer_);
   serializer.set_loading_units(units);
   serializer.set_current_loading_unit_id(unit->id());
 
@@ -7121,14 +7115,14 @@ void FullSnapshotWriter::WriteUnitSnapshot(
 void FullSnapshotWriter::WriteFullSnapshot(
     GrowableArray<LoadingUnitSerializationData*>* data) {
   intptr_t num_base_objects;
-  if (vm_snapshot_data_buffer() != NULL) {
+  if (vm_snapshot_data_ != nullptr) {
     num_base_objects = WriteVMSnapshot();
     ASSERT(num_base_objects != 0);
   } else {
     num_base_objects = 0;
   }
 
-  if (isolate_snapshot_data_buffer() != NULL) {
+  if (isolate_snapshot_data_ != nullptr) {
     WriteProgramSnapshot(num_base_objects, data);
   }
 
@@ -7158,8 +7152,7 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
       buffer_(snapshot->Addr()),
       size_(snapshot->length()),
       data_image_(snapshot->DataImage()),
-      instructions_image_(instructions_buffer) {
-}
+      instructions_image_(instructions_buffer) {}
 
 char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
     const Snapshot* snapshot) {

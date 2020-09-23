@@ -5,13 +5,13 @@
 #ifndef RUNTIME_VM_DATASTREAM_H_
 #define RUNTIME_VM_DATASTREAM_H_
 
-#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/os.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -22,9 +22,6 @@ static const int8_t kMinDataPerByte = -(1 << (kDataBitsPerByte - 1));
 static const int8_t kMaxDataPerByte = (~kMinDataPerByte & kByteMask);  // NOLINT
 static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
 static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
-
-typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
-typedef void (*DeAlloc)(uint8_t* ptr);
 
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {
@@ -308,38 +305,23 @@ class ReadStream : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 
-// Stream for writing various types into a buffer.
-class WriteStream : public ValueObject {
+// Base class for streams that writing various types into a buffer, possibly
+// flushing data out periodically to a more permanent store.
+class BaseWriteStream : public ValueObject {
  public:
-  WriteStream(uint8_t** buffer, ReAlloc alloc, intptr_t initial_size)
-      : buffer_(buffer),
-        end_(NULL),
-        current_(NULL),
-        current_size_(0),
-        alloc_(alloc),
-        initial_size_(initial_size) {
-    ASSERT(buffer != NULL);
-    ASSERT(alloc != NULL);
-    *buffer_ = reinterpret_cast<uint8_t*>(alloc_(NULL, 0, initial_size_));
-    if (*buffer_ == NULL) {
-      Exceptions::ThrowOOM();
-    }
-    current_ = *buffer_;
-    current_size_ = initial_size_;
-    end_ = *buffer_ + initial_size_;
-  }
+  explicit BaseWriteStream(intptr_t initial_size)
+      : initial_size_(Utils::RoundUpToPowerOfTwo(initial_size)) {}
+  virtual ~BaseWriteStream() {}
 
-  uint8_t* buffer() const { return *buffer_; }
-  void set_buffer(uint8_t* value) { *buffer_ = value; }
-  intptr_t bytes_written() const { return current_ - *buffer_; }
-
-  intptr_t Position() const { return current_ - *buffer_; }
-  void SetPosition(intptr_t value) { current_ = *buffer_ + value; }
+  DART_FORCE_INLINE intptr_t bytes_written() const { return Position(); }
+  virtual intptr_t Position() const { return current_ - buffer_; }
 
   void Align(intptr_t alignment) {
-    intptr_t position_before = Position();
-    intptr_t position_after = Utils::RoundUp(position_before, alignment);
-    memset(current_, 0, position_after - position_before);
+    const intptr_t position_before = Position();
+    const intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    const intptr_t length = position_after - position_before;
+    EnsureSpace(length);
+    memset(current_, 0, length);
     SetPosition(position_after);
   }
 
@@ -349,7 +331,7 @@ class WriteStream : public ValueObject {
   template <typename T>
   class Raw<1, T> {
    public:
-    static void Write(WriteStream* st, T value) {
+    static void Write(BaseWriteStream* st, T value) {
       st->WriteByte(bit_cast<int8_t>(value));
     }
   };
@@ -357,7 +339,7 @@ class WriteStream : public ValueObject {
   template <typename T>
   class Raw<2, T> {
    public:
-    static void Write(WriteStream* st, T value) {
+    static void Write(BaseWriteStream* st, T value) {
       st->Write<int16_t>(bit_cast<int16_t>(value));
     }
   };
@@ -365,7 +347,7 @@ class WriteStream : public ValueObject {
   template <typename T>
   class Raw<4, T> {
    public:
-    static void Write(WriteStream* st, T value) {
+    static void Write(BaseWriteStream* st, T value) {
       st->Write<int32_t>(bit_cast<int32_t>(value));
     }
   };
@@ -373,7 +355,7 @@ class WriteStream : public ValueObject {
   template <typename T>
   class Raw<8, T> {
    public:
-    static void Write(WriteStream* st, T value) {
+    static void Write(BaseWriteStream* st, T value) {
       st->Write<int64_t>(bit_cast<int64_t>(value));
     }
   };
@@ -401,10 +383,7 @@ class WriteStream : public ValueObject {
   }
 
   void WriteBytes(const void* addr, intptr_t len) {
-    if ((end_ - current_) < len) {
-      Resize(len);
-    }
-    ASSERT((end_ - current_) >= len);
+    EnsureSpace(len);
     if (len != 0) {
       memmove(current_, addr, len);
     }
@@ -413,10 +392,7 @@ class WriteStream : public ValueObject {
 
   void WriteWord(uword value) {
     const intptr_t len = sizeof(uword);
-    if ((end_ - current_) < len) {
-      Resize(len);
-    }
-    ASSERT((end_ - current_) >= len);
+    EnsureSpace(len);
     *reinterpret_cast<uword*>(current_) = value;
     current_ += len;
   }
@@ -425,10 +401,7 @@ class WriteStream : public ValueObject {
 #if defined(IS_SIMARM_X64)
     RELEASE_ASSERT(Utils::IsInt(32, static_cast<word>(value)));
     const intptr_t len = sizeof(uint32_t);
-    if ((end_ - current_) < len) {
-      Resize(len);
-    }
-    ASSERT((end_ - current_) >= len);
+    EnsureSpace(len);
     *reinterpret_cast<uint32_t*>(current_) = static_cast<uint32_t>(value);
     current_ += len;
 #else   // defined(IS_SIMARM_X64)
@@ -451,10 +424,7 @@ class WriteStream : public ValueObject {
     va_end(measure_args);
 
     // Alloc.
-    if ((end_ - current_) < (len + 1)) {
-      Resize(len + 1);
-    }
-    ASSERT((end_ - current_) >= (len + 1));
+    EnsureSpace(len + 1);
 
     // Print.
     va_list print_args;
@@ -478,101 +448,161 @@ class WriteStream : public ValueObject {
   template <typename T>
   void WriteFixed(T value) {
     const intptr_t len = sizeof(T);
-    if ((end_ - current_) < len) {
-      Resize(len);
-    }
-    ASSERT((end_ - current_) >= len);
+    EnsureSpace(len);
     *reinterpret_cast<T*>(current_) = static_cast<T>(value);
     current_ += len;
   }
 
- private:
+ protected:
   DART_FORCE_INLINE void WriteByte(uint8_t value) {
-    if (current_ >= end_) {
-      Resize(1);
-    }
-    ASSERT(current_ < end_);
+    EnsureSpace(1);
     *current_++ = value;
   }
 
-  void Resize(intptr_t size_needed) {
-    intptr_t position = current_ - *buffer_;
-    intptr_t increment_size = current_size_;
+  void EnsureSpace(intptr_t size_needed) {
+    if (Remaining() >= size_needed) return;
+    intptr_t increment_size = capacity_;
     if (size_needed > increment_size) {
       increment_size = Utils::RoundUp(size_needed, initial_size_);
     }
-    intptr_t new_size = current_size_ + increment_size;
-    ASSERT(new_size > current_size_);
-    *buffer_ =
-        reinterpret_cast<uint8_t*>(alloc_(*buffer_, current_size_, new_size));
-    if (*buffer_ == NULL) {
+    intptr_t new_size = capacity_ + increment_size;
+    ASSERT(new_size > capacity_);
+    Realloc(new_size);
+    if (buffer_ == nullptr) {
       Exceptions::ThrowOOM();
     }
-    current_ = *buffer_ + position;
-    current_size_ = new_size;
-    end_ = *buffer_ + new_size;
-    ASSERT(end_ > *buffer_);
+    ASSERT(Remaining() >= size_needed);
+  }
+
+  virtual void SetPosition(intptr_t value) {
+    EnsureSpace(value - BaseWriteStream::Position());
+    current_ = buffer_ + value;
+  }
+
+  DART_FORCE_INLINE intptr_t Remaining() const {
+    return capacity_ - BaseWriteStream::Position();
+  }
+
+  // Resizes the internal buffer to the requested new capacity. Should set
+  // buffer_, capacity_, and current_ appropriately.
+  //
+  // Instead of templating over an Allocator (which would then cause users
+  // of the templated class to need to be templated, etc.), we just add an
+  // Realloc method to override appropriately in subclasses. Less flexible,
+  // but requires less changes throughout the codebase.
+  virtual void Realloc(intptr_t new_capacity) = 0;
+
+  const intptr_t initial_size_;
+  uint8_t* buffer_ = nullptr;
+  uint8_t* current_ = nullptr;
+  intptr_t capacity_ = 0;
+
+  DISALLOW_COPY_AND_ASSIGN(BaseWriteStream);
+};
+
+// A base class for non-streaming write streams. Since these streams are
+// not flushed periodically, the internal buffer contains all written data
+// and can be retrieved via buffer(). NonStreamingWriteStream also provides
+// SetPosition as part of its public API for non-sequential writing.
+class NonStreamingWriteStream : public BaseWriteStream {
+ public:
+  explicit NonStreamingWriteStream(intptr_t initial_size)
+      : BaseWriteStream(initial_size) {}
+
+ public:
+  uint8_t* buffer() const { return buffer_; }
+
+  // Sets the position of the buffer
+  DART_FORCE_INLINE void SetPosition(intptr_t value) {
+    BaseWriteStream::SetPosition(value);
+  }
+};
+
+// A non-streaming write stream that uses realloc for reallocation, and frees
+// the buffer when destructed unless ownership is transfered using Steal().
+class MallocWriteStream : public NonStreamingWriteStream {
+ public:
+  explicit MallocWriteStream(intptr_t initial_size)
+      : NonStreamingWriteStream(initial_size) {
+    // Go ahead and allocate initial space at construction.
+    EnsureSpace(initial_size_);
+  }
+  ~MallocWriteStream();
+
+  // Resets the stream and returns the original buffer, which is now considered
+  // owned by the caller. Sets [*length] to the length of the returned buffer.
+  uint8_t* Steal(intptr_t* length) {
+    ASSERT(length != nullptr);
+    *length = bytes_written();
+    uint8_t* const old_buffer = buffer_;
+    // We don't immediately reallocate a new space just in case this steal
+    // is the last use of this stream.
+    current_ = buffer_ = nullptr;
+    capacity_ = 0;
+    return old_buffer;
   }
 
  private:
-  uint8_t** const buffer_;
-  uint8_t* end_;
-  uint8_t* current_;
-  intptr_t current_size_;
-  ReAlloc alloc_;
-  intptr_t initial_size_;
+  virtual void Realloc(intptr_t new_size);
 
-  DISALLOW_COPY_AND_ASSIGN(WriteStream);
+  DISALLOW_COPY_AND_ASSIGN(MallocWriteStream);
 };
 
-class StreamingWriteStream : public ValueObject {
+// A non-streaming write stream that uses a zone for reallocation.
+class ZoneWriteStream : public NonStreamingWriteStream {
+ public:
+  ZoneWriteStream(Zone* zone, intptr_t initial_size)
+      : NonStreamingWriteStream(initial_size), zone_(zone) {
+    // Go ahead and allocate initial space at construction.
+    EnsureSpace(initial_size_);
+  }
+
+ private:
+  virtual void Realloc(intptr_t new_size);
+
+  Zone* const zone_;
+
+  DISALLOW_COPY_AND_ASSIGN(ZoneWriteStream);
+};
+
+// A streaming write stream that uses the internal buffer only for non-flushed
+// data. Like MallocWriteStream, uses realloc for reallocation, and flushes and
+// frees the internal buffer when destructed. Since part or all of the written
+// data may be flushed and no longer in the internal buffer, it does not provide
+// a way to retrieve the written contents.
+class StreamingWriteStream : public BaseWriteStream {
  public:
   explicit StreamingWriteStream(intptr_t initial_capacity,
                                 Dart_StreamingWriteCallback callback,
-                                void* callback_data);
+                                void* callback_data)
+      : BaseWriteStream(initial_capacity),
+        callback_(callback),
+        callback_data_(callback_data) {
+    // Go ahead and allocate initial space at construction.
+    EnsureSpace(initial_capacity);
+  }
   ~StreamingWriteStream();
 
-  intptr_t position() const { return flushed_size_ + (cursor_ - buffer_); }
-
-  void Align(intptr_t alignment) {
-    intptr_t padding = Utils::RoundUp(position(), alignment) - position();
-    EnsureAvailable(padding);
-    memset(cursor_, 0, padding);
-    cursor_ += padding;
-  }
-
-  void Print(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    VPrint(format, args);
-    va_end(args);
-  }
-  void VPrint(const char* format, va_list args);
-
-  void WriteBytes(const uint8_t* buffer, intptr_t size) {
-    EnsureAvailable(size);
-    if (size != 0) {
-      memmove(cursor_, buffer, size);
-    }
-    cursor_ += size;
-  }
-
  private:
-  void EnsureAvailable(intptr_t needed) {
-    intptr_t available = limit_ - cursor_;
-    if (available >= needed) return;
-    EnsureAvailableSlowPath(needed);
+  // Flushes any unflushed data to callback_data and resets the internal
+  // buffer. Changes current_ and flushed_size_ accordingly.
+  virtual void Flush();
+
+  virtual void Realloc(intptr_t new_size);
+
+  virtual intptr_t Position() const {
+    return flushed_size_ + BaseWriteStream::Position();
   }
 
-  void EnsureAvailableSlowPath(intptr_t needed);
-  void Flush();
+  virtual void SetPosition(intptr_t value) {
+    // Make sure we're not trying to set the position to already-flushed data.
+    ASSERT(value >= flushed_size_);
+    BaseWriteStream::SetPosition(value - flushed_size_);
+  }
 
-  uint8_t* buffer_;
-  uint8_t* cursor_;
-  uint8_t* limit_;
-  intptr_t flushed_size_;
-  Dart_StreamingWriteCallback callback_;
-  void* callback_data_;
+  const Dart_StreamingWriteCallback callback_;
+  void* const callback_data_;
+  intptr_t flushed_size_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(StreamingWriteStream);
 };

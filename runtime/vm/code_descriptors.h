@@ -226,8 +226,7 @@ class CatchEntryMovesMapBuilder : public ZoneAllocated {
   TrieNode* root_;
   intptr_t current_pc_offset_;
   GrowableArray<CatchEntryMove> moves_;
-  uint8_t* buffer_;
-  WriteStream stream_;
+  ZoneWriteStream stream_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchEntryMovesMapBuilder);
 };
@@ -246,6 +245,7 @@ class CatchEntryMovesMapBuilder : public ZoneAllocated {
 class CodeSourceMapBuilder : public ZoneAllocated {
  public:
   CodeSourceMapBuilder(
+      Zone* zone,
       bool stack_traces_only,
       const GrowableArray<intptr_t>& caller_inline_id,
       const GrowableArray<TokenPosition>& inline_id_to_token_pos,
@@ -336,8 +336,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
 
   const GrowableObjectArray& inlined_functions_;
 
-  uint8_t* buffer_;
-  WriteStream stream_;
+  ZoneWriteStream stream_;
 
   const bool stack_traces_only_;
 

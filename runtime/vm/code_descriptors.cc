@@ -281,13 +281,6 @@ ExceptionHandlersPtr ExceptionHandlerList::FinalizeExceptionHandlers(
   return handlers.raw();
 }
 
-static uint8_t* ZoneAllocator(uint8_t* ptr,
-                              intptr_t old_size,
-                              intptr_t new_size) {
-  Zone* zone = Thread::Current()->zone();
-  return zone->Realloc<uint8_t>(ptr, old_size, new_size);
-}
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class CatchEntryMovesMapBuilder::TrieNode : public ZoneAllocated {
  public:
@@ -319,8 +312,7 @@ CatchEntryMovesMapBuilder::CatchEntryMovesMapBuilder()
     : zone_(Thread::Current()->zone()),
       root_(new TrieNode()),
       current_pc_offset_(0),
-      buffer_(NULL),
-      stream_(&buffer_, ZoneAllocator, 64) {}
+      stream_(zone_, 64) {}
 
 void CatchEntryMovesMapBuilder::Append(const CatchEntryMove& move) {
   moves_.Add(move);
@@ -344,7 +336,7 @@ void CatchEntryMovesMapBuilder::EndMapping() {
   intptr_t length = moves_.length() - suffix_length;
   intptr_t current_offset = stream_.bytes_written();
 
-  typedef WriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
+  typedef ZoneWriteStream::Raw<sizeof(intptr_t), intptr_t> Writer;
   Writer::Write(&stream_, current_pc_offset_);
   Writer::Write(&stream_, length);
   Writer::Write(&stream_, suffix_length);
@@ -378,6 +370,7 @@ const TokenPosition CodeSourceMapBuilder::kInitialPosition =
     TokenPosition(TokenPosition::kDartCodeProloguePos);
 
 CodeSourceMapBuilder::CodeSourceMapBuilder(
+    Zone* zone,
     bool stack_traces_only,
     const GrowableArray<intptr_t>& caller_inline_id,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
@@ -393,8 +386,7 @@ CodeSourceMapBuilder::CodeSourceMapBuilder(
       inline_id_to_function_(inline_id_to_function),
       inlined_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld))),
-      buffer_(NULL),
-      stream_(&buffer_, ZoneAllocator, 64),
+      stream_(zone, 64),
       stack_traces_only_(stack_traces_only) {
   buffered_inline_id_stack_.Add(0);
   buffered_token_pos_stack_.Add(kInitialPosition);
@@ -567,7 +559,7 @@ CodeSourceMapPtr CodeSourceMapBuilder::Finalize() {
   intptr_t length = stream_.bytes_written();
   const CodeSourceMap& map = CodeSourceMap::Handle(CodeSourceMap::New(length));
   NoSafepointScope no_safepoint;
-  memmove(map.Data(), buffer_, length);
+  memmove(map.Data(), stream_.buffer(), length);
   return map.raw();
 }
 

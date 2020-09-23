@@ -463,7 +463,7 @@ void ImageWriter::DumpStatistics() {
 }
 #endif
 
-void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
+void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Heap* heap = thread->isolate()->heap();
@@ -505,7 +505,7 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
   WriteROData(clustered_stream, vm);
 }
 
-void ImageWriter::WriteROData(WriteStream* stream, bool vm) {
+void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
 #if defined(DART_PRECOMPILER)
   const intptr_t start_position = stream->Position();
 #endif
@@ -619,7 +619,7 @@ void ImageWriter::WriteROData(WriteStream* stream, bool vm) {
 #if defined(DART_PRECOMPILER)
 class DwarfAssemblyStream : public DwarfWriteStream {
  public:
-  explicit DwarfAssemblyStream(StreamingWriteStream* stream)
+  explicit DwarfAssemblyStream(BaseWriteStream* stream)
       : stream_(ASSERT_NOTNULL(stream)) {}
 
   void sleb128(intptr_t value) { Print(".sleb128 %" Pd "\n", value); }
@@ -728,7 +728,7 @@ class DwarfAssemblyStream : public DwarfWriteStream {
 
 #undef FORM_ADDR
 
-  StreamingWriteStream* const stream_;
+  BaseWriteStream* const stream_;
   intptr_t temp_ = 0;
 
   DISALLOW_COPY_AND_ASSIGN(DwarfAssemblyStream);
@@ -750,19 +750,18 @@ static inline Dwarf* AddDwarfIfUnstripped(Zone* zone, bool strip, Elf* elf) {
 }
 
 AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
-                                         Dart_StreamingWriteCallback callback,
-                                         void* callback_data,
+                                         BaseWriteStream* stream,
                                          bool strip,
                                          Elf* debug_elf)
     : ImageWriter(thread),
-      assembly_stream_(512 * KB, callback, callback_data),
+      assembly_stream_(stream),
       assembly_dwarf_(AddDwarfIfUnstripped(thread->zone(), strip, debug_elf)),
       debug_elf_(debug_elf) {}
 
 void AssemblyImageWriter::Finalize() {
 #if defined(DART_PRECOMPILER)
   if (assembly_dwarf_ != nullptr) {
-    DwarfAssemblyStream dwarf_stream(&assembly_stream_);
+    DwarfAssemblyStream dwarf_stream(assembly_stream_);
     dwarf_stream.AbbreviationsPrologue();
     assembly_dwarf_->WriteAbbreviations(&dwarf_stream);
     dwarf_stream.DebugInfoPrologue();
@@ -841,10 +840,10 @@ void AssemblyImageWriter::WriteBss(bool vm) {
 #if defined(DART_PRECOMPILER)
   auto const bss_symbol =
       vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
-  assembly_stream_.Print(".bss\n");
+  assembly_stream_->Print(".bss\n");
   // Align the BSS contents as expected by the Image class.
   Align(ImageWriter::kBssAlignment);
-  assembly_stream_.Print("%s:\n", bss_symbol);
+  assembly_stream_->Print("%s:\n", bss_symbol);
 
   auto const entry_count = vm ? BSS::kVmEntryCount : BSS::kIsolateEntryCount;
   for (intptr_t i = 0; i < entry_count; i++) {
@@ -853,25 +852,26 @@ void AssemblyImageWriter::WriteBss(bool vm) {
 #endif
 }
 
-void AssemblyImageWriter::WriteROData(WriteStream* clustered_stream, bool vm) {
+void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
+                                      bool vm) {
   ImageWriter::WriteROData(clustered_stream, vm);
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
     defined(TARGET_OS_FUCHSIA)
-  assembly_stream_.Print(".section .rodata\n");
+  assembly_stream_->Print(".section .rodata\n");
 #elif defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-  assembly_stream_.Print(".const\n");
+  assembly_stream_->Print(".const\n");
 #else
   UNIMPLEMENTED();
 #endif
 
   const char* data_symbol =
       vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
-  assembly_stream_.Print(".globl %s\n", data_symbol);
+  assembly_stream_->Print(".globl %s\n", data_symbol);
   Align(ImageWriter::kRODataAlignment);
-  assembly_stream_.Print("%s:\n", data_symbol);
+  assembly_stream_->Print("%s:\n", data_symbol);
   const uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
   const intptr_t length = clustered_stream->bytes_written();
   WriteByteSequence(buffer, buffer + length);
@@ -895,13 +895,13 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
   const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
                                        : kIsolateSnapshotInstructionsAsmSymbol;
-  assembly_stream_.Print(".text\n");
-  assembly_stream_.Print(".globl %s\n", instructions_symbol);
+  assembly_stream_->Print(".text\n");
+  assembly_stream_->Print(".globl %s\n", instructions_symbol);
 
   // Start snapshot at page boundary.
   ASSERT(ImageWriter::kTextAlignment >= VirtualMemory::PageSize());
   Align(ImageWriter::kTextAlignment);
-  assembly_stream_.Print("%s:\n", instructions_symbol);
+  assembly_stream_->Print("%s:\n", instructions_symbol);
 
 #if defined(DART_PRECOMPILER)
   auto const bss_symbol =
@@ -976,8 +976,8 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
     // An ImageHeader has four fields:
     // 1) The BSS offset from this section.
-    assembly_stream_.Print("%s %s - %s\n", kLiteralPrefix, bss_symbol,
-                           instructions_symbol);
+    assembly_stream_->Print("%s %s - %s\n", kLiteralPrefix, bss_symbol,
+                            instructions_symbol);
     text_offset += compiler::target::kWordSize;
     // 2) The relocated address of the instructions.
     //
@@ -1133,7 +1133,7 @@ void AssemblyImageWriter::WriteText(bool vm) {
 #endif
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
-    assembly_stream_.Print("%s:\n", object_name);
+    assembly_stream_->Print("%s:\n", object_name);
 
     {
       // 3. Write from the payload start to payload end. For AOT snapshots
@@ -1163,8 +1163,8 @@ void AssemblyImageWriter::WriteText(bool vm) {
         compiler::target::uword data =
             *reinterpret_cast<compiler::target::uword*>(cursor);
         if ((cursor - payload_start) == next_reloc_offset) {
-          assembly_stream_.Print("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
-                                 bss_symbol, /*addend=*/data);
+          assembly_stream_->Print("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
+                                  bss_symbol, /*addend=*/data);
           text_offset += compiler::target::kWordSize;
           next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
         } else {
@@ -1243,12 +1243,12 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // Creates DWARF's .debug_frame
   // CFI = Call frame information
   // CFA = Canonical frame address
-  assembly_stream_.Print(".cfi_startproc\n");
+  assembly_stream_->Print(".cfi_startproc\n");
 
 #if defined(TARGET_ARCH_X64)
-  assembly_stream_.Print(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset rbp, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset rip, 8\n");   // saved pc is *(CFA+8)
+  assembly_stream_->Print(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
+  assembly_stream_->Print(".cfi_offset rbp, 0\n");   // saved fp is *(CFA+0)
+  assembly_stream_->Print(".cfi_offset rip, 8\n");   // saved pc is *(CFA+8)
   // saved sp is CFA+16
   // Should be ".cfi_value_offset rsp, 16", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -1257,14 +1257,14 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend               16
-  assembly_stream_.Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+  assembly_stream_->Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM64)
   COMPILE_ASSERT(FP == R29);
   COMPILE_ASSERT(LR == R30);
-  assembly_stream_.Print(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset x29, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_.Print(".cfi_offset x30, 8\n");   // saved pc is *(CFA+8)
+  assembly_stream_->Print(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
+  assembly_stream_->Print(".cfi_offset x29, 0\n");   // saved fp is *(CFA+0)
+  assembly_stream_->Print(".cfi_offset x30, 8\n");   // saved pc is *(CFA+8)
   // saved sp is CFA+16
   // Should be ".cfi_value_offset sp, 16", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -1273,19 +1273,19 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend               16
-  assembly_stream_.Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+  assembly_stream_->Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM)
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
-  assembly_stream_.Print(".cfi_def_cfa r7, 0\n");  // CFA is fp+j0
-  assembly_stream_.Print(".cfi_offset r7, 0\n");   // saved fp is *(CFA+0)
+  assembly_stream_->Print(".cfi_def_cfa r7, 0\n");  // CFA is fp+j0
+  assembly_stream_->Print(".cfi_offset r7, 0\n");   // saved fp is *(CFA+0)
 #else
   COMPILE_ASSERT(FP == R11);
-  assembly_stream_.Print(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
-  assembly_stream_.Print(".cfi_offset r11, 0\n");   // saved fp is *(CFA+0)
+  assembly_stream_->Print(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
+  assembly_stream_->Print(".cfi_offset r11, 0\n");   // saved fp is *(CFA+0)
 #endif
-  assembly_stream_.Print(".cfi_offset lr, 4\n");   // saved pc is *(CFA+4)
+  assembly_stream_->Print(".cfi_offset lr, 4\n");   // saved pc is *(CFA+4)
   // saved sp is CFA+8
   // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -1294,14 +1294,14 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend                8
-  assembly_stream_.Print(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
+  assembly_stream_->Print(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
-  assembly_stream_.Print(".fnstart\n");
-  assembly_stream_.Print(".save {r11, lr}\n");
-  assembly_stream_.Print(".setfp r11, sp, #0\n");
+  assembly_stream_->Print(".fnstart\n");
+  assembly_stream_->Print(".save {r11, lr}\n");
+  assembly_stream_->Print(".setfp r11, sp, #0\n");
 #endif
 
 #endif
@@ -1310,10 +1310,10 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 void AssemblyImageWriter::FrameUnwindEpilogue() {
 #if defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
-  assembly_stream_.Print(".fnend\n");
+  assembly_stream_->Print(".fnend\n");
 #endif
 #endif
-  assembly_stream_.Print(".cfi_endproc\n");
+  assembly_stream_->Print(".cfi_endproc\n");
 }
 
 intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
@@ -1327,31 +1327,29 @@ intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   }
   if (end != end_of_words) {
     auto start_of_rest = reinterpret_cast<const uint8_t*>(end_of_words);
-    assembly_stream_.Print(".byte ");
+    assembly_stream_->Print(".byte ");
     for (auto cursor = start_of_rest;
          cursor < reinterpret_cast<const uint8_t*>(end); cursor++) {
-      if (cursor != start_of_rest) assembly_stream_.Print(", ");
-      assembly_stream_.Print("0x%0.2" Px "", *cursor);
+      if (cursor != start_of_rest) assembly_stream_->Print(", ");
+      assembly_stream_->Print("0x%0.2" Px "", *cursor);
     }
-    assembly_stream_.Print("\n");
+    assembly_stream_->Print("\n");
   }
   return end - start;
 }
 
 intptr_t AssemblyImageWriter::Align(intptr_t alignment, uword position) {
   const uword next_position = Utils::RoundUp(position, alignment);
-  assembly_stream_.Print(".balign %" Pd ", 0\n", alignment);
+  assembly_stream_->Print(".balign %" Pd ", 0\n", alignment);
   return next_position - position;
 }
 
 BlobImageWriter::BlobImageWriter(Thread* thread,
-                                 uint8_t** instructions_blob_buffer,
-                                 ReAlloc alloc,
-                                 intptr_t initial_size,
+                                 NonStreamingWriteStream* stream,
                                  Elf* debug_elf,
                                  Elf* elf)
     : ImageWriter(thread),
-      instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
+      instructions_blob_stream_(ASSERT_NOTNULL(stream)),
       elf_(elf),
       debug_elf_(debug_elf) {
 #if defined(DART_PRECOMPILER)
@@ -1363,8 +1361,8 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
 
 intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
   const uword size = end - start;
-  instructions_blob_stream_.WriteBytes(reinterpret_cast<const void*>(start),
-                                       size);
+  instructions_blob_stream_->WriteBytes(reinterpret_cast<const void*>(start),
+                                        size);
   return size;
 }
 
@@ -1376,7 +1374,8 @@ void BlobImageWriter::WriteBss(bool vm) {
 #endif
 }
 
-void BlobImageWriter::WriteROData(WriteStream* clustered_stream, bool vm) {
+void BlobImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
+                                  bool vm) {
   ImageWriter::WriteROData(clustered_stream, vm);
 #if defined(DART_PRECOMPILER)
   auto const data_symbol =
@@ -1430,16 +1429,16 @@ void BlobImageWriter::WriteText(bool vm) {
   // OldPage.
   const intptr_t image_size = Utils::RoundUp(
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
-  instructions_blob_stream_.WriteTargetWord(image_size);
+  instructions_blob_stream_->WriteTargetWord(image_size);
   if (FLAG_precompiled_mode) {
     // Output the offset to the ImageHeader object from the start of the image.
-    instructions_blob_stream_.WriteTargetWord(Image::kHeaderSize);
+    instructions_blob_stream_->WriteTargetWord(Image::kHeaderSize);
   } else {
-    instructions_blob_stream_.WriteTargetWord(0);  // No ImageHeader object.
+    instructions_blob_stream_->WriteTargetWord(0);  // No ImageHeader object.
   }
   // Zero values for the rest of the Image object header bytes.
-  instructions_blob_stream_.Align(Image::kHeaderSize);
-  ASSERT_EQUAL(instructions_blob_stream_.Position(), Image::kHeaderSize);
+  instructions_blob_stream_->Align(Image::kHeaderSize);
+  ASSERT_EQUAL(instructions_blob_stream_->Position(), Image::kHeaderSize);
   text_offset += Image::kHeaderSize;
 
 #if defined(DART_PRECOMPILER)
@@ -1478,33 +1477,33 @@ void BlobImageWriter::WriteText(bool vm) {
         ObjectLayout::SizeTag::encode(
             AdjustObjectSizeForTarget(image_header_size)) |
         ObjectLayout::ClassIdTag::encode(kImageHeaderCid);
-    instructions_blob_stream_.WriteTargetWord(marked_tags);
+    instructions_blob_stream_->WriteTargetWord(marked_tags);
 
     ASSERT(elf_ != nullptr);
     // An ImageHeader has four fields:
     // 1) The BSS offset from this section.
     const word bss_offset = elf_->BssStart(vm) - segment_base;
     ASSERT(bss_offset != Image::kNoBssSection);
-    instructions_blob_stream_.WriteTargetWord(bss_offset);
+    instructions_blob_stream_->WriteTargetWord(bss_offset);
     // 2) The relocated address of the instructions.
     //
     // Since we set this to a non-zero value for ELF snapshots, we also use this
     // to detect compiled-to-ELF snapshots.
     ASSERT(segment_base != Image::kNoRelocatedAddress);
-    instructions_blob_stream_.WriteTargetWord(segment_base);
+    instructions_blob_stream_->WriteTargetWord(segment_base);
     // 3) The GNU build ID offset from this section.
     intptr_t build_id_length = 0;
     const word build_id_offset =
         elf_->BuildIdStart(&build_id_length) - segment_base;
     ASSERT(build_id_offset != Image::kNoBuildId);
-    instructions_blob_stream_.WriteTargetWord(build_id_offset);
+    instructions_blob_stream_->WriteTargetWord(build_id_offset);
     // 4) The GNU build ID length.
     ASSERT(build_id_length != 0);
-    instructions_blob_stream_.WriteTargetWord(build_id_length);
-    instructions_blob_stream_.Align(
+    instructions_blob_stream_->WriteTargetWord(build_id_length);
+    instructions_blob_stream_->Align(
         compiler::target::ObjectAlignment::kObjectAlignment);
 
-    ASSERT_EQUAL(instructions_blob_stream_.Position() - text_offset,
+    ASSERT_EQUAL(instructions_blob_stream_->Position() - text_offset,
                  image_header_size);
     text_offset += image_header_size;
 
@@ -1533,20 +1532,20 @@ void BlobImageWriter::WriteText(bool vm) {
           ObjectLayout::SizeTag::encode(
               AdjustObjectSizeForTarget(section_size)) |
           ObjectLayout::ClassIdTag::encode(kInstructionsSectionCid);
-      instructions_blob_stream_.WriteTargetWord(marked_tags);
+      instructions_blob_stream_->WriteTargetWord(marked_tags);
       // Uses next_text_offset_ to avoid any post-payload padding.
       const intptr_t instructions_length =
           next_text_offset_ - text_offset -
           compiler::target::InstructionsSection::HeaderSize();
-      instructions_blob_stream_.WriteTargetWord(instructions_length);
-      ASSERT_EQUAL(instructions_blob_stream_.Position() - text_offset,
+      instructions_blob_stream_->WriteTargetWord(instructions_length);
+      ASSERT_EQUAL(instructions_blob_stream_->Position() - text_offset,
                    compiler::target::InstructionsSection::HeaderSize());
       text_offset += compiler::target::InstructionsSection::HeaderSize();
     }
   }
 #endif
 
-  ASSERT_EQUAL(text_offset, instructions_blob_stream_.Position());
+  ASSERT_EQUAL(text_offset, instructions_blob_stream_->Position());
 
 #if defined(DART_PRECOMPILER)
   auto& descriptors = PcDescriptors::Handle(zone);
@@ -1607,27 +1606,27 @@ void BlobImageWriter::WriteText(bool vm) {
 #endif
 
 #if defined(IS_SIMARM_X64)
-    const intptr_t start_offset = instructions_blob_stream_.bytes_written();
+    const intptr_t start_offset = instructions_blob_stream_->bytes_written();
 
     if (!bare_instruction_payloads) {
       const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
       marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
-      instructions_blob_stream_.WriteTargetWord(marked_tags);
-      instructions_blob_stream_.WriteFixed<uint32_t>(
+      instructions_blob_stream_->WriteTargetWord(marked_tags);
+      instructions_blob_stream_->WriteFixed<uint32_t>(
           insns.raw_ptr()->size_and_flags_);
     } else {
-      ASSERT(Utils::IsAligned(instructions_blob_stream_.Position(),
+      ASSERT(Utils::IsAligned(instructions_blob_stream_->Position(),
                               kBareInstructionsAlignment));
     }
-    const intptr_t payload_offset = instructions_blob_stream_.Position();
-    instructions_blob_stream_.WriteBytes(
+    const intptr_t payload_offset = instructions_blob_stream_->Position();
+    instructions_blob_stream_->WriteBytes(
         reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
     const intptr_t alignment =
         bare_instruction_payloads
             ? kBareInstructionsAlignment
             : compiler::target::ObjectAlignment::kObjectAlignment;
-    instructions_blob_stream_.Align(alignment);
-    const intptr_t end_offset = instructions_blob_stream_.bytes_written();
+    instructions_blob_stream_->Align(alignment);
+    const intptr_t end_offset = instructions_blob_stream_->bytes_written();
     text_offset += (end_offset - start_offset);
 #else  // defined(IS_SIMARM_X64)
     // Only payload is output in AOT snapshots.
@@ -1639,15 +1638,15 @@ void BlobImageWriter::WriteText(bool vm) {
     const uword object_end = payload_start + payload_size;
     if (!bare_instruction_payloads) {
       uword object_start = reinterpret_cast<uword>(insns.raw_ptr());
-      instructions_blob_stream_.WriteWord(marked_tags);
+      instructions_blob_stream_->WriteWord(marked_tags);
       text_offset += sizeof(uword);
       object_start += sizeof(uword);
       text_offset += WriteByteSequence(object_start, payload_start);
     } else {
-      ASSERT(Utils::IsAligned(instructions_blob_stream_.Position(),
+      ASSERT(Utils::IsAligned(instructions_blob_stream_->Position(),
                               kBareInstructionsAlignment));
     }
-    const intptr_t payload_offset = instructions_blob_stream_.Position();
+    const intptr_t payload_offset = instructions_blob_stream_->Position();
     text_offset += WriteByteSequence(payload_start, object_end);
 #endif
 
@@ -1666,7 +1665,7 @@ void BlobImageWriter::WriteText(bool vm) {
     // or not after loading.
     if (elf_ != nullptr) {
       const intptr_t current_stream_position =
-          instructions_blob_stream_.Position();
+          instructions_blob_stream_->Position();
 
       descriptors = code.pc_descriptors();
 
@@ -1687,14 +1686,14 @@ void BlobImageWriter::WriteText(bool vm) {
         // offset of the BSS segment from the relocation position plus the
         // addend in the relocation.
         auto const reloc_pos = payload_offset + reloc_offset;
-        instructions_blob_stream_.SetPosition(reloc_pos);
+        instructions_blob_stream_->SetPosition(reloc_pos);
 
         const compiler::target::word offset = bss_offset - reloc_pos + addend;
-        instructions_blob_stream_.WriteTargetWord(offset);
+        instructions_blob_stream_->WriteTargetWord(offset);
       }
 
       // Restore stream position after the relocation was patched.
-      instructions_blob_stream_.SetPosition(current_stream_position);
+      instructions_blob_stream_->SetPosition(current_stream_position);
     }
 #else
     USE(payload_offset);
@@ -1707,19 +1706,19 @@ void BlobImageWriter::WriteText(bool vm) {
   // Should be a no-op unless writing bare instruction payloads, in which case
   // we need to add post-payload padding to the object alignment. The alignment
   // should match the alignment used in image_size above.
-  instructions_blob_stream_.Align(
+  instructions_blob_stream_->Align(
       compiler::target::ObjectAlignment::kObjectAlignment);
   text_offset = Utils::RoundUp(
       text_offset, compiler::target::ObjectAlignment::kObjectAlignment);
 
-  ASSERT_EQUAL(text_offset, instructions_blob_stream_.bytes_written());
+  ASSERT_EQUAL(text_offset, instructions_blob_stream_->bytes_written());
   ASSERT_EQUAL(text_offset, image_size);
 
 #if defined(DART_PRECOMPILER)
   if (elf_ != nullptr) {
     auto const segment_base2 =
-        elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
-                      instructions_blob_stream_.bytes_written());
+        elf_->AddText(instructions_symbol, instructions_blob_stream_->buffer(),
+                      instructions_blob_stream_->bytes_written());
     ASSERT_EQUAL(segment_base2, segment_base);
   }
   if (debug_elf_ != nullptr) {
@@ -1728,8 +1727,8 @@ void BlobImageWriter::WriteText(bool vm) {
     // we'll need the buffer bytes at generation time to calculate the build ID
     // so it'll match the one in the snapshot.
     auto const debug_segment_base2 = debug_elf_->AddText(
-        instructions_symbol, instructions_blob_stream_.buffer(),
-        instructions_blob_stream_.bytes_written());
+        instructions_symbol, instructions_blob_stream_->buffer(),
+        instructions_blob_stream_->bytes_written());
     ASSERT_EQUAL(debug_segment_base2, debug_segment_base);
   }
 #endif

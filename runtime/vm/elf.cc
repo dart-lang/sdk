@@ -14,14 +14,14 @@
 
 namespace dart {
 
-// A wrapper around StreamingWriteStream that provides methods useful for
+// A wrapper around BaseWriteStream that provides methods useful for
 // writing ELF files (e.g., using ELF definitions of data sizes).
 class ElfWriteStream : public ValueObject {
  public:
-  explicit ElfWriteStream(StreamingWriteStream* stream)
+  explicit ElfWriteStream(BaseWriteStream* stream)
       : stream_(ASSERT_NOTNULL(stream)) {}
 
-  intptr_t position() const { return stream_->position(); }
+  intptr_t position() const { return stream_->Position(); }
   void Align(const intptr_t alignment) {
     ASSERT(Utils::IsPowerOfTwo(alignment));
     stream_->Align(alignment);
@@ -51,7 +51,7 @@ class ElfWriteStream : public ValueObject {
 #endif
 
  private:
-  StreamingWriteStream* const stream_;
+  BaseWriteStream* const stream_;
 };
 
 static constexpr intptr_t kLinearInitValue = -1;
@@ -835,7 +835,7 @@ static const intptr_t kBssIsolateOffset =
 static const intptr_t kBssSize =
     kBssIsolateOffset + BSS::kIsolateEntryCount * compiler::target::kWordSize;
 
-Elf::Elf(Zone* zone, StreamingWriteStream* stream, Type type, Dwarf* dwarf)
+Elf::Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf)
     : zone_(zone),
       unwrapped_stream_(stream),
       type_(type),
@@ -847,7 +847,7 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream, Type type, Dwarf* dwarf)
   // Separate debugging information should always have a Dwarf object.
   ASSERT(type_ == Type::Snapshot || dwarf_ != nullptr);
   // Assumed by various offset logic in this file.
-  ASSERT_EQUAL(unwrapped_stream_->position(), 0);
+  ASSERT_EQUAL(unwrapped_stream_->Position(), 0);
   // The first section in the section header table is always a reserved
   // entry containing only 0 values.
   sections_.Add(new (zone_) ReservedSection());
@@ -1022,9 +1022,9 @@ void Elf::AddStaticSymbol(const char* name,
 class DwarfElfStream : public DwarfWriteStream {
  public:
   explicit DwarfElfStream(Zone* zone,
-                          WriteStream* stream,
+                          NonStreamingWriteStream* stream,
                           const CStringMap<intptr_t>& address_map)
-      : zone_(zone),
+      : zone_(ASSERT_NOTNULL(zone)),
         stream_(ASSERT_NOTNULL(stream)),
         address_map_(address_map) {}
 
@@ -1078,8 +1078,11 @@ class DwarfElfStream : public DwarfWriteStream {
     return fixup;
   }
   void SetSize(intptr_t fixup, const char* prefix, intptr_t start) {
-    const uint32_t value = position() - start;
-    memmove(stream_->buffer() + fixup, &value, sizeof(value));
+    const intptr_t old_position = position();
+    stream_->SetPosition(fixup);
+    const uint32_t value = old_position - start;
+    stream_->WriteBytes(&value, sizeof(value));
+    stream_->SetPosition(old_position);
   }
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
     auto const address = address_map_.LookupValue(symbol);
@@ -1119,7 +1122,7 @@ class DwarfElfStream : public DwarfWriteStream {
   }
 
   Zone* const zone_;
-  WriteStream* const stream_;
+  NonStreamingWriteStream* const stream_;
   const CStringMap<intptr_t>& address_map_;
   uint32_t* abstract_origins_ = nullptr;
   intptr_t abstract_origins_size_ = -1;
@@ -1129,10 +1132,6 @@ class DwarfElfStream : public DwarfWriteStream {
 
 static constexpr intptr_t kInitialDwarfBufferSize = 64 * KB;
 #endif
-
-static uint8_t* ZoneReallocate(uint8_t* ptr, intptr_t len, intptr_t new_len) {
-  return Thread::Current()->zone()->Realloc<uint8_t>(ptr, len, new_len);
-}
 
 Segment* Elf::LastLoadSegment() const {
   for (intptr_t i = segments_.length() - 1; i >= 0; i--) {
@@ -1221,27 +1220,24 @@ void Elf::FinalizeDwarfSections() {
   // provide unwinding information.
 
   {
-    uint8_t* buffer = nullptr;
-    WriteStream stream(&buffer, ZoneReallocate, kInitialDwarfBufferSize);
+    ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
     DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
     dwarf_->WriteAbbreviations(&dwarf_stream);
-    AddDebug(".debug_abbrev", buffer, stream.bytes_written());
+    AddDebug(".debug_abbrev", stream.buffer(), stream.bytes_written());
   }
 
   {
-    uint8_t* buffer = nullptr;
-    WriteStream stream(&buffer, ZoneReallocate, kInitialDwarfBufferSize);
+    ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
     DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
     dwarf_->WriteDebugInfo(&dwarf_stream);
-    AddDebug(".debug_info", buffer, stream.bytes_written());
+    AddDebug(".debug_info", stream.buffer(), stream.bytes_written());
   }
 
   {
-    uint8_t* buffer = nullptr;
-    WriteStream stream(&buffer, ZoneReallocate, kInitialDwarfBufferSize);
+    ZoneWriteStream stream(zone(), kInitialDwarfBufferSize);
     DwarfElfStream dwarf_stream(zone_, &stream, symbol_to_address_map);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
-    AddDebug(".debug_line", buffer, stream.bytes_written());
+    AddDebug(".debug_line", stream.buffer(), stream.bytes_written());
   }
 #endif
 }
@@ -1365,8 +1361,7 @@ uword Elf::BuildIdStart(intptr_t* size) {
 }
 
 Section* Elf::GenerateBuildId() {
-  uint8_t* notes_buffer = nullptr;
-  WriteStream stream(&notes_buffer, ZoneReallocate, kBuildIdSize);
+  ZoneWriteStream stream(zone(), kBuildIdSize);
   stream.WriteFixed(kBuildIdNameLength);
   stream.WriteFixed(kBuildIdDescriptionLength);
   stream.WriteFixed(static_cast<uint32_t>(elf::NoteType::NT_GNU_BUILD_ID));
@@ -1397,9 +1392,10 @@ Section* Elf::GenerateBuildId() {
   // BSS section are allocated segments at the same time. Having the same flags
   // ensures they will be combined in the same segment and not unnecessarily
   // aligned into a new page.
-  return new (zone_) BitsContainer(
-      elf::SectionHeaderType::SHT_NOTE, /*allocate=*/true, /*executable=*/false,
-      /*writable=*/true, stream.bytes_written(), notes_buffer, kNoteAlignment);
+  return new (zone_) BitsContainer(elf::SectionHeaderType::SHT_NOTE,
+                                   /*allocate=*/true, /*executable=*/false,
+                                   /*writable=*/true, stream.bytes_written(),
+                                   stream.buffer(), kNoteAlignment);
 }
 
 void Elf::FinalizeProgramTable() {

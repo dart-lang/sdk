@@ -429,7 +429,7 @@ void CompilationTraceLoader::SpeculateInstanceCallTargets(
   }
 }
 
-TypeFeedbackSaver::TypeFeedbackSaver(WriteStream* stream)
+TypeFeedbackSaver::TypeFeedbackSaver(BaseWriteStream* stream)
     : stream_(stream),
       cls_(Class::Handle()),
       lib_(Library::Handle()),

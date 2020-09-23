@@ -193,9 +193,7 @@ class Serializer : public ThreadStackResource {
  public:
   Serializer(Thread* thread,
              Snapshot::Kind kind,
-             uint8_t** buffer,
-             ReAlloc alloc,
-             intptr_t initial_size,
+             NonStreamingWriteStream* stream,
              ImageWriter* image_writer_,
              bool vm_,
              V8SnapshotProfileWriter* profile_writer = nullptr);
@@ -272,13 +270,13 @@ class Serializer : public ThreadStackResource {
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
-    stream_.SetPosition(Snapshot::kHeaderSize);
+    stream_->SetPosition(Snapshot::kHeaderSize);
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    Snapshot* header = reinterpret_cast<Snapshot*>(stream_->buffer());
     header->set_magic();
-    header->set_length(stream_.bytes_written());
+    header->set_length(stream_->bytes_written());
     header->set_kind(kind);
   }
 
@@ -289,8 +287,8 @@ class Serializer : public ThreadStackResource {
 
   FieldTable* field_table() { return field_table_; }
 
-  WriteStream* stream() { return &stream_; }
-  intptr_t bytes_written() { return stream_.bytes_written(); }
+  NonStreamingWriteStream* stream() { return stream_; }
+  intptr_t bytes_written() { return stream_->bytes_written(); }
 
   void FlushBytesWrittenToRoot();
   void TraceStartWritingObject(const char* type, ObjectPtr obj, StringPtr name);
@@ -303,19 +301,19 @@ class Serializer : public ThreadStackResource {
   // sizeof(T) must be in {1,2,4,8}.
   template <typename T>
   void Write(T value) {
-    WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
+    BaseWriteStream::Raw<sizeof(T), T>::Write(stream_, value);
   }
-  void WriteUnsigned(intptr_t value) { stream_.WriteUnsigned(value); }
-  void WriteUnsigned64(uint64_t value) { stream_.WriteUnsigned(value); }
+  void WriteUnsigned(intptr_t value) { stream_->WriteUnsigned(value); }
+  void WriteUnsigned64(uint64_t value) { stream_->WriteUnsigned(value); }
 
   void WriteWordWith32BitWrites(uword value) {
-    stream_.WriteWordWith32BitWrites(value);
+    stream_->WriteWordWith32BitWrites(value);
   }
 
   void WriteBytes(const uint8_t* addr, intptr_t len) {
-    stream_.WriteBytes(addr, len);
+    stream_->WriteBytes(addr, len);
   }
-  void Align(intptr_t alignment) { stream_.Align(alignment); }
+  void Align(intptr_t alignment) { stream_->Align(alignment); }
 
   void WriteRootRef(ObjectPtr object, const char* name = nullptr) {
     intptr_t id = RefId(object);
@@ -499,7 +497,7 @@ class Serializer : public ThreadStackResource {
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;
-  WriteStream stream_;
+  NonStreamingWriteStream* stream_;
   ImageWriter* image_writer_;
   SerializationCluster** clusters_by_cid_;
   GrowableArray<ObjectPtr> stack_;
@@ -740,18 +738,11 @@ class FullSnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(Snapshot::Kind kind,
-                     uint8_t** vm_snapshot_data_buffer,
-                     uint8_t** isolate_snapshot_data_buffer,
-                     ReAlloc alloc,
+                     NonStreamingWriteStream* vm_snapshot_data,
+                     NonStreamingWriteStream* isolate_snapshot_data,
                      ImageWriter* vm_image_writer,
                      ImageWriter* iso_image_writer);
   ~FullSnapshotWriter();
-
-  uint8_t** vm_snapshot_data_buffer() const { return vm_snapshot_data_buffer_; }
-
-  uint8_t** isolate_snapshot_data_buffer() const {
-    return isolate_snapshot_data_buffer_;
-  }
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
@@ -778,9 +769,8 @@ class FullSnapshotWriter {
 
   Thread* thread_;
   Snapshot::Kind kind_;
-  uint8_t** vm_snapshot_data_buffer_;
-  uint8_t** isolate_snapshot_data_buffer_;
-  ReAlloc alloc_;
+  NonStreamingWriteStream* const vm_snapshot_data_;
+  NonStreamingWriteStream* const isolate_snapshot_data_;
   intptr_t vm_isolate_snapshot_size_;
   intptr_t isolate_snapshot_size_;
   ImageWriter* vm_image_writer_;

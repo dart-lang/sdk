@@ -30,10 +30,7 @@ class Elf : public ZoneAllocated {
     DebugInfo,
   };
 
-  Elf(Zone* zone,
-      StreamingWriteStream* stream,
-      Type type,
-      Dwarf* dwarf = nullptr);
+  Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
   static constexpr intptr_t kPageSize = 4096;
 
@@ -104,7 +101,7 @@ class Elf : public ZoneAllocated {
   void WriteSections(ElfWriteStream* stream);
 
   Zone* const zone_;
-  StreamingWriteStream* const unwrapped_stream_;
+  BaseWriteStream* const unwrapped_stream_;
   const Type type_;
 
   // If nullptr, then the ELF file should be stripped of static information like

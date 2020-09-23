@@ -277,7 +277,7 @@ class ImageWriter : public ValueObject {
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
 
-  void Write(WriteStream* clustered_stream, bool vm);
+  void Write(NonStreamingWriteStream* clustered_stream, bool vm);
   intptr_t data_size() const { return next_data_offset_; }
   intptr_t text_size() const { return next_text_offset_; }
   intptr_t GetTextObjectCount() const;
@@ -331,7 +331,7 @@ class ImageWriter : public ValueObject {
 
  protected:
   virtual void WriteBss(bool vm) = 0;
-  virtual void WriteROData(WriteStream* clustered_stream, bool vm);
+  virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
   virtual void WriteText(bool vm) = 0;
 
   void DumpInstructionStats();
@@ -463,15 +463,14 @@ class SnapshotTextObjectNamer {
 class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(Thread* thread,
-                      Dart_StreamingWriteCallback callback,
-                      void* callback_data,
+                      BaseWriteStream* stream,
                       bool strip = false,
                       Elf* debug_elf = nullptr);
   void Finalize();
 
  private:
   virtual void WriteBss(bool vm);
-  virtual void WriteROData(WriteStream* clustered_stream, bool vm);
+  virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
   virtual void WriteText(bool vm);
 
   void FrameUnwindPrologue();
@@ -488,16 +487,16 @@ class AssemblyImageWriter : public ImageWriter {
   intptr_t WriteWordLiteralText(compiler::target::uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(TARGET_ARCH_IS_64_BIT)
-    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
+    assembly_stream_->Print(".quad 0x%0.16" Px "\n", value);
 #else
-    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
+    assembly_stream_->Print(".long 0x%0.8" Px "\n", value);
 #endif
     return compiler::target::kWordSize;
   }
 
-  StreamingWriteStream assembly_stream_;
-  Dwarf* assembly_dwarf_;
-  Elf* debug_elf_;
+  BaseWriteStream* const assembly_stream_;
+  Dwarf* const assembly_dwarf_;
+  Elf* const debug_elf_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
 };
@@ -505,24 +504,22 @@ class AssemblyImageWriter : public ImageWriter {
 class BlobImageWriter : public ImageWriter {
  public:
   BlobImageWriter(Thread* thread,
-                  uint8_t** instructions_blob_buffer,
-                  ReAlloc alloc,
-                  intptr_t initial_size,
+                  NonStreamingWriteStream* stream,
                   Elf* debug_elf = nullptr,
                   Elf* elf = nullptr);
 
   intptr_t InstructionsBlobSize() const {
-    return instructions_blob_stream_.bytes_written();
+    return instructions_blob_stream_->bytes_written();
   }
 
  private:
   virtual void WriteBss(bool vm);
-  virtual void WriteROData(WriteStream* clustered_stream, bool vm);
+  virtual void WriteROData(NonStreamingWriteStream* clustered_stream, bool vm);
   virtual void WriteText(bool vm);
 
   intptr_t WriteByteSequence(uword start, uword end);
 
-  WriteStream instructions_blob_stream_;
+  NonStreamingWriteStream* instructions_blob_stream_;
   Elf* const elf_;
   Elf* const debug_elf_;
 

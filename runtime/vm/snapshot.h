@@ -429,14 +429,14 @@ class MessageSnapshotReader : public SnapshotReader {
 
 class BaseWriter : public StackResource {
  public:
-  uint8_t* buffer() { return stream_.buffer(); }
+  uint8_t* Steal(intptr_t* length) { return stream_.Steal(length); }
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
 
   // Writes raw data to the stream (basic type).
   // sizeof(T) must be in {1,2,4,8}.
   template <typename T>
   void Write(T value) {
-    WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
+    MallocWriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
   void WriteClassIDValue(classid_t value) { Write<uint32_t>(value); }
@@ -491,13 +491,8 @@ class BaseWriter : public StackResource {
   }
 
  protected:
-  BaseWriter(ReAlloc alloc, DeAlloc dealloc, intptr_t initial_size)
-      : StackResource(Thread::Current()),
-        buffer_(NULL),
-        stream_(&buffer_, alloc, initial_size),
-        dealloc_(dealloc) {
-    ASSERT(alloc != NULL);
-  }
+  explicit BaseWriter(intptr_t initial_size)
+      : StackResource(Thread::Current()), stream_(initial_size) {}
   ~BaseWriter() {}
 
   void ReserveHeader() {
@@ -506,21 +501,20 @@ class BaseWriter : public StackResource {
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    intptr_t length;
+    Snapshot* header = reinterpret_cast<Snapshot*>(Steal(&length));
     header->set_magic();
-    header->set_length(stream_.bytes_written());
+    header->set_length(length);
     header->set_kind(kind);
   }
 
   void FreeBuffer() {
-    dealloc_(stream_.buffer());
-    stream_.set_buffer(NULL);
+    intptr_t unused;
+    free(Steal(&unused));
   }
 
  private:
-  uint8_t* buffer_;
-  WriteStream stream_;
-  DeAlloc dealloc_;
+  MallocWriteStream stream_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseWriter);
 };
@@ -586,8 +580,6 @@ class SnapshotWriter : public BaseWriter {
  protected:
   SnapshotWriter(Thread* thread,
                  Snapshot::Kind kind,
-                 ReAlloc alloc,
-                 DeAlloc dealloc,
                  intptr_t initial_size,
                  ForwardList* forward_list,
                  bool can_send_any_object);
