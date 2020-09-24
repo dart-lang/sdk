@@ -19,13 +19,6 @@ class FlutterConvertToChildrenTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_CHILDREN;
 
-  @override
-  void setUp() {
-    super.setUp();
-    // TODO(dantup): Get these tests passing with either line ending.
-    useLineEndingsForPlatform = false;
-  }
-
   Future<void> test_childUnresolved() async {
     addFlutterPackage();
     verifyNoTestUnitErrors = false;

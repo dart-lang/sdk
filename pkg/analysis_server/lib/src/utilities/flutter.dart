@@ -95,7 +95,8 @@ class Flutter {
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
-      String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
+      String indentOld =
+          getLinePrefix(childArg.offset + eol.length + newlineLoc);
       var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
       String separator =
@@ -136,7 +137,8 @@ class Flutter {
       if (newlineLoc == childArgSrc.length) {
         newlineLoc -= 1;
       }
-      String indentOld = getLinePrefix(childArg.offset + 1 + newlineLoc);
+      String indentOld =
+          getLinePrefix(childArg.offset + eol.length + newlineLoc);
       var indentNew = '$indentOld${getIndent(1)}';
       // The separator includes 'child:' but that has no newlines.
       String separator =
