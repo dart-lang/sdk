@@ -524,6 +524,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (importElement != null && importElement.isDeferred) {
       _checkForLoadLibraryFunction(node, importElement);
     }
+    _invalidAccessVerifier.verifyImport(node);
     super.visitImportDirective(node);
   }
 
@@ -674,6 +675,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
+    _invalidAccessVerifier.verifySuperConstructorInvocation(node);
     super.visitSuperConstructorInvocation(node);
   }
 
@@ -1797,6 +1799,28 @@ class _InvalidAccessVerifier {
 
     _checkForInvalidInternalAccess(identifier, element);
     _checkForOtherInvalidAccess(identifier, element);
+  }
+
+  void verifyImport(ImportDirective node) {
+    var element = node.uriElement;
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_USE_OF_INTERNAL_MEMBER,
+          node, [node.uri.stringValue]);
+    }
+  }
+
+  void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
+    if (node.constructorName != null) {
+      // Named constructor calls are handled by [verify].
+      return;
+    }
+    var element = node.staticElement;
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [element.name]);
+    }
   }
 
   void _checkForInvalidInternalAccess(

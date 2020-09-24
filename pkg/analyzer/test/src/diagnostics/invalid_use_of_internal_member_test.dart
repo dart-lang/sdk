@@ -226,12 +226,7 @@ int b = 1;
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_library() async {
-    // TODO(srawlins): The verify method of BestPracticesVerifier checks all
-    // visibility annotations, and does not handle imports of
-    // `@visibleForTesting` or `@visibleForTemplate` libraries. To change that
-    // would be a breaking change which may require cleanup.
     newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
 @internal
 library a;
@@ -241,7 +236,8 @@ import 'package:meta/meta.dart';
     await assertErrorsInCode('''
 import 'package:foo/src/a.dart';
 ''', [
-      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
+      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 0, 32),
+      error(HintCode.UNUSED_IMPORT, 7, 24),
     ]);
   }
 
@@ -429,12 +425,7 @@ class C {
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/28066')
   test_outsidePackage_superConstructor() async {
-    // TODO(srawlins): The verify method of BestPracticesVerifier checks all
-    // visibility annotations, and does not handle `super()` calls for
-    // `@visibleForTesting` or `@visibleForTemplate`. To change that would be
-    // a breaking change which may require cleanup.
     newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
 import 'package:meta/meta.dart';
 class C {
@@ -449,7 +440,7 @@ class D extends C {
   D() : super();
 }
 ''', [
-      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
+      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 62, 7),
     ]);
   }
 
