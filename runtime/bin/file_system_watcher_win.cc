@@ -80,6 +80,9 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   const intptr_t kEventSize = sizeof(FILE_NOTIFY_INFORMATION);
   DirectoryWatchHandle* dir = reinterpret_cast<DirectoryWatchHandle*>(path_id);
   intptr_t available = dir->Available();
+  if (available <= 0) {
+    return Dart_NewList(0);
+  }
   intptr_t max_count = available / kEventSize + 1;
   Dart_Handle events = Dart_NewList(max_count);
   uint8_t* buffer = Dart_ScopeAllocate(available);
