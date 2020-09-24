@@ -110,6 +110,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// `true` if variance is enabled.
   bool get enableVariance => languageExperiments[fe.ExperimentalFlag.variance];
 
+  /// Whether `--enable-experiment=non-nullable` is provided.
+  bool get enableNonNullable =>
+      languageExperiments[fe.ExperimentalFlag.nonNullable];
+
   /// A possibly null state object for kernel compilation.
   fe.InitializedCompilerState kernelInitializedCompilerState;
 
@@ -380,7 +384,7 @@ class CompilerOptions implements DiagnosticOptions {
   /// This may be true either when `--enable-experiment=non-nullable` is
   /// provided on the command-line, or when the provided .dill file for the sdk
   /// was built with null-safety enabled.
-  bool useNullSafety = false;
+  bool useNullSafety = true;
 
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
@@ -400,7 +404,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool get useLegacySubtyping {
     assert(nullSafetyMode != NullSafetyMode.unspecified,
         "Null safety mode unspecified");
-    return !useNullSafety || (nullSafetyMode == NullSafetyMode.unsound);
+    return nullSafetyMode == NullSafetyMode.unsound;
   }
 
   /// The path to the file that contains the profiled allocations.
@@ -559,7 +563,7 @@ class CompilerOptions implements DiagnosticOptions {
       throw ArgumentError("'${Flags.soundNullSafety}' incompatible with "
           "'${Flags.noSoundNullSafety}'");
     }
-    if (!useNullSafety && _soundNullSafety) {
+    if (!enableNonNullable && _soundNullSafety) {
       throw ArgumentError("'${Flags.soundNullSafety}' requires the "
           "'non-nullable' experiment to be enabled");
     }
@@ -586,10 +590,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_noLegacyJavaScript) legacyJavaScript = false;
     if (_legacyJavaScript) legacyJavaScript = true;
-
-    if (languageExperiments[fe.ExperimentalFlag.nonNullable]) {
-      useNullSafety = true;
-    }
 
     if (_soundNullSafety) nullSafetyMode = NullSafetyMode.sound;
     if (_noSoundNullSafety) nullSafetyMode = NullSafetyMode.unsound;

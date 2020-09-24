@@ -42,7 +42,8 @@ Future<String> compile(String code,
     bool omitImplicitChecks: true,
     bool enableVariance: false,
     void check(String generatedEntry),
-    bool returnAll: false}) async {
+    bool returnAll: false,
+    bool soundNullSafety: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
   List<String> options = <String>[];
   if (disableTypeInference) {
@@ -65,6 +66,11 @@ Future<String> compile(String code,
   }
   if (enableVariance) {
     options.add('${Flags.enableLanguageExperiments}=variance');
+  }
+  if (soundNullSafety) {
+    options.add(Flags.soundNullSafety);
+  } else {
+    options.add(Flags.noSoundNullSafety);
   }
 
   // Pretend this is a dart2js_native test to allow use of 'native' keyword
@@ -103,6 +109,7 @@ Future<String> compile(String code,
 Future<String> compileAll(String code,
     {bool disableInlining: true,
     bool minify: false,
+    bool soundNullSafety: false,
     int expectedErrors,
     int expectedWarnings}) async {
   OutputCollector outputCollector = new OutputCollector();
@@ -113,6 +120,11 @@ Future<String> compileAll(String code,
   }
   if (minify) {
     options.add(Flags.minify);
+  }
+  if (soundNullSafety) {
+    options.add(Flags.soundNullSafety);
+  } else {
+    options.add(Flags.noSoundNullSafety);
   }
 
   // Pretend this is a dart2js_native test to allow use of 'native' keyword

@@ -112,14 +112,8 @@ class SerializationTask extends CompilerTask {
           "null safety and is incompatible with the '$option' option");
     }
 
-    if (component.libraries.any((lib) =>
-        lib.isNonNullableByDefault && lib.importUri.scheme == 'dart')) {
-      _options.useNullSafety = true;
-    }
-
     if (component.mode == ir.NonNullableByDefaultCompiledMode.Strong) {
       _options.nullSafetyMode = NullSafetyMode.sound;
-      assert(_options.useNullSafety);
     } else {
       _options.nullSafetyMode = NullSafetyMode.unsound;
     }
