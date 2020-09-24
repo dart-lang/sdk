@@ -8,8 +8,6 @@ import 'package:kernel/core_types.dart';
 
 import 'package:kernel/type_algebra.dart';
 
-import 'package:kernel/src/replacement_visitor.dart';
-
 import 'package:kernel/type_environment.dart';
 
 import 'type_schema.dart' show UnknownType;
@@ -877,12 +875,18 @@ abstract class TypeConstraintGatherer {
           List<_ProtoConstraint> constraints =
               _protoConstraints.sublist(baseConstraintCount);
           _protoConstraints.length = baseConstraintCount;
-          _NullabilityAwareTypeVariableEliminator eliminator =
-              new _NullabilityAwareTypeVariableEliminator(
-                  freshTypeParameters.freshTypeParameters.toSet(),
-                  const NeverType(Nullability.nonNullable),
-                  coreTypes.objectNullableRawType,
-                  coreTypes.functionNonNullableRawType);
+          NullabilityAwareTypeVariableEliminator eliminator =
+              new NullabilityAwareTypeVariableEliminator(
+                  eliminationTargets:
+                      freshTypeParameters.freshTypeParameters.toSet(),
+                  bottomType: const NeverType(Nullability.nonNullable),
+                  topType: coreTypes.objectNullableRawType,
+                  topFunctionType: coreTypes.functionNonNullableRawType,
+                  unhandledTypeHandler: (DartType type, ignored) =>
+                      type is UnknownType
+                          ? false
+                          : throw new UnsupportedError(
+                              "Unsupported type '${type.runtimeType}'."));
           for (_ProtoConstraint constraint in constraints) {
             if (constraint.isUpper) {
               _constrainParameterUpper(constraint.parameter,
@@ -1175,87 +1179,5 @@ class _ProtoConstraint {
     return isUpper
         ? "${parameter.name} <: $bound"
         : "$bound <: ${parameter.name}";
-  }
-}
-
-/// Eliminates specified free type parameters in a type.
-///
-/// The algorithm for elimination of type variables is described in
-/// https://github.com/dart-lang/language/pull/957
-class _NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
-  final DartType bottomType;
-  final DartType topType;
-  final DartType topFunctionType;
-  final Set<TypeParameter> eliminationTargets;
-  bool isLeastClosure;
-  bool isCovariant = true;
-
-  _NullabilityAwareTypeVariableEliminator(this.eliminationTargets,
-      this.bottomType, this.topType, this.topFunctionType);
-
-  /// Returns a subtype of [type] for all values of [eliminationTargets].
-  DartType eliminateToLeast(DartType type) {
-    isCovariant = true;
-    isLeastClosure = true;
-    return type.accept(this) ?? type;
-  }
-
-  /// Returns a supertype of [type] for all values of [eliminationTargets].
-  DartType eliminateToGreatest(DartType type) {
-    isCovariant = true;
-    isLeastClosure = false;
-    return type.accept(this) ?? type;
-  }
-
-  DartType get typeParameterReplacement {
-    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
-        ? bottomType
-        : topType;
-  }
-
-  DartType get functionReplacement {
-    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
-        ? bottomType
-        : topFunctionType;
-  }
-
-  @override
-  void changeVariance() {
-    isCovariant = !isCovariant;
-  }
-
-  @override
-  DartType visitFunctionType(FunctionType node) {
-    // - if `S` is
-    //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
-    //       [Tn+1 xn+1, ..., Tm xm])`
-    //   or `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
-    //       {Tn+1 xn+1, ..., Tm xm})`
-    //   and `L` contains any free type variables from any of the `Bi`:
-    //  - The least closure of `S` with respect to `L` is `Never`
-    //  - The greatest closure of `S` with respect to `L` is `Function`
-    if (node.typeParameters.isNotEmpty) {
-      for (TypeParameter typeParameter in node.typeParameters) {
-        if (containsTypeVariable(typeParameter.bound, eliminationTargets,
-            unhandledTypeHandler: (DartType type, ignored) =>
-                type is UnknownType
-                    ? false
-                    : throw new UnsupportedError(
-                        "Unsupported type '${type.runtimeType}'."))) {
-          return functionReplacement;
-        }
-      }
-    }
-    return super.visitFunctionType(node);
-  }
-
-  @override
-  DartType visitTypeParameterType(TypeParameterType node) {
-    if (eliminationTargets.contains(node.parameter)) {
-      return typeParameterReplacement.withDeclaredNullability(
-          uniteNullabilities(
-              typeParameterReplacement.nullability, node.nullability));
-    }
-    return super.visitTypeParameterType(node);
   }
 }

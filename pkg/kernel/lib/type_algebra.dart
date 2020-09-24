@@ -5,6 +5,7 @@ library kernel.type_algebra;
 
 import 'ast.dart';
 import 'core_types.dart';
+import 'src/replacement_visitor.dart';
 
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
@@ -1095,4 +1096,92 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitVoidType(VoidType node, CoreTypes coreTypes) => node;
+}
+
+/// Eliminates specified free type parameters in a type.
+///
+/// The algorithm for elimination of type variables is described in
+/// https://github.com/dart-lang/language/pull/957
+class NullabilityAwareTypeVariableEliminator extends ReplacementVisitor {
+  final DartType bottomType;
+  final DartType topType;
+  final DartType topFunctionType;
+  final Set<TypeParameter> eliminationTargets;
+  bool isLeastClosure;
+  bool isCovariant = true;
+  bool Function(DartType type, bool Function(DartType type) recursor)
+      unhandledTypeHandler; // Can be null.
+
+  NullabilityAwareTypeVariableEliminator(
+      {this.eliminationTargets,
+      this.bottomType,
+      this.topType,
+      this.topFunctionType,
+      this.unhandledTypeHandler})
+      : assert(eliminationTargets != null),
+        assert(bottomType != null),
+        assert(topType != null),
+        assert(topFunctionType != null);
+
+  /// Returns a subtype of [type] for all values of [eliminationTargets].
+  DartType eliminateToLeast(DartType type) {
+    isCovariant = true;
+    isLeastClosure = true;
+    return type.accept(this) ?? type;
+  }
+
+  /// Returns a supertype of [type] for all values of [eliminationTargets].
+  DartType eliminateToGreatest(DartType type) {
+    isCovariant = true;
+    isLeastClosure = false;
+    return type.accept(this) ?? type;
+  }
+
+  DartType get typeParameterReplacement {
+    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
+        ? bottomType
+        : topType;
+  }
+
+  DartType get functionReplacement {
+    return isLeastClosure && isCovariant || (!isLeastClosure && !isCovariant)
+        ? bottomType
+        : topFunctionType;
+  }
+
+  @override
+  void changeVariance() {
+    isCovariant = !isCovariant;
+  }
+
+  @override
+  DartType visitFunctionType(FunctionType node) {
+    // - if `S` is
+    //   `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
+    //       [Tn+1 xn+1, ..., Tm xm])`
+    //   or `T Function<X0 extends B0, ...., Xk extends Bk>(T0 x0, ...., Tn xn,
+    //       {Tn+1 xn+1, ..., Tm xm})`
+    //   and `L` contains any free type variables from any of the `Bi`:
+    //  - The least closure of `S` with respect to `L` is `Never`
+    //  - The greatest closure of `S` with respect to `L` is `Function`
+    if (node.typeParameters.isNotEmpty) {
+      for (TypeParameter typeParameter in node.typeParameters) {
+        if (containsTypeVariable(typeParameter.bound, eliminationTargets,
+            unhandledTypeHandler: unhandledTypeHandler)) {
+          return functionReplacement;
+        }
+      }
+    }
+    return super.visitFunctionType(node);
+  }
+
+  @override
+  DartType visitTypeParameterType(TypeParameterType node) {
+    if (eliminationTargets.contains(node.parameter)) {
+      return typeParameterReplacement.withDeclaredNullability(
+          uniteNullabilities(
+              typeParameterReplacement.nullability, node.nullability));
+    }
+    return super.visitTypeParameterType(node);
+  }
 }
