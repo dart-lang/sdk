@@ -144,6 +144,40 @@ void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
   size_ += (stop - start);
 }
 
+static UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(
+    Serializer* s,
+    intptr_t class_id) {
+  const auto unboxed_fields_bitmap_host =
+      s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
+          class_id);
+
+  UnboxedFieldBitmap unboxed_fields_bitmap;
+  if (unboxed_fields_bitmap_host.IsEmpty() ||
+      kWordSize == compiler::target::kWordSize) {
+    unboxed_fields_bitmap = unboxed_fields_bitmap_host;
+  } else {
+    ASSERT(kWordSize == 8 && compiler::target::kWordSize == 4);
+    // A new bitmap is built if the word sizes in the target and
+    // host are different
+    unboxed_fields_bitmap.Reset();
+    intptr_t target_i = 0, host_i = 0;
+
+    while (host_i < UnboxedFieldBitmap::Length()) {
+      // Each unboxed field has constant length, therefore the number of
+      // words used by it should double when compiling from 64-bit to 32-bit.
+      if (unboxed_fields_bitmap_host.Get(host_i++)) {
+        unboxed_fields_bitmap.Set(target_i++);
+        unboxed_fields_bitmap.Set(target_i++);
+      } else {
+        // For object pointers, the field is always one word length
+        target_i++;
+      }
+    }
+  }
+
+  return unboxed_fields_bitmap;
+}
+
 class ClassSerializationCluster : public SerializationCluster {
  public:
   explicit ClassSerializationCluster(intptr_t num_cids)
@@ -235,39 +269,6 @@ class ClassSerializationCluster : public SerializationCluster {
 
   GrowableArray<ClassPtr> predefined_;
   GrowableArray<ClassPtr> objects_;
-
-  UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(Serializer* s,
-                                                        intptr_t class_id) {
-    const auto unboxed_fields_bitmap_host =
-        s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            class_id);
-
-    UnboxedFieldBitmap unboxed_fields_bitmap;
-    if (unboxed_fields_bitmap_host.IsEmpty() ||
-        kWordSize == compiler::target::kWordSize) {
-      unboxed_fields_bitmap = unboxed_fields_bitmap_host;
-    } else {
-      ASSERT(kWordSize == 8 && compiler::target::kWordSize == 4);
-      // A new bitmap is built if the word sizes in the target and
-      // host are different
-      unboxed_fields_bitmap.Reset();
-      intptr_t target_i = 0, host_i = 0;
-
-      while (host_i < UnboxedFieldBitmap::Length()) {
-        // Each unboxed field has constant length, therefore the number of
-        // words used by it should double when compiling from 64-bit to 32-bit.
-        if (unboxed_fields_bitmap_host.Get(host_i++)) {
-          unboxed_fields_bitmap.Set(target_i++);
-          unboxed_fields_bitmap.Set(target_i++);
-        } else {
-          // For object pointers, the field is always one word length
-          target_i++;
-        }
-      }
-    }
-
-    return unboxed_fields_bitmap;
-  }
 
   bool RequireLegacyErasureOfConstants(ClassPtr cls) {
     // Do not generate a core snapshot containing constants that would require
@@ -3349,9 +3350,11 @@ class InstanceSerializationCluster : public SerializationCluster {
     intptr_t next_field_offset = host_next_field_offset_in_words_
                                  << kWordSizeLog2;
     const intptr_t count = objects_.length();
+    s->WriteUnsigned64(CalculateTargetUnboxedFieldsBitmap(s, cid_).Value());
     const auto unboxed_fields_bitmap =
         s->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
             cid_);
+
     for (intptr_t i = 0; i < count; i++) {
       InstancePtr instance = objects_[i];
       AutoTraceObject(instance);
@@ -3407,10 +3410,8 @@ class InstanceDeserializationCluster : public DeserializationCluster {
     intptr_t next_field_offset = next_field_offset_in_words_ << kWordSizeLog2;
     intptr_t instance_size =
         Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
+    const UnboxedFieldBitmap unboxed_fields_bitmap(d->ReadUnsigned64());
 
-    const auto unboxed_fields_bitmap =
-        d->isolate()->group()->shared_class_table()->GetUnboxedFieldsMapAt(
-            cid_);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       InstancePtr instance = static_cast<InstancePtr>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
