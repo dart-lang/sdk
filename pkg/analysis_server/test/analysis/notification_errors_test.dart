@@ -203,7 +203,7 @@ transforms:
 
     // Add to priority files and give chance for the file to be analyzed (if
     // it would).
-    await setPriorityFiles([brokenFile]);
+    setPriorityFiles([brokenFile]);
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
 

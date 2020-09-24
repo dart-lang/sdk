@@ -391,7 +391,7 @@ class ContentsPage extends DiagnosticPageWithNav {
           raw: true);
       return;
     }
-    var file = await server.resourceProvider.getFile(filePath);
+    var file = server.resourceProvider.getFile(filePath);
     if (!file.exists) {
       p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
       return;

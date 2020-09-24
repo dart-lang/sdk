@@ -754,7 +754,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future<void> _initializeReturnType() async {
-    var typeProvider = await resolveResult.typeProvider;
+    var typeProvider = resolveResult.typeProvider;
     if (_selectionFunctionExpression != null) {
       variableType = '';
       returnType = '';

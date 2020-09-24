@@ -44,7 +44,7 @@ class AddLate extends CorrectionProducer {
     }
   }
 
-  void _insertAt(ChangeBuilder builder, int offset) async {
+  Future<void> _insertAt(ChangeBuilder builder, int offset) async {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(offset, 'late ');
     });

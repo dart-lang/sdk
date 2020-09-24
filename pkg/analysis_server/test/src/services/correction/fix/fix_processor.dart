@@ -110,7 +110,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
-  void assertHasFixAllFix(ErrorCode errorCode, String expected,
+  Future<void> assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
     if (useLineEndingsForPlatform) {
       expected = normalizeNewlinesForPlatform(expected);

@@ -1356,7 +1356,7 @@ class CodeShapeMetricsComputer {
   CodeShapeMetricsComputer();
 
   /// Compute the metrics for the file(s) in the [rootPath].
-  void compute(String rootPath) async {
+  Future<void> compute(String rootPath) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -1380,7 +1380,7 @@ class CodeShapeMetricsComputer {
   /// separate context collection to prevent accumulating memory. The metrics
   /// should be captured in the [collector]. Include additional details in the
   /// output if [verbose] is `true`.
-  void _computeInContext(
+  Future<void> _computeInContext(
       ContextRoot root, CodeShapeDataCollector collector) async {
     // Create a new collection to avoid consuming large quantities of memory.
     final collection = AnalysisContextCollection(
