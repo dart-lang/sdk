@@ -398,10 +398,7 @@
         "enable-asserts": true,
         "mode": "release",
         "runtime": "vm",
-        "timeout": 240,
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "timeout": 240
       }
     },
     "analyzer-unittest-asserts-(debug|product|release)-(linux|mac|win)": {
@@ -516,12 +513,6 @@
     "dart2js-weak-(linux|mac|win)-x64-d8": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "dart2js-options": [
-          "--no-sound-null-safety"
-        ],
         "use-sdk": true
       }
     },
@@ -576,11 +567,7 @@
     "dart2js-hostasserts-weak-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--no-sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -591,11 +578,7 @@
     "dart2js-hostasserts-weak-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-weak",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--no-sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -606,11 +589,7 @@
     "dart2js-hostasserts-strong-(linux|win)-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-strong",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=out/ReleaseX64/"
         ],
@@ -621,11 +600,7 @@
     "dart2js-hostasserts-strong-mac-x64-(d8|chrome)": {
       "options": {
         "builder-tag": "dart2js-strong",
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "dart2js-options": [
-          "--sound-null-safety",
           "--libraries-spec=sdk/lib/libraries.json",
           "--platform-binaries=xcodebuild/ReleaseX64/"
         ],
@@ -710,115 +685,49 @@
     },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-x64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
         "enable-asserts": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-simarm64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
         "enable-asserts": true,
         "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-weak-asserts-win-(debug|product|release)-(simarm64|x64)": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ],
         "enable-asserts": true,
         "use-elf": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartk-weak-asserts-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "enable-asserts": true,
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-x64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-(linux|mac)-(debug|product|release)-simarm64": {
       "options": {
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--sound-null-safety"
-        ],
         "use-elf": true,
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
     "dartkp-strong-win-(debug|product|release)-(simarm64|x64)": {
       "options": {
         "use-elf": true,
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--sound-null-safety"
-        ],
         "builder-tag": "vm_nnbd"
       }
     },
@@ -868,9 +777,6 @@
       "options": {
         "checked": true,
         "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "enable-asserts": true
       }
     },
@@ -878,9 +784,6 @@
       "options": {
         "checked": true,
         "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ],
         "enable-asserts": true
       }
     },
@@ -891,18 +794,12 @@
     },
     "cfe-weak-(linux|mac|win)": {
       "options": {
-        "compiler": "fasta",
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "compiler": "fasta"
       }
     },
     "cfe-strong-(linux|mac|win)": {
       "options": {
-        "compiler": "fasta",
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "compiler": "fasta"
       }
     },
     "analyzer-(linux|mac|win)": {
@@ -922,20 +819,14 @@
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
-        "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "use-sdk": true
       }
     },
     "analyzer-asserts-weak-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
         "enable-asserts": true,
-        "use-sdk": true,
-        "enable-experiment": [
-          "non-nullable"
-        ]
+        "use-sdk": true
       }
     }
   },
