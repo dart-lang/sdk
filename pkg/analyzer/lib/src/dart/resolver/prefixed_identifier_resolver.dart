@@ -70,38 +70,6 @@ class PrefixedIdentifierResolver {
     return functionType.returnType;
   }
 
-  /// Given a property access [node] with static type [nodeType],
-  /// and [id] is the property name being accessed, infer a type for the
-  /// access itself and its constituent components if the access is to one of the
-  /// methods or getters of the built in 'Object' type, and if the result type is
-  /// a sealed type. Returns true if inference succeeded.
-  bool _inferObjectAccess(
-      Expression node, DartType nodeType, SimpleIdentifier id) {
-    // If we have an access like `libraryPrefix.hashCode` don't infer it.
-    if (node is PrefixedIdentifier &&
-        node.prefix.staticElement is PrefixElement) {
-      return false;
-    }
-    // Search for Object accesses.
-    String name = id.name;
-    PropertyAccessorElement inferredElement =
-        _typeProvider.objectType.element.getGetter(name);
-    if (inferredElement == null || inferredElement.isStatic) {
-      return false;
-    }
-    inferredElement = _resolver.toLegacyElement(inferredElement);
-    DartType inferredType = inferredElement.returnType;
-    if (nodeType != null &&
-        nodeType.isDynamic &&
-        inferredType is InterfaceType &&
-        _typeProvider.nonSubtypableClasses.contains(inferredType.element)) {
-      _recordStaticType(id, inferredType);
-      _recordStaticType(node, inferredType);
-      return true;
-    }
-    return false;
-  }
-
   /// Return `true` if the given [node] is not a type literal.
   ///
   /// TODO(scheglov) this is duplicate
@@ -182,12 +150,11 @@ class PrefixedIdentifierResolver {
       staticType = staticElement.type;
     }
 
-    staticType = _resolver.inferenceHelper
-        .inferTearOff(node, node.identifier, staticType);
-    if (!_inferObjectAccess(node, staticType, prefixedIdentifier)) {
-      _recordStaticType(prefixedIdentifier, staticType);
-      _recordStaticType(node, staticType);
-    }
+    staticType =
+        _inferenceHelper.inferTearOff(node, node.identifier, staticType);
+
+    _recordStaticType(prefixedIdentifier, staticType);
+    _recordStaticType(node, staticType);
   }
 
   /// TODO(scheglov) this is duplicate
