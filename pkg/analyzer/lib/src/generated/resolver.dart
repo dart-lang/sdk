@@ -41,6 +41,7 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/variable_declaration_resolver.dart';
@@ -1832,13 +1833,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    checkReadOfNotAssignedLocalVariable(node, node.staticElement);
-
-    super.visitSimpleIdentifier(node);
+    SimpleIdentifierResolver(this, _flowAnalysis).resolve(node);
   }
 
   @override

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -443,106 +442,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    //
-    // Synthetic identifiers have been already reported during parsing.
-    //
-    if (node.isSynthetic) {
-      return;
-    }
-    //
-    // Ignore nodes that should have been resolved before getting here.
-    //
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    if (node.staticElement is LocalVariableElement ||
-        node.staticElement is ParameterElement) {
-      return;
-    }
-    AstNode parent = node.parent;
-    if (parent is FieldFormalParameter) {
-      return;
-    } else if (parent is ConstructorFieldInitializer &&
-        parent.fieldName == node) {
-      return;
-    } else if (parent is Annotation && parent.constructorName == node) {
-      return;
-    }
-    //
-    // Otherwise, the node should be resolved.
-    //
-    Element element = _resolveSimpleIdentifier(node);
-    ClassElement enclosingClass = _resolver.enclosingClass;
-    if (_isFactoryConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, node);
-    } else if (_isConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
-      // This error is now reported by the parser.
-      element = null;
-    } else if (element == null ||
-        (element is PrefixElement && !_isValidAsPrefix(node))) {
-      // TODO(brianwilkerson) Recover from this error.
-      if (_isConstructorReturnType(node)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
-      } else if (parent is Annotation) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.UNDEFINED_ANNOTATION, parent, [node.name]);
-      } else if (element != null) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-            node,
-            [element.name]);
-      } else if (node.name == "await" && _resolver.enclosingFunction != null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
-          node,
-        );
-      } else if (!_resolver.nameScope.shouldIgnoreUndefined(node)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-          node,
-          [node.name],
-        );
-      }
-    }
-    node.staticElement = element;
-
-    _resolver.setWriteElement(node, element);
-
-    Element getter;
-    var inGetterContext = node.inGetterContext();
-    if (inGetterContext) {
-      if (element is PropertyAccessorElement &&
-          element.enclosingElement is CompilationUnitElement) {
-        getter = element.variable.getter;
-      }
-    }
-
-    if (node.inSetterContext() && inGetterContext && enclosingClass != null) {
-      InterfaceType enclosingType = enclosingClass.thisType;
-      var result = _typePropertyResolver.resolve(
-        receiver: null,
-        receiverType: enclosingType,
-        name: node.name,
-        receiverErrorNode: node,
-        nameErrorEntity: node,
-      );
-      node.auxiliaryElements = AuxiliaryElements(
-        result.getter,
-      );
-      getter ??= result.getter;
-    }
-
-    if (inGetterContext) {
-      _resolver.setReadElement(node, getter);
-    }
-  }
-
-  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     ClassElementImpl enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
@@ -628,22 +527,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// Return `true` if the given [node] can validly be resolved to a prefix:
-  /// * it is the prefix in an import directive, or
-  /// * it is the prefix in a prefixed identifier.
-  bool _isValidAsPrefix(SimpleIdentifier node) {
-    AstNode parent = node.parent;
-    if (parent is ImportDirective) {
-      return identical(parent.prefix, node);
-    } else if (parent is PrefixedIdentifier) {
-      return true;
-    } else if (parent is MethodInvocation) {
-      return identical(parent.target, node) &&
-          parent.operator?.type == TokenType.PERIOD;
-    }
-    return false;
   }
 
   /// Return the target of a break or continue statement, and update the static
@@ -846,27 +729,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
     }
     return null;
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a
-  /// constructor declaration.
-  static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
-    if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier);
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a factory
-  /// constructor.
-  static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    AstNode parent = identifier.parent;
-    if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier) &&
-          parent.factoryKeyword != null;
-    }
-    return false;
   }
 
   /// Resolve each of the annotations in the given list of [annotations].
