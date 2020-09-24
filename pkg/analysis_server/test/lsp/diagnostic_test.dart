@@ -171,7 +171,7 @@ void f() {
 
     // Deleting the file should result in an update to remove the diagnostics.
     final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await deleteFile(mainFilePath);
+    deleteFile(mainFilePath);
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(0));
   }

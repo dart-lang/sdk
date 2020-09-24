@@ -4,6 +4,8 @@
 
 library kernel.transformations.value_class;
 
+import 'package:kernel/type_environment.dart';
+
 import '../ast.dart';
 import '../kernel.dart';
 import '../core_types.dart' show CoreTypes;
@@ -13,18 +15,7 @@ import './scanner.dart';
 class ValueClassScanner extends ClassScanner<Null> {
   ValueClassScanner() : super(null);
 
-  bool predicate(Class node) {
-    for (Expression annotation in node.annotations) {
-      if (annotation is ConstantExpression &&
-          annotation.constant is StringConstant) {
-        StringConstant constant = annotation.constant;
-        if (constant.value == 'valueClass') {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool predicate(Class node) => isValueClass(node);
 }
 
 class JenkinsClassScanner extends ClassScanner<Procedure> {
@@ -43,17 +34,48 @@ class HashCombineMethodsScanner extends ProcedureScanner<Null> {
   }
 }
 
-void transformComponent(
-    Component node, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  ValueClassScanner scanner = new ValueClassScanner();
-  ScanResult<Class, Null> valueClasses = scanner.scan(node);
-  for (Class valueClass in valueClasses.targets.keys) {
-    transformValueClass(valueClass, coreTypes, hierarchy);
+class AllMemberScanner extends MemberScanner<MethodInvocation> {
+  AllMemberScanner(Scanner<MethodInvocation, TreeNode> next) : super(next);
+
+  bool predicate(Member member) => true;
+}
+
+// Scans and matches all copyWith invocations were the reciever is _ as dynamic
+// It will filter out the results that are not value classes afterwards
+class ValueClassCopyWithScanner extends MethodInvocationScanner<Null> {
+  ValueClassCopyWithScanner() : super(null);
+
+  // The matching construct followed in unit-tests is:
+  // @valueClass V {}
+  // V v;
+  // (v as dynamic).copyWith() as V
+  bool predicate(MethodInvocation node) {
+    return node.name.name == "copyWith" &&
+        _isValueClassAsConstruct(node.receiver);
+  }
+
+  bool _isValueClassAsConstruct(Expression node) {
+    return node is AsExpression && node.type is DynamicType;
   }
 }
 
-void transformValueClass(
-    Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy) {
+void transformComponent(Component node, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
+  ValueClassScanner scanner = new ValueClassScanner();
+  ScanResult<Class, Null> valueClasses = scanner.scan(node);
+  for (Class valueClass in valueClasses.targets.keys) {
+    transformValueClass(valueClass, coreTypes, hierarchy, typeEnvironment);
+  }
+
+  treatCopyWithCallSites(node, coreTypes, typeEnvironment, hierarchy);
+
+  for (Class valueClass in valueClasses.targets.keys) {
+    removeValueClassAnnotation(valueClass);
+  }
+}
+
+void transformValueClass(Class cls, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, TypeEnvironment typeEnvironment) {
   List<VariableDeclaration> allVariables = queryAllInstanceVariables(cls);
   Constructor syntheticConstructor = null;
   for (Constructor constructor in cls.constructors) {
@@ -65,8 +87,8 @@ void transformValueClass(
   addConstructor(cls, coreTypes, syntheticConstructor);
   addEqualsOperator(cls, coreTypes, hierarchy, allVariables.toList());
   addHashCode(cls, coreTypes, hierarchy, allVariables.toList());
-  addCopyWith(
-      cls, coreTypes, hierarchy, allVariables.toList(), syntheticConstructor);
+  addCopyWith(cls, coreTypes, hierarchy, allVariables.toList(),
+      syntheticConstructor, typeEnvironment);
 }
 
 void addConstructor(
@@ -103,21 +125,6 @@ void addConstructor(
     ..addAll(ownFields.values)
     ..addAll(superParameters);
   syntheticConstructor.initializers = initializersConstructor;
-
-  int valueClassAnnotationIndex;
-  for (int annotationIndex = 0;
-      annotationIndex < cls.annotations.length;
-      annotationIndex++) {
-    Expression annotation = cls.annotations[annotationIndex];
-    if (annotation is ConstantExpression &&
-        annotation.constant is StringConstant) {
-      StringConstant constant = annotation.constant;
-      if (constant.value == 'valueClass') {
-        valueClassAnnotationIndex = annotationIndex;
-      }
-    }
-  }
-  cls.annotations.removeAt(valueClassAnnotationIndex);
 }
 
 void addEqualsOperator(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
@@ -245,8 +252,13 @@ void addHashCode(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
     ..fileOffset = cls.fileOffset);
 }
 
-void addCopyWith(Class cls, CoreTypes coreTypes, ClassHierarchy hierarchy,
-    List<VariableDeclaration> allVariables, Constructor syntheticConstructor) {
+void addCopyWith(
+    Class cls,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<VariableDeclaration> allVariables,
+    Constructor syntheticConstructor,
+    TypeEnvironment typeEnvironment) {
   Map<VariableDeclaration, Member> targetsEquals = new Map();
   Map<VariableDeclaration, Member> targets = new Map();
   for (VariableDeclaration variable in allVariables) {
@@ -290,4 +302,99 @@ List<VariableDeclaration> queryAllInstanceVariables(Class cls) {
       .toList()
         ..addAll(cls.fields.map<VariableDeclaration>(
             (f) => VariableDeclaration(f.name.text, type: f.type)));
+}
+
+void removeValueClassAnnotation(Class cls) {
+  int valueClassAnnotationIndex;
+  for (int annotationIndex = 0;
+      annotationIndex < cls.annotations.length;
+      annotationIndex++) {
+    Expression annotation = cls.annotations[annotationIndex];
+    if (annotation is ConstantExpression &&
+        annotation.constant is StringConstant) {
+      StringConstant constant = annotation.constant;
+      if (constant.value == 'valueClass') {
+        valueClassAnnotationIndex = annotationIndex;
+      }
+    }
+  }
+  cls.annotations.removeAt(valueClassAnnotationIndex);
+}
+
+void treatCopyWithCallSites(Component component, CoreTypes coreTypes,
+    TypeEnvironment typeEnvironment, ClassHierarchy hierarchy) {
+  ValueClassCopyWithScanner valueCopyWithScanner =
+      new ValueClassCopyWithScanner();
+  AllMemberScanner copyWithScanner = AllMemberScanner(valueCopyWithScanner);
+  ScanResult<Member, MethodInvocation> copyWithCallSites =
+      copyWithScanner.scan(component);
+  for (Member memberWithCopyWith in copyWithCallSites.targets.keys) {
+    if (copyWithCallSites.targets[memberWithCopyWith].targets != null) {
+      StaticTypeContext staticTypeContext =
+          StaticTypeContext(memberWithCopyWith, typeEnvironment);
+      for (MethodInvocation copyWithCall
+          in copyWithCallSites.targets[memberWithCopyWith].targets.keys) {
+        AsExpression receiver = copyWithCall.receiver as AsExpression;
+
+        Expression valueClassInstance = receiver.operand;
+        DartType valueClassType =
+            valueClassInstance.getStaticType(staticTypeContext);
+        if (valueClassType is InterfaceType) {
+          Class valueClass = valueClassType.classNode;
+          if (isValueClass(valueClass)) {
+            treatCopyWithCallSite(
+                valueClass, copyWithCall, coreTypes, hierarchy);
+          }
+        }
+      }
+    }
+  }
+}
+
+void treatCopyWithCallSite(Class valueClass, MethodInvocation copyWithCall,
+    CoreTypes coreTypes, ClassHierarchy hierarchy) {
+  Map<String, Expression> preTransformationArguments = new Map();
+  for (NamedExpression argument in copyWithCall.arguments.named) {
+    preTransformationArguments[argument.name] = argument.value;
+  }
+  Constructor syntheticConstructor;
+  for (Constructor constructor in valueClass.constructors) {
+    if (constructor.isSynthetic) {
+      syntheticConstructor = constructor;
+    }
+  }
+  List<VariableDeclaration> allArguments =
+      syntheticConstructor.function.namedParameters;
+
+  VariableDeclaration letVariable =
+      VariableDeclaration.forValue(copyWithCall.receiver);
+  Arguments postTransformationArguments = Arguments.empty();
+  for (VariableDeclaration argument in allArguments) {
+    if (preTransformationArguments.containsKey(argument.name)) {
+      postTransformationArguments.named.add(NamedExpression(
+          argument.name, preTransformationArguments[argument.name])
+        ..parent = postTransformationArguments);
+    } else {
+      postTransformationArguments.named.add(NamedExpression(argument.name,
+          PropertyGet(VariableGet(letVariable), Name(argument.name)))
+        ..parent = postTransformationArguments);
+    }
+  }
+  copyWithCall.replaceWith(Let(
+      letVariable,
+      MethodInvocation(VariableGet(letVariable), Name("copyWith"),
+          postTransformationArguments)));
+}
+
+bool isValueClass(Class node) {
+  for (Expression annotation in node.annotations) {
+    if (annotation is ConstantExpression &&
+        annotation.constant is StringConstant) {
+      StringConstant constant = annotation.constant;
+      if (constant.value == "valueClass") {
+        return true;
+      }
+    }
+  }
+  return false;
 }

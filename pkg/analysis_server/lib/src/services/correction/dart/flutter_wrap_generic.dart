@@ -28,7 +28,7 @@ class FlutterWrapGeneric extends CorrectionProducer {
     if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {
       return; // Lists need to be in multi-line format already.
     }
-    var indentOld = utils.getLinePrefix(node.offset + 1 + newlineIdx);
+    var indentOld = utils.getLinePrefix(node.offset + eol.length + newlineIdx);
     var indentArg = '$indentOld${utils.getIndent(1)}';
     var indentList = '$indentOld${utils.getIndent(2)}';
 

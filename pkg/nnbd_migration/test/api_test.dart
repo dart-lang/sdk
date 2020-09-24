@@ -55,7 +55,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
         removeViaComments: removeViaComments,
         warnOnWeakCode: warnOnWeakCode);
     for (var path in input.keys) {
-      if (!(await session.getFile(path)).isPart) {
+      if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
           migration.prepareInput(unit);
         }
@@ -63,7 +63,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     _betweenStages();
     for (var path in input.keys) {
-      if (!(await session.getFile(path)).isPart) {
+      if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
           migration.processInput(unit);
         }
@@ -71,7 +71,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     _betweenStages();
     for (var path in input.keys) {
-      if (!(await session.getFile(path)).isPart) {
+      if (!(session.getFile(path)).isPart) {
         for (var unit in (await session.getResolvedLibrary(path)).units) {
           migration.finalizeInput(unit);
         }

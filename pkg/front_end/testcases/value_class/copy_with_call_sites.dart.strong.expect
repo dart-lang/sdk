@@ -1,0 +1,72 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:18:20: Error: No named parameter with the name 'numberOfWhiskers'.
+//  Cat cat = new Cat(numberOfWhiskers: 20, numberOfLegs: 4);
+//                    ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:13:7: Context: The class 'Cat' has a constructor that takes no arguments.
+// class Cat extends Animal {
+//       ^
+//
+// pkg/front_end/testcases/value_class/copy_with_call_sites.dart:14:13: Error: Final field 'numberOfWhiskers' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int numberOfWhiskers;
+//             ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "value_class_support_lib.dart" as val;
+
+import "org-dartlang-testcase:///value_class_support_lib.dart";
+
+class Animal extends core::Object {
+  final field core::int numberOfLegs;
+  constructor •({required core::int numberOfLegs = #C1}) → self::Animal
+    : self::Animal::numberOfLegs = numberOfLegs, super core::Object::•()
+    ;
+}
+class Cat extends self::Animal {
+  final field core::int numberOfWhiskers = null;
+  synthetic constructor •({required core::int numberOfWhiskers, core::int numberOfLegs}) → self::Cat
+    : self::Cat::numberOfWhiskers = numberOfWhiskers, super self::Animal::•(numberOfLegs)
+    ;
+  operator /*isNullableByDefault*/ ==(core::Object other) → core::bool
+    return other is self::Cat && this.{self::Animal::numberOfLegs}.{core::num::==}(other{self::Cat}.{self::Animal::numberOfLegs}) && this.{self::Cat::numberOfWhiskers}.{core::num::==}(other{self::Cat}.{self::Cat::numberOfWhiskers});
+  get /*isNullableByDefault*/ hashCode() → core::int
+    return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///copy_with_call_sites.dartCat".{core::String::hashCode}, this.{self::Animal::numberOfLegs}.{core::num::hashCode}), this.{self::Cat::numberOfWhiskers}.{core::num::hashCode}));
+  method /*isNullableByDefault*/ copyWith({core::int numberOfLegs, core::int numberOfWhiskers}) → dynamic
+    return new self::Cat::•(numberOfLegs: numberOfLegs, numberOfWhiskers: numberOfWhiskers);
+}
+static method main() → dynamic {
+  self::Cat cat = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:18:20: Error: No named parameter with the name 'numberOfWhiskers'.
+ Cat cat = new Cat(numberOfWhiskers: 20, numberOfLegs: 4);
+                   ^^^^^^^^^^^^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} self::Cat;
+  let final dynamic #t1 = cat as{ForNonNullableByDefault} dynamic in #t1.copyWith(numberOfWhiskers: 4, numberOfLegs: #t1.numberOfLegs);
+}
+
+library /*isNonNullableByDefault*/;
+import self as val;
+import "dart:core" as core;
+
+class JenkinsSmiHash extends core::Object {
+  synthetic constructor •() → val::JenkinsSmiHash
+    : super core::Object::•()
+    ;
+  static method combine(core::int hash, core::int value) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(value));
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(524287.{core::int::&}(hash).{core::int::<<}(10)));
+    return hash.{core::int::^}(hash.{core::int::>>}(6));
+  }
+  static method finish(core::int hash) → core::int {
+    hash = 536870911.{core::int::&}(hash.{core::num::+}(67108863.{core::int::&}(hash).{core::int::<<}(3)));
+    hash = hash.{core::int::^}(hash.{core::int::>>}(11));
+    return 536870911.{core::int::&}(hash.{core::num::+}(16383.{core::int::&}(hash).{core::int::<<}(15)));
+  }
+}
+static const field core::String valueClass = #C2;
+
+constants  {
+  #C1 = null
+  #C2 = "valueClass"
+}

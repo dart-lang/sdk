@@ -664,40 +664,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitSimpleIdentifier_classScope() async {
-    InterfaceType doubleType = _typeProvider.doubleType;
-    String fieldName = 'nan';
-    SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
-    _resolveInClass(node, doubleType.element);
-    expect(node.staticElement, doubleType.getGetter(fieldName));
-    _listener.assertNoErrors();
-  }
-
-  test_visitSimpleIdentifier_lexicalScope() async {
-    SimpleIdentifier node = AstTestFactory.identifier3("i");
-    VariableElementImpl element = ElementFactory.localVariableElement(node);
-    expect(_resolveIdentifier(node, [element]), same(element));
-    _listener.assertNoErrors();
-  }
-
-  test_visitSimpleIdentifier_lexicalScope_field_setter() async {
-    InterfaceType intType = _typeProvider.intType;
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    _encloseElement(classA);
-    String fieldName = "a";
-    FieldElement field =
-        ElementFactory.fieldElement(fieldName, false, false, false, intType);
-    classA.fields = <FieldElement>[field];
-    classA.accessors = <PropertyAccessorElement>[field.getter, field.setter];
-    SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
-    AstTestFactory.assignmentExpression(
-        node, TokenType.EQ, AstTestFactory.integer(0));
-    _resolveInClass(node, classA);
-    PropertyAccessorElement element = node.staticElement;
-    expect(element.isSetter, isTrue);
-    _listener.assertNoErrors();
-  }
-
   test_visitSuperConstructorInvocation() async {
     ClassElementImpl superclass = ElementFactory.classElement2("A");
     _encloseElement(superclass);
@@ -805,18 +771,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       LabelElementImpl labelElement, AstNode labelTarget) {
     _resolveStatement(statement, labelElement, labelTarget);
     return statement.label.staticElement;
-  }
-
-  /// Return the element associated with the given identifier after the resolver
-  /// has resolved the identifier.
-  ///
-  /// @param node the expression to be resolved
-  /// @param definedElements the elements that are to be defined in the scope in
-  ///          which the element is being resolved
-  /// @return the element to which the expression was resolved
-  Element _resolveIdentifier(Identifier node, [List<Element> definedElements]) {
-    _resolveNode(node, definedElements);
-    return node.staticElement;
   }
 
   /// Return the element associated with the given identifier after the resolver

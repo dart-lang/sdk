@@ -22,14 +22,14 @@ class InvalidInternalAnnotationTest extends PubPackageResolutionTest {
   void setUp() async {
     super.setUp();
     writeTestPackageConfigWithMeta();
-    await newFile('$testPackageRootPath/pubspec.yaml', content: r'''
+    newFile('$testPackageRootPath/pubspec.yaml', content: r'''
 name: test
 version: 0.0.1
 ''');
   }
 
   void test_annotationInLib() async {
-    await newFile('$testPackageLibPath/foo.dart', content: r'''
+    newFile('$testPackageLibPath/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -41,7 +41,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInLib_onLibrary() async {
-    await newFile('$testPackageLibPath/foo.dart', content: r'''
+    newFile('$testPackageLibPath/foo.dart', content: r'''
 @internal
 library foo;
 import 'package:meta/meta.dart';
@@ -54,7 +54,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInLibSrc() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -64,7 +64,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInLibSrcSubdirectory() async {
-    await newFile('$testPackageLibPath/src/foo/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -74,7 +74,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInLibSubdirectory() async {
-    await newFile('$testPackageLibPath/foo/foo.dart', content: r'''
+    newFile('$testPackageLibPath/foo/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -86,7 +86,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_annotationInTest() async {
-    await newFile('$testPackageRootPath/test/foo_test.dart', content: r'''
+    newFile('$testPackageRootPath/test/foo_test.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal class One {}
 ''');
@@ -96,7 +96,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateClass() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 @internal class _One {}
 ''');
@@ -109,7 +109,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateClassConstructor_named() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class _C {
   @internal _C.named();
@@ -124,7 +124,7 @@ class _C {
   }
 
   void test_privateClassConstructor_unnamed() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class _C {
   @internal _C();
@@ -139,7 +139,7 @@ class _C {
   }
 
   void test_privateConstructor() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class C {
   @internal C._f();
@@ -153,7 +153,7 @@ class C {
   }
 
   void test_privateEnum() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 @internal enum _E {one}
 ''');
@@ -167,7 +167,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateEnumValue() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 enum E {@internal _one}
 ''');
@@ -180,7 +180,7 @@ enum E {@internal _one}
   }
 
   void test_privateExtension() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 @internal extension _One on String {}
 ''');
@@ -192,7 +192,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateExtension_unnamed() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 @internal extension on String {}
 ''');
@@ -204,7 +204,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateField_instance() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class C {
   @internal int _i = 0;
@@ -219,7 +219,7 @@ class C {
   }
 
   void test_privateField_static() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class C {
   @internal static int _i = 0;
@@ -234,7 +234,7 @@ class C {
   }
 
   void test_privateGetter() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class C {
   @internal int get _i => 0;
@@ -249,7 +249,7 @@ class C {
   }
 
   void test_privateMethod_instance() async {
-    await newFile(testPackageImplementationFilePath, content: r'''
+    newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';
 class C {
   @internal void _f() {}
@@ -264,7 +264,7 @@ class C {
   }
 
   void test_privateMethod_static() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 class C {
   @internal static void _f() {}
@@ -279,7 +279,7 @@ class C {
   }
 
   void test_privateMixin() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal mixin _One {}
 ''');
@@ -292,7 +292,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateTopLevelFunction() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal void _f() {}
 ''');
@@ -305,7 +305,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateTopLevelVariable() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal int _i = 1;
 ''');
@@ -318,7 +318,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_privateTypedef() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @internal typedef _T = void Function();
 ''');
@@ -331,7 +331,7 @@ import 'package:meta/meta.dart';
   }
 
   void test_publicMethod_privateClass() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 class _C {
   @internal void f() {}
@@ -345,7 +345,7 @@ class _C {
   }
 
   void test_publicMethod_privateClass_static() async {
-    await newFile('$testPackageLibPath/src/foo.dart', content: r'''
+    newFile('$testPackageLibPath/src/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 class _C {
   @internal static void f() {}

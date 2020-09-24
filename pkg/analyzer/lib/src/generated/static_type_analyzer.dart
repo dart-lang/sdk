@@ -9,17 +9,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
     show getExpressionType, getReadType;
 
@@ -48,9 +44,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
 
-  /// The object providing promoted or declared types of variables.
-  LocalVariableTypeProvider _localVariableTypeProvider;
-
   final FlowAnalysisHelper _flowAnalysis;
 
   /// Initialize a newly created static type analyzer to analyze types for the
@@ -62,10 +55,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
-    _localVariableTypeProvider = _resolver.localVariableTypeProvider;
   }
-
-  InvocationInferenceHelper get _inferenceHelper => _resolver.inferenceHelper;
 
   /// Is `true` if the library being analyzed is non-nullable by default.
   bool get _isNonNullableByDefault =>
@@ -300,90 +290,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     recordStaticType(node, _typeProvider.bottomType);
   }
 
-  /// The Dart Language Specification, 12.30: <blockquote>Evaluation of an identifier expression
-  /// <i>e</i> of the form <i>id</i> proceeds as follows:
-  ///
-  /// Let <i>d</i> be the innermost declaration in the enclosing lexical scope whose name is
-  /// <i>id</i>. If no such declaration exists in the lexical scope, let <i>d</i> be the declaration
-  /// of the inherited member named <i>id</i> if it exists.
-  /// * If <i>d</i> is a class or type alias <i>T</i>, the value of <i>e</i> is the unique instance
-  /// of class `Type` reifying <i>T</i>.
-  /// * If <i>d</i> is a type parameter <i>T</i>, then the value of <i>e</i> is the value of the
-  /// actual type argument corresponding to <i>T</i> that was passed to the generative constructor
-  /// that created the current binding of this. We are assured that this is well defined, because if
-  /// we were in a static member the reference to <i>T</i> would be a compile-time error.
-  /// * If <i>d</i> is a library variable then:
-  /// * If <i>d</i> is of one of the forms <i>var v = e<sub>i</sub>;</i>, <i>T v =
-  /// e<sub>i</sub>;</i>, <i>final v = e<sub>i</sub>;</i>, <i>final T v = e<sub>i</sub>;</i>, and no
-  /// value has yet been stored into <i>v</i> then the initializer expression <i>e<sub>i</sub></i> is
-  /// evaluated. If, during the evaluation of <i>e<sub>i</sub></i>, the getter for <i>v</i> is
-  /// referenced, a CyclicInitializationError is thrown. If the evaluation succeeded yielding an
-  /// object <i>o</i>, let <i>r = o</i>, otherwise let <i>r = null</i>. In any case, <i>r</i> is
-  /// stored into <i>v</i>. The value of <i>e</i> is <i>r</i>.
-  /// * If <i>d</i> is of one of the forms <i>const v = e;</i> or <i>const T v = e;</i> the result
-  /// of the getter is the value of the compile time constant <i>e</i>. Otherwise
-  /// * <i>e</i> evaluates to the current binding of <i>id</i>.
-  /// * If <i>d</i> is a local variable or formal parameter then <i>e</i> evaluates to the current
-  /// binding of <i>id</i>.
-  /// * If <i>d</i> is a static method, top level function or local function then <i>e</i>
-  /// evaluates to the function defined by <i>d</i>.
-  /// * If <i>d</i> is the declaration of a static variable or static getter declared in class
-  /// <i>C</i>, then <i>e</i> is equivalent to the getter invocation <i>C.id</i>.
-  /// * If <i>d</i> is the declaration of a top level getter, then <i>e</i> is equivalent to the
-  /// getter invocation <i>id</i>.
-  /// * Otherwise, if <i>e</i> occurs inside a top level or static function (be it function,
-  /// method, getter, or setter) or variable initializer, evaluation of e causes a NoSuchMethodError
-  /// to be thrown.
-  /// * Otherwise <i>e</i> is equivalent to the property extraction <i>this.id</i>.
-  /// </blockquote>
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-
-    if (element is ExtensionElement) {
-      _setExtensionIdentifierType(node);
-      return;
-    }
-
-    DartType staticType = _dynamicType;
-    if (element is ClassElement) {
-      if (_isExpressionIdentifier(node)) {
-        node.staticType = _nonNullable(_typeProvider.typeType);
-      }
-      return;
-    } else if (element is FunctionTypeAliasElement) {
-      if (node.inDeclarationContext() || node.parent is TypeName) {
-        // no type
-      } else {
-        node.staticType = _nonNullable(_typeProvider.typeType);
-      }
-      return;
-    } else if (element is MethodElement) {
-      staticType = element.type;
-    } else if (element is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(element);
-    } else if (element is ExecutableElement) {
-      staticType = element.type;
-    } else if (element is TypeParameterElement) {
-      staticType = _nonNullable(_typeProvider.typeType);
-    } else if (element is VariableElement) {
-      staticType = _localVariableTypeProvider.getType(node);
-    } else if (element is PrefixElement) {
-      var parent = node.parent;
-      if (parent is PrefixedIdentifier && parent.prefix == node ||
-          parent is MethodInvocation && parent.target == node) {
-        return;
-      }
-      staticType = _typeProvider.dynamicType;
-    } else if (element is DynamicElementImpl) {
-      staticType = _nonNullable(_typeProvider.typeType);
-    } else {
-      staticType = _dynamicType;
-    }
-    staticType = _inferenceHelper.inferTearOff(node, node, staticType);
-    recordStaticType(node, staticType);
-  }
-
   /// The Dart Language Specification, 12.5: <blockquote>The static type of a string literal is
   /// `String`.</blockquote>
   @override
@@ -511,36 +417,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return type;
   }
 
-  /// Return the type that should be recorded for a node that resolved to the given accessor.
-  ///
-  /// @param accessor the accessor that the node resolved to
-  /// @return the type that should be recorded for a node that resolved to the given accessor
-  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
-    FunctionType functionType = accessor.type;
-    if (functionType == null) {
-      // TODO(brianwilkerson) Report this internal error. This happens when we
-      // are analyzing a reference to a property before we have analyzed the
-      // declaration of the property or when the property does not have a
-      // defined type.
-      return _dynamicType;
-    }
-    if (accessor.isSetter) {
-      List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes != null && parameterTypes.isNotEmpty) {
-        return parameterTypes[0];
-      }
-      PropertyAccessorElement getter = accessor.variable.getter;
-      if (getter != null) {
-        functionType = getter.type;
-        if (functionType != null) {
-          return functionType.returnType;
-        }
-      }
-      return _dynamicType;
-    }
-    return functionType.returnType;
-  }
-
   /// Given an instance creation of a possibly generic type, infer the type
   /// arguments using the current context type as well as the argument types.
   void _inferInstanceCreationExpression(InstanceCreationExpression node) {
@@ -598,27 +474,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Return `true` if the given [node] is not a type literal.
-  bool _isExpressionIdentifier(Identifier node) {
-    var parent = node.parent;
-    if (node is SimpleIdentifier && node.inDeclarationContext()) {
-      return false;
-    }
-    if (parent is ConstructorDeclaration) {
-      if (parent.name == node || parent.returnType == node) {
-        return false;
-      }
-    }
-    if (parent is ConstructorName ||
-        parent is MethodInvocation ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
-        parent is PropertyAccess ||
-        parent is TypeName) {
-      return false;
-    }
-    return true;
-  }
-
   /// Return the non-nullable variant of the [type] if NNBD is enabled, otherwise
   /// return the type itself.
   DartType _nonNullable(DartType type) {
@@ -626,39 +481,5 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _typeSystem.promoteToNonNull(type);
     }
     return type;
-  }
-
-  void _setExtensionIdentifierType(Identifier node) {
-    if (node is SimpleIdentifier && node.inDeclarationContext()) {
-      return;
-    }
-
-    var parent = node.parent;
-
-    if (parent is PrefixedIdentifier && parent.identifier == node) {
-      node = parent;
-      parent = node.parent;
-    }
-
-    if (parent is CommentReference ||
-        parent is ExtensionOverride && parent.extensionName == node ||
-        parent is MethodInvocation && parent.target == node ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
-        parent is PropertyAccess && parent.target == node) {
-      return;
-    }
-
-    _resolver.errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
-      node,
-      [node.name],
-    );
-
-    if (node is PrefixedIdentifier) {
-      node.identifier.staticType = _dynamicType;
-      node.staticType = _dynamicType;
-    } else if (node is SimpleIdentifier) {
-      node.staticType = _dynamicType;
-    }
   }
 }

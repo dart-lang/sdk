@@ -36,7 +36,7 @@ void newMethod() {
   print('Test!');
 }
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -55,7 +55,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    await newFile(mainFilePath, content: content);
+    newFile(mainFilePath, content: content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
@@ -136,7 +136,7 @@ class NewWidget extends StatelessWidget {
   }
 }
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString(),
@@ -155,7 +155,7 @@ import 'dart:convert';
 ^
 main() {}
     ''';
-    await newFile(mainFilePath, content: content);
+    newFile(mainFilePath, content: content);
     await initialize();
 
     final codeActions = await getCodeActions(mainFileUri.toString());
