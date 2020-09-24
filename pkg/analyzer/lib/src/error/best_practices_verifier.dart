@@ -97,8 +97,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _strictInference =
             (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
-        _invalidAccessVerifier =
-            _InvalidAccessVerifier(_errorReporter, _currentLibrary),
+        _invalidAccessVerifier = _InvalidAccessVerifier(
+            _errorReporter, _currentLibrary, workspacePackage),
         _workspacePackage = workspacePackage {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
 
@@ -524,6 +524,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (importElement != null && importElement.isDeferred) {
       _checkForLoadLibraryFunction(node, importElement);
     }
+    _invalidAccessVerifier.verifyImport(node);
     super.visitImportDirective(node);
   }
 
@@ -674,6 +675,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _checkForDeprecatedMemberUse(node.staticElement, node);
+    _invalidAccessVerifier.verifySuperConstructorInvocation(node);
     super.visitSuperConstructorInvocation(node);
   }
 
@@ -1745,13 +1747,15 @@ class _InvalidAccessVerifier {
 
   final ErrorReporter _errorReporter;
   final LibraryElement _library;
+  final WorkspacePackage _workspacePackage;
 
   bool _inTemplateSource;
   bool _inTestDirectory;
 
   ClassElement _enclosingClass;
 
-  _InvalidAccessVerifier(this._errorReporter, this._library) {
+  _InvalidAccessVerifier(
+      this._errorReporter, this._library, this._workspacePackage) {
     var path = _library.source.fullName;
     _inTemplateSource = path.contains(_templateExtension);
     _inTestDirectory = path.contains(_testDir) ||
@@ -1759,20 +1763,19 @@ class _InvalidAccessVerifier {
         path.contains(_testingDir);
   }
 
-  /// Produces a hint if [identifier] is accessed from an invalid location. In
-  /// particular:
+  /// Produces a hint if [identifier] is accessed from an invalid location.
   ///
-  /// * if the given identifier is a protected closure, field or
-  ///   getter/setter, method closure or invocation accessed outside a subclass,
-  ///   or accessed outside the library wherein the identifier is declared, or
-  /// * if the given identifier is a closure, field, getter, setter, method
-  ///   closure or invocation which is annotated with `visibleForTemplate`, and
-  ///   is accessed outside of the defining library, and the current library
-  ///   does not have the suffix '.template' in its source path, or
-  /// * if the given identifier is a closure, field, getter, setter, method
-  ///   closure or invocation which is annotated with `visibleForTesting`, and
-  ///   is accessed outside of the defining library, and the current library
-  ///   does not have a directory named 'test' or 'testing' in its path.
+  /// In particular, a hint is produced in either of the two following cases:
+  ///
+  /// * The element associated with [identifier] is annotated with [internal],
+  ///   and is accessed from outside the package in which the element is
+  ///   declared.
+  /// * The element associated with [identifier] is annotated with [protected],
+  ///   [visibleForTesting], and/or [visibleForTemplate], and is accessed from a
+  ///   location which is invalid as per the rules of each such annotation.
+  ///   Conversely, if the element is annotated with more than one of these
+  ///   annotations, the access is valid (and no hint will be produced) if it
+  ///   conforms to the rules of at least one of the annotations.
   void verify(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext() || _inCommentReference(identifier)) {
       return;
@@ -1786,24 +1789,64 @@ class _InvalidAccessVerifier {
     }
     AstNode grandparent = parent?.parent;
 
-    Element element;
-    String name;
-    AstNode node;
-
-    if (grandparent is ConstructorName) {
-      element = grandparent.staticElement;
-      name = grandparent.toSource();
-      node = grandparent;
-    } else {
-      element = identifier.staticElement;
-      name = identifier.name;
-      node = identifier;
-    }
+    var element = grandparent is ConstructorName
+        ? grandparent.staticElement
+        : identifier.staticElement;
 
     if (element == null || _inCurrentLibrary(element)) {
       return;
     }
 
+    _checkForInvalidInternalAccess(identifier, element);
+    _checkForOtherInvalidAccess(identifier, element);
+  }
+
+  void verifyImport(ImportDirective node) {
+    var element = node.uriElement;
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_USE_OF_INTERNAL_MEMBER,
+          node, [node.uri.stringValue]);
+    }
+  }
+
+  void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
+    if (node.constructorName != null) {
+      // Named constructor calls are handled by [verify].
+      return;
+    }
+    var element = node.staticElement;
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [element.name]);
+    }
+  }
+
+  void _checkForInvalidInternalAccess(
+      SimpleIdentifier identifier, Element element) {
+    if (_hasInternal(element) &&
+        !_isLibraryInWorkspacePackage(element.library)) {
+      String name;
+      AstNode node;
+
+      var grandparent = identifier.parent?.parent;
+
+      if (grandparent is ConstructorName) {
+        name = grandparent.toSource();
+        node = grandparent;
+      } else {
+        name = identifier.name;
+        node = identifier;
+      }
+
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_INTERNAL_MEMBER, node, [name]);
+    }
+  }
+
+  void _checkForOtherInvalidAccess(
+      SimpleIdentifier identifier, Element element) {
     bool hasProtected = _hasProtected(element);
     if (hasProtected) {
       ClassElement definingClass = element.enclosingElement;
@@ -1827,8 +1870,22 @@ class _InvalidAccessVerifier {
     }
 
     // At this point, [identifier] was not cleared as protected access, nor
-    // cleared as access for templates or testing. Report the appropriate
-    // violation(s).
+    // cleared as access for templates or testing. Report a violation for each
+    // annotation present.
+
+    String name;
+    AstNode node;
+
+    var grandparent = identifier.parent?.parent;
+
+    if (grandparent is ConstructorName) {
+      name = grandparent.toSource();
+      node = grandparent;
+    } else {
+      name = identifier.name;
+      node = identifier;
+    }
+
     Element definingClass = element.enclosingElement;
     if (hasProtected) {
       _errorReporter.reportErrorForNode(
@@ -1849,6 +1906,19 @@ class _InvalidAccessVerifier {
           node,
           [name, definingClass.source.uri]);
     }
+  }
+
+  bool _hasInternal(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (element.hasInternal) {
+      return true;
+    }
+    if (element is PropertyAccessorElement && element.variable.hasInternal) {
+      return true;
+    }
+    return false;
   }
 
   bool _hasProtected(Element element) {
@@ -1912,6 +1982,15 @@ class _InvalidAccessVerifier {
   bool _inExportDirective(SimpleIdentifier identifier) =>
       identifier.parent is Combinator &&
       identifier.parent.parent is ExportDirective;
+
+  bool _isLibraryInWorkspacePackage(LibraryElement library) {
+    if (_workspacePackage == null || library == null) {
+      // Better to not make a big claim that they _are_ in the same package,
+      // if we were unable to determine what package [_currentLibrary] is in.
+      return false;
+    }
+    return _workspacePackage.contains(library.source);
+  }
 }
 
 /// A visitor that determines, upon visiting a function body and/or a

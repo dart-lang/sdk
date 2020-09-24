@@ -13739,7 +13739,7 @@ class Element extends Node
       contextElement = _parseDocument!.createElement(tagName);
       _parseDocument!.body!.append(contextElement);
     }
-    var fragment;
+    DocumentFragment fragment;
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
       _parseRange!.selectNodeContents(contextElement);

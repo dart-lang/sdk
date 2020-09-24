@@ -63,7 +63,7 @@ class C {
 class C {
   C(int b = 1,);
 }
-''', errorFilter: (e) => e.offset == 14);
+''', errorFilter: (e) => e.offset == testCode.indexOf('int a'));
   }
 
   Future<void> test_first_requiredPositional_second_optionalNamed() async {

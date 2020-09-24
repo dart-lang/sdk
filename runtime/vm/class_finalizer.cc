@@ -7,6 +7,7 @@
 
 #include "vm/class_finalizer.h"
 
+#include "vm/canonical_tables.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
@@ -21,7 +22,6 @@
 #include "vm/runtime_entry.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
-#include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 
 namespace dart {

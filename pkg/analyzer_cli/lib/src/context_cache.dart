@@ -111,7 +111,6 @@ class ContextCacheEntry {
 
     _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;
-    contextOptions.useFastaParser = clOptions.useFastaParser;
     return contextOptions;
   }
 

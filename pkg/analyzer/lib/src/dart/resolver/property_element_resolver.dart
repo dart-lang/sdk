@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/assignment_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -125,30 +126,19 @@ class PropertyElementResolver {
     @required PrefixedIdentifier node,
     @required bool hasRead,
     @required bool hasWrite,
+    bool forAnnotation = false,
   }) {
     var prefix = node.prefix;
     var identifier = node.identifier;
 
     var prefixElement = prefix.staticElement;
     if (prefixElement is PrefixElement) {
-      var lookupResult = prefixElement.scope.lookup2(identifier.name);
-
-      var readElement = _resolver.toLegacyElement(lookupResult.getter);
-      var writeElement = _resolver.toLegacyElement(lookupResult.setter);
-
-      if (hasRead && readElement == null || hasWrite && writeElement == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-          identifier,
-          [identifier.name, prefixElement.name],
-        );
-      }
-
-      return PropertyElementResolverResult(
-        readElementRequested: readElement,
-        readElementRecovery: null,
-        writeElementRequested: writeElement,
-        writeElementRecovery: null,
+      return _resolveTargetPrefixElement(
+        target: prefixElement,
+        identifier: identifier,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+        forAnnotation: forAnnotation,
       );
     }
 
@@ -195,6 +185,42 @@ class PropertyElementResolver {
       propertyName: propertyName,
       hasRead: hasRead,
       hasWrite: hasWrite,
+    );
+  }
+
+  PropertyElementResolverResult resolveSimpleIdentifier({
+    @required SimpleIdentifier node,
+    @required bool hasRead,
+    @required bool hasWrite,
+  }) {
+    Element readElementRequested;
+    Element readElementRecovery;
+    if (hasRead) {
+      var readLookup = _resolver.lexicalLookup(node: node, setter: false);
+      readElementRequested = readLookup.requested;
+      _resolver.checkReadOfNotAssignedLocalVariable(node, readElementRequested);
+    }
+
+    Element writeElementRequested;
+    Element writeElementRecovery;
+    if (hasWrite) {
+      var writeLookup = _resolver.lexicalLookup(node: node, setter: true);
+      writeElementRequested = writeLookup.requested;
+      writeElementRecovery = writeLookup.recovery;
+
+      AssignmentVerifier(_resolver.definingLibrary, _errorReporter).verify(
+        node: node,
+        requested: writeElementRequested,
+        recovery: writeElementRecovery,
+        receiverTypeObject: null,
+      );
+    }
+
+    return PropertyElementResolverResult(
+      readElementRequested: readElementRequested,
+      readElementRecovery: readElementRecovery,
+      writeElementRequested: writeElementRequested,
+      writeElementRecovery: writeElementRecovery,
     );
   }
 
@@ -512,6 +538,40 @@ class PropertyElementResolver {
     return PropertyElementResolverResult(
       readElementRequested: readElement,
       writeElementRequested: writeElement,
+    );
+  }
+
+  PropertyElementResolverResult _resolveTargetPrefixElement({
+    @required PrefixElement target,
+    @required SimpleIdentifier identifier,
+    @required bool hasRead,
+    @required bool hasWrite,
+    @required bool forAnnotation,
+  }) {
+    var lookupResult = target.scope.lookup2(identifier.name);
+
+    var readElement = _resolver.toLegacyElement(lookupResult.getter);
+    var writeElement = _resolver.toLegacyElement(lookupResult.setter);
+
+    if (hasRead && readElement == null || hasWrite && writeElement == null) {
+      if (!forAnnotation &&
+          !_resolver.nameScope.shouldIgnoreUndefined2(
+            prefix: target.name,
+            name: identifier.name,
+          )) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+          identifier,
+          [identifier.name, target.name],
+        );
+      }
+    }
+
+    return PropertyElementResolverResult(
+      readElementRequested: readElement,
+      readElementRecovery: null,
+      writeElementRequested: writeElement,
+      writeElementRecovery: null,
     );
   }
 

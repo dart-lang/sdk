@@ -31,7 +31,7 @@ class Transform {
   /// Return `true` if this transform can be applied to fix an issue related to
   /// an element with the given [name] in a library that imports the
   /// [importedUris].
-  bool appliesTo(String name, List<String> importedUris) {
+  bool appliesTo(String name, List<Uri> importedUris) {
     return element.matches(name, importedUris);
   }
 }

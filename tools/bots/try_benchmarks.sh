@@ -146,7 +146,6 @@ for command; do
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
       out/ReleaseIA32/dart-sdk \
-      tools/dart2js/angular2_testing_deps \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/gen_snapshot \
       out/ReleaseIA32/gen_kernel_bytecode.dill \

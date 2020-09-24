@@ -11,7 +11,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
-import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -82,9 +81,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
-  /// The type representing the type 'dynamic'.
-  DartType _dynamicType;
-
   /// Whether constant evaluation errors should be reported during resolution.
   @Deprecated('This field is no longer used')
   final bool reportConstEvaluationErrors;
@@ -102,7 +98,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
         _typePropertyResolver = _resolver.typePropertyResolver {
-    _dynamicType = _typeProvider.dynamicType;
     _methodInvocationResolver = MethodInvocationResolver(
       _resolver,
       migratableAstInfoProvider,
@@ -375,34 +370,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    var hasRead = node.inGetterContext();
-    var hasWrite = node.inSetterContext();
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolveIndexExpression(
-      node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-
-    if (hasRead && hasWrite) {
-      node.staticElement = result.writeElement;
-      node.auxiliaryElements = AuxiliaryElements(result.readElement);
-      _resolver.setReadElement(node, result.readElement);
-      _resolver.setWriteElement(node, result.writeElement);
-    } else if (hasRead) {
-      node.staticElement = result.readElement;
-      _resolver.setReadElement(node, result.readElement);
-    } else if (hasWrite) {
-      node.staticElement = result.writeElement;
-      _resolver.setWriteElement(node, result.writeElement);
-    }
-
-    InferenceContext.setType(node.index, result.indexContextType);
-  }
-
-  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
     ArgumentList argumentList = node.argumentList;
@@ -436,160 +403,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefix = node.prefix;
-    SimpleIdentifier identifier = node.identifier;
-    //
-    // First, check the "lib.loadLibrary" case
-    //
-    if (identifier.name == FunctionElement.LOAD_LIBRARY_NAME &&
-        _isDeferredPrefix(prefix)) {
-      LibraryElement importedLibrary = _getImportedLibrary(prefix);
-      var element = importedLibrary?.loadLibraryFunction;
-      element = _resolver.toLegacyElement(element);
-      identifier.staticElement = element;
-      return;
-    }
-    //
-    // Check to see whether the prefix is really a prefix.
-    //
-    Element prefixElement = prefix.staticElement;
-    if (prefixElement is PrefixElement) {
-      var lookupResult = prefixElement.scope.lookup2(identifier.name);
-
-      if (identifier.inGetterContext()) {
-        _resolver.setReadElement(
-          node,
-          _resolver.toLegacyElement(lookupResult.getter),
-        );
-      }
-
-      if (identifier.inSetterContext()) {
-        _resolver.setWriteElement(
-          node,
-          _resolver.toLegacyElement(lookupResult.setter),
-        );
-      }
-
-      var element = lookupResult.getter;
-      if (element == null && identifier.inSetterContext()) {
-        element = lookupResult.setter;
-      }
-      element = _resolver.toLegacyElement(element);
-      if (element == null && _resolver.nameScope.shouldIgnoreUndefined(node)) {
-        return;
-      }
-      if (element == null) {
-        AstNode parent = node.parent;
-        if (parent is Annotation) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_ANNOTATION,
-              parent,
-              [identifier.name]);
-        } else {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-              identifier,
-              [identifier.name, prefixElement.name]);
-        }
-        return;
-      }
-      Element accessor = element;
-      if (accessor is PropertyAccessorElement && identifier.inSetterContext()) {
-        PropertyInducingElement variable = accessor.variable;
-        if (variable != null) {
-          PropertyAccessorElement setter = variable.setter;
-          if (setter != null) {
-            element = setter;
-          }
-        }
-      }
-      // TODO(brianwilkerson) The prefix needs to be resolved to the element for
-      // the import that defines the prefix, not the prefix's element.
-      identifier.staticElement = element;
-      // Validate annotation element.
-      AstNode parent = node.parent;
-      if (parent is Annotation) {
-        _resolveAnnotationElement(parent);
-      }
-      return;
-    }
-    // May be annotation, resolve invocation of "const" constructor.
-    AstNode parent = node.parent;
-    if (parent is Annotation) {
-      _resolveAnnotationElement(parent);
-      return;
-    }
-    //
-    // Otherwise, the prefix is really an expression that happens to be a simple
-    // identifier and this is really equivalent to a property access node.
-    //
-    {
-      var hasRead = identifier.inGetterContext();
-      var hasWrite = identifier.inSetterContext();
-
-      var resolver = PropertyElementResolver(_resolver);
-      var result = resolver.resolvePrefixedIdentifier(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
-
-      if (hasRead) {
-        _resolver.setReadElement(node, result.readElement);
-      }
-
-      if (hasWrite) {
-        _resolver.setWriteElement(node, result.writeElement);
-      }
-
-      if (hasWrite) {
-        identifier.staticElement = result.writeElement;
-        if (hasRead) {
-          identifier.auxiliaryElements = AuxiliaryElements(
-            result.readElement,
-          );
-        }
-      } else if (hasRead) {
-        identifier.staticElement = result.readElement;
-      }
-    }
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    var propertyName = node.propertyName;
-    var hasRead = propertyName.inGetterContext();
-    var hasWrite = propertyName.inSetterContext();
-
-    var resolver = PropertyElementResolver(_resolver);
-    var result = resolver.resolvePropertyAccess(
-      node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-
-    if (hasRead) {
-      _resolver.setReadElement(node, result.readElement);
-    }
-
-    if (hasWrite) {
-      _resolver.setWriteElement(node, result.writeElement);
-    }
-
-    if (hasWrite) {
-      propertyName.staticElement = result.writeElement;
-      if (hasRead) {
-        propertyName.auxiliaryElements = AuxiliaryElements(
-          result.readElement,
-        );
-      }
-    } else if (hasRead) {
-      propertyName.staticElement = result.readElement;
-    }
   }
 
   @override
@@ -727,13 +540,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (inGetterContext) {
       _resolver.setReadElement(node, getter);
     }
-
-    //
-    // Validate annotation element.
-    //
-    if (parent is Annotation) {
-      _resolveAnnotationElement(parent);
-    }
   }
 
   @override
@@ -799,7 +605,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitSuperExpression(SuperExpression node) {
     var context = SuperContext.of(node);
-    if (context == SuperContext.static) {
+    if (context == SuperContext.annotation || context == SuperContext.static) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
     } else if (context == SuperContext.extension) {
@@ -822,41 +628,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _resolveAnnotations(node.metadata);
-  }
-
-  /// Assuming that the given [identifier] is a prefix for a deferred import,
-  /// return the library that is being imported.
-  LibraryElement _getImportedLibrary(SimpleIdentifier identifier) {
-    PrefixElement prefixElement = identifier.staticElement as PrefixElement;
-    List<ImportElement> imports =
-        prefixElement.enclosingElement.getImportsWithPrefix(prefixElement);
-    return imports[0].importedLibrary;
-  }
-
-  InterfaceType _instantiateAnnotationClass(ClassElement element) {
-    return element.instantiate(
-      typeArguments: List.filled(
-        element.typeParameters.length,
-        _dynamicType,
-      ),
-      nullabilitySuffix: _resolver.noneOrStarSuffix,
-    );
-  }
-
-  /// Return `true` if the given [expression] is a prefix for a deferred import.
-  bool _isDeferredPrefix(Expression expression) {
-    if (expression is SimpleIdentifier) {
-      Element element = expression.staticElement;
-      if (element is PrefixElement) {
-        List<ImportElement> imports =
-            element.enclosingElement.getImportsWithPrefix(element);
-        if (imports.length != 1) {
-          return false;
-        }
-        return imports[0].isDeferred;
-      }
-    }
-    return false;
   }
 
   /// Return `true` if the given [node] can validly be resolved to a prefix:
@@ -913,159 +684,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       return definingScope.node;
     }
-  }
-
-  void _resolveAnnotationConstructorInvocationArguments(
-      Annotation annotation, ConstructorElement constructor) {
-    ArgumentList argumentList = annotation.arguments;
-    // error will be reported in ConstantVerifier
-    if (argumentList == null) {
-      return;
-    }
-    // resolve arguments to parameters
-    List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(argumentList, constructor);
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
-  /// Continues resolution of the given [annotation].
-  void _resolveAnnotationElement(Annotation annotation) {
-    SimpleIdentifier nameNode1;
-    SimpleIdentifier nameNode2;
-    {
-      Identifier annName = annotation.name;
-      if (annName is PrefixedIdentifier) {
-        nameNode1 = annName.prefix;
-        nameNode2 = annName.identifier;
-      } else {
-        nameNode1 = annName as SimpleIdentifier;
-        nameNode2 = null;
-      }
-    }
-    SimpleIdentifier nameNode3 = annotation.constructorName;
-    ConstructorElement constructor;
-    bool undefined = false;
-    //
-    // CONST or Class(args)
-    //
-    if (nameNode1 != null && nameNode2 == null && nameNode3 == null) {
-      Element element1 = nameNode1.staticElement;
-      // CONST
-      if (element1 is PropertyAccessorElement) {
-        _resolveAnnotationElementGetter(annotation, element1);
-        return;
-      }
-      // Class(args)
-      if (element1 is ClassElement) {
-        constructor = _instantiateAnnotationClass(element1)
-            .lookUpConstructor(null, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-      } else if (element1 == null) {
-        undefined = true;
-      }
-    }
-    //
-    // prefix.CONST or prefix.Class() or Class.CONST or Class.constructor(args)
-    //
-    if (nameNode1 != null && nameNode2 != null && nameNode3 == null) {
-      Element element1 = nameNode1.staticElement;
-      Element element2 = nameNode2.staticElement;
-      // Class.CONST - not resolved yet
-      if (element1 is ClassElement) {
-        element2 = element1.lookUpGetter(nameNode2.name, _definingLibrary);
-        element2 = _resolver.toLegacyElement(element2);
-      }
-      // prefix.CONST or Class.CONST
-      if (element2 is PropertyAccessorElement) {
-        nameNode2.staticElement = element2;
-        annotation.element = element2;
-        _resolveAnnotationElementGetter(annotation, element2);
-        return;
-      }
-      // prefix.Class()
-      if (element2 is ClassElement) {
-        constructor = element2.unnamedConstructor;
-        constructor = _resolver.toLegacyElement(constructor);
-      }
-      // Class.constructor(args)
-      if (element1 is ClassElement) {
-        constructor = _instantiateAnnotationClass(element1)
-            .lookUpConstructor(nameNode2.name, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-        nameNode2.staticElement = constructor;
-      }
-      if (element1 == null && element2 == null) {
-        undefined = true;
-      }
-    }
-    //
-    // prefix.Class.CONST or prefix.Class.constructor(args)
-    //
-    if (nameNode1 != null && nameNode2 != null && nameNode3 != null) {
-      Element element2 = nameNode2.staticElement;
-      // element2 should be ClassElement
-      if (element2 is ClassElement) {
-        String name3 = nameNode3.name;
-        // prefix.Class.CONST
-        PropertyAccessorElement getter =
-            element2.lookUpGetter(name3, _definingLibrary);
-        if (getter != null) {
-          getter = _resolver.toLegacyElement(getter);
-          nameNode3.staticElement = getter;
-          annotation.element = getter;
-          _resolveAnnotationElementGetter(annotation, getter);
-          return;
-        }
-        // prefix.Class.constructor(args)
-        constructor = _instantiateAnnotationClass(element2)
-            .lookUpConstructor(name3, _definingLibrary);
-        constructor = _resolver.toLegacyElement(constructor);
-        nameNode3.staticElement = constructor;
-      } else if (element2 == null) {
-        undefined = true;
-      }
-    }
-    // we need constructor
-    if (constructor == null) {
-      if (!undefined) {
-        // If the class was not found then we've already reported the error.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      }
-      return;
-    }
-    // record element
-    annotation.element = constructor;
-    // resolve arguments
-    _resolveAnnotationConstructorInvocationArguments(annotation, constructor);
-  }
-
-  void _resolveAnnotationElementGetter(
-      Annotation annotation, PropertyAccessorElement accessorElement) {
-    // accessor should be synthetic
-    if (!accessorElement.isSynthetic) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION_GETTER, annotation);
-      return;
-    }
-    // variable should be constant
-    VariableElement variableElement = accessorElement.variable;
-    if (!variableElement.isConst) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
-      return;
-    }
-    // no arguments
-    if (annotation.arguments != null) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
-          annotation.name,
-          [annotation.name]);
-    }
-    // OK
-    return;
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked

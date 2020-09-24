@@ -93,8 +93,16 @@ class B extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::B
     : super core::Object::•()
     ;
-  get x() → core::int
-    return let final core::int? #t3 = this.{self::B::_#B#x} in #t3.==(null) ?{core::int} let final core::int #t4 = 42 in this.{self::B::_#B#x}.==(null) ?{core::int} this.{self::B::_#B#x} = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t3{core::int};
+  get x() → core::int {
+    if(!this.{self::B::_#B#x#isSet}) {
+      final core::int #t3 = 42;
+      if(this.{self::B::_#B#x#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.");
+      this.{self::B::_#B#x} = #t3;
+      this.{self::B::_#B#x#isSet} = true;
+    }
+    return let final core::int? #t4 = this.{self::B::_#B#x} in #t4{core::int};
+  }
 }
 class C extends core::Object {
   field core::int? _#C#x = null;

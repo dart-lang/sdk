@@ -162,6 +162,7 @@ const String overwriteCurrentSdkVersion = '--overwrite-current-sdk-version=';
 class FolderOptions {
   final Map<ExperimentalFlag, bool> _experimentalFlags;
   final bool forceLateLowering;
+  final bool forceLateLoweringSentinel;
   final bool forceStaticFieldLowering;
   final bool forceNoExplicitGetterCalls;
   final bool nnbdAgnosticMode;
@@ -170,6 +171,7 @@ class FolderOptions {
 
   FolderOptions(this._experimentalFlags,
       {this.forceLateLowering: false,
+      this.forceLateLoweringSentinel: false,
       this.forceStaticFieldLowering: false,
       this.forceNoExplicitGetterCalls: false,
       this.nnbdAgnosticMode: false,
@@ -177,6 +179,7 @@ class FolderOptions {
       // can be null
       this.overwriteCurrentSdkVersion})
       : assert(forceLateLowering != null),
+        assert(forceLateLoweringSentinel != null),
         assert(forceStaticFieldLowering != null),
         assert(forceNoExplicitGetterCalls != null),
         assert(nnbdAgnosticMode != null),
@@ -317,6 +320,7 @@ class FastaContext extends ChainContext with MatchContext {
     FolderOptions folderOptions = _folderOptions[directory.uri];
     if (folderOptions == null) {
       bool forceLateLowering = false;
+      bool forceLateLoweringSentinel = false;
       bool forceStaticFieldLowering = false;
       bool forceNoExplicitGetterCalls = false;
       bool nnbdAgnosticMode = false;
@@ -324,6 +328,7 @@ class FastaContext extends ChainContext with MatchContext {
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions({},
             forceLateLowering: forceLateLowering,
+            forceLateLoweringSentinel: forceLateLoweringSentinel,
             forceStaticFieldLowering: forceStaticFieldLowering,
             forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
             nnbdAgnosticMode: nnbdAgnosticMode,
@@ -342,6 +347,8 @@ class FastaContext extends ChainContext with MatchContext {
             } else if (line.startsWith(overwriteCurrentSdkVersion)) {
               overwriteCurrentSdkVersionArgument =
                   line.substring(overwriteCurrentSdkVersion.length);
+            } else if (line.startsWith(Flags.forceLateLoweringSentinel)) {
+              forceLateLoweringSentinel = true;
             } else if (line.startsWith(Flags.forceLateLowering)) {
               forceLateLowering = true;
             } else if (line.startsWith(Flags.forceStaticFieldLowering)) {
@@ -367,6 +374,7 @@ class FastaContext extends ChainContext with MatchContext {
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
               forceLateLowering: forceLateLowering,
+              forceLateLoweringSentinel: forceLateLoweringSentinel,
               forceStaticFieldLowering: forceStaticFieldLowering,
               forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
               nnbdAgnosticMode: nnbdAgnosticMode,
@@ -839,6 +847,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         await context.computeUriTranslator(description);
     TargetFlags targetFlags = new TargetFlags(
       forceLateLoweringForTesting: testOptions.forceLateLowering,
+      forceLateLoweringSentinelForTesting:
+          testOptions.forceLateLoweringSentinel,
       forceStaticFieldLoweringForTesting: testOptions.forceStaticFieldLowering,
       forceNoExplicitGetterCallsForTesting:
           testOptions.forceNoExplicitGetterCalls,

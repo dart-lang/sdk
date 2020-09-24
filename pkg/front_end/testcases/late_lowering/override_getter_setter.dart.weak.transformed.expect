@@ -47,8 +47,16 @@ class C extends self::A {
   synthetic constructor •() → self::C
     : super self::A::•()
     ;
-  get x() → core::int
-    return let final core::int? #t4 = this.{self::C::_#C#x} in #t4.==(null) ?{core::int} let final core::int #t5 = 2 in this.{self::C::_#C#x}.==(null) ?{core::int} this.{self::C::_#C#x} = #t5 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t4{core::int};
+  get x() → core::int {
+    if(!this.{self::C::_#C#x#isSet}) {
+      final core::int #t4 = 2;
+      if(this.{self::C::_#C#x#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.");
+      this.{self::C::_#C#x} = #t4;
+      this.{self::C::_#C#x#isSet} = true;
+    }
+    return let final core::int? #t5 = this.{self::C::_#C#x} in #t5{core::int};
+  }
   get y() → core::int? {
     if(!this.{self::C::_#C#y#isSet}) {
       final core::int? #t6 = 2;

@@ -112,8 +112,16 @@ main(List<String> args) async {
 
     // Check that translating the DWARF stack trace (without internal frames)
     // matches the symbolic stack trace.
-    final dwarf = Dwarf.fromFile(scriptDwarfDebugInfo);
-    assert(dwarf != null);
+    final dwarf = Dwarf.fromFile(scriptDwarfDebugInfo)!;
+
+    // Check that build IDs match for traces.
+    final buildId1 = buildId(dwarfTrace1);
+    Expect.isFalse(buildId1.isEmpty);
+    Expect.equals(dwarf.buildId!, buildId1);
+    final buildId2 = buildId(dwarfTrace2);
+    Expect.isFalse(buildId2.isEmpty);
+    Expect.equals(dwarf.buildId!, buildId2);
+
     final translatedDwarfTrace1 = await Stream.fromIterable(dwarfTrace1)
         .transform(DwarfStackTraceDecoder(dwarf))
         .toList();
@@ -176,6 +184,17 @@ main(List<String> args) async {
     Expect.deepEquals(virtTrace1, relocatedFromDso1);
     Expect.deepEquals(virtTrace2, relocatedFromDso2);
   });
+}
+
+final _buildIdRE = RegExp(r"build_id: '([a-f\d]+)'");
+String buildId(Iterable<String> lines) {
+  for (final line in lines) {
+    final match = _buildIdRE.firstMatch(line);
+    if (match != null) {
+      return match.group(1)!;
+    }
+  }
+  return '';
 }
 
 final _symbolicFrameRE = RegExp(r'^#\d+\s+');

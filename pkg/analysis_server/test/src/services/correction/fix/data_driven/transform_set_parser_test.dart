@@ -23,6 +23,8 @@ void main() {
 
 @reflectiveTest
 class TransformSetParserTest extends AbstractTransformSetParserTest {
+  List<Uri> get uris => [Uri.parse('package:myPackage/test.dart')];
+
   void test_addParameter_optionalNamed() {
     parse('''
 version: 1
@@ -44,7 +46,7 @@ transforms:
             kind: 'argument'
             index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -80,7 +82,7 @@ transforms:
       name: 'p'
       style: optional_positional
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -116,7 +118,7 @@ transforms:
             kind: 'argument'
             index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -158,7 +160,7 @@ transforms:
             kind: 'argument'
             index: 1
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -203,7 +205,7 @@ transforms:
             kind: 'argument'
             index: 2
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -252,7 +254,7 @@ transforms:
             uris: ['dart:core']
             name: 'String'
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = result.transformsFor('A', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -263,7 +265,7 @@ transforms:
     var components = change.argumentValue.components;
     expect(components, hasLength(1));
     var value = (components[0] as TemplateVariable).generator as ImportedName;
-    expect(value.uris, ['dart:core']);
+    expect(value.uris, [Uri.parse('dart:core')]);
     expect(value.name, 'String');
   }
 
@@ -288,7 +290,7 @@ transforms:
             kind: 'argument'
             name: 'p'
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = result.transformsFor('A', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -329,7 +331,7 @@ transforms:
             kind: 'argument'
             index: 2
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = result.transformsFor('A', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Add');
@@ -361,7 +363,7 @@ transforms:
     getter: 'g'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', ['test.dart']);
+    var transforms = result.transformsFor('g', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -380,7 +382,7 @@ transforms:
     inMixin: 'A'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', ['test.dart']);
+    var transforms = result.transformsFor('g', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -398,7 +400,7 @@ transforms:
     getter: 'g'
   changes: []
 ''');
-    var transforms = result.transformsFor('g', ['test.dart']);
+    var transforms = result.transformsFor('g', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename g');
@@ -417,7 +419,7 @@ transforms:
     inClass: 'A'
   changes: []
 ''');
-    var transforms = result.transformsFor('m', ['test.dart']);
+    var transforms = result.transformsFor('m', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename m');
@@ -458,7 +460,7 @@ transforms:
     - kind: 'removeParameter'
       name: 'p'
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
@@ -484,7 +486,7 @@ transforms:
     - kind: 'removeParameter'
       index: 0
 ''');
-    var transforms = result.transformsFor('f', ['test.dart']);
+    var transforms = result.transformsFor('f', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Remove');
@@ -511,7 +513,7 @@ transforms:
     - kind: 'rename'
       newName: 'B'
 ''');
-    var transforms = result.transformsFor('A', ['test.dart']);
+    var transforms = result.transformsFor('A', uris);
     expect(transforms, hasLength(1));
     var transform = transforms[0];
     expect(transform.title, 'Rename A');

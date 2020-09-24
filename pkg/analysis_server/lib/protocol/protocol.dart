@@ -366,6 +366,13 @@ class Response {
                 'Error during `analysis.getErrors`: invalid file.'));
 
   /// Initialize a newly created instance to represent the
+  /// GET_FIXES_INVALID_FILE error condition.
+  Response.getFixesInvalidFile(Request request)
+      : this(request.id,
+            error: RequestError(RequestErrorCode.GET_FIXES_INVALID_FILE,
+                'Error during `edit.getFixes`: invalid file.'));
+
+  /// Initialize a newly created instance to represent the
   /// GET_IMPORTED_ELEMENTS_INVALID_FILE error condition.
   Response.getImportedElementsInvalidFile(Request request)
       : this(request.id,

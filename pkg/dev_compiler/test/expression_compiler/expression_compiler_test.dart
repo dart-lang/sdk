@@ -140,10 +140,13 @@ class TestCompiler {
     kernel2jsCompiler.emitModule(component);
 
     // create expression compiler
-    var evaluator = ExpressionCompiler(compiler, kernel2jsCompiler, component,
-        verbose: setup.options.verbose,
-        onDiagnostic: setup.options.onDiagnostic,
-        errors: setup.errors);
+    var evaluator = ExpressionCompiler(
+      setup.options,
+      setup.errors,
+      compiler,
+      kernel2jsCompiler,
+      component,
+    );
 
     // collect all module names and paths
     var moduleInfo = _collectModules(component);

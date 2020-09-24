@@ -907,12 +907,10 @@ MessageSnapshotReader::~MessageSnapshotReader() {
 
 SnapshotWriter::SnapshotWriter(Thread* thread,
                                Snapshot::Kind kind,
-                               ReAlloc alloc,
-                               DeAlloc dealloc,
                                intptr_t initial_size,
                                ForwardList* forward_list,
                                bool can_send_any_object)
-    : BaseWriter(alloc, dealloc, initial_size),
+    : BaseWriter(initial_size),
       thread_(thread),
       kind_(kind),
       object_store_(isolate()->object_store()),
@@ -1576,22 +1574,9 @@ void SnapshotWriterVisitor::VisitPointers(ObjectPtr* first, ObjectPtr* last) {
   }
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 MessageWriter::MessageWriter(bool can_send_any_object)
     : SnapshotWriter(Thread::Current(),
                      Snapshot::kMessage,
-                     malloc_allocator,
-                     malloc_deallocator,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
@@ -1629,9 +1614,10 @@ std::unique_ptr<Message> MessageWriter::WriteMessage(
   }
 
   MessageFinalizableData* finalizable_data = finalizable_data_;
-  finalizable_data_ = NULL;
-  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
-                      priority);
+  finalizable_data_ = nullptr;
+  intptr_t size;
+  uint8_t* buffer = Steal(&size);
+  return Message::New(dest_port, buffer, size, finalizable_data, priority);
 }
 
 }  // namespace dart

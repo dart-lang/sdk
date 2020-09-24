@@ -39,6 +39,10 @@ class SpellContextExternal extends SpellContext {
   @override
   bool get onlyDenylisted => true;
 
+  @override
+  String get repoRelativeSuitePath =>
+      "pkg/front_end/test/spelling_test_external_targets.dart";
+
   Stream<TestDescription> list(Chain suite) async* {
     for (String subdir in const ["pkg/", "sdk/"]) {
       Directory testRoot = new Directory.fromUri(suite.uri.resolve(subdir));

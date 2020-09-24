@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -63,6 +64,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _dynamicType = _typeProvider.dynamicType;
     _localVariableTypeProvider = _resolver.localVariableTypeProvider;
   }
+
+  InvocationInferenceHelper get _inferenceHelper => _resolver.inferenceHelper;
 
   /// Is `true` if the library being analyzed is non-nullable by default.
   bool get _isNonNullableByDefault =>
@@ -215,32 +218,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {}
 
-  /// The Dart Language Specification, 12.29: <blockquote>An assignable expression of the form
-  /// <i>e<sub>1</sub>[e<sub>2</sub>]</i> is evaluated as a method invocation of the operator method
-  /// <i>[]</i> on <i>e<sub>1</sub></i> with argument <i>e<sub>2</sub></i>.</blockquote>
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    if (identical(node.realTarget.staticType, NeverTypeImpl.instance)) {
-      recordStaticType(node, NeverTypeImpl.instance);
-    } else {
-      DartType type;
-      if (node.inSetterContext()) {
-        var parameters = node.staticElement?.parameters;
-        if (parameters?.length == 2) {
-          type = parameters[1].type;
-        }
-      } else {
-        type = node.staticElement?.returnType;
-      }
-
-      type ??= _dynamicType;
-
-      recordStaticType(node, type);
-    }
-
-    _resolver.nullShortingTermination(node);
-  }
-
   /// The Dart Language Specification, 12.11.1: <blockquote>The static type of a new expression of
   /// either the form <i>new T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> or the form <i>new
   /// T(a<sub>1</sub>, &hellip;, a<sub>n</sub>)</i> is <i>T</i>.</blockquote>
@@ -314,123 +291,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
     recordStaticType(node, _getStaticType(expression));
-  }
-
-  /// See [visitSimpleIdentifier].
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefixedIdentifier = node.identifier;
-    Element staticElement = prefixedIdentifier.staticElement;
-
-    if (staticElement is ExtensionElement) {
-      _setExtensionIdentifierType(node);
-      return;
-    }
-
-    if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      recordStaticType(prefixedIdentifier, NeverTypeImpl.instance);
-      recordStaticType(node, NeverTypeImpl.instance);
-      return;
-    }
-
-    DartType staticType = _dynamicType;
-    if (staticElement is ClassElement) {
-      if (_isExpressionIdentifier(node)) {
-        var type = _nonNullable(_typeProvider.typeType);
-        node.staticType = type;
-        node.identifier.staticType = type;
-      }
-      return;
-    } else if (staticElement is DynamicElementImpl) {
-      var type = _nonNullable(_typeProvider.typeType);
-      node.staticType = type;
-      node.identifier.staticType = type;
-      return;
-    } else if (staticElement is FunctionTypeAliasElement) {
-      if (node.parent is TypeName) {
-        // no type
-      } else {
-        var type = _nonNullable(_typeProvider.typeType);
-        node.staticType = type;
-        node.identifier.staticType = type;
-      }
-      return;
-    } else if (staticElement is MethodElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(staticElement);
-    } else if (staticElement is ExecutableElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is VariableElement) {
-      staticType = staticElement.type;
-    }
-
-    staticType = _inferTearOff(node, node.identifier, staticType);
-    if (!_inferObjectAccess(node, staticType, prefixedIdentifier)) {
-      recordStaticType(prefixedIdentifier, staticType);
-      recordStaticType(node, staticType);
-    }
-  }
-
-  /// The Dart Language Specification, 12.13: <blockquote> Property extraction allows for a member of
-  /// an object to be concisely extracted from the object. If <i>o</i> is an object, and if <i>m</i>
-  /// is the name of a method member of <i>o</i>, then
-  /// * <i>o.m</i> is defined to be equivalent to: <i>(r<sub>1</sub>, &hellip;, r<sub>n</sub>,
-  /// {p<sub>1</sub> : d<sub>1</sub>, &hellip;, p<sub>k</sub> : d<sub>k</sub>}){return
-  /// o.m(r<sub>1</sub>, &hellip;, r<sub>n</sub>, p<sub>1</sub>: p<sub>1</sub>, &hellip;,
-  /// p<sub>k</sub>: p<sub>k</sub>);}</i> if <i>m</i> has required parameters <i>r<sub>1</sub>,
-  /// &hellip;, r<sub>n</sub></i>, and named parameters <i>p<sub>1</sub> &hellip; p<sub>k</sub></i>
-  /// with defaults <i>d<sub>1</sub>, &hellip;, d<sub>k</sub></i>.
-  /// * <i>(r<sub>1</sub>, &hellip;, r<sub>n</sub>, [p<sub>1</sub> = d<sub>1</sub>, &hellip;,
-  /// p<sub>k</sub> = d<sub>k</sub>]){return o.m(r<sub>1</sub>, &hellip;, r<sub>n</sub>,
-  /// p<sub>1</sub>, &hellip;, p<sub>k</sub>);}</i> if <i>m</i> has required parameters
-  /// <i>r<sub>1</sub>, &hellip;, r<sub>n</sub></i>, and optional positional parameters
-  /// <i>p<sub>1</sub> &hellip; p<sub>k</sub></i> with defaults <i>d<sub>1</sub>, &hellip;,
-  /// d<sub>k</sub></i>.
-  /// Otherwise, if <i>m</i> is the name of a getter member of <i>o</i> (declared implicitly or
-  /// explicitly) then <i>o.m</i> evaluates to the result of invoking the getter. </blockquote>
-  ///
-  /// The Dart Language Specification, 12.17: <blockquote> ... a getter invocation <i>i</i> of the
-  /// form <i>e.m</i> ...
-  ///
-  /// Let <i>T</i> be the static type of <i>e</i>. It is a static type warning if <i>T</i> does not
-  /// have a getter named <i>m</i>.
-  ///
-  /// The static type of <i>i</i> is the declared return type of <i>T.m</i>, if <i>T.m</i> exists;
-  /// otherwise the static type of <i>i</i> is dynamic.
-  ///
-  /// ... a getter invocation <i>i</i> of the form <i>C.m</i> ...
-  ///
-  /// It is a static warning if there is no class <i>C</i> in the enclosing lexical scope of
-  /// <i>i</i>, or if <i>C</i> does not declare, implicitly or explicitly, a getter named <i>m</i>.
-  ///
-  /// The static type of <i>i</i> is the declared return type of <i>C.m</i> if it exists or dynamic
-  /// otherwise.
-  ///
-  /// ... a top-level getter invocation <i>i</i> of the form <i>m</i>, where <i>m</i> is an
-  /// identifier ...
-  ///
-  /// The static type of <i>i</i> is the declared return type of <i>m</i>.</blockquote>
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    SimpleIdentifier propertyName = node.propertyName;
-    Element staticElement = propertyName.staticElement;
-    DartType staticType = _dynamicType;
-    if (staticElement is MethodElement) {
-      staticType = staticElement.type;
-    } else if (staticElement is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(staticElement);
-    } else {
-      // TODO(brianwilkerson) Report this internal error.
-    }
-
-    staticType = _inferTearOff(node, node.propertyName, staticType);
-
-    if (!_inferObjectAccess(node, staticType, propertyName)) {
-      recordStaticType(propertyName, staticType);
-      recordStaticType(node, staticType);
-      _resolver.nullShortingTermination(node);
-    }
   }
 
   /// The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
@@ -520,7 +380,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       staticType = _dynamicType;
     }
-    staticType = _inferTearOff(node, node, staticType);
+    staticType = _inferenceHelper.inferTearOff(node, node, staticType);
     recordStaticType(node, staticType);
   }
 
@@ -736,63 +596,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       constructorElement = _resolver.toLegacyElement(constructorElement);
       constructor.staticElement = constructorElement;
     }
-  }
-
-  /// Given a property access [node] with static type [nodeType],
-  /// and [id] is the property name being accessed, infer a type for the
-  /// access itself and its constituent components if the access is to one of the
-  /// methods or getters of the built in 'Object' type, and if the result type is
-  /// a sealed type. Returns true if inference succeeded.
-  bool _inferObjectAccess(
-      Expression node, DartType nodeType, SimpleIdentifier id) {
-    // If we have an access like `libraryPrefix.hashCode` don't infer it.
-    if (node is PrefixedIdentifier &&
-        node.prefix.staticElement is PrefixElement) {
-      return false;
-    }
-    // Search for Object accesses.
-    String name = id.name;
-    PropertyAccessorElement inferredElement =
-        _typeProvider.objectType.element.getGetter(name);
-    if (inferredElement == null || inferredElement.isStatic) {
-      return false;
-    }
-    inferredElement = _resolver.toLegacyElement(inferredElement);
-    DartType inferredType = inferredElement.returnType;
-    if (nodeType != null &&
-        nodeType.isDynamic &&
-        inferredType is InterfaceType &&
-        _typeProvider.nonSubtypableClasses.contains(inferredType.element)) {
-      recordStaticType(id, inferredType);
-      recordStaticType(node, inferredType);
-      return true;
-    }
-    return false;
-  }
-
-  /// Given an uninstantiated generic function type, referenced by the
-  /// [identifier] in the tear-off [expression], try to infer the instantiated
-  /// generic function type from the surrounding context.
-  DartType _inferTearOff(
-    Expression expression,
-    SimpleIdentifier identifier,
-    DartType tearOffType,
-  ) {
-    var context = InferenceContext.getContext(expression);
-    if (context is FunctionType && tearOffType is FunctionType) {
-      var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
-        context,
-        tearOffType,
-        errorReporter: _resolver.errorReporter,
-        errorNode: expression,
-      );
-      (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
-          typeArguments;
-      if (typeArguments.isNotEmpty) {
-        return tearOffType.instantiate(typeArguments);
-      }
-    }
-    return tearOffType;
   }
 
   /// Return `true` if the given [node] is not a type literal.

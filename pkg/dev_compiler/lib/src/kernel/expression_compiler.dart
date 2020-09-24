@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
@@ -206,24 +205,29 @@ class PrivateFieldsVisitor extends Visitor<void> {
 class ExpressionCompiler {
   static final String debugProcedureName = '\$dartEval';
 
-  final bool verbose;
+  final CompilerContext _context;
+  final CompilerOptions _options;
+  final List<String> errors;
   final IncrementalCompiler _compiler;
   final ProgramCompiler _kernel2jsCompiler;
   final Component _component;
-  final List<String> errors;
+
   DiagnosticMessageHandler onDiagnostic;
 
   void _log(String message) {
-    if (verbose) {
-      // writing to stdout breaks communication to
-      // frontend server, which is done on stdin/stdout,
-      // so we use stderr here instead
-      stderr.writeln(message);
+    if (_options.verbose) {
+      _context.options.ticker.logMs(message);
     }
   }
 
-  ExpressionCompiler(this._compiler, this._kernel2jsCompiler, this._component,
-      {this.verbose, this.onDiagnostic, this.errors});
+  ExpressionCompiler(
+    this._options,
+    this.errors,
+    this._compiler,
+    this._kernel2jsCompiler,
+    this._component,
+  )   : onDiagnostic = _options.onDiagnostic,
+        _context = _compiler.context;
 
   /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
   /// in [moduleName].
@@ -256,11 +260,11 @@ class ExpressionCompiler {
       String expression) async {
     // 1. find dart scope where debugger is paused
 
-    _log('ExpressionCompiler: compiling:  $expression in $moduleName');
+    _log('Compiling expression in $moduleName:\n$expression');
 
     var dartScope = await _findScopeAt(Uri.parse(libraryUri), line, column);
     if (dartScope == null) {
-      _log('ExpressionCompiler: scope not found at $libraryUri:$line:$column');
+      _log('Scope not found at $libraryUri:$line:$column');
       return null;
     }
 
@@ -280,8 +284,7 @@ class ExpressionCompiler {
     var localJsScope =
         dartScope.definitions.keys.map((variable) => jsScope[variable]);
 
-    _log('ExpressionCompiler: dart scope: $dartScope');
-    _log('ExpressionCompiler: substituted local JsScope: $localJsScope');
+    _log('Performed scope substitutions for expression');
 
     // 3. compile dart expression to JS
 
@@ -289,7 +292,7 @@ class ExpressionCompiler {
         await _compileExpression(dartScope, jsModules, moduleName, expression);
 
     if (jsExpression == null) {
-      _log('ExpressionCompiler: failed to compile $expression, $jsExpression');
+      _log('Failed to compile expression in $moduleName:\n$expression');
       return null;
     }
 
@@ -323,7 +326,8 @@ $args
 error.name + ": " + error.message;
 }''';
 
-    _log('ExpressionCompiler: compiled $expression to $callExpression');
+    _log(
+        'Compiled expression in $moduleName:\n$expression to \n$callExpression');
     return callExpression;
   }
 
@@ -350,6 +354,7 @@ error.name + ": " + error.message;
       return null;
     }
 
+    _log('Detected expression compilation scope');
     return scope;
   }
 
@@ -362,6 +367,8 @@ error.name + ": " + error.message;
 
         return library.library;
       }
+
+      _log('Loaded library for expression');
       return null;
     });
   }
@@ -415,8 +422,6 @@ error.name + ": " + error.message;
       Map<String, String> modules,
       String currentModule,
       String expression) async {
-    // 1. Compile expression to kernel AST
-
     var procedure = await _compiler.compileExpression(
         expression,
         scope.definitions,
@@ -425,6 +430,8 @@ error.name + ": " + error.message;
         scope.library.importUri,
         scope.cls?.name,
         scope.procedure.isStatic);
+
+    _log('Compiled expression to kernel');
 
     // TODO: make this code clear and assumptions enforceable
     // https://github.com/dart-lang/sdk/issues/43273
@@ -438,14 +445,12 @@ error.name + ": " + error.message;
       return null;
     }
 
-    _log('ExpressionCompiler: Kernel: ${procedure.leakingDebugToString()}');
-
-    // 2. compile kernel AST to JS ast
-
     var jsFun = _kernel2jsCompiler.emitFunctionIncremental(
         scope.library, scope.cls, procedure.function, '$debugProcedureName');
 
-    // 3. apply temporary workarounds for what ideally
+    _log('Generated JavaScript for expression');
+
+    // apply temporary workarounds for what ideally
     // needs to be done in the compiler
 
     // get private fields accessed by the evaluated expression
@@ -478,10 +483,6 @@ error.name + ": " + error.message;
       }
     }
 
-    _log('ExpressionCompiler: privateFields: $privateFields');
-    _log('ExpressionCompiler: currentLibraries: $currentLibraries');
-    _log('ExpressionCompiler: currentModules: $currentModules');
-
     var body = js_ast.Block([
       // require modules used in evaluated expression
       ...currentModules.keys.map((String variable) =>
@@ -495,15 +496,15 @@ error.name + ": " + error.message;
     ]);
 
     var jsFunModified = js_ast.Fun(jsFun.params, body);
-    _log('ExpressionCompiler: JS AST: $jsFunModified');
 
-    // 4. print JS ast to string for evaluation
+    // print JS ast to string for evaluation
 
     var context = js_ast.SimpleJavaScriptPrintingContext();
     var opts =
         js_ast.JavaScriptPrintingOptions(allowKeywordsInProperties: true);
 
     jsFunModified.accept(js_ast.Printer(opts, context));
+    _log('Performed JavaScript adjustments for expression');
 
     return context.getText();
   }

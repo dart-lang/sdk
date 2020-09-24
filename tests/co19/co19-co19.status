@@ -41,7 +41,6 @@ LanguageFeatures/Simple-bounds/dynamic/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/dynamic/type-aliases/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/static/*: Skip # Not migrated to NNBD
 LanguageFeatures/Simple-bounds/static/type-aliases/*: Skip # Not migrated to NNBD
-LanguageFeatures/Spread-collections/*: Skip # Not migrated to NNBD
 LanguageFeatures/Triple-Shift/*: Skip # Triple shift is not implemented yet
 LanguageFeatures/regression/34560_t02/01: Skip # Type aliases are not fully implemented
 LibTest/io/RawDatagramSocket/*: Skip # https://github.com/dart-lang/co19/issues/195

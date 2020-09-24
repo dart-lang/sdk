@@ -20,6 +20,13 @@ class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_LOCAL_VARIABLE;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_functionType_named() async {
     await resolveTestUnit('''
 typedef MY_FUNCTION(int p);

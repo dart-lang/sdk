@@ -54,6 +54,10 @@ class VmTarget extends Target {
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
 
   @override
+  bool get supportsLateLoweringSentinel =>
+      flags.forceLateLoweringSentinelForTesting;
+
+  @override
   bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;
 
   @override

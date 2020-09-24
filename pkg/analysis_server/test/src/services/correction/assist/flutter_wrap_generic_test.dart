@@ -19,6 +19,13 @@ class FlutterWrapGenericTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_GENERIC;
 
+  @override
+  void setUp() {
+    super.setUp();
+    // TODO(dantup): Get these tests passing with either line ending.
+    useLineEndingsForPlatform = false;
+  }
+
   Future<void> test_minimal() async {
     addFlutterPackage();
     await resolveTestUnit('''

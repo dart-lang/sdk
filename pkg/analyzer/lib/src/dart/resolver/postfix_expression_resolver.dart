@@ -52,26 +52,26 @@ class PostfixExpressionResolver {
       return;
     }
 
-    node.operand.accept(_resolver);
+    var operandResolution = _resolver.resolveForWrite(
+      node: node.operand,
+      hasRead: true,
+    );
+
+    var readElement = operandResolution.readElement;
+    var writeElement = operandResolution.writeElement;
 
     var operand = node.operand;
-    if (operand is SimpleIdentifier) {
-      var element = operand.staticElement;
-      // ElementResolver does not set it.
-      if (element is VariableElement) {
-        _resolver.setReadElement(operand, element);
-        _resolver.setWriteElement(operand, element);
-      }
-    }
+    _resolver.setReadElement(operand, readElement);
+    _resolver.setWriteElement(operand, writeElement);
 
-    if (node.readElement == null || node.readType == null) {
-      _resolver.setReadElement(operand, null);
-    }
-    if (node.writeElement == null || node.writeType == null) {
-      _resolver.setWriteElement(operand, null);
-    }
+    _resolver.setAssignmentBackwardCompatibility(
+      assignment: node,
+      left: operand,
+      hasRead: true,
+    );
 
-    _assignmentShared.checkFinalAlreadyAssigned(node.operand);
+    // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
+    _assignmentShared.checkFinalAlreadyAssigned(operand);
 
     var receiverType = node.readType;
     _resolve1(node, receiverType);

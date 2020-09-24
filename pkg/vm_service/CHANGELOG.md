@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.2.0
+- Added support for `dart:io` extensions version 1.3.
+- Added combination getter/setter `httpEnableTimelineLogging`.
+- Deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.
+
 ## 5.1.0
 - Added support for `dart:io` extensions version 1.2.
 - Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs.

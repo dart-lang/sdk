@@ -37,8 +37,6 @@ import '../builder/constructor_builder.dart';
 
 import '../kernel/forest.dart';
 
-import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
-
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
 
@@ -281,14 +279,6 @@ class TypeOperationsCfe extends TypeOperations<VariableDeclaration, DartType> {
   @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
-  }
-
-  @override
-  bool isLocalVariableWithoutDeclaredType(VariableDeclaration variable) {
-    return variable is VariableDeclarationImpl &&
-        variable.parent is Statement &&
-        variable.isImplicitlyTyped &&
-        !variable.hasDeclaredInitializer;
   }
 
   @override

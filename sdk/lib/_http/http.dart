@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'dart:developer' hide log;
 import 'dart:_internal'
     show Since, valueOfNonNullableParamWithDefault, HttpStatus;
+import 'dart:isolate' show Isolate;
 import 'dart:math';
 import 'dart:io';
 import 'dart:typed_data';
@@ -1473,8 +1474,14 @@ abstract class HttpClient {
   ///
   /// Default is `false`.
   static set enableTimelineLogging(bool value) {
-    _enableTimelineLogging =
-        valueOfNonNullableParamWithDefault<bool>(value, false);
+    final enabled = valueOfNonNullableParamWithDefault<bool>(value, false);
+    if (enabled != _enableTimelineLogging) {
+      postEvent('HttpTimelineLoggingStateChange', {
+        'isolateId': Service.getIsolateID(Isolate.current),
+        'enabled': enabled,
+      });
+    }
+    _enableTimelineLogging = enabled;
   }
 
   /// Current state of HTTP request logging from all [HttpClient]s to the

@@ -442,7 +442,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return createColumn();
   }
-  
+
   Widget createColumn() {
     var a = new Text('AAA');
     var b = new Text('BBB');
@@ -499,7 +499,7 @@ class MyWidget extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget createColumn(String p1, int p2) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');
@@ -571,7 +571,7 @@ class MyWidget extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget createColumn({String p1, int p2}) {
     var a = new Text('$foo $p1');
     var b = new Text('$p2');

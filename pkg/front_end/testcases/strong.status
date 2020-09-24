@@ -171,6 +171,7 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 late_lowering/covariant_late_field: TypeCheckError
+late_lowering/initializer_rewrite_from_opt_out: RuntimeError # Test is inherently mixed mode
 late_lowering/non_nullable_from_opt_out: RuntimeError # Test is inherently mixed mode
 nnbd/covariant_late_field: TypeCheckError
 nnbd/issue41180: RuntimeError # Strong mode runtime checking fails due to mixed strong mode.

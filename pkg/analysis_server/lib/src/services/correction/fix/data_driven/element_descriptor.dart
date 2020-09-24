@@ -7,7 +7,7 @@ import 'package:meta/meta.dart';
 /// The path to an element.
 class ElementDescriptor {
   /// The URIs of the library in which the element is defined.
-  final List<String> libraryUris;
+  final List<Uri> libraryUris;
 
   /// The kind of element that was changed.
   final String _kind;
@@ -30,7 +30,7 @@ class ElementDescriptor {
 
   /// Return `true` if this descriptor matches an element with the given [name]
   /// in a library that imports the [importedUris].
-  bool matches(String name, List<String> importedUris) {
+  bool matches(String name, List<Uri> importedUris) {
     var lastComponent = components.last;
     if (lastComponent.isEmpty) {
       if (components[components.length - 2] != name) {

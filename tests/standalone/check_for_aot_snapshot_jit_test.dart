@@ -20,7 +20,7 @@ main() {
   final kernelOutput = d.uri.resolve('pow_test.dill').path;
   final aotOutput = d.uri.resolve('pow_test.aot').path;
 
-  final genKernelResult = Process.runSync(
+  final genKernelResult = runAndPrintOutput(
     'pkg/vm/tool/gen_kernel',
     [
       '--aot',
@@ -31,8 +31,9 @@ main() {
     ],
   );
   Expect.equals(genKernelResult.exitCode, 0);
+  print("Ran successfully.\n");
 
-  final genAotResult = Process.runSync(
+  final genAotResult = runAndPrintOutput(
     genSnapshot,
     [
       '--snapshot_kind=app-aot-elf',
@@ -41,8 +42,9 @@ main() {
     ],
   );
   Expect.equals(genAotResult.exitCode, 0);
+  print("Ran successfully.\n");
 
-  final runAotResult = Process.runSync(
+  final runAotResult = runAndPrintOutput(
     exePath,
     [
       'run',
@@ -56,4 +58,19 @@ main() {
       "pow_test.aot is an AOT snapshot and should be run with 'dartaotruntime'",
     ],
   );
+  print('Got expected error result.');
+}
+
+ProcessResult runAndPrintOutput(String command, List<String> args) {
+  print('Running $command ${args.join(' ')}...');
+  final result = Process.runSync(command, args);
+  if (result.stdout.isNotEmpty) {
+    print("stdout: ");
+    print(result.stdout);
+  }
+  if (result.stderr.isNotEmpty) {
+    print("stderr: ");
+    print(result.stderr);
+  }
+  return result;
 }

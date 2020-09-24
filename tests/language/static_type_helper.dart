@@ -64,7 +64,7 @@ typedef SupertypeOf<T> = T Function(Object?);
 
 /// Checks that an expression is assignable to [T1], [T2] and [Object].
 ///
-/// This ensures that the type of the expression is a non-`dynamic`
-/// type assignable to both [T1] and [T2], and if those are unrelated,
-/// it must be an intersection type.
+/// This ensures that the static type of the expression is either dynamic,
+/// Never, or a type assignable to both [T1] and [T2], and if those are
+/// unrelated, it must be an intersection type.
 void checkIntersectionType<T1, T2>(T1 v1, T2 v2, Object v3) {}

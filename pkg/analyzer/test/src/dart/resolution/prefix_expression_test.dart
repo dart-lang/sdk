@@ -215,6 +215,26 @@ void f(C c) {
     );
   }
 
+  test_plusPlus_notLValue_simpleIdentifier_typeLiteral() async {
+    await assertErrorsInCode(r'''
+void f() {
+  ++int;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
+    ]);
+
+    assertPrefixExpression(
+      findNode.prefix('++int'),
+      readElement: intElement,
+      readType: 'dynamic',
+      writeElement: intElement,
+      writeType: 'dynamic',
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
   test_plusPlus_prefixedIdentifier_instance() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -577,26 +597,6 @@ class A {
       readElement: findElement.topGet('x'),
       writeElement: findElement.topSet('x'),
       type: 'num',
-    );
-  }
-
-  test_plusPlus_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
-void f() {
-  ++int;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3),
-    ]);
-
-    assertPrefixExpression(
-      findNode.prefix('++int'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
     );
   }
 

@@ -4195,6 +4195,19 @@ NonNullableNotAssignedError:
       T t; t;
     }
 
+FinalNotAssignedError:
+  template: "Final variable '#name' must be assigned before it can be used."
+  analyzerCode: READ_POTENTIALLY_UNASSIGNED_FINAL
+  configuration: nnbd-strong
+  script: >
+    method(bool b) {
+      final int i;
+      if (b) {
+        i = 0;
+      }
+      i;
+    }
+
 NonNullableLateDefinitelyUnassignedError:
   template: "Non-nullable late variable '#name' without initializer is definitely unassigned."
   configuration: nnbd-strong

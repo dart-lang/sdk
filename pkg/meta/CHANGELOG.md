@@ -1,3 +1,8 @@
+## 1.3.0-nullsafety.4
+
+* Introduce `@internal` to annotate elements that should not be used outside of
+  the package in which the element is declared.
+
 ## 1.3.0-nullsafety.3
 
 * Allow 2.10 stable and 2.11.0 dev SDK versions.

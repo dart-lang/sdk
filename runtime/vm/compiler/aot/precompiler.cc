@@ -5,6 +5,7 @@
 #include "vm/compiler/aot/precompiler.h"
 
 #include "platform/unicode.h"
+#include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
@@ -48,7 +49,6 @@
 #include "vm/tags.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
-#include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/version.h"
 #include "vm/zone_text_buffer.h"
@@ -448,8 +448,6 @@ void Precompiler::DoCompileAll() {
   if (FLAG_trace_precompiler) {
     Symbols::GetStats(I, &symbols_before, &capacity);
   }
-
-  Symbols::Compact();
 
   if (FLAG_trace_precompiler) {
     Symbols::GetStats(I, &symbols_after, &capacity);

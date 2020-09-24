@@ -1,0 +1,86 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42967.dart:7:7: Error: Field 'fieldNonNullableOfA' should be initialized because its type 'num' doesn't allow null.
+//   num fieldNonNullableOfA; // Error.
+//       ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue42967.dart:10:17: Error: Final field 'fieldFinalDynamicOfA' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final dynamic fieldFinalDynamicOfA; // Error.
+//                 ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue42967.dart:26:7: Error: Field 'fieldNonNullableOfB' should be initialized because its type 'num' doesn't allow null.
+//   num fieldNonNullableOfB; // Error.
+//       ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue42967.dart:29:17: Error: Final field 'fieldFinalDynamicOfB' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final dynamic fieldFinalDynamicOfB; // Error.
+//                 ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue42967.dart:45:7: Error: Field 'fieldNonNullableOfM' should be initialized because its type 'num' doesn't allow null.
+//   num fieldNonNullableOfM; // Error.
+//       ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue42967.dart:50:17: Error: Final field 'fieldFinalDynamicOfM' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final dynamic fieldFinalDynamicOfM; // Error.
+//                 ^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::num fieldNonNullableOfA = null;
+  late field core::num fieldLateNonNullableOfA;
+  final field dynamic fieldFinalDynamicOfA = null;
+  late final [setter] field dynamic fieldLateFinalDynamicOfA;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractA extends core::Object {
+  synthetic constructor •() → self::AbstractA
+    : super core::Object::•()
+    ;
+  external get fieldExternalNonNullableOfAbstractA() → core::num;
+  external set fieldExternalNonNullableOfAbstractA(core::num #externalFieldValue) → void;
+  abstract get fieldAbstractNonNullableOfAbstractA() → core::num;
+  abstract set fieldAbstractNonNullableOfAbstractA(core::num #externalFieldValue) → void;
+  external get fieldExternalFinalDynamicOfAbstractA() → dynamic;
+  abstract get fieldAbstractFinalDynamicOfAbstractA() → dynamic;
+}
+class B extends core::Object {
+  field core::num fieldNonNullableOfB = null;
+  late field core::num fieldLateNonNullableOfB;
+  final field dynamic fieldFinalDynamicOfB = null;
+  late final [setter] field dynamic fieldLateFinalDynamicOfB;
+  static factory •() → self::B
+    return throw 42;
+}
+abstract class AbstractB extends core::Object {
+  synthetic constructor •() → self::AbstractB
+    : super core::Object::•()
+    ;
+  external get fieldExternalNonNullableOfAbstractB() → core::num;
+  external set fieldExternalNonNullableOfAbstractB(core::num #externalFieldValue) → void;
+  abstract get fieldAbstractNonNullableOfAbstractB() → core::num;
+  abstract set fieldAbstractNonNullableOfAbstractB(core::num #externalFieldValue) → void;
+  external get fieldExternalFinalDynamicOfAbstractB() → dynamic;
+  abstract get fieldAbstractFinalDynamicOfAbstractB() → dynamic;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  field core::num fieldNonNullableOfM = null;
+  late field core::num fieldLateNonNullableOfM;
+  final field dynamic fieldFinalDynamicOfM = null;
+  late final [setter] field dynamic fieldLateFinalDynamicOfM;
+  external get fieldExternalNonNullableOfM() → core::num;
+  external set fieldExternalNonNullableOfM(core::num #externalFieldValue) → void;
+  abstract get fieldAbstractNonNullableOfM() → core::num;
+  abstract set fieldAbstractNonNullableOfM(core::num #externalFieldValue) → void;
+  external get fieldExternalFinalDynamicOfM() → dynamic;
+  abstract get fieldAbstractFinalDynamicOfM() → dynamic;
+}
+static method main() → dynamic {}

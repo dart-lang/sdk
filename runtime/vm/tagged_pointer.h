@@ -127,12 +127,12 @@ class ObjectPtr {
   constexpr bool operator!=(const ObjectPtr& other) const {
     return tagged_pointer_ != other.tagged_pointer_;
   }
-  bool operator==(const nullptr_t& other) { return tagged_pointer_ == 0; }
-  bool operator!=(const nullptr_t& other) { return tagged_pointer_ != 0; }
-  constexpr bool operator==(const nullptr_t& other) const {
+  bool operator==(const std::nullptr_t& other) { return tagged_pointer_ == 0; }
+  bool operator!=(const std::nullptr_t& other) { return tagged_pointer_ != 0; }
+  constexpr bool operator==(const std::nullptr_t& other) const {
     return tagged_pointer_ == 0;
   }
-  constexpr bool operator!=(const nullptr_t& other) const {
+  constexpr bool operator!=(const std::nullptr_t& other) const {
     return tagged_pointer_ != 0;
   }
 
@@ -183,7 +183,7 @@ class ObjectPtr {
   ObjectPtr() : tagged_pointer_(0) {}
   explicit constexpr ObjectPtr(uword tagged) : tagged_pointer_(tagged) {}
   explicit constexpr ObjectPtr(intptr_t tagged) : tagged_pointer_(tagged) {}
-  constexpr ObjectPtr(nullptr_t) : tagged_pointer_(0) {}  // NOLINT
+  constexpr ObjectPtr(std::nullptr_t) : tagged_pointer_(0) {}  // NOLINT
   explicit ObjectPtr(ObjectLayout* heap_object)
       : tagged_pointer_(reinterpret_cast<uword>(heap_object) + kHeapObjectTag) {
   }
@@ -225,7 +225,7 @@ inline std::ostream& operator<<(std::ostream& os, const ObjectPtr& obj) {
     klass##Ptr() : base##Ptr() {}                                              \
     explicit constexpr klass##Ptr(uword tagged) : base##Ptr(tagged) {}         \
     explicit constexpr klass##Ptr(intptr_t tagged) : base##Ptr(tagged) {}      \
-    constexpr klass##Ptr(nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */       \
+    constexpr klass##Ptr(std::nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */  \
     explicit klass##Ptr(const ObjectLayout* untagged)                          \
         : base##Ptr(reinterpret_cast<uword>(untagged) + kHeapObjectTag) {}     \
   };
@@ -242,6 +242,7 @@ DEFINE_TAGGED_POINTER(Script, Object)
 DEFINE_TAGGED_POINTER(Library, Object)
 DEFINE_TAGGED_POINTER(Namespace, Object)
 DEFINE_TAGGED_POINTER(KernelProgramInfo, Object)
+DEFINE_TAGGED_POINTER(ImageHeader, Object)
 DEFINE_TAGGED_POINTER(WeakSerializationReference, Object)
 DEFINE_TAGGED_POINTER(Code, Object)
 DEFINE_TAGGED_POINTER(Bytecode, Object)

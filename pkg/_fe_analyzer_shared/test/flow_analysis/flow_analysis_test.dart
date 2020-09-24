@@ -1443,6 +1443,54 @@ main() {
       });
     });
 
+    test('promote promotes to a subtype and sets type of interest', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'num?');
+      h.assignedVariables((vars) {
+        vars.write(x);
+      });
+      h.run((flow) {
+        flow.declare(x, true);
+        expect(flow.promotedType(x), isNull);
+        flow.promote(x, _Type('num'));
+        expect(flow.promotedType(x).type, 'num');
+        // Check that it's a type of interest by promoting and de-promoting.
+        h.if_(h.isType(h.variableRead(x), 'int'), () {
+          expect(flow.promotedType(x).type, 'int');
+          flow.write(x, _Type('num'));
+          expect(flow.promotedType(x).type, 'num');
+        });
+      });
+    });
+
+    test('promote does not promote to a non-subtype', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'num?');
+      h.run((flow) {
+        flow.declare(x, true);
+        expect(flow.promotedType(x), isNull);
+        flow.promote(x, _Type('String'));
+        expect(flow.promotedType(x), isNull);
+      });
+    });
+
+    test('promote does not promote if variable is write-captured', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'num?');
+      var functionNode = _Node();
+      h.assignedVariables(
+          (vars) => vars.function(functionNode, () => vars.write(x)));
+      h.run((flow) {
+        flow.declare(x, true);
+        expect(flow.promotedType(x), isNull);
+        flow.functionExpression_begin(functionNode);
+        flow.write(x, _Type('num'));
+        flow.functionExpression_end();
+        flow.promote(x, _Type('num'));
+        expect(flow.promotedType(x), isNull);
+      });
+    });
+
     test('promotedType handles not-yet-seen variables', () {
       // Note: this is needed for error recovery in the analyzer.
       var h = _Harness();
@@ -2658,21 +2706,6 @@ main() {
           });
         });
       });
-
-      test('promote via initialization', () {
-        var h = _Harness();
-        var x = _Var('x', null, isLocalVariableWithoutDeclaredType: true);
-
-        var s1 = FlowModel<_Var, _Type>(true).declare(x, false);
-        expect(s1.variableInfo, {
-          x: _matchVariableModel(chain: null),
-        });
-
-        var s2 = s1.write(x, _Type('int'), h);
-        expect(s2.variableInfo, {
-          x: _matchVariableModel(chain: ['int']),
-        });
-      });
     });
 
     group('demotion, to NonNull', () {
@@ -3790,11 +3823,6 @@ class _Harness extends TypeOperations<_Var, _Type> {
   }
 
   @override
-  bool isLocalVariableWithoutDeclaredType(_Var variable) {
-    return variable.isLocalVariableWithoutDeclaredType;
-  }
-
-  @override
   bool isNever(_Type type) {
     return type.type == 'Never';
   }
@@ -3956,13 +3984,8 @@ class _Type {
 class _Var {
   final String name;
   final _Type type;
-  final bool isLocalVariableWithoutDeclaredType;
 
-  _Var(
-    this.name,
-    this.type, {
-    this.isLocalVariableWithoutDeclaredType = false,
-  });
+  _Var(this.name, this.type);
 
   @override
   String toString() => '$type $name';

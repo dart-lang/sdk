@@ -21,7 +21,7 @@ class LanguageError;
 class Instance;
 class Integer;
 class ReadStream;
-class WriteStream;
+class BaseWriteStream;
 class String;
 class Thread;
 class TypedData;
@@ -203,7 +203,7 @@ class CatchEntryMove {
   static CatchEntryMove ReadFrom(ReadStream* stream);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  void WriteTo(WriteStream* stream);
+  void WriteTo(BaseWriteStream* stream);
 #endif
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)

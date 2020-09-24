@@ -8,6 +8,12 @@
 
 ### Tools
 
+#### Dartanalyzer
+
+* Removed the `--use-fasta-parser`, `--preview-dart-2`, and
+  `--enable-assert-initializers` command line options. These options haven't
+  been supported in a while and were no-ops.
+
 #### Linter
 
 Updated the Linter to `0.1.119`, which includes:
@@ -55,7 +61,7 @@ Updated the Linter to `0.1.119`, which includes:
     deferred loading of types, pass `--no-defer-class-types`. See the original
     post on the [unsoundness in the deferred loading algorithm][].
 *   Enables a new sound deferred splitting algorithm. To explicitly disable
-    the new deferred splitting algorithm, pass `--no-new-deferred-split'.
+    the new deferred splitting algorithm, pass `--no-new-deferred-split`.
     See the original post on the
     [unsoundness in the deferred loading algorithm][].
 

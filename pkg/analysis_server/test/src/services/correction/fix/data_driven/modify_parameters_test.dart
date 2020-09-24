@@ -877,7 +877,7 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
       Transform(
           title: 'title',
           element: ElementDescriptor(
-              libraryUris: [importUri],
+              libraryUris: [Uri.parse(importUri)],
               // The kind isn't important to these tests.
               kind: '',
               components: originalComponents),

@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/paramete
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -76,7 +77,14 @@ void g(int x, int y) {}
     var statement = body.block.statements[0] as ExpressionStatement;
     var node = statement.expression;
     var template = CodeTemplate(CodeTemplateKind.expression, components);
-    var result = template.generate(node, CorrectionUtils(testAnalysisResult));
+    var builder = ChangeBuilder(session: session);
+    var context = TemplateContext(node, CorrectionUtils(testAnalysisResult));
+    await builder.addDartFileEdit(testFile, (builder) {
+      builder.addInsertion(0, (builder) {
+        template.writeOn(builder, context);
+      });
+    });
+    var result = builder.sourceChange.edits[0].edits[0].replacement;
     expect(result, expectedResult);
   }
 

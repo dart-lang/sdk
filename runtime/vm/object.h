@@ -5959,6 +5959,26 @@ class ExceptionHandlers : public Object {
   friend class Object;
 };
 
+// An ImageHeader contains extra information about serialized AOT snapshots.
+//
+// To avoid changing the embedder to return more information about an AOT
+// snapshot and possibly disturbing existing clients of that interface, we
+// serialize a single ImageHeader object at the start of any text segments.
+class ImageHeader : public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(ImageHeaderLayout));
+  }
+  // There are no public methods for the ImageHeader contents, because
+  // all access to the contents is handled by methods on the Image class.
+
+ private:
+  // Note there are no New() methods for ImageHeaders. Unstead, the serializer
+  // writes the ImageHeaderLayout object manually at the start of the text
+  // segment in precompiled snapshots.
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ImageHeader, Object);
+};
+
 // A WeakSerializationReference (WSR) denotes a type of weak reference to a
 // target object. In particular, objects that can only be reached from roots via
 // WSR edges during serialization of AOT snapshots should not be serialized. Of

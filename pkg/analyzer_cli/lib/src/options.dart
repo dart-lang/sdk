@@ -104,9 +104,6 @@ class CommandLineOptions {
   /// (Or null if not enabled.)
   final String perfReport;
 
-  /// Whether to enable parsing via the Fasta parser.
-  final bool useFastaParser;
-
   /// Batch mode (for unit testing)
   final bool batchMode;
 
@@ -177,7 +174,6 @@ class CommandLineOptions {
         log = cast(args['log']),
         machineFormat = args['format'] == 'machine',
         perfReport = cast(args['x-perf-report']),
-        useFastaParser = cast(args['use-fasta-parser']),
         batchMode = cast(args['batch']),
         showPackageWarnings = cast(args['show-package-warnings']) ||
             cast(args['package-warnings']) ||
@@ -443,14 +439,6 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: true)
-      // TODO(brianwilkerson) Remove the following option after we're sure that
-      // it's no longer being used.
-      ..addFlag('enable-assert-initializers',
-          help:
-              'Enable parsing of asserts in constructor initializers (deprecated).',
-          defaultsTo: null,
-          negatable: false,
-          hide: hide)
       ..addFlag('use-analysis-driver-memory-byte-store',
           help: 'Use memory byte store, not the file system cache.',
           defaultsTo: false,
@@ -477,15 +465,6 @@ class CommandLineOptions {
               'of "libraryUri".',
           splitCommas: false,
           hide: hide)
-      ..addFlag('use-fasta-parser',
-          help: 'Whether to enable parsing via the Fasta parser.',
-          defaultsTo: true,
-          hide: hide)
-      ..addFlag('preview-dart-2',
-          help: 'Enable the Dart 2.0 preview.',
-          defaultsTo: true,
-          hide: hide,
-          negatable: true)
       ..addFlag('train-snapshot',
           help: 'Analyze the given source for the purposes of training a '
               'dartanalyzer snapshot.',

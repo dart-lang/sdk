@@ -108,6 +108,7 @@ the socket profiler. Only samples collected after the initial [startSocketProfil
 ### getHttpEnableTimelineLogging
 
 ```
+@Deprecated
 HttpTimelineLoggingState getHttpEnableTimelineLogging(string isolateId)
 ```
 
@@ -120,6 +121,7 @@ See [HttpTimelineLoggingState](#httptimelineloggingstate).
 ### setHttpEnableTimelineLogging
 
 ```
+@Deprecated
 Success setHttpEnableTimelineLogging(string isolateId, bool enable)
 ```
 
@@ -129,6 +131,22 @@ should be logged to the timeline. Note: this will only change the state of HTTP
 timeline logging for the isolate specified by `isolateId`.
 
 See [Success](#success).
+
+### httpEnableTimelineLogging
+
+```
+HttpTimelineLoggingState httpEnableTimelineLogging(string isolateId, bool enable [optional])
+```
+
+The _httpEnableTimelineLogging_ RPC is used to set and inspect the value of
+`HttpClient.enableTimelineLogging`, which determines if HTTP client requests
+should be logged to the timeline. If `enable` is provided, the state of
+`HttpClient.enableTimelineLogging` will be updated to the value of `enable`.
+
+If the value of `HttpClient.enableTimelineLogging` is changed, a
+`HttpTimelineLoggingStateChange` event will be sent on the `Extension` stream.
+
+See [HttpTimelineLoggingState](#httptimelineloggingstate).
 
 ## Public Types
 
@@ -325,3 +343,4 @@ version | comments
 1.0 | Initial revision.
 1.1 | Added `lastReadTime` and `lastWriteTime` properties to `SocketStatistic`.
 1.2 | Added `getOpenFiles`, `getOpenFileById`, `getSpawnedProcesses`, and `getSpawnedProcessById` RPCs and added `OpenFile` and `SpawnedProcess` objects.
+1.3 | Added `httpEnableTimelineLogging` RPC and `HttpTimelineLoggingStateChange` event, deprecated `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging`.

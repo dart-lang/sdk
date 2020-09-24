@@ -14,6 +14,7 @@ final List<String> targetNames = targets.keys.toList();
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool forceLateLoweringForTesting;
+  final bool forceLateLoweringSentinelForTesting;
   final bool forceStaticFieldLoweringForTesting;
   final bool forceNoExplicitGetterCallsForTesting;
   final bool enableNullSafety;
@@ -21,6 +22,7 @@ class TargetFlags {
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.forceLateLoweringForTesting = false,
+      this.forceLateLoweringSentinelForTesting = false,
       this.forceStaticFieldLoweringForTesting = false,
       this.forceNoExplicitGetterCallsForTesting = false,
       this.enableNullSafety = false});
@@ -30,6 +32,8 @@ class TargetFlags {
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
         forceLateLoweringForTesting == other.forceLateLoweringForTesting &&
+        forceLateLoweringSentinelForTesting ==
+            other.forceLateLoweringSentinelForTesting &&
         forceStaticFieldLoweringForTesting ==
             other.forceStaticFieldLoweringForTesting &&
         forceNoExplicitGetterCallsForTesting ==
@@ -42,6 +46,8 @@ class TargetFlags {
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceLateLoweringForTesting.hashCode));
+    hash = 0x3fffffff &
+        (hash * 31 + (hash ^ forceLateLoweringSentinelForTesting.hashCode));
     hash = 0x3fffffff &
         (hash * 31 + (hash ^ forceStaticFieldLoweringForTesting.hashCode));
     hash = 0x3fffffff &
@@ -282,6 +288,13 @@ abstract class Target {
   /// details.
   bool get supportsLateFields;
 
+  /// If `true`, the backend supports creation and checking of a sentinel value
+  /// for uninitialized late fields and variables through the `createSentinel`
+  /// and `isSentinel` methods in `dart:_internal`.
+  ///
+  /// If `true` this is used when [supportsLateFields] is `false`.
+  bool get supportsLateLoweringSentinel;
+
   /// Whether static fields with initializers in nnbd libraries should be
   /// encoded using the late field lowering.
   bool get useStaticFieldLowering;
@@ -347,6 +360,10 @@ class NoneTarget extends Target {
 
   @override
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
+  bool get supportsLateLoweringSentinel =>
+      flags.forceLateLoweringSentinelForTesting;
 
   @override
   bool get useStaticFieldLowering => flags.forceStaticFieldLoweringForTesting;

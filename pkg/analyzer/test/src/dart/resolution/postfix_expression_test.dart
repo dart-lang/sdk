@@ -141,7 +141,27 @@ void f() {
     );
   }
 
-  test_inc_notLValue_typeLiteral_typeParameter() async {
+  test_inc_notLValue_simpleIdentifier_typeLiteral() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int++;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
+    ]);
+
+    assertPostfixExpression(
+      findNode.postfix('int++'),
+      readElement: intElement,
+      readType: 'dynamic',
+      writeElement: intElement,
+      writeType: 'dynamic',
+      element: null,
+      type: 'dynamic',
+    );
+  }
+
+  test_inc_notLValue_simpleIdentifier_typeLiteral_typeParameter() async {
     await assertErrorsInCode(r'''
 void f<T>() {
   T++;
@@ -153,7 +173,7 @@ void f<T>() {
     var postfix = findNode.postfix('T++');
     assertPostfixExpression(
       postfix,
-      readElement: null,
+      readElement: findElement.typeParameter('T'),
       readType: 'dynamic',
       writeElement: findElement.typeParameter('T'),
       writeType: 'dynamic',
@@ -165,7 +185,7 @@ void f<T>() {
       postfix.operand,
       readElement: findElement.typeParameter('T'),
       writeElement: findElement.typeParameter('T'),
-      type: 'Type',
+      type: 'dynamic',
     );
   }
 
@@ -472,26 +492,6 @@ class A {
       readElement: findElement.topGet('x'),
       writeElement: findElement.topSet('x'),
       type: 'num',
-    );
-  }
-
-  test_inc_simpleIdentifier_typeLiteral() async {
-    await assertErrorsInCode(r'''
-void f() {
-  int++;
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3),
-    ]);
-
-    assertPostfixExpression(
-      findNode.postfix('int++'),
-      readElement: null,
-      readType: 'dynamic',
-      writeElement: intElement,
-      writeType: 'dynamic',
-      element: null,
-      type: 'dynamic',
     );
   }
 }

@@ -164,7 +164,7 @@ FlowGraphCompiler::FlowGraphCompiler(
   const bool stack_traces_only = false;
 #endif
   code_source_map_builder_ = new (zone_)
-      CodeSourceMapBuilder(stack_traces_only, caller_inline_id,
+      CodeSourceMapBuilder(zone_, stack_traces_only, caller_inline_id,
                            inline_id_to_token_pos, inline_id_to_function);
 
   ArchSpecificInitialization();

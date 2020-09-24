@@ -324,6 +324,8 @@ import 'invalid_type_argument_in_const_set_test.dart'
 import 'invalid_uri_test.dart' as invalid_uri;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
+import 'invalid_use_of_internal_member_test.dart'
+    as invalid_use_of_internal_member;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
 import 'invalid_use_of_visible_for_template_member_test.dart'
@@ -861,6 +863,7 @@ main() {
     invalid_type_argument_in_const_set.main();
     invalid_uri.main();
     invalid_use_of_covariant_in_extension.main();
+    invalid_use_of_internal_member.main();
     invalid_use_of_protected_member.main();
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();

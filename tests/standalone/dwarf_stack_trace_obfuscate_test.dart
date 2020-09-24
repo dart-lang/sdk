@@ -40,7 +40,7 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  final dwarf = Dwarf.fromFile("dwarf_obfuscate.so");
+  final dwarf = Dwarf.fromFile("dwarf_obfuscate.so")!;
 
   await base.checkStackTrace(rawStack, dwarf, expectedCallsInfo);
 }

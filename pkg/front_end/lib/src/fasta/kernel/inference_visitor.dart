@@ -15,7 +15,6 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-import '../../base/nnbd_mode.dart';
 import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unhandled;
@@ -5629,6 +5628,7 @@ class InferenceVisitor
         node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult initializerResult;
+    inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (node.initializer != null) {
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
@@ -5648,12 +5648,15 @@ class InferenceVisitor
       node.type = inferredType;
     }
     if (initializerResult != null) {
+      DartType initializerType = initializerResult.inferredType;
+      if (node.isImplicitlyTyped && initializerType is TypeParameterType) {
+        inferrer.flowAnalysis.promote(node, initializerType);
+      }
       Expression initializer = inferrer.ensureAssignableResult(
           node.type, initializerResult,
           fileOffset: node.fileOffset, isVoidAllowed: node.type is VoidType);
       node.initializer = initializer..parent = node;
     }
-    inferrer.flowAnalysis.declare(node, node.initializer != null);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (node.isImplicitlyTyped) {
@@ -5669,12 +5672,11 @@ class InferenceVisitor
       List<Statement> result = <Statement>[];
       result.add(node);
 
+      late_lowering.IsSetEncoding isSetEncoding =
+          late_lowering.computeIsSetEncoding(
+              node.type, late_lowering.computeIsSetStrategy(inferrer.library));
       VariableDeclaration isSetVariable;
-      if (node.type.isPotentiallyNullable ||
-          // We cannot trust that non-nullable locals are not initialized to
-          // `null` in mixed mode, so we use an `isSet` variable here.
-          (inferrer.isNonNullableByDefault &&
-              inferrer.nnbdMode != NnbdMode.Strong)) {
+      if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
         isSetVariable = new VariableDeclaration(
             '${late_lowering.lateLocalPrefix}'
             '${node.name}'
@@ -5717,7 +5719,7 @@ class InferenceVisitor
                       'Local',
                       createVariableRead: createVariableRead,
                       createIsSetRead: createIsSetRead,
-                      useIsSetField: isSetVariable != null)
+                      isSetEncoding: isSetEncoding)
                   : late_lowering.createGetterWithInitializer(
                       inferrer.coreTypes,
                       fileOffset,
@@ -5728,7 +5730,7 @@ class InferenceVisitor
                       createVariableWrite: createVariableWrite,
                       createIsSetRead: createIsSetRead,
                       createIsSetWrite: createIsSetWrite,
-                      useIsSetField: isSetVariable != null),
+                      isSetEncoding: isSetEncoding),
               returnType: node.type))
         ..fileOffset = fileOffset;
       getVariable.type =
@@ -5763,13 +5765,13 @@ class InferenceVisitor
                             createVariableWrite: createVariableWrite,
                             createIsSetRead: createIsSetRead,
                             createIsSetWrite: createIsSetWrite,
-                            useIsSetField: isSetVariable != null)
+                            isSetEncoding: isSetEncoding)
                         : late_lowering.createSetterBody(inferrer.coreTypes,
                             fileOffset, node.name, setterParameter, node.type,
                             shouldReturnValue: true,
                             createVariableWrite: createVariableWrite,
                             createIsSetWrite: createIsSetWrite,
-                            useIsSetField: isSetVariable != null)
+                            isSetEncoding: isSetEncoding)
                       ..fileOffset = fileOffset,
                     positionalParameters: <VariableDeclaration>[
                       setterParameter
@@ -5784,8 +5786,15 @@ class InferenceVisitor
       }
       node.isLate = false;
       node.lateType = node.type;
+      if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
+        node.initializer = new StaticInvocation(
+            inferrer.coreTypes.createSentinelMethod,
+            new Arguments([], types: [node.type])..fileOffset = fileOffset)
+          ..parent = node;
+      } else {
+        node.initializer = null;
+      }
       node.type = inferrer.computeNullable(node.type);
-      node.initializer = null;
 
       return new StatementInferenceResult.multiple(node.fileOffset, result);
     }
@@ -5865,16 +5874,26 @@ class InferenceVisitor
                       node.variable.name.length));
             }
           } else {
-            if (isUnassigned &&
-                declaredOrInferredType.isPotentiallyNonNullable) {
-              return new ExpressionInferenceResult(
-                  resultType,
-                  inferrer.helper.wrapInProblem(
-                      resultExpression,
-                      templateNonNullableNotAssignedError
-                          .withArguments(node.variable.name),
-                      node.fileOffset,
-                      node.variable.name.length));
+            if (isUnassigned) {
+              if (variable.isFinal) {
+                return new ExpressionInferenceResult(
+                    resultType,
+                    inferrer.helper.wrapInProblem(
+                        resultExpression,
+                        templateFinalNotAssignedError
+                            .withArguments(node.variable.name),
+                        node.fileOffset,
+                        node.variable.name.length));
+              } else if (declaredOrInferredType.isPotentiallyNonNullable) {
+                return new ExpressionInferenceResult(
+                    resultType,
+                    inferrer.helper.wrapInProblem(
+                        resultExpression,
+                        templateNonNullableNotAssignedError
+                            .withArguments(node.variable.name),
+                        node.fileOffset,
+                        node.variable.name.length));
+              }
             }
           }
         }

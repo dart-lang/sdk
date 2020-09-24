@@ -1036,6 +1036,7 @@ stdlib
 stdout
 stmt
 str
+strategies
 streak
 streaming
 strict

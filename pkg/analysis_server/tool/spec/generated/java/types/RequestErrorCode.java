@@ -77,6 +77,12 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
+   * An "edit.getFixes" request specified a FilePath which does not match a file currently subject to
+   * analysis.
+   */
+  public static final String GET_FIXES_INVALID_FILE = "GET_FIXES_INVALID_FILE";
+
+  /**
    * An "analysis.getImportedElements" request specified a FilePath that does not match a file
    * currently subject to analysis.
    */

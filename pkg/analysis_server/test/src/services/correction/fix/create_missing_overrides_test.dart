@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -12,6 +13,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateMissingOverridesTest);
+    defineReflectiveTests(CreateMissingOverridesWithNullSafetyTest);
   });
 }
 
@@ -195,34 +197,6 @@ class B extends A {
   }
 }
 ''');
-  }
-
-  Future<void> test_lineEndings() async {
-    // TODO(dantup): Remove the need for this here, and have all of the tests
-    // test with CRLF when running on Windows.
-    final newlineWithoutCarriageReturn = RegExp(r'(?<!\r)\n');
-    String asCrLf(String input) =>
-        input.replaceAll(newlineWithoutCarriageReturn, '\r\n');
-    await resolveTestUnit(asCrLf('''
-class A {
-  void ma() {}
-}
-
-class B implements A {
-}
-'''));
-    await assertHasFix(asCrLf('''
-class A {
-  void ma() {}
-}
-
-class B implements A {
-  @override
-  void ma() {
-    // TODO: implement ma
-  }
-}
-'''));
   }
 
   Future<void> test_mergeToField_getterSetter() async {
@@ -601,6 +575,61 @@ class B extends A {
   @override
   void set s3(String x) {
     // TODO: implement s3
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateMissingOverridesWithNullSafetyTest extends FixProcessorTest {
+  @override
+  List<String> get experiments => [EnableString.non_nullable];
+
+  @override
+  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+
+  Future<void> test_method_generic_nullable_dynamic() async {
+    // https://github.com/dart-lang/sdk/issues/43535
+    await resolveTestUnit('''
+class A {
+  void doSomething(Map<String, dynamic>? m) {}
+}
+
+class B implements A {}
+''');
+    await assertHasFix('''
+class A {
+  void doSomething(Map<String, dynamic>? m) {}
+}
+
+class B implements A {
+  @override
+  void doSomething(Map<String, dynamic>? m) {
+    // TODO: implement doSomething
+  }
+}
+''');
+  }
+
+  Future<void> test_method_generic_nullable_Never() async {
+    // https://github.com/dart-lang/sdk/issues/43535
+    await resolveTestUnit('''
+class A {
+  void doSomething(Map<String, Never>? m) {}
+}
+
+class B implements A {}
+''');
+    await assertHasFix('''
+class A {
+  void doSomething(Map<String, Never>? m) {}
+}
+
+class B implements A {
+  @override
+  void doSomething(Map<String, Never>? m) {
+    // TODO: implement doSomething
   }
 }
 ''');

@@ -302,6 +302,7 @@ export 'package:test/src/foo.dart';
     ]);
   }
 
+  @override
   void test_internalIsLibSrc() async {
     newFile(testPackageImplementationFilePath, content: r'''
 import 'package:meta/meta.dart';

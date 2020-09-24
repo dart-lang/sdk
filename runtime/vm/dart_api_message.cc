@@ -774,15 +774,8 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
   return NULL;
 }
 
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
 ApiMessageWriter::ApiMessageWriter()
-    : BaseWriter(malloc_allocator, NULL, kInitialSize),
+    : BaseWriter(kInitialSize),
       object_id_(0),
       forward_list_(NULL),
       forward_list_length_(0),
@@ -1170,7 +1163,8 @@ std::unique_ptr<Message> ApiMessageWriter::WriteCMessage(
   bool success = WriteCObject(object);
   if (!success) {
     UnmarkAllCObjects(object);
-    free(buffer());
+    intptr_t unused;
+    free(Steal(&unused));
     return nullptr;
   }
 
@@ -1181,16 +1175,18 @@ std::unique_ptr<Message> ApiMessageWriter::WriteCMessage(
     success = WriteForwardedCObject(forward_list_[i]);
     if (!success) {
       UnmarkAllCObjects(object);
-      free(buffer());
+      intptr_t unused;
+      free(Steal(&unused));
       return nullptr;
     }
   }
 
   UnmarkAllCObjects(object);
   MessageFinalizableData* finalizable_data = finalizable_data_;
-  finalizable_data_ = NULL;
-  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
-                      priority);
+  finalizable_data_ = nullptr;
+  intptr_t size;
+  uint8_t* buffer = Steal(&size);
+  return Message::New(dest_port, buffer, size, finalizable_data, priority);
 }
 
 }  // namespace dart

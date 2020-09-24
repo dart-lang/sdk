@@ -46,8 +46,16 @@ class A extends core::Object {
       this.{self::A::_#A#finalInstanceField} = #t4;
     }
   @#C1
-  get finalInstanceFieldWithInitializer() → core::int
-    return let final core::int? #t5 = this.{self::A::_#A#finalInstanceFieldWithInitializer} in #t5.==(null) ?{core::int} let final core::int #t6 = 0 in this.{self::A::_#A#finalInstanceFieldWithInitializer}.==(null) ?{core::int} this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t6 : throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceFieldWithInitializer' has been assigned during initialization.") : #t5{core::int};
+  get finalInstanceFieldWithInitializer() → core::int {
+    if(!this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet}) {
+      final core::int #t5 = 0;
+      if(this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceFieldWithInitializer' has been assigned during initialization.");
+      this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t5;
+      this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet} = true;
+    }
+    return let final core::int? #t6 = this.{self::A::_#A#finalInstanceFieldWithInitializer} in #t6{core::int};
+  }
   @#C1
   get covariantInstanceField() → core::num
     return this.{self::A::_#A#covariantInstanceField#isSet} ?{core::num} let final core::num? #t7 = this.{self::A::_#A#covariantInstanceField} in #t7{core::num} : throw new _in::LateInitializationErrorImpl::•("Field 'covariantInstanceField' has not been initialized.");
@@ -76,8 +84,16 @@ class A extends core::Object {
       self::A::_#finalStaticField = #t12;
     }
   @#C1
-  static get finalStaticFieldWithInitializer() → core::int
-    return let final core::int? #t13 = self::A::_#finalStaticFieldWithInitializer in #t13.==(null) ?{core::int} let final core::int #t14 = 0 in self::A::_#finalStaticFieldWithInitializer.==(null) ?{core::int} self::A::_#finalStaticFieldWithInitializer = #t14 : throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticFieldWithInitializer' has been assigned during initialization.") : #t13{core::int};
+  static get finalStaticFieldWithInitializer() → core::int {
+    if(!self::A::_#finalStaticFieldWithInitializer#isSet) {
+      final core::int #t13 = 0;
+      if(self::A::_#finalStaticFieldWithInitializer#isSet)
+        throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticFieldWithInitializer' has been assigned during initialization.");
+      self::A::_#finalStaticFieldWithInitializer = #t13;
+      self::A::_#finalStaticFieldWithInitializer#isSet = true;
+    }
+    return let final core::int? #t14 = self::A::_#finalStaticFieldWithInitializer in #t14{core::int};
+  }
 }
 abstract class B extends core::Object /*isMixinDeclaration*/  {
   field core::int? _#B#instanceField = null;
@@ -114,8 +130,16 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
       this.{self::B::_#B#finalInstanceField} = #t18;
     }
   @#C1
-  get finalInstanceFieldWithInitializer() → core::int
-    return let final core::int? #t19 = this.{self::B::_#B#finalInstanceFieldWithInitializer} in #t19.==(null) ?{core::int} let final core::int #t20 = 0 in this.{self::B::_#B#finalInstanceFieldWithInitializer}.==(null) ?{core::int} this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t20 : throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceFieldWithInitializer' has been assigned during initialization.") : #t19{core::int};
+  get finalInstanceFieldWithInitializer() → core::int {
+    if(!this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet}) {
+      final core::int #t19 = 0;
+      if(this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'finalInstanceFieldWithInitializer' has been assigned during initialization.");
+      this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t19;
+      this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet} = true;
+    }
+    return let final core::int? #t20 = this.{self::B::_#B#finalInstanceFieldWithInitializer} in #t20{core::int};
+  }
   @#C1
   get covariantInstanceField() → core::num
     return this.{self::B::_#B#covariantInstanceField#isSet} ?{core::num} let final core::num? #t21 = this.{self::B::_#B#covariantInstanceField} in #t21{core::num} : throw new _in::LateInitializationErrorImpl::•("Field 'covariantInstanceField' has not been initialized.");
@@ -144,8 +168,16 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
       self::B::_#finalStaticField = #t26;
     }
   @#C1
-  static get finalStaticFieldWithInitializer() → core::int
-    return let final core::int? #t27 = self::B::_#finalStaticFieldWithInitializer in #t27.==(null) ?{core::int} let final core::int #t28 = 0 in self::B::_#finalStaticFieldWithInitializer.==(null) ?{core::int} self::B::_#finalStaticFieldWithInitializer = #t28 : throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticFieldWithInitializer' has been assigned during initialization.") : #t27{core::int};
+  static get finalStaticFieldWithInitializer() → core::int {
+    if(!self::B::_#finalStaticFieldWithInitializer#isSet) {
+      final core::int #t27 = 0;
+      if(self::B::_#finalStaticFieldWithInitializer#isSet)
+        throw new _in::LateInitializationErrorImpl::•("Field 'finalStaticFieldWithInitializer' has been assigned during initialization.");
+      self::B::_#finalStaticFieldWithInitializer = #t27;
+      self::B::_#finalStaticFieldWithInitializer#isSet = true;
+    }
+    return let final core::int? #t28 = self::B::_#finalStaticFieldWithInitializer in #t28{core::int};
+  }
 }
 extension Extension on self::A {
   static field extensionStaticField = self::_#Extension|extensionStaticField;
@@ -192,8 +224,16 @@ static set finalTopLevelField(core::int #t32) → void
     self::_#finalTopLevelField = #t32;
   }
 @#C1
-static get finalTopLevelFieldWithInitializer() → core::int
-  return let final core::int? #t33 = self::_#finalTopLevelFieldWithInitializer in #t33.==(null) ?{core::int} let final core::int #t34 = 0 in self::_#finalTopLevelFieldWithInitializer.==(null) ?{core::int} self::_#finalTopLevelFieldWithInitializer = #t34 : throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelFieldWithInitializer' has been assigned during initialization.") : #t33{core::int};
+static get finalTopLevelFieldWithInitializer() → core::int {
+  if(!self::_#finalTopLevelFieldWithInitializer#isSet) {
+    final core::int #t33 = 0;
+    if(self::_#finalTopLevelFieldWithInitializer#isSet)
+      throw new _in::LateInitializationErrorImpl::•("Field 'finalTopLevelFieldWithInitializer' has been assigned during initialization.");
+    self::_#finalTopLevelFieldWithInitializer = #t33;
+    self::_#finalTopLevelFieldWithInitializer#isSet = true;
+  }
+  return let final core::int? #t34 = self::_#finalTopLevelFieldWithInitializer in #t34{core::int};
+}
 @#C1
 static get Extension|extensionStaticField() → core::int
   return self::_#Extension|extensionStaticField#isSet ?{core::int} let final core::int? #t35 = self::_#Extension|extensionStaticField in #t35{core::int} : throw new _in::LateInitializationErrorImpl::•("Field 'extensionStaticField' has not been initialized.");
@@ -214,8 +254,16 @@ static set Extension|finalExtensionStaticField(core::int #t38) → void
     self::_#Extension|finalExtensionStaticField = #t38;
   }
 @#C1
-static get Extension|finalExtensionStaticFieldWithInitializer() → core::int
-  return let final core::int? #t39 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t39.==(null) ?{core::int} let final core::int #t40 = 0 in self::_#Extension|finalExtensionStaticFieldWithInitializer.==(null) ?{core::int} self::_#Extension|finalExtensionStaticFieldWithInitializer = #t40 : throw new _in::LateInitializationErrorImpl::•("Field 'finalExtensionStaticFieldWithInitializer' has been assigned during initialization.") : #t39{core::int};
+static get Extension|finalExtensionStaticFieldWithInitializer() → core::int {
+  if(!self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet) {
+    final core::int #t39 = 0;
+    if(self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet)
+      throw new _in::LateInitializationErrorImpl::•("Field 'finalExtensionStaticFieldWithInitializer' has been assigned during initialization.");
+    self::_#Extension|finalExtensionStaticFieldWithInitializer = #t39;
+    self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet = true;
+  }
+  return let final core::int? #t40 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t40{core::int};
+}
 static method main() → dynamic {}
 
 constants  {

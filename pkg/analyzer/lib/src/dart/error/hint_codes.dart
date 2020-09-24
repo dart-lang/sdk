@@ -943,6 +943,17 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Remove @sealed.");
 
   /**
+   * This hint is generated anywhere where a member annotated with `@internal`
+   * is used outside of the package in which it is declared.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_USE_OF_INTERNAL_MEMBER = HintCode(
+      'INVALID_USE_OF_INTERNAL_MEMBER',
+      "The member '{0}' can only be used within its package.");
+
+  /**
    * This hint is generated anywhere where a member annotated with `@protected`
    * is used outside of an instance member of a subclass.
    *

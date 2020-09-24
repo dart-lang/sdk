@@ -184,12 +184,16 @@ class PrefixScope implements Scope {
   final Map<String, Element> _getters = {};
   final Map<String, Element> _setters = {};
   final Set<ExtensionElement> _extensions = {};
+  LibraryElement _deferredLibrary;
 
   PrefixScope(this._library, PrefixElement prefix) {
     for (var import in _library.imports) {
       if (import.prefix == prefix) {
         var elements = impl.NamespaceBuilder().getImportedElements(import);
         elements.forEach(_add);
+        if (import.isDeferred) {
+          _deferredLibrary ??= import.importedLibrary;
+        }
       }
     }
   }
@@ -203,6 +207,10 @@ class PrefixScope implements Scope {
 
   @override
   ScopeLookupResult lookup2(String id) {
+    if (_deferredLibrary != null && id == FunctionElement.LOAD_LIBRARY_NAME) {
+      return ScopeLookupResult(_deferredLibrary.loadLibraryFunction, null);
+    }
+
     var getter = _getters[id];
     var setter = _setters[id];
     return ScopeLookupResult(getter, setter);

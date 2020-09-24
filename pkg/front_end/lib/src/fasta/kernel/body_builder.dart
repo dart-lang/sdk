@@ -2419,7 +2419,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   .withArguments(token.lexeme),
               token.charOffset,
               token.length);
-        } else if (isFinal && !isLate) {
+        } else if (!libraryBuilder.isNonNullableByDefault &&
+            isFinal &&
+            !isLate) {
           initializer = buildProblem(
               fasta.templateFinalFieldWithoutInitializer
                   .withArguments(token.lexeme),

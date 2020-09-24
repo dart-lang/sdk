@@ -188,3 +188,9 @@ abstract class VMInternalsForTesting {
   // This function can be used by tests to enforce garbage collection.
   static void collectAllGarbage() native "Internal_collectAllGarbage";
 }
+
+@patch
+T createSentinel<T>() => throw UnsupportedError('createSentinel');
+
+@patch
+bool isSentinel(dynamic value) => throw UnsupportedError('isSentinel');

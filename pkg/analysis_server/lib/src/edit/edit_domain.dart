@@ -280,6 +280,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
+
+    if (!server.contextManager.isInAnalysisRoot(file)) {
+      server.sendResponse(Response.getFixesInvalidFile(request));
+      return;
+    }
+
     //
     // Allow plugins to start computing fixes.
     //

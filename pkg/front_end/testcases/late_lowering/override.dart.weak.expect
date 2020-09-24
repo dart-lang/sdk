@@ -84,8 +84,16 @@ class SubClass extends self::Class {
       this.{self::SubClass::_#SubClass#field3#isSet} = true;
       this.{self::SubClass::_#SubClass#field3} = #t14;
     }
-  get field4() → core::int
-    return let final core::int? #t15 = this.{self::SubClass::_#SubClass#field4} in #t15.==(null) ?{core::int} let final core::int #t16 = 0 in this.{self::SubClass::_#SubClass#field4}.==(null) ?{core::int} this.{self::SubClass::_#SubClass#field4} = #t16 : throw new _in::LateInitializationErrorImpl::•("Field 'field4' has been assigned during initialization.") : #t15{core::int};
+  get field4() → core::int {
+    if(!this.{self::SubClass::_#SubClass#field4#isSet}) {
+      final core::int #t15 = 0;
+      if(this.{self::SubClass::_#SubClass#field4#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'field4' has been assigned during initialization.");
+      this.{self::SubClass::_#SubClass#field4} = #t15;
+      this.{self::SubClass::_#SubClass#field4#isSet} = true;
+    }
+    return let final core::int? #t16 = this.{self::SubClass::_#SubClass#field4} in #t16{core::int};
+  }
   get directField1() → core::int
     return super.{self::Class::field1};
   set directField1(core::int value) → void {

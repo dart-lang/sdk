@@ -106,13 +106,15 @@ class TransformSetParser {
   /// The error reporter to which diagnostics will be reported.
   final ErrorReporter errorReporter;
 
+  final String packageName;
+
   /// The parameter modifications associated with the current transform, or
   /// `null` if the current transform does not yet have any such modifications.
   List<ParameterModification> _parameterModifications;
 
   /// Initialize a newly created parser to report diagnostics to the
   /// [errorReporter].
-  TransformSetParser(this.errorReporter);
+  TransformSetParser(this.errorReporter, this.packageName);
 
   /// Return the result of parsing the file [content] into a transform set, or
   /// `null` if the content does not represent a valid transform set.
@@ -466,7 +468,7 @@ class TransformSetParser {
   ElementDescriptor _translateElement(YamlNode node, ErrorContext context) {
     if (node is YamlMap) {
       var uris = _translateList(node.valueAt(_urisKey),
-          ErrorContext(key: _urisKey, parentNode: node), _translateString);
+          ErrorContext(key: _urisKey, parentNode: node), _translateUri);
       var elementKey = _singleKey(node, const [
         _classKey,
         _constantKey,
@@ -526,7 +528,7 @@ class TransformSetParser {
   ValueGenerator _translateImportValue(YamlMap node) {
     _reportUnsupportedKeys(node, const {_kindKey, _nameKey, _urisKey});
     var uris = _translateList(node.valueAt(_urisKey),
-        ErrorContext(key: _urisKey, parentNode: node), _translateString);
+        ErrorContext(key: _urisKey, parentNode: node), _translateUri);
     var name = _translateString(
         node.valueAt(_nameKey), ErrorContext(key: _nameKey, parentNode: node));
     if (uris == null || name == null) {
@@ -749,6 +751,30 @@ class TransformSetParser {
       _reportError(TransformSetErrorCode.invalidValue, node,
           ['file', 'Map', _nodeType(node)]);
       return null;
+    }
+  }
+
+  /// Translate the [node] into a URI. Return the resulting URI, or `null` if
+  /// the [node] does not represent a valid URI. If the [node] is not valid, use
+  /// the [context] to report the error.
+  Uri _translateUri(YamlNode node, ErrorContext context,
+      {bool required = true}) {
+    if (node is YamlScalar) {
+      var value = node.value;
+      if (value is String) {
+        if (!(value.startsWith('dart:') || value.startsWith('package:'))) {
+          value = 'package:$packageName/$value';
+        }
+        return Uri.parse(value);
+      }
+      return _reportInvalidValue(node, context, 'URI');
+    } else if (node == null) {
+      if (required) {
+        return _reportMissingKey(context);
+      }
+      return null;
+    } else {
+      return _reportInvalidValue(node, context, 'URI');
     }
   }
 

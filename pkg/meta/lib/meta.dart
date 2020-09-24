@@ -126,6 +126,20 @@ const _Factory factory = _Factory();
 ///   class that has this annotation is not immutable.
 const Immutable immutable = Immutable();
 
+/// Used to annotate a declaration which should only be used from within the
+/// package in which it is declared, and which should not be exposed from said
+/// package's public API.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the declaration is declared in a package's public API, or is exposed from
+///   a package's public API, or
+/// * the declaration is private, an unnamed extension, a static member of a
+///   private class, mixin, or extension, a value of a private enum, or a
+///   constructor of a private class, or
+/// * the declaration is referenced outside the package in which it is declared.
+const _Internal internal = _Internal();
+
 /// Used to annotate a test framework function that runs a single test.
 ///
 /// Tools, such as IDEs, can show invocations of such function in a file
@@ -257,15 +271,15 @@ const _Virtual virtual = _Virtual();
 /// * the member is referenced outside of the defining library.
 const _VisibleForOverriding visibleForOverriding = _VisibleForOverriding();
 
-/// Used to annotate a declaration was made public, so that it is more visible
-/// than otherwise necessary, to make code testable.
+/// Used to annotate a declaration that was made public, so that it is more
+/// visible than otherwise necessary, to make code testable.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with a declaration not in the `lib` folder
 ///   of a package, or a private declaration, or a declaration in an unnamed
 ///   static extension, or
-/// * the declaration is referenced outside of its the defining library or a
+/// * the declaration is referenced outside of its defining library or a
 ///   library which is in the `test` folder of the defining package.
 const _VisibleForTesting visibleForTesting = _VisibleForTesting();
 
@@ -324,6 +338,10 @@ class _Experimental {
 
 class _Factory {
   const _Factory();
+}
+
+class _Internal {
+  const _Internal();
 }
 
 class _IsTest {

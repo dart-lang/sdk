@@ -384,8 +384,8 @@ CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void CatchEntryMove::WriteTo(WriteStream* stream) {
-  using Writer = WriteStream::Raw<sizeof(int32_t), int32_t>;
+void CatchEntryMove::WriteTo(BaseWriteStream* stream) {
+  using Writer = BaseWriteStream::Raw<sizeof(int32_t), int32_t>;
   Writer::Write(stream, src_);
   Writer::Write(stream, dest_and_kind_);
 }

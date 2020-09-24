@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -86,6 +87,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       String target,
       int expectedNumberOfFixesForKind,
       String matchFixMessage}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
     var error = await _findErrorToFix(errorFilter, length: length);
     var fix = await _assertHasFix(error,
         expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
@@ -108,6 +112,9 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   void assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
+    if (useLineEndingsForPlatform) {
+      expected = normalizeNewlinesForPlatform(expected);
+    }
     var error = await _findErrorToFixOfType(errorCode);
     var fix = await _assertHasFixAllFix(error);
     change = fix.change;
@@ -169,6 +176,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     verifyNoTestUnitErrors = false;
+    useLineEndingsForPlatform = true;
     _createAnalysisOptionsFile();
   }
 

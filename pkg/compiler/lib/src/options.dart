@@ -253,8 +253,8 @@ class CompilerOptions implements DiagnosticOptions {
   bool enableNullAssertions = false;
 
   /// Whether to generate code asserting that non-nullable return values of
-  /// `@Native` methods are checked for being non-null.
-  bool enableNativeReturnNullAssertions = false;
+  /// `@Native` methods or `JS()` invocations are checked for being non-null.
+  bool enableNativeNullAssertions = false;
 
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
@@ -484,6 +484,8 @@ class CompilerOptions implements DiagnosticOptions {
           _hasOption(options, Flags.enableAsserts)
       ..enableNullAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableNullAssertions)
+      ..enableNativeNullAssertions =
+          _hasOption(options, Flags.enableNativeNullAssertions)
       ..experimentalTrackAllocations =
           _hasOption(options, Flags.experimentalTrackAllocations)
       ..experimentalAllocationsPath = _extractStringOption(
@@ -633,11 +635,6 @@ class CompilerOptions implements DiagnosticOptions {
 
     if (_deferClassTypes) deferClassTypes = true;
     if (_noDeferClassTypes) deferClassTypes = false;
-
-    if (enableNullAssertions) {
-      // TODO(sra): Add a command-line flag to control this independently.
-      enableNativeReturnNullAssertions = true;
-    }
 
     if (_newDeferredSplit) newDeferredSplit = true;
     if (_noNewDeferredSplit) newDeferredSplit = false;

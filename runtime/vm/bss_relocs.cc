@@ -31,8 +31,8 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
   auto const instructions = reinterpret_cast<uword>(
       current->isolate_group()->source()->snapshot_instructions);
   uword dso_base;
-  // For non-natively loaded snapshots, this is instead initialized in
-  // LoadedElf::ResolveSymbols().
+  // Needed for assembly snapshots. For ELF snapshots, we set up the relocated
+  // address information directly in the text segment ImageHeader.
   if (NativeSymbolResolver::LookupSharedObject(instructions, &dso_base)) {
     InitializeBSSEntry(Relocation::InstructionsRelocatedAddress,
                        instructions - dso_base, bss_start);

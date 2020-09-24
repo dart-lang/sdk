@@ -95,7 +95,7 @@ class ElfHeader {
       this.sectionHeaderEntrySize,
       this.sectionHeaderStringsIndex);
 
-  static ElfHeader fromReader(Reader reader) {
+  static ElfHeader? fromReader(Reader reader) {
     final fileSize = reader.length;
 
     for (final sigByte in _ELFMAG.codeUnits) {
@@ -275,10 +275,11 @@ class ProgramHeaderEntry {
       this.paddr, this.filesz, this.memsz, this.align, this.wordSize);
 
   static ProgramHeaderEntry fromReader(Reader reader) {
-    assert(reader.wordSize == 4 || reader.wordSize == 8);
+    int wordSize = reader.wordSize;
+    assert(wordSize == 4 || wordSize == 8);
     final type = _readElfWord(reader);
-    int flags;
-    if (reader.wordSize == 8) {
+    late int flags;
+    if (wordSize == 8) {
       flags = _readElfWord(reader);
     }
     final offset = _readElfOffset(reader);
@@ -286,12 +287,12 @@ class ProgramHeaderEntry {
     final paddr = _readElfAddress(reader);
     final filesz = _readElfNative(reader);
     final memsz = _readElfNative(reader);
-    if (reader.wordSize == 4) {
+    if (wordSize == 4) {
       flags = _readElfWord(reader);
     }
     final align = _readElfNative(reader);
-    return ProgramHeaderEntry._(type, flags, offset, vaddr, paddr, filesz,
-        memsz, align, reader.wordSize);
+    return ProgramHeaderEntry._(
+        type, flags, offset, vaddr, paddr, filesz, memsz, align, wordSize);
   }
 
   static const _typeStrings = <int, String>{
@@ -301,12 +302,8 @@ class ProgramHeaderEntry {
     _PT_PHDR: "PT_PHDR",
   };
 
-  static String _typeToString(int type) {
-    if (_typeStrings.containsKey(type)) {
-      return _typeStrings[type];
-    }
-    return "unknown (${paddedHex(type, 4)})";
-  }
+  static String _typeToString(int type) =>
+      _typeStrings[type] ?? "unknown (${paddedHex(type, 4)})";
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer
@@ -384,7 +381,7 @@ class SectionHeaderEntry {
   final int addrAlign;
   final int entrySize;
   final int wordSize;
-  String _cachedName;
+  late String name;
 
   SectionHeaderEntry._(
       this.nameIndex,
@@ -426,10 +423,8 @@ class SectionHeaderEntry {
   static const _SHT_DYNSYM = 11;
 
   void setName(StringTable nameTable) {
-    _cachedName = nameTable[nameIndex];
+    name = nameTable[nameIndex]!;
   }
-
-  String get name => _cachedName != null ? _cachedName : '<${nameIndex}>';
 
   static const _typeStrings = <int, String>{
     _SHT_NULL: "SHT_NULL",
@@ -443,25 +438,17 @@ class SectionHeaderEntry {
     _SHT_DYNSYM: "SHT_DYNSYM",
   };
 
-  static String _typeToString(int type) {
-    if (_typeStrings.containsKey(type)) {
-      return _typeStrings[type];
-    }
-    return "unknown (${paddedHex(type, 4)})";
-  }
+  static String _typeToString(int type) =>
+      _typeStrings[type] ?? "unknown (${paddedHex(type, 4)})";
 
   void writeToStringBuffer(StringBuffer buffer) {
     buffer.write('Name: ');
-    if (_cachedName != null) {
-      buffer
-        ..write('"')
-        ..write(name)
-        ..write('" (@ ')
-        ..write(nameIndex)
-        ..writeln(')');
-    } else {
-      buffer.writeln(name);
-    }
+    buffer
+      ..write('"')
+      ..write(name)
+      ..write('" (@ ')
+      ..write(nameIndex)
+      ..writeln(')');
     buffer
       ..write('Type: ')
       ..writeln(_typeToString(type))
@@ -629,7 +616,7 @@ class Note extends Section {
 
 /// A map from table offsets to strings, used to store names of ELF objects.
 class StringTable extends Section {
-  final _entries;
+  final Map<int, String> _entries;
 
   StringTable._(entry, this._entries) : super._(entry);
 
@@ -640,7 +627,7 @@ class StringTable extends Section {
     return StringTable._(entry, entries);
   }
 
-  String operator [](int index) => _entries[index];
+  String? operator [](int index) => _entries[index];
   bool containsKey(int index) => _entries.containsKey(index);
 
   @override
@@ -685,40 +672,40 @@ class Symbol {
   final int sectionIndex;
   final int value;
   final int size;
-
   final int _wordSize;
-
-  String name;
+  late String name;
 
   Symbol._(this.nameIndex, this.info, this.other, this.sectionIndex, this.value,
       this.size, this._wordSize);
 
   static Symbol fromReader(Reader reader) {
+    final wordSize = reader.wordSize;
     final nameIndex = _readElfWord(reader);
-    int info;
-    int other;
-    int sectionIndex;
-    if (reader.wordSize == 8) {
+    late int info;
+    late int other;
+    late int sectionIndex;
+    if (wordSize == 8) {
       info = reader.readByte();
       other = reader.readByte();
       sectionIndex = _readElfSection(reader);
     }
     final value = _readElfAddress(reader);
     final size = _readElfNative(reader);
-    if (reader.wordSize == 4) {
+    if (wordSize == 4) {
       info = reader.readByte();
       other = reader.readByte();
       sectionIndex = _readElfSection(reader);
     }
     return Symbol._(
-        nameIndex, info, other, sectionIndex, value, size, reader.wordSize);
+        nameIndex, info, other, sectionIndex, value, size, wordSize);
   }
 
   void _cacheNameFromStringTable(StringTable table) {
-    if (!table.containsKey(nameIndex)) {
+    final nameFromTable = table[nameIndex];
+    if (nameFromTable == null) {
       throw FormatException("Index $nameIndex not found in string table");
     }
-    name = table[nameIndex];
+    name = nameFromTable;
   }
 
   SymbolBinding get bind => SymbolBinding.values[info >> 4];
@@ -726,11 +713,7 @@ class Symbol {
   SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
 
   void writeToStringBuffer(StringBuffer buffer) {
-    if (name != null) {
-      buffer..write('"')..write(name)..write('" =>');
-    } else {
-      buffer..write('<')..write(nameIndex)..write('> =>');
-    }
+    buffer..write('"')..write(name)..write('" =>');
     switch (bind) {
       case SymbolBinding.STB_GLOBAL:
         buffer..write(' a global');
@@ -793,8 +776,8 @@ class SymbolTable extends Section {
   }
 
   Iterable<String> get keys => _nameCache.keys;
-  Iterable<Symbol> get values => _nameCache.values;
-  Symbol operator [](String name) => _nameCache[name];
+  Iterable<Symbol> get values => _entries;
+  Symbol? operator [](String name) => _nameCache[name];
   bool containsKey(String name) => _nameCache.containsKey(name);
 
   @override
@@ -825,21 +808,23 @@ class Elf {
   /// Creates an [Elf] from [bytes].
   ///
   /// Returns null if the file does not start with the ELF magic number.
-  static Elf fromBuffer(Uint8List bytes) =>
+  static Elf? fromBuffer(Uint8List bytes) =>
       Elf.fromReader(Reader.fromTypedData(bytes));
 
   /// Creates an [Elf] from the file at [path].
   ///
   /// Returns null if the file does not start with the ELF magic number.
-  static Elf fromFile(String path) => Elf.fromReader(Reader.fromFile(path));
+  static Elf? fromFile(String path) => Elf.fromReader(Reader.fromFile(path));
 
-  Iterable<Section> namedSections(String name) => _sectionsByName[name];
+  Iterable<Section> namedSections(String name) =>
+      _sectionsByName[name] ?? <Section>[];
 
   /// Lookup of a dynamic symbol by name.
   ///
   /// Returns -1 if there is no dynamic symbol that matches [name].
-  Symbol dynamicSymbolFor(String name) {
-    for (final SymbolTable dynsym in namedSections(".dynsym")) {
+  Symbol? dynamicSymbolFor(String name) {
+    for (final section in namedSections(".dynsym")) {
+      final dynsym = section as SymbolTable;
       if (dynsym.containsKey(name)) return dynsym[name];
     }
     return null;
@@ -847,8 +832,9 @@ class Elf {
 
   /// Reverse lookup of the static symbol that contains the given virtual
   /// address. Returns null if no static symbol matching the address is found.
-  Symbol staticSymbolAt(int address) {
-    for (final SymbolTable table in namedSections('.symtab')) {
+  Symbol? staticSymbolAt(int address) {
+    for (final section in namedSections('.symtab')) {
+      final table = section as SymbolTable;
       for (final symbol in table.values) {
         final start = symbol.value;
         final end = start + symbol.size;
@@ -865,7 +851,7 @@ class Elf {
   /// of the reader will be unchanged.
   ///
   /// Returns null if the file does not start with the ELF magic number.
-  static Elf fromReader(Reader elfReader) {
+  static Elf? fromReader(Reader elfReader) {
     // ELF files contain absolute offsets from the start of the file, so
     // make sure we have a reader that a) makes no assumptions about the
     // endianness or word size, since we'll read those in the header and b)
@@ -887,24 +873,47 @@ class Elf {
     }
     // Now set up the by-name section table and cache the names in the section
     // header entries.
-    final StringTable sectionHeaderStringTable =
-        sections[sectionHeader.entries[header.sectionHeaderStringsIndex]];
+    if (header.sectionHeaderStringsIndex < 0 ||
+        header.sectionHeaderStringsIndex >= sectionHeader.entries.length) {
+      throw FormatException("Section header string table index invalid");
+    }
+    final sectionHeaderStringTableEntry =
+        sectionHeader.entries[header.sectionHeaderStringsIndex];
+    final sectionHeaderStringTable =
+        sections[sectionHeaderStringTableEntry] as StringTable?;
+    if (sectionHeaderStringTable == null) {
+      throw FormatException(
+          "No section for entry ${sectionHeaderStringTableEntry}");
+    }
     final sectionsByName = <String, Set<Section>>{};
     for (final entry in sectionHeader.entries) {
+      final section = sections[entry];
+      if (section == null) {
+        throw FormatException("No section found for entry ${entry}");
+      }
       entry.setName(sectionHeaderStringTable);
-      sectionsByName.putIfAbsent(entry.name, () => {}).add(sections[entry]);
+      sectionsByName.putIfAbsent(entry.name, () => {}).add(section);
     }
     void _cacheSymbolNames(String stringTableTag, String symbolTableTag) {
-      final stringTables = Map.fromEntries(sectionsByName[stringTableTag]
-          .map((s) => MapEntry(s.headerEntry, s)));
-      for (final SymbolTable symbolTable in sectionsByName[symbolTableTag]) {
+      final stringTables = sectionsByName[stringTableTag]?.cast<StringTable>();
+      if (stringTables == null) {
+        return;
+      }
+      final stringTableMap =
+          Map.fromEntries(stringTables.map((s) => MapEntry(s.headerEntry, s)));
+      final symbolTables = sectionsByName[symbolTableTag]?.cast<SymbolTable>();
+      if (symbolTables == null) {
+        return;
+      }
+      for (final symbolTable in symbolTables) {
         final link = symbolTable.headerEntry.link;
         final entry = sectionHeader.entries[link];
-        if (!stringTables.containsKey(entry)) {
+        final stringTable = stringTableMap[entry];
+        if (stringTable == null) {
           throw FormatException(
               "String table not found at section header entry ${link}");
         }
-        symbolTable._cacheNames(stringTables[entry]);
+        symbolTable._cacheNames(stringTable);
       }
     }
 
@@ -948,7 +957,7 @@ class Elf {
       ..writeln('-----------------------------------------------------')
       ..writeln();
     for (final entry in _sectionHeader.entries) {
-      _sections[entry].writeToStringBuffer(buffer);
+      _sections[entry]!.writeToStringBuffer(buffer);
       buffer.writeln();
     }
   }

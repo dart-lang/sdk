@@ -1,18 +1,19 @@
 name: native_stack_traces
 description: Utilities for working with non-symbolic stack traces.
-version: 0.3.8
+version: 0.4.0-nullsafety
 
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/native_stack_traces
 
 environment:
-  sdk: '>=2.8.0 <3.0.0'
+  # This must remain a tight constraint until nnbd is stable
+  sdk: '>=2.10.0-0 <2.10.0'
 
 executables:
   decode:
 
 dependencies:
-  args: ^1.5.2
-  path: ^1.6.4
+  args: ^1.6.0
+  path: ^1.8.0-nullsafety
 
 dev_dependencies:
-  pedantic: ^1.8.0
+  pedantic: ^1.9.2

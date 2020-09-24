@@ -476,7 +476,6 @@ bool LoadedElf::ReadSections() {
                   ".bss does not have enough space.");
       vm_bss_ = reinterpret_cast<uword*>(base_->start() + header.memory_offset);
       isolate_bss_ = vm_bss_ + BSS::kVmEntryCount;
-      // We set applicable BSS entries in ResolveSymbols().
     }
   }
 
@@ -504,22 +503,10 @@ bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
       output = vm_data;
     } else if (strcmp(name, kVmSnapshotInstructionsAsmSymbol) == 0) {
       output = vm_instrs;
-      if (output != nullptr) {
-        // Store the value of the symbol in the VM BSS, as it contains the
-        // address of the VM instructions section relative to the DSO base.
-        BSS::InitializeBSSEntry(BSS::Relocation::InstructionsRelocatedAddress,
-                                sym.value, vm_bss_);
-      }
     } else if (strcmp(name, kIsolateSnapshotDataAsmSymbol) == 0) {
       output = isolate_data;
     } else if (strcmp(name, kIsolateSnapshotInstructionsAsmSymbol) == 0) {
       output = isolate_instrs;
-      if (output != nullptr) {
-        // Store the value of the symbol in the isolate BSS, as it contains the
-        // address of the isolate instructions section relative to the DSO base.
-        BSS::InitializeBSSEntry(BSS::Relocation::InstructionsRelocatedAddress,
-                                sym.value, isolate_bss_);
-      }
     }
 
     if (output != nullptr) {

@@ -822,39 +822,6 @@
         "builder-tag": "vm_nnbd"
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-(linux|mac)-(debug|product|release)-x64-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-(linux|mac)-(debug|product|release)-simarm64-ast": {
-      "options": {
-        "builder-tag": "ast",
-        "use-elf": true,
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
-    "dartkp-linux-(debug|product|release)-simarm-crossword-ast": {
-      "options": {
-        "builder-tag": "crossword_ast",
-        "gen-kernel-options": [
-          "--no-gen-bytecode"
-        ]
-      }
-    },
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "enable-asserts": true
@@ -891,134 +858,6 @@
       }
     },
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
-    "dartkb-interpret-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_interpreter",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--compilation-counter-threshold=-1"
-        ]
-      }
-    },
-    "dartkb-interpret-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_interpreter",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--compilation-counter-threshold=-1"
-        ]
-      }
-    },
-    "dartkb-mixed-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_mixed",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops"
-        ],
-        "vm-options": [
-          "--enable_interpreter"
-        ]
-      }
-    },
-    "dartkb-mixed-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_mixed",
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations"
-        ],
-        "vm-options": [
-          "--enable_interpreter"
-        ]
-      }
-    },
-    "dartkb-interpret-strong-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_interpreter_nnbd",
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations",
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--compilation-counter-threshold=-1",
-          "--sound-null-safety"
-        ]
-      }
-    },
-    "dartkb-interpret-strong-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_interpreter_nnbd",
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops",
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--compilation-counter-threshold=-1",
-          "--sound-null-safety"
-        ]
-      }
-    },
-    "dartkb-mixed-strong-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_mixed_nnbd",
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops",
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--sound-null-safety"
-        ]
-      }
-    },
-    "dartkb-mixed-strong-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
-      "options": {
-        "builder-tag": "bytecode_mixed_nnbd",
-        "enable-experiment": [
-          "non-nullable"
-        ],
-        "gen-kernel-options": [
-          "--gen-bytecode",
-          "--drop-ast",
-          "--bytecode-options=source-positions,annotations",
-          "--sound-null-safety"
-        ],
-        "vm-options": [
-          "--enable_interpreter",
-          "--sound-null-safety"
-        ]
-      }
-    },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -1214,59 +1053,6 @@
             "language",
             "lib"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-dartkb-linux-release-x64",
-        "vm-dartkb-linux-release-simarm64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kbc builders."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "--bytecode",
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm mixed mode tests",
-          "arguments": [
-            "-ndartkb-mixed-linux-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm mixed mode co19 tests",
-          "arguments": [
-            "-ndartkb-mixed-linux-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm interpreter tests",
-          "arguments": [
-            "-ndartkb-interpret-linux-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm interpreter co19 tests",
-          "arguments": [
-            "-ndartkb-interpret-linux-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
         }
       ]
     },
@@ -3616,7 +3402,6 @@
           "name": "build dart for simarm_x64",
           "script": "tools/build.py",
           "arguments": [
-            "--bytecode",
             "gen_snapshot"
           ]
         },
@@ -3625,7 +3410,6 @@
           "script": "tools/build.py",
           "arguments": [
             "--arch=simarm",
-            "--bytecode",
             "dart_precompiled_runtime",
             "vm_platform"
           ]

@@ -331,6 +331,53 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([]));
   }
 
+  Future<void> test_excludedFolders_absolute() async {
+    final excludedFolderPath = join(projectFolderPath, 'excluded');
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      // Exclude the folder with a relative path.
+      {
+        'analysisExcludedFolders': [excludedFolderPath]
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  Future<void> test_excludedFolders_nonList() async {
+    final excludedFolderPath = join(projectFolderPath, 'excluded');
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      // Include a single string instead of an array since it's an easy mistake
+      // to make without editor validation of settings.
+      {'analysisExcludedFolders': 'excluded'},
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  Future<void> test_excludedFolders_relative() async {
+    final excludedFolderPath = join(projectFolderPath, 'excluded');
+
+    await provideConfig(
+      () => initialize(
+          workspaceCapabilities:
+              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      // Exclude the folder with a relative path.
+      {
+        'analysisExcludedFolders': ['excluded']
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
   Future<void> test_initialize() async {
     final response = await initialize();
     expect(response, isNotNull);

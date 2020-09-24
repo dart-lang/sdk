@@ -341,13 +341,6 @@ class TypeSystemTypeOperations
   }
 
   @override
-  bool isLocalVariableWithoutDeclaredType(PromotableElement variable) {
-    return variable is LocalVariableElement &&
-        variable.hasImplicitType &&
-        !variable.hasInitializer;
-  }
-
-  @override
   bool isNever(DartType type) {
     return typeSystem.isBottom(type);
   }

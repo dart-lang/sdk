@@ -473,7 +473,7 @@ class IdbFactory extends Interceptor {
           'version and onUpgradeNeeded must be specified together'));
     }
     try {
-      var request;
+      OpenDBRequest request;
       if (version != null) {
         request = _open(name, version);
       } else {

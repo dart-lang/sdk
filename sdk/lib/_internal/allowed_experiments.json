@@ -76,6 +76,9 @@
     "meta": {
       "experimentSet": "nullSafety"
     },
+    "native_stack_traces": {
+      "experimentSet": "nullSafety"
+    },
     "path": {
       "experimentSet": "nullSafety"
     },

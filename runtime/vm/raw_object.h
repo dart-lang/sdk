@@ -1404,6 +1404,25 @@ class KernelProgramInfoLayout : public ObjectLayout {
   }
 };
 
+class ImageHeaderLayout : public ObjectLayout {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ImageHeader);
+
+  VISIT_NOTHING();
+  // The offset of the corresponding BSS section from this text section.
+  uword bss_offset_;
+  // The relocated address of this text section in the shared object. Properly
+  // filled for ELF snapshots, always 0 in assembly snapshots. (For the latter,
+  // we instead get the value during BSS initialization and store it there.)
+  uword instructions_relocated_address_;
+  // The offset of the GNU build ID section description field from this text
+  // section.
+  uword build_id_offset_;
+  // The length of the GNU build ID section description field.
+  uword build_id_length_;
+
+  friend class Image;
+};
+
 class WeakSerializationReferenceLayout : public ObjectLayout {
   RAW_HEAP_OBJECT_IMPLEMENTATION(WeakSerializationReference);
 

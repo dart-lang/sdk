@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/canonical_tables.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/debugger.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/type_table.h"
 
 namespace dart {
 
@@ -681,6 +681,10 @@ void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void InstructionsSection::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+void ImageHeader::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 

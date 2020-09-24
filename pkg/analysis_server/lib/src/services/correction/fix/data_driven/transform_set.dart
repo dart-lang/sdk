@@ -18,7 +18,7 @@ class TransformSet {
 
   /// Return a list of the transforms that apply for a reference to the given
   /// [name] in a library that imports the [importedUris].
-  List<Transform> transformsFor(String name, List<String> importedUris) {
+  List<Transform> transformsFor(String name, List<Uri> importedUris) {
     var result = <Transform>[];
     for (var transform in _transforms) {
       if (transform.appliesTo(name, importedUris)) {
