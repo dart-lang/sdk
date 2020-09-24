@@ -622,27 +622,30 @@ class DwarfAssemblyStream : public DwarfWriteStream {
   explicit DwarfAssemblyStream(BaseWriteStream* stream)
       : stream_(ASSERT_NOTNULL(stream)) {}
 
-  void sleb128(intptr_t value) { Print(".sleb128 %" Pd "\n", value); }
-  void uleb128(uintptr_t value) { Print(".uleb128 %" Pd "\n", value); }
-  void u1(uint8_t value) { Print(".byte %u\n", value); }
-  void u2(uint16_t value) { Print(".2byte %u\n", value); }
-  void u4(uint32_t value) { Print(".4byte %" Pu32 "\n", value); }
-  void u8(uint64_t value) { Print(".8byte %" Pu64 "\n", value); }
+  void sleb128(intptr_t value) { stream_->Printf(".sleb128 %" Pd "\n", value); }
+  void uleb128(uintptr_t value) {
+    stream_->Printf(".uleb128 %" Pd "\n", value);
+  }
+  void u1(uint8_t value) { stream_->Printf(".byte %u\n", value); }
+  void u2(uint16_t value) { stream_->Printf(".2byte %u\n", value); }
+  void u4(uint32_t value) { stream_->Printf(".4byte %" Pu32 "\n", value); }
+  void u8(uint64_t value) { stream_->Printf(".8byte %" Pu64 "\n", value); }
   void string(const char* cstr) {     // NOLINT
-    Print(".string \"%s\"\n", cstr);  // NOLINT
+    stream_->Printf(".string \"%s\"\n", cstr);  // NOLINT
   }
   // Uses labels, so doesn't output to start or return a useful fixup position.
   intptr_t ReserveSize(const char* prefix, intptr_t* start) {
     // Assignment to temp works around buggy Mac assembler.
-    Print("L%s_size = .L%s_end - .L%s_start\n", prefix, prefix, prefix);
-    Print(".4byte L%s_size\n", prefix);
-    Print(".L%s_start:\n", prefix);
+    stream_->Printf("L%s_size = .L%s_end - .L%s_start\n", prefix, prefix,
+                    prefix);
+    stream_->Printf(".4byte L%s_size\n", prefix);
+    stream_->Printf(".L%s_start:\n", prefix);
     return -1;
   }
   // Just need to label the end so the assembler can calculate the size, so
   // start and the fixup position is unused.
   void SetSize(intptr_t fixup, const char* prefix, intptr_t start) {
-    Print(".L%s_end:\n", prefix);
+    stream_->Printf(".L%s_end:\n", prefix);
   }
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
     if (offset == 0) {
@@ -655,51 +658,53 @@ class DwarfAssemblyStream : public DwarfWriteStream {
                                     intptr_t offset1,
                                     const char* symbol2,
                                     intptr_t offset2) {
-    Print(".uleb128 %s - %s + %" Pd "\n", symbol1, symbol2, offset1 - offset2);
+    stream_->Printf(".uleb128 %s - %s + %" Pd "\n", symbol1, symbol2,
+                    offset1 - offset2);
   }
 
   // No-op, we'll be using labels.
   void InitializeAbstractOrigins(intptr_t size) {}
   void RegisterAbstractOrigin(intptr_t index) {
     // Label for DW_AT_abstract_origin references
-    Print(".Lfunc%" Pd ":\n", index);
+    stream_->Printf(".Lfunc%" Pd ":\n", index);
   }
   void AbstractOrigin(intptr_t index) {
     // Assignment to temp works around buggy Mac assembler.
-    Print("Ltemp%" Pd " = .Lfunc%" Pd " - %s\n", temp_, index, kDebugInfoLabel);
-    Print(".4byte Ltemp%" Pd "\n", temp_);
+    stream_->Printf("Ltemp%" Pd " = .Lfunc%" Pd " - %s\n", temp_, index,
+                    kDebugInfoLabel);
+    stream_->Printf(".4byte Ltemp%" Pd "\n", temp_);
     temp_++;
   }
 
   // Methods for writing the assembly prologues for various DWARF sections.
   void AbbreviationsPrologue() {
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    Print(".section __DWARF,__debug_abbrev,regular,debug\n");
+    stream_->WriteString(".section __DWARF,__debug_abbrev,regular,debug\n");
 #elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
     defined(TARGET_OS_FUCHSIA)
-    Print(".section .debug_abbrev,\"\"\n");
+    stream_->WriteString(".section .debug_abbrev,\"\"\n");
 #else
     UNIMPLEMENTED();
 #endif
   }
   void DebugInfoPrologue() {
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    Print(".section __DWARF,__debug_info,regular,debug\n");
+    stream_->WriteString(".section __DWARF,__debug_info,regular,debug\n");
 #elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
     defined(TARGET_OS_FUCHSIA)
-    Print(".section .debug_info,\"\"\n");
+    stream_->WriteString(".section .debug_info,\"\"\n");
 #else
     UNIMPLEMENTED();
 #endif
     // Used to calculate abstract origin values.
-    Print("%s:\n", kDebugInfoLabel);
+    stream_->Printf("%s:\n", kDebugInfoLabel);
   }
   void LineNumberProgramPrologue() {
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-    Print(".section __DWARF,__debug_line,regular,debug\n");
+    stream_->WriteString(".section __DWARF,__debug_line,regular,debug\n");
 #elif defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                \
     defined(TARGET_OS_FUCHSIA)
-    Print(".section .debug_line,\"\"\n");
+    stream_->WriteString(".section .debug_line,\"\"\n");
 #else
     UNIMPLEMENTED();
 #endif
@@ -708,22 +713,17 @@ class DwarfAssemblyStream : public DwarfWriteStream {
  private:
   static constexpr const char* kDebugInfoLabel = ".Ldebug_info";
 
-  void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
-    va_list args;
-    va_start(args, format);
-    stream_->VPrint(format, args);
-    va_end(args);
-  }
-
 #if defined(TARGET_ARCH_IS_32_BIT)
 #define FORM_ADDR ".4byte"
 #elif defined(TARGET_ARCH_IS_64_BIT)
 #define FORM_ADDR ".8byte"
 #endif
 
-  void PrintNamedAddress(const char* name) { Print(FORM_ADDR " %s\n", name); }
+  void PrintNamedAddress(const char* name) {
+    stream_->Printf(FORM_ADDR " %s\n", name);
+  }
   void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
-    Print(FORM_ADDR " %s + %" Pd "\n", name, offset);
+    stream_->Printf(FORM_ADDR " %s + %" Pd "\n", name, offset);
   }
 
 #undef FORM_ADDR
@@ -840,10 +840,10 @@ void AssemblyImageWriter::WriteBss(bool vm) {
 #if defined(DART_PRECOMPILER)
   auto const bss_symbol =
       vm ? kVmSnapshotBssAsmSymbol : kIsolateSnapshotBssAsmSymbol;
-  assembly_stream_->Print(".bss\n");
+  assembly_stream_->WriteString(".bss\n");
   // Align the BSS contents as expected by the Image class.
   Align(ImageWriter::kBssAlignment);
-  assembly_stream_->Print("%s:\n", bss_symbol);
+  assembly_stream_->Printf("%s:\n", bss_symbol);
 
   auto const entry_count = vm ? BSS::kVmEntryCount : BSS::kIsolateEntryCount;
   for (intptr_t i = 0; i < entry_count; i++) {
@@ -860,18 +860,18 @@ void AssemblyImageWriter::WriteROData(NonStreamingWriteStream* clustered_stream,
 #else
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
     defined(TARGET_OS_FUCHSIA)
-  assembly_stream_->Print(".section .rodata\n");
+  assembly_stream_->WriteString(".section .rodata\n");
 #elif defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
-  assembly_stream_->Print(".const\n");
+  assembly_stream_->WriteString(".const\n");
 #else
   UNIMPLEMENTED();
 #endif
 
   const char* data_symbol =
       vm ? kVmSnapshotDataAsmSymbol : kIsolateSnapshotDataAsmSymbol;
-  assembly_stream_->Print(".globl %s\n", data_symbol);
+  assembly_stream_->Printf(".globl %s\n", data_symbol);
   Align(ImageWriter::kRODataAlignment);
-  assembly_stream_->Print("%s:\n", data_symbol);
+  assembly_stream_->Printf("%s:\n", data_symbol);
   const uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
   const intptr_t length = clustered_stream->bytes_written();
   WriteByteSequence(buffer, buffer + length);
@@ -895,13 +895,13 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
   const char* instructions_symbol = vm ? kVmSnapshotInstructionsAsmSymbol
                                        : kIsolateSnapshotInstructionsAsmSymbol;
-  assembly_stream_->Print(".text\n");
-  assembly_stream_->Print(".globl %s\n", instructions_symbol);
+  assembly_stream_->WriteString(".text\n");
+  assembly_stream_->Printf(".globl %s\n", instructions_symbol);
 
   // Start snapshot at page boundary.
   ASSERT(ImageWriter::kTextAlignment >= VirtualMemory::PageSize());
   Align(ImageWriter::kTextAlignment);
-  assembly_stream_->Print("%s:\n", instructions_symbol);
+  assembly_stream_->Printf("%s:\n", instructions_symbol);
 
 #if defined(DART_PRECOMPILER)
   auto const bss_symbol =
@@ -976,8 +976,8 @@ void AssemblyImageWriter::WriteText(bool vm) {
 
     // An ImageHeader has four fields:
     // 1) The BSS offset from this section.
-    assembly_stream_->Print("%s %s - %s\n", kLiteralPrefix, bss_symbol,
-                            instructions_symbol);
+    assembly_stream_->Printf("%s %s - %s\n", kLiteralPrefix, bss_symbol,
+                             instructions_symbol);
     text_offset += compiler::target::kWordSize;
     // 2) The relocated address of the instructions.
     //
@@ -1133,7 +1133,7 @@ void AssemblyImageWriter::WriteText(bool vm) {
 #endif
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
-    assembly_stream_->Print("%s:\n", object_name);
+    assembly_stream_->Printf("%s:\n", object_name);
 
     {
       // 3. Write from the payload start to payload end. For AOT snapshots
@@ -1160,11 +1160,10 @@ void AssemblyImageWriter::WriteText(bool vm) {
           Utils::RoundDown(payload_end, sizeof(compiler::target::uword));
       for (uword cursor = payload_start; cursor < possible_relocations_end;
            cursor += sizeof(compiler::target::uword)) {
-        compiler::target::uword data =
-            *reinterpret_cast<compiler::target::uword*>(cursor);
+        uword data = *reinterpret_cast<compiler::target::uword*>(cursor);
         if ((cursor - payload_start) == next_reloc_offset) {
-          assembly_stream_->Print("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
-                                  bss_symbol, /*addend=*/data);
+          assembly_stream_->Printf("%s %s - (.) + %" Pu "\n", kLiteralPrefix,
+                                   bss_symbol, /*addend=*/data);
           text_offset += compiler::target::kWordSize;
           next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
         } else {
@@ -1243,12 +1242,14 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // Creates DWARF's .debug_frame
   // CFI = Call frame information
   // CFA = Canonical frame address
-  assembly_stream_->Print(".cfi_startproc\n");
+  assembly_stream_->WriteString(".cfi_startproc\n");
 
 #if defined(TARGET_ARCH_X64)
-  assembly_stream_->Print(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
-  assembly_stream_->Print(".cfi_offset rbp, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_->Print(".cfi_offset rip, 8\n");   // saved pc is *(CFA+8)
+  assembly_stream_->WriteString(".cfi_def_cfa rbp, 0\n");  // CFA is fp+0
+  assembly_stream_->WriteString(
+      ".cfi_offset rbp, 0\n");  // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(
+      ".cfi_offset rip, 8\n");  // saved pc is *(CFA+8)
   // saved sp is CFA+16
   // Should be ".cfi_value_offset rsp, 16", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -1257,14 +1258,16 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend               16
-  assembly_stream_->Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM64)
   COMPILE_ASSERT(FP == R29);
   COMPILE_ASSERT(LR == R30);
-  assembly_stream_->Print(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
-  assembly_stream_->Print(".cfi_offset x29, 0\n");   // saved fp is *(CFA+0)
-  assembly_stream_->Print(".cfi_offset x30, 8\n");   // saved pc is *(CFA+8)
+  assembly_stream_->WriteString(".cfi_def_cfa x29, 0\n");  // CFA is fp+0
+  assembly_stream_->WriteString(
+      ".cfi_offset x29, 0\n");  // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(
+      ".cfi_offset x30, 8\n");  // saved pc is *(CFA+8)
   // saved sp is CFA+16
   // Should be ".cfi_value_offset sp, 16", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -1273,19 +1276,20 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend               16
-  assembly_stream_->Print(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
+  assembly_stream_->WriteString(".cfi_escape 0x10, 31, 2, 0x23, 16\n");
 
 #elif defined(TARGET_ARCH_ARM)
 #if defined(TARGET_OS_MACOS) || defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R7);
-  assembly_stream_->Print(".cfi_def_cfa r7, 0\n");  // CFA is fp+j0
-  assembly_stream_->Print(".cfi_offset r7, 0\n");   // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(".cfi_def_cfa r7, 0\n");  // CFA is fp+j0
+  assembly_stream_->WriteString(".cfi_offset r7, 0\n");  // saved fp is *(CFA+0)
 #else
   COMPILE_ASSERT(FP == R11);
-  assembly_stream_->Print(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
-  assembly_stream_->Print(".cfi_offset r11, 0\n");   // saved fp is *(CFA+0)
+  assembly_stream_->WriteString(".cfi_def_cfa r11, 0\n");  // CFA is fp+0
+  assembly_stream_->WriteString(
+      ".cfi_offset r11, 0\n");  // saved fp is *(CFA+0)
 #endif
-  assembly_stream_->Print(".cfi_offset lr, 4\n");   // saved pc is *(CFA+4)
+  assembly_stream_->WriteString(".cfi_offset lr, 4\n");  // saved pc is *(CFA+4)
   // saved sp is CFA+8
   // Should be ".cfi_value_offset sp, 8", but requires gcc newer than late
   // 2016 and not supported by Android's libunwind.
@@ -1294,14 +1298,14 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   // uleb128 size of operation     2
   // DW_OP_plus_uconst          0x23
   // uleb128 addend                8
-  assembly_stream_->Print(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
+  assembly_stream_->WriteString(".cfi_escape 0x10, 13, 2, 0x23, 8\n");
 
 // libunwind on ARM may use .ARM.exidx instead of .debug_frame
 #if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
   COMPILE_ASSERT(FP == R11);
-  assembly_stream_->Print(".fnstart\n");
-  assembly_stream_->Print(".save {r11, lr}\n");
-  assembly_stream_->Print(".setfp r11, sp, #0\n");
+  assembly_stream_->WriteString(".fnstart\n");
+  assembly_stream_->WriteString(".save {r11, lr}\n");
+  assembly_stream_->WriteString(".setfp r11, sp, #0\n");
 #endif
 
 #endif
@@ -1310,10 +1314,10 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
 void AssemblyImageWriter::FrameUnwindEpilogue() {
 #if defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_MACOS_IOS)
-  assembly_stream_->Print(".fnend\n");
+  assembly_stream_->WriteString(".fnend\n");
 #endif
 #endif
-  assembly_stream_->Print(".cfi_endproc\n");
+  assembly_stream_->WriteString(".cfi_endproc\n");
 }
 
 intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
@@ -1327,20 +1331,22 @@ intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
   }
   if (end != end_of_words) {
     auto start_of_rest = reinterpret_cast<const uint8_t*>(end_of_words);
-    assembly_stream_->Print(".byte ");
+    assembly_stream_->WriteString(".byte ");
     for (auto cursor = start_of_rest;
          cursor < reinterpret_cast<const uint8_t*>(end); cursor++) {
-      if (cursor != start_of_rest) assembly_stream_->Print(", ");
-      assembly_stream_->Print("0x%0.2" Px "", *cursor);
+      if (cursor != start_of_rest) {
+        assembly_stream_->WriteString(", ");
+      }
+      assembly_stream_->Printf("0x%0.2x", *cursor);
     }
-    assembly_stream_->Print("\n");
+    assembly_stream_->WriteString("\n");
   }
   return end - start;
 }
 
 intptr_t AssemblyImageWriter::Align(intptr_t alignment, uword position) {
   const uword next_position = Utils::RoundUp(position, alignment);
-  assembly_stream_->Print(".balign %" Pd ", 0\n", alignment);
+  assembly_stream_->Printf(".balign %" Pd ", 0\n", alignment);
   return next_position - position;
 }
 

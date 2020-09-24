@@ -280,6 +280,9 @@ static constexpr int kWordSizeLog2 = 3;
 #endif
 static constexpr int kWordSize = 1 << kWordSizeLog2;
 static_assert(kWordSize == sizeof(word), "kWordSize should match sizeof(word)");
+// Our compiler code currently assumes this, so formally check it.
+static_assert(dart::kWordSize >= kWordSize,
+              "Host word size smaller than target word size");
 
 static constexpr word kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 static constexpr word kBitsPerWord = 1 << kBitsPerWordLog2;
