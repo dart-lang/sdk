@@ -21,7 +21,7 @@ class ElfWriteStream : public ValueObject {
   explicit ElfWriteStream(BaseWriteStream* stream)
       : stream_(ASSERT_NOTNULL(stream)) {}
 
-  intptr_t Position() const { return stream_->Position(); }
+  intptr_t position() const { return stream_->Position(); }
   void Align(const intptr_t alignment) {
     ASSERT(Utils::IsPowerOfTwo(alignment));
     stream_->Align(alignment);
@@ -29,13 +29,25 @@ class ElfWriteStream : public ValueObject {
   void WriteBytes(const uint8_t* b, intptr_t size) {
     stream_->WriteBytes(b, size);
   }
-  void WriteByte(uint8_t value) { stream_->WriteByte(value); }
-  void WriteHalf(uint16_t value) { stream_->WriteFixed(value); }
-  void WriteWord(uint32_t value) { stream_->WriteFixed(value); }
-  void WriteAddr(compiler::target::uword value) { stream_->WriteFixed(value); }
-  void WriteOff(compiler::target::uword value) { stream_->WriteFixed(value); }
+  void WriteByte(uint8_t value) {
+    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+  }
+  void WriteHalf(uint16_t value) {
+    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+  }
+  void WriteWord(uint32_t value) {
+    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+  }
+  void WriteAddr(compiler::target::uword value) {
+    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+  }
+  void WriteOff(compiler::target::uword value) {
+    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+  }
 #if defined(TARGET_ARCH_IS_64_BIT)
-  void WriteXWord(uint64_t value) { stream_->WriteFixed(value); }
+  void WriteXWord(uint64_t value) {
+    stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
+  }
 #endif
 
  private:
@@ -590,7 +602,7 @@ class Symbol : public ZoneAllocated {
         cstr_(cstr) {}
 
   void Write(ElfWriteStream* stream) const {
-    const intptr_t start = stream->Position();
+    const intptr_t start = stream->position();
     stream->WriteWord(name_index);
 #if defined(TARGET_ARCH_IS_32_BIT)
     stream->WriteAddr(offset);
@@ -605,7 +617,7 @@ class Symbol : public ZoneAllocated {
     stream->WriteAddr(offset);
     stream->WriteXWord(size);
 #endif
-    ASSERT_EQUAL(stream->Position() - start, sizeof(elf::Symbol));
+    ASSERT_EQUAL(stream->position() - start, sizeof(elf::Symbol));
   }
 
   const intptr_t name_index;
@@ -643,9 +655,9 @@ class SymbolTable : public Section {
   void Write(ElfWriteStream* stream) {
     for (intptr_t i = 0; i < Length(); i++) {
       auto const symbol = At(i);
-      const intptr_t start = stream->Position();
+      const intptr_t start = stream->position();
       symbol->Write(stream);
-      ASSERT_EQUAL(stream->Position() - start, entry_size);
+      ASSERT_EQUAL(stream->position() - start, entry_size);
     }
   }
 
@@ -765,7 +777,7 @@ class DynamicTable : public Section {
     Entry(elf::DynamicEntryType tag, intptr_t value) : tag(tag), value(value) {}
 
     void Write(ElfWriteStream* stream) {
-      const intptr_t start = stream->Position();
+      const intptr_t start = stream->position();
 #if defined(TARGET_ARCH_IS_32_BIT)
       stream->WriteWord(static_cast<uint32_t>(tag));
       stream->WriteAddr(value);
@@ -773,7 +785,7 @@ class DynamicTable : public Section {
       stream->WriteXWord(static_cast<uint64_t>(tag));
       stream->WriteAddr(value);
 #endif
-      ASSERT_EQUAL(stream->Position() - start, sizeof(elf::DynamicEntry));
+      ASSERT_EQUAL(stream->position() - start, sizeof(elf::DynamicEntry));
     }
 
     elf::DynamicEntryType tag;
@@ -1027,7 +1039,7 @@ class DwarfElfStream : public DwarfWriteStream {
       } else {
         part |= 0x80;
       }
-      stream_->WriteByte(part);
+      stream_->WriteFixed(part);
     }
   }
 
@@ -1041,32 +1053,35 @@ class DwarfElfStream : public DwarfWriteStream {
       } else {
         part |= 0x80;
       }
-      stream_->WriteByte(part);
+      stream_->WriteFixed(part);
     }
   }
 
-  void u1(uint8_t value) { stream_->WriteByte(value); }
-  void u2(uint16_t value) { stream_->WriteFixed(value); }
-  void u4(uint32_t value) { stream_->WriteFixed(value); }
-  void u8(uint64_t value) { stream_->WriteFixed(value); }
+  void u1(uint8_t value) { stream_->WriteFixed(value); }
+  // Can't use WriteFixed for these, as we may not be at aligned positions.
+  void u2(uint16_t value) { stream_->WriteBytes(&value, sizeof(value)); }
+  void u4(uint32_t value) { stream_->WriteBytes(&value, sizeof(value)); }
+  void u8(uint64_t value) { stream_->WriteBytes(&value, sizeof(value)); }
   void string(const char* cstr) {  // NOLINT
-    // Unlike stream_->WriteString(), we want the null terminator written.
-    stream_->WriteBytes(cstr, strlen(cstr) + 1);
+    stream_->WriteBytes(reinterpret_cast<const uint8_t*>(cstr),
+                        strlen(cstr) + 1);
   }
+  intptr_t position() { return stream_->Position(); }
   intptr_t ReserveSize(const char* prefix, intptr_t* start) {
     ASSERT(start != nullptr);
-    intptr_t fixup = stream_->Position();
+    intptr_t fixup = position();
     // We assume DWARF v2, so all sizes are 32-bit.
     u4(0);
     // All sizes for DWARF sections measure the size of the section data _after_
     // the size value.
-    *start = stream_->Position();
+    *start = position();
     return fixup;
   }
   void SetSize(intptr_t fixup, const char* prefix, intptr_t start) {
-    const intptr_t old_position = stream_->Position();
+    const intptr_t old_position = position();
     stream_->SetPosition(fixup);
-    stream_->WriteFixed(static_cast<uint32_t>(old_position - start));
+    const uint32_t value = old_position - start;
+    stream_->WriteBytes(&value, sizeof(value));
     stream_->SetPosition(old_position);
   }
   void OffsetFromSymbol(const char* symbol, intptr_t offset) {
@@ -1093,7 +1108,7 @@ class DwarfElfStream : public DwarfWriteStream {
   void RegisterAbstractOrigin(intptr_t index) {
     ASSERT(abstract_origins_ != nullptr);
     ASSERT(index < abstract_origins_size_);
-    abstract_origins_[index] = stream_->Position();
+    abstract_origins_[index] = position();
   }
   void AbstractOrigin(intptr_t index) { u4(abstract_origins_[index]); }
 
@@ -1517,12 +1532,12 @@ void Elf::WriteHeader(ElfWriteStream* stream) {
   stream->WriteHalf(sections_.length());
   stream->WriteHalf(shstrtab_->index());
 
-  ASSERT_EQUAL(stream->Position(), sizeof(elf::ElfHeader));
+  ASSERT_EQUAL(stream->position(), sizeof(elf::ElfHeader));
 }
 
 void Elf::WriteProgramTable(ElfWriteStream* stream) {
   ASSERT(program_table_file_size_ >= 0);  // Check for finalization.
-  ASSERT(stream->Position() == program_table_file_offset_);
+  ASSERT(stream->position() == program_table_file_offset_);
 #if defined(DEBUG)
   // Here, we count the number of times that a PT_LOAD writable segment is
   // followed by a non-writable segment. We initialize last_writable to true so
@@ -1539,9 +1554,9 @@ void Elf::WriteProgramTable(ElfWriteStream* stream) {
       last_writable = segment->IsWritable();
     }
 #endif
-    const intptr_t start = stream->Position();
+    const intptr_t start = stream->position();
     segment->WriteProgramHeader(stream);
-    const intptr_t end = stream->Position();
+    const intptr_t end = stream->position();
     ASSERT_EQUAL(end - start, sizeof(elf::ProgramHeader));
   }
 #if defined(DEBUG)
@@ -1555,12 +1570,12 @@ void Elf::WriteProgramTable(ElfWriteStream* stream) {
 void Elf::WriteSectionTable(ElfWriteStream* stream) {
   ASSERT(section_table_file_size_ >= 0);  // Check for finalization.
   stream->Align(kElfSectionTableAlignment);
-  ASSERT_EQUAL(stream->Position(), section_table_file_offset_);
+  ASSERT_EQUAL(stream->position(), section_table_file_offset_);
 
   for (auto const section : sections_) {
-    const intptr_t start = stream->Position();
+    const intptr_t start = stream->position();
     section->WriteSectionHeader(stream);
-    const intptr_t end = stream->Position();
+    const intptr_t end = stream->position();
     ASSERT_EQUAL(end - start, sizeof(elf::SectionHeader));
   }
 }
@@ -1583,9 +1598,9 @@ void Elf::WriteSections(ElfWriteStream* stream) {
       stream->Align(load_align);
       current_segment = section->load_segment;
     }
-    ASSERT_EQUAL(stream->Position(), section->file_offset());
+    ASSERT_EQUAL(stream->position(), section->file_offset());
     section->Write(stream);
-    ASSERT_EQUAL(stream->Position(),
+    ASSERT_EQUAL(stream->position(),
                  section->file_offset() + section->FileSize());
   }
 }

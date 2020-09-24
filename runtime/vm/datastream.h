@@ -332,7 +332,7 @@ class BaseWriteStream : public ValueObject {
   class Raw<1, T> {
    public:
     static void Write(BaseWriteStream* st, T value) {
-      st->WriteByte(bit_cast<uint8_t>(value));
+      st->WriteByte(bit_cast<int8_t>(value));
     }
   };
 
@@ -390,25 +390,33 @@ class BaseWriteStream : public ValueObject {
     current_ += len;
   }
 
-  void WriteWord(uword value) { WriteFixed(value); }
+  void WriteWord(uword value) {
+    const intptr_t len = sizeof(uword);
+    EnsureSpace(len);
+    *reinterpret_cast<uword*>(current_) = value;
+    current_ += len;
+  }
 
   void WriteTargetWord(uword value) {
 #if defined(IS_SIMARM_X64)
     RELEASE_ASSERT(Utils::IsInt(32, static_cast<word>(value)));
-    WriteFixed(static_cast<uint32_t>(value));
-#else
-    WriteFixed(value);
-#endif
+    const intptr_t len = sizeof(uint32_t);
+    EnsureSpace(len);
+    *reinterpret_cast<uint32_t*>(current_) = static_cast<uint32_t>(value);
+    current_ += len;
+#else   // defined(IS_SIMARM_X64)
+    WriteWord(value);
+#endif  // defined(IS_SIMARM_X64)
   }
 
-  void Printf(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
+  void Print(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    VPrintf(format, args);
+    VPrint(format, args);
     va_end(args);
   }
 
-  void VPrintf(const char* format, va_list args) {
+  void VPrint(const char* format, va_list args) {
     // Measure.
     va_list measure_args;
     va_copy(measure_args, args);
@@ -439,17 +447,18 @@ class BaseWriteStream : public ValueObject {
 
   template <typename T>
   void WriteFixed(T value) {
-    WriteBytes(&value, sizeof(value));
+    const intptr_t len = sizeof(T);
+    EnsureSpace(len);
+    *reinterpret_cast<T*>(current_) = static_cast<T>(value);
+    current_ += len;
   }
 
+ protected:
   DART_FORCE_INLINE void WriteByte(uint8_t value) {
     EnsureSpace(1);
     *current_++ = value;
   }
 
-  void WriteString(const char* cstr) { WriteBytes(cstr, strlen(cstr)); }
-
- protected:
   void EnsureSpace(intptr_t size_needed) {
     if (Remaining() >= size_needed) return;
     intptr_t increment_size = capacity_;
