@@ -280,6 +280,29 @@ main(A p) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ClassElement_enum() async {
+    await _resolveTestUnit('''
+enum MyEnum {a}
+
+main(MyEnum p) {
+  MyEnum v;
+  MyEnum.a;
+}
+''');
+    var element = findElement.enum_('MyEnum');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(
+        findElement.parameter('p'),
+        SearchResultKind.REFERENCE,
+        'MyEnum p',
+      ),
+      _expectId(main, SearchResultKind.REFERENCE, 'MyEnum v'),
+      _expectId(main, SearchResultKind.REFERENCE, 'MyEnum.a'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ClassElement_mixin() async {
     await _resolveTestUnit('''
 mixin A {}
