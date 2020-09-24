@@ -449,12 +449,10 @@ class PowersetBitsDomain {
     }
 
     if (type is NullableType) {
-      assert(dartTypes.useNullSafety);
       return _createFromStaticType(type.baseType, classRelation, true);
     }
 
     if (type is LegacyType) {
-      assert(dartTypes.useNullSafety);
       DartType baseType = type.baseType;
       if (baseType is NeverType) {
         // Never* is same as Null, for both 'is' and 'as'.

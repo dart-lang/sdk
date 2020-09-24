@@ -379,13 +379,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// called.
   bool experimentCallInstrumentation = false;
 
-  /// Whether null-safety (non-nullable types) are enabled in the sdk.
-  ///
-  /// This may be true either when `--enable-experiment=non-nullable` is
-  /// provided on the command-line, or when the provided .dill file for the sdk
-  /// was built with null-safety enabled.
-  bool useNullSafety = true;
-
   /// When null-safety is enabled, whether the compiler should emit code with
   /// unsound or sound semantics.
   ///

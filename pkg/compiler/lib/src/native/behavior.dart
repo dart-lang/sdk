@@ -855,8 +855,7 @@ abstract class BehaviorBuilder {
     // compatibility or conditional support by context.
     if (type is NullableType ||
         type is LegacyType ||
-        ((!options.useNullSafety || options.useLegacySubtyping) &&
-            type is! VoidType)) {
+        (options.useLegacySubtyping && type is! VoidType)) {
       _behavior.typesReturned.add(commonElements.nullType);
     }
   }

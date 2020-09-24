@@ -4143,7 +4143,7 @@ AbstractBool _typeTest(
   AbstractValue supersetType = checkedAbstractValue.abstractValue;
   AbstractBool expressionIsNull = expression.isNull(abstractValueDomain);
 
-  if (!isCast && options.useNullSafety) {
+  if (!isCast) {
     if (expressionIsNull.isDefinitelyTrue) {
       if (dartType.isObject) return AbstractBool.False;
       if (dartTypes.isTopType(dartType) ||
@@ -4231,8 +4231,7 @@ AbstractBool _typeTest(
   AbstractBool isNullAsCheck = !options.useLegacySubtyping && isCast
       ? expressionIsNull
       : AbstractBool.False;
-  AbstractBool isNullIsTest =
-      options.useNullSafety && !isCast ? expressionIsNull : AbstractBool.False;
+  AbstractBool isNullIsTest = !isCast ? expressionIsNull : AbstractBool.False;
 
   AbstractBool unwrapAndCheck(DartType type) {
     if (dartTypes.isTopType(dartType)) return AbstractBool.True;

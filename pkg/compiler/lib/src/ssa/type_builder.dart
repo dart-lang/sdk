@@ -111,7 +111,7 @@ abstract class TypeBuilder {
     /// however dart2js moves the null check to the callee for performance
     /// reasons. As a result the body cannot trust or check that the type is not
     /// nullable.
-    if (builder.options.useNullSafety && memberContext.name == '==') {
+    if (memberContext.name == '==') {
       type = _closedWorld.dartTypes.nullableType(type);
     }
     HInstruction trusted = _trustType(original, type);

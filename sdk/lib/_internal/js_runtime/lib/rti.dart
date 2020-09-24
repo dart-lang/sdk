@@ -1068,7 +1068,7 @@ class _TypeError extends _Error implements TypeError, CastError {
 /// Specialization for 'is Object'.
 /// Called from generated code via Rti `_is` method.
 bool _isObject(Object? object) {
-  return !JS_GET_FLAG('NNBD') || object != null;
+  return object != null;
 }
 
 /// Specialization for 'as Object'.
@@ -1890,9 +1890,7 @@ class _Universe {
       } else if (baseKind == Rti.kindNever) {
         return _lookupFutureRti(universe, baseType);
       } else if (isNullType(baseType)) {
-        return JS_GET_FLAG('NNBD')
-            ? TYPE_REF<Future<Null>?>()
-            : TYPE_REF<Future<Null>>();
+        return TYPE_REF<Future<Null>?>();
       }
     }
     Rti rti = Rti.allocate();
