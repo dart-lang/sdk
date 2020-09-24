@@ -935,9 +935,11 @@ bool _installSpecializedAsCheck(Object? object) {
 
 bool _nullIs(Rti testRti) {
   int kind = Rti._getKind(testRti);
-  return isTopType(testRti) ||
+  return isStrongTopType(testRti) ||
+      isLegacyObjectType(testRti) ||
       _Utils.isIdentical(testRti, LEGACY_TYPE_REF<Never>()) ||
       kind == Rti.kindQuestion ||
+      kind == Rti.kindFutureOr && _nullIs(Rti._getFutureOrArgument(testRti)) ||
       isNullType(testRti);
 }
 
