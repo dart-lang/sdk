@@ -36,15 +36,15 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
   final stopwatch = Stopwatch();
   int result;
 
-  // The exit code for the dartdev process, null indicates that it has not yet
-  // been set yet. The value is set in the catch and finally blocks below.
+  // The exit code for the dartdev process; null indicates that it has not been
+  // set yet. The value is set in the catch and finally blocks below.
   int exitCode;
 
-  // Any caught non-UsageExceptions when running the sub command
+  // Any caught non-UsageExceptions when running the sub command.
   Object exception;
   StackTrace stackTrace;
 
-  // The Analytics instance used to report information back to Google Analytics,
+  // The Analytics instance used to report information back to Google Analytics;
   // see lib/src/analytics.dart.
   Analytics analytics =
       createAnalyticsInstance(args.contains('--disable-dartdev-analytics'));
@@ -67,13 +67,13 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     // enableAnalytics), in which we favor the disabling of analytics.
     analytics.enabled = false;
 
-    // Alert the user that analytics have been disabled:
+    // Alert the user that analytics has been disabled.
     print(analyticsDisabledNoticeMessage);
     io.exit(0);
   } else if (args.contains('--enable-analytics')) {
     analytics.enabled = true;
 
-    // Alert the user again that anonymous data will be collected:
+    // Alert the user again that anonymous data will be collected.
     print(analyticsNoticeOnFirstRunMessage);
     io.exit(0);
   }
@@ -84,15 +84,14 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     stopwatch.start();
     final runner = DartdevRunner(args);
 
-    // Run can't be called with the '--disable-dartdev-analytics' flag, remove
+    // Run can't be called with the '--disable-dartdev-analytics' flag; remove
     // it if it is contained in args.
     if (args.contains('--disable-dartdev-analytics')) {
       args = List.from(args)..remove('--disable-dartdev-analytics');
     }
 
-    // These flags have a format that can't be handled by package:args, so
-    // while they are valid flags we'll assume the VM has verified them by this
-    // point.
+    // These flags have a format that can't be handled by package:args, so while
+    // they are valid flags we'll assume the VM has verified them by this point.
     args = args
         .where(
           (element) => !(element.contains('--observe') ||
@@ -101,17 +100,16 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
         .toList();
 
     // If ... help pub ... is in the args list, remove 'help', and add '--help'
-    // to the end of the list.  This will make it possible to use the help
-    // command to access subcommands of pub such as `dart help pub publish`, see
-    // https://github.com/dart-lang/sdk/issues/42965
+    // to the end of the list. This will make it possible to use the help
+    // command to access subcommands of pub such as `dart help pub publish`; see
+    // https://github.com/dart-lang/sdk/issues/42965.
     if (PubUtils.shouldModifyArgs(args, runner.commands.keys.toList())) {
       args = PubUtils.modifyArgs(args);
     }
 
     // For the commands format and migrate, dartdev itself sends the
-    // sendScreenView notification to analytics, for all other
-    // dartdev commands (instances of DartdevCommand) the commands send this
-    // to analytics.
+    // sendScreenView notification to analytics; for all other dartdev commands
+    // (instances of DartdevCommand) the commands send it to analytics.
     commandName = ArgParserUtils.getCommandStr(args);
     if (analytics.enabled &&
         (commandName == formatCmdName || commandName == migrateCmdName)) {
@@ -119,7 +117,7 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
       analytics.sendScreenView(commandName);
     }
 
-    // Finally, call the runner to execute the command, see DartdevRunner.
+    // Finally, call the runner to execute the command; see DartdevRunner.
     result = await runner.run(args);
   } catch (e, st) {
     if (e is UsageException) {
@@ -174,8 +172,8 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
     }
 
     // Set the enabled flag in the analytics object to true. Note: this will not
-    // enable the analytics unless the disclosure was shown (terminal
-    // detected), and the machine is not detected to be a bot.
+    // enable the analytics unless the disclosure was shown (terminal detected),
+    // and the machine is not detected to be a bot.
     if (analytics.firstRun) {
       analytics.enabled = true;
     }
