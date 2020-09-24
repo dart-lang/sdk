@@ -487,9 +487,9 @@ class AssemblyImageWriter : public ImageWriter {
   intptr_t WriteWordLiteralText(compiler::target::uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(TARGET_ARCH_IS_64_BIT)
-    assembly_stream_->Print(".quad 0x%0.16" Px "\n", value);
+    assembly_stream_->Printf(".quad 0x%0.16" Px "\n", value);
 #else
-    assembly_stream_->Print(".long 0x%0.8" Px "\n", value);
+    assembly_stream_->Printf(".long 0x%0.8" Px "\n", value);
 #endif
     return compiler::target::kWordSize;
   }
