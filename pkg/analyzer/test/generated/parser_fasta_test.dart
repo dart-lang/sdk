@@ -2870,7 +2870,7 @@ main() {
 
   test_fuzz_38113() async {
     // https://github.com/dart-lang/sdk/issues/38113
-    await parseCompilationUnit(r'+t{{r?this}}', errors: [
+    parseCompilationUnit(r'+t{{r?this}}', errors: [
       expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
       expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 1, 1),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),

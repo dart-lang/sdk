@@ -61,7 +61,7 @@ class AstTextPrinterTest extends ParseBase {
   }
 
   test_extensionOverride() async {
-    await assertParseCodeAndPrintAst(this, '''
+    assertParseCodeAndPrintAst(this, '''
 extension E on Object {
   int f() => 0;
 }

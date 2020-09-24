@@ -44,11 +44,11 @@ class SnippetTester {
     snippetPath = provider.pathContext.join(snippetDirPath, 'snippet.dart');
   }
 
-  void verify() async {
+  Future<void> verify() async {
     await verifyFolder(docFolder);
   }
 
-  void verifyFile(File file) async {
+  Future<void> verifyFile(File file) async {
     String content = file.readAsStringSync();
     List<String> lines = const LineSplitter().convert(content);
     List<String> codeLines = [];
@@ -73,7 +73,7 @@ class SnippetTester {
     }
   }
 
-  void verifyFolder(Folder folder) async {
+  Future<void> verifyFolder(Folder folder) async {
     for (Resource child in folder.getChildren()) {
       if (child is File) {
         if (child.shortName.endsWith('.md')) {
@@ -85,7 +85,7 @@ class SnippetTester {
     }
   }
 
-  void verifySnippet(File file, String snippet) async {
+  Future<void> verifySnippet(File file, String snippet) async {
     // TODO(brianwilkerson) When the files outside of 'src' contain only public
     //  API, write code to compute the list of imports so that new public API
     //  will automatically be allowed.

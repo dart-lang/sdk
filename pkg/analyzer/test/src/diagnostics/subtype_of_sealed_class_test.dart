@@ -28,7 +28,7 @@ class SubtypeOfSealedClassTest extends PubPackageResolutionTest {
       meta: true,
     );
 
-    await newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
+    newFile('$workspaceRootPath/foo/lib/foo.dart', content: r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -156,7 +156,7 @@ mixin Bar5 implements Foo {}
   }
 
   test_withinPackageLibDirectory_OK() async {
-    await newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -172,7 +172,7 @@ mixin Bar5 implements Foo {}
   }
 
   test_withinPackageTestDirectory_OK() async {
-    await newFile('$testPackageLibPath/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -198,7 +198,7 @@ part 'b.dart';
 @sealed class Foo {}
 ''');
 
-    await newFile(partPath, content: r'''
+    newFile(partPath, content: r'''
 part of 'a.dart';
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}

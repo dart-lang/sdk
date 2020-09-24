@@ -290,7 +290,7 @@ class RenameTest extends AbstractLspAnalysisServerTest {
     final a = new [[Ob^ject]]();
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize();
 
     final request = makeRequest(

@@ -31,7 +31,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -71,7 +71,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
 
     Future foo;
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -100,7 +100,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -120,7 +120,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
     var a = [Test, Test, Te[[]]st];
     ''';
 
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
         textDocumentCapabilities: withCodeActionKinds(
             emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -137,7 +137,7 @@ class FixesCodeActionsTest extends AbstractCodeActionsTest {
   }
 
   Future<void> test_nonDartFile() async {
-    await newFile(pubspecFilePath, content: simplePubspecContent);
+    newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -172,7 +172,7 @@ import 'dart:io';
 Completer a;
 ProcessInfo b;
     ''';
-    await newFile(mainFilePath, content: withoutMarkers(content));
+    newFile(mainFilePath, content: withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
@@ -199,7 +199,7 @@ ProcessInfo b;
   Future<void> test_outsideRoot() async {
     final otherFilePath = '/home/otherProject/foo.dart';
     final otherFileUri = Uri.file(otherFilePath);
-    await newFile(otherFilePath, content: 'bad code to create error');
+    newFile(otherFilePath, content: 'bad code to create error');
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.QuickFix]),
