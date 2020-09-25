@@ -1018,6 +1018,7 @@ equivalent
 equivalents
 erasure
 erroneous
+erroneously
 error
 errors
 escape

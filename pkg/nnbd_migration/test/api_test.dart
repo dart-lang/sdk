@@ -1710,7 +1710,6 @@ C<int, num?> f(List<int> a) => a;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39609')
   Future<void> test_dynamic_dispatch_to_object_method() async {
     var content = '''
 String f(dynamic x) => x.toString();
@@ -1787,7 +1786,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39609')
   Future<void> test_dynamic_toString() async {
     var content = '''
 String f(dynamic x) => x.toString();

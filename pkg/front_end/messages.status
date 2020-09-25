@@ -334,8 +334,6 @@ FieldNonNullableWithoutInitializerWarning/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail
-FinalNotAssignedError/script: Fail # Fasta reports too many errors
-FinalNotAssignedError/part_wrapped_script: Fail # Fasta reports too many errors
 ForInLoopElementTypeNotAssignable/example: Fail
 ForInLoopExactlyOneVariable/analyzerCode: Fail # The analyzer doesn't recover well.
 ForInLoopExactlyOneVariable/part_wrapped_statement: Fail

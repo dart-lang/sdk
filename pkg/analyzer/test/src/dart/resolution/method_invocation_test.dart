@@ -1165,11 +1165,12 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
-    // TODO(scheglov) Resolve fully, or don't resolve at all.
-    assertMethodInvocation(
+    assertMethodInvocation2(
       findNode.methodInvocation('toString()'),
-      null,
-      'String Function()',
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
     );
   }
 
@@ -1182,16 +1183,16 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
-    // TODO(scheglov) Resolve fully, or don't resolve at all.
-    assertMethodInvocation(
+    assertMethodInvocation2(
       findNode.methodInvocation('toString()'),
-      null,
-      'String Function()',
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
     );
   }
 
   test_error_useOfVoidResult_receiver_withNull() async {
-    var question = typeToStringWithNullability ? '?' : '';
     await assertErrorsInCode(r'''
 main() {
   void foo;
@@ -1200,12 +1201,12 @@ main() {
 ''', [
       error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 23, 3),
     ]);
-    // TODO(scheglov) Resolve fully, or don't resolve at all.
-    assertMethodInvocation(
+    assertMethodInvocation2(
       findNode.methodInvocation('toString()'),
-      null,
-      'String Function()',
-      expectedType: 'String$question',
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
     );
   }
 
@@ -1944,14 +1945,39 @@ main() {
     assertType(foo, 'void Function(int)');
   }
 
-  test_objectMethodOnDynamic() async {
+  test_objectMethodOnDynamic_argumentsDontMatch() async {
     await assertNoErrorsInCode(r'''
-main() {
-  var v;
-  v.toString(42);
+void f(a, int b) {
+  a.toString(b);
 }
 ''');
-    _assertUnresolvedMethodInvocation('toString(42);');
+    assertMethodInvocation2(
+      findNode.methodInvocation('toString(b)'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+
+    assertType(findNode.simple('b);'), 'int');
+  }
+
+  test_objectMethodOnDynamic_argumentsMatch() async {
+    await assertNoErrorsInCode(r'''
+void f(a) {
+  a.toString();
+}
+''');
+    assertMethodInvocation2(
+      findNode.methodInvocation('toString()'),
+      element: elementMatcher(
+        objectElement.getMethod('toString'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      typeArgumentTypes: [],
+      invokeType: 'String Function()',
+      type: 'String',
+    );
   }
 
   test_objectMethodOnFunction() async {

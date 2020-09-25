@@ -49,6 +49,7 @@ import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
@@ -102,6 +103,7 @@ void main() {
     replace_with_conditional_assignment.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_with_is_empty.main();
     replace_with_tear_off.main();

@@ -250,6 +250,21 @@ void f() {
     expect(diagnostics, isNull);
   }
 
+  Future<void> test_fixDataFile() async {
+    var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
+    var fixDataUri = Uri.file(fixDataPath);
+    newFile(fixDataPath, content: '''
+version: latest
+''').path;
+
+    final firstDiagnosticsUpdate = waitForDiagnostics(fixDataUri);
+    await initialize();
+    final initialDiagnostics = await firstDiagnosticsUpdate;
+    expect(initialDiagnostics, hasLength(1));
+    expect(initialDiagnostics.first.severity, DiagnosticSeverity.Error);
+    expect(initialDiagnostics.first.code, 'invalid_value');
+  }
+
   Future<void> test_fromPlugins_dartFile() async {
     await checkPluginErrorsForFile(mainFilePath);
   }
