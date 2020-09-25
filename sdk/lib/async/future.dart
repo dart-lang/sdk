@@ -433,7 +433,7 @@ abstract class Future<T> {
         remaining++;
       }
       if (remaining == 0) {
-        return new Future<List<T>>.value(const <Never>[]);
+        return _future.._completeWithValue(<T>[]);
       }
       values = new List<T?>.filled(remaining, null);
     } catch (e, st) {
