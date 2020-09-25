@@ -2285,6 +2285,7 @@ promote
 promoted
 promoter
 promotes
+promoting
 promotion
 promotions
 propagate
@@ -3160,6 +3161,7 @@ unsigned
 unsized
 unskip
 unsorted
+unsoundness
 unspecified
 unsplit
 unstable

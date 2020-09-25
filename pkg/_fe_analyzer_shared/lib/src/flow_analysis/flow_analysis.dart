@@ -1587,9 +1587,17 @@ class FlowModel<Variable, Type> {
     }
 
     Type factoredType = typeOperations.factor(previousType, type);
-    Type typeIfFailed = typeOperations.isSameType(factoredType, previousType)
-        ? null
-        : factoredType;
+    Type typeIfFailed;
+    if (typeOperations.isNever(factoredType)) {
+      // Promoting to `Never` would mark the code as unreachable.  But it might
+      // be reachable due to mixed mode unsoundness.  So don't promote.
+      typeIfFailed = null;
+    } else if (typeOperations.isSameType(factoredType, previousType)) {
+      // No change to the type, so don't promote.
+      typeIfFailed = null;
+    } else {
+      typeIfFailed = factoredType;
+    }
     FlowModel<Variable, Type> modelIfFailed =
         _finishTypeTest(typeOperations, variable, info, type, typeIfFailed);
 
@@ -2590,8 +2598,11 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         (rightOperandTypeClassification ==
                 TypeClassification.nullOrEquivalent &&
             leftOperandTypeClassification == TypeClassification.nonNullable)) {
-      booleanLiteral(wholeExpression, notEqual);
-      return false;
+      // In strong mode the test is guaranteed to produce a "not equal" result,
+      // but weak mode it might produce an "equal" result.  We don't want flow
+      // analysis behavior to depend on mode, so we conservatively assume that
+      // either result is possible.
+      return true;
     } else if (lhsInfo is _NullInfo<Variable, Type> &&
         rhsInfo is _VariableReadInfo<Variable, Type>) {
       assert(
@@ -2607,7 +2618,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     }
     _storeExpressionInfo(wholeExpression,
         notEqual ? equalityInfo : ExpressionInfo.invert(equalityInfo));
-    return equalityInfo.ifFalse.reachable;
+    return true;
   }
 
   @override
@@ -2753,12 +2764,8 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
     } else {
       promoted = _current;
     }
-    if (typeOperations.classifyType(leftHandSideType) ==
-        TypeClassification.nonNullable) {
-      _current = _current.setReachable(false);
-    }
     _stack.add(new _SimpleContext<Variable, Type>(promoted));
-    return _current.reachable;
+    return true;
   }
 
   @override
@@ -2812,7 +2819,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
         _current.tryPromoteForTypeCheck(typeOperations, variable, type);
     _storeExpressionInfo(isExpression,
         isNot ? ExpressionInfo.invert(expressionInfo) : expressionInfo);
-    return expressionInfo.ifFalse.reachable;
+    return true;
   }
 
   @override
@@ -2891,14 +2898,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
   @override
   bool nullAwareAccess_rightBegin(Expression target, Type targetType) {
     assert(targetType != null);
-    bool shortingIsReachable = true;
-    FlowModel<Variable, Type> shortingModel = _current;
-    if (typeOperations.classifyType(targetType) ==
-        TypeClassification.nonNullable) {
-      shortingModel = shortingModel.setReachable(false);
-      shortingIsReachable = false;
-    }
-    _stack.add(new _SimpleContext<Variable, Type>(shortingModel));
+    _stack.add(new _SimpleContext<Variable, Type>(_current));
     if (target != null) {
       ExpressionInfo<Variable, Type> targetInfo = _getExpressionInfo(target);
       if (targetInfo is _VariableReadInfo<Variable, Type>) {
@@ -2907,7 +2907,7 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
             .ifTrue;
       }
     }
-    return shortingIsReachable;
+    return true;
   }
 
   @override

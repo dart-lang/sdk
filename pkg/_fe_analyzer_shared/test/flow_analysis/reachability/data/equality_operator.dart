@@ -35,8 +35,9 @@ void nullableValue(int? x) {
 }
 
 void nonNullableValue(int x) {
-  if (x == null) /*unreachable*/ {
-    /*stmt: unreachable*/ 1;
+  if (x == null) {
+    // Reachable since the value of x might come from legacy code
+    1;
   } else {
     2;
   }
@@ -67,8 +68,9 @@ void potentiallyNullableTypeVar_nullableBound<T extends Object?>(T x) {
 }
 
 void nonNullableTypeVar<T extends Object>(T x) {
-  if (x == null) /*unreachable*/ {
-    /*stmt: unreachable*/ 1;
+  if (x == null) {
+    // Reachable since the value of x might come from legacy code
+    1;
   } else {
     2;
   }
