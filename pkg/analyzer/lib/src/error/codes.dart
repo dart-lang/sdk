@@ -2100,17 +2100,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 6.2.1 Required Formals: By means of a function signature that names the
-   * parameter and describes its type as a function type. It is a compile-time
-   * error if any default values are specified in the signature of such a
-   * function type.
-   */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER =
-      CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER',
-          "Default values aren't allowed in function typed parameters.",
-          correction: "Try removing the default value.");
-
-  /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> explicitly
    * specifies a default value for an optional parameter.
    */

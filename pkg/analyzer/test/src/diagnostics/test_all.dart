@@ -114,8 +114,6 @@ import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_list_constructor_test.dart' as default_list_constructor;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
-import 'default_value_in_function_typed_parameter_test.dart'
-    as default_value_in_function_typed_parameter;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
     as default_value_in_redirecting_factory_constructor;
 import 'default_value_on_required_parameter_test.dart'
@@ -725,7 +723,6 @@ main() {
     dead_null_aware_expression.main();
     default_list_constructor.main();
     default_value_in_function_type.main();
-    default_value_in_function_typed_parameter.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
     deferred_import_of_extension.main();

@@ -533,7 +533,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     _checkForInvalidAssignment(node.identifier, node.defaultValue);
-    _checkForDefaultValueInFunctionTypedParameter(node);
     super.visitDefaultFormalParameter(node);
   }
 
@@ -2216,26 +2215,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         rhs,
       );
     }
-  }
-
-  /// Verify that the given default formal [parameter] is not part of a function
-  /// typed parameter.
-  ///
-  /// See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER].
-  void _checkForDefaultValueInFunctionTypedParameter(
-      DefaultFormalParameter parameter) {
-    // OK, not in a function typed parameter.
-    if (!_isInFunctionTypedFormalParameter) {
-      return;
-    }
-    // OK, no default value.
-    if (parameter.defaultValue == null) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
-        parameter);
   }
 
   /// Report a diagnostic if there are any extensions in the imported library
