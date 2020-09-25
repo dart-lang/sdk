@@ -24,7 +24,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
           'version and onUpgradeNeeded must be specified together'));
     }
     try {
-      var request;
+      OpenDBRequest request;
       if (version != null) {
         request = _open(name, version);
       } else {
