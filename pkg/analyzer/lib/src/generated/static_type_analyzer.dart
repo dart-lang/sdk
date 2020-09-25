@@ -16,8 +16,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/task/strong/checker.dart'
-    show getExpressionType, getReadType;
 
 /// Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
 /// compute the static type of every expression. Second, they look for any static type errors or
@@ -344,10 +342,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /// Set the static type of [node] to be the least upper bound of the static
   /// types of subexpressions [expr1] and [expr2].
   void _analyzeLeastUpperBound(
-      Expression node, Expression expr1, Expression expr2,
-      {bool read = false}) {
-    DartType staticType1 = _getExpressionType(expr1, read: read);
-    DartType staticType2 = _getExpressionType(expr2, read: read);
+      Expression node, Expression expr1, Expression expr2) {
+    DartType staticType1 = expr1.staticType;
+    DartType staticType2 = expr2.staticType;
 
     _analyzeLeastUpperBoundTypes(node, staticType1, staticType2);
   }
@@ -371,20 +368,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     recordStaticType(node, staticType);
   }
 
-  /// Gets the definite type of expression, which can be used in cases where
-  /// the most precise type is desired, for example computing the least upper
-  /// bound.
-  ///
-  /// See [getExpressionType] for more information. Without strong mode, this is
-  /// equivalent to [_getStaticType].
-  DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
-
   /// Return the static type of the given [expression].
   DartType _getStaticType(Expression expression, {bool read = false}) {
     DartType type;
     if (read) {
-      type = getReadType(expression);
+      type = expression.staticType;
     } else {
       if (expression is SimpleIdentifier && expression.inSetterContext()) {
         var element = expression.staticElement;

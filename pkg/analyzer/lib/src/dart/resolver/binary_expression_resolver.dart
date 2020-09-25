@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [BinaryExpression]s.
@@ -107,26 +106,12 @@ class BinaryExpressionResolver {
     );
   }
 
-  /// Gets the definite type of expression, which can be used in cases where
-  /// the most precise type is desired, for example computing the least upper
-  /// bound.
-  ///
-  /// See [getExpressionType] for more information. Without strong mode, this is
-  /// equivalent to [_getStaticType].
-  ///
-  /// TODO(scheglov) this is duplicate
-  DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
-
   /// Return the static type of the given [expression] that is to be used for
   /// type analysis.
   ///
   /// TODO(scheglov) this is duplicate
-  DartType _getStaticType(Expression expression, {bool read = false}) {
-    if (expression is NullLiteral) {
-      return _typeProvider.nullType;
-    }
-    DartType type = read ? getReadType(expression) : expression.staticType;
+  DartType _getStaticType(Expression expression) {
+    DartType type = expression.staticType;
     return _resolveTypeParameter(type);
   }
 
@@ -170,7 +155,7 @@ class BinaryExpressionResolver {
 
     left.accept(_resolver);
     left = node.leftOperand;
-    var leftType = _getExpressionType(left, read: false);
+    var leftType = left.staticType;
 
     var rightContextType = InferenceContext.getContext(node);
     if (rightContextType == null || rightContextType.isDynamic) {
@@ -183,9 +168,7 @@ class BinaryExpressionResolver {
     right = node.rightOperand;
     flow?.ifNullExpression_end();
 
-    // TODO(scheglov) This (and above) is absolutely wrong, and convoluted.
-    // This is just the status quo, until we can make types straight.
-    var rightType = _getExpressionType(right, read: false);
+    var rightType = right.staticType;
     if (_isNonNullableByDefault) {
       var promotedLeftType = _typeSystem.promoteToNonNull(leftType);
       _analyzeLeastUpperBoundTypes(node, promotedLeftType, rightType);

@@ -40,7 +40,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
 class EnclosingExecutableContext {
@@ -319,8 +318,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(
-          getReadType(node.leftHandSide), node.rightHandSide);
+      _checkForDeadNullCoalesce(node.readType, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
@@ -355,8 +353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (type == TokenType.QUESTION_QUESTION) {
-      _checkForDeadNullCoalesce(
-          getReadType(node.leftOperand), node.rightOperand);
+      _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
     }
 
     _checkForUseOfVoidResult(node.leftOperand);
