@@ -281,9 +281,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// The compiler is run from the build bot.
   bool testMode = false;
 
-  /// Whether to trust JS-interop annotations. (experimental)
-  bool trustJSInteropTypeAnnotations = false;
-
   /// Whether to trust primitive types during inference and optimizations.
   bool trustPrimitives = false;
 
@@ -506,8 +503,6 @@ class CompilerOptions implements DiagnosticOptions {
       .._legacyJavaScript = _hasOption(options, Flags.legacyJavaScript)
       .._noLegacyJavaScript = _hasOption(options, Flags.noLegacyJavaScript)
       ..testMode = _hasOption(options, Flags.testMode)
-      ..trustJSInteropTypeAnnotations =
-          _hasOption(options, Flags.trustJSInteropTypeAnnotations)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
       ..useContentSecurityPolicy =
           _hasOption(options, Flags.useContentSecurityPolicy)

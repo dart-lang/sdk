@@ -37,7 +37,6 @@ Future<String> compile(String code,
     bool enableTypeAssertions: false,
     bool minify: false,
     bool disableInlining: true,
-    bool trustJSInteropTypeAnnotations: false,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
     bool enableVariance: false,
@@ -57,9 +56,6 @@ Future<String> compile(String code,
   }
   if (minify) {
     options.add(Flags.minify);
-  }
-  if (trustJSInteropTypeAnnotations) {
-    options.add(Flags.trustJSInteropTypeAnnotations);
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);

@@ -4967,11 +4967,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           new js.Template(null, js.objectLiteral(parameterNameMap));
 
       var nativeBehavior = new NativeBehavior()..codeTemplate = codeTemplate;
-      if (options.trustJSInteropTypeAnnotations) {
-        InterfaceType thisType =
-            _elementEnvironment.getThisType(constructor.enclosingClass);
-        nativeBehavior.typesReturned.add(thisType);
-      }
       registry.registerNativeMethod(element);
       // TODO(efortuna): Source information.
       return new HForeignCode(
@@ -4991,10 +4986,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         ? _elementEnvironment.getThisType(element.enclosingClass)
         : _elementEnvironment.getFunctionType(element).returnType;
     // Native behavior effects here are similar to native/behavior.dart.
-    // The return type is dynamic if we don't trust js-interop type
+    // The return type is dynamic because we don't trust js-interop type
     // declarations.
-    nativeBehavior.typesReturned.add(
-        options.trustJSInteropTypeAnnotations ? type : dartTypes.dynamicType());
+    nativeBehavior.typesReturned.add(dartTypes.dynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
@@ -5003,14 +4997,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       nativeBehavior.typesInstantiated.add(type);
     }
 
-    // It also includes any other JS interop type if we don't trust the
-    // annotation or if is declared too broad.
-    if (!options.trustJSInteropTypeAnnotations ||
-        type == _commonElements.objectType ||
-        type is DynamicType) {
-      nativeBehavior.typesInstantiated.add(_elementEnvironment
-          .getThisType(_commonElements.jsJavaScriptObjectClass));
-    }
+    // It also includes any other JS interop type. Technically, a JS interop API
+    // could return anything, so the sound thing to do would be to assume that
+    // anything that may come from JS as instantiated. In order to prevent the
+    // resulting code bloat (e.g. from `dart:html`), we unsoundly assume that
+    // only JS interop types are returned.
+    nativeBehavior.typesInstantiated.add(_elementEnvironment
+        .getThisType(_commonElements.jsJavaScriptObjectClass));
 
     AbstractValue instructionType =
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);

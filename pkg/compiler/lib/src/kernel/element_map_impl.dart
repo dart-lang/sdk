@@ -1939,10 +1939,6 @@ class KernelBehaviorBuilder extends BehaviorBuilder {
 
   KernelBehaviorBuilder(this.elementEnvironment, this.commonElements,
       this.nativeBasicData, this.reporter, this.options);
-
-  @override
-  bool get trustJSInteropTypeAnnotations =>
-      options.trustJSInteropTypeAnnotations;
 }
 
 class KernelNativeMemberResolver implements NativeMemberResolver {
