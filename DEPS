@@ -101,7 +101,7 @@ vars = {
   "ffi_rev": "454ab0f9ea6bd06942a983238d8a6818b1357edb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "glob_rev": "e9f4e6b7ae8abe5071461cf8f47191bb19cf7ef6",
-  "html_rev": "083a36cd801a4b787ba156b7c6e4c8b2e2daed4a",
+  "html_rev": "22f17e97fedeacaa1e945cf84d8016284eed33a6",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_rev" : "ea269f79321d659208402088f3297e8920a88ee6",
   "http_parser_rev": "6e63a97b5aaa2b4d1215fe01683e51fb73258e54",
