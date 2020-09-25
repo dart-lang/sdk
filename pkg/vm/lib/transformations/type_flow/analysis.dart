@@ -548,9 +548,8 @@ class _DispatchableInvocation extends _Invocation {
       TypeFlowAnalysis typeFlowAnalysis) {
     final TFClass cls = receiver.cls;
 
-    Member target = typeFlowAnalysis.hierarchyCache.hierarchy.getDispatchTarget(
-        cls.classNode, selector.name,
-        setter: selector.isSetter);
+    Member target =
+        (cls as _TFClassImpl).getDispatchTarget(selector, typeFlowAnalysis);
 
     if (target != null) {
       if (kPrintTrace) {
@@ -934,6 +933,7 @@ class _DynamicTargetSet extends _DependencyTracker {
 class _TFClassImpl extends TFClass {
   final Set<_TFClassImpl> supertypes; // List of super-types including this.
   final Set<_TFClassImpl> _allocatedSubtypes = new Set<_TFClassImpl>();
+  final Map<Selector, Member> _dispatchTargets = <Selector, Member>{};
   final _DependencyTracker dependencyTracker = new _DependencyTracker();
 
   /// Flag indicating if this class has a noSuchMethod() method not inherited
@@ -975,6 +975,18 @@ class _TFClassImpl extends TFClass {
   void addAllocatedSubtype(_TFClassImpl subType) {
     _allocatedSubtypes.add(subType);
     _specializedConeType = null; // Reset cached specialization.
+  }
+
+  Member getDispatchTarget(
+      Selector selector, TypeFlowAnalysis typeFlowAnalysis) {
+    Member target = _dispatchTargets[selector];
+    if (target == null) {
+      target = typeFlowAnalysis.hierarchyCache.hierarchy.getDispatchTarget(
+          classNode, selector.name,
+          setter: selector.isSetter);
+      _dispatchTargets[selector] = target;
+    }
+    return target;
   }
 
   String dump() => "$this {supers: $supertypes}";

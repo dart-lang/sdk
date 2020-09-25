@@ -25,6 +25,10 @@ class TFClass {
   /// instances specific to given [TypeHierarchy].
   TFClass(this.id, this.classNode);
 
+  /// Returns ConcreteType corresponding to this class without
+  /// any extra attributes.
+  ConcreteType get concreteType => ConcreteType(this);
+
   @override
   int get hashCode => id;
 
@@ -457,12 +461,40 @@ class SetType extends Type {
     return types;
   }
 
+  bool _isSubList(List<ConcreteType> sublist, List<ConcreteType> list) {
+    int i1 = 0;
+    int i2 = 0;
+    while ((i1 < sublist.length) && (i2 < list.length)) {
+      final t1 = sublist[i1];
+      final t2 = list[i2];
+      if (identical(t1, t2)) {
+        ++i1;
+        ++i2;
+      } else if (t1.cls.id > t2.cls.id) {
+        ++i2;
+      } else {
+        return false;
+      }
+    }
+    return i1 == sublist.length;
+  }
+
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
+    if (identical(this, other)) return this;
     if (other.order < this.order) {
       return other.union(this, typeHierarchy);
     }
     if (other is SetType) {
+      if (types.length >= other.types.length) {
+        if (_isSubList(other.types, types)) {
+          return this;
+        }
+      } else {
+        if (_isSubList(types, other.types)) {
+          return other;
+        }
+      }
       return new SetType(_unionLists(types, other.types));
     } else if (other is ConcreteType) {
       return types.contains(other)
@@ -479,6 +511,7 @@ class SetType extends Type {
 
   @override
   Type intersection(Type other, TypeHierarchy typeHierarchy) {
+    if (identical(this, other)) return this;
     if (other.order < this.order) {
       return other.intersection(this, typeHierarchy);
     }
@@ -559,6 +592,7 @@ class ConeType extends Type {
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
+    if (identical(this, other)) return this;
     if (other.order < this.order) {
       return other.union(this, typeHierarchy);
     }
@@ -582,6 +616,7 @@ class ConeType extends Type {
 
   @override
   Type intersection(Type other, TypeHierarchy typeHierarchy) {
+    if (identical(this, other)) return this;
     if (other.order < this.order) {
       return other.intersection(this, typeHierarchy);
     }
@@ -640,7 +675,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     assert(typeArgs == null || typeArgs.any((t) => t is RuntimeType));
   }
 
-  ConcreteType get raw => new ConcreteType(cls, null);
+  ConcreteType get raw => cls.concreteType;
+  bool get isRaw => typeArgs == null && constant == null;
 
   @override
   Class getConcreteClass(TypeHierarchy typeHierarchy) => cls.classNode;
