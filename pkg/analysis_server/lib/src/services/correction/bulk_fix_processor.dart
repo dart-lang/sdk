@@ -140,6 +140,11 @@ class BulkFixProcessor {
     LintNames.prefer_conditional_assignment: [
       ReplaceWithConditionalAssignment.newInstance,
     ],
+    // TODO (pq): can produce results incompatible w/ `unnecessary_const`
+    // LintNames.prefer_const_constructors: [
+    //   AddConst.newInstance,
+    //   ReplaceNewWithConst.newInstance,
+    // ],
     LintNames.prefer_const_constructors_in_immutables: [
       AddConst.newInstance,
     ],
