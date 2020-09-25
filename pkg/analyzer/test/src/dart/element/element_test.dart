@@ -1469,29 +1469,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(typeA.getMethod(methodName), same(methodM));
   }
 
-  void test_getMethod_parameterized_doesNotUseTypeParameter() {
-    //
-    // class A<E> { B m() {} }
-    // class B {}
-    //
-    var classA = ElementFactory.classElement2("A", ["E"]);
-    InterfaceType typeB = interfaceTypeStar(class_(name: 'B'));
-    String methodName = "m";
-    MethodElementImpl methodM =
-        ElementFactory.methodElement(methodName, typeB, []);
-    classA.methods = <MethodElement>[methodM];
-    //
-    // A<I>
-    //
-    InterfaceType typeI = interfaceTypeStar(class_(name: 'I'));
-    InterfaceTypeImpl typeAI =
-        interfaceTypeStar(classA, typeArguments: <DartType>[typeI]);
-    MethodElement method = typeAI.getMethod(methodName);
-    expect(method, isNotNull);
-    FunctionType methodType = method.type;
-    expect(methodType.typeArguments, isEmpty);
-  }
-
   void test_getMethod_parameterized_usesTypeParameter() {
     //
     // class A<E> { E m(E p) {} }
