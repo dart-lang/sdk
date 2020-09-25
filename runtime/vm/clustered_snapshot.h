@@ -109,15 +109,16 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Allocate memory for all objects in the cluster and write their addresses
   // into the ref array. Do not touch this memory.
-  virtual void ReadAlloc(Deserializer* deserializer) = 0;
+  virtual void ReadAlloc(Deserializer* deserializer, bool is_canonical) = 0;
 
   // Initialize the cluster's objects. Do not touch the memory of other objects.
-  virtual void ReadFill(Deserializer* deserializer) = 0;
+  virtual void ReadFill(Deserializer* deserializer, bool is_canonical) = 0;
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
-  virtual void PostLoadEarly(Deserializer* deserializer, const Array& refs) {}
-  virtual void PostLoad(Deserializer* deserializer, const Array& refs) {}
+  virtual void PostLoad(Deserializer* deserializer,
+                        const Array& refs,
+                        bool is_canonical) {}
 
  protected:
   // The range of the ref array that belongs to this cluster.
@@ -499,6 +500,7 @@ class Serializer : public ThreadStackResource {
   Snapshot::Kind kind_;
   NonStreamingWriteStream* stream_;
   ImageWriter* image_writer_;
+  SerializationCluster** canonical_clusters_by_cid_;
   SerializationCluster** clusters_by_cid_;
   GrowableArray<ObjectPtr> stack_;
   intptr_t num_cids_;
@@ -724,10 +726,12 @@ class Deserializer : public ThreadStackResource {
   ImageReader* image_reader_;
   intptr_t num_base_objects_;
   intptr_t num_objects_;
+  intptr_t num_canonical_clusters_;
   intptr_t num_clusters_;
   ArrayPtr refs_;
   intptr_t next_ref_index_;
   intptr_t previous_text_offset_;
+  DeserializationCluster** canonical_clusters_;
   DeserializationCluster** clusters_;
   FieldTable* field_table_;
 };

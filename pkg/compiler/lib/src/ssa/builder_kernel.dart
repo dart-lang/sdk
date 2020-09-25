@@ -364,8 +364,6 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useContentSecurityPolicy;
       case 'VARIANCE':
         return options.enableVariance;
-      case 'NNBD':
-        return options.useNullSafety;
       case 'LEGACY':
         return options.useLegacySubtyping;
       case 'LEGACY_JAVASCRIPT':
@@ -4655,11 +4653,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   bool _equivalentToMissingRti(InterfaceType type) {
     assert(type.element == _commonElements.jsArrayClass);
-    if (dartTypes.useNullSafety) {
-      return dartTypes.isStrongTopType(type.typeArguments.single);
-    } else {
-      return dartTypes.treatAsRawType(type);
-    }
+    return dartTypes.isStrongTopType(type.typeArguments.single);
   }
 
   void _handleForeignJs(ir.StaticInvocation invocation) {
@@ -6360,13 +6354,11 @@ class TryCatchFinallyBuilder {
 
     AbstractValue unwrappedType = kernelBuilder._typeInferenceMap
         .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper);
-    if (kernelBuilder.options.useNullSafety) {
-      // Global type analysis does not currently understand that strong mode
-      // `Object` is not nullable, so is imprecise in the return type of the
-      // unwrapper, which leads to unnecessary checks for 'on Object'.
-      unwrappedType =
-          kernelBuilder._abstractValueDomain.excludeNull(unwrappedType);
-    }
+    // Global type analysis does not currently understand that strong mode
+    // `Object` is not nullable, so is imprecise in the return type of the
+    // unwrapper, which leads to unnecessary checks for 'on Object'.
+    unwrappedType =
+        kernelBuilder._abstractValueDomain.excludeNull(unwrappedType);
     kernelBuilder._pushStaticInvocation(
         kernelBuilder._commonElements.exceptionUnwrapper,
         [exception],

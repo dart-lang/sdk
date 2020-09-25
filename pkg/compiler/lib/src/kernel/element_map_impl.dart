@@ -117,7 +117,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelToElementMapImpl(
       this.reporter, this._environment, this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(options, this);
+    _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(_types, _elementEnvironment);
     _constantValuefier = new ConstantValuefier(this);

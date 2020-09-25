@@ -1734,7 +1734,6 @@ abstract class DartTypes {
   /// The types defined in 'dart:core'.
   CommonElements get commonElements;
 
-  bool get useNullSafety;
   bool get useLegacySubtyping;
 
   DartType bottomType() =>
@@ -1844,7 +1843,7 @@ abstract class DartTypes {
     } else if (typeArgument.isNull) {
       DartType futureOfNull =
           commonElements.futureType(commonElements.nullType);
-      result = useNullSafety ? nullableType(futureOfNull) : futureOfNull;
+      result = nullableType(futureOfNull);
     } else {
       result = FutureOrType._(typeArgument);
     }
@@ -2281,14 +2280,10 @@ abstract class DartTypes {
     if (isCovariant) {
       // A covariant parameter has type `Object` in the method signature.
       var objectType = commonElements.objectType;
-      if (useNullSafety) {
-        if (isNonNullableByDefaultLibrary) {
-          return nullableType(objectType);
-        } else {
-          return legacyType(objectType);
-        }
+      if (isNonNullableByDefaultLibrary) {
+        return nullableType(objectType);
       } else {
-        return objectType;
+        return legacyType(objectType);
       }
     }
     return type;

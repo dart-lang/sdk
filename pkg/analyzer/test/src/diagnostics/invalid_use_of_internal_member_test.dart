@@ -211,6 +211,20 @@ int Function() b = a;
     ]);
   }
 
+  test_outsidePackage_functionLiteralForInternalTypedef() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
+@internal
+typedef IntFunc = int Function(int);
+int foo(IntFunc f, int x) => f(x);
+''');
+
+    await assertNoErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+int g() => foo((x) => 2*x, 7);
+''');
+  }
+
   test_outsidePackage_inCommentReference() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
 import 'package:meta/meta.dart';
@@ -425,6 +439,70 @@ class C {
     ]);
   }
 
+  test_outsidePackage_setter() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
+import 'package:meta/meta.dart';
+class C {
+  @internal
+  set s(int value) {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+f() {
+  C().s = 7;
+}
+''', [
+      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
+    ]);
+  }
+
+  test_outsidePackage_setter_compound() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
+import 'package:meta/meta.dart';
+class C {
+  int get s() => 1;
+
+  @internal
+  set s(int value) {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+f() {
+  C().s += 7;
+}
+''', [
+      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
+    ]);
+  }
+
+  test_outsidePackage_setter_questionQuestion() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
+import 'package:meta/meta.dart';
+class C {
+  int get s() => 1;
+
+  @internal
+  set s(int value) {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart';
+
+f() {
+  C().s ??= 7;
+}
+''', [
+      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 46, 1),
+    ]);
+  }
+
   test_outsidePackage_superConstructor() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
 import 'package:meta/meta.dart';
@@ -524,6 +602,22 @@ import 'package:foo/src/a.dart';
 int b = a + 1;
 ''', [
       error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 42, 1),
+    ]);
+  }
+
+  test_outsidePackage_variable_prefixed() async {
+    newFile('$fooPackageRootPath/lib/src/a.dart', content: '''
+import 'package:meta/meta.dart';
+@internal
+int a = 1;
+''');
+
+    await assertErrorsInCode('''
+import 'package:foo/src/a.dart' as foo;
+
+int b = foo.a + 1;
+''', [
+      error(HintCode.INVALID_USE_OF_INTERNAL_MEMBER, 53, 1),
     ]);
   }
 }

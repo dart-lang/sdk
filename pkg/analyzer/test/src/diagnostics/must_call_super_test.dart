@@ -82,6 +82,36 @@ class B extends A {
 ''');
   }
 
+  test_fromExtendingClass_operator() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  operator ==(Object o) => o is A;
+}
+class B extends A {
+  @override
+  operator ==(Object o) => o is B;
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 140, 2),
+    ]);
+  }
+
+  test_fromExtendingClass_operator_containsSuperCall() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  operator ==(Object o) => o is A;
+}
+class B extends A {
+  @override
+  operator ==(Object o) => o is B && super == o;
+}
+''');
+  }
+
   test_fromInterface() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

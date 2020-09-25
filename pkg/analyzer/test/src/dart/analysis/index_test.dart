@@ -510,6 +510,22 @@ main(A p) {
       ..isReferencedAt('A.field); // 3', false);
   }
 
+  test_isReferencedBy_ClassElement_enum() async {
+    await _indexTestUnit('''
+enum MyEnum {a}
+
+main(MyEnum p) {
+  MyEnum v;
+  MyEnum.a;
+}
+''');
+    ClassElement element = findElement('MyEnum');
+    assertThat(element)
+      ..isReferencedAt('MyEnum p) {', false)
+      ..isReferencedAt('MyEnum v;', false)
+      ..isReferencedAt('MyEnum.a;', false);
+  }
+
   test_isReferencedBy_ClassElement_fromExtension() async {
     await _indexTestUnit('''
 class A<T> {}

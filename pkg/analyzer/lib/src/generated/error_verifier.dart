@@ -5396,6 +5396,14 @@ class _InvocationCollector extends RecursiveAstVisitor<void> {
   final List<String> superCalls = <String>[];
 
   @override
+  void visitBinaryExpression(BinaryExpression node) {
+    if (node.leftOperand is SuperExpression) {
+      superCalls.add(node.operator.lexeme);
+    }
+    super.visitBinaryExpression(node);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.target is SuperExpression) {
       superCalls.add(node.methodName.name);
