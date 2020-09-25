@@ -45,7 +45,6 @@ import '../universe/resolution_world_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../util/enumset.dart';
-import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'loader.dart';
@@ -54,7 +53,7 @@ import 'loader.dart';
 /// model from kernel IR nodes.
 class KernelFrontendStrategy extends FrontendStrategy {
   final NativeBasicDataBuilderImpl nativeBasicDataBuilder =
-      new NativeBasicDataBuilderImpl();
+      NativeBasicDataBuilderImpl();
   NativeBasicData _nativeBasicData;
   CompilerOptions _options;
   CompilerTask _compilerTask;
@@ -87,12 +86,11 @@ class KernelFrontendStrategy extends FrontendStrategy {
   KernelFrontendStrategy(this._compilerTask, this._options,
       DiagnosticReporter reporter, env.Environment environment) {
     assert(_compilerTask != null);
-    _elementMap =
-        new KernelToElementMapImpl(reporter, environment, this, _options);
-    _modularStrategy = new KernelModularStrategy(_compilerTask, _elementMap);
-    _backendUsageBuilder = new BackendUsageBuilderImpl(this);
-    noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
-        commonElements, new KernelNoSuchMethodResolver(_elementMap));
+    _elementMap = KernelToElementMapImpl(reporter, environment, this, _options);
+    _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
+    _backendUsageBuilder = BackendUsageBuilderImpl(this);
+    noSuchMethodRegistry = NoSuchMethodRegistryImpl(
+        commonElements, KernelNoSuchMethodResolver(_elementMap));
   }
 
   NativeResolutionEnqueuer get nativeResolutionEnqueuerForTesting =>
@@ -139,32 +137,30 @@ class KernelFrontendStrategy extends FrontendStrategy {
   ResolutionEnqueuer createResolutionEnqueuer(
       CompilerTask task, Compiler compiler) {
     RuntimeTypesNeedBuilder rtiNeedBuilder = _createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts =
-        new BackendImpacts(commonElements, compiler.options);
-    _nativeResolutionEnqueuer = new NativeResolutionEnqueuer(
+    BackendImpacts impacts = BackendImpacts(commonElements, compiler.options);
+    _nativeResolutionEnqueuer = NativeResolutionEnqueuer(
         compiler.options,
         elementEnvironment,
         commonElements,
         _elementMap.types,
-        new BaseNativeClassFinder(elementEnvironment, nativeBasicData));
-    _nativeDataBuilder = new NativeDataBuilderImpl(nativeBasicData);
-    _customElementsResolutionAnalysis = new CustomElementsResolutionAnalysis(
+        BaseNativeClassFinder(elementEnvironment, nativeBasicData));
+    _nativeDataBuilder = NativeDataBuilderImpl(nativeBasicData);
+    _customElementsResolutionAnalysis = CustomElementsResolutionAnalysis(
         elementEnvironment,
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
-    _fieldAnalysis = new KFieldAnalysis(this);
-    ClassQueries classQueries = new KernelClassQueries(elementMap);
+    _fieldAnalysis = KFieldAnalysis(this);
+    ClassQueries classQueries = KernelClassQueries(elementMap);
     ClassHierarchyBuilder classHierarchyBuilder =
-        new ClassHierarchyBuilder(commonElements, classQueries);
-    AnnotationsDataBuilder annotationsDataBuilder =
-        new AnnotationsDataBuilder();
+        ClassHierarchyBuilder(commonElements, classQueries);
+    AnnotationsDataBuilder annotationsDataBuilder = AnnotationsDataBuilder();
     // TODO(johnniwinther): This is a hack. The annotation data is built while
     // using it. With CFE constants the annotations data can be built fully
     // before creating the resolution enqueuer.
-    AnnotationsData annotationsData = new AnnotationsDataImpl(
+    AnnotationsData annotationsData = AnnotationsDataImpl(
         compiler.options, annotationsDataBuilder.pragmaAnnotations);
-    ImpactTransformer impactTransformer = new JavaScriptImpactTransformer(
+    ImpactTransformer impactTransformer = JavaScriptImpactTransformer(
         elementEnvironment,
         commonElements,
         impacts,
@@ -175,13 +171,12 @@ class KernelFrontendStrategy extends FrontendStrategy {
         rtiNeedBuilder,
         classHierarchyBuilder,
         annotationsData);
-    InterceptorDataBuilder interceptorDataBuilder =
-        new InterceptorDataBuilderImpl(
-            nativeBasicData, elementEnvironment, commonElements);
-    return new ResolutionEnqueuer(
+    InterceptorDataBuilder interceptorDataBuilder = InterceptorDataBuilderImpl(
+        nativeBasicData, elementEnvironment, commonElements);
+    return ResolutionEnqueuer(
         task,
         compiler.reporter,
-        new ResolutionEnqueuerListener(
+        ResolutionEnqueuerListener(
             compiler.options,
             elementEnvironment,
             commonElements,
@@ -194,7 +189,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
             _nativeResolutionEnqueuer,
             _fieldAnalysis,
             compiler.deferredLoadTask),
-        new ResolutionWorldBuilderImpl(
+        ResolutionWorldBuilderImpl(
             _options,
             elementMap,
             elementEnvironment,
@@ -212,7 +207,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
             const StrongModeWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
-        new KernelWorkItemBuilder(
+        KernelWorkItemBuilder(
             _compilerTask,
             elementMap,
             nativeBasicData,
@@ -251,8 +246,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
   void registerLoadedLibraries(KernelResult kernelResult) {
     _elementMap.addComponent(kernelResult.component);
     _irAnnotationData = processAnnotations(
-        new ModularCore(kernelResult.component, _elementMap.constantEvaluator));
-    _annotationProcessor = new KernelAnnotationProcessor(
+        ModularCore(kernelResult.component, _elementMap.constantEvaluator));
+    _annotationProcessor = KernelAnnotationProcessor(
         elementMap, nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in kernelResult.libraries) {
       LibraryEntity library = elementEnvironment.lookupLibrary(uri);
@@ -280,7 +275,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
 
   @override
   DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
-      new KernelDeferredLoadTask(compiler, _elementMap);
+      DeferredLoadTask(compiler, _elementMap);
 
   @override
   FunctionEntity computeMain(WorldImpactBuilder impactBuilder) {
@@ -290,7 +285,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
   RuntimeTypesNeedBuilder _createRuntimeTypesNeedBuilder() {
     return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
         ? const TrivialRuntimeTypesNeedBuilder()
-        : new RuntimeTypesNeedBuilderImpl(elementEnvironment);
+        : RuntimeTypesNeedBuilderImpl(elementEnvironment);
   }
 
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>
@@ -326,12 +321,12 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
       this._fieldAnalysis,
       this._modularStrategy,
       this._irAnnotationData)
-      : _nativeMemberResolver = new KernelNativeMemberResolver(
+      : _nativeMemberResolver = KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelWorkItem(
+    return KernelWorkItem(
         _compilerTask,
         _elementMap,
         _impactTransformer,
@@ -404,7 +399,7 @@ class KernelWorkItem implements WorkItem {
         ResolutionImpact impact = _elementMap.computeWorldImpact(
             element,
             scopeModel.variableScopeModel,
-            new Set<PragmaAnnotation>.from(
+            Set<PragmaAnnotation>.from(
                 annotations.iterable(PragmaAnnotation.values)),
             impactBuilderData: impactBuilderData);
         WorldImpact worldImpact =
@@ -440,8 +435,8 @@ class KernelModularStrategy extends ModularStrategy {
   @override
   ModularMemberData getModularMemberData(
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
-    ScopeModel scopeModel = _compilerTask.measureSubtask('closures',
-        () => new ScopeModel.from(node, _elementMap.constantEvaluator));
+    ScopeModel scopeModel = _compilerTask.measureSubtask(
+        'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
     ImpactBuilderData impactBuilderData;
     if (useImpactDataForTesting) {
       // TODO(johnniwinther): Always create and use the [ImpactBuilderData].
@@ -449,8 +444,8 @@ class KernelModularStrategy extends ModularStrategy {
       // depend on metadata, so these parts of the impact data need to be
       // computed during conversion to [ResolutionImpact].
       impactBuilderData = _compilerTask.measureSubtask('worldImpact', () {
-        ImpactBuilder builder = new ImpactBuilder(
-            new ir.StaticTypeContext(node, _elementMap.typeEnvironment),
+        ImpactBuilder builder = ImpactBuilder(
+            ir.StaticTypeContext(node, _elementMap.typeEnvironment),
             _elementMap.classHierarchy,
             scopeModel.variableScopeModel,
             useAsserts: _elementMap.options.enableUserAssertions,
@@ -459,6 +454,6 @@ class KernelModularStrategy extends ModularStrategy {
         return builder.computeImpact(node);
       });
     }
-    return new ModularMemberData(scopeModel, impactBuilderData);
+    return ModularMemberData(scopeModel, impactBuilderData);
   }
 }

@@ -113,13 +113,6 @@ class Flags {
   static const String soundNullSafety = '--sound-null-safety';
   static const String noSoundNullSafety = '--no-sound-null-safety';
 
-  static const String newDeferredSplit = '--new-deferred-split';
-  static const String noNewDeferredSplit = '--no-new-deferred-split';
-  static const String reportInvalidInferredDeferredTypes =
-      '--report-invalid-deferred-types';
-  static const String deferClassTypes = '--defer-class-types';
-  static const String noDeferClassTypes = '--no-defer-class-types';
-
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
 
