@@ -497,6 +497,14 @@ NamedFunctionExpression/example: Fail
 NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
+NeverReachableSwitchDefaultError/analyzerCode: Fail
+NeverReachableSwitchDefaultError/example: Fail
+NeverReachableSwitchDefaultWarning/analyzerCode: Fail
+NeverReachableSwitchDefaultWarning/example: Fail
+NeverValueError/analyzerCode: Fail
+NeverValueError/example: Fail
+NeverValueWarning/analyzerCode: Fail
+NeverValueWarning/example: Fail
 NoFormals/example: Fail
 NonAgnosticConstant/analyzerCode: Fail
 NonAgnosticConstant/example: Fail

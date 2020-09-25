@@ -1484,6 +1484,7 @@ informally
 information
 informational
 informs
+inherently
 inherit
 inheritable
 inheritance
@@ -2284,6 +2285,7 @@ promote
 promoted
 promoter
 promotes
+promoting
 promotion
 promotions
 propagate
@@ -3159,6 +3161,7 @@ unsigned
 unsized
 unskip
 unsorted
+unsoundness
 unspecified
 unsplit
 unstable

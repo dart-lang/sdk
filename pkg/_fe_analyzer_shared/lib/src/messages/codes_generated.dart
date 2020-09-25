@@ -6368,6 +6368,45 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
         r"""Try removing this native clause and adding @native() or @native('native-name') before the declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverReachableSwitchDefaultError =
+    messageNeverReachableSwitchDefaultError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverReachableSwitchDefaultError = const MessageCode(
+    "NeverReachableSwitchDefaultError",
+    message:
+        r"""`null` encountered as case in a switch expression with a non-nullable enum type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverReachableSwitchDefaultWarning =
+    messageNeverReachableSwitchDefaultWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverReachableSwitchDefaultWarning = const MessageCode(
+    "NeverReachableSwitchDefaultWarning",
+    severity: Severity.warning,
+    message:
+        r"""The default case is not reachable with sound null safety because the switch expression is non-nullable.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverValueError = messageNeverValueError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverValueError = const MessageCode("NeverValueError",
+    message:
+        r"""`null` encountered as the result from expression with type `Never`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNeverValueWarning = messageNeverValueWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNeverValueWarning = const MessageCode(
+    "NeverValueWarning",
+    severity: Severity.warning,
+    message:
+        r"""The expression can not result in a value with sound null safety because the expression type is `Never`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateNoFormals = const Template<
         Message Function(Token token)>(

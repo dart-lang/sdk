@@ -355,7 +355,7 @@ class InferenceVisitor
     for (Expression expression in node.expressions) {
       expressionResults.add(inferrer.inferExpression(
           expression, const UnknownType(), !inferrer.isTopLevel,
-          isVoidAllowed: true));
+          isVoidAllowed: true, forEffect: true));
     }
     List<Statement> body = [];
     for (int index = 0; index < expressionResults.length; index++) {
@@ -711,7 +711,7 @@ class InferenceVisitor
   StatementInferenceResult visitExpressionStatement(ExpressionStatement node) {
     ExpressionInferenceResult result = inferrer.inferExpression(
         node.expression, const UnknownType(), !inferrer.isTopLevel,
-        isVoidAllowed: true);
+        isVoidAllowed: true, forEffect: true);
     node.expression = result.expression..parent = node;
     return const StatementInferenceResult();
   }
@@ -5083,7 +5083,11 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitRethrow(Rethrow node, DartType typeContext) {
     inferrer.flowAnalysis.handleExit();
-    return new ExpressionInferenceResult(const BottomType(), node);
+    return new ExpressionInferenceResult(
+        inferrer.isNonNullableByDefault
+            ? const NeverType(Nullability.nonNullable)
+            : const BottomType(),
+        node);
   }
 
   @override
@@ -5375,6 +5379,7 @@ class InferenceVisitor
     inferrer.flowAnalysis.switchStatement_expressionEnd(node);
 
     bool hasDefault = false;
+    bool lastCaseTerminates = true;
     for (int caseIndex = 0; caseIndex < node.cases.length; ++caseIndex) {
       SwitchCaseImpl switchCase = node.cases[caseIndex];
       hasDefault = hasDefault || switchCase.isDefault;
@@ -5441,19 +5446,56 @@ class InferenceVisitor
         switchCase.body = bodyResult.statement..parent = switchCase;
       }
 
-      if (!inferrer.isTopLevel && inferrer.isNonNullableByDefault) {
-        // The last case block is allowed to complete normally.
-        if (caseIndex < node.cases.length - 1 &&
-            inferrer.flowAnalysis.isReachable) {
-          inferrer.library.addProblem(messageSwitchCaseFallThrough,
-              switchCase.fileOffset, noLength, inferrer.helper.uri);
+      if (inferrer.isNonNullableByDefault) {
+        lastCaseTerminates = !inferrer.flowAnalysis.isReachable;
+        if (!inferrer.isTopLevel) {
+          // The last case block is allowed to complete normally.
+          if (caseIndex < node.cases.length - 1 &&
+              inferrer.flowAnalysis.isReachable) {
+            inferrer.library.addProblem(messageSwitchCaseFallThrough,
+                switchCase.fileOffset, noLength, inferrer.helper.uri);
+          }
         }
       }
     }
     bool isExhaustive =
         hasDefault || (enumFields != null && enumFields.isEmpty);
     inferrer.flowAnalysis.switchStatement_end(isExhaustive);
-    return const StatementInferenceResult();
+    Statement replacement;
+    if (isExhaustive &&
+        !hasDefault &&
+        inferrer.shouldThrowUnsoundnessException) {
+      if (!lastCaseTerminates) {
+        LabeledStatement breakTarget;
+        if (node.parent is LabeledStatement) {
+          breakTarget = node.parent;
+        } else {
+          replacement = breakTarget = new LabeledStatement(node);
+        }
+
+        SwitchCase lastCase = node.cases.last;
+        Statement body = lastCase.body;
+        if (body is Block) {
+          body.statements.add(new BreakStatementImpl(isContinue: false)
+            ..target = breakTarget
+            ..targetStatement = node
+            ..fileOffset = node.fileOffset);
+        }
+      }
+      node.cases.add(new SwitchCase(
+          [],
+          [],
+          _createExpressionStatement(inferrer.createReachabilityError(
+              node.fileOffset,
+              messageNeverReachableSwitchDefaultError,
+              messageNeverReachableSwitchDefaultWarning)),
+          isDefault: true)
+        ..fileOffset = node.fileOffset
+        ..parent = node);
+    }
+    return replacement != null
+        ? new StatementInferenceResult.single(replacement)
+        : const StatementInferenceResult();
   }
 
   @override

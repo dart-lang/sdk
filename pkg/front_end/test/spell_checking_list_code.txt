@@ -863,6 +863,7 @@ rb
 rc
 re
 reach
+reachability
 react
 realign
 realise
@@ -1203,6 +1204,8 @@ unreachable
 unseen
 unshadowed
 unsortable
+unsound
+unsoundness
 unwrapper
 unwraps
 unwritten

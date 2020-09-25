@@ -4307,3 +4307,17 @@ NonVoidReturnSetter:
   script:
     - int set setter(_) {}
     - dynamic set setter(_) {}
+
+NeverReachableSwitchDefaultError:
+  template: "`null` encountered as case in a switch expression with a non-nullable enum type."
+
+NeverReachableSwitchDefaultWarning:
+  template: "The default case is not reachable with sound null safety because the switch expression is non-nullable."
+  severity: WARNING
+
+NeverValueError:
+  template: "`null` encountered as the result from expression with type `Never`."
+
+NeverValueWarning:
+  template: "The expression can not result in a value with sound null safety because the expression type is `Never`."
+  severity: WARNING

@@ -81,7 +81,7 @@ namespace dart {
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x143ed675)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0x89d6a60a)                         \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0xbf682f1c)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0xd5a58efc)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x5f8db5f5)             \
   V(_Double, _add, DoubleAdd, 0x4326962a)                                      \
   V(_Double, _sub, DoubleSub, 0x81077f31)                                      \
@@ -192,7 +192,7 @@ namespace dart {
   V(::, reachabilityFence, ReachabilityFence, 0xad39d0a6)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x78f44c3c)                          \
   V(_Future, timeout, FutureTimeout, 0x010f8ad4)                               \
-  V(Future, wait, FutureWait, 0x486414a9)                                      \
+  V(Future, wait, FutureWait, 0x9a812df7)                                      \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

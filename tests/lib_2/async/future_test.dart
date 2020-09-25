@@ -140,6 +140,17 @@ void testCompleteManySuccessHandlers() {
     Expect.equals(3, after2);
     asyncEnd();
   });
+
+  // Regression test for fix to issue:
+  // https://github.com/dart-lang/sdk/issues/43445
+  asyncStart();
+  Future.wait<int>(<Future<int>>[]).then((list) {
+    Expect.equals(0, list.length);
+    Expect.type<List<int>>(list);
+    Expect.notType<List<Null>>(list);
+    Expect.notType<List<Never>>(list);
+    asyncEnd();
+  });
 }
 
 // Tests for [catchError]

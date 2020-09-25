@@ -275,6 +275,33 @@ class TypeInferrerImpl implements TypeInferrer {
     return type.withDeclaredNullability(library.nonNullable);
   }
 
+  Expression createReachabilityError(
+      int fileOffset, Message errorMessage, Message warningMessage) {
+    if (library.loader.target.context.options.warnOnReachabilityCheck &&
+        warningMessage != null) {
+      helper?.addProblem(warningMessage, fileOffset, noLength);
+    }
+    Arguments arguments;
+    if (errorMessage != null) {
+      arguments = new Arguments(
+          [new StringLiteral(errorMessage.message)..fileOffset = fileOffset])
+        ..fileOffset = fileOffset;
+    } else {
+      arguments = new Arguments([])..fileOffset = fileOffset;
+    }
+    assert(coreTypes.reachabilityErrorConstructor != null);
+    return new Throw(
+        new ConstructorInvocation(
+            coreTypes.reachabilityErrorConstructor, arguments)
+          ..fileOffset = fileOffset)
+      ..fileOffset = fileOffset;
+  }
+
+  /// Returns `true` if exceptions should be thrown in paths reachable only due
+  /// to unsoundness in flow analysis in mixed mode.
+  bool get shouldThrowUnsoundnessException =>
+      isNonNullableByDefault && nnbdMode != NnbdMode.Strong;
+
   void registerIfUnreachableForTesting(TreeNode node, {bool isReachable}) {
     if (dataForTesting == null) return;
     isReachable ??= flowAnalysis.isReachable;
@@ -1561,7 +1588,7 @@ class TypeInferrerImpl implements TypeInferrer {
   /// the expression type and calls the appropriate specialized "infer" method.
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false}) {
+      {bool isVoidAllowed: false, bool forEffect: false}) {
     registerIfUnreachableForTesting(expression);
 
     // `null` should never be used as the type context.  An instance of
@@ -1597,6 +1624,19 @@ class TypeInferrerImpl implements TypeInferrer {
     }
     if (coreTypes.isBottom(result.inferredType)) {
       flowAnalysis.handleExit();
+      if (shouldThrowUnsoundnessException &&
+          // Don't throw on expressions that inherently return the bottom type.
+          !(result.nullAwareAction is Throw ||
+              result.nullAwareAction is Rethrow ||
+              result.nullAwareAction is InvalidExpression)) {
+        Expression replacement = createLet(
+            createVariable(result.expression, result.inferredType),
+            createReachabilityError(expression.fileOffset,
+                messageNeverValueError, messageNeverValueWarning));
+        flowAnalysis.forwardExpression(replacement, result.expression);
+        result =
+            new ExpressionInferenceResult(result.inferredType, replacement);
+      }
     }
     return result;
   }

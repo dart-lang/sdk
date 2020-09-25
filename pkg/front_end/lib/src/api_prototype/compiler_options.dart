@@ -233,6 +233,10 @@ class CompilerOptions {
   /// 'non-nullable' is enabled.
   NnbdMode nnbdMode = NnbdMode.Weak;
 
+  /// Whether to emit a warning when a ReachabilityError is thrown to ensure
+  /// soundness in mixed mode.
+  bool warnOnReachabilityCheck = false;
+
   /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
   /// For instance used for language versioning (specifying the maximum
   /// version).

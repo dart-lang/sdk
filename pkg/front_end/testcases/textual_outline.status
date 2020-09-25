@@ -197,6 +197,7 @@ nnbd_mixed/no_null_shorting_extension: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nnbd_mixed/nullable_extension_on_opt_out: FormatterCrash
 nnbd_mixed/opt_out: FormatterCrash
+nnbd_mixed/unsound_checks: FormatterCrash
 nonfunction_type_aliases/issue41501: FormatterCrash
 rasta/bad_redirection: FormatterCrash
 rasta/issue_000032: FormatterCrash

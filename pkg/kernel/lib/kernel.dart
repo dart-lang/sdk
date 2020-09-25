@@ -16,7 +16,6 @@ library kernel;
 import 'ast.dart';
 import 'binary/ast_to_binary.dart';
 import 'binary/ast_from_binary.dart';
-import 'dart:async';
 import 'dart:io';
 import 'text/ast_to_text.dart';
 

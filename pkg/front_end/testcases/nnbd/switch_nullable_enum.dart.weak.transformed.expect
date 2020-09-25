@@ -8,6 +8,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Enum extends core::Object /*isEnum*/  {
   final field core::int index;
@@ -47,17 +48,20 @@ static method method2(self::Enum? e) → core::int {
       {
         return 1;
       }
+    #L4:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method method3(self::Enum? e) → core::int {
   switch(e) {
-    #L4:
+    #L5:
     case #C3:
     case #C6:
       {
         return 0;
       }
-    #L5:
+    #L6:
     default:
       {
         return 1;
@@ -66,13 +70,13 @@ static method method3(self::Enum? e) → core::int {
 }
 static method method4(self::Enum? e) → core::int {
   switch(e) {
-    #L6:
+    #L7:
     case #C3:
     case #C6:
       {
         return 0;
       }
-    #L7:
+    #L8:
     case #C8:
     default:
       {
