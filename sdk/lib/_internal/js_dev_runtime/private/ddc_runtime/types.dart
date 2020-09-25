@@ -44,6 +44,15 @@ void nonNullAsserts(bool enable) {
   _nonNullAsserts = enable;
 }
 
+@notNull
+bool _nativeNonNullAsserts = false;
+
+/// Enables null assertions on native APIs to make sure value returned from the
+/// browser is sound. These apply to dart:html and similar web libraries.
+void nativeNonNullAsserts(bool enable) {
+  _nativeNonNullAsserts = enable;
+}
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// Types in dart are represented internally at runtime as follows.
