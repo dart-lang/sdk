@@ -94,19 +94,6 @@ class A {
 
 main() => new A();
 '''),
-  const Test('Js-interop class with instance method.', '''
-@JS()
-library test;
-
-import 'package:js/js.dart';
-
-@JS()
-class A {
-  method() {}
-}
-
-main() => new A();
-''', errors: const [MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER]),
   const Test(
       'Js-interop class with abstract getter.',
       '''

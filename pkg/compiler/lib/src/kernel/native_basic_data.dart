@@ -125,15 +125,6 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
               _nativeBasicDataBuilder.markAsJsInteropMember(
                   function, memberName);
             }
-
-            if (!function.isExternal &&
-                !function.isAbstract &&
-                !function.isStatic) {
-              reporter.reportErrorMessage(
-                  function,
-                  MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-                  {'cls': cls.name, 'member': member.name});
-            }
           }
         });
         elementEnvironment.forEachConstructor(cls,

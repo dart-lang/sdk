@@ -9,17 +9,6 @@ import 'package:kernel/kernel.dart';
 bool hasJSInteropAnnotation(Annotatable a) =>
     a.annotations.any(_isPublicJSAnnotation);
 
-/// Returns true if [m] belongs to a JS interop context. Checks if either the
-/// member or the surrounding context has a JS interop annotation.
-bool isJSInteropMember(Member m) {
-  if (hasJSInteropAnnotation(m)) return true;
-  var enclosingClass = m.enclosingClass;
-  if (enclosingClass != null) return hasJSInteropAnnotation(enclosingClass);
-  var enclosingLibrary = m.enclosingLibrary;
-  if (enclosingLibrary != null) return hasJSInteropAnnotation(enclosingLibrary);
-  return false;
-}
-
 /// Returns true if [m] belongs to an anonymous class.
 bool isAnonymousClassMember(Member m) {
   var enclosingClass = m.enclosingClass;

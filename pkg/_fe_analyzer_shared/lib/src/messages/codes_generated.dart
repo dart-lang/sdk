@@ -5670,6 +5670,17 @@ const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
     tip: r"""Try annotating with `external`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropNonExternalMember =
+    messageJsInteropNonExternalMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropNonExternalMember = const MessageCode(
+    "JsInteropNonExternalMember",
+    message:
+        r"""This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
+    tip: r"""Try annotating the member with `external`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(

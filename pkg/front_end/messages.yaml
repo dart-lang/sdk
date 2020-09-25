@@ -4179,6 +4179,10 @@ JsInteropNonExternalConstructor:
   template: "JS interop classes do not support non-external constructors."
   tip: "Try annotating with `external`."
 
+JsInteropNonExternalMember:
+  template: "This JS interop member must be annotated with `external`. Only factories and static methods can be non-external."
+  tip: "Try annotating the member with `external`."
+
 DefaultListConstructorError:
   template: "Can't use the default List constructor."
   tip: "Try using List.filled instead."
