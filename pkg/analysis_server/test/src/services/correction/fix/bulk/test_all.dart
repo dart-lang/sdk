@@ -29,6 +29,7 @@ import 'convert_to_single_quoted_strings_test.dart'
 import 'convert_to_spread_test.dart' as convert_to_spread;
 import 'convert_to_where_type_test.dart' as convert_to_where_type;
 import 'create_method_test.dart' as create_method;
+import 'inline_invocation_test.dart' as inline_invocation;
 import 'make_final_test.dart' as make_final;
 import 'remove_argument_test.dart' as remove_argument;
 import 'remove_await_test.dart' as remove_await;
@@ -83,6 +84,7 @@ void main() {
     convert_to_spread.main();
     convert_to_where_type.main();
     create_method.main();
+    inline_invocation.main();
     make_final.main();
     remove_argument.main();
     remove_await.main();

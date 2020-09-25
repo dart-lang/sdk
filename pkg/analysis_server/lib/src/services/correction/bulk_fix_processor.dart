@@ -27,6 +27,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_relative
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
 import 'package:analysis_server/src/services/correction/dart/create_method.dart';
+import 'package:analysis_server/src/services/correction/dart/inline_invocation.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_argument.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
@@ -174,6 +175,10 @@ class BulkFixProcessor {
     ],
     LintNames.prefer_if_null_operators: [
       ConvertToIfNull.newInstance,
+    ],
+    LintNames.prefer_inlined_adds: [
+      ConvertAddAllToSpread.newInstance,
+      InlineInvocation.newInstance,
     ],
     LintNames.prefer_int_literals: [
       ConvertToIntLiteral.newInstance,
