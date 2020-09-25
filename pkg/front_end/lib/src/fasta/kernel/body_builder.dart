@@ -2455,7 +2455,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         isConst: isConst,
         isLate: isLate,
         isRequired: isRequired,
-        hasDeclaredInitializer: initializer != null)
+        hasDeclaredInitializer: initializer != null,
+        isStaticLate: libraryBuilder.isNonNullableByDefault &&
+            isFinal &&
+            initializer == null)
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer?.assignedVariables?.declare(variable);
@@ -2728,7 +2731,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleForInitializerLocalVariableDeclaration(Token token, bool forIn) {
     debugEvent("ForInitializerLocalVariableDeclaration");
-    if (!forIn) {
+    if (forIn) {
+      // If the declaration is of the form `for (final x in ...)`, then we may
+      // have erroneously set the `isStaticLate` flag, so un-set it.
+      Object declaration = peek();
+      if (declaration is VariableDeclarationImpl) {
+        declaration.isStaticLate = false;
+      }
+    } else {
       // This is matched by the call to [deferNode] in [endForStatement] or
       // [endForControlFlow].
       typeInferrer?.assignedVariables?.beginNode();

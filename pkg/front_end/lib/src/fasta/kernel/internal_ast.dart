@@ -1426,6 +1426,14 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // TODO(ahe): Investigate if this can be removed.
   final bool isLocalFunction;
 
+  /// Whether the variable is final with no initializer in a null safe library.
+  ///
+  /// Such variables behave similar to those declared with the `late` keyword,
+  /// except that the don't have lazy evaluation semantics, and it is statically
+  /// verified by the front end that they are always assigned before they are
+  /// used.
+  bool isStaticLate;
+
   VariableDeclarationImpl(String name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
       this.hasDeclaredInitializer: false,
@@ -1437,7 +1445,8 @@ class VariableDeclarationImpl extends VariableDeclaration {
       bool isCovariant: false,
       bool isLocalFunction: false,
       bool isLate: false,
-      bool isRequired: false})
+      bool isRequired: false,
+      this.isStaticLate: false})
       : isImplicitlyTyped = type == null,
         isLocalFunction = isLocalFunction,
         super(name,
@@ -1455,6 +1464,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
+        isStaticLate = false,
         hasDeclaredInitializer = true,
         super.forValue(initializer);
 
@@ -1463,6 +1473,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
+        isStaticLate = false,
         hasDeclaredInitializer = true,
         super.forValue(initializer);
 
@@ -1490,6 +1501,12 @@ class VariableDeclarationImpl extends VariableDeclaration {
   // This is set in `InferenceVisitor.visitVariableDeclaration` when late
   // lowering is enabled.
   DartType lateType;
+
+  @override
+  bool get isAssignable {
+    if (isStaticLate) return true;
+    return super.isAssignable;
+  }
 
   @override
   void toTextInternal(AstPrinter printer) {
