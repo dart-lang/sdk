@@ -20,22 +20,9 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart'
     show CompileTimeErrorCode, StrongModeCode;
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:meta/meta.dart';
 
-/// Given an [expression] and a corresponding [typeSystem] and [typeProvider],
-/// gets the known static type of the expression.
-DartType getExpressionType(
-    Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
-    {bool read = false}) {
-  DartType type;
-  if (read) {
-    type = getReadType(expression);
-  } else {
-    type = expression.staticType;
-  }
-  type ??= DynamicTypeImpl.instance;
-  return type;
-}
-
+@Deprecated('Use CompoundAssignmentExpression.readType')
 DartType getReadType(Expression expression) {
   if (expression is IndexExpression) {
     var aux = expression.auxiliaryElements;
@@ -148,8 +135,8 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void checkAssignment(Expression expr, DartType type) {
-    checkForCast(expr, type);
+  void checkAssignment(Expression expr, DartType to) {
+    checkForCast(expr, from: expr.staticType, to: to);
   }
 
   /// Analyzer checks boolean conversions, but we need to check too, because
@@ -176,20 +163,26 @@ class CodeChecker extends RecursiveAstVisitor {
 
       var exprType = element.expression.staticType;
       var asIterableType = exprType.asInstanceOf(typeProvider.iterableElement);
-      var elementType =
-          asIterableType == null ? null : asIterableType.typeArguments[0];
-      // Items in the spread will then potentially be downcast to the expected
-      // type.
-      _checkImplicitCast(element.expression, expectedType,
-          from: elementType, forSpread: true);
+
+      if (asIterableType != null) {
+        var elementType = asIterableType.typeArguments[0];
+        // Items in the spread will then potentially be downcast to the expected
+        // type.
+        _checkImplicitCast(element.expression,
+            to: expectedType, from: elementType, forSpread: true);
+      }
     }
   }
 
-  void checkForCast(Expression expr, DartType type) {
+  void checkForCast(
+    Expression expr, {
+    @required DartType from,
+    @required DartType to,
+  }) {
     if (expr is ParenthesizedExpression) {
-      checkForCast(expr.expression, type);
+      checkForCast(expr.expression, from: from, to: to);
     } else {
-      _checkImplicitCast(expr, type);
+      _checkImplicitCast(expr, from: from, to: to);
     }
   }
 
@@ -214,16 +207,18 @@ class CodeChecker extends RecursiveAstVisitor {
       var exprType = element.expression.staticType;
       var asMapType = exprType.asInstanceOf(typeProvider.mapElement);
 
-      var elementKeyType =
-          asMapType == null ? null : asMapType.typeArguments[0];
-      var elementValueType =
-          asMapType == null ? null : asMapType.typeArguments[1];
-      // Keys and values in the spread will then potentially be downcast to
-      // the expected types.
-      _checkImplicitCast(element.expression, expectedKeyType,
-          from: elementKeyType, forSpreadKey: true);
-      _checkImplicitCast(element.expression, expectedValueType,
-          from: elementValueType, forSpreadValue: true);
+      if (asMapType != null) {
+        var elementKeyType = asMapType.typeArguments[0];
+        var elementValueType = asMapType.typeArguments[1];
+        // Keys and values in the spread will then potentially be downcast to
+        // the expected types.
+        _checkImplicitCast(element.expression,
+            to: expectedKeyType, from: elementKeyType, forSpreadKey: true);
+        _checkImplicitCast(element.expression,
+            to: expectedValueType,
+            from: elementValueType,
+            forSpreadValue: true);
+      }
     }
   }
 
@@ -241,16 +236,17 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
+    var left = node.leftHandSide;
+    var right = node.rightHandSide;
     Token operator = node.operator;
     TokenType operatorType = operator.type;
     if (operatorType == TokenType.EQ ||
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      DartType staticType = _getExpressionType(node.leftHandSide);
-      checkAssignment(node.rightHandSide, staticType);
+      checkForCast(right, from: right.staticType, to: node.writeType);
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operatorType == TokenType.BAR_BAR_EQ) {
-      checkAssignment(node.leftHandSide, typeProvider.boolType);
-      checkAssignment(node.rightHandSide, typeProvider.boolType);
+      checkBoolean(left);
+      checkBoolean(right);
     } else {
       _checkCompoundAssignment(node);
     }
@@ -457,7 +453,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _checkUnary(node.operand, node.operator, node.staticElement);
+    _checkUnary(node.operand, node.operator, node.staticElement,
+        readType: node.readType, writeType: node.writeType);
     node.visitChildren(this);
   }
 
@@ -466,7 +463,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.operator.type == TokenType.BANG) {
       checkBoolean(node.operand);
     } else {
-      _checkUnary(node.operand, node.operator, node.staticElement);
+      _checkUnary(node.operand, node.operator, node.staticElement,
+          readType: node.readType, writeType: node.writeType);
     }
     node.visitChildren(this);
   }
@@ -588,7 +586,8 @@ class CodeChecker extends RecursiveAstVisitor {
       for (VariableDeclaration variable in node.variables) {
         var initializer = variable.initializer;
         if (initializer != null) {
-          checkForCast(initializer, type.type);
+          checkForCast(initializer,
+              from: initializer.staticType, to: type.type);
         }
       }
     }
@@ -622,10 +621,9 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(functionType.optionalParameterTypes.isEmpty);
 
       // Refine the return type.
-      var rhsType = _getExpressionType(expr.rightHandSide);
-      var lhsType = _getExpressionType(expr.leftHandSide);
+      var rhsType = expr.rightHandSide.staticType;
       var returnType = rules.refineBinaryExpressionType(
-        lhsType,
+        expr.readType,
         op,
         rhsType,
         functionType.returnType,
@@ -633,7 +631,7 @@ class CodeChecker extends RecursiveAstVisitor {
       );
 
       // Check the argument for an implicit cast.
-      _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
+      _checkImplicitCast(expr.rightHandSide, to: paramTypes[0], from: rhsType);
 
       // Check the return type for an implicit cast.
       //
@@ -643,8 +641,8 @@ class CodeChecker extends RecursiveAstVisitor {
       //     y = /*implicit cast*/(y + 42);
       //     /*implicit assignment cast*/y += 42;
       //
-      _checkImplicitCast(expr.leftHandSide, lhsType,
-          from: returnType, opAssign: true);
+      _checkImplicitCast(expr.leftHandSide,
+          to: expr.writeType, from: returnType, opAssign: true);
     }
   }
 
@@ -694,8 +692,9 @@ class CodeChecker extends RecursiveAstVisitor {
   ///
   /// If [expr] does not require an implicit cast because it is not related to
   /// [to] or is already a subtype of it, does nothing.
-  void _checkImplicitCast(Expression expr, DartType to,
-      {DartType from,
+  void _checkImplicitCast(Expression expr,
+      {@required DartType to,
+      @required DartType from,
       bool opAssign = false,
       bool forSpread = false,
       bool forSpreadKey = false,
@@ -704,9 +703,7 @@ class CodeChecker extends RecursiveAstVisitor {
       return;
     }
 
-    from ??= _getExpressionType(expr);
-
-    if (_needsImplicitCast(expr, to, from: from) == true) {
+    if (_needsImplicitCast(expr, to: to, from: from) == true) {
       _recordImplicitCast(expr, to,
           from: from,
           opAssign: opAssign,
@@ -730,7 +727,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expression != null) checkAssignment(expression, type);
   }
 
-  void _checkUnary(Expression operand, Token op, MethodElement element) {
+  void _checkUnary(Expression operand, Token op, MethodElement element,
+      {@required DartType readType, @required DartType writeType}) {
     bool isIncrementAssign = op.type.isIncrementOperator;
     if (op.isUserDefinableOperator || isIncrementAssign) {
       if (element != null && isIncrementAssign) {
@@ -744,9 +742,8 @@ class CodeChecker extends RecursiveAstVisitor {
         // Refine the return type.
         var functionType = element.type;
         var rhsType = typeProvider.intType;
-        var lhsType = _getExpressionType(operand);
         var returnType = rules.refineBinaryExpressionType(
-          lhsType,
+          readType,
           TokenType.PLUS,
           rhsType,
           functionType.returnType,
@@ -763,7 +760,8 @@ class CodeChecker extends RecursiveAstVisitor {
         //     y = /*implicit cast*/(y + 1);
         //     /*implicit assignment cast*/y++;
         //
-        _checkImplicitCast(operand, lhsType, from: returnType, opAssign: true);
+        _checkImplicitCast(operand,
+            to: writeType, from: returnType, opAssign: true);
       }
     }
   }
@@ -827,9 +825,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  DartType _getExpressionType(Expression expr) =>
-      getExpressionType(expr, rules, typeProvider);
-
   DartType _getInstanceTypeArgument(
       DartType expressionType, ClassElement instanceType) {
     var asInstanceType = expressionType.asInstanceOf(instanceType);
@@ -860,9 +855,8 @@ class CodeChecker extends RecursiveAstVisitor {
   /// downcast implicitly).
   ///
   /// If [from] is omitted, uses the static type of [expr]
-  bool _needsImplicitCast(Expression expr, DartType to, {DartType from}) {
-    from ??= _getExpressionType(expr);
-
+  bool _needsImplicitCast(Expression expr,
+      {@required DartType from, @required DartType to}) {
     // Void is considered Top, but may only be *explicitly* cast.
     if (from.isVoid) return null;
 
@@ -886,8 +880,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (to.isDartAsyncFutureOr) {
       var to1 = (to as InterfaceType).typeArguments[0];
       var to2 = typeProvider.futureType2(to1);
-      return _needsImplicitCast(expr, to1, from: from) == true ||
-          _needsImplicitCast(expr, to2, from: from) == true;
+      return _needsImplicitCast(expr, to: to1, from: from) == true ||
+          _needsImplicitCast(expr, to: to2, from: from) == true;
     }
 
     // Anything else is an illegal sideways cast.
@@ -1021,7 +1015,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var sequenceElement = awaitKeyword != null
         ? typeProvider.streamElement
         : typeProvider.iterableElement;
-    var iterableType = _getExpressionType(node.iterable);
+    var iterableType = node.iterable.staticType;
     var elementType = _getInstanceTypeArgument(iterableType, sequenceElement);
 
     // If the sequence is not an Iterable (or Stream for await for) but is a
@@ -1043,8 +1037,8 @@ class CodeChecker extends RecursiveAstVisitor {
     if (elementType != null) {
       // Insert a cast from the sequence's element type to the loop variable's
       // if needed.
-      _checkImplicitCast(loopVariable, loopVariableElement.type,
-          from: elementType);
+      _checkImplicitCast(loopVariable,
+          to: loopVariableElement.type, from: elementType);
     }
   }
 }

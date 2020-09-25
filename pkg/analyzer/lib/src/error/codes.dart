@@ -697,14 +697,52 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "or removing the 'await' before the for loop.");
 
   /**
-   * nnbd/feature-specification.md
-   *
-   * It is an error for the initializer expression of a `late` local variable
-   * to use a prefix `await` expression.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a local variable that has the
+  // 'late' modifier uses an 'await' expression in the initializer.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because an 'await' expression
+  // is used in the initializer for 'v', a local variable that is marked 'late':
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // Future<int> f() async {
+  //   late v = [!await!] 42;
+  //   return v;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the initializer can be rewritten to not use 'await', then rewrite it:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // Future<int> f() async {
+  //   late v = 42;
+  //   return v;
+  // }
+  // ```
+  //
+  // If the initializer can't be rewritten, then remove the 'late' modifier:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // Future<int> f() async {
+  //   var v = await 42;
+  //   return v;
+  // }
+  // ```
   static const CompileTimeErrorCode AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER =
-      CompileTimeErrorCode('AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
-          "The await expression can't be used in a 'late' local variable.",
+      CompileTimeErrorCode(
+          'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
+          "The 'await' expression can't be used in a 'late' local variable's "
+              "initializer.",
           correction:
               "Try removing the 'late' modifier, or rewriting the initializer "
               "without using the 'await' expression.");
@@ -1372,19 +1410,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "removing the keyword 'const'.");
 
   /**
-   * 10.6.3 Constant Constructors: It is a compile-time error if a constant
-   * constructor is declared by a class C if any instance variable declared in C
-   * is initialized with an expression that is not a constant expression.
-   *
    * Parameters:
    * 0: the name of the field
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor has the keyword
+  // `const`, but a field in the class is initialized to a non-constant value.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the field `s` is
+  // initialized to a non-constant value:
+  //
+  // ```dart
+  // class C {
+  //   final String s = 3.toString();
+  //   [!const!] C();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field can be initialized to a constant value, then change the
+  // initializer to a constant expression:
+  //
+  // ```dart
+  // class C {
+  //   final String s = '3';
+  //   const C();
+  // }
+  // ```
+  //
+  // If the field can't be initialized to a constant value, then remove the
+  // keyword `const` from the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final String s = 3.toString();
+  //   C();
+  // }
+  // ```
   static const CompileTimeErrorCode
       CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST =
       CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
-          "Can't define the const constructor because the field '{0}' "
-              "is initialized with a non-constant value.",
+          "Can't define the 'const' constructor because the field '{0}' is "
+              "initialized with a non-constant value.",
           correction: "Try initializing the field to a constant value, or "
               "removing the keyword 'const' from the constructor.");
 
@@ -1927,15 +1999,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 16.12.2 Const: It is a compile-time error if <i>T</i> is not a class
-   * accessible in the current scope, optionally followed by type arguments.
-   *
-   * 16.12.2 Const: If <i>e</i> is of the form <i>const T.id(a<sub>1</sub>,
-   * &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
-   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a compile-time error if
-   * <i>T</i> is not a class accessible in the current scope, optionally
-   * followed by type arguments.
-   *
    * Parameters:
    * 0: the name of the non-type element
    */
@@ -2035,17 +2098,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a list literal, 'List.filled' or "
               "'List.generate'.",
           hasPublishedDocs: true);
-
-  /**
-   * 6.2.1 Required Formals: By means of a function signature that names the
-   * parameter and describes its type as a function type. It is a compile-time
-   * error if any default values are specified in the signature of such a
-   * function type.
-   */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER =
-      CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER',
-          "Default values aren't allowed in function typed parameters.",
-          correction: "Try removing the default value.");
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> explicitly
@@ -2601,6 +2653,58 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: The name of the disallowed type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when one of the restricted classes is
+  // used in either an `extends`, `implements`, `with`, or `on` clause. The
+  // classes `bool`, `double`, `FutureOr`, `int`, `Null`, `num`, and `String`
+  // are all restricted in this way, to allow for more efficient
+  // implementations.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `String` is used in an
+  // `extends` clause:
+  //
+  // ```dart
+  // class A extends [!String!] {}
+  // ```
+  //
+  // The following code produces this diagnostic because `String` is used in an
+  // `implements` clause:
+  //
+  // ```dart
+  // class B implements [!String!] {}
+  // ```
+  //
+  // The following code produces this diagnostic because `String` is used in a
+  // `with` clause:
+  //
+  // ```dart
+  // class C with [!String!] {}
+  // ```
+  //
+  // The following code produces this diagnostic because `String` is used in an
+  // `on` clause:
+  //
+  // ```dart
+  // mixin M on [!String!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If a different type should be specified, then replace the type:
+  //
+  // ```dart
+  // class A extends Object {}
+  // ```
+  //
+  // If there isn't a different type that would be appropriate, then remove the
+  // type, and possibly the whole clause:
+  //
+  // ```dart
+  // class B {}
+  // ```
   static const CompileTimeErrorCode EXTENDS_DISALLOWED_CLASS =
       // TODO(scheglov) We might want to restore specific code with FrontEnd.
       //  https://github.com/dart-lang/sdk/issues/31821
@@ -3578,19 +3682,59 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try changing the types so that they are compatible.");
 
   /**
-   * nnbd/feature-specification.md
-   *
-   * It is an error if a class has a setter and a getter with the same basename
-   * where the return type of the getter is not a subtype of the argument type
-   * of the setter. Note that this error specifically requires subtyping and
-   * not assignability and hence makes no exception for `dynamic`.
-   *
    * Parameters:
    * 0: the name of the getter
    * 1: the type of the getter
    * 2: the type of the setter
    * 3: the name of the setter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the return type of a getter
+  // isn't a subtype of the type of the parameter of a setter with the same
+  // name.
+  //
+  // The subtype relationship is a requirement whether the getter and setter are
+  // in the same class or whether one of them is in a superclass of the other.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the return type of the
+  // getter `x` is `num`, the parameter type of the setter `x` is `int`, and
+  // `num` isn't a subtype of `int`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   num get [!x!] => 0;
+  //
+  //   set x(int y) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type of the getter is correct, then change the type of the setter:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   num get x => 0;
+  //
+  //   set x(num y) {}
+  // }
+  // ```
+  //
+  // If the type of the setter is correct, then change the type of the getter:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class C {
+  //   int get x => 0;
+  //
+  //   set x(int y) {}
+  // }
+  // ```
   static const CompileTimeErrorCode GETTER_NOT_SUBTYPE_SETTER_TYPES =
       CompileTimeErrorCode(
           'GETTER_NOT_SUBTYPE_SETTER_TYPES',
@@ -4371,11 +4515,74 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "-9,223,372,036,854,775,808.");
 
   /**
-   * 15 Metadata: Metadata consists of a series of annotations, each of which
-   * begin with the character @, followed by a constant expression that must be
-   * either a reference to a compile-time constant variable, or a call to a
-   * constant constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an annotation is found that is
+  // using something that is neither a variable marked as `const` or the
+  // invocation of a `const` constructor.
+  //
+  // Getters can't be used as annotations.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the variable `v` isn't
+  // a `const` variable:
+  //
+  // ```dart
+  // var v = 0;
+  //
+  // [!@v!]
+  // void f() {
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `f` isn't a variable:
+  //
+  // ```dart
+  // [!@f!]
+  // void f() {
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `f` isn't a
+  // constructor:
+  //
+  // ```dart
+  // [!@f()!]
+  // void f() {
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because `g` is a getter:
+  //
+  // ```dart
+  // [!@g!]
+  // int get g => 0;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the annotation is referencing a variable that isn't a `const`
+  // constructor, add the keyword `const` to the variable's declaration:
+  //
+  // ```dart
+  // const v = 0;
+  //
+  // @v
+  // void f() {
+  // }
+  // ```
+  //
+  // If the annotation isn't referencing a variable, then remove it:
+  //
+  // ```dart
+  // int v = 0;
+  //
+  // void f() {
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_ANNOTATION = CompileTimeErrorCode(
       'INVALID_ANNOTATION',
       "Annotation must be either a const variable reference or const "
@@ -5099,11 +5306,51 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "correcting the name to match an existing label.");
 
   /**
-   * nnbd/feature-specification.md
-   *
-   * It is an error for a class with a `const` constructor to have a
-   * `late final` field.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a class that has at least one
+  // `const` constructor also has a field marked both `late` and `final`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the class `A` has a
+  // `const` constructor and the `final` field `f` is marked as `late`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class A {
+  //   [!late!] final int f;
+  //
+  //   const A();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field doesn't need to be marked `late`, then remove the `late`
+  // modifier from the field:
+  //
+  // ```dart
+  // class A {
+  //   final int f = 0;
+  //
+  //   const A();
+  // }
+  // ```
+  //
+  // If the field must be marked `late`, then remove the `const` modifier from
+  // the constructors:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // class A {
+  //   late final int f;
+  //
+  //   A();
+  // }
+  // ```
   static const CompileTimeErrorCode LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR =
       CompileTimeErrorCode('LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
           "Can't have a late final field in a class with a const constructor.",
@@ -5111,14 +5358,61 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "'const' constructors.");
 
   /**
-   * nnbd/feature-specification.md
-   *
-   * It is a compile time error to assign a value to a local variable marked
-   * `late` and `final` when the variable is definitely assigned.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the analyzer can prove that a
+  // local variable marked as both `late` and `final` was already assigned a
+  // value at the point where another assignment occurs.
+  //
+  // Because `final` variables can only be assigned once, subsequent assignments
+  // are guaranteed to fail, so they're flagged.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the `final` variable
+  // `v` is assigned a value in two places:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f() {
+  //   late final int v;
+  //   v = 0;
+  //   [!v!] += 1;
+  //   return v;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you need to be able to reassign the variable, then remove the `final`
+  // keyword:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f() {
+  //   late int v;
+  //   v = 0;
+  //   v += 1;
+  //   return v;
+  // }
+  // ```
+  //
+  // If you don't need to reassign the variable, then remove all except the
+  // first of the assignments:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // int f() {
+  //   late final int v;
+  //   v = 0;
+  //   return v;
+  // }
+  // ```
   static const CompileTimeErrorCode LATE_FINAL_LOCAL_ALREADY_ASSIGNED =
       CompileTimeErrorCode('LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
-          "The late final local variable is already definitely assigned.",
+          "The late final local variable is already assigned.",
           correction: "Try removing the 'final' modifier, or don't reassign "
               "the value.");
 
@@ -5617,7 +5911,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCodeWithUniqueName(
           'SUBTYPE_OF_DISALLOWED_TYPE',
           'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
-          "'{0}' can't be used as a super-class constraint.",
+          "''{0}' can't be used as a superclass constraint.",
           correction: "Try specifying a different super-class constraint, or "
               "remove the 'on' clause.");
 
@@ -5692,12 +5986,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing all but one of the 'super' initializers.");
 
   /**
-   * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible
-   * in the current scope, optionally followed by type arguments.
-   *
    * Parameters:
    * 0: the name of the non-type element
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an instance creation using
+  // either `new` or `const` specifies a name that isn't defined as a class.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `f` is a function
+  // rather than a class:
+  //
+  // ```dart
+  // int f() => 0;
+  //
+  // void g() {
+  //   new [!f!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If a class should be created, then replace the invalid name with the name
+  // of a valid class:
+  //
+  // ```dart
+  // int f() => 0;
+  //
+  // void g() {
+  //   new Object();
+  // }
+  // ```
+  //
+  // If the name is the name of a function and you want that function to be
+  // invoked, then remove the `new` or `const` keyword:
+  //
+  // ```dart
+  // int f() => 0;
+  //
+  // void g() {
+  //   f();
+  // }
+  // ```
   static const CompileTimeErrorCode NEW_WITH_NON_TYPE =
       CompileTimeErrorCodeWithUniqueName('CREATION_WITH_NON_TYPE',
           'NEW_WITH_NON_TYPE', "The name '{0}' isn't a class.",
@@ -5820,22 +6152,64 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * A method `m` of a class `C` is subject to override inference if it is
-   * missing one or more component types of its signature, and one or more of
-   * the direct superinterfaces of `C` has a member named `m` (*that is, `C.m`
-   * overrides one or more declarations*).  Each missing type is filled in with
-   * the corresponding type from the combined member signature `s` of `m` in
-   * the direct superinterfaces of `C`.
-   *
-   * A compile-time error occurs if `s` does not exist.
-   *
    * Parameters:
    * 0: the name of the class where override error was detected
    * 1: the list of candidate signatures which cannot be combined
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when there is a method declaration
+  // for which one or more types needs to be inferred, and those types can't be
+  // inferred because none of the overridden methods has a function type that is
+  // a supertype of all the other overridden methods, as specified by
+  // [override inference][].
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the method `m` declared
+  // in the class `C` is missing both the return type and the type of the
+  // parameter `a`, and neither of the missing types can be inferred for it:
+  //
+  // ```dart
+  // abstract class A {
+  //   A m(String a);
+  // }
+  //
+  // abstract class B {
+  //   B m(int a);
+  // }
+  //
+  // abstract class C implements A, B {
+  //   [!m!](a);
+  // }
+  // ```
+  //
+  // In this example, override inference can't be performed because the
+  // overridden methods are incompatible in these ways:
+  // - Neither parameter type (`String` and `int`) is a supertype of the other.
+  // - Neither return type is a subtype of the other.
+  //
+  // #### Common fixes
+  //
+  // If possible, add types to the method in the subclass that are consistent
+  // with the types from all the overridden methods:
+  //
+  // ```dart
+  // abstract class A {
+  //   A m(String a);
+  // }
+  //
+  // abstract class B {
+  //   B m(int a);
+  // }
+  //
+  // abstract class C implements A, B {
+  //   C m(Object a);
+  // }
+  // ```
   static const CompileTimeErrorCode NO_COMBINED_SUPER_SIGNATURE =
       CompileTimeErrorCode('NO_COMBINED_SUPER_SIGNATURE',
-          "No valid combined signature in superinterfaces of '{0}': {1}.",
+          "Can't infer missing types in '{0}' from overridden methods: {1}.",
           correction: "Try providing explicit types for this method's "
               "parameters and return type.");
 
@@ -7485,9 +7859,44 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "different part.");
 
   /**
-   * 14.1 Imports: It is a compile-time error if the current library declares a
-   * top-level member named <i>p</i>.
+   * Parameters:
+   * 0: The name of the prefix
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name is used as both an import
+  // prefix and the name of a top-level declaration in the same library.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because `f` is used as both an
+  // import prefix and the name of a function:
+  //
+  // ```dart
+  // import 'dart:math' as f;
+  //
+  // int [!f!]() => f.min(0, 1);
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you want to use the name for the import prefix, then rename the
+  // top-level declaration:
+  //
+  // ```dart
+  // import 'dart:math' as f;
+  //
+  // int g() => f.min(0, 1);
+  // ```
+  //
+  // If you want to use the name for the top-level declaration, then rename the
+  // import prefix:
+  //
+  // ```dart
+  // import 'dart:math' as math;
+  //
+  // int f() => math.min(0, 1);
+  // ```
   static const CompileTimeErrorCode PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER =
       CompileTimeErrorCode(
           'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
@@ -9679,9 +10088,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when an inherited member is
-  // referenced using `super`, but there’s no member with that name in the
-  // superclass chain.
+  // The analyzer produces this diagnostic when an inherited member (method,
+  // getter, setter, or operator) is referenced using `super`, but there’s no
+  // member with that name in the superclass chain.
   //
   // #### Examples
   //
@@ -9715,8 +10124,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // If the member you intend to invoke is defined in the same class, then
   // remove the `super.`.
   //
-  // If not, then either add the member to one of the superclasses or remove the
-  // invocation.
+  // If the member isn’t defined, then either add the member to one of the
+  // superclasses or remove the invocation.
   static const CompileTimeErrorCode UNDEFINED_SUPER_METHOD =
       CompileTimeErrorCodeWithUniqueName(
           'UNDEFINED_SUPER_MEMBER',
@@ -10213,19 +10622,59 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try adjusting the number of type arguments.");
 
   /**
-   * It will be a static type warning if <i>m</i> is not a generic method with
-   * exactly <i>n</i> type parameters.
-   *
    * Parameters:
    * 0: the name of the method being referenced (<i>G</i>)
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function is invoked
+  // with a different number of type arguments than the number of type
+  // parameters specified in its declaration. There must either be no type
+  // arguments or the number of arguments must match the number of parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the invocation of the
+  // method `m` has two type arguments, but the declaration of `m` only has one
+  // type parameter:
+  //
+  // ```dart
+  // class C {
+  //   int m<A>(A a) => 0;
+  // }
+  //
+  // int f(C c) => c.m[!<int, int>!](2);
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the type arguments are necessary, then make them match the number of
+  // type parameters by either adding or removing type arguments:
+  //
+  // ```dart
+  // class C {
+  //   int m<A>(A a) => 0;
+  // }
+  //
+  // int f(C c) => c.m<int>(2);
+  // ```
+  //
+  // If the type arguments aren't necessary, then remove them:
+  //
+  // ```dart
+  // class C {
+  //   int m<A>(A a) => 0;
+  // }
+  //
+  // int f(C c) => c.m(2);
+  // ```
   static const CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
       CompileTimeErrorCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
-          "The method '{0}' is declared with {1} type parameters, "
-              "but {2} type arguments were given.",
+          "The method '{0}' is declared with {1} type parameters, but {2} type "
+              "arguments are given.",
           correction: "Try adjusting the number of type arguments.");
 
   /**
@@ -10538,7 +10987,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a null-aware operator (`?.`,
-  // `?..`, `?[`, `?..[`, or `...?`) is used on a receiver that's known to be
+  // `?..`, `?[`, `?..[`, or `...?`) is used on a target that's known to be
   // non-nullable.
   //
   // #### Example
@@ -10559,6 +11008,26 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // var a = [];
   // var b = [[!...?!]a];
   // ```
+  //
+  // The following code produces this diagnostic because `s?.length` can't
+  // return `null`:
+  //
+  // ```dart
+  // %experiments=non-nullable
+  // void f(String? s) {
+  //   s?.length[!?.!]isEven;
+  // }
+  // ```
+  //
+  // The reason `s?.length` can't return `null` is because the null-aware
+  // operator following `s` short-circuits the evaluation of both `length` and
+  // `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
+  // `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
+  // `length` can't return a `null` value. Either way, `isEven` can't be invoked
+  // on a `null` value, so the null-aware operator is neither necessary nor
+  // allowed. See
+  // [Understanding null safety](https://dart.dev/null-safety/understanding-null-safety#smarter-null-aware-methods)
+  // for more details.
   //
   // #### Common fixes
   //

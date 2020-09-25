@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [PostfixExpression]s.
@@ -228,7 +227,7 @@ class PostfixExpressionResolver {
     operand.accept(_resolver);
     operand = node.operand;
 
-    var operandType = getReadType(operand);
+    var operandType = operand.staticType;
 
     var type = _typeSystem.promoteToNonNull(operandType);
     _inferenceHelper.recordStaticType(node, type);

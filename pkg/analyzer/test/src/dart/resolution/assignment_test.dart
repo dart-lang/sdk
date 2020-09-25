@@ -466,21 +466,14 @@ void f(num x, int y) {
   }
 
   test_notLValue_postfixIncrement_compound_ifNull() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 void f(num x, int y) {
   x++ ??= y;
 }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
-      ], legacy: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-      ]),
-    );
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+    ]);
 
     assertAssignment(
       findNode.assignment('= y'),
@@ -557,21 +550,14 @@ void f(num x, int y) {
   }
 
   test_notLValue_prefixIncrement_compound_ifNull() async {
-    await assertErrorsInCode(
-      '''
+    await assertErrorsInCode('''
 void f(num x, int y) {
   ++x ??= y;
 }
-''',
-      expectedErrorsByNullability(nullable: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 33, 1),
-      ], legacy: [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
-      ]),
-    );
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+    ]);
 
     assertAssignment(
       findNode.assignment('= y'),

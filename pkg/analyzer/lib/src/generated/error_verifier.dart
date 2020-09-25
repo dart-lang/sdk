@@ -40,7 +40,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:meta/meta.dart';
 
 class EnclosingExecutableContext {
@@ -319,8 +318,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
     if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(
-          getReadType(node.leftHandSide), node.rightHandSide);
+      _checkForDeadNullCoalesce(node.readType, node.rightHandSide);
     }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
@@ -355,8 +353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (type == TokenType.QUESTION_QUESTION) {
-      _checkForDeadNullCoalesce(
-          getReadType(node.leftOperand), node.rightOperand);
+      _checkForDeadNullCoalesce(node.leftOperand.staticType, node.rightOperand);
     }
 
     _checkForUseOfVoidResult(node.leftOperand);
@@ -533,7 +530,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     _checkForInvalidAssignment(node.identifier, node.defaultValue);
-    _checkForDefaultValueInFunctionTypedParameter(node);
     super.visitDefaultFormalParameter(node);
   }
 
@@ -2216,26 +2212,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         rhs,
       );
     }
-  }
-
-  /// Verify that the given default formal [parameter] is not part of a function
-  /// typed parameter.
-  ///
-  /// See [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER].
-  void _checkForDefaultValueInFunctionTypedParameter(
-      DefaultFormalParameter parameter) {
-    // OK, not in a function typed parameter.
-    if (!_isInFunctionTypedFormalParameter) {
-      return;
-    }
-    // OK, no default value.
-    if (parameter.defaultValue == null) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
-        parameter);
   }
 
   /// Report a diagnostic if there are any extensions in the imported library

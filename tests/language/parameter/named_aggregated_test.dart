@@ -27,8 +27,6 @@ class NamedParametersAggregatedTests {
   // Expect compile-time error as no default values
   // are allowed in closure type.
   void InstallCallback(void cb({String? msg : null})?) {
-  //                            ^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER
   //                                        ^
   // [analyzer] SYNTACTIC_ERROR.DEFAULT_VALUE_IN_FUNCTION_TYPE
   // [cfe] Can't have a default value in a function type.
